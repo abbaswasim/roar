@@ -48,12 +48,13 @@ There is no concept of degrees in Roar. You can only use radians. If any method 
 ### Order of euler angles
 
 Roar uses NASA standard aeroplane conventions as described on page: https://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
-Coordinate System: right hand
-Positive angle: right hand
-Order of euler angles: heading first, then attitude, then bank (YZX)
-heading=Y
-attitude=Z
-bank=X
+
+- Coordinate System: right hand
+- Positive angle: right hand
+- Order of euler angles: heading first, then attitude, then bank (YZX)
+ - heading=Y
+ - attitude=Z
+ - bank=X
 
 ## Third party
 
