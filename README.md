@@ -9,9 +9,9 @@ This is my personal playground, where I have freedom of getting dirty and creati
 ## Platforms
 
 - GLFW
---MacOs
---Linux
---Windows (Eventually)
+   -MacOs
+   -Linux
+   -Windows (Eventually)
 - Android
 - iOS
 
