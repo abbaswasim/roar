@@ -8,7 +8,6 @@ stages:
 os:
   - osx
   - linux
-  - windows
 
 compiler:
   - gcc
@@ -18,3 +17,6 @@ script: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j8
 
 test:
   script: ./build/tests/roar_test
+
+notifications:
+  email: false
