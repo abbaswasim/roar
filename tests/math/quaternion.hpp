@@ -47,7 +47,7 @@ class QuaternionTest : public testing::Test
 };
 
 using QuaternionTypesToTest = ::testing::Types<float32_t, double64_t>;
-TYPED_TEST_CASE(QuaternionTest, QuaternionTypesToTest);
+TYPED_TEST_SUITE(QuaternionTest, QuaternionTypesToTest);
 }        // namespace TestingEngine
 
 #include "quaternion.inl"

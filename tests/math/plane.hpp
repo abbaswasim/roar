@@ -46,7 +46,7 @@ class PlaneTest : public testing::Test
 };
 
 using PlaneTypes = testing::Types<float32_t, double64_t>;
-TYPED_TEST_CASE(PlaneTest, PlaneTypes);
+TYPED_TEST_SUITE(PlaneTest, PlaneTypes);
 
 }        // namespace ror_test
 

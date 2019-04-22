@@ -60,7 +60,7 @@ class ROAR_ENGINE_ITEM Quaternion final
 	FORCE_INLINE void set(const Matrix3x4<_type> &a_matrix) noexcept;
 	FORCE_INLINE void set(const Vector3<_type> &a_vector1, const Vector3<_type> &a_vector2) noexcept;        //!< Calculates quaternion representing rotation from v1 to v2
 	FORCE_INLINE void set(const AxisAngle<_type> &a_axis_angle) noexcept;
-	FORCE_INLINE void set(const EulerAngle<_type> &a_euler_radians) noexcept;                  //!< Euler angles are specified in vector order Y,Z,X
+	FORCE_INLINE void set(const EulerAngle<_type> &a_euler_radians) noexcept;        //!< Euler angles are specified in vector order Y,Z,X
 
 	FORCE_INLINE Quaternion &operator=(const _type *a_array) noexcept;
 	FORCE_INLINE Quaternion &operator+=(const Quaternion &a_rhs) noexcept;

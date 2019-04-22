@@ -48,7 +48,7 @@ class Matrix4Test : public testing::Test
 };
 
 using Matrix4TypesToTest = ::testing::Types<float32_t, int32_t, double64_t>;
-TYPED_TEST_CASE(Matrix4Test, Matrix4TypesToTest);
+TYPED_TEST_SUITE(Matrix4Test, Matrix4TypesToTest);
 
 template <class _type>
 class Matrix4TestSigned : public Matrix4Test<_type>
@@ -64,6 +64,6 @@ class Matrix4TestSigned : public Matrix4Test<_type>
 };
 
 using Matrix4SignedTypesToTest = ::testing::Types<float32_t, double64_t>;
-TYPED_TEST_CASE(Matrix4TestSigned, Matrix4SignedTypesToTest);
+TYPED_TEST_SUITE(Matrix4TestSigned, Matrix4SignedTypesToTest);
 }        // namespace ror_test
 #include "matrix4.inl"

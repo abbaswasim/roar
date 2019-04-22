@@ -23,7 +23,8 @@
 #
 # Version: 1.0.0
 
-cmake_minimum_required (VERSION 3.6)
+cmake_minimum_required (VERSION 3.11)
+
 set(ROAR_NAME roar)
 project(${ROAR_NAME} VERSION 1.0 LANGUAGES CXX C)
 
@@ -32,12 +33,10 @@ set(ROAR_SOURCE_DIR ${ROAR_ROOT_DIR}/core)
 
 include(${ROAR_ROOT_DIR}/build.cmake)
 
-set(ROAR_REQUIRED_LIBRARIES ${ROAR_REQUIRED_LIBRARIES}) # to be filled later with others
-
 # Always generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-# Add test folder
+add_subdirectory(${ROAR_ROOT_DIR}/thirdparty)
 add_subdirectory(${ROAR_SOURCE_DIR})
 add_subdirectory(${ROAR_ROOT_DIR}/tests)
 

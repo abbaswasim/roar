@@ -43,7 +43,7 @@ class RandomTest : public testing::Test
 };
 
 using RandomTypes = testing::Types<uint32_t, uint64_t>;
-TYPED_TEST_CASE(RandomTest, RandomTypes);
+TYPED_TEST_SUITE(RandomTest, RandomTypes);
 
 template <typename _type>
 class RandomTestSigned : public testing::Test
@@ -57,7 +57,7 @@ class RandomTestSigned : public testing::Test
 };
 
 using RandomTypesSigned = testing::Types<float32_t, double64_t, int32_t, int16_t>;
-TYPED_TEST_CASE(RandomTestSigned, RandomTypesSigned);
+TYPED_TEST_SUITE(RandomTestSigned, RandomTypesSigned);
 
 }        // namespace ror_test
 

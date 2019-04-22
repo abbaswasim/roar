@@ -73,7 +73,7 @@ class Vector2Test : public testing::Test
 };
 
 using TypesToTest = ::testing::Types<float32_t, int32_t, uint32_t, double64_t, char8_t, uchar8_t>;
-TYPED_TEST_CASE(Vector2Test, TypesToTest);
+TYPED_TEST_SUITE(Vector2Test, TypesToTest);
 
 template <class _type>
 class Vector2TestSigned : public Vector2Test<_type>
@@ -89,7 +89,7 @@ class Vector2TestSigned : public Vector2Test<_type>
 };
 
 using SignedTypesToTest = ::testing::Types<float32_t, int32_t, double64_t>;
-TYPED_TEST_CASE(Vector2TestSigned, SignedTypesToTest);
+TYPED_TEST_SUITE(Vector2TestSigned, SignedTypesToTest);
 }        // namespace ror_test
 
 #include "vector2.inl"

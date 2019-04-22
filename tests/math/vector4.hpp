@@ -73,7 +73,7 @@ class Vector4Test : public testing::Test
 };
 
 using TypesToTest = ::testing::Types<float32_t, int32_t, uint32_t, double64_t, char8_t, uchar8_t>;
-TYPED_TEST_CASE(Vector4Test, TypesToTest);
+TYPED_TEST_SUITE(Vector4Test, TypesToTest);
 
 template <class _type>
 class Vector4TestSigned : public Vector4Test<_type>
@@ -89,7 +89,7 @@ class Vector4TestSigned : public Vector4Test<_type>
 };
 
 using SignedTypesToTest = ::testing::Types<float32_t, int32_t, double64_t>;
-TYPED_TEST_CASE(Vector4TestSigned, SignedTypesToTest);
+TYPED_TEST_SUITE(Vector4TestSigned, SignedTypesToTest);
 }        // namespace ror_test
 
 #include "vector4.inl"

@@ -110,6 +110,9 @@ add_library(${ROAR_NAME} SHARED ${ROAR_SOURCES} ${ROAR_HEADERS})
 target_include_directories(${ROAR_NAME} PRIVATE ${ROAR_SOURCE_DIR})
 target_include_directories(${ROAR_NAME} PRIVATE ${ROAR_ROOT_DIR}/thirdparty)
 
+set(ROAR_REQUIRED_LIBRARIES
+  spdlog)
+
 target_link_libraries(${ROAR_NAME} ${ROAR_REQUIRED_LIBRARIES})
 
 debug_options(${ROAR_NAME})

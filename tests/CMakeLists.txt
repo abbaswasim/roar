@@ -69,7 +69,7 @@ target_include_directories(${ROAR_TEST_NAME} PRIVATE
 add_subdirectory(${ROAR_ROOT_DIR}/thirdparty/gtest ${CMAKE_CURRENT_BINARY_DIR}/gtest_binaries)
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/gtest_binaries)
 
-set(ROAR_REQUIRED_TEST_LIBRARIES ${ROAR_REQUIRED_LIBRARIES} roar gtest gtest_main)
+set(ROAR_REQUIRED_TEST_LIBRARIES ${ROAR_REQUIRED_LIBRARIES} roar spdlog gtest gtest_main)
 target_link_libraries(${ROAR_TEST_NAME} ${ROAR_REQUIRED_TEST_LIBRARIES})
 
 debug_options(${ROAR_TEST_NAME})

@@ -34,7 +34,20 @@ function(debug_options target_name)
   endif (CMAKE_BUILD_TYPE MATCHES "Debug")
 
   # Be slightly more pedantic
-  target_compile_options(${target_name} PRIVATE -Wall -Wextra -Wmost -Wconversion -Wunreachable-code -Wuninitialized -pedantic-errors -Wold-style-cast -Wno-error=unused-variable -Wshadow -Wfloat-equal)
+  target_compile_options(${target_name} PRIVATE
+	-Wall
+	-Wextra
+	-Wmost
+	-Wconversion
+	-Wunreachable-code
+	-Wuninitialized
+	-Wno-gnu-zero-variadic-macro-arguments # Should fix this in long term, this is only needed for gtest typed tests at the moment
+	-pedantic-errors
+	-Wold-style-cast
+	-Wno-error=unused-variable
+	-Wshadow
+	-Wfloat-equal)
+
 endfunction(debug_options)
 
 if(NOT CMAKE_BUILD_TYPE)
