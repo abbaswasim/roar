@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/abbaswasim/roar.svg?branch=master)](https://travis-ci.org/abbaswasim/roar)
+
 # Roar
 
 Roar is my personal rendering engine. Hopefully it will support GL/GLES, Vulkan and Metal at some point :)
