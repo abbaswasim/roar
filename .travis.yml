@@ -1,0 +1,11 @@
+sudo: required
+language: cpp
+
+os:
+  - osx
+  - linux
+  - windows
+
+compiler:
+  - gcc
+  - clang
