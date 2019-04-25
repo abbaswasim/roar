@@ -29,6 +29,8 @@ matrix:
           - llvm-toolchain-trusty-7
         packages:
           - clang-7
+          - libc++-7-dev
+          - libc++abi-7-dev
     env:
       - MATRIX_EVAL="CC=clang-7 && CXX=clang++-7"
 
