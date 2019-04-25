@@ -28,7 +28,7 @@ matrix:
           - ubuntu-toolchain-r-test
           - llvm-toolchain-trusty-7
         packages:
-          - clang-7.0
+          - clang-7
     env:
       - MATRIX_EVAL="CC=clang-7.0 && CXX=clang++-7.0"
 
