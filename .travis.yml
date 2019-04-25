@@ -32,7 +32,7 @@ matrix:
           - libc++-7-dev
           - libc++abi-7-dev
     env:
-      - MATRIX_EVAL="CC=clang-7 && CXX=clang++-7"
+      - MATRIX_EVAL="CC=clang-7 && CXX='clang++-7 -stdlib=libc++'"
 
   - os: osx
     osx_image: xcode10.1
