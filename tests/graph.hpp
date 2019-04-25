@@ -35,9 +35,9 @@ class GraphTest : public testing::Test
 {
   public:
 	GraphTest()                             = default;                   //! Default constructor
-	GraphTest(const GraphTest &a_other)     = default;                   //! Copy constructor
+	GraphTest(const GraphTest &a_other)     = delete;                    //! Copy constructor
 	GraphTest(GraphTest &&a_other) noexcept = delete;                    //! Move constructor
-	GraphTest &operator=(const GraphTest &a_other) = default;            //! Copy assignment operator
+	GraphTest &operator=(const GraphTest &a_other) = delete;             //! Copy assignment operator
 	GraphTest &operator=(GraphTest &&a_other) noexcept = delete;         //! Move assignment operator
 	virtual ~GraphTest() noexcept                      = default;        //! Destructor
 

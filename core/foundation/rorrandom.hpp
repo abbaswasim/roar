@@ -26,13 +26,34 @@
 #pragma once
 
 #include "roar.hpp"
+#include <memory>
 #include <random>
 #include <type_traits>
 
 namespace ror
 {
+template <class _type, bool>
+class ROAR_ENGINE_ITEM RandomType
+{};
+
 template <class _type>
-class ROAR_ENGINE_ITEM Random final
+class ROAR_ENGINE_ITEM RandomType<_type, true>
+{
+  public:
+	std::unique_ptr<std::uniform_int_distribution<_type>> m_distribution;
+};
+
+template <class _type>
+class ROAR_ENGINE_ITEM RandomType<_type, false>
+{
+  public:
+	std::unique_ptr<std::uniform_real_distribution<_type>> m_distribution;
+};
+
+template <class _type>
+class ROAR_ENGINE_ITEM Random final : public std::conditional<std::is_integral<_type>::value,
+															  RandomType<_type, true>,
+															  RandomType<_type, false>>::type
 {
   public:
 	FORCE_INLINE Random(_type a_min = std::numeric_limits<_type>::min(),
@@ -44,19 +65,18 @@ class ROAR_ENGINE_ITEM Random final
 	FORCE_INLINE ~Random() noexcept                           = default;         //! Destructor
 
 	FORCE_INLINE void reset(_type a_min = std::numeric_limits<_type>::min(), _type a_max = std::numeric_limits<_type>::max());
-
 	FORCE_INLINE _type next();
 
   protected:
   private:
+	FORCE_INLINE void _reset(_type a_min, _type a_max, std::true_type);
+	FORCE_INLINE void _reset(_type a_min, _type a_max, std::false_type);
+
 	FORCE_INLINE _type _next(std::true_type);
 	FORCE_INLINE _type _next(std::false_type);
 
 	std::random_device            m_device;        //!< Could be static
 	std::unique_ptr<std::mt19937> m_engine;        //!< Could be static
-
-	std::unique_ptr<std::uniform_real_distribution<_type>> m_real_distribution;
-	std::unique_ptr<std::uniform_int_distribution<_type>>  m_int_distribution;
 };
 
 using Randomd = Random<double64_t>;

@@ -23,11 +23,15 @@
 
 namespace ror
 {
+// TODO: Fix this mess some day, dynamically decide which clock to use
+
 // Make sure the high res clock is steady
-static_assert(std::chrono::high_resolution_clock::is_steady);
+// static_assert(std::chrono::high_resolution_clock::is_steady);
+static_assert(std::chrono::steady_clock::is_steady);
 
 // Make sure the high res clock has enough resolution
-static_assert(std::chrono::high_resolution_clock::period::den == 1000000000);
+// static_assert(std::chrono::high_resolution_clock::period::den == 1000000000);
+static_assert(std::chrono::steady_clock::period::den == 1000000000);        // Steady clock is high resolution
 
 class ROAR_ENGINE_ITEM Timer
 {
@@ -42,7 +46,8 @@ class ROAR_ENGINE_ITEM Timer
 	FORCE_INLINE int64_t tick();        // Tick will return the time difference in useconds between calls
 
   private:
-	using TimePoint    = std::chrono::high_resolution_clock::time_point;
+	// using TimePoint    = std::chrono::high_resolution_clock::time_point;
+	using TimePoint    = std::chrono::steady_clock::time_point;
 	using Nanoseconds  = std::chrono::nanoseconds;
 	using Microseconds = std::chrono::microseconds;
 

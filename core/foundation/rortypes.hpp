@@ -27,6 +27,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 #include "rorcompiler_workarounds.hpp"
 
 using ::int16_t;

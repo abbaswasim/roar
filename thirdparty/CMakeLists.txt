@@ -28,3 +28,4 @@ cmake_minimum_required(VERSION 3.6)
 project(third_party LANGUAGES C CXX)
 
 add_subdirectory(spdlog)
+target_compile_options(spdlog INTERFACE "-Wno-float-equal")

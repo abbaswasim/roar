@@ -39,8 +39,19 @@ FORCE_INLINE Random<_type>::Random(_type a_min, _type a_max)
 template <class _type>
 FORCE_INLINE void Random<_type>::reset(_type a_min, _type a_max)
 {
-	this->m_int_distribution  = std::make_unique<std::uniform_int_distribution<_type>>(a_min, a_max);
-	this->m_real_distribution = std::make_unique<std::uniform_real_distribution<_type>>(a_min, a_max);
+	this->_reset(a_min, a_max, std::is_integral<_type>{});
+}
+
+template <class _type>
+FORCE_INLINE void Random<_type>::_reset(_type a_min, _type a_max, std::true_type)
+{
+	this->m_distribution = std::make_unique<std::uniform_int_distribution<_type>>(a_min, a_max);
+}
+
+template <class _type>
+FORCE_INLINE void Random<_type>::_reset(_type a_min, _type a_max, std::false_type)
+{
+	this->m_distribution = std::make_unique<std::uniform_real_distribution<_type>>(a_min, a_max);
 }
 
 template <class _type>
@@ -52,13 +63,13 @@ FORCE_INLINE _type Random<_type>::next()
 template <class _type>
 FORCE_INLINE _type Random<_type>::_next(std::true_type)
 {
-	return (*this->m_int_distribution)(*this->m_engine);
+	return (*this->m_distribution)(*this->m_engine);
 }
 
 template <class _type>
 FORCE_INLINE _type Random<_type>::_next(std::false_type)
 {
-	return (*this->m_real_distribution)(*this->m_engine);
+	return (*this->m_distribution)(*this->m_engine);
 }
 
 }        // namespace ror

@@ -27,11 +27,13 @@ namespace ror
 {
 FORCE_INLINE Timer::Timer()
 {
-	this->m_previous_time = std::chrono::high_resolution_clock::now();
+	// this->m_previous_time = std::chrono::high_resolution_clock::now();
+	this->m_previous_time = std::chrono::steady_clock::now();
 }
 FORCE_INLINE int64_t Timer::tick()
 {
-	auto now              = std::chrono::high_resolution_clock::now();
+	// auto now              = std::chrono::high_resolution_clock::now();
+	auto now              = std::chrono::steady_clock::now();
 	auto elapsed          = now - this->m_previous_time;
 	this->m_previous_time = now;
 	return std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
