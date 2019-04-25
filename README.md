@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/abbaswasim/roar.svg?branch=master)](https://travis-ci.org/abbaswasim/roar)
+[![Build Status](https://travis-ci.org/abbaswasim/roar.svg?branch=master)](https://travis-ci.com/abbaswasim/roar)
 
 # Roar
 
