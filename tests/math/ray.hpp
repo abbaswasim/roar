@@ -25,7 +25,48 @@
 
 #pragma once
 
-#include "rorvector_functions.hpp"
+#include <gtest/gtest.h>
 
-namespace ror
-{}        // namespace ror
+#include "common.hpp"
+#include "math/rorray.hpp"
+
+namespace ror_test
+{
+template <class _type>
+class Ray3Test : public testing::Test
+{
+  public:
+	ror::Vector3<_type> m_origin;
+	ror::Vector3<_type> m_direction;
+	ror::Vector3<_type> m_normalized_direction;
+
+  protected:
+	virtual void SetUp() override;
+	virtual void TearDown() override;
+
+  private:
+};
+
+template <class _type>
+class Ray2Test : public testing::Test
+{
+  public:
+	ror::Vector2<_type> m_origin;
+	ror::Vector2<_type> m_direction;
+	ror::Vector2<_type> m_normalized_direction;
+
+  protected:
+	virtual void SetUp() override;
+	virtual void TearDown() override;
+
+  private:
+};
+
+// using RayTypesToTest = ::testing::Types<float32_t, int8_t, int16_t, int32_t, double64_t>;
+using RayTypesToTest = ::testing::Types<float32_t, double64_t>;
+
+TYPED_TEST_SUITE(Ray3Test, RayTypesToTest);
+TYPED_TEST_SUITE(Ray2Test, RayTypesToTest);
+}        // namespace ror_test
+
+#include "ray.inl"

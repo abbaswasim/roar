@@ -70,6 +70,8 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/math/rorvector4.inl
   ${ROAR_SOURCE_DIR}/math/rorvector_functions.hpp
   ${ROAR_SOURCE_DIR}/math/rorvector_functions.inl
+  ${ROAR_SOURCE_DIR}/math/rorray.hpp
+  ${ROAR_SOURCE_DIR}/math/rorray.inl
   ${ROAR_SOURCE_DIR}/math/rormatrix2.hpp
   ${ROAR_SOURCE_DIR}/math/rormatrix2.inl
   ${ROAR_SOURCE_DIR}/math/rormatrix3.hpp

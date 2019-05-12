@@ -79,6 +79,7 @@ FORCE_INLINE auto angle(const _type &a_first, const _type &a_second) -> scalar_p
 /**
  * @brief      Calculates scalar projection
  * @details    Calculates scalar projection of first onto second
+ *             If one multiply scalar projection by unit vector of second you will get vector projection
  * @param      a_first First vector to calculate projection for
  * @param      a_second Second vector to calculate projection onto
  * @return     Scalar projection of a_first onto a_second
@@ -130,4 +131,4 @@ FORCE_INLINE auto reflect(const _type<_precision> &a_incident, const _type<_prec
 
 }        // namespace ror
 
-#include "math/rorvector_functions.inl"
+#include "rorvector_functions.inl"

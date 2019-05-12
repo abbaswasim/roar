@@ -36,6 +36,7 @@
 #include "axis_angle.hpp"
 #include "euler_angle.hpp"
 #include "plane.hpp"
+#include "ray.hpp"
 
 namespace ror
 {}        // namespace ror
