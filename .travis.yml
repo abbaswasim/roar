@@ -38,7 +38,7 @@ matrix:
     osx_image: xcode10.1
     compiler: gcc
     env:
-      - MATRIX_EVAL="brew install gcc && CC=gcc-8 && CXX=g++-8"
+      - MATRIX_EVAL="brew install gcc@8 && CC=gcc-8 && CXX=g++-8"
 
   - os: osx
     osx_image: xcode10.1
