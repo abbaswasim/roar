@@ -23,22 +23,34 @@
 //
 // Version: 1.0.0
 
-#include "vector2.hpp"
-#include "vector3.hpp"
-#include "vector4.hpp"
+#pragma once
 
-#include "matrix2.hpp"
-#include "matrix3.hpp"
-#include "matrix3x4.hpp"
-#include "matrix4.hpp"
+#include <gtest/gtest.h>
 
-#include "quaternion.hpp"
-#include "axis_angle.hpp"
-#include "euler_angle.hpp"
-#include "plane.hpp"
-#include "ray.hpp"
+#include "common.hpp"
+#include "math/rorsegment.hpp"
+#include "foundation/rorrandom.hpp"
+#include "profiling/rortimer.hpp"
+#include "thirdparty/skia_cubic.hpp"
+#include <vector>
 
-#include "segment.hpp"
+namespace ror_test
+{
+template <class _type>
+class SegmentTest : public testing::Test
+{
+  public:
+  protected:
+	virtual void SetUp() override;
+	virtual void TearDown() override;
 
-namespace ror
-{}        // namespace ror
+  private:
+};
+
+// using SegmentTypesToTest = ::testing::Types<int64_t, uint64_t, int32_t, int16_t, int8_t, uint32_t, uint16_t, uint8_t, float32_t, double64_t>;
+using SegmentTypesToTest = ::testing::Types<int64_t, int32_t, int16_t, int8_t, float32_t, double64_t>;
+
+TYPED_TEST_SUITE(SegmentTest, SegmentTypesToTest);
+}        // namespace ror_test
+
+#include "segment.inl"

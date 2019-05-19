@@ -336,5 +336,10 @@ TYPED_TEST(Vector3TestSigned, testing_global_methods)
 		auto ang = angle(ror::Vector3(1, 1, 1), ror::Vector3(1, 1, 1));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(0.0), test_epsilon);
 	}
+
+	ror::Vector3 v(2, 4, 6);
+
+	static_assert(sizeof(ror::Vector3f) == 12);
+	static_assert(sizeof(v) == 12);
 }
 }        // namespace ror_test

@@ -26,7 +26,7 @@
 #pragma once
 
 #include "rormacros.hpp"
-#include <cmath>
+#include <cstdlib>
 #include <functional>
 #include <random>
 
@@ -51,7 +51,7 @@ constexpr float32_t ror_epsilon_relaxed  = 1e-4f;
 template <class _type>
 FORCE_INLINE bool decimal_equal(_type a_first, _type a_second)
 {
-	if (std::abs(a_first - a_second) <= ror_epsilon)
+	if (std::abs(static_cast<_type>(a_first - a_second)) <= static_cast<_type>(ror_epsilon))
 		return true;
 	else
 		return false;
@@ -158,6 +158,29 @@ FORCE_INLINE uint32_t power_of_two(uint32_t a_value)
 		result = result << 1;
 
 	return result;
+}
+
+template <typename _type>
+void bubble_sort(_type a_items[], int a_size)
+{
+	for (int i = a_size - 1; i > 0; --i)
+	{
+		for (int j = i; j > 0; --j)
+		{
+			if (a_items[j] < a_items[j - 1])
+			{
+				_type temp(a_items[j]);
+				a_items[j]     = a_items[j - 1];
+				a_items[j - 1] = temp;
+			}
+		}
+	}
+}
+
+template <typename _type>
+FORCE_INLINE bool is_nan(_type a_value)
+{
+	return a_value != a_value;
 }
 
 }        // namespace ror

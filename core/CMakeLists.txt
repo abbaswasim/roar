@@ -110,7 +110,7 @@ add_library(${ROAR_NAME} SHARED ${ROAR_SOURCES} ${ROAR_HEADERS})
 # add_library(${ROAR_NAME} STATIC ${ROAR_SOURCES})
 
 target_include_directories(${ROAR_NAME} PRIVATE ${ROAR_SOURCE_DIR})
-target_include_directories(${ROAR_NAME} PRIVATE ${ROAR_ROOT_DIR}/thirdparty)
+target_include_directories(${ROAR_NAME} PRIVATE ${ROAR_ROOT_DIR})
 
 set(ROAR_REQUIRED_LIBRARIES
   spdlog)

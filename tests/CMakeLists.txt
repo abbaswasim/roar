@@ -40,6 +40,7 @@ set(ROAR_TEST_HEADERS
   ${ROAR_TEST_SOURCE_DIR}/math/euler_angle.hpp
   ${ROAR_TEST_SOURCE_DIR}/math/plane.hpp
   ${ROAR_TEST_SOURCE_DIR}/math/ray.hpp
+  ${ROAR_TEST_SOURCE_DIR}/math/segment.hpp
   ${ROAR_TEST_SOURCE_DIR}/math/vector2.inl
   ${ROAR_TEST_SOURCE_DIR}/math/vector3.inl
   ${ROAR_TEST_SOURCE_DIR}/math/vector4.inl
@@ -51,7 +52,8 @@ set(ROAR_TEST_HEADERS
   ${ROAR_TEST_SOURCE_DIR}/math/axis_angle.inl
   ${ROAR_TEST_SOURCE_DIR}/math/euler_angle.inl
   ${ROAR_TEST_SOURCE_DIR}/math/plane.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/ray.inl)
+  ${ROAR_TEST_SOURCE_DIR}/math/ray.inl
+  ${ROAR_TEST_SOURCE_DIR}/math/segment.inl)
 
 set(ROAR_TEST_SOURCES
   ${ROAR_TEST_SOURCE_DIR}/roartests.cpp
@@ -63,6 +65,7 @@ set(ROAR_TEST_SOURCES
 add_executable(${ROAR_TEST_NAME} ${ROAR_TEST_HEADERS} ${ROAR_TEST_SOURCES})
 
 target_include_directories(${ROAR_TEST_NAME} PRIVATE
+  ${ROAR_ROOT_DIR}
   ${ROAR_ROOT_DIR}/thirdparty
   ${ROAR_ROOT_DIR}/thirdparty/gtest/include
   ${ROAR_ROOT_DIR}/core
