@@ -296,50 +296,50 @@ TYPED_TEST(Vector3TestSigned, testing_global_methods)
 	}
 
 	{
-		auto ang = angle(ror::Vector3(1, 0, 0), ror::Vector3(0, 1, 0));
+		auto ang = angle(ror::Vector3<TypeParam>(1, 0, 0), ror::Vector3<TypeParam>(0, 1, 0));
 		EXPECT_NEAR(ang, 1.5707963267949f, test_epsilon);
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(ror::ror_half_pi), test_epsilon);
 	}
 	{
-		auto ang = angle(ror::Vector3(1, 0, 0), ror::Vector3(0, 0, 1));
+		auto ang = angle(ror::Vector3<TypeParam>(1, 0, 0), ror::Vector3<TypeParam>(0, 0, 1));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(ror::ror_half_pi), test_epsilon);
 	}
 	{
-		auto ang = angle(ror::Vector3(0, 1, 0), ror::Vector3(0, 0, 1));
+		auto ang = angle(ror::Vector3<TypeParam>(0, 1, 0), ror::Vector3<TypeParam>(0, 0, 1));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(ror::ror_half_pi), test_epsilon);
 	}
 	{
-		auto ang = angle(ror::Vector3(0, 1, 0), ror::Vector3(1, 0, 0));
+		auto ang = angle(ror::Vector3<TypeParam>(0, 1, 0), ror::Vector3<TypeParam>(1, 0, 0));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(ror::ror_half_pi), test_epsilon);
 	}
 	{
-		auto ang = angle(ror::Vector3(1, 0, 0), ror::Vector3(-1, 0, 0));
+		auto ang = angle(ror::Vector3<TypeParam>(1, 0, 0), ror::Vector3<TypeParam>(-1, 0, 0));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(ror::ror_pi), test_epsilon);
 	}
 	{
-		auto ang = angle(ror::Vector3(0, 1, 0), ror::Vector3(0, -1, 0));
+		auto ang = angle(ror::Vector3<TypeParam>(0, 1, 0), ror::Vector3<TypeParam>(0, -1, 0));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(ror::ror_pi), test_epsilon);
 	}
 	{
-		auto ang = angle(ror::Vector3(0, 0, 1), ror::Vector3(0, 0, -1));
+		auto ang = angle(ror::Vector3<TypeParam>(0, 0, 1), ror::Vector3<TypeParam>(0, 0, -1));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(ror::ror_pi), test_epsilon);
 	}
 	{
-		auto ang = angle(ror::Vector3(1, 1, 1), ror::Vector3(-1, -1, -1));
+		auto ang = angle(ror::Vector3<TypeParam>(1, 1, 1), ror::Vector3<TypeParam>(-1, -1, -1));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(ror::ror_pi), test_epsilon);
 	}
 	{
-		auto ang = angle(ror::Vector3(-1, -1, -1), ror::Vector3(-1, -1, -1));
+		auto ang = angle(ror::Vector3<TypeParam>(-1, -1, -1), ror::Vector3<TypeParam>(-1, -1, -1));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(0.0), test_epsilon);
 	}
 	{
-		auto ang = angle(ror::Vector3(1, 1, 1), ror::Vector3(1, 1, 1));
+		auto ang = angle(ror::Vector3<TypeParam>(1, 1, 1), ror::Vector3<TypeParam>(1, 1, 1));
 		EXPECT_NEAR(ang, static_cast<decltype(angl)>(0.0), test_epsilon);
 	}
 
-	ror::Vector3 v(2, 4, 6);
+	ror::Vector3<TypeParam> v(2, 4, 6);
 
-	static_assert(sizeof(ror::Vector3f) == 12);
-	static_assert(sizeof(v) == 12);
+	static_assert(sizeof(ror::Vector3f) == 12, "ror::Vector3f is not tightly packed into 12 bytes");
+	static_assert(sizeof(v) == 3 * sizeof(TypeParam), "ror::Vector3f is not tightly packed into 12 bytes");
 }
 }        // namespace ror_test

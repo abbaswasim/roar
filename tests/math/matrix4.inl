@@ -572,7 +572,7 @@ TYPED_TEST(Matrix4TestSigned, rotation_axis_and_angle)
 
 		ror::Vector3<TypeParam> axis(1.70f, 0.57f, 7.27f);
 
-		auto matrixTest = ror::matrix4_rotation(ror::AxisAngle(axis, ror::to_radians(static_cast<TypeParam>(27.0))));
+		auto matrixTest = ror::matrix4_rotation(ror::AxisAngle<TypeParam>(axis, ror::to_radians(static_cast<TypeParam>(27.0))));
 
 		test_matrix4_equal(matrixTest, mat_res);
 	}
@@ -587,7 +587,7 @@ TYPED_TEST(Matrix4TestSigned, rotation_axis_and_angle)
 		TypeParam               angle = static_cast<TypeParam>(0.1803327);
 
 		{
-			auto mat = ror::matrix4_rotation(ror::AxisAngle(axis, angle));
+			auto mat = ror::matrix4_rotation(ror::AxisAngle<TypeParam>(axis, angle));
 			test_matrix4_equal(mat, mat_res);
 		}
 	}
@@ -625,7 +625,7 @@ TYPED_TEST(Matrix4TestSigned, rotation_from_quaternion_eulers)
 		TypeParam heading  = static_cast<TypeParam>(0.0);
 		TypeParam attitude = static_cast<TypeParam>(0.0);
 
-		auto mat = ror::matrix4_rotation(ror::EulerAngle(bank, heading, attitude));
+		auto mat = ror::matrix4_rotation(ror::EulerAngle<TypeParam>(bank, heading, attitude));
 		test_matrix4_equal(mat, eul_mat_res);
 	}
 	{
@@ -638,7 +638,7 @@ TYPED_TEST(Matrix4TestSigned, rotation_from_quaternion_eulers)
 		TypeParam heading  = static_cast<TypeParam>(0.0);
 		TypeParam attitude = static_cast<TypeParam>(0.0);
 
-		auto mat = ror::matrix4_rotation(ror::EulerAngle(ror::to_radians(bank), heading, attitude));
+		auto mat = ror::matrix4_rotation(ror::EulerAngle<TypeParam>(ror::to_radians(bank), heading, attitude));
 		test_matrix4_equal(mat, eul_mat_res);
 	}
 	{
@@ -651,7 +651,7 @@ TYPED_TEST(Matrix4TestSigned, rotation_from_quaternion_eulers)
 		TypeParam heading  = static_cast<TypeParam>(0.0);
 		TypeParam attitude = static_cast<TypeParam>(0.0);
 
-		auto mat = ror::matrix4_rotation(ror::EulerAngle(ror::to_radians(bank), heading, attitude));
+		auto mat = ror::matrix4_rotation(ror::EulerAngle<TypeParam>(ror::to_radians(bank), heading, attitude));
 		test_matrix4_equal(mat, eul_mat_res);
 	}
 	{
@@ -664,7 +664,7 @@ TYPED_TEST(Matrix4TestSigned, rotation_from_quaternion_eulers)
 		TypeParam heading  = static_cast<TypeParam>(-90.0);
 		TypeParam attitude = static_cast<TypeParam>(0.0);
 
-		auto mat = ror::matrix4_rotation(ror::EulerAngle(ror::to_radians(bank), ror::to_radians(heading), attitude));
+		auto mat = ror::matrix4_rotation(ror::EulerAngle<TypeParam>(ror::to_radians(bank), ror::to_radians(heading), attitude));
 		test_matrix4_equal(mat, eul_mat_res);
 	}
 	{
@@ -677,7 +677,7 @@ TYPED_TEST(Matrix4TestSigned, rotation_from_quaternion_eulers)
 		TypeParam heading  = static_cast<TypeParam>(0.0);
 		TypeParam attitude = static_cast<TypeParam>(90.0);
 
-		auto mat = ror::matrix4_rotation(ror::EulerAngle(ror::to_radians(bank), ror::to_radians(heading), ror::to_radians(attitude)));
+		auto mat = ror::matrix4_rotation(ror::EulerAngle<TypeParam>(ror::to_radians(bank), ror::to_radians(heading), ror::to_radians(attitude)));
 		test_matrix4_equal(mat, eul_mat_res);
 	}
 }
@@ -874,7 +874,7 @@ TYPED_TEST(Matrix4TestSigned, untestable_funcs)
 			test_vector3_equal(vec_sca, vec_sca_res);
 		}
 		{
-			ror::Matrix4<TypeParam> mat_res = matrix4_transformation(vec_tra, ror::Quaternion(mat_rot));
+			ror::Matrix4<TypeParam> mat_res = matrix4_transformation(vec_tra, ror::Quaternion<TypeParam>(mat_rot));
 			ror::decompose_into_translation_rotation_scaling(mat_res, vec_tra_res, mat_rot_res, vec_sca_res);
 
 			ror::Matrix3<TypeParam> mat_rot_res_comp{mat_rot};
@@ -885,7 +885,7 @@ TYPED_TEST(Matrix4TestSigned, untestable_funcs)
 			test_vector3_equal(iden_sca, vec_sca_res);
 		}
 		{
-			ror::Matrix4<TypeParam> mat_res = matrix4_transformation(vec_tra, ror::Quaternion(mat_rot), vec_sca);
+			ror::Matrix4<TypeParam> mat_res = matrix4_transformation(vec_tra, ror::Quaternion<TypeParam>(mat_rot), vec_sca);
 			ror::decompose_into_translation_rotation_scaling(mat_res, vec_tra_res, mat_rot_res, vec_sca_res);
 
 			ror::Matrix3<TypeParam> mat_rot_res_comp{mat_rot};

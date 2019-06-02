@@ -106,14 +106,14 @@ FORCE_INLINE _type clamp(_type a_x, _type a_min, _type a_max)
 template <class _type, class _Genarator, typename std::enable_if<std::is_integral<_type>::value>::type>
 FORCE_INLINE _type _random(_type a_min, _type a_max, const _Genarator &a_engine)
 {
-	std::uniform_int_distribution dist(a_min, a_max);
+	std::uniform_int_distribution<_type> dist(a_min, a_max);
 	return dist(a_engine);
 }
 
 template <class _type, class _Genarator, typename std::enable_if<std::is_floating_point<_type>::value>::type>
 FORCE_INLINE _type _random(_type a_min, _type a_max, const _Genarator &a_engine)
 {
-	std::uniform_real_distribution dist(a_min, a_max);
+	std::uniform_real_distribution<_type> dist(a_min, a_max);
 	return dist(a_engine);
 }
 

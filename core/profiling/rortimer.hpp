@@ -27,11 +27,11 @@ namespace ror
 
 // Make sure the high res clock is steady
 // static_assert(std::chrono::high_resolution_clock::is_steady);
-static_assert(std::chrono::steady_clock::is_steady);
+static_assert(std::chrono::steady_clock::is_steady, "chrono::steady_clock is not steady.");
 
 // Make sure the high res clock has enough resolution
 // static_assert(std::chrono::high_resolution_clock::period::den == 1000000000);
-static_assert(std::chrono::steady_clock::period::den == 1000000000);        // Steady clock is high resolution
+static_assert(std::chrono::steady_clock::period::den == 1000000000, "chrono::steady_clock doesn't have enough resolution.");        // Steady clock is high resolution
 
 class ROAR_ENGINE_ITEM Timer
 {

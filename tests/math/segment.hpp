@@ -28,8 +28,8 @@
 #include <gtest/gtest.h>
 
 #include "common.hpp"
-#include "math/rorsegment.hpp"
 #include "foundation/rorrandom.hpp"
+#include "math/rorsegment.hpp"
 #include "profiling/rortimer.hpp"
 #include "thirdparty/skia_cubic.hpp"
 #include <vector>

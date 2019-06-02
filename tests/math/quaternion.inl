@@ -30,8 +30,8 @@ const int QUATERNION_SIZE = 4;
 template <class _type>
 void QuaternionTest<_type>::SetUp()
 {
-	this->m_quaternion1 = ror::Quaternion(static_cast<_type>(1), static_cast<_type>(2), static_cast<_type>(3), static_cast<_type>(4));
-	this->m_quaternion2 = ror::Quaternion(static_cast<_type>(2), static_cast<_type>(4), static_cast<_type>(6), static_cast<_type>(8));
+	this->m_quaternion1 = ror::Quaternion<_type>(static_cast<_type>(1), static_cast<_type>(2), static_cast<_type>(3), static_cast<_type>(4));
+	this->m_quaternion2 = ror::Quaternion<_type>(static_cast<_type>(2), static_cast<_type>(4), static_cast<_type>(6), static_cast<_type>(8));
 }
 
 template <class _type>

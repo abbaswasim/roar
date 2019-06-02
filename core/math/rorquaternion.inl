@@ -168,7 +168,7 @@ FORCE_INLINE void Quaternion<_type>::set(const Matrix4<_type> &a_matrix) noexcep
 template <class _type>
 FORCE_INLINE void Quaternion<_type>::set(const Matrix3x4<_type> &a_matrix) noexcept
 {
-	this->set(Matrix3(a_matrix));
+	this->set(Matrix3<_type>(a_matrix));
 }
 
 #undef QUAT_MAT_COMMON
@@ -596,10 +596,10 @@ FORCE_INLINE Quaternion<_type> quaternion_slerp(const Quaternion<_type> &a_quate
 		_type scale0 = std::sin(angle * (static_cast<_type>(1) - a_t)) * one_over_sin;
 		_type scale1 = std::sin(angle * a_t) * one_over_sin * sign_multiplier;
 
-		Quaternion res(a_quaternion1.x * scale0 + a_quaternion2.x * scale1,
-					   a_quaternion1.y * scale0 + a_quaternion2.y * scale1,
-					   a_quaternion1.z * scale0 + a_quaternion2.z * scale1,
-					   a_quaternion1.w * scale0 + a_quaternion2.w * scale1);
+		Quaternion<_type> res(a_quaternion1.x * scale0 + a_quaternion2.x * scale1,
+							  a_quaternion1.y * scale0 + a_quaternion2.y * scale1,
+							  a_quaternion1.z * scale0 + a_quaternion2.z * scale1,
+							  a_quaternion1.w * scale0 + a_quaternion2.w * scale1);
 
 		res.normalize();
 
