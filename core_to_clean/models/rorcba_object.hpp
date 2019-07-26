@@ -60,4 +60,4 @@ class ROAR_ENGINE_ITEM ccbaobject
 };
 }        // namespace ror
 
-#include "rorcba_object.inl"
+#include "rorcba_object.hh"

@@ -48,4 +48,4 @@ class ROAR_ENGINE_ITEM AnimationClip
 };
 }        // namespace ror
 
-#include "roranimation_clip.inl"
+#include "roranimation_clip.hh"

@@ -51,4 +51,4 @@ class ROAR_ENGINE_ITEM OGLIndexBuffer : public ror::IIndexBuffer
 };
 }        // namespace ror
 
-#include "rorogl_index_buffer.inl"
+#include "rorogl_index_buffer.hh"

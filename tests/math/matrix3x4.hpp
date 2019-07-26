@@ -67,4 +67,4 @@ using Matrix3x4SignedTypesToTest = ::testing::Types<float32_t, double64_t>;
 TYPED_TEST_SUITE(Matrix3x4TestSigned, Matrix3x4SignedTypesToTest);
 }        // namespace ror_test
 
-#include "matrix3x4.inl"
+#include "matrix3x4.hh"

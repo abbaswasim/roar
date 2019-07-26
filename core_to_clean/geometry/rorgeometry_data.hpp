@@ -74,4 +74,4 @@ class ROAR_ENGINE_ITEM GeometryData
 };
 }        // namespace ror
 
-#include "rorgeometry_data.inl"
+#include "rorgeometry_data.hh"

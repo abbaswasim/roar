@@ -50,4 +50,4 @@ class ROAR_ENGINE_ITEM SkeletonData
 };
 }        // namespace ror
 
-#include "rorskeleton_data.inl"
+#include "rorskeleton_data.hh"

@@ -47,4 +47,4 @@ class ROAR_ENGINE_ITEM CloudsNode : public ror::GeometryNode
 };
 }        // namespace ror
 
-#include "rorclouds_node.inl"
+#include "rorclouds_node.hh"

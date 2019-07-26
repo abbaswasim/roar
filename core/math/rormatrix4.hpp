@@ -178,4 +178,4 @@ const Matrix4f birds_eye_view(1, 0, 0, 0,
 							  0, 0, 0, 1);
 }        // namespace ror
 
-#include "rormatrix4.inl"
+#include "rormatrix4.hh"

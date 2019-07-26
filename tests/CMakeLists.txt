@@ -41,19 +41,19 @@ set(ROAR_TEST_HEADERS
   ${ROAR_TEST_SOURCE_DIR}/math/plane.hpp
   ${ROAR_TEST_SOURCE_DIR}/math/ray.hpp
   ${ROAR_TEST_SOURCE_DIR}/math/segment.hpp
-  ${ROAR_TEST_SOURCE_DIR}/math/vector2.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/vector3.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/vector4.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/matrix2.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/matrix3.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/matrix4.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/matrix3x4.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/quaternion.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/axis_angle.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/euler_angle.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/plane.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/ray.inl
-  ${ROAR_TEST_SOURCE_DIR}/math/segment.inl)
+  ${ROAR_TEST_SOURCE_DIR}/math/vector2.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/vector3.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/vector4.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/matrix2.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/matrix3.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/matrix4.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/matrix3x4.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/quaternion.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/axis_angle.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/euler_angle.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/plane.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/ray.hh
+  ${ROAR_TEST_SOURCE_DIR}/math/segment.hh)
 
 set(ROAR_TEST_SOURCES
   ${ROAR_TEST_SOURCE_DIR}/roartests.cpp

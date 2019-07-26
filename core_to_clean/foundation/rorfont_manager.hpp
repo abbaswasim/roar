@@ -64,4 +64,4 @@ class ROAR_ENGINE_ITEM FontManager : public ror::Singleton<FontManager>
 };
 }        // namespace ror
 
-#include "rorfont_manager.inl"
+#include "rorfont_manager.hh"

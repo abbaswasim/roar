@@ -146,4 +146,4 @@ class FountainPositionInitialize
 };
 }        // namespace ror
 
-#include "rorfountain_particle.inl"
+#include "rorfountain_particle.hh"

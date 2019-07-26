@@ -50,4 +50,4 @@ TYPED_TEST_SUITE(PlaneTest, PlaneTypes);
 
 }        // namespace ror_test
 
-#include "plane.inl"
+#include "plane.hh"

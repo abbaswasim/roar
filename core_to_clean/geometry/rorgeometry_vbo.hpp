@@ -49,4 +49,4 @@ class ROAR_ENGINE_ITEM GeometryVBO
 };
 }        // namespace ror
 
-#include "rorgeometry_vbo.inl"
+#include "rorgeometry_vbo.hh"

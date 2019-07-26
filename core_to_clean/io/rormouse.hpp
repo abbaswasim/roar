@@ -82,4 +82,4 @@ class ROAR_ENGINE_ITEM Mouse : public Singleton<Mouse>, public IInputDevice
 };
 }        // namespace ror
 
-#include "rormouse.inl"
+#include "rormouse.hh"

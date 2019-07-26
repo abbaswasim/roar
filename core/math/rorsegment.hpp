@@ -284,4 +284,4 @@ using CubicBezier3i = Bezier<ror::Vector3<int32_t>, 3>;
 
 }        // namespace ror
 
-#include "rorsegment.inl"
+#include "rorsegment.hh"

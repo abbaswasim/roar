@@ -56,4 +56,4 @@ class ROAR_ENGINE_ITEM Timer
 
 }        // namespace ror
 
-#include "rortimer.inl"
+#include "rortimer.hh"

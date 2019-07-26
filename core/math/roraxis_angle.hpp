@@ -62,4 +62,4 @@ class ROAR_ENGINE_ITEM AxisAngle final
 
 }        // namespace ror
 
-#include "roraxis_angle.inl"
+#include "roraxis_angle.hh"

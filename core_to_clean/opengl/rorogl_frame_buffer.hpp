@@ -87,4 +87,4 @@ class ROAR_ENGINE_ITEM OGLFrameBuffer : public ror::IFrameBuffer
 };
 }        // namespace ror
 
-#include "rorogl_frame_buffer.inl"
+#include "rorogl_frame_buffer.hh"

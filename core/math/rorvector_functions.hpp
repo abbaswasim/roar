@@ -131,4 +131,4 @@ FORCE_INLINE auto reflect(const _type<_precision> &a_incident, const _type<_prec
 
 }        // namespace ror
 
-#include "rorvector_functions.inl"
+#include "rorvector_functions.hh"

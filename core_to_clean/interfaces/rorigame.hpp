@@ -48,4 +48,4 @@ class ROAR_ENGINE_ITEM IGame
 };
 }        // namespace ror
 
-#include "rorigame.inl"
+#include "rorigame.hh"

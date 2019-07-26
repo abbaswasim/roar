@@ -56,4 +56,4 @@ class ROAR_ENGINE_ITEM BillboardNode : public ror::Entities
 };
 }        // namespace ror
 
-#include "rorbillboard_node.inl"
+#include "rorbillboard_node.hh"

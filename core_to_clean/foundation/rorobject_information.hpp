@@ -52,4 +52,4 @@ class ROAR_ENGINE_ITEM ObjectInformation
 };
 }        // namespace ror
 
-#include "rorobject_information.inl"
+#include "rorobject_information.hh"

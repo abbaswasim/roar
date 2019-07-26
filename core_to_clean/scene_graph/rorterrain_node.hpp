@@ -66,4 +66,4 @@ class ROAR_ENGINE_ITEM TerrainNode : public ror::GeometryNode
 };
 }        // namespace ror
 
-#include "rorterrain_node.inl"
+#include "rorterrain_node.hh"

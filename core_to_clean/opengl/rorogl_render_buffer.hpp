@@ -62,4 +62,4 @@ class ROAR_ENGINE_ITEM OGLRenderBuffer : public ror::IRenderBuffer
 };
 }        // namespace ror
 
-#include "rorogl_render_buffer.inl"
+#include "rorogl_render_buffer.hh"

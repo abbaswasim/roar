@@ -47,4 +47,4 @@ class ROAR_ENGINE_ITEM ccbainstance
 };
 }        // namespace ror
 
-#include "rorcba_instance.inl"
+#include "rorcba_instance.hh"

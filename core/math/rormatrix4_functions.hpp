@@ -162,4 +162,4 @@ FORCE_INLINE Matrix4<_type> matrix4_interpolate(const Matrix4<_type> &a_matrix1,
 
 }        // namespace ror
 
-#include "rormatrix4_functions.inl"
+#include "rormatrix4_functions.hh"

@@ -61,4 +61,4 @@ class ROAR_ENGINE_ITEM ShadowMap : public Singleton<ShadowMap>
 };
 }        // namespace ror
 
-#include "rorshadow_map.inl"
+#include "rorshadow_map.hh"

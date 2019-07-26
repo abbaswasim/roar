@@ -53,4 +53,4 @@ using SegmentTypesToTest = ::testing::Types<int64_t, int32_t, int16_t, int8_t, f
 TYPED_TEST_SUITE(SegmentTest, SegmentTypesToTest);
 }        // namespace ror_test
 
-#include "segment.inl"
+#include "segment.hh"

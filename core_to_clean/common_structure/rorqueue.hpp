@@ -51,4 +51,4 @@ class ROAR_ENGINE_ITEM Queue
 };
 }        // namespace ror
 
-#include "rorqueue.inl"
+#include "rorqueue.hh"

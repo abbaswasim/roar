@@ -47,57 +47,57 @@ endfunction(print_target_properties)
 
 set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/profiling/rorlog.hpp
-  ${ROAR_SOURCE_DIR}/profiling/rorlog.inl
+  ${ROAR_SOURCE_DIR}/profiling/rorlog.hh
   ${ROAR_SOURCE_DIR}/profiling/rortimer.hpp
-  ${ROAR_SOURCE_DIR}/profiling/rortimer.inl
+  ${ROAR_SOURCE_DIR}/profiling/rortimer.hh
   ${ROAR_SOURCE_DIR}/foundation/rormacros.hpp
   ${ROAR_SOURCE_DIR}/foundation/rorcompiler_workarounds.hpp
   ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.hpp
-  ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.inl
+  ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.hh
   ${ROAR_SOURCE_DIR}/foundation/rortypes.hpp
   ${ROAR_SOURCE_DIR}/foundation/rorutilities.hpp
   ${ROAR_SOURCE_DIR}/foundation/rorsystem.hpp
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.hpp
-  ${ROAR_SOURCE_DIR}/foundation/rorrandom.inl
+  ${ROAR_SOURCE_DIR}/foundation/rorrandom.hh
   ${ROAR_SOURCE_DIR}/foundation/rorcommon.hpp
   ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hpp
-  ${ROAR_SOURCE_DIR}/common_structure/rorgraph.inl
+  ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hh
   ${ROAR_SOURCE_DIR}/math/rorvector2.hpp
-  ${ROAR_SOURCE_DIR}/math/rorvector2.inl
+  ${ROAR_SOURCE_DIR}/math/rorvector2.hh
   ${ROAR_SOURCE_DIR}/math/rorvector3.hpp
-  ${ROAR_SOURCE_DIR}/math/rorvector3.inl
+  ${ROAR_SOURCE_DIR}/math/rorvector3.hh
   ${ROAR_SOURCE_DIR}/math/rorvector4.hpp
-  ${ROAR_SOURCE_DIR}/math/rorvector4.inl
+  ${ROAR_SOURCE_DIR}/math/rorvector4.hh
   ${ROAR_SOURCE_DIR}/math/rorvector_functions.hpp
-  ${ROAR_SOURCE_DIR}/math/rorvector_functions.inl
+  ${ROAR_SOURCE_DIR}/math/rorvector_functions.hh
   ${ROAR_SOURCE_DIR}/math/rorray.hpp
-  ${ROAR_SOURCE_DIR}/math/rorray.inl
+  ${ROAR_SOURCE_DIR}/math/rorray.hh
   ${ROAR_SOURCE_DIR}/math/rormatrix2.hpp
-  ${ROAR_SOURCE_DIR}/math/rormatrix2.inl
+  ${ROAR_SOURCE_DIR}/math/rormatrix2.hh
   ${ROAR_SOURCE_DIR}/math/rormatrix3.hpp
-  ${ROAR_SOURCE_DIR}/math/rormatrix3.inl
+  ${ROAR_SOURCE_DIR}/math/rormatrix3.hh
   ${ROAR_SOURCE_DIR}/math/rormatrix4.hpp
-  ${ROAR_SOURCE_DIR}/math/rormatrix4.inl
+  ${ROAR_SOURCE_DIR}/math/rormatrix4.hh
   ${ROAR_SOURCE_DIR}/math/rormatrix3x4.hpp
-  ${ROAR_SOURCE_DIR}/math/rormatrix3x4.inl
+  ${ROAR_SOURCE_DIR}/math/rormatrix3x4.hh
   ${ROAR_SOURCE_DIR}/math/rormatrix2_functions.hpp
-  ${ROAR_SOURCE_DIR}/math/rormatrix2_functions.inl
+  ${ROAR_SOURCE_DIR}/math/rormatrix2_functions.hh
   ${ROAR_SOURCE_DIR}/math/rormatrix3_functions.hpp
-  ${ROAR_SOURCE_DIR}/math/rormatrix3_functions.inl
+  ${ROAR_SOURCE_DIR}/math/rormatrix3_functions.hh
   ${ROAR_SOURCE_DIR}/math/rormatrix4_functions.hpp
-  ${ROAR_SOURCE_DIR}/math/rormatrix4_functions.inl
+  ${ROAR_SOURCE_DIR}/math/rormatrix4_functions.hh
   ${ROAR_SOURCE_DIR}/math/rormatrix3x4_functions.hpp
-  ${ROAR_SOURCE_DIR}/math/rormatrix3x4_functions.inl
+  ${ROAR_SOURCE_DIR}/math/rormatrix3x4_functions.hh
   ${ROAR_SOURCE_DIR}/math/rormatrix.hpp
   ${ROAR_SOURCE_DIR}/math/rorvector.hpp
   ${ROAR_SOURCE_DIR}/math/rorquaternion.hpp
-  ${ROAR_SOURCE_DIR}/math/rorquaternion.inl
+  ${ROAR_SOURCE_DIR}/math/rorquaternion.hh
   ${ROAR_SOURCE_DIR}/math/roraxis_angle.hpp
-  ${ROAR_SOURCE_DIR}/math/roraxis_angle.inl
+  ${ROAR_SOURCE_DIR}/math/roraxis_angle.hh
   ${ROAR_SOURCE_DIR}/math/roreuler_angle.hpp
-  ${ROAR_SOURCE_DIR}/math/roreuler_angle.inl
+  ${ROAR_SOURCE_DIR}/math/roreuler_angle.hh
   ${ROAR_SOURCE_DIR}/math/rorplane.hpp
-  ${ROAR_SOURCE_DIR}/math/rorplane.inl)
+  ${ROAR_SOURCE_DIR}/math/rorplane.hh)
 
 set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/profiling/rorlog.cpp

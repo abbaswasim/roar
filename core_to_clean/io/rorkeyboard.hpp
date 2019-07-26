@@ -62,4 +62,4 @@ class ROAR_ENGINE_ITEM Keyboard : public Singleton<Keyboard>, public IInputDevic
 };
 
 }        // namespace ror
-#include "rorkeyboard.inl"
+#include "rorkeyboard.hh"

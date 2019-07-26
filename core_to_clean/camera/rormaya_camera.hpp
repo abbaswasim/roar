@@ -54,4 +54,4 @@ class ROAR_ENGINE_ITEM MayaCamera : public ror::CameraNode
 };
 }        // namespace ror
 
-#include "rormaya_camera.inl"
+#include "rormaya_camera.hh"

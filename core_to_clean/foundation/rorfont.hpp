@@ -56,4 +56,4 @@ class ROAR_ENGINE_ITEM Font
 };
 }        // namespace ror
 
-#include "rorfont.inl"
+#include "rorfont.hh"

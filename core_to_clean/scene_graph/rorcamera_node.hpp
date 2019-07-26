@@ -49,4 +49,4 @@ class ROAR_ENGINE_ITEM CameraNode : public ror::Entities, public ror::Camera
 };
 }        // namespace ror
 
-#include "rorcamera_node.inl"
+#include "rorcamera_node.hh"

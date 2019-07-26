@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "matrix4.hpp"
+
 namespace ror_test
 {
 template <class _type>

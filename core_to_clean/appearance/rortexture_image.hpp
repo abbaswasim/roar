@@ -58,4 +58,4 @@ class ROAR_ENGINE_ITEM TextureImage
 };
 }        // namespace ror
 
-#include "rortexture_image.inl"
+#include "rortexture_image.hh"

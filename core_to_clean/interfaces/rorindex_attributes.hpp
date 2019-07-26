@@ -57,4 +57,4 @@ class ROAR_ENGINE_ITEM IndexAttributes
 };
 }        // namespace ror
 
-#include "rorindex_attributes.inl"
+#include "rorindex_attributes.hh"

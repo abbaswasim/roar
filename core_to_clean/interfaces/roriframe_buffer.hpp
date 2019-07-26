@@ -39,4 +39,4 @@ class ROAR_ENGINE_ITEM IFrameBuffer
 };
 }        // namespace ror
 
-#include "roriframe_buffer.inl"
+#include "roriframe_buffer.hh"

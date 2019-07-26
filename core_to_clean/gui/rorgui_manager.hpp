@@ -70,4 +70,4 @@ class ROAR_ENGINE_ITEM cguimanager : public ror::Singleton<cguimanager>
 };
 }        // namespace ror
 
-#include "rorgui_manager.inl"
+#include "rorgui_manager.hh"

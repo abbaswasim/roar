@@ -49,4 +49,4 @@ class ROAR_ENGINE_ITEM cguievent
 };
 }        // namespace ror
 
-#include "rorguievent.inl"
+#include "rorguievent.hh"

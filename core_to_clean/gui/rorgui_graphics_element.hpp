@@ -78,4 +78,4 @@ class ROAR_ENGINE_ITEM cguigraphics_element : public ror::cguielement
 };
 }        // namespace ror
 
-#include "rorgui_graphics_element.inl"
+#include "rorgui_graphics_element.hh"

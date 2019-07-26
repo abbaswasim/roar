@@ -81,4 +81,4 @@ class ROAR_ENGINE_ITEM Light : public ror::ColorBase
 };
 }        // namespace ror
 
-#include "rorlight.inl"
+#include "rorlight.hh"

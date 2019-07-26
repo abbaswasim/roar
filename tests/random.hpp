@@ -61,4 +61,4 @@ TYPED_TEST_SUITE(RandomTestSigned, RandomTypesSigned);
 
 }        // namespace ror_test
 
-#include "random.inl"
+#include "random.hh"

@@ -47,4 +47,4 @@ class ROAR_ENGINE_ITEM VertexInfluence
 };
 }        // namespace ror
 
-#include "rorvertex_influence.inl"
+#include "rorvertex_influence.hh"

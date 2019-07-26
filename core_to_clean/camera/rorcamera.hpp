@@ -78,4 +78,4 @@ class ROAR_ENGINE_ITEM Camera : public ror::Frustrum, public ror::Viewport
 };
 }        // namespace ror
 
-#include "rorcamera.inl"
+#include "rorcamera.hh"

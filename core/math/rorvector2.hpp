@@ -123,4 +123,4 @@ const Vector2f yaxis2f_negative(0.0f, -1.0f);
 // const Vector2d negative_yaxis2d(0.0, -1.0);
 }        // namespace ror
 
-#include "rorvector2.inl"
+#include "rorvector2.hh"

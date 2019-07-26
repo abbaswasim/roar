@@ -88,4 +88,4 @@ FORCE_INLINE Matrix2<_type> matrix2_interpolate(const Matrix2<_type> &a_matrix1,
 
 }        // namespace ror
 
-#include "rormatrix2_functions.inl"
+#include "rormatrix2_functions.hh"

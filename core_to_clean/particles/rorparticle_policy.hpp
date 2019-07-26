@@ -49,4 +49,4 @@ class ROAR_ENGINE_ITEM ParticlePolicy
 };
 }        // namespace ror
 
-#include "rorparticle_policy.inl"
+#include "rorparticle_policy.hh"

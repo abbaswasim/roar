@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "rormatrix3x4_functions.hpp"
+
 namespace ror
 {
 // Matrix3x4 operators and functions

@@ -52,4 +52,4 @@ class ROAR_ENGINE_ITEM Stack
 };
 }        // namespace ror
 
-#include "rorstack.inl"
+#include "rorstack.hh"

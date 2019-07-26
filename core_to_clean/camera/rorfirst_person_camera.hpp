@@ -69,4 +69,4 @@ class ROAR_ENGINE_ITEM FirstPersonCamera : public ror::CameraNode
 };
 }        // namespace ror
 
-#include "rorfirst_person_camera.inl"
+#include "rorfirst_person_camera.hh"

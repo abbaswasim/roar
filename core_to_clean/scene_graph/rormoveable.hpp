@@ -83,4 +83,4 @@ class ROAR_ENGINE_ITEM Moveable
 };
 }        // namespace ror
 
-#include "rormoveable.inl"
+#include "rormoveable.hh"

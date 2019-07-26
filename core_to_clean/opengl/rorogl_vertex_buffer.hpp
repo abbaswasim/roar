@@ -56,4 +56,4 @@ class ROAR_ENGINE_ITEM OGLVertexBuffer : public ror::IVertexBuffer
 };
 }        // namespace ror
 
-#include "rorogl_vertex_buffer.inl"
+#include "rorogl_vertex_buffer.hh"

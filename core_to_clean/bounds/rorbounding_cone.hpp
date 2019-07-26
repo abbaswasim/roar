@@ -77,4 +77,4 @@ class ROAR_ENGINE_ITEM BoundingCone : public IBounds
 };
 }        // namespace ror
 
-#include "rorbounding_cone.inl"
+#include "rorbounding_cone.hh"

@@ -80,4 +80,4 @@ class ROAR_ENGINE_ITEM MouseEvent
 };
 }        // namespace ror
 
-#include "rormouse_event.inl"
+#include "rormouse_event.hh"

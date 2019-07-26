@@ -117,4 +117,4 @@ class ROAR_ENGINE_ITEM OGLRenderingDevice : public rendering::IRenderingDevice
 };
 }        // namespace rendering
 
-#include "rorogl_rendering_device.inl"
+#include "rorogl_rendering_device.hh"

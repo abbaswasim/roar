@@ -67,4 +67,4 @@ class ROAR_ENGINE_ITEM VertexAttributes
 };
 }        // namespace ror
 
-#include "rorvertex_attributes.inl"
+#include "rorvertex_attributes.hh"

@@ -57,4 +57,4 @@ class ROAR_ENGINE_ITEM ccbamanager : public Singleton<ccbamanager>
 };
 }        // namespace ror
 
-#include "rorcba_manager.inl"
+#include "rorcba_manager.hh"

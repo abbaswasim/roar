@@ -75,4 +75,4 @@ class ROAR_ENGINE_ITEM Bone
 };
 }        // namespace ror
 
-#include "rorbone.inl"
+#include "rorbone.hh"

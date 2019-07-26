@@ -69,4 +69,4 @@ TYPED_TEST_SUITE(Ray3Test, RayTypesToTest);
 TYPED_TEST_SUITE(Ray2Test, RayTypesToTest);
 }        // namespace ror_test
 
-#include "ray.inl"
+#include "ray.hh"

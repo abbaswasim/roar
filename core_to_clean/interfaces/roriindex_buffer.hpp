@@ -59,4 +59,4 @@ class ROAR_ENGINE_ITEM IIndexBuffer
 };
 }        // namespace ror
 
-#include "roriindex_buffer.inl"
+#include "roriindex_buffer.hh"

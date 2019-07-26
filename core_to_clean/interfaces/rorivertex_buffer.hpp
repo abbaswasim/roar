@@ -64,4 +64,4 @@ class ROAR_ENGINE_ITEM IVertexBuffer
 };
 }        // namespace ror
 
-#include "rorivertex_buffer.inl"
+#include "rorivertex_buffer.hh"

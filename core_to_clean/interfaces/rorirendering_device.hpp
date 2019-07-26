@@ -103,4 +103,4 @@ class ROAR_ENGINE_ITEM IRenderingDevice
 };
 }        // namespace rendering
 
-#include "rorirendering_device.inl"
+#include "rorirendering_device.hh"

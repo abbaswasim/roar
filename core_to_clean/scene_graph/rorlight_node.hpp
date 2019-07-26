@@ -49,4 +49,4 @@ class ROAR_ENGINE_ITEM LightNode : public ror::Entities, public ror::Light
 };
 }        // namespace ror
 
-#include "rorlight_node.inl"
+#include "rorlight_node.hh"

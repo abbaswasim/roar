@@ -75,4 +75,4 @@ class ROAR_ENGINE_ITEM EulerAngle final
 
 }        // namespace ror
 
-#include "roreuler_angle.inl"
+#include "roreuler_angle.hh"

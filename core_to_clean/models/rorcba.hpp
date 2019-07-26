@@ -136,4 +136,4 @@ class ROAR_ENGINE_ITEM CCBA
 };
 }        // namespace ror
 
-#include "rorcba.inl"
+#include "rorcba.hh"

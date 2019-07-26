@@ -60,4 +60,4 @@ class ROAR_ENGINE_ITEM OGLTextureManager : public Singleton<OGLTextureManager>, 
 };
 }        // namespace ror
 
-#include "rorogl_texture_manager.inl"
+#include "rorogl_texture_manager.hh"

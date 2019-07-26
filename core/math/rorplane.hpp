@@ -82,4 +82,4 @@ using Planed = Plane<double64_t>;
 
 }        // namespace ror
 
-#include "rorplane.inl"
+#include "rorplane.hh"

@@ -61,4 +61,4 @@ class ROAR_ENGINE_ITEM StringTable : public Singleton<StringTable>
 
 }        // namespace ror
 
-#include "rorstring_table.inl"
+#include "rorstring_table.hh"

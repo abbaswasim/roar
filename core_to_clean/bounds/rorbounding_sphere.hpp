@@ -68,4 +68,4 @@ class ROAR_ENGINE_ITEM BoundingSphere : public IBounds
 };
 }        // namespace ror
 
-#include "rorbounding_sphere.inl"
+#include "rorbounding_sphere.hh"

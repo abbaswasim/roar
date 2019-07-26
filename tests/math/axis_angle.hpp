@@ -44,4 +44,4 @@ using AxisAngleTypesToTest = ::testing::Types<float32_t, double64_t>;
 TYPED_TEST_SUITE(AxisAngleTest, AxisAngleTypesToTest);
 }        // namespace TestingEngine
 
-#include "axis_angle.inl"
+#include "axis_angle.hh"

@@ -49,4 +49,4 @@ class ROAR_ENGINE_ITEM IndexCountPair
 };
 }        // namespace ror
 
-#include "rorindex_count_pair.inl"
+#include "rorindex_count_pair.hh"

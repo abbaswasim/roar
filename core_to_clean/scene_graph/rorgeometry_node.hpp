@@ -60,4 +60,4 @@ class ROAR_ENGINE_ITEM GeometryNode : public ror::Entities, public ror::ccbainst
 };
 }        // namespace ror
 
-#include "rorgeometry_node.inl"
+#include "rorgeometry_node.hh"

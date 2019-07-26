@@ -80,4 +80,4 @@ typedef ParticlesNode<500, Particle,
     fountain_system500;
 }        // namespace ror
 
-#include "rorparticles_node.inl"
+#include "rorparticles_node.hh"

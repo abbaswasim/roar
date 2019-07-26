@@ -45,4 +45,4 @@ class ROAR_ENGINE_ITEM WeightedVertex
 };
 }        // namespace ror
 
-#include "rorweighted_vertex.inl"
+#include "rorweighted_vertex.hh"

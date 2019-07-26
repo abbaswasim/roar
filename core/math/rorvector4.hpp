@@ -153,4 +153,4 @@ const Vector4f black(0.0f, 0.0f, 0.0f, 0.0f);
 
 }        // namespace ror
 
-#include "rorvector4.inl"
+#include "rorvector4.hh"

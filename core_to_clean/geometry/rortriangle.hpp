@@ -52,4 +52,4 @@ class ROAR_ENGINE_ITEM Triangle
 };
 }        // namespace ror
 
-#include "rortriangle.inl"
+#include "rortriangle.hh"

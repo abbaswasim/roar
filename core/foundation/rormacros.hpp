@@ -65,6 +65,7 @@
 #	define ROAR_HELPER_NEVER_INLINE
 #endif
 
+// To use the below I should use -fvisibility=hidden by default and only export selected symbols
 #ifdef ROAR_CREATE_SHARED_LIB
 #	ifdef ROAR_EXPORTING_SYMBOLS        // defined if we are building the shared library instead of using it
 #		define ROAR_ENGINE_ITEM ROAR_HELPER_EXPORT

@@ -60,4 +60,4 @@ class ROAR_ENGINE_ITEM ShaderObject
 };
 }        // namespace ror
 
-#include "rorshader_object.inl"
+#include "rorshader_object.hh"

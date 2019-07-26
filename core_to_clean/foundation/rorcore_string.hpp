@@ -59,4 +59,4 @@ class ROAR_ENGINE_ITEM CoreString
 
 }        // namespace ror
 
-#include "rorcore_string.inl"
+#include "rorcore_string.hh"

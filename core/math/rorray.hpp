@@ -69,4 +69,4 @@ using Ray2 = Ray<Vector2f>;
 
 }        // namespace ror
 
-#include "rorray.inl"
+#include "rorray.hh"

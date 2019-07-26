@@ -50,4 +50,4 @@ using QuaternionTypesToTest = ::testing::Types<float32_t, double64_t>;
 TYPED_TEST_SUITE(QuaternionTest, QuaternionTypesToTest);
 }        // namespace TestingEngine
 
-#include "quaternion.inl"
+#include "quaternion.hh"

@@ -117,4 +117,4 @@ FORCE_INLINE Matrix3<_type> matrix3_interpolate(const Matrix3<_type> &a_matrix1,
 
 }        // namespace ror
 
-#include "rormatrix3_functions.inl"
+#include "rormatrix3_functions.hh"

@@ -50,4 +50,4 @@ class ROAR_ENGINE_ITEM ColorBase
 };
 }        // namespace ror
 
-#include "rorcolor_base.inl"
+#include "rorcolor_base.hh"

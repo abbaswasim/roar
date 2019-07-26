@@ -85,4 +85,4 @@ using Randomi = Random<int32_t>;
 
 }        // namespace ror
 
-#include "rorrandom.inl"
+#include "rorrandom.hh"

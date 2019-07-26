@@ -147,4 +147,4 @@ class ROAR_ENGINE_ITEM Entities : public ror::csgnode, public ror::Moveable
 };
 }        // namespace ror
 
-#include "rorentities.inl"
+#include "rorentities.hh"

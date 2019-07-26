@@ -212,4 +212,4 @@ class ROAR_ENGINE_ITEM Graph
 
 }        // namespace ror
 
-#include "rorgraph.inl"
+#include "rorgraph.hh"

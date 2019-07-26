@@ -53,4 +53,4 @@ class ROAR_ENGINE_ITEM ParticleSystemManager : public Singleton<ParticleSystemMa
 };
 }        // namespace ror
 
-#include "rorparticle_system_manager.inl"
+#include "rorparticle_system_manager.hh"

@@ -47,4 +47,4 @@ class ROAR_ENGINE_ITEM Keyframe
 };
 }        // namespace ror
 
-#include "rorkeyframe.inl"
+#include "rorkeyframe.hh"

@@ -154,4 +154,4 @@ const Matrix3x4f zero_matrix3x4f(
 
 }        // namespace ror
 
-#include "rormatrix3x4.inl"
+#include "rormatrix3x4.hh"

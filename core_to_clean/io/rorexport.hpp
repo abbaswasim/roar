@@ -59,4 +59,4 @@ class ROAR_ENGINE_ITEM Export
 };
 }        // namespace ror
 
-#include "rorexport.inl"
+#include "rorexport.hh"

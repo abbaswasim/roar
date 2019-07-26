@@ -130,4 +130,4 @@ const Quaterniond zero_quaterniond(0.0, 0.0, 0.0, 0.0);
 
 }        // namespace ror
 
-#include "rorquaternion.inl"
+#include "rorquaternion.hh"

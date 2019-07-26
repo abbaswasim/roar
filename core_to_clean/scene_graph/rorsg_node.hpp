@@ -70,4 +70,4 @@ class ROAR_ENGINE_ITEM csgnode : public ObjectInformation
 };
 }        // namespace ror
 
-#include "rorsg_node.inl"
+#include "rorsg_node.hh"

@@ -105,4 +105,4 @@ class ROAR_ENGINE_ITEM World : public application::Window32, public ror::IEventL
 };
 }        // namespace ror
 
-#include "rorworld.inl"
+#include "rorworld.hh"

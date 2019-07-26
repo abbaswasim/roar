@@ -69,4 +69,4 @@ class ROAR_ENGINE_ITEM cguibutton : public ror::cguigraphics_element
 };
 }        // namespace ror
 
-#include "rorgui_button.inl"
+#include "rorgui_button.hh"

@@ -41,4 +41,4 @@ class ROAR_ENGINE_ITEM IFunctor
 };
 }        // namespace ror
 
-#include "rorifunctor.inl"
+#include "rorifunctor.hh"

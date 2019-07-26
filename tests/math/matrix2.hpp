@@ -66,4 +66,4 @@ using Matrix2SignedTypesToTest = ::testing::Types<float32_t, double64_t>;
 TYPED_TEST_SUITE(Matrix2TestSigned, Matrix2SignedTypesToTest);
 }        // namespace ror_test
 
-#include "matrix2.inl"
+#include "matrix2.hh"

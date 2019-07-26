@@ -44,4 +44,4 @@ using EulerAngleTypesToTest = ::testing::Types<float32_t, double64_t>;
 TYPED_TEST_SUITE(EulerAngleTest, EulerAngleTypesToTest);
 }        // namespace TestingEngine
 
-#include "euler_angle.inl"
+#include "euler_angle.hh"

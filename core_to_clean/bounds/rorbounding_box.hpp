@@ -63,4 +63,4 @@ class ROAR_ENGINE_ITEM BoundingBox : public IBounds
 };
 
 }        // namespace ror
-#include "rorbounding_box.inl"
+#include "rorbounding_box.hh"

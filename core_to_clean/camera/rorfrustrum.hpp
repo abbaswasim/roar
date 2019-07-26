@@ -92,4 +92,4 @@ class ROAR_ENGINE_ITEM Frustrum
 };
 }        // namespace ror
 
-#include "rorfrustrum.inl"
+#include "rorfrustrum.hh"

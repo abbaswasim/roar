@@ -74,4 +74,4 @@ class ROAR_ENGINE_ITEM Octree
 };
 }        // namespace ror
 
-#include "roroctree.inl"
+#include "roroctree.hh"

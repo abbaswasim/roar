@@ -48,4 +48,4 @@ class ROAR_ENGINE_ITEM DummyNode : public Entities
 };
 }        // namespace ror
 
-#include "rordummy_node.inl"
+#include "rordummy_node.hh"

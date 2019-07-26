@@ -123,4 +123,4 @@ FORCE_INLINE Matrix3x4<_type> matrix3x4_interpolate(const Matrix3x4<_type> &a_ma
 
 }        // namespace ror
 
-#include "rormatrix3x4_functions.inl"
+#include "rormatrix3x4_functions.hh"

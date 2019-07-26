@@ -103,4 +103,4 @@ class ROAR_ENGINE_ITEM OGLShaderProgram
 };
 }        // namespace ror
 
-#include "rorogl_shader_program.inl"
+#include "rorogl_shader_program.hh"

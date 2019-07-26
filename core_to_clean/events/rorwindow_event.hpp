@@ -72,4 +72,4 @@ class ROAR_ENGINE_ITEM WindowEvent
 };
 }        // namespace ror
 
-#include "rorwindow_event.inl"
+#include "rorwindow_event.hh"

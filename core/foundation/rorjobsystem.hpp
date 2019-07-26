@@ -38,4 +38,4 @@ uint32_t get_hardware_threads()
 
 } // namespace ror
 
-#include "rorjobsystem.inl"
+#include "rorjobsystem.hh"

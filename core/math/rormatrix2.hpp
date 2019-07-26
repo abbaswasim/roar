@@ -143,4 +143,4 @@ const Matrix2f zero_matrix2f(
 
 }        // namespace ror
 
-#include "rormatrix2.inl"
+#include "rormatrix2.hh"

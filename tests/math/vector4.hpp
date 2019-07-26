@@ -92,4 +92,4 @@ using SignedTypesToTest = ::testing::Types<float32_t, int32_t, double64_t>;
 TYPED_TEST_SUITE(Vector4TestSigned, SignedTypesToTest);
 }        // namespace ror_test
 
-#include "vector4.inl"
+#include "vector4.hh"

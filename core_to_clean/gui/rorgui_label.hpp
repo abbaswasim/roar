@@ -44,4 +44,4 @@ class ROAR_ENGINE_ITEM cguilabel : public ror::cguigraphics_element
 };
 }        // namespace ror
 
-#include "rorgui_label.inl"
+#include "rorgui_label.hh"

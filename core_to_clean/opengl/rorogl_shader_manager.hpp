@@ -55,4 +55,4 @@ class ROAR_ENGINE_ITEM OGLShaderManager : public Singleton<OGLShaderManager>, pu
 };
 }        // namespace ror
 
-#include "rorogl_shader_manager.inl"
+#include "rorogl_shader_manager.hh"

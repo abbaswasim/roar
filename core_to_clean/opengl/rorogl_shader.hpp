@@ -48,4 +48,4 @@ class ROAR_ENGINE_ITEM OGLShader : public ror::IShader
 };
 }        // namespace ror
 
-#include "rorogl_shader.inl"
+#include "rorogl_shader.hh"

@@ -101,4 +101,4 @@ class ROAR_ENGINE_ITEM Log
 };
 }        // namespace ror
 
-#include "rorlog.inl"
+#include "rorlog.hh"

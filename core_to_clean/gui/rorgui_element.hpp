@@ -157,4 +157,4 @@ class ROAR_ENGINE_ITEM cguielement
 };
 }        // namespace ror
 
-#include "rorgui_element.inl"
+#include "rorgui_element.hh"

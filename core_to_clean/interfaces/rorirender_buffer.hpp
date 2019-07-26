@@ -39,4 +39,4 @@ class ROAR_ENGINE_ITEM IRenderBuffer
 };
 }        // namespace ror
 
-#include "rorirender_buffer.inl"
+#include "rorirender_buffer.hh"

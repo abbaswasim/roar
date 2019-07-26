@@ -47,4 +47,4 @@ class ROAR_ENGINE_ITEM Particle        // : public CoreEngine::CMemoryManager
 };
 }        // namespace ror
 
-#include "rorparticle.inl"
+#include "rorparticle.hh"

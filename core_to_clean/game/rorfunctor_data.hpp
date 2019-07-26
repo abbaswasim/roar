@@ -45,4 +45,4 @@ class ROAR_ENGINE_ITEM FunctorData
 typedef std::vector<FunctorData> functor_vector;
 }        // namespace ror
 
-#include "rorfunctor_data.inl"
+#include "rorfunctor_data.hh"

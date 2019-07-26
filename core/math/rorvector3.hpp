@@ -154,4 +154,4 @@ const Vector3f zaxis3f_negative(0.0f, 0.0f, -1.0f);
 
 }        // namespace ror
 
-#include "rorvector3.inl"
+#include "rorvector3.hh"

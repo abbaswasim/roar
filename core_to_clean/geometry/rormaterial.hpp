@@ -57,4 +57,4 @@ class ROAR_ENGINE_ITEM Material : public ror::ColorBase
 };
 }        // namespace ror
 
-#include "rormaterial.inl"
+#include "rormaterial.hh"

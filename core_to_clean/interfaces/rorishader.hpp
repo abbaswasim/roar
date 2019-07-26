@@ -51,4 +51,4 @@ class ROAR_ENGINE_ITEM IShader
 };
 }        // namespace ror
 
-#include "rorishader.inl"
+#include "rorishader.hh"

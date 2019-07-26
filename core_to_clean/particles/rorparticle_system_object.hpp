@@ -49,4 +49,4 @@ class ROAR_ENGINE_ITEM ParticleSystemObject
 };
 }        // namespace ror
 
-#include "rorparticle_system_object.inl"
+#include "rorparticle_system_object.hh"

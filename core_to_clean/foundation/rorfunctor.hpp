@@ -45,4 +45,4 @@ class ROAR_ENGINE_ITEM Functor : public ror::IFunctor
 };
 }        // namespace ror
 
-#include "rorfunctor.inl"
+#include "rorfunctor.hh"

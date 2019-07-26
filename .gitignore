@@ -3,3 +3,10 @@ xcode-project
 *.log
 log/*.log
 logs/*.log
+.clangd
+.DS_Store
+.dir-locals.el
+.projectile
+.ycm_extra_conf.py
+.ycm_extra_conf.py.back
+.ycm_test_conf.py
