@@ -155,7 +155,7 @@ TYPED_TEST(SegmentTest, DISABLED_testing_soup)
 			k = 0;
 		}
 
-		bezier_time = t.tick() / 1000000.0;
+		bezier_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 
 	{
@@ -177,7 +177,7 @@ TYPED_TEST(SegmentTest, DISABLED_testing_soup)
 			k = 0;
 		}
 
-		bezier2_time = t.tick() / 1000000.0;
+		bezier2_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 
 	EXPECT_GT(bezier2_time, bezier_time) << "Templates are slower to run";

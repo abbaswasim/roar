@@ -1,4 +1,5 @@
 #include "carray_vs_stdarray.hpp"
+#include "foundation/rortypes.hpp"
 #include "math/rormatrix.hpp"
 #include "profiling/rortimer.hpp"
 #include <gtest/gtest.h>
@@ -20,8 +21,8 @@ TEST(ArrayTest, ArrayTest_carray_vs_stdarray)
 	{
 		ror::Timer t;
 
-		size_t  int_array[max_size];
-		int32_t total = 0;
+		size_t int_array[max_size];
+		size_t total = 0;
 
 		for (size_t j = 0; j < 100; ++j)
 		{
@@ -36,13 +37,13 @@ TEST(ArrayTest, ArrayTest_carray_vs_stdarray)
 			}
 		}
 
-		carray_time = t.tick() / 1000000.0;
+		carray_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 	{
 		ror::Timer t;
 
 		std::array<size_t, max_size> int_array;
-		int32_t                      total = 0;
+		size_t                       total = 0;
 
 		for (size_t j = 0; j < 100; ++j)
 		{
@@ -57,7 +58,7 @@ TEST(ArrayTest, ArrayTest_carray_vs_stdarray)
 			}
 		}
 
-		stdarray_time = t.tick() / 1000000.0;
+		stdarray_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 
 	if (ror::get_build() == ror::BuildType::build_release)
@@ -98,7 +99,7 @@ TEST(SDTClamp, STDClamp_vs_manual)
 			}
 		}
 
-		std_time = t.tick() / 1000000.0;
+		std_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 	{
 		ror::Timer t;
@@ -113,7 +114,7 @@ TEST(SDTClamp, STDClamp_vs_manual)
 			}
 		}
 
-		my_time = t.tick() / 1000000.0;
+		my_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 
 	EXPECT_LT(my_time, std_time) << "my clamp is slower than std::clamp on this platform";

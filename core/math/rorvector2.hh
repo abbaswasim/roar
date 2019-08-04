@@ -75,7 +75,7 @@ FORCE_INLINE _type &Vector2<_type>::operator[](int32_t a_index) noexcept
 template <class _type>
 FORCE_INLINE Vector2<_type> Vector2<_type>::operator+(const Vector2<_type> &a_right) const noexcept
 {
-	return Vector2(a_right.x + x, a_right.y + y);
+	return Vector2<_type>(a_right.x + x, a_right.y + y);
 }
 
 template <class _type>
@@ -178,7 +178,7 @@ FORCE_INLINE Vector2<_type> Vector2<_type>::operator*(const _type a_scale) const
 template <class _type>
 FORCE_INLINE Vector2<_type> Vector2<_type>::operator/(const _type a_scale) const noexcept
 {
-	return ((a_scale < 0 || a_scale > 0) ? Vector2(x / a_scale, y / a_scale) : Vector2(0, 0));
+	return ((a_scale < 0 || a_scale > 0) ? Vector2<_type>(x / a_scale, y / a_scale) : Vector2<_type>(0, 0));
 }
 
 template <class _type>
@@ -282,8 +282,8 @@ FORCE_INLINE void Vector2<_type>::normalize()
 		set(0, 0);
 	}
 
-	x = static_cast<_type>(x / length);
-	y = static_cast<_type>(y / length);
+	x = static_cast<_type>(static_cast<precision>(x) / length);
+	y = static_cast<_type>(static_cast<precision>(y) / length);
 }
 
 template <class _type>
@@ -302,7 +302,7 @@ FORCE_INLINE auto Vector2<_type>::normalized() const -> Vector2<precision>
 	{
 		return Vector2<precision>(0, 0);
 	}
-	return Vector2<precision>(x / length, y / length);
+	return Vector2<precision>(static_cast<precision>(x) / length, static_cast<precision>(y) / length);
 }
 
 template <class _type>

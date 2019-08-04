@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rortypes.hpp"
 namespace ror_test
 {
 #define BETWEEN_MIN_MAX()                                  \
@@ -48,7 +49,7 @@ TYPED_TEST(RandomTest, constructors_work)
 		for (size_t i = 0; i < 2000; ++i)
 		{
 			TypeParam next_rand = rands.next();
-			EXPECT_DOUBLE_EQ(next_rand, min);
+			EXPECT_DOUBLE_EQ(static_cast<double64_t>(next_rand), static_cast<double64_t>(min));
 		}
 	}
 	{

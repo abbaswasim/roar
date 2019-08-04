@@ -10,3 +10,5 @@ logs/*.log
 .ycm_extra_conf.py
 .ycm_extra_conf.py.back
 .ycm_test_conf.py
+compile_commands.json
+xcodebuild

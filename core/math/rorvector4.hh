@@ -337,10 +337,10 @@ FORCE_INLINE void Vector4<_type>::normalize()
 		set(0, 0, 0, 0);
 	}
 
-	x = static_cast<_type>(x / length);
-	y = static_cast<_type>(y / length);
-	z = static_cast<_type>(z / length);
-	w = static_cast<_type>(w / length);
+	x = static_cast<_type>(static_cast<precision>(x) / length);
+	y = static_cast<_type>(static_cast<precision>(y) / length);
+	z = static_cast<_type>(static_cast<precision>(z) / length);
+	w = static_cast<_type>(static_cast<precision>(w) / length);
 }
 
 template <class _type>
@@ -361,7 +361,7 @@ FORCE_INLINE auto Vector4<_type>::normalized() const -> Vector4<precision>
 	{
 		return Vector4<precision>(0, 0, 0, 0);
 	}
-	return Vector4<precision>(x / length, y / length, z / length, w / length);
+	return Vector4<precision>(static_cast<precision>(x) / length, static_cast<precision>(y) / length, static_cast<precision>(z) / length, static_cast<precision>(w) / length);
 }
 
 template <class _type>

@@ -38,7 +38,7 @@ template <class _type>
 FORCE_INLINE auto distance_squared(const _type &a_first, const _type &a_second) -> scalar_precision<_type>
 {
 	_type tmp{a_second - a_first};
-	return tmp.length_squared();
+	return static_cast<scalar_precision<_type>>(tmp.length_squared());
 }
 
 template <class _type>

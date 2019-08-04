@@ -75,7 +75,7 @@ FORCE_INLINE _type &Vector3<_type>::operator[](int32_t a_index) noexcept
 template <class _type>
 FORCE_INLINE Vector3<_type> Vector3<_type>::operator+(const Vector3<_type> &a_right) const noexcept
 {
-	return Vector3(a_right.x + x, a_right.y + y, a_right.z + z);
+	return Vector3<_type>(a_right.x + x, a_right.y + y, a_right.z + z);
 }
 
 template <class _type>
@@ -186,7 +186,7 @@ FORCE_INLINE Vector3<_type> Vector3<_type>::operator*(const _type a_scale) const
 template <class _type>
 FORCE_INLINE Vector3<_type> Vector3<_type>::operator/(const _type a_scale) const noexcept
 {
-	return ((a_scale < 0 || a_scale > 0) ? Vector3(x / a_scale, y / a_scale, z / a_scale) : Vector3(0, 0, 0));
+	return ((a_scale < 0 || a_scale > 0) ? Vector3<_type>(x / a_scale, y / a_scale, z / a_scale) : Vector3<_type>(0, 0, 0));
 }
 
 template <class _type>
@@ -300,9 +300,9 @@ FORCE_INLINE void Vector3<_type>::normalize()
 		this->set(0, 0, 0);
 	}
 
-	x = static_cast<_type>(x / length);
-	y = static_cast<_type>(y / length);
-	z = static_cast<_type>(z / length);
+	x = static_cast<_type>(static_cast<precision>(x) / length);
+	y = static_cast<_type>(static_cast<precision>(y) / length);
+	z = static_cast<_type>(static_cast<precision>(z) / length);
 }
 
 template <class _type>
@@ -323,7 +323,7 @@ FORCE_INLINE auto Vector3<_type>::normalized() const -> Vector3<precision>
 		return Vector3<precision>(0, 0, 0);
 	}
 
-	return Vector3<precision>(x / length, y / length, z / length);
+	return Vector3<precision>(static_cast<precision>(x) / length, static_cast<precision>(y) / length, static_cast<precision>(z) / length);
 }
 
 template <class _type>
