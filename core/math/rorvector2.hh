@@ -75,13 +75,13 @@ FORCE_INLINE _type &Vector2<_type>::operator[](int32_t a_index) noexcept
 template <class _type>
 FORCE_INLINE Vector2<_type> Vector2<_type>::operator+(const Vector2<_type> &a_right) const noexcept
 {
-	return Vector2<_type>(x + a_right.x, y + a_right.y);
+	return Vector2<_type>(this->x + a_right.x, this->y + a_right.y);
 }
 
 template <class _type>
 FORCE_INLINE Vector2<_type> Vector2<_type>::operator-(const Vector2<_type> &a_right) const noexcept
 {
-	return Vector2<_type>(x - a_right.x, y - a_right.y);
+	return Vector2<_type>(this->x - a_right.x, this->y - a_right.y);
 }
 
 template <class _type>
