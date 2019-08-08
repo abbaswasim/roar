@@ -83,9 +83,9 @@ FORCE_INLINE bool Bezier2<_type>::is_point_inside_my_2d_triangle(const ror::Vect
 
 #define SIGN(p1, p2, p3) (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y)
 
-	bool b1 = SIGN(a_point, this->m_Points[0], this->m_Points[1]) < 0.0;
-	bool b2 = SIGN(a_point, this->m_Points[1], this->m_Points[2]) < 0.0;
-	bool b3 = SIGN(a_point, this->m_Points[2], this->m_Points[0]) < 0.0;
+	bool b1 = SIGN(a_point, this->m_Points[0], this->m_Points[1]) < 0;
+	bool b2 = SIGN(a_point, this->m_Points[1], this->m_Points[2]) < 0;
+	bool b3 = SIGN(a_point, this->m_Points[2], this->m_Points[0]) < 0;
 
 	return ((b1 == b2) && (b2 == b3));
 }
