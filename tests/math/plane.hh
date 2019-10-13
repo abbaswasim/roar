@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "plane.hpp"
+
 namespace ror_test
 {
 TYPED_TEST(PlaneTest, constructors_work)

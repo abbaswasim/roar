@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "quaternion.hpp"
+
 namespace ror_test
 {
 const int QUATERNION_SIZE = 4;

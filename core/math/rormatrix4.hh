@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "rormatrix4.hpp"
+
 namespace ror
 {
 template <class _type>

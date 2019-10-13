@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "rortimer.hpp"
+
 namespace ror
 {
 FORCE_INLINE Timer::Timer()

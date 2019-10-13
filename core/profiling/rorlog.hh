@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "rorlog.hpp"
+
 namespace ror
 {
 template <typename... Args>

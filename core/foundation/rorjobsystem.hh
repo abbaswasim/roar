@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "rorjobsystem.hpp"
 
 namespace ror
 {

@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "vector2.hpp"
+
 namespace ror_test
 {
 template <class _type>

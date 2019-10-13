@@ -23,6 +23,9 @@
 //
 // Version: 1.0.0
 
+#include <utility>
+#include "rorgraph.hpp"
+
 namespace ror
 {
 void GraphNode::add_child(VertexId a_child)

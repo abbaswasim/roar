@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "rormatrix4_functions.hpp"
+
 namespace ror
 {
 // Matrix4 operators and functions

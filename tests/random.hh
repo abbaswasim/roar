@@ -23,7 +23,8 @@
 //
 // Version: 1.0.0
 
-#include "foundation/rortypes.hpp"
+#include "random.hpp"
+
 namespace ror_test
 {
 #define BETWEEN_MIN_MAX()                                  \
