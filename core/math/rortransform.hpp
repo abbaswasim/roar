@@ -37,11 +37,10 @@ template <class _type>
 class ROAR_ENGINE_ITEM Transform final
 {
   public:
-	Quaternion<_type> m_rotation;                               //!< Rotation component of the transform
-	Vector3<_type>    m_translation;                            //!< Translation or origin of the transform
-	Vector3<_type>    m_scale = Vector3<_type>(1, 1, 1);        //!< Scaling component of the transform
+	Quaternion<_type> m_rotation;                                     //!< Rotation component of the transform
+	Vector3<_type>    m_translation = Vector3<_type>(0, 0, 0);        //!< Translation or origin of the transform
+	Vector3<_type>    m_scale       = Vector3<_type>(1, 1, 1);        //!< Scaling component of the transform
 
-	// TODO: Make ctors for Matrix4 and Matrix3x4
 	FORCE_INLINE Transform()                             = default;                   //! Default constructor
 	FORCE_INLINE Transform(const Transform &a_other)     = default;                   //! Copy constructor
 	FORCE_INLINE Transform(Transform &&a_other) noexcept = default;                   //! Move constructor
@@ -49,8 +48,15 @@ class ROAR_ENGINE_ITEM Transform final
 	FORCE_INLINE Transform &operator=(Transform &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Transform() noexcept                              = default;        //! Destructor
 
-	FORCE_INLINE      Transform(const Quaternion<_type> &a_rotation, const Vector3<_type> &a_translation, const Vector3<_type> &a_scale);
+	FORCE_INLINE Transform(const Quaternion<_type> &a_rotation, const Vector3<_type> &a_translation, const Vector3<_type> &a_scale);
+	FORCE_INLINE Transform(const Matrix3<_type> &a_matrix) noexcept;
+	FORCE_INLINE Transform(const Matrix4<_type> &a_matrix) noexcept;
+	FORCE_INLINE Transform(const Matrix3x4<_type> &a_matrix) noexcept;
+
 	FORCE_INLINE void set(const Quaternion<_type> &a_rotation, const Vector3<_type> &a_translation, const Vector3<_type> &a_scale) noexcept;
+	FORCE_INLINE void set(const Matrix3<_type> &a_matrix) noexcept;
+	FORCE_INLINE void set(const Matrix4<_type> &a_matrix) noexcept;
+	FORCE_INLINE void set(const Matrix3x4<_type> &a_matrix) noexcept;
 
 	FORCE_INLINE Quaternion<_type> rotation() const;
 	FORCE_INLINE Vector3<_type> translation() const;

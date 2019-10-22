@@ -30,6 +30,10 @@
 
 namespace ror
 {
+/**
+* Stnadard quaternion class, only really valid for real values
+* One can still it for other data types but some precision will be lost
+*/
 template <class _type>
 class ROAR_ENGINE_ITEM Quaternion final
 {
@@ -69,8 +73,8 @@ class ROAR_ENGINE_ITEM Quaternion final
 	FORCE_INLINE Quaternion &operator+=(_type a_scalar) noexcept;
 	FORCE_INLINE Quaternion &operator-=(_type a_scalar) noexcept;
 	FORCE_INLINE Quaternion &operator*=(_type a_scalar) noexcept;
-	FORCE_INLINE Quaternion operator*(const Quaternion &a_rhs) const;
-	FORCE_INLINE Quaternion operator*(const _type a_scalar) const;
+	FORCE_INLINE Quaternion  operator*(const Quaternion &a_rhs) const;
+	FORCE_INLINE Quaternion  operator*(const _type a_scalar) const;
 	FORCE_INLINE Vector3<_type> operator*(const Vector3<_type> &a_vector) const;
 
 	FORCE_INLINE Quaternion operator+(const Quaternion &a_rhs) noexcept;
@@ -82,16 +86,16 @@ class ROAR_ENGINE_ITEM Quaternion final
 	FORCE_INLINE explicit operator const _type *() const noexcept;        //!< Only bind to const arrays or const pointers type
 	FORCE_INLINE Quaternion<_type> operator-() const;
 
-	FORCE_INLINE void identity();
-	FORCE_INLINE void normalize();
+	FORCE_INLINE void       identity();
+	FORCE_INLINE void       normalize();
 	FORCE_INLINE Quaternion normalized() const;
 	FORCE_INLINE Quaternion conjugate() const;
-	FORCE_INLINE _type magnitude() const;
-	FORCE_INLINE _type magnitude_squared() const;
-	FORCE_INLINE bool  inverse(Quaternion &a_out_quaternion) const;
-	FORCE_INLINE bool  invert();
-	FORCE_INLINE _type dot_product(const Quaternion &a_quaternion) const;
-	FORCE_INLINE _type angle() const;
+	FORCE_INLINE _type      magnitude() const;
+	FORCE_INLINE _type      magnitude_squared() const;
+	FORCE_INLINE bool       inverse(Quaternion &a_out_quaternion) const;
+	FORCE_INLINE bool       invert();
+	FORCE_INLINE _type      dot_product(const Quaternion &a_quaternion) const;
+	FORCE_INLINE _type      angle() const;
 	FORCE_INLINE Vector3<_type> axis() const;
 	FORCE_INLINE AxisAngle<_type> axis_angle() const;
 };

@@ -48,7 +48,13 @@ template <class _type>
 class Matrix3x4;
 
 /**
- * Forward declaration for EulerAngle class used within Matrix3 class
+ * Forward declaration for AxisAngle class used within Matrix4 class
+ */
+template <class _type>
+class AxisAngle;
+
+/**
+ * Forward declaration for EulerAngle class used within Matrix4 class
  */
 template <class _type>
 class EulerAngle;
@@ -119,14 +125,14 @@ class ROAR_ENGINE_ITEM Matrix4 final
 	FORCE_INLINE Matrix4 &operator-=(const Matrix4 &a_matrix);
 	FORCE_INLINE Matrix4 &operator*=(const Matrix4 &a_matrix);
 	FORCE_INLINE Matrix4 &operator*=(_type a_value);
-	FORCE_INLINE Matrix4 operator-() const;
+	FORCE_INLINE Matrix4  operator-() const;
 
-	FORCE_INLINE void identity() noexcept;
-	FORCE_INLINE _type determinant() const noexcept;
-	FORCE_INLINE bool  invert();                                       //!< Inverts the matrix and returns true. If inverse is not possile returns false
-	FORCE_INLINE bool  inverse(Matrix4 &a_output_matrix) const;        //!< Sets a_output_matrix to inverse if its possible and returns true otherwise returns false
-	FORCE_INLINE void  transpose() noexcept;                           //!< Transposes the matrix
-	FORCE_INLINE Matrix4 transposed() const;                           //!< Returns transpose of the matrix unchanged
+	FORCE_INLINE void    identity() noexcept;
+	FORCE_INLINE _type   determinant() const noexcept;
+	FORCE_INLINE bool    invert();                                       //!< Inverts the matrix and returns true. If inverse is not possile returns false
+	FORCE_INLINE bool    inverse(Matrix4 &a_output_matrix) const;        //!< Sets a_output_matrix to inverse if its possible and returns true otherwise returns false
+	FORCE_INLINE void    transpose() noexcept;                           //!< Transposes the matrix
+	FORCE_INLINE Matrix4 transposed() const;                             //!< Returns transpose of the matrix unchanged
 
 	FORCE_INLINE void normalize();            //!< Normalizes the matrix x, y, z axis
 	FORCE_INLINE void orthogonalize();        //!< Orthogonalizes the basis axis using Gram–Schmidt process,

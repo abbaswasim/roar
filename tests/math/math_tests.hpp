@@ -31,6 +31,7 @@
 #include "matrix3.hpp"
 #include "matrix3x4.hpp"
 #include "matrix4.hpp"
+#include "transform.hpp"
 
 #include "quaternion.hpp"
 #include "axis_angle.hpp"

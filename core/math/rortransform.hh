@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "math/rormatrix4.hpp"
+#include "math/rorvector3.hpp"
 #include "rortransform.hpp"
 
 namespace ror
@@ -37,9 +39,66 @@ FORCE_INLINE Transform<_type>::Transform(const Quaternion<_type> &a_rotation, co
 template <class _type>
 FORCE_INLINE void Transform<_type>::set(const Quaternion<_type> &a_rotation, const Vector3<_type> &a_translation, const Vector3<_type> &a_scale) noexcept
 {
-	this->m_rotation = a_rotation;
+	this->m_rotation    = a_rotation;
 	this->m_translation = a_translation;
-	this->m_scale = a_scale;
+	this->m_scale       = a_scale;
+}
+
+template <class _type>
+FORCE_INLINE Transform<_type>::Transform(const Matrix3<_type> &a_matrix) noexcept
+{
+	this->set(a_matrix);
+}
+
+template <class _type>
+FORCE_INLINE Transform<_type>::Transform(const Matrix4<_type> &a_matrix) noexcept
+{
+	this->set(a_matrix);
+}
+
+template <class _type>
+FORCE_INLINE Transform<_type>::Transform(const Matrix3x4<_type> &a_matrix) noexcept
+{
+	this->set(a_matrix);
+}
+
+template <class _type>
+FORCE_INLINE void Transform<_type>::set(const Matrix3<_type> &a_matrix) noexcept
+{
+	this->m_rotation = ror::Quaternion<_type>(a_matrix);
+	// this->m_translation = a_matrix.translation(); // Default origin
+
+	auto x = a_matrix.x_axis().length();
+	auto y = a_matrix.y_axis().length();
+	auto z = a_matrix.z_axis().length();
+
+	this->m_scale = ror::Vector3<_type>(x, y, z);
+}
+
+template <class _type>
+FORCE_INLINE void Transform<_type>::set(const Matrix4<_type> &a_matrix) noexcept
+{
+	this->m_rotation    = ror::Quaternion<_type>(a_matrix);
+	this->m_translation = a_matrix.origin();
+
+	auto x = a_matrix.x_axis().length();
+	auto y = a_matrix.y_axis().length();
+	auto z = a_matrix.z_axis().length();
+
+	this->m_scale = ror::Vector3<_type>(x, y, z);
+}
+
+template <class _type>
+FORCE_INLINE void Transform<_type>::set(const Matrix3x4<_type> &a_matrix) noexcept
+{
+	this->m_rotation    = ror::Quaternion<_type>(a_matrix);
+	this->m_translation = a_matrix.origin();
+
+	auto x = a_matrix.x_axis().length();
+	auto y = a_matrix.y_axis().length();
+	auto z = a_matrix.z_axis().length();
+
+	this->m_scale = ror::Vector3<_type>(x, y, z);
 }
 
 template <class _type>
