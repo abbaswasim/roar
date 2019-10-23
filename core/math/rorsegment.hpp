@@ -49,11 +49,17 @@ enum class SegmentType
  *             Quadratic as well as Cubic bezier curves in 2D or 3D
  */
 
+template <class _type>
+using vector2_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type;
+
+template <class _type>
+using vector3_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type;
+
 template <class _type, int _degree>
 class ROAR_ENGINE_ITEM Segment
 {
   public:
-	_type m_points[_degree + 1];        //!< All points in the bezier curve, 3D or 2D quadratic or cubic curve points
+	_type m_points[_degree + 1];        //!< All points in the line or bezier curve, 3D or 2D quadratic or cubic curve points
 
 	FORCE_INLINE Segment()                           = default;                   //! Default constructor
 	FORCE_INLINE Segment(const Segment &a_other)     = default;                   //! Copy constructor
@@ -76,7 +82,7 @@ class ROAR_ENGINE_ITEM Line final : public Segment<_type, _degree>
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type> final : public Segment<_type, 1>
+class ROAR_ENGINE_ITEM Line<_type, 1, vector2_typename<_type>> final : public Segment<_type, 1>
 {
   public:
 	const SegmentType m_type = SegmentType::segment_type_line_2d;
@@ -95,7 +101,7 @@ class ROAR_ENGINE_ITEM Line<_type, 1, typename std::enable_if<std::is_same<_type
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type> final : public Segment<_type, 1>
+class ROAR_ENGINE_ITEM Line<_type, 1, vector3_typename<_type>> final : public Segment<_type, 1>
 {
   public:
 	const SegmentType m_type = SegmentType::segment_type_line_3d;
@@ -126,7 +132,7 @@ class ROAR_ENGINE_ITEM Triangle final : public Segment<_type, _degree>
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Triangle<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type> final : public Segment<_type, 2>
+class ROAR_ENGINE_ITEM Triangle<_type, 2, vector2_typename<_type>> final : public Segment<_type, 2>
 {
   public:
 	const SegmentType m_type = SegmentType::segment_type_triangle_2d;
@@ -144,7 +150,7 @@ class ROAR_ENGINE_ITEM Triangle<_type, 2, typename std::enable_if<std::is_same<_
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Triangle<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type> final : public Segment<_type, 2>
+class ROAR_ENGINE_ITEM Triangle<_type, 2, vector3_typename<_type>> final : public Segment<_type, 2>
 {
   public:
 	const SegmentType m_type = SegmentType::segment_type_triangle_3d;
@@ -174,7 +180,7 @@ class ROAR_ENGINE_ITEM Bezier final : public Segment<_type, _degree>
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type> final : public Segment<_type, 2>
+class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public Segment<_type, 2>
 {
   public:
 	const SegmentType m_type = SegmentType::segment_type_quadratic_2d;
@@ -201,7 +207,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, typename std::enable_if<std::is_same<_ty
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Bezier<_type, 3, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type> final : public Segment<_type, 3>
+class ROAR_ENGINE_ITEM Bezier<_type, 3, vector2_typename<_type>> final : public Segment<_type, 3>
 {
   public:
 	const SegmentType m_type = SegmentType::segment_type_cubic_2d;
@@ -218,7 +224,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 3, typename std::enable_if<std::is_same<_ty
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type> final : public Segment<_type, 2>
+class ROAR_ENGINE_ITEM Bezier<_type, 2, vector3_typename<_type>> final : public Segment<_type, 2>
 {
   public:
 	const SegmentType m_type = SegmentType::segment_type_quadratic_3d;
@@ -238,7 +244,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, typename std::enable_if<std::is_same<_ty
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Bezier<_type, 3, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type> final : public Segment<_type, 3>
+class ROAR_ENGINE_ITEM Bezier<_type, 3, vector3_typename<_type>> final : public Segment<_type, 3>
 {
   public:
 	const SegmentType m_type = SegmentType::segment_type_cubic_3d;

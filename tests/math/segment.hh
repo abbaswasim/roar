@@ -182,6 +182,7 @@ TYPED_TEST(SegmentTest, DISABLED_testing_soup)
 		bezier2_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 
+	// inconclusive results, very noisy and depends on debug vs release
 	EXPECT_GT(bezier2_time, bezier_time) << "Templates are slower to run";
 	EXPECT_EQ(lucky_ones1, lucky_ones2);
 }

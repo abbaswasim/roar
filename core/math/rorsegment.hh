@@ -28,26 +28,26 @@
 namespace ror
 {
 template <class _type>
-FORCE_INLINE Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::Line(_type a_point1, _type a_point2)
+FORCE_INLINE Line<_type, 1, vector2_typename<_type>>::Line(_type a_point1, _type a_point2)
 {
 	this->set(a_point1, a_point2);
 }
 
 template <class _type>
-FORCE_INLINE Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::Line(typename _type::value_type a_slope, typename _type::value_type a_intercept)
+FORCE_INLINE Line<_type, 1, vector2_typename<_type>>::Line(typename _type::value_type a_slope, typename _type::value_type a_intercept)
 {
 	this->set(a_slope, a_intercept);
 }
 
 template <class _type>
-FORCE_INLINE void Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::set(_type a_point1, _type a_point2)
+FORCE_INLINE void Line<_type, 1, vector2_typename<_type>>::set(_type a_point1, _type a_point2)
 {
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_point2;
 }
 
 template <class _type>
-FORCE_INLINE void Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::set(typename _type::value_type a_slope, typename _type::value_type a_intercept)
+FORCE_INLINE void Line<_type, 1, vector2_typename<_type>>::set(typename _type::value_type a_slope, typename _type::value_type a_intercept)
 {
 	/**
 	 * Creates a line segment from slope intercept form
@@ -60,26 +60,26 @@ FORCE_INLINE void Line<_type, 1, typename std::enable_if<std::is_same<_type, typ
 }
 
 template <class _type>
-FORCE_INLINE Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::Line(_type a_point1, _type a_point2)
+FORCE_INLINE Line<_type, 1, vector3_typename<_type>>::Line(_type a_point1, _type a_point2)
 {
 	this->set(a_point1, a_point2);
 }
 
 template <class _type>
-FORCE_INLINE Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::Line(typename _type::value_type a_slope, typename _type::value_type a_intercept)
+FORCE_INLINE Line<_type, 1, vector3_typename<_type>>::Line(typename _type::value_type a_slope, typename _type::value_type a_intercept)
 {
 	this->set(a_slope, a_intercept);
 }
 
 template <class _type>
-FORCE_INLINE void Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::set(_type a_point1, _type a_point2)
+FORCE_INLINE void Line<_type, 1, vector3_typename<_type>>::set(_type a_point1, _type a_point2)
 {
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_point2;
 }
 
 template <class _type>
-FORCE_INLINE void Line<_type, 1, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::set(typename _type::value_type a_slope, typename _type::value_type a_intercept)
+FORCE_INLINE void Line<_type, 1, vector3_typename<_type>>::set(typename _type::value_type a_slope, typename _type::value_type a_intercept)
 {
 	/**
 	 * Creates a line segment from slope intercept form
@@ -92,13 +92,13 @@ FORCE_INLINE void Line<_type, 1, typename std::enable_if<std::is_same<_type, typ
 }
 
 template <class _type>
-FORCE_INLINE Triangle<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::Triangle(_type a_point1, _type a_point2, _type a_point3)
+FORCE_INLINE Triangle<_type, 2, vector2_typename<_type>>::Triangle(_type a_point1, _type a_point2, _type a_point3)
 {
 	this->set(a_point1, a_point2, a_point3);
 }
 
 template <class _type>
-FORCE_INLINE void Triangle<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::set(_type a_point1, _type a_point2, _type a_point3)
+FORCE_INLINE void Triangle<_type, 2, vector2_typename<_type>>::set(_type a_point1, _type a_point2, _type a_point3)
 {
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_point2;
@@ -106,7 +106,7 @@ FORCE_INLINE void Triangle<_type, 2, typename std::enable_if<std::is_same<_type,
 }
 
 template <class _type>
-FORCE_INLINE bool Triangle<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::is_point_inside_my_2d_triangle(const _type &a_point)
+FORCE_INLINE bool Triangle<_type, 2, vector2_typename<_type>>::is_point_inside_my_2d_triangle(const _type &a_point)
 {
 	if (a_point == this->m_points[0] ||
 		a_point == this->m_points[1] ||
@@ -125,13 +125,13 @@ FORCE_INLINE bool Triangle<_type, 2, typename std::enable_if<std::is_same<_type,
 }
 
 template <class _type>
-FORCE_INLINE Triangle<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::Triangle(_type a_point1, _type a_point2, _type a_point3)
+FORCE_INLINE Triangle<_type, 2, vector3_typename<_type>>::Triangle(_type a_point1, _type a_point2, _type a_point3)
 {
 	this->set(a_point1, a_point2, a_point3);
 }
 
 template <class _type>
-FORCE_INLINE void Triangle<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::set(_type a_point1, _type a_point2, _type a_point3)
+FORCE_INLINE void Triangle<_type, 2, vector3_typename<_type>>::set(_type a_point1, _type a_point2, _type a_point3)
 {
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_point2;
@@ -139,7 +139,7 @@ FORCE_INLINE void Triangle<_type, 2, typename std::enable_if<std::is_same<_type,
 }
 
 template <class _type>
-FORCE_INLINE bool Triangle<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::is_point_inside_my_2d_triangle(const _type &a_point)
+FORCE_INLINE bool Triangle<_type, 2, vector3_typename<_type>>::is_point_inside_my_2d_triangle(const _type &a_point)
 {
 	if (a_point == this->m_points[0] ||
 		a_point == this->m_points[1] ||
@@ -158,13 +158,13 @@ FORCE_INLINE bool Triangle<_type, 2, typename std::enable_if<std::is_same<_type,
 }
 
 template <class _type>
-FORCE_INLINE Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::Bezier(_type a_point1, _type a_control_point, _type a_point2)
+FORCE_INLINE Bezier<_type, 2, vector2_typename<_type>>::Bezier(_type a_point1, _type a_control_point, _type a_point2)
 {
 	this->set(a_point1, a_control_point, a_point2);
 }
 
 template <class _type>
-FORCE_INLINE void Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::set(_type a_point1, _type a_control_point, _type a_point2)
+FORCE_INLINE void Bezier<_type, 2, vector2_typename<_type>>::set(_type a_point1, _type a_control_point, _type a_point2)
 {
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_control_point;
@@ -172,7 +172,7 @@ FORCE_INLINE void Bezier<_type, 2, typename std::enable_if<std::is_same<_type, t
 }
 
 template <class _type>
-FORCE_INLINE void Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::subdivide(std::vector<Bezier<_type, 2>> &a_children)
+FORCE_INLINE void Bezier<_type, 2, vector2_typename<_type>>::subdivide(std::vector<Bezier<_type, 2>> &a_children)
 {
 	_type p1 = this->m_points[0];
 	_type p2 = this->m_points[1];
@@ -188,7 +188,7 @@ FORCE_INLINE void Bezier<_type, 2, typename std::enable_if<std::is_same<_type, t
 }
 
 template <class _type>
-FORCE_INLINE bool Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::is_point_inside_my_2d_triangle(const _type &a_point)
+FORCE_INLINE bool Bezier<_type, 2, vector2_typename<_type>>::is_point_inside_my_2d_triangle(const _type &a_point)
 {
 	if (a_point == this->m_points[0] ||
 		a_point == this->m_points[1] ||
@@ -207,13 +207,13 @@ FORCE_INLINE bool Bezier<_type, 2, typename std::enable_if<std::is_same<_type, t
 }
 
 template <class _type>
-FORCE_INLINE Bezier<_type, 3, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::Bezier(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
+FORCE_INLINE Bezier<_type, 3, vector2_typename<_type>>::Bezier(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
 {
 	this->set(a_point1, a_control_point1, a_control_point2, a_point2);
 }
 
 template <class _type>
-FORCE_INLINE void Bezier<_type, 3, typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type>::set(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
+FORCE_INLINE void Bezier<_type, 3, vector2_typename<_type>>::set(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
 {
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_control_point1;
@@ -222,13 +222,13 @@ FORCE_INLINE void Bezier<_type, 3, typename std::enable_if<std::is_same<_type, t
 }
 
 template <class _type>
-FORCE_INLINE Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::Bezier(_type a_point1, _type a_control_point, _type a_point2)
+FORCE_INLINE Bezier<_type, 2, vector3_typename<_type>>::Bezier(_type a_point1, _type a_control_point, _type a_point2)
 {
 	this->set(a_point1, a_control_point, a_point2);
 }
 
 template <class _type>
-FORCE_INLINE void Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::set(_type a_point1, _type a_control_point, _type a_point2)
+FORCE_INLINE void Bezier<_type, 2, vector3_typename<_type>>::set(_type a_point1, _type a_control_point, _type a_point2)
 {
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_control_point;
@@ -236,7 +236,7 @@ FORCE_INLINE void Bezier<_type, 2, typename std::enable_if<std::is_same<_type, t
 }
 
 template <class _type>
-FORCE_INLINE void Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::subdivide(std::vector<Bezier<_type, 2>> &a_children)
+FORCE_INLINE void Bezier<_type, 2, vector3_typename<_type>>::subdivide(std::vector<Bezier<_type, 2>> &a_children)
 {
 	_type p1 = this->m_points[0];
 	_type p2 = this->m_points[1];
@@ -252,7 +252,7 @@ FORCE_INLINE void Bezier<_type, 2, typename std::enable_if<std::is_same<_type, t
 }
 
 template <class _type>
-FORCE_INLINE bool Bezier<_type, 2, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::is_point_inside_my_2d_triangle(const _type &a_point)
+FORCE_INLINE bool Bezier<_type, 2, vector3_typename<_type>>::is_point_inside_my_2d_triangle(const _type &a_point)
 {
 	if (a_point == this->m_points[0] ||
 		a_point == this->m_points[1] ||
@@ -270,13 +270,13 @@ FORCE_INLINE bool Bezier<_type, 2, typename std::enable_if<std::is_same<_type, t
 	return ((b1 == b2) && (b2 == b3));
 }
 template <class _type>
-FORCE_INLINE Bezier<_type, 3, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::Bezier(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
+FORCE_INLINE Bezier<_type, 3, vector3_typename<_type>>::Bezier(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
 {
 	this->set(a_point1, a_control_point1, a_control_point2, a_point2);
 }
 
 template <class _type>
-FORCE_INLINE void Bezier<_type, 3, typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type>::set(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
+FORCE_INLINE void Bezier<_type, 3, vector3_typename<_type>>::set(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
 {
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_control_point1;

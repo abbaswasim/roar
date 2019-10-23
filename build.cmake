@@ -37,7 +37,7 @@ function(debug_options target_name)
   target_compile_options(${target_name} PRIVATE
 	-Wall
 	-Wextra
-# 	-Wmost
+#	-Wmost
 	-Wconversion
 	-Wunreachable-code
 	-Wuninitialized
