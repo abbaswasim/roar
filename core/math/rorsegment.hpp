@@ -34,12 +34,16 @@ enum class SegmentType
 	segment_type_unknown,
 	segment_type_line_2d,
 	segment_type_line_3d,
+	segment_type_line_strip_2d,
+	segment_type_line_strip_3d,
 	segment_type_quadratic_2d,
 	segment_type_quadratic_3d,
 	segment_type_cubic_2d,
 	segment_type_cubic_3d,
 	segment_type_triangle_2d,
 	segment_type_triangle_3d,
+	segment_type_triangle_strip_2d,
+	segment_type_triangle_strip_3d,
 	segment_type_max
 };
 
@@ -71,15 +75,7 @@ class ROAR_ENGINE_ITEM Segment
 
 template <class _type, int _degree, typename enable = void>
 class ROAR_ENGINE_ITEM Line final : public Segment<_type, _degree>
-{
-  public:
-	FORCE_INLINE Line()                        = default;                   //! Default constructor
-	FORCE_INLINE Line(const Line &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Line(Line &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Line &operator=(const Line &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE Line &operator=(Line &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Line() noexcept                         = default;        //! Destructor
-};
+{};
 
 template <class _type>
 class ROAR_ENGINE_ITEM Line<_type, 1, vector2_typename<_type>> final : public Segment<_type, 1>
@@ -121,15 +117,7 @@ class ROAR_ENGINE_ITEM Line<_type, 1, vector3_typename<_type>> final : public Se
 
 template <class _type, int _degree, typename enable = void>
 class ROAR_ENGINE_ITEM Triangle final : public Segment<_type, _degree>
-{
-  public:
-	FORCE_INLINE Triangle()                            = default;                   //! Default constructor
-	FORCE_INLINE Triangle(const Triangle &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Triangle(Triangle &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Triangle &operator=(const Triangle &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE Triangle &operator=(Triangle &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Triangle() noexcept                             = default;        //! Destructor
-};
+{};
 
 template <class _type>
 class ROAR_ENGINE_ITEM Triangle<_type, 2, vector2_typename<_type>> final : public Segment<_type, 2>
@@ -169,15 +157,7 @@ class ROAR_ENGINE_ITEM Triangle<_type, 2, vector3_typename<_type>> final : publi
 
 template <class _type, int _degree, typename enable = void>
 class ROAR_ENGINE_ITEM Bezier final : public Segment<_type, _degree>
-{
-  public:
-	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
-	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Bezier(Bezier &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Bezier &operator=(const Bezier &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE Bezier &operator=(Bezier &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Bezier() noexcept                           = default;        //! Destructor
-};
+{};
 
 template <class _type>
 class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public Segment<_type, 2>

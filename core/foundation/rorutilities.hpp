@@ -26,6 +26,7 @@
 #pragma once
 
 #include "rormacros.hpp"
+#include "rortypes.hpp"
 #include <cstdlib>
 #include <functional>
 #include <random>
@@ -48,10 +49,17 @@ constexpr float32_t ror_epsilon          = 1e-5f;
 constexpr float32_t ror_epsilon_squared  = 1e-10f;
 constexpr float32_t ror_epsilon_relaxed  = 1e-4f;
 
+/**
+* This makes sure you get at-least single precision floating point precision for some methods
+* If double precision floating point is requested you will get double precision
+*/
+template <class _type>
+using ror_precision = typename std::conditional<std::is_same<_type, double64_t>::value, double64_t, float32_t>::type;
+
 template <class _type>
 FORCE_INLINE bool decimal_equal(_type a_first, _type a_second)
 {
-	if (std::abs(static_cast<_type>(a_first - a_second)) <= static_cast<_type>(ror_epsilon))
+	if (std::abs(static_cast<ror_precision<_type>>(a_first - a_second)) <= static_cast<ror_precision<_type>>(ror_epsilon))
 		return true;
 	else
 		return false;

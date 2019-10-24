@@ -57,7 +57,7 @@ class ROAR_ENGINE_ITEM Ray final
 
 	FORCE_INLINE _type point_on_ray(scalar_precision<_type> a_t);
 
-	FORCE_INLINE auto distance_to_point(_type a_point) -> scalar_precision<_type>;
+	FORCE_INLINE auto  distance_to_point(_type a_point) -> scalar_precision<_type>;
 	FORCE_INLINE _type closest_point_on_ray(_type a_point);
 
   protected:

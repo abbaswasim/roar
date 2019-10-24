@@ -30,6 +30,7 @@
 #include "common.hpp"
 #include "foundation/rorrandom.hpp"
 #include "math/rorsegment.hpp"
+#include "math/rorsegment_soup.hpp"
 #include "profiling/rortimer.hpp"
 #include "thirdparty/skia_cubic.hpp"
 #include <vector>
