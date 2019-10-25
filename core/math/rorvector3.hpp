@@ -66,8 +66,8 @@ class ROAR_ENGINE_ITEM Vector3 final
 	template <class _other_type>
 	FORCE_INLINE explicit operator Vector3<_other_type>() const;
 
-	FORCE_INLINE explicit operator _type *();
-	FORCE_INLINE explicit operator const _type *() const;
+	FORCE_INLINE explicit    operator _type *();
+	FORCE_INLINE explicit    operator const _type *() const;
 	FORCE_INLINE const _type operator[](int32_t a_index) const noexcept;
 	FORCE_INLINE _type &operator[](int32_t a_index) noexcept;
 
@@ -101,32 +101,32 @@ class ROAR_ENGINE_ITEM Vector3 final
 	FORCE_INLINE void to(_type *a_distination) const noexcept;
 	FORCE_INLINE void from(const _type *a_source) noexcept;
 
-	FORCE_INLINE void normalize();                                     //! Normalizes the vector
-	FORCE_INLINE void inverse();                                       //! Inverses the vector, check for divide by zero sets elements to zero
-	FORCE_INLINE auto normalized() const -> Vector3<precision>;        //! Returns the normalized version of the vector
-	FORCE_INLINE Vector3 inversed() const;                             //! Returns the inversed version of the vector, no check for divide by zero
+	FORCE_INLINE void    normalize();                                     //! Normalizes the vector
+	FORCE_INLINE void    inverse();                                       //! Inverses the vector, check for divide by zero sets elements to zero
+	FORCE_INLINE auto    normalized() const -> Vector3<precision>;        //! Returns the normalized version of the vector
+	FORCE_INLINE Vector3 inversed() const;                                //! Returns the inversed version of the vector, no check for divide by zero
 	FORCE_INLINE Vector3 abs() const;
 	FORCE_INLINE Vector3 cross_product(const Vector3 &a_other) const;
 	FORCE_INLINE auto    length() const -> precision;        //! Calculates magnitude of the vector but doesn't check for negative to sqrtf
-	FORCE_INLINE _type length_squared() const;
-	FORCE_INLINE auto  dot_product(const Vector3 &a_other) const -> precision;
-	FORCE_INLINE _type minimum() const;
-	FORCE_INLINE _type maximum() const;
+	FORCE_INLINE _type   length_squared() const;
+	FORCE_INLINE auto    dot_product(const Vector3 &a_other) const -> precision;
+	FORCE_INLINE _type   minimum() const;
+	FORCE_INLINE _type   maximum() const;
 };        // namespace ror
 
-// using Vector3i  = Vector3<int32_t>;
-// using Vector3ui = Vector3<uint32_t>;
-using Vector3f = Vector3<float32_t>;
-using Vector3d = Vector3<double64_t>;
-// using Vector3b  = Vector3<char8_t>;
-// using Vector3ub = Vector3<uchar8_t>;
+using Vector3i  = Vector3<int32_t>;
+using Vector3ui = Vector3<uint32_t>;
+using Vector3f  = Vector3<float32_t>;
+using Vector3d  = Vector3<double64_t>;
+using Vector3b  = Vector3<char8_t>;
+using Vector3ub = Vector3<uchar8_t>;
 
-// using Color3i  = Vector3<int32_t>;
-// using Color3ui = Vector3<uint32_t>;
-using Color3f = Vector3<float32_t>;
-using Color3d = Vector3<double64_t>;
-// using Color3b  = Vector3<char8_t>;
-// using Color3ub = Vector3<uchar8_t>;
+using Color3i  = Vector3<int32_t>;
+using Color3ui = Vector3<uint32_t>;
+using Color3f  = Vector3<float32_t>;
+using Color3d  = Vector3<double64_t>;
+using Color3b  = Vector3<char8_t>;
+using Color3ub = Vector3<uchar8_t>;
 
 const Vector3f zero_vector3f(0.0f, 0.0f, 0.0f);
 const Vector3f xaxis3f(1.0f, 0.0f, 0.0f);
@@ -135,22 +135,25 @@ const Vector3f zaxis3f(0.0f, 0.0f, 1.0f);
 const Vector3f xaxis3f_negative(-1.0f, 0.0f, 0.0f);
 const Vector3f yaxis3f_negative(0.0f, -1.0f, 0.0f);
 const Vector3f zaxis3f_negative(0.0f, 0.0f, -1.0f);
+const Vector3f white3(1.0f, 1.0f, 1.0f);
+const Vector3f half_white3(0.2f, 0.2f, 0.2f);
+const Vector3f black3(0.0f, 0.0f, 0.0f);
 
-// const Vector3i zero_vector3i(0, 0, 0);
-// const Vector3i xaxis3i(1, 0, 0);
-// const Vector3i yaxis3i(0, 1, 0);
-// const Vector3i zaxis3i(0, 0, 1);
-// const Vector3i negative_xaxis3i(-1, 0, 0);
-// const Vector3i negative_yaxis3i(0, -1, 0);
-// const Vector3i negative_zaxis3i(0, 0, -1);
+const Vector3i zero_vector3i(0, 0, 0);
+const Vector3i xaxis3i(1, 0, 0);
+const Vector3i yaxis3i(0, 1, 0);
+const Vector3i zaxis3i(0, 0, 1);
+const Vector3i negative_xaxis3i(-1, 0, 0);
+const Vector3i negative_yaxis3i(0, -1, 0);
+const Vector3i negative_zaxis3i(0, 0, -1);
 
-// const Vector3d zero_vector3d(0.0, 0.0, 0.0);
-// const Vector3d xaxis3d(1.0, 0.0, 0.0);
-// const Vector3d yaxis3d(0.0, 1.0, 0.0);
-// const Vector3d zaxis3d(0.0, 0.0, 1.0);
-// const Vector3d negative_xaxis3d(-1.0, 0.0, 0.0);
-// const Vector3d negative_yaxis3d(0.0, -1.0, 0.0);
-// const Vector3d negative_zaxis3d(0.0, 0.0, -1.0);
+const Vector3d zero_vector3d(0.0, 0.0, 0.0);
+const Vector3d xaxis3d(1.0, 0.0, 0.0);
+const Vector3d yaxis3d(0.0, 1.0, 0.0);
+const Vector3d zaxis3d(0.0, 0.0, 1.0);
+const Vector3d negative_xaxis3d(-1.0, 0.0, 0.0);
+const Vector3d negative_yaxis3d(0.0, -1.0, 0.0);
+const Vector3d negative_zaxis3d(0.0, 0.0, -1.0);
 
 }        // namespace ror
 

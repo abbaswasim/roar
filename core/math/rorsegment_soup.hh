@@ -156,7 +156,6 @@ FORCE_INLINE void TriangleStrip<_type, vector3_typename<_type>>::add_triangle(_t
 template <class _type>
 FORCE_INLINE size_t TriangleStrip<_type, vector3_typename<_type>>::get_count() const noexcept
 {
-	// return this->m_points.size() - 2;
 	return (this->m_points.size() > 1 ? this->m_points.size() - 2 : 0);
 }
 

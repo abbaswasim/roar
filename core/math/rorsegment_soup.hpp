@@ -312,6 +312,20 @@ using TriangleStrip3f = TriangleStrip<ror::Vector3<float32_t>>;
 using TriangleStrip3d = TriangleStrip<ror::Vector3<double64_t>>;
 using TriangleStrip3i = TriangleStrip<ror::Vector3<int32_t>>;
 
+using QuadraticBeizers2f = QuadraticBeziers<ror::Vector2<float32_t>>;
+using QuadraticBeizers2d = QuadraticBeziers<ror::Vector2<double64_t>>;
+using QuadraticBeizers2i = QuadraticBeziers<ror::Vector2<int32_t>>;
+using QuadraticBeizers3f = QuadraticBeziers<ror::Vector3<float32_t>>;
+using QuadraticBeizers3d = QuadraticBeziers<ror::Vector3<double64_t>>;
+using QuadraticBeizers3i = QuadraticBeziers<ror::Vector3<int32_t>>;
+
+using CubicBeizers2f = CubicBeziers<ror::Vector2<float32_t>>;
+using CubicBeizers2d = CubicBeziers<ror::Vector2<double64_t>>;
+using CubicBeizers2i = CubicBeziers<ror::Vector2<int32_t>>;
+using CubicBeizers3f = CubicBeziers<ror::Vector3<float32_t>>;
+using CubicBeizers3d = CubicBeziers<ror::Vector3<double64_t>>;
+using CubicBeizers3i = CubicBeziers<ror::Vector3<int32_t>>;
+
 }        // namespace ror
 
 #include "rorsegment_soup.hh"

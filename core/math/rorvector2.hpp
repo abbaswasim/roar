@@ -53,8 +53,8 @@ class ROAR_ENGINE_ITEM Vector2 final
 	template <class _other_type>
 	FORCE_INLINE explicit operator Vector2<_other_type>() const;
 
-	FORCE_INLINE explicit operator _type *();
-	FORCE_INLINE explicit operator const _type *() const;
+	FORCE_INLINE explicit    operator _type *();
+	FORCE_INLINE explicit    operator const _type *() const;
 	FORCE_INLINE const _type operator[](int32_t a_index) const noexcept;
 	FORCE_INLINE _type &operator[](int32_t a_index) noexcept;
 
@@ -88,21 +88,31 @@ class ROAR_ENGINE_ITEM Vector2 final
 	FORCE_INLINE void to(_type *a_distination) const noexcept;
 	FORCE_INLINE void from(const _type *a_source) noexcept;
 
-	FORCE_INLINE void normalize();                                     //! Normalizes the vector
-	FORCE_INLINE void inverse();                                       //! Inverses the vector, no check for divide by zero
-	FORCE_INLINE auto normalized() const -> Vector2<precision>;        //! Returns the normalized version of the vector
-	FORCE_INLINE Vector2 inversed() const;                             //! Returns the inversed version of the vector, no check for divide by zero
+	FORCE_INLINE void    normalize();                                     //! Normalizes the vector
+	FORCE_INLINE void    inverse();                                       //! Inverses the vector, no check for divide by zero
+	FORCE_INLINE auto    normalized() const -> Vector2<precision>;        //! Returns the normalized version of the vector
+	FORCE_INLINE Vector2 inversed() const;                                //! Returns the inversed version of the vector, no check for divide by zero
 	FORCE_INLINE Vector2 abs() const;
 	FORCE_INLINE auto    length() const -> precision;        //! Calculates magnitude of the vector but doesn't check for negative to sqrtf
-	FORCE_INLINE _type length_squared() const;
-	FORCE_INLINE auto  dot_product(const Vector2 &a_other) const -> precision;
-	FORCE_INLINE _type minimum() const;
-	FORCE_INLINE _type maximum() const;
+	FORCE_INLINE _type   length_squared() const;
+	FORCE_INLINE auto    dot_product(const Vector2 &a_other) const -> precision;
+	FORCE_INLINE _type   minimum() const;
+	FORCE_INLINE _type   maximum() const;
 };
 
-using Vector2i = Vector2<int32_t>;
-using Vector2f = Vector2<float32_t>;
-// using Vector2d = Vector2<double64_t>;
+using Vector2i  = Vector2<int32_t>;
+using Vector2ui = Vector2<uint32_t>;
+using Vector2f  = Vector2<float32_t>;
+using Vector2d  = Vector2<double64_t>;
+using Vector2b  = Vector2<char8_t>;
+using Vector2ub = Vector2<uchar8_t>;
+
+using Color2i  = Vector2<int32_t>;
+using Color2ui = Vector2<uint32_t>;
+using Color2f  = Vector2<float32_t>;
+using Color2d  = Vector2<double64_t>;
+using Color2b  = Vector2<char8_t>;
+using Color2ub = Vector2<uchar8_t>;
 
 const Vector2f zero_vector2f{0.0f, 0.0f};
 const Vector2f xaxis2f(1.0f, 0.0f);
@@ -110,17 +120,18 @@ const Vector2f yaxis2f(0.0f, 1.0f);
 const Vector2f xaxis2f_negative(-1.0f, 0.0f);
 const Vector2f yaxis2f_negative(0.0f, -1.0f);
 
-// const Vector2i zero_vector2i{0, 0};
-// const Vector2i xaxis2i(1, 0);
-// const Vector2i yaxis2i(0, 1);
-// const Vector2i negative_xaxis2i(-1, 0);
-// const Vector2i negative_yaxis2i(0, -1);
+const Vector2i zero_vector2i{0, 0};
+const Vector2i xaxis2i(1, 0);
+const Vector2i yaxis2i(0, 1);
+const Vector2i negative_xaxis2i(-1, 0);
+const Vector2i negative_yaxis2i(0, -1);
 
-// const Vector2d zero_vector2d{0.0, 0.0};
-// const Vector2d xaxis2d(1.0, 0.0);
-// const Vector2d yaxis2d(0.0, 1.0);
-// const Vector2d negative_xaxis2d(-1.0, 0.0);
-// const Vector2d negative_yaxis2d(0.0, -1.0);
+const Vector2d zero_vector2d{0.0, 0.0};
+const Vector2d xaxis2d(1.0, 0.0);
+const Vector2d yaxis2d(0.0, 1.0);
+const Vector2d negative_xaxis2d(-1.0, 0.0);
+const Vector2d negative_yaxis2d(0.0, -1.0);
+
 }        // namespace ror
 
 #include "rorvector2.hh"
