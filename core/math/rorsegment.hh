@@ -169,6 +169,8 @@ FORCE_INLINE void Bezier<_type, 2, vector2_typename<_type>>::set(_type a_point1,
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_control_point;
 	this->m_points[2] = a_point2;
+
+	this->type();
 }
 
 template <class _type>
@@ -207,6 +209,30 @@ FORCE_INLINE bool Bezier<_type, 2, vector2_typename<_type>>::is_point_inside_my_
 }
 
 template <class _type>
+FORCE_INLINE void Bezier<_type, 2, vector2_typename<_type>>::type()
+{
+	auto ax = this->m_points[0].x;
+	auto ay = this->m_points[0].y;
+
+	auto cx = this->m_points[1].x;
+	auto cy = this->m_points[1].y;
+
+	auto bx = this->m_points[2].x;
+	auto by = this->m_points[2].y;
+
+	auto d = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+
+	if (d > 0)
+	{
+		this->m_type = SegmentType::segment_type_quadratic_2d_outer;
+	}
+	else
+	{
+		this->m_type = SegmentType::segment_type_quadratic_2d_inner;
+	}
+}
+
+template <class _type>
 FORCE_INLINE Bezier<_type, 3, vector2_typename<_type>>::Bezier(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
 {
 	this->set(a_point1, a_control_point1, a_control_point2, a_point2);
@@ -233,6 +259,8 @@ FORCE_INLINE void Bezier<_type, 2, vector3_typename<_type>>::set(_type a_point1,
 	this->m_points[0] = a_point1;
 	this->m_points[1] = a_control_point;
 	this->m_points[2] = a_point2;
+
+	this->type();
 }
 
 template <class _type>
@@ -269,6 +297,31 @@ FORCE_INLINE bool Bezier<_type, 2, vector3_typename<_type>>::is_point_inside_my_
 
 	return ((b1 == b2) && (b2 == b3));
 }
+
+template <class _type>
+FORCE_INLINE void Bezier<_type, 2, vector3_typename<_type>>::type()
+{
+	auto ax = this->m_points[0].x;
+	auto ay = this->m_points[0].y;
+
+	auto cx = this->m_points[1].x;
+	auto cy = this->m_points[1].y;
+
+	auto bx = this->m_points[2].x;
+	auto by = this->m_points[2].y;
+
+	auto d = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+
+	if (d > 0)
+	{
+		this->m_type = SegmentType::segment_type_quadratic_3d_outer;
+	}
+	else
+	{
+		this->m_type = SegmentType::segment_type_quadratic_3d_inner;
+	}
+}
+
 template <class _type>
 FORCE_INLINE Bezier<_type, 3, vector3_typename<_type>>::Bezier(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2)
 {

@@ -90,13 +90,24 @@ TYPED_TEST(SegmentTest, segment_ops)
 	}
 	{
 		ror::Bezier<ror::Vector2<TypeParam>, 2> b1(a, b, c);
+		ror::Bezier<ror::Vector2<TypeParam>, 2> b2(c, b, a);
 
 		test_vector2_equal(b1.m_points[0], a);
 		test_vector2_equal(b1.m_points[1], b);
 		test_vector2_equal(b1.m_points[2], c);
 
+		test_vector2_equal(b2.m_points[0], c);
+		test_vector2_equal(b2.m_points[1], b);
+		test_vector2_equal(b2.m_points[2], a);
+
 		EXPECT_FALSE(b1.is_point_inside_my_2d_triangle(p));
 		EXPECT_TRUE(b1.is_point_inside_my_2d_triangle(q));
+
+		EXPECT_FALSE(b2.is_point_inside_my_2d_triangle(p));
+		EXPECT_TRUE(b2.is_point_inside_my_2d_triangle(q));
+
+		EXPECT_EQ(b1.m_type, ror::SegmentType::segment_type_quadratic_2d_outer);
+		EXPECT_EQ(b2.m_type, ror::SegmentType::segment_type_quadratic_2d_inner);
 
 		std::vector<ror::Bezier<ror::Vector2<TypeParam>, 2>> kids;
 
@@ -143,13 +154,24 @@ TYPED_TEST(SegmentTest, segment_ops)
 	}
 	{
 		ror::Bezier<ror::Vector3<TypeParam>, 2> b1(e, f, g);
+		ror::Bezier<ror::Vector3<TypeParam>, 2> b2(g, f, e);
 
 		test_vector3_equal(b1.m_points[0], e);
 		test_vector3_equal(b1.m_points[1], f);
 		test_vector3_equal(b1.m_points[2], g);
 
+		test_vector3_equal(b2.m_points[0], g);
+		test_vector3_equal(b2.m_points[1], f);
+		test_vector3_equal(b2.m_points[2], e);
+
 		EXPECT_FALSE(b1.is_point_inside_my_2d_triangle(r));
 		EXPECT_TRUE(b1.is_point_inside_my_2d_triangle(t));
+
+		EXPECT_FALSE(b2.is_point_inside_my_2d_triangle(r));
+		EXPECT_TRUE(b2.is_point_inside_my_2d_triangle(t));
+
+		EXPECT_EQ(b1.m_type, ror::SegmentType::segment_type_quadratic_3d_outer);
+		EXPECT_EQ(b2.m_type, ror::SegmentType::segment_type_quadratic_3d_inner);
 
 		std::vector<ror::Bezier<ror::Vector3<TypeParam>, 2>> kids;
 

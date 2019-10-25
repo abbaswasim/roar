@@ -36,8 +36,10 @@ enum class SegmentType
 	segment_type_line_3d,
 	segment_type_line_strip_2d,
 	segment_type_line_strip_3d,
-	segment_type_quadratic_2d,
-	segment_type_quadratic_3d,
+	segment_type_quadratic_2d_inner,
+	segment_type_quadratic_3d_inner,
+	segment_type_quadratic_2d_outer,
+	segment_type_quadratic_3d_outer,
 	segment_type_cubic_2d,
 	segment_type_cubic_3d,
 	segment_type_triangle_2d,
@@ -163,7 +165,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public Segment<_type, 2>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_quadratic_2d;
+	SegmentType m_type = SegmentType::segment_type_quadratic_2d_outer;
 
 	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
 	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
@@ -184,6 +186,9 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public 
 	 */
 	FORCE_INLINE void subdivide(std::vector<Bezier<_type, 2>> &a_children);
 	FORCE_INLINE bool is_point_inside_my_2d_triangle(const _type &a_point);
+
+  private:
+	FORCE_INLINE void type();
 };
 
 template <class _type>
@@ -207,7 +212,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Bezier<_type, 2, vector3_typename<_type>> final : public Segment<_type, 2>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_quadratic_3d;
+	SegmentType m_type = SegmentType::segment_type_quadratic_3d_outer;
 
 	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
 	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
@@ -221,6 +226,9 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, vector3_typename<_type>> final : public 
 
 	FORCE_INLINE void subdivide(std::vector<Bezier<_type, 2>> &a_children);
 	FORCE_INLINE bool is_point_inside_my_2d_triangle(const _type &a_point);
+
+  private:
+	FORCE_INLINE void type();
 };
 
 template <class _type>

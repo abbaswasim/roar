@@ -216,7 +216,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM QuadraticBeziers<_type, vector2_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_quadratic_2d;
+	const SegmentType m_type = SegmentType::segment_type_quadratic_2d_outer;
 
 	FORCE_INLINE QuadraticBeziers()                                    = default;                   //! Default constructor
 	FORCE_INLINE QuadraticBeziers(const QuadraticBeziers &a_other)     = default;                   //! Copy constructor
@@ -233,7 +233,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM QuadraticBeziers<_type, vector3_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_quadratic_3d;
+	const SegmentType m_type = SegmentType::segment_type_quadratic_3d_outer;
 
 	FORCE_INLINE QuadraticBeziers()                                    = default;                   //! Default constructor
 	FORCE_INLINE QuadraticBeziers(const QuadraticBeziers &a_other)     = default;                   //! Copy constructor
@@ -328,4 +328,4 @@ using CubicBeizers3i = CubicBeziers<ror::Vector3<int32_t>>;
 
 }        // namespace ror
 
-#include "rorsegment_soup.hh"
+#include "rorsegments.hh"
