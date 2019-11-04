@@ -155,6 +155,10 @@ const Vector3d negative_xaxis3d(-1.0, 0.0, 0.0);
 const Vector3d negative_yaxis3d(0.0, -1.0, 0.0);
 const Vector3d negative_zaxis3d(0.0, 0.0, -1.0);
 
+
+template <class _type>
+using vector3_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type;
+
 }        // namespace ror
 
 #include "rorvector3.hh"

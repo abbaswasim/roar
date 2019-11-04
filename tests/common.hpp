@@ -34,8 +34,8 @@ const std::string red   = "1";
 
 constexpr double test_epsilon = 1e-5;
 
-void print_with_gtest_header(const char *txt, const std::string color);
-void print_gtest_header(const std::string color);
+void print_with_gtest_header(const char *txt, const std::string &color);
+void print_gtest_header(const std::string &color);
 
 #define EXPECT_DOUBLE_NE(a, b)                                    \
 	{                                                             \

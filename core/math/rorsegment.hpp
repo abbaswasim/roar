@@ -55,12 +55,6 @@ enum class SegmentType
  *             Quadratic as well as Cubic bezier curves in 2D or 3D
  */
 
-template <class _type>
-using vector2_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type;
-
-template <class _type>
-using vector3_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type;
-
 template <class _type, int _degree>
 class ROAR_ENGINE_ITEM Segment
 {

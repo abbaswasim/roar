@@ -25,20 +25,20 @@
 
 #pragma once
 
+#include "rorcompiler_workarounds.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
-#include "rorcompiler_workarounds.hpp"
 
-using ::int8_t;
 using ::int16_t;
 using ::int32_t;
 using ::int64_t;
+using ::int8_t;
 
-using ::uint8_t;
 using ::uint16_t;
 using ::uint32_t;
 using ::uint64_t;
+using ::uint8_t;
 
 using ::intptr_t;
 using ::uintptr_t;
@@ -143,3 +143,10 @@ static_assert(std::alignment_of<intptr_t>() == 8, "intptr_t is not 8 bytes align
 static_assert(std::alignment_of<ptrdiff_t>() == 8, "ptrdiff_t is not 8 bytes aligned");        // This will fail on 32bit
 
 #endif
+
+namespace ror
+{
+template <class _type>
+using ror_precision = typename std::conditional<std::is_same<_type, double64_t>::value, double64_t, float32_t>::type;
+
+}        // namespace ror

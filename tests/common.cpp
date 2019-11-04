@@ -6,7 +6,7 @@
 
 namespace ror_test
 {
-void print_with_gtest_header(const char *txt, const std::string color)
+void print_with_gtest_header(const char *txt, const std::string &color)
 {
 	printf("\033[0;3%sm", color.c_str());
 	printf("%s", "[----------] ");
@@ -14,7 +14,7 @@ void print_with_gtest_header(const char *txt, const std::string color)
 	printf("%s\n", txt);
 }
 
-void print_gtest_header(const std::string color)
+void print_gtest_header(const std::string &color)
 {
 	printf("\033[0;3%sm", color.c_str());
 	printf("%s", "[----------] ");

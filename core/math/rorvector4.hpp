@@ -151,6 +151,9 @@ const Vector4d negative_yaxis4d(0.0, -1.0, 0.0, 0.0);
 const Vector4d negative_zaxis4d(0.0, 0.0, -1.0, 0.0);
 const Vector4d negative_waxis4d(0.0, 0.0, 0.0, -1.0);
 
+template <class _type>
+using vector4_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector4<typename _type::value_type>>::value>::type;
+
 }        // namespace ror
 
 #include "rorvector4.hh"

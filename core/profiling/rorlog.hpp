@@ -68,7 +68,7 @@ enum class LogLevel
 class ROAR_ENGINE_ITEM Log
 {
   public:
-	Log(std::string a_log_file = "");                        //! Default constructor
+	Log(const std::string &a_log_file = "");                 //! Default constructor
 	Log(const Log &a_other)     = delete;                    //! Copy constructor
 	Log(Log &&a_other) noexcept = delete;                    //! Move constructor
 	Log &operator=(const Log &a_other) = delete;             //! Copy assignment operator

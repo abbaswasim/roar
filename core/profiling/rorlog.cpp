@@ -46,7 +46,7 @@ StreamRedirect::~StreamRedirect()
 	std::cout.rdbuf(this->m_stream_buffer_backup);
 }
 
-Log::Log(std::string a_log_file)
+Log::Log(const std::string &a_log_file)
 {
 #if defined(__ANDROID__)
 	const std::string tag = "ROAR";

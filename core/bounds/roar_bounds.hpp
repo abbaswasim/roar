@@ -23,24 +23,11 @@
 //
 // Version: 1.0.0
 
-#include "vector2.hpp"
-#include "vector3.hpp"
-#include "vector4.hpp"
+#pragma once
 
-#include "matrix2.hpp"
-#include "matrix3.hpp"
-#include "matrix3x4.hpp"
-#include "matrix4.hpp"
-#include "transform.hpp"
-
-#include "quaternion.hpp"
-#include "axis_angle.hpp"
-#include "euler_angle.hpp"
-#include "plane.hpp"
-#include "ray.hpp"
-
-#include "segment.hpp"
-#include "bounds/bounds.hpp"
-
-namespace ror
-{}        // namespace ror
+#include "bounds/bounding2d.hpp"
+#include "bounds/bounding3d.hpp"
+#include "bounds/bounding_box_axis_aligned.hpp"
+#include "bounds/bounding_circle.hpp"
+#include "bounds/bounding_rectangle_axis_aligned.hpp"
+#include "bounds/bounding_sphere.hpp"

@@ -132,6 +132,9 @@ const Vector2d yaxis2d(0.0, 1.0);
 const Vector2d negative_xaxis2d(-1.0, 0.0);
 const Vector2d negative_yaxis2d(0.0, -1.0);
 
+template <class _type>
+using vector2_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type;
+
 }        // namespace ror
 
 #include "rorvector2.hh"

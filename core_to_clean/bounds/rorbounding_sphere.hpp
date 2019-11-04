@@ -59,7 +59,6 @@ class ROAR_ENGINE_ITEM BoundingSphere : public IBounds
 	FORCE_INLINE void     set_center_transformed(Vector3f &a_center);
 
 	FORCE_INLINE void draw_bound() const;
-
   private:
 	// Data Needed for the BoundingSphere
 	Vector3f  m_center;                    // Center of the Sphere
