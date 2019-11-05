@@ -11,13 +11,12 @@ This is my personal playground, where I have freedom of getting dirty and creati
 
 ## Platforms
 
-  - GLFW
-	- MacOS
-	- Linux
-	- Windows (Eventually)
-
-  - Android
-  - iOS
+* GLFW
+  * MacOS
+  * Linux
+  * Windows (Eventually)
+* Android
+* iOS
 
 ## Build
 
@@ -53,18 +52,18 @@ There is no concept of degrees in Roar. You can only use radians. If any method 
 
 Roar uses NASA standard aeroplane conventions as described on page: [Euler angles](https://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm)
 
-  - Coordinate System: right hand
-  - Positive angle: right hand
-  - Order of euler angles: heading first, then attitude, then bank (YZX)
-	- heading=Y
-	- attitude=Z
-	- bank=X
+* Coordinate System: right hand
+* Positive angle: right hand
+* Order of euler angles: heading first, then attitude, then bank (YZX)
+  * heading=Y
+  * attitude=Z
+  * bank=X
 
 ## Third party
 
 Roar uses the following third party software as submodules.
 
-- [GLFW](https://github.com/glfw/glfw)
+* [GLFW](https://github.com/glfw/glfw)
 
 ## License
 
