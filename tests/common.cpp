@@ -1,7 +1,7 @@
+#include "common.hpp"
 #include "foundation/rorcommon.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include <gtest/gtest.h>
-#include "common.hpp"
 #include <iostream>
 
 namespace ror_test
