@@ -75,14 +75,14 @@ FORCE_INLINE auto vector_projection(const _type<_precision> &a_first, const _typ
 }
 
 template <template <class> class _type, class _precision>
-FORCE_INLINE auto lerp(const _type<_precision> &a_from, const _type<_precision> &a_to, scalar_precision<_type<_precision>> a_t) -> vector_precision<_type, _precision>
+FORCE_INLINE auto vector_lerp(const _type<_precision> &a_from, const _type<_precision> &a_to, scalar_precision<_type<_precision>> a_t) -> vector_precision<_type, _precision>
 {
 	using vec_prec = vector_precision<_type, _precision>;
 	return static_cast<vec_prec>(a_from) * (static_cast<vec_prec>(1.0) - a_t) + (static_cast<vec_prec>(a_to) * a_t);
 }
 
 template <template <class> class _type, class _precision>
-FORCE_INLINE auto reflect(const _type<_precision> &a_incident, const _type<_precision> &a_normal) -> vector_precision<_type, _precision>
+FORCE_INLINE auto vector_reflect(const _type<_precision> &a_incident, const _type<_precision> &a_normal) -> vector_precision<_type, _precision>
 {
 	using sclr_prec = scalar_precision<_type<_precision>>;
 	using vec_prec  = vector_precision<_type, _precision>;

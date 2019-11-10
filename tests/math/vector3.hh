@@ -248,11 +248,11 @@ TYPED_TEST(Vector3TestSigned, testing_global_methods)
 	auto scal_proj = scalar_projection(this->m_a, this->m_b);
 	auto vec_proj  = vector_projection(this->m_a, this->m_b);
 	auto vec_rejec = vector_rejection(this->m_a, this->m_b);
-	auto lerp_a    = lerp(this->m_a, this->m_b, 0.0f);
-	auto lerp_b    = lerp(this->m_a, this->m_b, 1.0f);
-	auto lerp_ab   = lerp(this->m_a, this->m_b, 0.5f);
-	auto reflect_a = reflect(-this->m_a, static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f));
-	auto reflect_b = reflect(-this->m_b, static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f));
+	auto lerp_a    = vector_lerp(this->m_a, this->m_b, 0.0f);
+	auto lerp_b    = vector_lerp(this->m_a, this->m_b, 1.0f);
+	auto lerp_ab   = vector_lerp(this->m_a, this->m_b, 0.5f);
+	auto reflect_a = vector_reflect(-this->m_a, static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f));
+	auto reflect_b = vector_reflect(-this->m_b, static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f));
 
 	ror::Vector3<float32_t> vec_proj_res(1.1365762395f, -0.5051449953f, -0.5893358279f);
 	ror::Vector3<float32_t> vec_rej_res(1.8634238243103027, 3.5051450729370117, 0.58933579921722412);
@@ -277,21 +277,21 @@ TYPED_TEST(Vector3TestSigned, testing_global_methods)
 	test_vector3_equal(reflect_b, b_reflect_yaxis);
 
 	{
-		auto reflect_axix = reflect(-static_cast<ror::Vector3<TypeParam>>(ror::xaxis3f), static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f));
+		auto reflect_axix = vector_reflect(-static_cast<ror::Vector3<TypeParam>>(ror::xaxis3f), static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f));
 
 		ror::Vector3<float32_t> axis_reflect_yaxis(-1.0f, 0.0f, 0.0f);
 		test_vector3_equal(reflect_axix, axis_reflect_yaxis);
 	}
 
 	{
-		auto reflect_axix = reflect(-static_cast<ror::Vector3<TypeParam>>(ror::zaxis3f), static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f));
+		auto reflect_axix = vector_reflect(-static_cast<ror::Vector3<TypeParam>>(ror::zaxis3f), static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f));
 
 		ror::Vector3<float32_t> axis_reflect_yaxis(0.0f, 0.0f, -1.0f);
 		test_vector3_equal(reflect_axix, axis_reflect_yaxis);
 	}
 
 	{
-		auto reflect_axix = reflect(-static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f), static_cast<ror::Vector3<TypeParam>>(ror::xaxis3f));
+		auto reflect_axix = vector_reflect(-static_cast<ror::Vector3<TypeParam>>(ror::yaxis3f), static_cast<ror::Vector3<TypeParam>>(ror::xaxis3f));
 
 		ror::Vector3<float32_t> axis_reflect_xaxis(0.0f, -1.0f, 0.0f);
 		test_vector3_equal(reflect_axix, axis_reflect_xaxis);

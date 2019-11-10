@@ -117,7 +117,7 @@ FORCE_INLINE auto vector_rejection(const _type<_precision> &a_first, const _type
  * @return     Linear interpolation between the two vectors
  */
 template <template <class> class _type, class _precision>
-FORCE_INLINE auto lerp(const _type<_precision> &a_from, const _type<_precision> &a_to, scalar_precision<_type<_precision>> a_t) -> vector_precision<_type, _precision>;
+FORCE_INLINE auto vector_lerp(const _type<_precision> &a_from, const _type<_precision> &a_to, scalar_precision<_type<_precision>> a_t) -> vector_precision<_type, _precision>;
 
 /**
  * @brief      Reflection from incident around normal
@@ -127,7 +127,7 @@ FORCE_INLINE auto lerp(const _type<_precision> &a_from, const _type<_precision> 
  * @return     Reflection from incident vector around normal towards the refelcted direction
  */
 template <template <class> class _type, class _precision>
-FORCE_INLINE auto reflect(const _type<_precision> &a_incident, const _type<_precision> &a_normal) -> vector_precision<_type, _precision>;
+FORCE_INLINE auto vector_reflect(const _type<_precision> &a_incident, const _type<_precision> &a_normal) -> vector_precision<_type, _precision>;
 
 }        // namespace ror
 

@@ -243,12 +243,12 @@ TYPED_TEST(Vector2TestSigned, testing_global_methods)
 	auto scal_proj = scalar_projection(this->m_a, this->m_b);
 	auto vec_proj  = vector_projection(this->m_a, this->m_b);
 	auto vec_rejec = vector_rejection(this->m_a, this->m_b);
-	auto lerp_a    = lerp(this->m_a, this->m_b, 0.0f);
-	auto lerp_b    = lerp(this->m_a, this->m_b, 1.0f);
-	auto lerp_ab   = lerp(this->m_a, this->m_b, 0.5f);
+	auto lerp_a    = vector_lerp(this->m_a, this->m_b, 0.0f);
+	auto lerp_b    = vector_lerp(this->m_a, this->m_b, 1.0f);
+	auto lerp_ab   = vector_lerp(this->m_a, this->m_b, 0.5f);
 
-	auto reflect_a = reflect(-this->m_a, static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f));
-	auto reflect_b = reflect(-this->m_b, static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f));
+	auto reflect_a = vector_reflect(-this->m_a, static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f));
+	auto reflect_b = vector_reflect(-this->m_b, static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f));
 
 	ror::Vector2<float32_t> vec_proj_res(1.3917526006698608f, -0.6185566782951355f);
 	ror::Vector2<float32_t> vec_rej_res(1.6082473993301392f, 3.6185567378997803f);
@@ -272,7 +272,7 @@ TYPED_TEST(Vector2TestSigned, testing_global_methods)
 	test_vector2_equal(reflect_b, b_reflect_yaxis);
 
 	{
-		auto reflect_axix = reflect(-static_cast<ror::Vector2<TypeParam>>(ror::xaxis2f), static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f));
+		auto reflect_axix = vector_reflect(-static_cast<ror::Vector2<TypeParam>>(ror::xaxis2f), static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f));
 
 		ror::Vector2<float32_t> axis_reflect_yaxis(-1.0f, 0.0f);
 		test_vector2_equal(reflect_axix, axis_reflect_yaxis);
@@ -286,7 +286,7 @@ TYPED_TEST(Vector2TestSigned, testing_global_methods)
 	// }
 
 	{
-		auto reflect_axix = reflect(-static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f), static_cast<ror::Vector2<TypeParam>>(ror::xaxis2f));
+		auto reflect_axix = vector_reflect(-static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f), static_cast<ror::Vector2<TypeParam>>(ror::xaxis2f));
 
 		ror::Vector2<float32_t> axis_reflect_xaxis(0.0f, -1.0f);
 		test_vector2_equal(reflect_axix, axis_reflect_xaxis);

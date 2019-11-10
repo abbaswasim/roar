@@ -250,12 +250,12 @@ TYPED_TEST(Vector4TestSigned, testing_global_methods)
 	auto scal_proj = scalar_projection(this->m_a, this->m_b);
 	auto vec_proj  = vector_projection(this->m_a, this->m_b);
 	auto vec_rejec = vector_rejection(this->m_a, this->m_b);
-	auto lerp_a    = lerp(this->m_a, this->m_b, 0.0f);
-	auto lerp_b    = lerp(this->m_a, this->m_b, 1.0f);
-	auto lerp_ab   = lerp(this->m_a, this->m_b, 0.5f);
+	auto lerp_a    = vector_lerp(this->m_a, this->m_b, 0.0f);
+	auto lerp_b    = vector_lerp(this->m_a, this->m_b, 1.0f);
+	auto lerp_ab   = vector_lerp(this->m_a, this->m_b, 0.5f);
 
-	auto reflect_a = reflect(-this->m_a, static_cast<ror::Vector4<TypeParam>>(ror::yaxis4f));
-	auto reflect_b = reflect(-this->m_b, static_cast<ror::Vector4<TypeParam>>(ror::yaxis4f));
+	auto reflect_a = vector_reflect(-this->m_a, static_cast<ror::Vector4<TypeParam>>(ror::yaxis4f));
+	auto reflect_b = vector_reflect(-this->m_b, static_cast<ror::Vector4<TypeParam>>(ror::yaxis4f));
 
 	ror::Vector4<float32_t> vec_proj_res(0.96047425270080566f, -0.42687743902206421f, -0.49802368879318237f, -0.49802368879318237f);
 	ror::Vector4<float32_t> vec_rej_res(2.0395257472991943f, 3.426877498626709f, 0.49802368879318237f, 0.49802368879318237f);
@@ -279,14 +279,14 @@ TYPED_TEST(Vector4TestSigned, testing_global_methods)
 	test_vector4_equal(reflect_b, b_reflect_yaxis);
 
 	{
-		auto reflect_axix = reflect(-static_cast<ror::Vector4<TypeParam>>(ror::xaxis4f), static_cast<ror::Vector4<TypeParam>>(ror::yaxis4f));
+		auto reflect_axix = vector_reflect(-static_cast<ror::Vector4<TypeParam>>(ror::xaxis4f), static_cast<ror::Vector4<TypeParam>>(ror::yaxis4f));
 
 		ror::Vector4<float32_t> axis_reflect_yaxis(-1.0f, 0.0f, 0.0f, 0.0f);
 		test_vector4_equal(reflect_axix, axis_reflect_yaxis);
 	}
 
 	{
-		auto reflect_axix = reflect(-static_cast<ror::Vector4<TypeParam>>(ror::yaxis4f), static_cast<ror::Vector4<TypeParam>>(ror::xaxis4f));
+		auto reflect_axix = vector_reflect(-static_cast<ror::Vector4<TypeParam>>(ror::yaxis4f), static_cast<ror::Vector4<TypeParam>>(ror::xaxis4f));
 
 		ror::Vector4<float32_t> axis_reflect_xaxis(0.0f, -1.0f, 0.0f, 0.0f);
 		test_vector4_equal(reflect_axix, axis_reflect_xaxis);

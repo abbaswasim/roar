@@ -148,5 +148,4 @@ namespace ror
 {
 template <class _type>
 using ror_precision = typename std::conditional<std::is_same<_type, double64_t>::value, double64_t, float32_t>::type;
-
 }        // namespace ror

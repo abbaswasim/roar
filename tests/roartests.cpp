@@ -1,5 +1,6 @@
 #include "math/math_tests.hpp"
 #include "random.hpp"
+#include "utilities.hpp"
 
 #include <gtest/gtest.h>
 

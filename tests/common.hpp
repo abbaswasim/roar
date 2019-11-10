@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
+#include <gtest/gtest.h>
 #include <iostream>
 
 namespace ror_test
@@ -36,6 +38,8 @@ constexpr double test_epsilon = 1e-5;
 
 void print_with_gtest_header(const char *txt, const std::string &color);
 void print_gtest_header(const std::string &color);
+
+using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, int8_t, uint32_t, uint64_t, uint8_t>;
 
 #define EXPECT_DOUBLE_NE(a, b)                                    \
 	{                                                             \
