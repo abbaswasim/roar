@@ -30,6 +30,9 @@
 
 namespace ror
 {
+template <class _type>
+class ROAR_ENGINE_ITEM Vector2;
+
 /**
 Template class for 3-component vector storage and manipulation.
 @ingroup RoarMath
@@ -62,6 +65,7 @@ class ROAR_ENGINE_ITEM Vector3 final
 
 	FORCE_INLINE Vector3(_type a_x, _type a_y, _type a_z);
 	FORCE_INLINE explicit Vector3(_type a_xyz);        //! Sets all members to a_xyz
+	FORCE_INLINE explicit Vector3(Vector2<_type> a_xy, _type a_z = 0);
 
 	template <class _other_type>
 	FORCE_INLINE explicit operator Vector3<_other_type>() const;
@@ -154,7 +158,6 @@ const Vector3d zaxis3d(0.0, 0.0, 1.0);
 const Vector3d negative_xaxis3d(-1.0, 0.0, 0.0);
 const Vector3d negative_yaxis3d(0.0, -1.0, 0.0);
 const Vector3d negative_zaxis3d(0.0, 0.0, -1.0);
-
 
 template <class _type>
 using vector3_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type;

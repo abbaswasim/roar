@@ -31,6 +31,9 @@
 namespace ror
 {
 template <class _type>
+class ROAR_ENGINE_ITEM Vector3;
+
+template <class _type>
 class ROAR_ENGINE_ITEM Vector2 final
 {
   public:
@@ -49,6 +52,7 @@ class ROAR_ENGINE_ITEM Vector2 final
 
 	FORCE_INLINE Vector2(_type a_x, _type a_y);        //! Create from two values
 	FORCE_INLINE explicit Vector2(_type a_xy);         //! Sets all members to a_xy
+	FORCE_INLINE explicit Vector2(Vector3<_type> a_xyz);
 
 	template <class _other_type>
 	FORCE_INLINE explicit operator Vector2<_other_type>() const;

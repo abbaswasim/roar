@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "rorvector_functions.hpp"
+#include <type_traits>
 
 namespace ror
 {
@@ -87,6 +88,49 @@ FORCE_INLINE auto vector_reflect(const _type<_precision> &a_incident, const _typ
 	using sclr_prec = scalar_precision<_type<_precision>>;
 	using vec_prec  = vector_precision<_type, _precision>;
 	return static_cast<vec_prec>(a_incident) - static_cast<vec_prec>(a_normal) * a_incident.dot_product(a_normal) * static_cast<sclr_prec>(2);
+}
+
+// Need a better way of dealing with stuff like this
+template <class _type>
+FORCE_INLINE _type vector_minimum(const _type &a_first, const _type &a_second)
+{
+	if constexpr (std::is_same<_type, Vector4<float32_t>>::value)
+	{
+		return _type(std::min(a_first.x, a_second.x), std::min(a_first.y, a_first.y), std::min(a_first.z, a_first.z), std::min(a_first.w, a_first.w));
+	}
+
+	if constexpr (std::is_same<decltype(a_first), Vector3<typename _type::value_type>>::value)
+	{
+		return _type(std::min(a_first.x, a_second.x), std::min(a_first.y, a_first.y), std::min(a_first.z, a_first.z));
+	}
+
+	if constexpr (std::is_same<decltype(a_first), Vector2<typename _type::value_type>>::value)
+	{
+		return _type(std::min(a_first.x, a_second.x), std::min(a_first.y, a_first.y));
+	}
+
+	return _type();
+}
+
+template <class _type>
+FORCE_INLINE _type vector_maximum(const _type &a_first, const _type &a_second)
+{
+	if constexpr (std::is_same<_type, Vector4<typename _type::value_type>>::value)
+	{
+		return _type(std::max(a_first.x, a_second.x), std::max(a_first.y, a_first.y), std::max(a_first.z, a_first.z), std::max(a_first.w, a_first.w));
+	}
+
+	if constexpr (std::is_same<_type, Vector3<typename _type::value_type>>::value)
+	{
+		return _type(std::max(a_first.x, a_second.x), std::max(a_first.y, a_first.y), std::max(a_first.z, a_first.z));
+	}
+
+	if constexpr (std::is_same<_type, Vector2<typename _type::value_type>>::value)
+	{
+		return _type(std::max(a_first.x, a_second.x), std::max(a_first.y, a_first.y));
+	}
+
+	return _type();
 }
 
 }        // namespace ror

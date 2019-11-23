@@ -129,6 +129,27 @@ FORCE_INLINE auto vector_lerp(const _type<_precision> &a_from, const _type<_prec
 template <template <class> class _type, class _precision>
 FORCE_INLINE auto vector_reflect(const _type<_precision> &a_incident, const _type<_precision> &a_normal) -> vector_precision<_type, _precision>;
 
+/**
+ * @brief      Find minimum of two vectors
+ * @details    Calculates minimum of two vectors and returns a new vector with only minimum of the two
+ * @param      a_first first vector
+ * @param      a_second second vector
+ * @return     Minimum of the two vectors
+ */
+template <class _type>
+FORCE_INLINE _type vector_minimum(const _type &a_first, const _type &a_second);
+
+/**
+ * @brief      Find maximum of two vectors
+ * @details    Calculates maximum of two vectors and returns a new vector with only maximum of the two
+ * @param      a_first first vector
+ * @param      a_second second vector
+ * @return     Maximum of the two vectors
+ */
+
+template <class _type>
+FORCE_INLINE _type vector_maximum(const _type &a_first, const _type &a_second);
+
 }        // namespace ror
 
 #include "rorvector_functions.hh"

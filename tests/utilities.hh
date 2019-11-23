@@ -450,9 +450,7 @@ TYPED_TEST(UtilitiesTest, functions_test)
 	}
 
 	{
-		TypeParam center      = (min1 < static_cast<TypeParam>(0) ? 25.0f : 50.0f);
-		TypeParam twice       = (min1 < static_cast<TypeParam>(0) ? 250.0f : 200.0f);
-		TypeParam twice_minus = (min1 < static_cast<TypeParam>(0) ? -200.0f : -100.0f);
+		TypeParam center      = (min1 < static_cast<TypeParam>(0) ? static_cast<TypeParam>(25.0f) : static_cast<TypeParam>(50.0f));
 
 		auto c0 = ror::closest(static_cast<TypeParam>(center + 1), min1, max1);
 		ASSERT_DOUBLE_EQ(c0, max1);
