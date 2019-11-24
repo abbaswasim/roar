@@ -585,8 +585,10 @@ FORCE_INLINE void Round<_type, vector2_typename<_type>>::create_from_min_max(_ty
 template <class _type>
 FORCE_INLINE Box<_type, vector2_typename<_type>>::Box()
 {
-	// TODO Use min and max range of _type
-	this->set(_type(0.0, 0.0), _type(0.0, 0.0));
+	auto min = std::numeric_limits<typename _type::value_type>::min();
+	auto max = std::numeric_limits<typename _type::value_type>::max();
+
+	this->set(_type(max, max), _type(min, min));
 }
 
 template <class _type>
@@ -806,8 +808,10 @@ FORCE_INLINE void Box<_type, vector2_typename<_type>>::create_from_min_max(_type
 template <class _type>
 FORCE_INLINE Box<_type, vector3_typename<_type>>::Box()
 {
-	// TODO Use min and max range of _type
-	this->set(_type(0.0, 0.0, 0.0), _type(0.0, 0.0, 0.0));
+	auto min = std::numeric_limits<typename _type::value_type>::min();
+	auto max = std::numeric_limits<typename _type::value_type>::max();
+
+	this->set(_type(max, max, max), _type(min, min, min));
 }
 
 template <class _type>
