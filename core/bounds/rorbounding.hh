@@ -31,7 +31,10 @@ namespace ror
 template <class _type, int _points_count>
 void BoundingBase<_type, _points_count>::create_from_points(const std::vector<_type> &a_points)
 {
-	_type minimum, maximum;
+	auto min = std::numeric_limits<typename _type::value_type>::min();
+	auto max = std::numeric_limits<typename _type::value_type>::max();
+
+	_type minimum(max), maximum(min);
 
 	for (auto &p : a_points)
 	{
@@ -197,10 +200,10 @@ FORCE_INLINE void Round<_type, vector3_typename<_type>>::add_bounding(const sphe
 	else
 	{
 		auto old_radius = this->m_radius;
-		this->m_radius  = (center_to_center_distance + this->m_radius + a_sphere.m_radius) * static_cast<ror_precision<_type>>(0.5f);
+		this->m_radius  = static_cast<typename _type::value_type>((center_to_center_distance + this->m_radius + a_sphere.m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
 		if (center_to_center_distance > ror::ror_epsilon)
 		{
-			this->m_points[0] = this->m_points[0] + direction_to_center * ((this->m_radius - old_radius) / center_to_center_distance);
+			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>((this->m_radius - old_radius) / center_to_center_distance);
 		}
 	}
 }
@@ -233,10 +236,10 @@ FORCE_INLINE void Round<_type, vector3_typename<_type>>::add_bounding(const circ
 	else
 	{
 		auto old_radius = this->m_radius;
-		this->m_radius  = (center_to_center_distance + this->m_radius + a_bounding.m_radius) * static_cast<ror_precision<_type>>(0.5f);
+		this->m_radius  = static_cast<typename _type::value_type>((center_to_center_distance + this->m_radius + a_bounding.m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
 		if (center_to_center_distance > ror::ror_epsilon)
 		{
-			this->m_points[0] = this->m_points[0] + direction_to_center * ((this->m_radius - old_radius) / center_to_center_distance);
+			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>((this->m_radius - old_radius) / center_to_center_distance);
 		}
 	}
 }
@@ -303,9 +306,21 @@ FORCE_INLINE void Round<_type, vector3_typename<_type>>::add_point(const _type &
 	// Consider only if the point is outside the current sphere
 	if (center_to_point_distance > this->m_radius)
 	{
-		auto old_radius   = this->m_radius;
-		this->m_radius    = (center_to_point_distance + this->m_radius) * static_cast<ror_precision<_type>>(0.5f);
-		this->m_points[0] = this->m_points[0] + direction_to_point * ((this->m_radius - old_radius) / center_to_point_distance);
+		auto old_radius = this->m_radius;
+		auto new_radius = (center_to_point_distance + this->m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f);
+
+		// Could call normalized but length is already calculated so lets use it
+		Vector3<ror_precision<typename _type::value_type>> normalized_direction(direction_to_point.x / center_to_point_distance,
+																				direction_to_point.y / center_to_point_distance,
+																				direction_to_point.z / center_to_point_distance);
+
+		auto radius_diff = (new_radius - old_radius);
+
+		this->m_points[0] = this->m_points[0] + _type(static_cast<typename _type::value_type>(normalized_direction.x * radius_diff),
+													  static_cast<typename _type::value_type>(normalized_direction.y * radius_diff),
+													  static_cast<typename _type::value_type>(normalized_direction.z * radius_diff));
+
+		this->m_radius = static_cast<typename _type::value_type>(new_radius);
 	}
 }
 
@@ -315,14 +330,14 @@ FORCE_INLINE bool Round<_type, vector3_typename<_type>>::is_point_inside(const _
 	// Perhaps one day use radius * radius against squared distance
 	auto center_to_point_distance = distance(this->m_points[0], a_point);
 
-	return (center_to_point_distance < this->m_radius);
+	return !(center_to_point_distance > this->m_radius);
 }
 
 template <class _type>
 FORCE_INLINE void Round<_type, vector3_typename<_type>>::create_from_min_max(_type a_minimum, _type a_maximum)
 {
-	this->m_points[0] = (a_minimum + a_maximum) * 0.5f;        // This will be the midpoint
-	this->m_radius    = distance(a_minimum, a_maximum) * 0.5f;
+	this->m_points[0] = (a_minimum + a_maximum) / 2;
+	this->m_radius    = static_cast<typename _type::value_type>(distance(a_minimum, this->m_points[0]));
 }
 
 // Bounding circle code
@@ -373,9 +388,10 @@ FORCE_INLINE void Round<_type, vector2_typename<_type>>::set_center(_type a_cent
 template <class _type>
 FORCE_INLINE BoundingCollisionType Round<_type, vector2_typename<_type>>::collision(const sphere_typename<Vector3<typename _type::value_type>> &a_bounding) const noexcept
 {
-	Vector2<_type> sphere_center_2d(a_bounding.m_points[0]);
+	// Note collision is performed in 3D
+	Vector3<typename _type::value_type> circle_center_3d(this->m_points[0]);
 
-	auto center_to_center_distance = distance(this->m_points[0], sphere_center_2d);
+	auto center_to_center_distance = distance(a_bounding.m_points[0], circle_center_3d);
 
 	if (center_to_center_distance > this->m_radius + a_bounding.m_radius)
 	{
@@ -392,8 +408,8 @@ FORCE_INLINE BoundingCollisionType Round<_type, vector2_typename<_type>>::collis
 template <class _type>
 FORCE_INLINE BoundingCollisionType Round<_type, vector2_typename<_type>>::collision(const box_typename<Vector3<typename _type::value_type>> &a_bounding) const noexcept
 {
-	Vector2<_type> box_min(a_bounding.m_points[0]);
-	Vector2<_type> box_max(a_bounding.m_points[1]);
+	Vector2<typename _type::value_type> box_min(a_bounding.m_points[0]);
+	Vector2<typename _type::value_type> box_max(a_bounding.m_points[1]);
 
 	auto closest = vector_maximum(box_min, vector_minimum(this->m_points[0], box_max));
 
@@ -438,8 +454,9 @@ FORCE_INLINE BoundingCollisionType Round<_type, vector2_typename<_type>>::collis
 template <class _type>
 FORCE_INLINE void Round<_type, vector2_typename<_type>>::add_bounding(const sphere_typename<Vector3<typename _type::value_type>> &a_sphere)
 {
-	Vector3<typename _type::value_type> sphere_center(a_sphere.m_points[0]);
-	auto                                direction_to_center = sphere_center - this->m_points[0];
+	Vector2<typename _type::value_type> sphere_center(a_sphere.m_points[0]);
+
+	auto direction_to_center = sphere_center - this->m_points[0];
 
 	// Distance of a_sphere to the center of the sphere
 	auto center_to_center_distance = direction_to_center.length();
@@ -455,10 +472,10 @@ FORCE_INLINE void Round<_type, vector2_typename<_type>>::add_bounding(const sphe
 	else
 	{
 		auto old_radius = this->m_radius;
-		this->m_radius  = (center_to_center_distance + this->m_radius + a_sphere.m_radius) * static_cast<ror_precision<_type>>(0.5f);
+		this->m_radius  = static_cast<typename _type::value_type>((center_to_center_distance + this->m_radius + a_sphere.m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
 		if (center_to_center_distance > ror::ror_epsilon)
 		{
-			this->m_points[0] = this->m_points[0] + direction_to_center * ((this->m_radius - old_radius) / center_to_center_distance);
+			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>((this->m_radius - old_radius) / center_to_center_distance);
 		}
 	}
 }
@@ -489,10 +506,11 @@ FORCE_INLINE void Round<_type, vector2_typename<_type>>::add_bounding(const circ
 	else
 	{
 		auto old_radius = this->m_radius;
-		this->m_radius  = (center_to_center_distance + this->m_radius + a_circle.m_radius) * static_cast<ror_precision<_type>>(0.5f);
+
+		this->m_radius = static_cast<typename _type::value_type>((center_to_center_distance + this->m_radius + a_circle.m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
 		if (center_to_center_distance > ror::ror_epsilon)
 		{
-			this->m_points[0] = this->m_points[0] + direction_to_center * ((this->m_radius - old_radius) / center_to_center_distance);
+			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>((this->m_radius - old_radius) / center_to_center_distance);
 		}
 	}
 }
@@ -559,9 +577,19 @@ FORCE_INLINE void Round<_type, vector2_typename<_type>>::add_point(const _type &
 	// Consider only if the point is outside the current sphere
 	if (center_to_point_distance > this->m_radius)
 	{
-		auto old_radius   = this->m_radius;
-		this->m_radius    = (center_to_point_distance + this->m_radius) * static_cast<ror_precision<_type>>(0.5f);
-		this->m_points[0] = this->m_points[0] + direction_to_point * ((this->m_radius - old_radius) / center_to_point_distance);
+		auto old_radius = this->m_radius;
+		auto new_radius = (center_to_point_distance + this->m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f);
+
+		// Could call normalized but length is already calculated so lets use it
+		Vector2<ror_precision<typename _type::value_type>> normalized_direction(direction_to_point.x / center_to_point_distance,
+																				direction_to_point.y / center_to_point_distance);
+
+		auto radius_diff = (new_radius - old_radius);
+
+		this->m_points[0] = this->m_points[0] + _type(static_cast<typename _type::value_type>(normalized_direction.x * radius_diff),
+													  static_cast<typename _type::value_type>(normalized_direction.y * radius_diff));
+
+		this->m_radius = static_cast<typename _type::value_type>(new_radius);
 	}
 }
 
@@ -571,14 +599,14 @@ FORCE_INLINE bool Round<_type, vector2_typename<_type>>::is_point_inside(const _
 	// Perhaps one day use radius * radius against squared distance
 	auto center_to_point_distance = distance(this->m_points[0], a_point);
 
-	return (center_to_point_distance < this->m_radius);
+	return !(center_to_point_distance > this->m_radius);
 }
 
 template <class _type>
 FORCE_INLINE void Round<_type, vector2_typename<_type>>::create_from_min_max(_type a_minimum, _type a_maximum)
 {
-	this->m_points[0] = (a_minimum + a_maximum) * 0.5f;        // This will be the midpoint
-	this->m_radius    = distance(a_minimum, a_maximum) * 0.5f;
+	this->m_points[0] = (a_minimum + a_maximum) / 2;        // This will be the midpoint
+	this->m_radius    = static_cast<typename _type::value_type>(distance(a_minimum, this->m_points[0]));
 }
 
 // Bounding rectangle code
@@ -620,14 +648,13 @@ FORCE_INLINE _type Box<_type, vector2_typename<_type>>::maximum() const noexcept
 template <class _type>
 FORCE_INLINE _type Box<_type, vector2_typename<_type>>::center() const noexcept
 {
-	return this->m_points[0] + this->m_points[1] * static_cast<ror::ror_precision<_type>>(0.5f);
+	return (this->m_points[0] + this->m_points[1]) * static_cast<ror::ror_precision<typename _type::value_type>>(0.5f);
 }
 
 template <class _type>
 FORCE_INLINE BoundingCollisionType Box<_type, vector2_typename<_type>>::collision(const sphere_typename<Vector3<typename _type::value_type>> &a_bounding) const noexcept
 {
 	Vector2<typename _type::value_type> a_bounding_m_points_0_(a_bounding.m_points[0]);
-	Vector2<typename _type::value_type> a_bounding_m_points_1_(a_bounding.m_points[1]);
 
 	auto closest = vector_maximum(this->m_points[0], vector_minimum(a_bounding_m_points_0_, this->m_points[1]));
 
@@ -680,8 +707,8 @@ FORCE_INLINE BoundingCollisionType Box<_type, vector2_typename<_type>>::collisio
 template <class _type>
 FORCE_INLINE void Box<_type, vector2_typename<_type>>::add_bounding(const sphere_typename<Vector3<typename _type::value_type>> &a_sphere)
 {
-	_type min = a_sphere.m_points[0] - _type(a_sphere.m_radius);
-	_type max = a_sphere.m_points[0] + _type(a_sphere.m_radius);
+	_type min = _type(a_sphere.m_points[0]) - _type(a_sphere.m_radius);
+	_type max = _type(a_sphere.m_points[0]) + _type(a_sphere.m_radius);
 
 	this->add_point(Vector2<typename _type::value_type>(min));
 	this->add_point(Vector2<typename _type::value_type>(max));
@@ -843,7 +870,7 @@ FORCE_INLINE _type Box<_type, vector3_typename<_type>>::maximum() const noexcept
 template <class _type>
 FORCE_INLINE _type Box<_type, vector3_typename<_type>>::center() const noexcept
 {
-	return this->m_points[0] + this->m_points[1] * static_cast<ror::ror_precision<_type>>(0.5f);
+	return (this->m_points[0] + this->m_points[1]) * static_cast<ror::ror_precision<typename _type::value_type>>(0.5f);
 }
 
 template <class _type>

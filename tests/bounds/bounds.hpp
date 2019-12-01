@@ -40,16 +40,22 @@ class BoundingTest : public testing::Test
 	virtual void SetUp() override;
 	virtual void TearDown() override;
 
-	ror::BoundingBoxAxisAligned m_bounding_box_axis_aligned;                       //!< standard member variable used for comparisions
-	ror::BoundingSphere         m_bounding_sphere;                                 //!< standard member variable used for comparisions
-	ror::Vector3f               m_vector1, m_vector2, m_vector3, m_vector4;        //!< standard member variable used for reference
-	ror::Vector3f               m_vector_negative1, m_vector_negative2;            //!< standard member variable used for reference
-	ror::Vector3f               m_vector_negative3, m_vector_negative4;            //!< standard member variable used for reference
+	ror::Box<ror::Vector3<_type>>   m_bounding_box_axis_aligned;
+	ror::Box<ror::Vector2<_type>>   m_bounding_rectangle_axis_aligned;
+	ror::Round<ror::Vector3<_type>> m_bounding_sphere;
+	ror::Round<ror::Vector2<_type>> m_bounding_circle;
 
-  private:
+	ror::Vector3<_type> m_vector3_0, m_vector3_1, m_vector3_2, m_vector3_3, m_vector3_4;
+	ror::Vector3<_type> m_vector_negative3_1, m_vector_negative3_2;
+	ror::Vector3<_type> m_vector_negative3_3, m_vector_negative3_4;
+
+	ror::Vector2<_type> m_vector2_1, m_vector2_2, m_vector2_3, m_vector2_4;
+	ror::Vector2<_type> m_vector_negative2_1, m_vector_negative2_2;
+	ror::Vector2<_type> m_vector_negative2_3, m_vector_negative2_4;
 };
 
 // using BoundingTypesToTest = ::testing::Types<int64_t, uint64_t, int32_t, int16_t, int8_t, uint32_t, uint16_t, uint8_t, float32_t, double64_t>;
+// Bounds only defined in cartesian coordinate system so unsigned types shouldn't be used
 using BoundingTypesToTest = ::testing::Types<int64_t, int32_t, int16_t, int8_t, float32_t, double64_t>;
 
 TYPED_TEST_SUITE(BoundingTest, BoundingTypesToTest);

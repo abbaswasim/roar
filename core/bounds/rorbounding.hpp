@@ -106,6 +106,8 @@ template <class _type>
 using rectangle_typename = Box<_type, vector2_typename<_type>>;
 
 #define ROUND_COMMON()                                                                                                                       \
+	typename _type::value_type m_radius;                                                                                                     \
+																																			 \
 	FORCE_INLINE Round();                                                                                                                    \
 	FORCE_INLINE Round(const Round &a_other)     = default;                                                                                  \
 	FORCE_INLINE Round(Round &&a_other) noexcept = default;                                                                                  \
@@ -136,8 +138,6 @@ template <class _type>
 class ROAR_ENGINE_ITEM Round<_type, vector2_typename<_type>> final : public BoundingBase<_type, 1>
 {
   public:
-	typename _type::value_type m_radius;
-
 	ROUND_COMMON()
 };
 
@@ -145,8 +145,6 @@ template <class _type>
 class ROAR_ENGINE_ITEM Round<_type, vector3_typename<_type>> final : public BoundingBase<_type, 1>
 {
   public:
-	typename _type::value_type m_radius;
-
 	ROUND_COMMON()
 };
 
@@ -190,15 +188,15 @@ class ROAR_ENGINE_ITEM Box<_type, vector3_typename<_type>> final : public Boundi
 	BOX_COMMON()
 };
 
-using BoundingRectangleAxisAligned  = Box<Vector2f>;
-using BoundingBoxAxisAligned        = Box<Vector3f>;
-using BoundingRectangleAxisAlignedd = Box<Vector2d>;
-using BoundingBoxAxisAlignedd       = Box<Vector3d>;
-using BoundingRectangleAxisAlignedi = Box<Vector2d>;
-using BoundingBoxAxisAlignedi       = Box<Vector3d>;
+using BoundingRectanglef = Box<Vector2f>;
+using BoundingBoxf       = Box<Vector3f>;
+using BoundingRectangled = Box<Vector2d>;
+using BoundingBoxd       = Box<Vector3d>;
+using BoundingRectanglei = Box<Vector2d>;
+using BoundingBoxi       = Box<Vector3d>;
 
-using BoundingCircle  = Round<Vector2f>;
-using BoundingSphere  = Round<Vector3f>;
+using BoundingCirclef = Round<Vector2f>;
+using BoundingSpheref = Round<Vector3f>;
 using BoundingCircled = Round<Vector2d>;
 using BoundingSphered = Round<Vector3d>;
 using BoundingCirclei = Round<Vector2i>;

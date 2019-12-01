@@ -24,163 +24,197 @@
 // Version: 1.0.0
 
 #include "bounds.hpp"
+#include <iostream>
+#include <type_traits>
 
 namespace ror_test
 {
 template <class _type>
 void BoundingTest<_type>::SetUp()
 {
-	this->m_vector1 = ror::Vector3f(1.0f, 1.0f, 1.0f);
-	this->m_vector2 = ror::Vector3f(2.0f, 2.0f, 2.0f);
-	this->m_vector3 = ror::Vector3f(3.0f, 3.0f, 3.0f);
-	this->m_vector4 = ror::Vector3f(4.0f, 4.0f, 4.0f);
+	this->m_vector3_0 = ror::Vector3<_type>(0.0f, 0.0f, 0.0f);
+	this->m_vector3_1 = ror::Vector3<_type>(10.0f, 10.0f, 10.0f);
+	this->m_vector3_2 = ror::Vector3<_type>(20.0f, 20.0f, 20.0f);
+	this->m_vector3_3 = ror::Vector3<_type>(30.0f, 30.0f, 30.0f);
+	this->m_vector3_4 = ror::Vector3<_type>(40.0f, 40.0f, 40.0f);
 
-	this->m_vector_negative1 = -this->m_vector1;
-	this->m_vector_negative2 = -this->m_vector2;
-	this->m_vector_negative3 = -this->m_vector3;
-	this->m_vector_negative4 = -this->m_vector4;
+	this->m_vector_negative3_1 = -this->m_vector3_1;
+	this->m_vector_negative3_2 = -this->m_vector3_2;
+	this->m_vector_negative3_3 = -this->m_vector3_3;
+	this->m_vector_negative3_4 = -this->m_vector3_4;
+
+	this->m_vector2_1 = ror::Vector2<_type>(this->m_vector3_1);
+	this->m_vector2_2 = ror::Vector2<_type>(this->m_vector3_2);
+	this->m_vector2_3 = ror::Vector2<_type>(this->m_vector3_3);
+	this->m_vector2_4 = ror::Vector2<_type>(this->m_vector3_4);
+
+	this->m_vector_negative2_1 = -this->m_vector2_1;
+	this->m_vector_negative2_2 = -this->m_vector2_2;
+	this->m_vector_negative2_3 = -this->m_vector2_3;
+	this->m_vector_negative2_4 = -this->m_vector2_4;
 }
 
 template <class _type>
 void BoundingTest<_type>::TearDown()
 {}
 
-TYPED_TEST(BoundingTest, BoundingSphere_unit_test_constructors_work)
+TYPED_TEST(BoundingTest, BoundingSphere_constructors_work)
 {
-	ror::BoundingSphere bounding_sphere1;
-	ASSERT_TRUE((bounding_sphere1.radius() - 0.0f) < ror::ror_epsilon_squared);
-	ASSERT_TRUE(bounding_sphere1.center() == ror::zero_vector3f);
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere1;
+	ASSERT_TRUE((bounding_sphere1.radius()) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(bounding_sphere1.center() == ror::Vector3<TypeParam>(0.0f, 0.0f, 0.0f));
 	ASSERT_TRUE(bounding_sphere1.m_type == ror::BoundingType::bounding_type_3d_sphere);
 
 	ASSERT_TRUE((bounding_sphere1.radius() - this->m_bounding_sphere.radius()) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_sphere1.center() == this->m_bounding_sphere.center());
 	ASSERT_TRUE(bounding_sphere1.m_type == this->m_bounding_sphere.m_type);
 
-	ror::BoundingSphere bounding_sphere2(bounding_sphere1);
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere2(bounding_sphere1);
 	ASSERT_TRUE((bounding_sphere1.radius() - bounding_sphere2.radius()) < ror::ror_epsilon_squared);
-	ASSERT_TRUE(bounding_sphere1.center() == bounding_sphere1.center());
-	ASSERT_TRUE(bounding_sphere1.m_type == bounding_sphere1.m_type);
+	ASSERT_TRUE(bounding_sphere1.center() == bounding_sphere2.center());
+	ASSERT_TRUE(bounding_sphere1.m_type == bounding_sphere2.m_type);
 }
-//----------------------------------------------------------------------------//
-TYPED_TEST(BoundingTest, BoundingSphere_unit_test_accessors_mutators)
+
+TYPED_TEST(BoundingTest, BoundingSphere_accessors_mutators)
 {
-	ror::BoundingSphere bounding_sphere1;
-	ror::Vector3f       center(2.5f, 3.0f, 1.2f);
-	bounding_sphere1.set_radius(5.0f);
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere1;
+	ror::Vector3<TypeParam>             center(static_cast<TypeParam>(2.5f), static_cast<TypeParam>(3.0f), static_cast<TypeParam>(1.2f));
+
+	bounding_sphere1.set_radius(static_cast<TypeParam>(5.0f));
 	bounding_sphere1.set_center(center);
-	ASSERT_TRUE((bounding_sphere1.radius() - 5.0f) < ror::ror_epsilon_squared);
+
+	ASSERT_TRUE((bounding_sphere1.radius() - static_cast<TypeParam>(5.0f)) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_sphere1.center() == center);
 }
-//----------------------------------------------------------------------------//
-TYPED_TEST(BoundingTest, BoundingSphere_unit_test_add_point)
+
+TYPED_TEST(BoundingTest, BoundingSphere_add_point)
 {
-	ror::BoundingSphere bounding_sphere1;
-	bounding_sphere1.set_center(this->m_vector2);
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere1;
+
+	bounding_sphere1.set_center(this->m_vector3_2);
 	bounding_sphere1.set_radius(1.0f);
-	bounding_sphere1.add_point(this->m_vector3);
-	EXPECT_GT(bounding_sphere1.radius(), 1.0f);
-	float32_t nextRadius = bounding_sphere1.radius();
-	bounding_sphere1.add_point(this->m_vector4);
+	bounding_sphere1.add_point(this->m_vector3_3);
+
+	// if (std::is_same<TypeParam, float32_t>::value ||
+	//	std::is_same<TypeParam, double64_t>::value)
+	EXPECT_GE(bounding_sphere1.radius(), 9.0f);
+
+	TypeParam nextRadius = bounding_sphere1.radius();
+
+	bounding_sphere1.add_point(this->m_vector3_4);
 	EXPECT_GT(bounding_sphere1.radius(), nextRadius);
 
 	nextRadius = bounding_sphere1.radius();
-	bounding_sphere1.add_point(this->m_vector4);
+
+	bounding_sphere1.add_point(this->m_vector3_4);
 	ASSERT_TRUE(abs(bounding_sphere1.radius() - nextRadius) < ror::ror_epsilon_squared);
 
 	nextRadius = bounding_sphere1.radius();
-	bounding_sphere1.add_point(this->m_vector2);
+
+	bounding_sphere1.add_point(this->m_vector3_2);
 	ASSERT_TRUE(abs(bounding_sphere1.radius() - nextRadius) < ror::ror_epsilon_squared);
 
-	ror::Vector3f pointx(40.0f, 0.0f, 0.0f);
-	ror::Vector3f pointypositive(20.0f, 20.0f, 0.0f);
-	ror::Vector3f pointynegative(20.0f, -20.0f, 0.0f);
-	ror::Vector3f pointzpositive(20.0f, 0.0f, 20.0f);
-	ror::Vector3f pointznegative(20.0f, 0.0f, -20.0f);
-	ror::Vector3f pointallpositive(20.0f, 20.0f, 20.0f);
-	ror::Vector3f pointallnegative(-20.0f, -20.0f, -20.0f);
+	ror::Vector3<TypeParam> pointx(40.0f, 0.0f, 0.0f);
+	ror::Vector3<TypeParam> pointypositive(20.0f, 20.0f, 0.0f);
+	ror::Vector3<TypeParam> pointynegative(20.0f, -20.0f, 0.0f);
+	ror::Vector3<TypeParam> pointzpositive(20.0f, 0.0f, 20.0f);
+	ror::Vector3<TypeParam> pointznegative(20.0f, 0.0f, -20.0f);
+	ror::Vector3<TypeParam> pointallpositive(20.0f, 20.0f, 20.0f);
+	ror::Vector3<TypeParam> pointallnegative(-20.0f, -20.0f, -20.0f);
 
-	ror::Vector3f point1(0.0f, 0.0f, 0.0f);
+	ror::Vector3<TypeParam> point1(0.0f, 0.0f, 0.0f);
 
 	this->m_bounding_sphere.add_point(point1);
 	this->m_bounding_sphere.add_point(pointx);
-	ASSERT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+
 	this->m_bounding_sphere.add_point(pointypositive);
-	ASSERT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+
 	this->m_bounding_sphere.add_point(pointynegative);
-	ASSERT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+
 	this->m_bounding_sphere.add_point(pointzpositive);
-	ASSERT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+
 	this->m_bounding_sphere.add_point(pointznegative);
-	ASSERT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_sphere.add_point(pointallpositive);
-	EXPECT_GT(this->m_bounding_sphere.radius(), 24.0f);
+	EXPECT_GE(this->m_bounding_sphere.radius(), 24.0f);
+
 	this->m_bounding_sphere.add_point(pointallnegative);
-	EXPECT_GT(this->m_bounding_sphere.radius(), 37.0f);
+	EXPECT_GE(this->m_bounding_sphere.radius(), 37.0f);
 
-	ror::BoundingSphere bounding_sphere2;
-	ror::Vector3f       pointSameCenter1(2.0f, 0.0f, 0.0f);
-	ror::Vector3f       pointSameCenter2(-2.0f, 0.0f, 0.0f);
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere2;
+	ror::Vector3<TypeParam>             pointSameCenter1(20.0f, 0.0f, 0.0f);
+	ror::Vector3<TypeParam>             pointSameCenter2(-20.0f, 0.0f, 0.0f);
 
-	bounding_sphere2.set_radius(1.0f);
+	bounding_sphere2.set_radius(10.0f);
 	bounding_sphere2.set_center(point1);
 
 	bounding_sphere2.add_point(pointSameCenter1);
-	ASSERT_FALSE(bounding_sphere2.center() == point1);
-	bounding_sphere2.add_point(pointSameCenter2);
-	ASSERT_TRUE(abs(bounding_sphere2.radius() - 2.0f) < ror::ror_epsilon);
-	ASSERT_TRUE(bounding_sphere2.center() == point1);
-}
-//----------------------------------------------------------------------------//
-TYPED_TEST(BoundingTest, BoundingSphere_unit_test_is_point_inside)
-{
-	ror::BoundingSphere bounding_sphere1;
-	ror::BoundingSphere bounding_sphere2;
+	EXPECT_FALSE(bounding_sphere2.center() == point1);
 
-	ror::Vector3f point0(0.0f, 0.0f, 0.0f);
-	ror::Vector3f point1(1.0f, 1.0f, 1.0f);
+	bounding_sphere2.add_point(pointSameCenter2);
+	EXPECT_TRUE(abs(bounding_sphere2.radius() - 20.0f) < ror::ror_epsilon);
+	EXPECT_TRUE(bounding_sphere2.center() == point1);
+}
+
+TYPED_TEST(BoundingTest, BoundingSphere_is_point_inside)
+{
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere1;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere2;
 
 	ASSERT_TRUE(abs(this->m_bounding_sphere.radius() - 0.0f) < ror::ror_epsilon_squared);
-	ASSERT_TRUE(this->m_bounding_sphere.center() == point0);
+	ASSERT_TRUE(this->m_bounding_sphere.center() == this->m_vector3_0);
 
-	this->m_bounding_sphere.set_radius(2.0f);
-	this->m_bounding_sphere.set_center(point0);
+	this->m_bounding_sphere.set_radius(20.0f);
+	this->m_bounding_sphere.set_center(this->m_vector3_0);
 
-	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector1) == true);
-	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector2) == true);
-	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector3) == true);
-	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector4) == true);
+	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector3_1) == true);
+	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector3_2) == true);
+	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector3_3) == true);
+	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector3_4) == true);
 
-	this->m_bounding_sphere.add_point(this->m_vector4);
-	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector3) == true);
-	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative3) == true);
-	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative2) == true);
+	this->m_bounding_sphere.add_point(this->m_vector3_3);
+	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector3_4) == true);
+	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative3_3) == true);
+	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative3_2) == true);
 
-	this->m_bounding_sphere.add_point(this->m_vector_negative4);
-	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative3) == true);
+	this->m_bounding_sphere.add_point(this->m_vector3_4);
+	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector3_3) == true);
+	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative3_2) == true);
+	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative3_3) == true);
+	ASSERT_FALSE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative3_4) == true);
+
+	this->m_bounding_sphere.add_point(this->m_vector_negative3_3);
+	this->m_bounding_sphere.add_point(this->m_vector_negative3_4);
+	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative3_2) == true);
+	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative3_3) == true);
+
 	EXPECT_GT(this->m_bounding_sphere.radius(), 6.0f);
-	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector_negative2) == true);
 }
-//----------------------------------------------------------------------------//
-TYPED_TEST(BoundingTest, BoundingSphere_unit_test_add_bounding_sphere)
-{
-	ror::Vector3f center;
-	float    radius;
 
-	ror::BoundingSphere bounding_sphere1;
-	ror::BoundingSphere bounding_sphere2;
-	ror::BoundingSphere bounding_sphere3;
-	ror::BoundingSphere bounding_sphere4;
+TYPED_TEST(BoundingTest, BoundingSphere_add_bounding_sphere)
+{
+	ror::Vector3<TypeParam> center;
+	TypeParam               radius;
+
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere1;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere2;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere3;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere4;
 
 	bounding_sphere1.set_radius(1.0f);
 	bounding_sphere2.set_radius(1.0f);
 	bounding_sphere3.set_radius(1.0f);
 	bounding_sphere4.set_radius(1.0f);
 
-	bounding_sphere1.set_center(this->m_vector1);
-	bounding_sphere2.set_center(this->m_vector2);
-	bounding_sphere3.set_center(this->m_vector3);
-	bounding_sphere4.set_center(this->m_vector4);
+	bounding_sphere1.set_center(this->m_vector3_1);
+	bounding_sphere2.set_center(this->m_vector3_2);
+	bounding_sphere3.set_center(this->m_vector3_3);
+	bounding_sphere4.set_center(this->m_vector3_4);
 
 	radius = bounding_sphere1.radius();
 	center = bounding_sphere1.center();
@@ -214,153 +248,152 @@ TYPED_TEST(BoundingTest, BoundingSphere_unit_test_add_bounding_sphere)
 	ASSERT_TRUE(bounding_sphere4.center() == center);
 	ASSERT_TRUE(bounding_sphere4.radius() == radius);
 
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector1) == true);
-	ASSERT_FALSE(bounding_sphere1.is_point_inside(this->m_vector2) == true);
-	ASSERT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3) == true);
-	ASSERT_FALSE(bounding_sphere1.is_point_inside(this->m_vector4) == true);
+	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_1) == true);
+	ASSERT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3_2) == true);
+	ASSERT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3_3) == true);
+	ASSERT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3_4) == true);
 
-	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector1) == true);
-	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector2) == true);
-	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3) == true);
-	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector4) == true);
+	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_1) == true);
+	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_2) == true);
+	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_3) == true);
+	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_4) == true);
 
-	ASSERT_FALSE(bounding_sphere3.is_point_inside(this->m_vector1) == true);
-	ASSERT_FALSE(bounding_sphere3.is_point_inside(this->m_vector2) == true);
-	ASSERT_TRUE(bounding_sphere3.is_point_inside(this->m_vector3) == true);
-	ASSERT_FALSE(bounding_sphere3.is_point_inside(this->m_vector4) == true);
+	ASSERT_FALSE(bounding_sphere3.is_point_inside(this->m_vector3_1) == true);
+	ASSERT_FALSE(bounding_sphere3.is_point_inside(this->m_vector3_2) == true);
+	ASSERT_TRUE(bounding_sphere3.is_point_inside(this->m_vector3_3) == true);
+	ASSERT_FALSE(bounding_sphere3.is_point_inside(this->m_vector3_4) == true);
 
-	ASSERT_FALSE(bounding_sphere4.is_point_inside(this->m_vector1) == true);
-	ASSERT_FALSE(bounding_sphere4.is_point_inside(this->m_vector2) == true);
-	ASSERT_FALSE(bounding_sphere4.is_point_inside(this->m_vector3) == true);
-	ASSERT_TRUE(bounding_sphere4.is_point_inside(this->m_vector4) == true);
+	ASSERT_FALSE(bounding_sphere4.is_point_inside(this->m_vector3_1) == true);
+	ASSERT_FALSE(bounding_sphere4.is_point_inside(this->m_vector3_2) == true);
+	ASSERT_FALSE(bounding_sphere4.is_point_inside(this->m_vector3_3) == true);
+	ASSERT_TRUE(bounding_sphere4.is_point_inside(this->m_vector3_4) == true);
 
 	bounding_sphere1.add_bounding(bounding_sphere2);
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector1) == true);
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector2) == true);
-	ASSERT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3) == true);
-	ASSERT_FALSE(bounding_sphere1.is_point_inside(this->m_vector4) == true);
+	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_1) == true);
+	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+		EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_2) == true);
+	EXPECT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3_3) == true);
+	EXPECT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3_4) == true);
+
 	bounding_sphere1.add_bounding(bounding_sphere3);
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector1) == true);
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector2) == true);
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3) == true);
-	ASSERT_FALSE(bounding_sphere1.is_point_inside(this->m_vector4) == true);
+	EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_1) == true);
+	EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_2) == true);
+	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+		EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_3) == true);
+	EXPECT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3_4) == true);
+
 	bounding_sphere1.add_bounding(bounding_sphere4);
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector1) == true);
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector2) == true);
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3) == true);
-	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector4) == true);
+	EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_1) == true);
+	EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_2) == true);
+	EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_3) == true);
+	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+		EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_4) == true);
 
 	bounding_sphere2.add_bounding(bounding_sphere3);
-	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector1) == true);
-	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector2) == true);
-	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3) == true);
-	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector4) == true);
+	EXPECT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_1) == true);
+	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_2) == true);
+	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+		EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_3) == true);
+	EXPECT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_4) == true);
+
 	bounding_sphere2.add_bounding(bounding_sphere4);
-	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector1) == true);
-	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector2) == true);
-	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3) == true);
-	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector4) == true);
+	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+		EXPECT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_1) == true);
+	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_2) == true);
+	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_3) == true);
+	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+		EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_4) == true);
 
 	bounding_sphere3.add_bounding(bounding_sphere4);
-	ASSERT_FALSE(bounding_sphere3.is_point_inside(this->m_vector1) == true);
-	ASSERT_FALSE(bounding_sphere3.is_point_inside(this->m_vector2) == true);
-	ASSERT_TRUE(bounding_sphere3.is_point_inside(this->m_vector3) == true);
-	ASSERT_TRUE(bounding_sphere3.is_point_inside(this->m_vector4) == true);
+	EXPECT_FALSE(bounding_sphere3.is_point_inside(this->m_vector3_1) == true);
+	EXPECT_FALSE(bounding_sphere3.is_point_inside(this->m_vector3_2) == true);
+	EXPECT_TRUE(bounding_sphere3.is_point_inside(this->m_vector3_3) == true);
+	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+		EXPECT_TRUE(bounding_sphere3.is_point_inside(this->m_vector3_4) == true);
 
 	bounding_sphere2.add_bounding(bounding_sphere4);
-	ASSERT_FALSE(bounding_sphere2.is_point_inside(this->m_vector1) == true);
-	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector2) == true);
-	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3) == true);
-	ASSERT_TRUE(bounding_sphere2.is_point_inside(this->m_vector4) == true);
+	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+		EXPECT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_1) == true);
+	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_2) == true);
+	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_3) == true);
+	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+		EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_4) == true);
 }
 
-/*
-//----------------------------------------------------------------------------//
-TYPED_TEST(BoundingTest, BoundingSphere_unit_test_bounding_sphere_collision)
+TYPED_TEST(BoundingTest, BoundingSphere_bounding_sphere_collision)
 {
-	ror::Vector3f center;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere1;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere2;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere3;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere4;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere5;
 
-	ror::BoundingSphere bounding_sphere1;
-	ror::BoundingSphere bounding_sphere2;
-	ror::BoundingSphere bounding_sphere3;
-	ror::BoundingSphere bounding_sphere4;
-	ror::BoundingSphere bounding_sphere5;
+	bounding_sphere1.set_radius(10.0f);
+	bounding_sphere2.set_radius(10.0f);
+	bounding_sphere3.set_radius(10.0f);
+	bounding_sphere4.set_radius(10.0f);
+	bounding_sphere5.set_radius(static_cast<TypeParam>(60));
 
-	bounding_sphere1.set_radius(1.0f);
-	bounding_sphere2.set_radius(1.0f);
-	bounding_sphere3.set_radius(1.0f);
-	bounding_sphere4.set_radius(1.0f);
-	bounding_sphere5.set_radius(6.99f);
+	bounding_sphere1.set_center(this->m_vector3_1);
+	bounding_sphere2.set_center(this->m_vector3_2);
+	bounding_sphere3.set_center(this->m_vector3_3);
+	bounding_sphere4.set_center(this->m_vector3_4);
 
+	EXPECT_TRUE(bounding_sphere1.collision(bounding_sphere1) == ror::BoundingCollisionType::bounding_collision_type_inside);
+	EXPECT_TRUE(bounding_sphere1.collision(bounding_sphere2) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_FALSE(bounding_sphere1.collision(bounding_sphere3) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_FALSE(bounding_sphere1.collision(bounding_sphere4) == ror::BoundingCollisionType::bounding_collision_type_intersects);
 
-bounding_sphere1.set_center(this->m_vector1);
-	bounding_sphere2.set_center(this->m_vector2);
-	bounding_sphere3.set_center(this->m_vector3);
-	bounding_sphere4.set_center(this->m_vector4);
+	EXPECT_TRUE(bounding_sphere2.collision(bounding_sphere1) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_TRUE(bounding_sphere2.collision(bounding_sphere2) == ror::BoundingCollisionType::bounding_collision_type_inside);
+	EXPECT_TRUE(bounding_sphere2.collision(bounding_sphere3) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_FALSE(bounding_sphere2.collision(bounding_sphere4) == ror::BoundingCollisionType::bounding_collision_type_intersects);
 
-	ASSERT_TRUE(bounding_sphere1.bounding_sphere_collision(&bounding_sphere1) == ror::BoundingType::BOUNDING3DCOLLISION_INSIDE);
-	ASSERT_TRUE(bounding_sphere1.bounding_sphere_collision(&bounding_sphere2) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	ASSERT_FALSE(bounding_sphere1.bounding_sphere_collision(&bounding_sphere3) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	ASSERT_FALSE(bounding_sphere1.bounding_sphere_collision(&bounding_sphere4) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
+	EXPECT_FALSE(bounding_sphere3.collision(bounding_sphere1) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_TRUE(bounding_sphere3.collision(bounding_sphere2) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_TRUE(bounding_sphere3.collision(bounding_sphere3) == ror::BoundingCollisionType::bounding_collision_type_inside);
+	EXPECT_TRUE(bounding_sphere3.collision(bounding_sphere4) == ror::BoundingCollisionType::bounding_collision_type_intersects);
 
-	ASSERT_TRUE(bounding_sphere2.bounding_sphere_collision(&bounding_sphere1) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	ASSERT_TRUE(bounding_sphere2.bounding_sphere_collision(&bounding_sphere2) == ror::BoundingType::BOUNDING3DCOLLISION_INSIDE);
-	ASSERT_TRUE(bounding_sphere2.bounding_sphere_collision(&bounding_sphere3) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	ASSERT_FALSE(bounding_sphere2.bounding_sphere_collision(&bounding_sphere4) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
+	EXPECT_FALSE(bounding_sphere4.collision(bounding_sphere1) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_FALSE(bounding_sphere4.collision(bounding_sphere2) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_TRUE(bounding_sphere4.collision(bounding_sphere3) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_TRUE(bounding_sphere4.collision(bounding_sphere4) == ror::BoundingCollisionType::bounding_collision_type_inside);
 
-	ASSERT_FALSE(bounding_sphere3.bounding_sphere_collision(&bounding_sphere1) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	ASSERT_TRUE(bounding_sphere3.bounding_sphere_collision(&bounding_sphere2) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	ASSERT_TRUE(bounding_sphere3.bounding_sphere_collision(&bounding_sphere3) == ror::BoundingType::BOUNDING3DCOLLISION_INSIDE);
-	ASSERT_TRUE(bounding_sphere3.bounding_sphere_collision(&bounding_sphere4) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
+	EXPECT_TRUE(bounding_sphere5.collision(bounding_sphere1) == ror::BoundingCollisionType::bounding_collision_type_inside);
+	EXPECT_TRUE(bounding_sphere5.collision(bounding_sphere2) == ror::BoundingCollisionType::bounding_collision_type_inside);
+	EXPECT_TRUE(bounding_sphere5.collision(bounding_sphere3) == ror::BoundingCollisionType::bounding_collision_type_intersects);
+	EXPECT_TRUE(bounding_sphere5.collision(bounding_sphere4) == ror::BoundingCollisionType::bounding_collision_type_intersects);
 
-	ASSERT_FALSE(bounding_sphere4.bounding_sphere_collision(&bounding_sphere1) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	ASSERT_FALSE(bounding_sphere4.bounding_sphere_collision(&bounding_sphere2) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	ASSERT_TRUE(bounding_sphere4.bounding_sphere_collision(&bounding_sphere3) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	ASSERT_TRUE(bounding_sphere4.bounding_sphere_collision(&bounding_sphere4) == ror::BoundingType::BOUNDING3DCOLLISION_INSIDE);
-
-	ASSERT_TRUE(bounding_sphere5.bounding_sphere_collision(&bounding_sphere1) == ror::BoundingType::BOUNDING3DCOLLISION_INSIDE);
-	ASSERT_TRUE(bounding_sphere5.bounding_sphere_collision(&bounding_sphere2) == ror::BoundingType::BOUNDING3DCOLLISION_INSIDE);
-	ASSERT_TRUE(bounding_sphere5.bounding_sphere_collision(&bounding_sphere3) == ror::BoundingType::BOUNDING3DCOLLISION_INSIDE);
-	ASSERT_TRUE(bounding_sphere5.bounding_sphere_collision(&bounding_sphere4) == ror::BoundingType::BOUNDING3DCOLLISION_INTERSECTS);
-	bounding_sphere5.set_radius(8.0f);
-	ASSERT_TRUE(bounding_sphere5.bounding_sphere_collision(&bounding_sphere4) == ror::BoundingType::BOUNDING3DCOLLISION_INSIDE);
+	bounding_sphere5.set_radius(80.0f);
+	EXPECT_TRUE(bounding_sphere5.collision(bounding_sphere4) == ror::BoundingCollisionType::bounding_collision_type_inside);
 }
-//----------------------------------------------------------------------------//
-TYPED_TEST(BoundingTest, BoundingSphere_unit_test_create_from_points)
+
+TYPED_TEST(BoundingTest, BoundingSphere_create_from_points)
 {
-	ror::Vector3f center;
-	uint32_t pointscount = 4;
-	uint32_t components  = 3;
-	// four points and 3 components each
-	float32_t *points = new float32_t[pointscount * components];
+	std::vector<ror::Vector3<TypeParam>> points;
+	points.reserve(4);
 
-	points[0] = this->m_vector1.x;
-	points[1] = this->m_vector1.y;
-	points[2] = this->m_vector1.z;
+	points.push_back(this->m_vector3_1);
+	points.push_back(this->m_vector3_2);
+	points.push_back(this->m_vector3_3);
+	points.push_back(this->m_vector3_4);
 
-	points[3] = this->m_vector2.x;
-	points[4] = this->m_vector2.y;
-	points[5] = this->m_vector2.z;
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere1;
 
-	points[6] = this->m_vector3.x;
-	points[7] = this->m_vector3.y;
-	points[8] = this->m_vector3.z;
+	this->m_bounding_sphere.set_radius(0);
+	this->m_bounding_sphere.set_center(this->m_vector3_0);
 
-	points[9]  = this->m_vector4.x;
-	points[10] = this->m_vector4.y;
-	points[11] = this->m_vector4.z;
+	this->m_bounding_sphere.create_from_points(points);
+	this->m_bounding_sphere.set_radius(this->m_bounding_sphere.radius() + static_cast<TypeParam>(2));
 
-	ror::BoundingSphere bounding_sphere1;
-	this->m_bounding_sphere.create_from_points(points, pointscount * components);
+	EXPECT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector3_1) == true);
+	EXPECT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector3_2) == true);
+	EXPECT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector3_3) == true);
+	EXPECT_TRUE(this->m_bounding_sphere.is_point_inside(this->m_vector3_4) == true);
 
-	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(&this->m_vector1) == true);
-	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(&this->m_vector2) == true);
-	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(&this->m_vector3) == true);
-	ASSERT_TRUE(this->m_bounding_sphere.is_point_inside(&this->m_vector4) == true);
-
-	float32_t distanceFromCenterToCenter = (this->m_vector4 - this->m_vector1).length() / 2;
+	auto distanceFromCenterToCenter = (this->m_vector3_4 - this->m_vector3_1).length() / 2;
 
 	EXPECT_GT(this->m_bounding_sphere.radius(), distanceFromCenterToCenter);
 }
-*/
+
 }        // namespace ror_test
