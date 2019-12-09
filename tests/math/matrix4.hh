@@ -828,8 +828,8 @@ TYPED_TEST(Matrix4TestSigned, untestable_funcs)
 		ror::Matrix4<TypeParam> mat = ror::make_perspective(a, o, n, f);
 		ror::Matrix4<TypeParam> mat_res{static_cast<TypeParam>(0.7770959), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 										static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.9325151), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
-										static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(1.0000161), static_cast<TypeParam>(-1.0000000),
-										static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0200002), static_cast<TypeParam>(0.0000000)};
+										static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-1.0000161), static_cast<TypeParam>(-1.0000000),
+										static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0200002), static_cast<TypeParam>(0.0000000)};
 		test_matrix4_equal(mat, mat_res);
 		perspective_update_depth(n, f, mat);
 		test_matrix4_equal(mat, mat_res);
