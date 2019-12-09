@@ -506,9 +506,8 @@ FORCE_INLINE Matrix4<_type> make_perspective(_type a_fov_in_radians, _type a_asp
 	// Never set a_z_near to 0.0 otherwise there will be precision loss
 	_type angle_in_radians = a_fov_in_radians / static_cast<_type>(2);
 
-	_type delta_z   = a_z_far - a_z_near;
-	_type sine      = std::sin(angle_in_radians);
-	_type cotangent = std::cos(angle_in_radians) / sine;
+	_type delta_z   = a_z_near - a_z_far;
+	_type cotangent = static_cast<_type>(1) / tan(angle_in_radians);
 
 	Matrix4<_type> matrix;
 
@@ -537,25 +536,25 @@ FORCE_INLINE Matrix4<_type> make_infinite_perspective(_type a_fov_in_radians, _t
 template <class _type>
 FORCE_INLINE void ortho_update_depth(_type a_z_near, _type a_z_far, Matrix4<_type> &a_out_matrix)
 {
-	_type fn = static_cast<_type>(1) / (a_z_far - a_z_near);
+	_type fn = static_cast<_type>(1) / (a_z_near - a_z_far);
 
-	a_out_matrix.m_values[10] = -static_cast<_type>(2) * fn;
-	a_out_matrix.m_values[14] = -(a_z_far + a_z_near) * fn;
+	a_out_matrix.m_values[10] = static_cast<_type>(2) * fn;
+	a_out_matrix.m_values[14] = (a_z_far + a_z_near) * fn;
 }
 
 template <class _type>
 FORCE_INLINE void frustum_update_depth(_type a_z_near, _type a_z_far, Matrix4<_type> &a_out_matrix)
 {
-	_type fn = static_cast<_type>(1) / (a_z_far - a_z_near);
+	_type fn = static_cast<_type>(1) / (a_z_near - a_z_far);
 
-	a_out_matrix.m_values[10] = -(a_z_far + a_z_near) * fn;
-	a_out_matrix.m_values[14] = -(static_cast<_type>(2) * a_z_far * a_z_near) * fn;
+	a_out_matrix.m_values[10] = (a_z_far + a_z_near) * fn;
+	a_out_matrix.m_values[14] = (static_cast<_type>(2) * a_z_far * a_z_near) * fn;
 }
 
 template <class _type>
 FORCE_INLINE void perspective_update_depth(_type a_z_near, _type a_z_far, Matrix4<_type> &a_out_matrix)
 {
-	_type fn = static_cast<_type>(1) / (a_z_far - a_z_near);
+	_type fn = static_cast<_type>(1) / (a_z_near - a_z_far);
 
 	a_out_matrix.m_values[10] = (a_z_far + a_z_near) * fn;
 	a_out_matrix.m_values[14] = static_cast<_type>(2) * a_z_near * a_z_far * fn;

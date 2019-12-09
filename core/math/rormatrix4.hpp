@@ -172,11 +172,16 @@ const Matrix4f zero_matrix4f(
 
 // Pre-multiply your MVP with this matrix to correct it for vulkan
 // mvp = vcc * mvp;
-// TODO Check if this needs to be transposed before usage
+// TODO Check if this needs to be transposed before usage or use the second one
 const Matrix4f vulkan_clip_correction(1.0f, 0.0f, 0.0f, 0.0f,
 									  0.0f, -1.0f, 0.0f, 0.0f,
 									  0.0f, 0.0f, 0.5f, 0.0f,
 									  0.0f, 0.0f, 0.5f, 1.0f);
+
+// const Matrix4f vulkan_clip_correction(-1.0f, 0.0f, 0.0f, 0.0f,
+//									  0.0f, 1.0f, 0.0f, 0.0f,
+//									  0.0f, 0.0f, 0.5f, 0.0f,
+//									  0.0f, 0.0f, 0.5f, 1.0f);
 
 const Matrix4f birds_eye_view(1, 0, 0, 0,
 							  0, 0, -1, 0,
