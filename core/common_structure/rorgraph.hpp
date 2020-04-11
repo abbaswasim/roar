@@ -50,13 +50,13 @@ class ROAR_ENGINE_ITEM GraphNode
 
 	FORCE_INLINE VertexId get_child(VertexId a_child) const;
 	FORCE_INLINE VertexId get_parent(VertexId a_parent) const;
-	FORCE_INLINE size_t children_count() const;
-	FORCE_INLINE size_t parents_count() const;
-	FORCE_INLINE void   add_child(VertexId a_child);
-	FORCE_INLINE void   add_parent(VertexId a_parent);
-	FORCE_INLINE void   remove_child(VertexId a_child);
-	FORCE_INLINE void   remove_parent(VertexId a_parent);
-	FORCE_INLINE void   clear_children();
+	FORCE_INLINE size_t   children_count() const;
+	FORCE_INLINE size_t   parents_count() const;
+	FORCE_INLINE void     add_child(VertexId a_child);
+	FORCE_INLINE void     add_parent(VertexId a_parent);
+	FORCE_INLINE void     remove_child(VertexId a_child);
+	FORCE_INLINE void     remove_parent(VertexId a_parent);
+	FORCE_INLINE void     clear_children();
 
   protected:
   private:
@@ -68,30 +68,42 @@ class ROAR_ENGINE_ITEM GraphNode
  * @brief      Kahn's algorithm to find topological sorted list
  * @details    This method runs Kahn's algorithm to check if the graph is acyclic or not
  *             It then returns topological sorted list of the graph if its acyclic and empty list otherwise
- * @param      a_graph copy of the graph to use for calculation
+ * @param      a_graph reference to the graph to use for calculation
  * @param      a_edge_count number of edges in the graph
  * @return     A toplogical sorted list of the graph or empty list if acyclic
  */
 std::vector<VertexId> get_topologicaly_sorted_list_kahn(std::vector<GraphNode> &a_graph, VertexId a_edge_count);
 
+template <bool>
+class ConditionalMutex
+{};
+
+template <>
+class ConditionalMutex<true>
+{
+  public:
+	std::mutex m_mutex;        //! Use to synchronize access from different threads
+};
+
 /**
  * Directed graph that might or might not be acyclic
  * It can be created from a set of vertices or consecutively added vertices one after the other
  * Each vertex carries a typed payload
- * This is a thread safe graph and can be build from multiple worker threads at the same time
+ * This graph can be used as internally thread safe or not, Graph<T, true> is internally thread safe
+ * while Graph<T, false> is not thread safe and can be made externally thread safe
  */
-template <class T>
-class ROAR_ENGINE_ITEM Graph
+template <class _type, bool _thread_safe>
+class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 {
   public:
-	using Vertex = std::tuple<GraphNode, T>;
+	using Vertex = std::tuple<GraphNode, _type>;
 
 	Graph()                         = default;                   //! Default constructor
-	Graph(const Graph &a_other)     = delete;                    //! Copy constructor
-	Graph(Graph &&a_other) noexcept = delete;                    //! Move constructor
-	Graph &operator=(const Graph &a_other) = delete;             //! Copy assignment operator
-	Graph &operator=(Graph &&a_other) noexcept = delete;         //! Move assignment operator
-	virtual ~Graph() noexcept                  = default;        //! Destructor
+	Graph(const Graph &a_other)     = default;                   //! Copy constructor
+	Graph(Graph &&a_other) noexcept = default;                   //! Move constructor
+	Graph &operator=(const Graph &a_other) = default;            //! Copy assignment operator
+	Graph &operator=(Graph &&a_other) noexcept = default;        //! Move assignment operator
+	~Graph() noexcept                          = default;        //! Destructor
 
 	/**
 	 * @brief      Appends a vertex (tuple<GraphNode, typename>) to the tail of the graph
@@ -154,7 +166,7 @@ class ROAR_ENGINE_ITEM Graph
 	 * @brief      Gets an element of the graph
 	 * @details    Gets element at a specific index of the graph
 	 * @param      a_index Element index, this is the order in which it was inserted
-	 * @return     point to std::tuple<GraphNode, T> at a_index if the index is valid and nullptr otherwise
+	 * @return     point to std::tuple<GraphNode, _type> at a_index if the index is valid and nullptr otherwise
 	 */
 	FORCE_INLINE Vertex *at(VertexId a_index);
 
@@ -206,8 +218,6 @@ class ROAR_ENGINE_ITEM Graph
 	std::vector<Vertex>   m_nodes;                 //! List of vertices in the graph
 	std::vector<VertexId> m_sorted_list;           //! List of vertices in topographical sorted order of the graph
 	VertexId              m_edge_count = 0;        //! Total amount of edges in the graph at a time
-
-	std::mutex            m_mutex;                 //! Use to synchronize access from different threads
 };
 
 }        // namespace ror

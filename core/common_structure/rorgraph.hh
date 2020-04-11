@@ -23,8 +23,8 @@
 //
 // Version: 1.0.0
 
-#include <utility>
 #include "rorgraph.hpp"
+#include <utility>
 
 namespace ror
 {
@@ -87,11 +87,12 @@ VertexId GraphNode::get_parent(VertexId a_parent) const
 		throw std::runtime_error("Error out of bound index");
 }
 
-template <class T>
-VertexId Graph<T>::append_vertex(const Vertex &a_vertex)
+template <class _type, bool _thread_safe>
+VertexId Graph<_type, _thread_safe>::append_vertex(const Vertex &a_vertex)
 {
 	// std::scoped_lock<std::mutex> mtx(this->m_mutex);
-	std::lock_guard<std::mutex> mtx(this->m_mutex);
+	if constexpr (_thread_safe)
+		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	this->add_leaf(a_vertex);
 
@@ -105,20 +106,22 @@ VertexId Graph<T>::append_vertex(const Vertex &a_vertex)
 	return VertexId(s - 1);
 }
 
-template <class T>
-VertexId Graph<T>::add_vertex(const Vertex &a_vertex)
+template <class _type, bool _thread_safe>
+VertexId Graph<_type, _thread_safe>::add_vertex(const Vertex &a_vertex)
 {
-	std::lock_guard<std::mutex> mtx(this->m_mutex);
+	if constexpr (_thread_safe)
+		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	this->add_leaf(a_vertex);
 
 	return VertexId(this->m_nodes.size() - 1);
 }
 
-template <class T>
-void Graph<T>::add_edge(VertexId a_parent, VertexId a_child)
+template <class _type, bool _thread_safe>
+void Graph<_type, _thread_safe>::add_edge(VertexId a_parent, VertexId a_child)
 {
-	std::lock_guard<std::mutex> mtx(this->m_mutex);
+	if constexpr (_thread_safe)
+		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	const VertexId s = this->m_nodes.size();
 	if ((a_parent >= 0 && a_parent < s) && (a_child >= 0 && a_child < s))
@@ -127,10 +130,11 @@ void Graph<T>::add_edge(VertexId a_parent, VertexId a_child)
 	}
 }
 
-template <class T>
-void Graph<T>::remove_edge(VertexId a_parent, VertexId a_child)
+template <class _type, bool _thread_safe>
+void Graph<_type, _thread_safe>::remove_edge(VertexId a_parent, VertexId a_child)
 {
-	std::lock_guard<std::mutex> mtx(this->m_mutex);
+	if constexpr (_thread_safe)
+		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	const VertexId s = this->m_nodes.size();
 	if ((a_parent >= 0 && a_parent < s) && (a_child >= 0 && a_child < s))
@@ -141,14 +145,14 @@ void Graph<T>::remove_edge(VertexId a_parent, VertexId a_child)
 	}
 }
 
-template <class T>
-void Graph<T>::add_leaf(const Vertex &a_vertex)
+template <class _type, bool _thread_safe>
+void Graph<_type, _thread_safe>::add_leaf(const Vertex &a_vertex)
 {
 	this->m_nodes.emplace_back(a_vertex);
 }
 
-template <class T>
-void Graph<T>::add_child(VertexId a_parent, VertexId a_child)
+template <class _type, bool _thread_safe>
+void Graph<_type, _thread_safe>::add_child(VertexId a_parent, VertexId a_child)
 {
 	auto &[parent, payload] = this->m_nodes[a_parent];
 	parent.add_child(a_child);
@@ -159,26 +163,29 @@ void Graph<T>::add_child(VertexId a_parent, VertexId a_child)
 	++this->m_edge_count;
 }
 
-template <class T>
-size_t Graph<T>::vertex_count() const
+template <class _type, bool _thread_safe>
+size_t Graph<_type, _thread_safe>::vertex_count() const
 {
-	std::lock_guard<std::mutex> mtx(this->m_mutex);
+	if constexpr (_thread_safe)
+		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	return this->m_nodes.size();
 }
 
-template <class T>
-void Graph<T>::clear()
+template <class _type, bool _thread_safe>
+void Graph<_type, _thread_safe>::clear()
 {
-	std::lock_guard<std::mutex> mtx(this->m_mutex);
+	if constexpr (_thread_safe)
+		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	this->m_nodes.clear();
 }
 
-template <class T>
-std::tuple<GraphNode, T> *Graph<T>::at(const VertexId a_index)
+template <class _type, bool _thread_safe>
+std::tuple<GraphNode, _type> *Graph<_type, _thread_safe>::at(const VertexId a_index)
 {
-	std::lock_guard<std::mutex> mtx(this->m_mutex);
+	if constexpr (_thread_safe)
+		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	const VertexId s = this->m_nodes.size();
 	if (a_index >= 0 && a_index < s)
@@ -187,8 +194,8 @@ std::tuple<GraphNode, T> *Graph<T>::at(const VertexId a_index)
 	return nullptr;
 }
 
-template <class T>
-void Graph<T>::update_sorted_list()
+template <class _type, bool _thread_safe>
+void Graph<_type, _thread_safe>::update_sorted_list()
 {
 	std::vector<GraphNode> graph_copy;
 
@@ -200,10 +207,11 @@ void Graph<T>::update_sorted_list()
 	this->m_sorted_list = get_topologicaly_sorted_list_kahn(graph_copy, this->m_edge_count);
 }
 
-template <class T>
-bool Graph<T>::is_acyclic()
+template <class _type, bool _thread_safe>
+bool Graph<_type, _thread_safe>::is_acyclic()
 {
-	std::lock_guard<std::mutex> mtx(this->m_mutex);
+	if constexpr (_thread_safe)
+		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	if (this->m_edge_count == 0 || this->m_nodes.empty())
 		return true;
@@ -216,10 +224,11 @@ bool Graph<T>::is_acyclic()
 	return true;
 }
 
-template <class T>
-std::vector<VertexId> Graph<T>::get_sorted_list()
+template <class _type, bool _thread_safe>
+std::vector<VertexId> Graph<_type, _thread_safe>::get_sorted_list()
 {
-	std::lock_guard<std::mutex> mtx(this->m_mutex);
+	if constexpr (_thread_safe)
+		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	if (this->m_sorted_list.empty())
 	{
