@@ -41,15 +41,38 @@ class GraphTest : public testing::Test
 	GraphTest &operator=(GraphTest &&a_other) noexcept = delete;         //! Move assignment operator
 	virtual ~GraphTest() noexcept                      = default;        //! Destructor
 
-	ror::Graph<std::string> *get_graph1();
-	ror::Graph<std::string> *get_graph2();
+	ror::Graph<std::string, false> *get_graph1();
+	ror::Graph<std::string, false> *get_graph2();
 
   protected:
 	virtual void SetUp() override;
 	virtual void TearDown() override;
 
   private:
-	ror::Graph<std::string> m_graph1;
-	ror::Graph<std::string> m_graph2;
+	ror::Graph<std::string, false> m_graph1;
+	ror::Graph<std::string, false> m_graph2;
 };
+
+class GraphTSTest : public testing::Test
+{
+  public:
+	GraphTSTest()                               = default;                   //! Default constructor
+	GraphTSTest(const GraphTSTest &a_other)     = delete;                    //! Copy constructor
+	GraphTSTest(GraphTSTest &&a_other) noexcept = delete;                    //! Move constructor
+	GraphTSTest &operator=(const GraphTSTest &a_other) = delete;             //! Copy assignment operator
+	GraphTSTest &operator=(GraphTSTest &&a_other) noexcept = delete;         //! Move assignment operator
+	virtual ~GraphTSTest() noexcept                        = default;        //! Destructor
+
+	ror::Graph<std::string, true> *get_graph1();
+	ror::Graph<std::string, true> *get_graph2();
+
+  protected:
+	virtual void SetUp() override;
+	virtual void TearDown() override;
+
+  private:
+	ror::Graph<std::string, true> m_graph1;
+	ror::Graph<std::string, true> m_graph2;
+};
+
 }        // namespace ror_test

@@ -31,22 +31,22 @@ namespace ror
 {
 enum class SegmentType
 {
-	segment_type_unknown,
-	segment_type_line_2d,
-	segment_type_line_3d,
-	segment_type_line_strip_2d,
-	segment_type_line_strip_3d,
-	segment_type_quadratic_2d_inner,
-	segment_type_quadratic_3d_inner,
-	segment_type_quadratic_2d_outer,
-	segment_type_quadratic_3d_outer,
-	segment_type_cubic_2d,
-	segment_type_cubic_3d,
-	segment_type_triangle_2d,
-	segment_type_triangle_3d,
-	segment_type_triangle_strip_2d,
-	segment_type_triangle_strip_3d,
-	segment_type_max
+	unknown,
+	line_2d,
+	line_3d,
+	line_strip_2d,
+	line_strip_3d,
+	quadratic_2d_inner,
+	quadratic_3d_inner,
+	quadratic_2d_outer,
+	quadratic_3d_outer,
+	cubic_2d,
+	cubic_3d,
+	triangle_2d,
+	triangle_3d,
+	triangle_strip_2d,
+	triangle_strip_3d,
+	max
 };
 
 /**
@@ -77,7 +77,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Line<_type, 1, vector2_typename<_type>> final : public Segment<_type, 1>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_line_2d;
+	const SegmentType m_type = SegmentType::line_2d;
 
 	FORCE_INLINE Line()                        = default;                   //! Default constructor
 	FORCE_INLINE Line(const Line &a_other)     = default;                   //! Copy constructor
@@ -96,7 +96,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Line<_type, 1, vector3_typename<_type>> final : public Segment<_type, 1>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_line_3d;
+	const SegmentType m_type = SegmentType::line_3d;
 
 	FORCE_INLINE Line()                        = default;                   //! Default constructor
 	FORCE_INLINE Line(const Line &a_other)     = default;                   //! Copy constructor
@@ -119,7 +119,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Triangle<_type, 2, vector2_typename<_type>> final : public Segment<_type, 2>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_triangle_2d;
+	const SegmentType m_type = SegmentType::triangle_2d;
 
 	FORCE_INLINE Triangle()                            = default;                   //! Default constructor
 	FORCE_INLINE Triangle(const Triangle &a_other)     = default;                   //! Copy constructor
@@ -137,7 +137,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Triangle<_type, 2, vector3_typename<_type>> final : public Segment<_type, 2>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_triangle_3d;
+	const SegmentType m_type = SegmentType::triangle_3d;
 
 	FORCE_INLINE Triangle()                            = default;                   //! Default constructor
 	FORCE_INLINE Triangle(const Triangle &a_other)     = default;                   //! Copy constructor
@@ -159,7 +159,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public Segment<_type, 2>
 {
   public:
-	SegmentType m_type = SegmentType::segment_type_quadratic_2d_outer;
+	SegmentType m_type = SegmentType::quadratic_2d_outer;
 
 	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
 	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
@@ -189,7 +189,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Bezier<_type, 3, vector2_typename<_type>> final : public Segment<_type, 3>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_cubic_2d;
+	const SegmentType m_type = SegmentType::cubic_2d;
 
 	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
 	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
@@ -206,7 +206,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Bezier<_type, 2, vector3_typename<_type>> final : public Segment<_type, 2>
 {
   public:
-	SegmentType m_type = SegmentType::segment_type_quadratic_3d_outer;
+	SegmentType m_type = SegmentType::quadratic_3d_outer;
 
 	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
 	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
@@ -229,7 +229,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Bezier<_type, 3, vector3_typename<_type>> final : public Segment<_type, 3>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_cubic_3d;
+	const SegmentType m_type = SegmentType::cubic_3d;
 
 	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
 	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor

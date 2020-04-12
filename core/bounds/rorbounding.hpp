@@ -30,21 +30,21 @@
 
 namespace ror
 {
-enum class BoundingType
+enum class BoundingType : int32_t
 {
-	bounding_type_2d_circle,
-	bounding_type_2d_rectangle,
-	bounding_type_3d_sphere,
-	bounding_type_3d_box,
-	bounding_type_max
+	circle_2d,
+	rectangle_2d,
+	sphere_3d,
+	box_3d,
+	max
 };
 
-enum class BoundingCollisionType
+enum class CollisionType : int32_t
 {
-	bounding_collision_type_outside    = -1,
-	bounding_collision_type_intersects = 0,
-	bounding_collision_type_inside     = 1,
-	bounding_collision_type_max        = 4
+	outside    = -1,
+	intersects = 0,
+	inside     = 1,
+	max        = 4
 };
 
 class ROAR_ENGINE_ITEM Bounding
@@ -59,8 +59,9 @@ class ROAR_ENGINE_ITEM Bounding
 	FORCE_INLINE Bounding &operator=(Bounding &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Bounding() noexcept                     = default;        //! Destructor
 
-	FORCE_INLINE virtual BoundingCollisionType collision(const Bounding &a_point) const = 0;
-	FORCE_INLINE virtual void                  add_bounding(const Bounding &a_point)    = 0;
+	FORCE_INLINE virtual CollisionType collision(const Bounding &a_bounding) const  = 0;
+	FORCE_INLINE virtual bool          intersects(const Bounding &a_bounding) const = 0;
+	FORCE_INLINE virtual void          add_bounding(const Bounding &a_bounding)     = 0;
 };
 
 template <class _type, int _point_count = 1>
@@ -76,8 +77,8 @@ class ROAR_ENGINE_ITEM BoundingBase : public Bounding
 	FORCE_INLINE BoundingBase &operator=(BoundingBase &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~BoundingBase() noexcept                         = default;        //! Destructor
 
-	// These are defined here and not in Bounding because I can't templatize Bounding
-	// Otherwise I can't cast from Bounding<Vector3> => Bounding<Vector2> etc
+	// These are defined here and not in Bounding because I can't templatize Bounding, Otherwise
+	// I can't cast from Bounding<Vector3> => Bounding<Vector2> etc if I want to create an array of Boundings
 	FORCE_INLINE virtual void add_point(const _type &a_point)                       = 0;
 	FORCE_INLINE virtual bool is_point_inside(const _type &a_point) const           = 0;
 	FORCE_INLINE virtual void create_from_min_max(_type a_minimum, _type a_maximum) = 0;
@@ -90,50 +91,60 @@ class ROAR_ENGINE_ITEM Round
 {};
 
 template <class _type>
-using sphere_typename = Round<_type, vector3_typename<_type>>;
+using BoundingSphere = Round<_type, vector3_typename<_type>>;
 
 template <class _type>
-using circle_typename = Round<_type, vector2_typename<_type>>;
+using BoundingCircle = Round<_type, vector2_typename<_type>>;
 
 template <class _type, typename enable = void>
 class ROAR_ENGINE_ITEM Box
 {};
 
 template <class _type>
-using box_typename = Box<_type, vector3_typename<_type>>;
+using BoundingBox = Box<_type, vector3_typename<_type>>;
 
 template <class _type>
-using rectangle_typename = Box<_type, vector2_typename<_type>>;
+using BoundingRectangle = Box<_type, vector2_typename<_type>>;
 
-#define ROUND_COMMON()                                                                                                                       \
-	typename _type::value_type m_radius;                                                                                                     \
-																																			 \
-	FORCE_INLINE Round();                                                                                                                    \
-	FORCE_INLINE Round(const Round &a_other)     = default;                                                                                  \
-	FORCE_INLINE Round(Round &&a_other) noexcept = default;                                                                                  \
-	FORCE_INLINE Round &operator=(const Round &a_other) = default;                                                                           \
-	FORCE_INLINE Round &operator=(Round &&a_other) noexcept = default;                                                                       \
-	FORCE_INLINE ~Round() noexcept                          = default;                                                                       \
-	FORCE_INLINE                       Round(_type a_center, typename _type::value_type a_radius);                                           \
-	FORCE_INLINE void                  set(_type a_center, typename _type::value_type a_radius);                                             \
-	FORCE_INLINE auto                  radius() const noexcept->typename _type::value_type;                                                  \
-	FORCE_INLINE _type                 center() const noexcept;                                                                              \
-	FORCE_INLINE void                  set_radius(typename _type::value_type a_radius);                                                      \
-	FORCE_INLINE void                  set_center(_type a_center);                                                                           \
-	FORCE_INLINE BoundingCollisionType collision(const sphere_typename<Vector3<typename _type::value_type>> &a_sphere) const noexcept;       \
-	FORCE_INLINE BoundingCollisionType collision(const box_typename<Vector3<typename _type::value_type>> &a_box) const noexcept;             \
-	FORCE_INLINE BoundingCollisionType collision(const circle_typename<Vector2<typename _type::value_type>> &a_circle) const noexcept;       \
-	FORCE_INLINE BoundingCollisionType collision(const rectangle_typename<Vector2<typename _type::value_type>> &a_rectangle) const noexcept; \
-	FORCE_INLINE void                  add_bounding(const sphere_typename<Vector3<typename _type::value_type>> &a_sphere);                   \
-	FORCE_INLINE void                  add_bounding(const box_typename<Vector3<typename _type::value_type>> &a_box);                         \
-	FORCE_INLINE void                  add_bounding(const circle_typename<Vector2<typename _type::value_type>> &a_circle);                   \
-	FORCE_INLINE void                  add_bounding(const rectangle_typename<Vector2<typename _type::value_type>> &a_rectangle);             \
-	FORCE_INLINE BoundingCollisionType collision(const Bounding &a_point) const override;                                                    \
-	FORCE_INLINE void                  add_bounding(const Bounding &a_point) override;                                                       \
-	FORCE_INLINE void                  add_point(const _type &a_point) override;                                                             \
-	FORCE_INLINE bool                  is_point_inside(const _type &a_point) const override;                                                 \
-	FORCE_INLINE void                  create_from_min_max(_type a_minimum, _type a_maximum) override;
+#define BOUND_COMMON()                                                                                                               \
+	FORCE_INLINE CollisionType collision(const Bounding &a_bounding) const override;                                                 \
+	FORCE_INLINE bool          intersects(const Bounding &a_bounding) const override;                                                \
+	FORCE_INLINE void          add_bounding(const Bounding &a_bounding) override;                                                    \
+	FORCE_INLINE void          add_point(const _type &a_point) override;                                                             \
+	FORCE_INLINE bool          is_point_inside(const _type &a_point) const override;                                                 \
+	FORCE_INLINE void          create_from_min_max(_type a_minimum, _type a_maximum) override;                                       \
+	FORCE_INLINE _type         center() const noexcept;                                                                              \
+	FORCE_INLINE CollisionType collision(const BoundingSphere<Vector3<typename _type::value_type>> &a_sphere) const noexcept;        \
+	FORCE_INLINE CollisionType collision(const BoundingBox<Vector3<typename _type::value_type>> &a_box) const noexcept;              \
+	FORCE_INLINE CollisionType collision(const BoundingCircle<Vector2<typename _type::value_type>> &a_circle) const noexcept;        \
+	FORCE_INLINE CollisionType collision(const BoundingRectangle<Vector2<typename _type::value_type>> &a_rectangle) const noexcept;  \
+	FORCE_INLINE bool          intersects(const BoundingSphere<Vector3<typename _type::value_type>> &a_sphere) const noexcept;       \
+	FORCE_INLINE bool          intersects(const BoundingBox<Vector3<typename _type::value_type>> &a_box) const noexcept;             \
+	FORCE_INLINE bool          intersects(const BoundingCircle<Vector2<typename _type::value_type>> &a_circle) const noexcept;       \
+	FORCE_INLINE bool          intersects(const BoundingRectangle<Vector2<typename _type::value_type>> &a_rectangle) const noexcept; \
+	FORCE_INLINE void          add_bounding(const BoundingSphere<Vector3<typename _type::value_type>> &a_sphere);                    \
+	FORCE_INLINE void          add_bounding(const BoundingBox<Vector3<typename _type::value_type>> &a_box);                          \
+	FORCE_INLINE void          add_bounding(const BoundingCircle<Vector2<typename _type::value_type>> &a_circle);                    \
+	FORCE_INLINE void          add_bounding(const BoundingRectangle<Vector2<typename _type::value_type>> &a_rectangle);
 
+// TODO: Use squared radius instead
+#define ROUND_COMMON()                                                            \
+	typename _type::value_type m_radius;                                          \
+																				  \
+	FORCE_INLINE Round();                                                         \
+	FORCE_INLINE Round(const Round &a_other)     = default;                       \
+	FORCE_INLINE Round(Round &&a_other) noexcept = default;                       \
+	FORCE_INLINE Round &operator=(const Round &a_other) = default;                \
+	FORCE_INLINE Round &operator=(Round &&a_other) noexcept = default;            \
+	FORCE_INLINE ~Round() noexcept                          = default;            \
+	FORCE_INLINE      Round(_type a_center, typename _type::value_type a_radius); \
+	FORCE_INLINE void set(_type a_center, typename _type::value_type a_radius);   \
+	FORCE_INLINE auto radius() const noexcept->typename _type::value_type;        \
+	FORCE_INLINE void set_radius(typename _type::value_type a_radius);            \
+	FORCE_INLINE void set_center(_type a_center);                                 \
+	BOUND_COMMON()
+
+// Bounding circle declration
 template <class _type>
 class ROAR_ENGINE_ITEM Round<_type, vector2_typename<_type>> final : public BoundingBase<_type, 1>
 {
@@ -141,6 +152,7 @@ class ROAR_ENGINE_ITEM Round<_type, vector2_typename<_type>> final : public Boun
 	ROUND_COMMON()
 };
 
+// Bounding sphere declration
 template <class _type>
 class ROAR_ENGINE_ITEM Round<_type, vector3_typename<_type>> final : public BoundingBase<_type, 1>
 {
@@ -148,32 +160,22 @@ class ROAR_ENGINE_ITEM Round<_type, vector3_typename<_type>> final : public Boun
 	ROUND_COMMON()
 };
 
-#define BOX_COMMON()                                                                                                                         \
-	FORCE_INLINE Box();                                                                                                                      \
-	FORCE_INLINE Box(const Box &a_other)     = default;                                                                                      \
-	FORCE_INLINE Box(Box &&a_other) noexcept = default;                                                                                      \
-	FORCE_INLINE Box &operator=(const Box &a_other) = default;                                                                               \
-	FORCE_INLINE Box &operator=(Box &&a_other) noexcept = default;                                                                           \
-	FORCE_INLINE ~Box() noexcept                        = default;                                                                           \
-	FORCE_INLINE                       Box(_type a_minimum, _type a_maximum);                                                                \
-	FORCE_INLINE void                  set(_type a_minimum, _type a_maximum);                                                                \
-	FORCE_INLINE _type                 minimum() const noexcept;                                                                             \
-	FORCE_INLINE _type                 maximum() const noexcept;                                                                             \
-	FORCE_INLINE _type                 center() const noexcept;                                                                              \
-	FORCE_INLINE BoundingCollisionType collision(const sphere_typename<Vector3<typename _type::value_type>> &a_sphere) const noexcept;       \
-	FORCE_INLINE BoundingCollisionType collision(const box_typename<Vector3<typename _type::value_type>> &a_box) const noexcept;             \
-	FORCE_INLINE BoundingCollisionType collision(const circle_typename<Vector2<typename _type::value_type>> &a_circle) const noexcept;       \
-	FORCE_INLINE BoundingCollisionType collision(const rectangle_typename<Vector2<typename _type::value_type>> &a_rectangle) const noexcept; \
-	FORCE_INLINE void                  add_bounding(const sphere_typename<Vector3<typename _type::value_type>> &a_sphere);                   \
-	FORCE_INLINE void                  add_bounding(const box_typename<Vector3<typename _type::value_type>> &a_box);                         \
-	FORCE_INLINE void                  add_bounding(const circle_typename<Vector2<typename _type::value_type>> &a_circle);                   \
-	FORCE_INLINE void                  add_bounding(const rectangle_typename<Vector2<typename _type::value_type>> &a_rectangle);             \
-	FORCE_INLINE BoundingCollisionType collision(const Bounding &a_point) const override;                                                    \
-	FORCE_INLINE void                  add_bounding(const Bounding &a_point) override;                                                       \
-	FORCE_INLINE void                  add_point(const _type &a_point) override;                                                             \
-	FORCE_INLINE bool                  is_point_inside(const _type &a_point) const override;                                                 \
-	FORCE_INLINE void                  create_from_min_max(_type a_minimum, _type a_maximum) override;
+#define BOX_COMMON()                                                               \
+	FORCE_INLINE Box();                                                            \
+	FORCE_INLINE Box(const Box &a_other)     = default;                            \
+	FORCE_INLINE Box(Box &&a_other) noexcept = default;                            \
+	FORCE_INLINE Box &operator=(const Box &a_other) = default;                     \
+	FORCE_INLINE Box &operator=(Box &&a_other) noexcept = default;                 \
+	FORCE_INLINE ~Box() noexcept                        = default;                 \
+	FORCE_INLINE                            Box(_type a_minimum, _type a_maximum); \
+	FORCE_INLINE void                       set(_type a_minimum, _type a_maximum); \
+	FORCE_INLINE _type                      minimum() const noexcept;              \
+	FORCE_INLINE _type                      maximum() const noexcept;              \
+	FORCE_INLINE _type                      extent() const noexcept;               \
+	FORCE_INLINE typename _type::value_type diagonal() const noexcept;             \
+	BOUND_COMMON()
 
+// Bounding rectangle declration
 template <class _type>
 class ROAR_ENGINE_ITEM Box<_type, vector2_typename<_type>> final : public BoundingBase<_type, 2>
 {
@@ -181,6 +183,7 @@ class ROAR_ENGINE_ITEM Box<_type, vector2_typename<_type>> final : public Boundi
 	BOX_COMMON()
 };
 
+// Bounding box declration
 template <class _type>
 class ROAR_ENGINE_ITEM Box<_type, vector3_typename<_type>> final : public BoundingBase<_type, 2>
 {
@@ -192,8 +195,8 @@ using BoundingRectanglef = Box<Vector2f>;
 using BoundingBoxf       = Box<Vector3f>;
 using BoundingRectangled = Box<Vector2d>;
 using BoundingBoxd       = Box<Vector3d>;
-using BoundingRectanglei = Box<Vector2d>;
-using BoundingBoxi       = Box<Vector3d>;
+using BoundingRectanglei = Box<Vector2i>;
+using BoundingBoxi       = Box<Vector3i>;
 
 using BoundingCirclef = Round<Vector2f>;
 using BoundingSpheref = Round<Vector3f>;

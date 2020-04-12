@@ -60,7 +60,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Lines<_type, vector2_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_line_2d;
+	const SegmentType m_type = SegmentType::line_2d;
 
 	FORCE_INLINE Lines()                         = default;                   //! Default constructor
 	FORCE_INLINE Lines(const Lines &a_other)     = default;                   //! Copy constructor
@@ -77,7 +77,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Lines<_type, vector3_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_line_3d;
+	const SegmentType m_type = SegmentType::line_3d;
 
 	FORCE_INLINE Lines()                         = default;                   //! Default constructor
 	FORCE_INLINE Lines(const Lines &a_other)     = default;                   //! Copy constructor
@@ -98,7 +98,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM LineStrip<_type, vector2_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_line_strip_2d;
+	const SegmentType m_type = SegmentType::line_strip_2d;
 
 	FORCE_INLINE LineStrip()                             = default;                   //! Default constructor
 	FORCE_INLINE LineStrip(const LineStrip &a_other)     = default;                   //! Copy constructor
@@ -116,7 +116,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM LineStrip<_type, vector3_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_line_strip_3d;
+	const SegmentType m_type = SegmentType::line_strip_3d;
 
 	FORCE_INLINE LineStrip()                             = default;                   //! Default constructor
 	FORCE_INLINE LineStrip(const LineStrip &a_other)     = default;                   //! Copy constructor
@@ -138,7 +138,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Triangles<_type, vector2_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_triangle_2d;
+	const SegmentType m_type = SegmentType::triangle_2d;
 
 	FORCE_INLINE Triangles()                             = default;                   //! Default constructor
 	FORCE_INLINE Triangles(const Triangles &a_other)     = default;                   //! Copy constructor
@@ -155,7 +155,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM Triangles<_type, vector3_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_triangle_3d;
+	const SegmentType m_type = SegmentType::triangle_3d;
 
 	FORCE_INLINE Triangles()                             = default;                   //! Default constructor
 	FORCE_INLINE Triangles(const Triangles &a_other)     = default;                   //! Copy constructor
@@ -176,7 +176,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM TriangleStrip<_type, vector2_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_triangle_strip_2d;
+	const SegmentType m_type = SegmentType::triangle_strip_2d;
 
 	FORCE_INLINE TriangleStrip()                                 = default;                   //! Default constructor
 	FORCE_INLINE TriangleStrip(const TriangleStrip &a_other)     = default;                   //! Copy constructor
@@ -194,7 +194,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM TriangleStrip<_type, vector3_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_triangle_strip_3d;
+	const SegmentType m_type = SegmentType::triangle_strip_3d;
 
 	FORCE_INLINE TriangleStrip()                                 = default;                   //! Default constructor
 	FORCE_INLINE TriangleStrip(const TriangleStrip &a_other)     = default;                   //! Copy constructor
@@ -216,7 +216,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM QuadraticBeziers<_type, vector2_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_quadratic_2d_outer;
+	const SegmentType m_type = SegmentType::quadratic_2d_outer;
 
 	FORCE_INLINE QuadraticBeziers()                                    = default;                   //! Default constructor
 	FORCE_INLINE QuadraticBeziers(const QuadraticBeziers &a_other)     = default;                   //! Copy constructor
@@ -233,7 +233,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM QuadraticBeziers<_type, vector3_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_quadratic_3d_outer;
+	const SegmentType m_type = SegmentType::quadratic_3d_outer;
 
 	FORCE_INLINE QuadraticBeziers()                                    = default;                   //! Default constructor
 	FORCE_INLINE QuadraticBeziers(const QuadraticBeziers &a_other)     = default;                   //! Copy constructor
@@ -254,7 +254,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM CubicBeziers<_type, vector2_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_cubic_2d;
+	const SegmentType m_type = SegmentType::cubic_2d;
 
 	FORCE_INLINE CubicBeziers()                                = default;                   //! Default constructor
 	FORCE_INLINE CubicBeziers(const CubicBeziers &a_other)     = default;                   //! Copy constructor
@@ -271,7 +271,7 @@ template <class _type>
 class ROAR_ENGINE_ITEM CubicBeziers<_type, vector3_typename<_type>> final : public Segments<_type>
 {
   public:
-	const SegmentType m_type = SegmentType::segment_type_cubic_3d;
+	const SegmentType m_type = SegmentType::cubic_3d;
 
 	FORCE_INLINE CubicBeziers()                                = default;                   //! Default constructor
 	FORCE_INLINE CubicBeziers(const CubicBeziers &a_other)     = default;                   //! Copy constructor

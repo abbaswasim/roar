@@ -27,6 +27,7 @@
 
 #include "roar.hpp"
 #include <cmath>
+#include <limits>
 
 namespace ror
 {
@@ -123,18 +124,24 @@ const Vector2f xaxis2f(1.0f, 0.0f);
 const Vector2f yaxis2f(0.0f, 1.0f);
 const Vector2f xaxis2f_negative(-1.0f, 0.0f);
 const Vector2f yaxis2f_negative(0.0f, -1.0f);
+const Vector2f min_vector2f(std::numeric_limits<float32_t>::min(), std::numeric_limits<float32_t>::min());
+const Vector2f max_vector2f(std::numeric_limits<float32_t>::max(), std::numeric_limits<float32_t>::max());
 
 const Vector2i zero_vector2i{0, 0};
 const Vector2i xaxis2i(1, 0);
 const Vector2i yaxis2i(0, 1);
 const Vector2i negative_xaxis2i(-1, 0);
 const Vector2i negative_yaxis2i(0, -1);
+const Vector2i min_vector2i(std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min());
+const Vector2i max_vector2i(std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max());
 
 const Vector2d zero_vector2d{0.0, 0.0};
 const Vector2d xaxis2d(1.0, 0.0);
 const Vector2d yaxis2d(0.0, 1.0);
 const Vector2d negative_xaxis2d(-1.0, 0.0);
 const Vector2d negative_yaxis2d(0.0, -1.0);
+const Vector2d min_vector2d(std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min());
+const Vector2d max_vector2d(std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max());
 
 template <class _type>
 using vector2_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector2<typename _type::value_type>>::value>::type;

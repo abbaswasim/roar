@@ -103,8 +103,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/profiling/rorlog.cpp
   ${ROAR_SOURCE_DIR}/profiling/rortimer.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.cpp
-  ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
-  ${ROAR_SOURCE_DIR}/common_structure/rorgraph.cpp)
+  ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp)
 
 add_library(${ROAR_NAME} SHARED ${ROAR_SOURCES} ${ROAR_HEADERS})
 # add_library(${ROAR_NAME} STATIC ${ROAR_SOURCES})

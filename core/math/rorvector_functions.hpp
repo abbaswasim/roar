@@ -150,6 +150,17 @@ FORCE_INLINE _type vector_minimum(const _type &a_first, const _type &a_second);
 template <class _type>
 FORCE_INLINE _type vector_maximum(const _type &a_first, const _type &a_second);
 
+/**
+ * @brief      Clamps a_vector to a_first and a_second vectors
+ * @details    Clamps a_vector to a_first and a_second vectors and returns the value
+ * @param      a_first first vector
+ * @param      a_second second vector
+ * @return     Clamped value between the two vectors
+ */
+
+template <class _type>
+FORCE_INLINE _type vector_clamp(const _type &a_vector, const _type &a_first, const _type &a_second);
+
 }        // namespace ror
 
 #include "rorvector_functions.hh"

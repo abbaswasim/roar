@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <cstdio>
 #include <gtest/gtest.h>
 
 #include "bounds/rorbounding.hpp"
@@ -40,8 +41,8 @@ class BoundingTest : public testing::Test
 	virtual void SetUp() override;
 	virtual void TearDown() override;
 
-	ror::Box<ror::Vector3<_type>>   m_bounding_box_axis_aligned;
-	ror::Box<ror::Vector2<_type>>   m_bounding_rectangle_axis_aligned;
+	ror::Box<ror::Vector3<_type>>   m_bounding_box;
+	ror::Box<ror::Vector2<_type>>   m_bounding_rectangle;
 	ror::Round<ror::Vector3<_type>> m_bounding_sphere;
 	ror::Round<ror::Vector2<_type>> m_bounding_circle;
 
@@ -49,7 +50,7 @@ class BoundingTest : public testing::Test
 	ror::Vector3<_type> m_vector_negative3_1, m_vector_negative3_2;
 	ror::Vector3<_type> m_vector_negative3_3, m_vector_negative3_4;
 
-	ror::Vector2<_type> m_vector2_1, m_vector2_2, m_vector2_3, m_vector2_4;
+	ror::Vector2<_type> m_vector2_0, m_vector2_1, m_vector2_2, m_vector2_3, m_vector2_4;
 	ror::Vector2<_type> m_vector_negative2_1, m_vector_negative2_2;
 	ror::Vector2<_type> m_vector_negative2_3, m_vector_negative2_4;
 };

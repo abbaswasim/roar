@@ -224,11 +224,11 @@ FORCE_INLINE void Bezier<_type, 2, vector2_typename<_type>>::type()
 
 	if (d > 0)
 	{
-		this->m_type = SegmentType::segment_type_quadratic_2d_outer;
+		this->m_type = SegmentType::quadratic_2d_outer;
 	}
 	else
 	{
-		this->m_type = SegmentType::segment_type_quadratic_2d_inner;
+		this->m_type = SegmentType::quadratic_2d_inner;
 	}
 }
 
@@ -314,11 +314,11 @@ FORCE_INLINE void Bezier<_type, 2, vector3_typename<_type>>::type()
 
 	if (d > 0)
 	{
-		this->m_type = SegmentType::segment_type_quadratic_3d_outer;
+		this->m_type = SegmentType::quadratic_3d_outer;
 	}
 	else
 	{
-		this->m_type = SegmentType::segment_type_quadratic_3d_inner;
+		this->m_type = SegmentType::quadratic_3d_inner;
 	}
 }
 

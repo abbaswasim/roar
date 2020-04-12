@@ -142,6 +142,8 @@ const Vector3f zaxis3f_negative(0.0f, 0.0f, -1.0f);
 const Vector3f white3(1.0f, 1.0f, 1.0f);
 const Vector3f half_white3(0.2f, 0.2f, 0.2f);
 const Vector3f black3(0.0f, 0.0f, 0.0f);
+const Vector3f min_vector3f(std::numeric_limits<float32_t>::min(), std::numeric_limits<float32_t>::min(), std::numeric_limits<float32_t>::min());
+const Vector3f max_vector3f(std::numeric_limits<float32_t>::max(), std::numeric_limits<float32_t>::max(), std::numeric_limits<float32_t>::max());
 
 const Vector3i zero_vector3i(0, 0, 0);
 const Vector3i xaxis3i(1, 0, 0);
@@ -150,6 +152,8 @@ const Vector3i zaxis3i(0, 0, 1);
 const Vector3i negative_xaxis3i(-1, 0, 0);
 const Vector3i negative_yaxis3i(0, -1, 0);
 const Vector3i negative_zaxis3i(0, 0, -1);
+const Vector3i min_vector3i(std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min());
+const Vector3i max_vector3i(std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max());
 
 const Vector3d zero_vector3d(0.0, 0.0, 0.0);
 const Vector3d xaxis3d(1.0, 0.0, 0.0);
@@ -158,6 +162,8 @@ const Vector3d zaxis3d(0.0, 0.0, 1.0);
 const Vector3d negative_xaxis3d(-1.0, 0.0, 0.0);
 const Vector3d negative_yaxis3d(0.0, -1.0, 0.0);
 const Vector3d negative_zaxis3d(0.0, 0.0, -1.0);
+const Vector3d min_vector3d(std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min());
+const Vector3d max_vector3d(std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max());
 
 template <class _type>
 using vector3_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type;

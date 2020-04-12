@@ -206,8 +206,8 @@ FORCE_INLINE Matrix4<_type> matrix4_rotation_around_z(_type a_angle_in_radians)
 template <class _type>
 FORCE_INLINE Matrix4<_type> matrix4_rotation(const AxisAngle<_type> &a_axis_angle)
 {
-	auto &axis = a_axis_angle.m_axis;
-	auto angle_in_radians = a_axis_angle.m_angle_radians;
+	auto &axis             = a_axis_angle.m_axis;
+	auto  angle_in_radians = a_axis_angle.m_angle_radians;
 
 	_type sin_of_angle = std::sin(angle_in_radians);
 	_type cos_of_angle = std::cos(angle_in_radians);

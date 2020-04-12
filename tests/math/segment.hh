@@ -106,8 +106,8 @@ TYPED_TEST(SegmentTest, segment_ops)
 		EXPECT_FALSE(b2.is_point_inside_my_2d_triangle(p));
 		EXPECT_TRUE(b2.is_point_inside_my_2d_triangle(q));
 
-		EXPECT_EQ(b1.m_type, ror::SegmentType::segment_type_quadratic_2d_outer);
-		EXPECT_EQ(b2.m_type, ror::SegmentType::segment_type_quadratic_2d_inner);
+		EXPECT_EQ(b1.m_type, ror::SegmentType::quadratic_2d_outer);
+		EXPECT_EQ(b2.m_type, ror::SegmentType::quadratic_2d_inner);
 
 		std::vector<ror::Bezier<ror::Vector2<TypeParam>, 2>> kids;
 
@@ -170,8 +170,8 @@ TYPED_TEST(SegmentTest, segment_ops)
 		EXPECT_FALSE(b2.is_point_inside_my_2d_triangle(r));
 		EXPECT_TRUE(b2.is_point_inside_my_2d_triangle(t));
 
-		EXPECT_EQ(b1.m_type, ror::SegmentType::segment_type_quadratic_3d_outer);
-		EXPECT_EQ(b2.m_type, ror::SegmentType::segment_type_quadratic_3d_inner);
+		EXPECT_EQ(b1.m_type, ror::SegmentType::quadratic_3d_outer);
+		EXPECT_EQ(b2.m_type, ror::SegmentType::quadratic_3d_inner);
 
 		std::vector<ror::Bezier<ror::Vector3<TypeParam>, 2>> kids;
 
