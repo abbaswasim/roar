@@ -97,7 +97,9 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/math/roreuler_angle.hpp
   ${ROAR_SOURCE_DIR}/math/roreuler_angle.hh
   ${ROAR_SOURCE_DIR}/math/rorplane.hpp
-  ${ROAR_SOURCE_DIR}/math/rorplane.hh)
+  ${ROAR_SOURCE_DIR}/math/rorplane.hh
+  ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hpp
+  ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hh)
 
 set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/profiling/rorlog.cpp

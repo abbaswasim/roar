@@ -279,10 +279,10 @@ TYPED_TEST(Vector2TestSigned, testing_global_methods)
 	}
 
 	// {
-		// auto reflect_axix = reflect(-static_cast<ror::Vector2<TypeParam>>(ror::zaxis2f), static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f));
+	// auto reflect_axix = reflect(-static_cast<ror::Vector2<TypeParam>>(ror::zaxis2f), static_cast<ror::Vector2<TypeParam>>(ror::yaxis2f));
 	//
-		// ror::Vector2<float32_t> axis_reflect_yaxis(0.0f, 0.0f);
-		// test_vector2_equal(reflect_axix, axis_reflect_yaxis);
+	// ror::Vector2<float32_t> axis_reflect_yaxis(0.0f, 0.0f);
+	// test_vector2_equal(reflect_axix, axis_reflect_yaxis);
 	// }
 
 	{
@@ -322,4 +322,72 @@ TYPED_TEST(Vector2TestSigned, testing_global_methods)
 		EXPECT_NEAR((ang), static_cast<decltype(angl)>(0.0), test_epsilon);
 	}
 }
+
+TYPED_TEST(Vector2TestSigned, testing_min_max_clamp)
+{
+	ror::Vector2<TypeParam> a{2, 3};
+	ror::Vector2<TypeParam> b{12, 13};
+
+	ror::Vector2<TypeParam> a1{-2, 3};
+	ror::Vector2<TypeParam> b1{-12, -13};
+
+	ror::Vector2<TypeParam> c1{2, 3};
+	ror::Vector2<TypeParam> c2{2, -13};
+
+	// Min/Max funcs
+	{
+		ror::Vector2<TypeParam> min = a1;
+		ror::Vector2<TypeParam> max = a;
+
+		auto min_res = ror::vector_minimum(a, a1);
+		auto max_res = ror::vector_maximum(a, a1);
+
+		test_vector2_equal(min_res, min);
+		test_vector2_equal(max_res, max);
+	}
+
+	{
+		ror::Vector2<TypeParam> min{-12, -13};
+		ror::Vector2<TypeParam> max{-2, 3};
+
+		auto min_res = ror::vector_minimum(a1, b1);
+		auto max_res = ror::vector_maximum(a1, b1);
+
+		test_vector2_equal(min_res, min);
+		test_vector2_equal(max_res, max);
+	}
+
+	// Clamp funcs
+	{
+		ror::Vector2<TypeParam> clampc1{2, 3};
+		ror::Vector2<TypeParam> clampc2{2, 3};
+
+		auto clamp_res = ror::vector_clamp(c1, a1, a);
+		test_vector2_equal(clamp_res, clampc1);
+
+		clamp_res = ror::vector_clamp(c2, a1, a);
+		test_vector2_equal(clamp_res, clampc2);
+
+		clamp_res = ror::vector_clamp_safe(c1, a, a1);
+		test_vector2_equal(clamp_res, clampc1);
+
+		clamp_res = ror::vector_clamp_safe(c2, a, a1);
+		test_vector2_equal(clamp_res, clampc2);
+	}
+
+	// Select funcs
+	{
+		auto select_res = ror::vector_select(ror::Vector2<uint32_t>(1, 1), a, a1);
+		test_vector2_equal(select_res, a);
+
+		select_res = ror::vector_select(ror::Vector2<uint32_t>(0, 0), a, a1);
+		test_vector2_equal(select_res, a1);
+
+		ror::Vector2<TypeParam> ab1{2, -13};
+
+		select_res = ror::vector_select(ror::Vector2<uint32_t>(1, 0), a, b1);
+		test_vector2_equal(select_res, ab1);
+	}
+}
+
 }        // namespace ror_test

@@ -41,6 +41,7 @@ set(ROAR_TEST_HEADERS
   ${ROAR_TEST_SOURCE_DIR}/math/plane.hpp
   ${ROAR_TEST_SOURCE_DIR}/math/ray.hpp
   ${ROAR_TEST_SOURCE_DIR}/math/segment.hpp
+  ${ROAR_TEST_SOURCE_DIR}/geometry/geometry.hpp
   ${ROAR_TEST_SOURCE_DIR}/math/vector2.hh
   ${ROAR_TEST_SOURCE_DIR}/math/vector3.hh
   ${ROAR_TEST_SOURCE_DIR}/math/vector4.hh
@@ -53,7 +54,8 @@ set(ROAR_TEST_HEADERS
   ${ROAR_TEST_SOURCE_DIR}/math/euler_angle.hh
   ${ROAR_TEST_SOURCE_DIR}/math/plane.hh
   ${ROAR_TEST_SOURCE_DIR}/math/ray.hh
-  ${ROAR_TEST_SOURCE_DIR}/math/segment.hh)
+  ${ROAR_TEST_SOURCE_DIR}/math/segment.hh
+  ${ROAR_TEST_SOURCE_DIR}/geometry/geometry.hh)
 
 set(ROAR_TEST_SOURCES
   ${ROAR_TEST_SOURCE_DIR}/roartests.cpp

@@ -344,4 +344,71 @@ TYPED_TEST(Vector3TestSigned, testing_global_methods)
 	static_assert(sizeof(ror::Vector3f) == 12, "ror::Vector3f is not tightly packed into 12 bytes");
 	static_assert(sizeof(v) == 3 * sizeof(TypeParam), "ror::Vector3f is not tightly packed into 12 bytes");
 }
+
+TYPED_TEST(Vector3TestSigned, testing_min_max_clamp)
+{
+	ror::Vector3<TypeParam> a{2, 3, 4};
+	ror::Vector3<TypeParam> b{12, 13, 14};
+
+	ror::Vector3<TypeParam> a1{-2, 3, -4};
+	ror::Vector3<TypeParam> b1{-12, -13, -14};
+
+	ror::Vector3<TypeParam> c1{2, 3, -4};
+	ror::Vector3<TypeParam> c2{2, -13, -14};
+
+	// Min/Max funcs
+	{
+		ror::Vector3<TypeParam> min = a1;
+		ror::Vector3<TypeParam> max = a;
+
+		auto min_res = ror::vector_minimum(a, a1);
+		auto max_res = ror::vector_maximum(a, a1);
+
+		test_vector3_equal(min_res, min);
+		test_vector3_equal(max_res, max);
+	}
+
+	{
+		ror::Vector3<TypeParam> min{-12, -13, -14};
+		ror::Vector3<TypeParam> max{-2, 3, -4};
+
+		auto min_res = ror::vector_minimum(a1, b1);
+		auto max_res = ror::vector_maximum(a1, b1);
+
+		test_vector3_equal(min_res, min);
+		test_vector3_equal(max_res, max);
+	}
+
+	// Clamp funcs
+	{
+		ror::Vector3<TypeParam> clampc1{2, 3, -4};
+		ror::Vector3<TypeParam> clampc2{2, 3, -4};
+
+		auto clamp_res = ror::vector_clamp(c1, a1, a);
+		test_vector3_equal(clamp_res, clampc1);
+
+		clamp_res = ror::vector_clamp(c2, a1, a);
+		test_vector3_equal(clamp_res, clampc2);
+
+		clamp_res = ror::vector_clamp_safe(c1, a, a1);
+		test_vector3_equal(clamp_res, clampc1);
+
+		clamp_res = ror::vector_clamp_safe(c2, a, a1);
+		test_vector3_equal(clamp_res, clampc2);
+	}
+
+	// Select funcs
+	{
+		auto select_res = ror::vector_select(ror::Vector3<uint32_t>(1, 1, 1), a, a1);
+		test_vector3_equal(select_res, a);
+
+		select_res = ror::vector_select(ror::Vector3<uint32_t>(0, 0, 0), a, a1);
+		test_vector3_equal(select_res, a1);
+
+		ror::Vector3<TypeParam> ab1{2, -13, 4};
+
+		select_res = ror::vector_select(ror::Vector3<uint32_t>(1, 0, 1), a, b1);
+		test_vector3_equal(select_res, ab1);
+	}
+}
 }        // namespace ror_test

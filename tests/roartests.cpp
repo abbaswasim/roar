@@ -1,6 +1,7 @@
 #include "math/math_tests.hpp"
 #include "random.hpp"
 #include "utilities.hpp"
+#include "geometry/geometry.hpp"
 
 #include <gtest/gtest.h>
 

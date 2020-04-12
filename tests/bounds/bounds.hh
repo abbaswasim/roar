@@ -398,7 +398,7 @@ TYPED_TEST(BoundingTest, BoundingSphere_create_from_points)
 TYPED_TEST(BoundingTest, BoundingSphere_system_test)
 {
 	// These tests are only valid for decimal types
-	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	if constexpr (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
 	{
 		ror::Round<ror::Vector3<TypeParam>> boundingSphere0;
 		ror::Round<ror::Vector3<TypeParam>> boundingSphereSmall1;
@@ -949,7 +949,7 @@ TYPED_TEST(BoundingTest, BoundingCircle_create_from_points)
 
 TYPED_TEST(BoundingTest, BoundingCircle_system_test)
 {
-	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	if constexpr (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
 	{
 		ror::Round<ror::Vector2<TypeParam>> bounding_circle0;
 		ror::Round<ror::Vector2<TypeParam>> bounding_circle_small1;
@@ -1397,7 +1397,7 @@ TYPED_TEST(BoundingTest, BoundingBox_create_from_points)
 TYPED_TEST(BoundingTest, BoundingBox_system_test)
 {
 	// These tests are only valid for decimal types
-	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	if constexpr (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
 	{
 		ror::Box<ror::Vector3<TypeParam>> bounding_box0;
 		ror::Box<ror::Vector3<TypeParam>> bounding_box_small1;
@@ -1967,7 +1967,7 @@ TYPED_TEST(BoundingTest, BoundingRectangle_create_from_points)
 TYPED_TEST(BoundingTest, BoundingRectangle_system_test)
 {
 	// These tests are only valid for decimal types
-	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	if constexpr (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
 	{
 		ror::Box<ror::Vector2<TypeParam>> bounding_rectangle0;
 		ror::Box<ror::Vector2<TypeParam>> bounding_rectangle_small1;

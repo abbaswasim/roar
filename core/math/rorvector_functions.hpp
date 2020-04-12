@@ -30,6 +30,7 @@
 #include "math/rorvector4.hpp"
 
 #include <algorithm>
+#include <type_traits>
 
 namespace ror
 {
@@ -45,6 +46,13 @@ using vector_precision = typename std::conditional<std::is_same<typename _type<_
  */
 template <class _type>
 using scalar_precision = typename std::conditional<std::is_same<typename _type::value_type, double64_t>::value, double64_t, float32_t>::type;
+
+/**
+ * This works out what is the underlying type for example Vector3 or Vector4 etc and can create a specified type VectorX for you
+ */
+template <class _type, class _new_type>
+using vector_type = typename std::conditional<std::is_same<_type, Vector4<typename _type::value_type>>::value, Vector4<_new_type>,
+											  typename std::conditional<std::is_same<_type, Vector3<typename _type::value_type>>::value, Vector3<_new_type>, Vector2<_new_type>>::type>::type;
 
 /**
  * @brief      Calculates distance
@@ -160,6 +168,30 @@ FORCE_INLINE _type vector_maximum(const _type &a_first, const _type &a_second);
 
 template <class _type>
 FORCE_INLINE _type vector_clamp(const _type &a_vector, const _type &a_first, const _type &a_second);
+
+/**
+ * @brief      Clamps a_vector to a_first and a_second vectors
+ * @details    Clamps a_vector to a_first and a_second vectors and returns the value, this one avoids undefined behaviour
+ *             If a_first > a_second vector_clamp behaviour is undefined, but vector_clamp_safe takes care of it
+ * @param      a_first first vector
+ * @param      a_second second vector
+ * @return     Clamped value between the two vectors
+ */
+
+template <class _type>
+FORCE_INLINE _type vector_clamp_safe(const _type &a_vector, const _type &a_first, const _type &a_second);
+
+/**
+ * @brief      Component wise selection from a_first or a_second
+ * @details    Selects a_first or a_second by components, each component can be individually selected
+ * @param      a_vector selection criteria, always type int32_t of Vector4, Vector3 or Vector2
+ * @param      a_first first vector
+ * @param      a_second second vector
+ * @return     Clamped value between the two vectors
+ */
+
+template <class _type>
+FORCE_INLINE _type vector_select(const vector_type<_type, uint32_t> &a_vector, const _type &a_first, const _type &a_second);
 
 }        // namespace ror
 

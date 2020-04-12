@@ -46,9 +46,9 @@ void Vector4Test<_type>::SetUp()
 	this->m_normalized_a = ror::Vector4<typename ror::Vector4<_type>::precision>(static_cast<typename ror::Vector4<_type>::precision>(0.7071068286895752), static_cast<typename ror::Vector4<_type>::precision>(0.7071068286895752), static_cast<typename ror::Vector4<_type>::precision>(0), static_cast<typename ror::Vector4<_type>::precision>(0));
 	this->m_normalized_b = ror::Vector4<typename ror::Vector4<_type>::precision>(static_cast<typename ror::Vector4<_type>::precision>(0.75913411378860474), static_cast<typename ror::Vector4<_type>::precision>(-0.33739295601844788), static_cast<typename ror::Vector4<_type>::precision>(-0.39362511038780212), static_cast<typename ror::Vector4<_type>::precision>(-0.39362511038780212));
 
-	this->m_inverse_a    = ror::Vector4<_type>(static_cast<_type>(0.333333334), static_cast<_type>(0.333333334), static_cast<_type>(0.0), static_cast<_type>(0.0));
-	this->m_inverse_b    = ror::Vector4<_type>(static_cast<_type>(0.037037037312984467), static_cast<_type>(-0.083333334), static_cast<_type>(-0.071428574621677399), static_cast<_type>(-0.071428574621677399));
-	this->m_cross_ab     = ror::Vector4<_type>(static_cast<_type>(-42.0), static_cast<_type>(42.0), static_cast<_type>(-117.0), static_cast<_type>(1.0));
+	this->m_inverse_a = ror::Vector4<_type>(static_cast<_type>(0.333333334), static_cast<_type>(0.333333334), static_cast<_type>(0.0), static_cast<_type>(0.0));
+	this->m_inverse_b = ror::Vector4<_type>(static_cast<_type>(0.037037037312984467), static_cast<_type>(-0.083333334), static_cast<_type>(-0.071428574621677399), static_cast<_type>(-0.071428574621677399));
+	this->m_cross_ab  = ror::Vector4<_type>(static_cast<_type>(-42.0), static_cast<_type>(42.0), static_cast<_type>(-117.0), static_cast<_type>(1.0));
 
 	this->m_dot_ab      = static_cast<_type>(45.0);
 	this->m_min_a       = static_cast<_type>(0.0);
@@ -163,9 +163,9 @@ TYPED_TEST(Vector4TestSigned, testing_linear_algebra)
 	ror::Vector4<TypeParam> inverse_a = this->m_a.inversed();
 	ror::Vector4<TypeParam> inverse_b = this->m_b.inversed();
 
-	typename ror::Vector3<TypeParam>::precision dot_ab      = this->m_a.dot_product(this->m_b);
-	typename ror::Vector3<TypeParam>::precision length_a    = this->m_a.length();
-	typename ror::Vector3<TypeParam>::precision length_b    = this->m_b.length();
+	typename ror::Vector3<TypeParam>::precision dot_ab   = this->m_a.dot_product(this->m_b);
+	typename ror::Vector3<TypeParam>::precision length_a = this->m_a.length();
+	typename ror::Vector3<TypeParam>::precision length_b = this->m_b.length();
 
 	TypeParam min_a       = this->m_a.minimum();
 	TypeParam max_a       = this->m_a.maximum();
@@ -335,13 +335,13 @@ TYPED_TEST(Vector4TestSigned, testing_global_methods)
 	}
 }
 
-template<class _type>
+template <class _type>
 ror::Vector4<_type> return_sum(ror::Vector4<_type> &a, ror::Vector4<_type> &b)
 {
 	return a + b;
 }
 
-template<class _type>
+template <class _type>
 ror::Vector4<_type> return_sum_assign(ror::Vector4<_type> &a, ror::Vector4<_type> &b)
 {
 	return a += b;
@@ -359,6 +359,73 @@ TYPED_TEST(Vector4TestSigned, testing_assigns)
 	d = return_sum_assign(a, b);
 
 	test_vector4_equal(c, d);
+}
+
+TYPED_TEST(Vector4TestSigned, testing_min_max_clamp)
+{
+	ror::Vector4<TypeParam> a{2, 3, 4, 5};
+	ror::Vector4<TypeParam> b{12, 13, 14, 15};
+
+	ror::Vector4<TypeParam> a1{-2, 3, -4, -5};
+	ror::Vector4<TypeParam> b1{-12, -13, -14, -1};
+
+	ror::Vector4<TypeParam> c1{2, 3, -4, 5};
+	ror::Vector4<TypeParam> c2{2, -13, -14, -1};
+
+	// Min, Max funcs
+	{
+		ror::Vector4<TypeParam> min = a1;
+		ror::Vector4<TypeParam> max = a;
+
+		auto min_res = ror::vector_minimum(a, a1);
+		auto max_res = ror::vector_maximum(a, a1);
+
+		test_vector4_equal(min_res, min);
+		test_vector4_equal(max_res, max);
+	}
+
+	{
+		ror::Vector4<TypeParam> min{-12, -13, -14, -5};
+		ror::Vector4<TypeParam> max{-2, 3, -4, -1};
+
+		auto min_res = ror::vector_minimum(a1, b1);
+		auto max_res = ror::vector_maximum(a1, b1);
+
+		test_vector4_equal(min_res, min);
+		test_vector4_equal(max_res, max);
+	}
+
+	// Clamp funcs
+	{
+		ror::Vector4<TypeParam> clampc1{2, 3, -4, 5};
+		ror::Vector4<TypeParam> clampc2{2, 3, -4, -1};
+
+		auto clamp_res = ror::vector_clamp(c1, a1, a);
+		test_vector4_equal(clamp_res, clampc1);
+
+		clamp_res = ror::vector_clamp(c2, a1, a);
+		test_vector4_equal(clamp_res, clampc2);
+
+		clamp_res = ror::vector_clamp_safe(c1, a, a1);
+		test_vector4_equal(clamp_res, clampc1);
+
+		clamp_res = ror::vector_clamp_safe(c2, a, a1);
+		test_vector4_equal(clamp_res, clampc2);
+	}
+
+	// Select funcs
+	{
+		auto select_res = ror::vector_select(ror::Vector4<uint32_t>(1, 1, 1, 1), a, a1);
+		test_vector4_equal(select_res, a);
+
+		select_res = ror::vector_select(ror::Vector4<uint32_t>(0, 0, 0, 0), a, a1);
+		test_vector4_equal(select_res, a1);
+
+		ror::Vector4<TypeParam> ab1{2, -13, 4, -1};
+
+		select_res = ror::vector_select(ror::Vector4<uint32_t>(1, 0, 1, 0), a, b1);
+		test_vector4_equal(select_res, ab1);
+	}
 }
 
 }        // namespace ror_test
