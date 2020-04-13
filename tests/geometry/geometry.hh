@@ -47,6 +47,7 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 	if constexpr (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
 	{
 		{
+			const uint32_t                       indices[] = {0, 1, 2, 2, 1, 3, 4, 5, 0, 0, 5, 1, 0, 1, 6, 6, 1, 7, 4, 0, 6, 6, 0, 2, 0, 5, 3, 3, 5, 7, 5, 4, 7, 7, 4, 6};
 			ror::Vector3<TypeParam>              size{1.0f, 1.0f, 1.0f}, origin{0.0f, 0.0f, 0.0f};
 			std::vector<ror::Vector3<TypeParam>> res = {{-0.5f, -0.5f, -0.5f},
 														{0.5f, -0.5f, -0.5f},
@@ -90,6 +91,40 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 				for (size_t i = 0; i < 8; ++i)
 				{
 					test_vector3_equal(res[i], output[i]);
+				}
+			}
+			{
+				ror::Vector3<TypeParam> minimum{-0.5f, -0.5f, -0.5f}, maximum{0.5f, 0.5f, 0.5f};
+				// Use min/max overload
+				std::vector<ror::Vector3<TypeParam>> output;
+				ror::cube(output, minimum, maximum);
+				for (size_t i = 0; i < 8; ++i)
+				{
+					test_vector3_equal(res[i], output[i]);
+				}
+			}
+			{
+				std::vector<ror::Vector3<TypeParam>> output;
+				std::vector<ror::Vector3<TypeParam>> index_buffer;
+				// Use overload
+				ror::cube(size, origin, output, index_buffer);
+				for (size_t i = 0; i < 8; ++i)
+				{
+					test_vector3_equal(res[i], output[i]);
+					test_vector3_equal(ror::Vector3<TypeParam>(indices[3 * i], indices[3 * i + 1], indices[3 * i + 2]), index_buffer[i]);
+				}
+			}
+			{
+				std::vector<ror::Vector3<TypeParam>> output;
+				std::vector<ror::Vector3<TypeParam>> index_buffer;
+
+				// Use overload for unit cube
+				ror::cube(output, index_buffer);
+
+				for (size_t i = 0; i < 8; ++i)
+				{
+					test_vector3_equal(res[i], output[i]);
+					test_vector3_equal(ror::Vector3<TypeParam>(indices[3 * i], indices[3 * i + 1], indices[3 * i + 2]), index_buffer[i]);
 				}
 			}
 		}

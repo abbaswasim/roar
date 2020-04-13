@@ -29,15 +29,9 @@
 
 namespace ror
 {
-/**
- * @brief      Creates a cube with a_size in all 3 or 2 directions
- * @param      a_size a 2D or 3D vector defining its size
- * @param      a_origin Origin of the cube
- * @param      a_output A vector to append the vertices created to
- * @return     return void
- */
 template <class _type>
-void cube(const _type &a_size, const _type &a_origin, std::vector<_type> &a_output)
+FORCE_INLINE void _cube_internal(const _type &a_minimum, const _type &a_maximum,
+								 const _type &a_origin, std::vector<_type> &a_vertex_buffer)
 {
 	static_assert(!(std::is_same<_type, Vector4<typename _type::value_type>>::value), "Can't create a 4D Cube\n");
 
@@ -48,51 +42,93 @@ void cube(const _type &a_size, const _type &a_origin, std::vector<_type> &a_outp
 	}
 
 	// https://github.com/sgorsten/linalg algoritm for creating cube
-	_type minimum{-a_size / 2}, maximum{a_size / 2};
 	for (uint32_t i = 0; i < corners; ++i)
 	{
 		// Two copies of Vector3i or Vector2i arn't good but this isn't suppose to be real time
-		_type corner = vector_select(vector_type<_type, uint32_t>(Vector3ui(i & 1, i & 2, i & 4)), maximum, minimum) + a_origin;
-		a_output.emplace_back(corner);
+		_type corner = vector_select(vector_type<_type, uint32_t>(Vector3ui(i & 1, i & 2, i & 4)), a_maximum, a_minimum) + a_origin;
+		a_vertex_buffer.emplace_back(corner);
 	}
 }
 
-/**
- * @brief      Creates a cube with size in all 3 or 2 directions
- * @param      a_size float defining its size in all 3 or 2 dimentions
- * @param      a_origin Origin of the cube
- * @param      a_output A vector to append the vertices created to
- * @return     return void
- */
 template <class _type>
-FORCE_INLINE void cube(float32_t a_size, const _type &a_origin, std::vector<_type> &a_output)
+FORCE_INLINE void cube(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum)
 {
-	cube(_type(a_size), a_origin, a_output);
+	_cube_internal(a_minimum, a_maximum, _type(0), a_vertex_buffer);
 }
 
-/**
- * @brief      Creates a cube with size in all 3 or 2 directions at origin
- * @param      a_size float defining its size in all 3 or 2 dimentions
- * @param      a_output A vector to append the vertices created to
- * @return     return void
- */
-template <class _type>
-FORCE_INLINE void cube(float32_t a_size, std::vector<_type> &a_output)
+template <class _type, class _index_type = uint32_t>
+FORCE_INLINE void cube(const _type &a_size, const _type &a_origin, std::vector<_type> &a_vertex_buffer,
+					   std::vector<ror::Vector3<_index_type>> &a_index_buffer)
 {
-	cube(_type(a_size), _type(0), a_output);
+	cube(a_size, a_origin, a_vertex_buffer);
+
+	// Lets calculate index buffer and triangles
+	const _index_type indices[]  = {0, 1, 2, 2, 1, 3, 4, 5, 0, 0, 5, 1, 0, 1, 6, 6, 1, 7, 4, 0, 6, 6, 0, 2, 0, 5, 3, 3, 5, 7, 5, 4, 7, 7, 4, 6};
+	uint32_t          triangles = 12;
+	if constexpr (std::is_same<_type, Vector2<typename _type::value_type>>::value)
+	{
+		triangles = 2;
+	}
+
+	for (uint32_t i = 0; i < triangles; ++i)
+	{
+		a_index_buffer.emplace_back(ror::Vector3<_index_type>(indices[3 * i], indices[3 * i + 1], indices[3 * i + 2]));
+	}
 }
 
-/**
- * @brief      Creates a cube with size in all 3 or 2 directions at origin
- * @param      a_size float defining its size in all 3 or 2 dimentions
- * @return     return A vector to append the vertices created to
- */
+template <class _type, class _index_type = uint32_t>
+FORCE_INLINE void cube(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector3<_index_type>> &a_index_buffer)
+{
+	cube(_type(1), _type(0), a_vertex_buffer, a_index_buffer);
+}
+
+template <class _type>
+FORCE_INLINE void cube(const _type &a_size, const _type &a_origin, std::vector<_type> &a_vertex_buffer)
+{
+	_type minimum{-a_size / 2}, maximum{a_size / 2};
+	_cube_internal(minimum, maximum, a_origin, a_vertex_buffer);
+}
+
+template <class _type>
+FORCE_INLINE void cube(float32_t a_size, const _type &a_origin, std::vector<_type> &a_vertex_buffer)
+{
+	cube(_type(a_size), a_origin, a_vertex_buffer);
+}
+
+template <class _type>
+FORCE_INLINE void cube(float32_t a_size, std::vector<_type> &a_vertex_buffer)
+{
+	cube(_type(a_size), _type(0), a_vertex_buffer);
+}
+
 template <class _type>
 FORCE_INLINE std::vector<_type> cube(float32_t a_size)
 {
-	std::vector<_type> a_output;
-	cube(_type(a_size), _type(0), a_output);
-	return a_output;
+	std::vector<_type> a_vertex_buffer;
+	cube(_type(a_size), _type(0), a_vertex_buffer);
+	return a_vertex_buffer;
+}
+
+template <class _type>
+FORCE_INLINE void sphere(uint32_t a_samples)
+{
+	// std::vector<_type> a_vertex_buffer;
+	// cube(_type(a_size), _type(0), a_vertex_buffer);
+	// return a_vertex_buffer;
+}
+
+template <class _type>
+FORCE_INLINE void add_normals(const std::vector<_type> &a_vertex_buffer,
+							  uint32_t a_size, std::vector<_type> &a_output,
+							  const std::vector<_type> *a_index_buffer)
+{
+}
+
+template <class _type>
+FORCE_INLINE void add_colors(const std::vector<_type> &a_vertex_buffer,
+							 uint32_t a_size, std::vector<_type> &a_output,
+							 const std::vector<_type> *a_index_buffer)
+{
 }
 
 }        // namespace ror
