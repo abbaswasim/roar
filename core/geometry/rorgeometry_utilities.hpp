@@ -26,88 +26,119 @@
 #pragma once
 
 #include "math/rorvector_functions.hpp"
+#include "thirdparty/include_convhull_3d.hpp"
 
 namespace ror
 {
 /**
- * @brief      Creates a cube with from minimum and maximum
+ * @brief      Creates a Box with from minimum and maximum
  * @param      a_minimum Minimum of the box to create
  * @param      a_maximum Maximum of the box to create
  * @param      a_vertex_buffer A vector to append the vertices created to
  * @return     return void
  */
 template <class _type>
-FORCE_INLINE void cube(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum);
+FORCE_INLINE void make_box_triangles(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum);
 
 /**
- * @brief      Creates a cube with a_size in all 3 or 2 directions
+ * @brief      Creates a Box with a_size in all 3 or 2 dimensions
  * @param      a_size a 2D or 3D vector defining its size
- * @param      a_origin Origin of the cube
- * @param      a_vertex_buffer A vector to append the vertices created to
- * @param      a_index_buffer A vector to append the indices created to
- * @return     return void
- */
-template <class _type, class _index_type = uint32_t>
-FORCE_INLINE void cube(const _type &a_size, const _type &a_origin,
-					   std::vector<_type> &      a_vertex_buffer,
-					   std::vector<_index_type> &a_index_buffer);
-
-/**
- * @brief      Creates a cube with unit size 3 or 2 directions
- * @param      a_vertex_buffer A vector to append the vertices created to
- * @param      a_index_buffer A vector to append the indices created to
- * @return     return void
- */
-template <class _type, class _index_type = uint32_t>
-FORCE_INLINE void cube(std::vector<_type> &a_vertex_buffer, std::vector<_index_type> &a_index_buffer);
-
-/**
- * @brief      Creates a cube with a_size in all 3 or 2 directions
- * @param      a_size a 2D or 3D vector defining its size
- * @param      a_origin Origin of the cube
+ * @param      a_origin Origin of the Box
  * @param      a_output A vector to append the vertices created to
  * @return     return void
  */
 template <class _type>
-FORCE_INLINE void cube(const _type &a_size, const _type &a_origin, std::vector<_type> &a_output);
+FORCE_INLINE void make_box_triangles(const _type &a_size, const _type &a_origin, std::vector<_type> &a_output);
 
 /**
- * @brief      Creates a cube with size in all 3 or 2 directions
+ * @brief      Creates a Box with size in all 3 or 2 dimensions
  * @param      a_size float defining its size in all 3 or 2 dimentions
- * @param      a_origin Origin of the cube
+ * @param      a_origin Origin of the Box
  * @param      a_output A vector to append the vertices created to
  * @return     return void
  */
 template <class _type>
-FORCE_INLINE void cube(float32_t a_size, const _type &a_origin, std::vector<_type> &a_output);
+FORCE_INLINE void make_box_triangles(float32_t a_size, const _type &a_origin, std::vector<_type> &a_output);
 
 /**
- * @brief      Creates a cube with size in all 3 or 2 directions at origin
+ * @brief      Creates a Box with size in all 3 or 2 dimensions at origin
  * @param      a_size float defining its size in all 3 or 2 dimentions
  * @param      a_output A vector to append the vertices created to
  * @return     return void
  */
 template <class _type>
-FORCE_INLINE void cube(float32_t a_size, std::vector<_type> &a_output);
+FORCE_INLINE void make_box_triangles(float32_t a_size, std::vector<_type> &a_output);
 
 /**
- * @brief      Creates a cube with size in all 3 or 2 directions at origin
+ * @brief      Creates a Box with size in all 3 or 2 dimensions at origin
  * @param      a_size float defining its size in all 3 or 2 dimentions
  * @return     return A vector to append the vertices created to
  */
 template <class _type>
-FORCE_INLINE std::vector<_type> cube(float32_t a_size);
+FORCE_INLINE std::vector<_type> make_box_triangles(float32_t a_size);
 
 /**
- * @brief      Creates a sphere with samples number of points in all 3 or 2 directions at origin
+ * @brief      Creates a Box with a_size in all 3 or 2 dimensions
+ * @param      a_size a 2D or 3D vector defining its size
+ * @param      a_origin Origin of the Box
+ * @param      a_vertex_buffer A vector to append the vertices created to
+ * @param      a_index_buffer A vector to append the indices created to
+ * @return     return void
+ */
+template <class _type, class _index_type = uint32_t>
+FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a_origin,
+											 std::vector<_type> &                    a_vertex_buffer,
+											 std::vector<ror::Vector3<_index_type>> &a_index_buffer);
+
+/**
+ * @brief      Creates a Box with unit size 3 or 2 dimensions at the origin
+ * @param      a_vertex_buffer A vector to append the vertices created to
+ * @param      a_index_buffer A vector to append the indices created to
+ * @return     return void
+ */
+template <class _type, class _index_type = uint32_t>
+FORCE_INLINE void make_box_triangles_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector3<_index_type>> &a_index_buffer);
+
+
+/**
+	Same set of functions for creating a box but this time return only lines
+ */
+template <class _type>
+FORCE_INLINE void make_box_lines(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum);
+template <class _type>
+FORCE_INLINE void make_box_lines(const _type &a_size, const _type &a_origin, std::vector<_type> &a_output);
+template <class _type>
+FORCE_INLINE void make_box_lines(float32_t a_size, const _type &a_origin, std::vector<_type> &a_output);
+template <class _type>
+FORCE_INLINE void make_box_lines(float32_t a_size, std::vector<_type> &a_output);
+template <class _type>
+FORCE_INLINE std::vector<_type> make_box_lines(float32_t a_size);
+ template <class _type, class _index_type = uint32_t>
+FORCE_INLINE void make_box_lines_indexed(const _type &a_size, const _type &a_origin,
+											 std::vector<_type> &                    a_vertex_buffer,
+											 std::vector<ror::Vector2<_index_type>> &a_index_buffer);
+template <class _type, class _index_type = uint32_t>
+FORCE_INLINE void make_box_lines_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector2<_index_type>> &a_index_buffer);
+
+/**
+ * @brief      Creates a unit sphere with samples(=default 50) number of points
+ * @param      a_samples number of points in the sphere
+ * @param      a_vertex_buffer A 3D vertex buffer with given type for all the vertices
+ * @param      a_vertex_buffer A 3D index buffer with given type for all the indices
+ * @return     return void
+ */
+template <class _type = float32_t, class _index_type = uint32_t>
+void make_sphere_triangles(std::vector<ror::Vector3<_type>> &      a_vertex_buffer,
+						   std::vector<ror::Vector3<_index_type>> &a_index_buffer,
+						   uint32_t                                a_samples = 50);
+
+/**
+ * @brief      Creates a sphere with samples number of points in all 3 or 2 dimensions at origin
  * @param      a_samples number of points
  * @return     return A vector to append the vertices created to
  */
-
-// Sphere motivations
-// https://stackoverflow.com/a/26127012 for Fibonacci sphere
 template <class _type>
-FORCE_INLINE void sphere(uint32_t a_samples, const _type &a_origin, std::vector<_type> &a_output);
+FORCE_INLINE void make_sphere_triangles(uint32_t a_samples, const _type &a_origin, std::vector<_type> &a_output);
 
 /**
  * @brief      Creates normals for triangles

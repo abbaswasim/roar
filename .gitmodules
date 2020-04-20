@@ -4,3 +4,6 @@
 [submodule "thirdparty/spdlog"]
 	path = thirdparty/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "thirdparty/convhull_3d"]
+	path = thirdparty/convhull_3d
+	url = https://github.com/leomccormack/convhull_3d.git

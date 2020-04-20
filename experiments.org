@@ -1,0 +1,4 @@
+* Stuff I have tried but not worth using
+** EASTL
+   Building the thing was a pain, Looked at their own provided benchmark, result in release mode are not extremely different
+   For types like vector and others, I don't see a great different to justify its use
