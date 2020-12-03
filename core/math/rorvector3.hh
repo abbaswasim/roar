@@ -49,6 +49,13 @@ FORCE_INLINE Vector3<_type>::Vector3(Vector2<_type> a_xy, _type a_z) :
 {}
 
 template <class _type>
+FORCE_INLINE Vector3<_type>::Vector3(Vector4<_type> a_other) :
+	x(a_other.x),
+	y(a_other.y),
+	z(a_other.z)
+{}
+
+template <class _type>
 template <class _other_type>
 FORCE_INLINE Vector3<_type>::operator Vector3<_other_type>() const
 {
