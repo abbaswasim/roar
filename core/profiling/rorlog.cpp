@@ -69,17 +69,17 @@ spdlog::level::level_enum convert_to_spdlog_level(LogLevel a_level)
 {
 	switch (a_level)
 	{
-	case LogLevel::trace:
+		case LogLevel::trace:
 			return spdlog::level::trace;
-	case LogLevel::debug:
+		case LogLevel::debug:
 			return spdlog::level::debug;
-	case LogLevel::info:
+		case LogLevel::info:
 			return spdlog::level::info;
-	case LogLevel::warn:
+		case LogLevel::warn:
 			return spdlog::level::warn;
-	case LogLevel::error:
+		case LogLevel::error:
 			return spdlog::level::err;
-	case LogLevel::critical:
+		case LogLevel::critical:
 			return spdlog::level::critical;
 		default:
 			return spdlog::level::off;
@@ -92,6 +92,24 @@ void Log::set_level(LogLevel a_level)
 	{
 		this->m_logger->set_level(convert_to_spdlog_level(a_level));
 	}
+}
+
+Log &get_logger()
+{
+	static Log logger;
+	return logger;
+}
+
+std::mutex &get_logger_lock()
+{
+	static std::mutex sync;
+	return sync;
+}
+
+void log_set_level(LogLevel a_level)
+{
+	add_sync();
+	get_logger().set_level(a_level);
 }
 
 }        // namespace ror

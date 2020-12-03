@@ -525,8 +525,12 @@ template <class _type>
 FORCE_INLINE Matrix4<_type> make_infinite_perspective(_type a_fov_in_radians, _type a_aspect_ratio, _type a_z_near)
 {
 	// http://www.terathon.com/gdc07_lengyel.pdf
+	// http://www.geometry.caltech.edu/pubs/UD12.pdf
+	// By using this matrix make sure you clear your depth like glClearDepth(1.0 − n/f); to avoid rendering farther objects
 	Matrix4<_type> out = make_perspective(a_fov_in_radians, a_aspect_ratio, a_z_near, static_cast<_type>(100));
 
+	// Using epslion here might be losing all the benefit
+	// TODO: Check UD12.pdf for infinit matrix
 	out.m_values[10] = ror_epsilon - static_cast<_type>(1);
 	out.m_values[14] = (ror_epsilon - static_cast<_type>(2)) * a_z_near;
 

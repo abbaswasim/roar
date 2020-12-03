@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2008-2019
+// Copyright (c) 2020
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -25,28 +25,36 @@
 
 #pragma once
 
-static_assert(__cplusplus >= 201703L, "Minimum supported compiler 2017 not found");
+#include "foundation/rorcrtp.hpp"
+#include "nlohmann/json.hpp"
+#include "resources/rorresource.hpp"
 
-#if (__cplusplus < 202001L)        // TODO: Change this to 2020 when available
+// for convenience
+using json = nlohmann::json;
 
-namespace std
+namespace ror
 {
-enum class endian
+template <typename _type>
+class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 {
-#	ifdef _WIN32
-	little = 0,
-	big    = 1,
-	native = little
-#	else
-	little = __ORDER_LITTLE_ENDIAN__,
-	big    = __ORDER_BIG_ENDIAN__,
-	native = __BYTE_ORDER__
-#	endif
+  public:
+	FORCE_INLINE Configuration()                                 = default;                   //! Default constructor
+	FORCE_INLINE Configuration(const Configuration &a_other)     = default;                   //! Copy constructor
+	FORCE_INLINE Configuration(Configuration &&a_other) noexcept = default;                   //! Move constructor
+	FORCE_INLINE Configuration &operator=(const Configuration &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE Configuration &operator=(Configuration &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~Configuration() noexcept                          = default;        //! Destructor
+
+	void load()
+	{
+
+	}
+
+  protected:
+  private:
+	Resource m_resource;        // The resource link for this configuration
 };
-}        // namespace std
-#else
 
-#include <bit>
-static_assert(std::endian::native == std::endian::little, "Building on an unsupported non little-endian system");        // Only C++20
+}        // namespace ror
 
-#endif
+#include "rorconfiguration.hh"

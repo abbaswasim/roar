@@ -23,30 +23,8 @@
 //
 // Version: 1.0.0
 
-#pragma once
 
-static_assert(__cplusplus >= 201703L, "Minimum supported compiler 2017 not found");
-
-#if (__cplusplus < 202001L)        // TODO: Change this to 2020 when available
-
-namespace std
+namespace ror
 {
-enum class endian
-{
-#	ifdef _WIN32
-	little = 0,
-	big    = 1,
-	native = little
-#	else
-	little = __ORDER_LITTLE_ENDIAN__,
-	big    = __ORDER_BIG_ENDIAN__,
-	native = __BYTE_ORDER__
-#	endif
-};
-}        // namespace std
-#else
 
-#include <bit>
-static_assert(std::endian::native == std::endian::little, "Building on an unsupported non little-endian system");        // Only C++20
-
-#endif
+} // namespace ror

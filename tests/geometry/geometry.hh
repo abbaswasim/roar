@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "geometry.hpp"
+#include <cstdio>
 
 namespace ror_test
 {

@@ -76,29 +76,51 @@ class ROAR_ENGINE_ITEM Log
 	virtual ~Log() noexcept                = default;        //! Destructor
 
 	template <typename... Args>
-	void trace(const char *a_format, const Args &... a_args);
+	void trace(const char *a_format, const Args &...a_args);
 
 	template <typename... Args>
-	void debug(const char *a_format, const Args &... a_args);
+	void debug(const char *a_format, const Args &...a_args);
 
 	template <typename... Args>
-	void info(const char *a_format, const Args &... a_args);
+	void info(const char *a_format, const Args &...a_args);
 
 	template <typename... Args>
-	void warn(const char *a_format, const Args &... a_args);
+	void warn(const char *a_format, const Args &...a_args);
 
 	template <typename... Args>
-	void error(const char *a_format, const Args &... a_args);
+	void error(const char *a_format, const Args &...a_args);
 
 	template <typename... Args>
-	void critical(const char *a_format, const Args &... a_args);
+	void critical(const char *a_format, const Args &...a_args);
 
+	// Can be used to filter out unimporant messages
 	void set_level(LogLevel a_level);
 
   protected:
   private:
 	std::unique_ptr<spdlog::logger> m_logger = nullptr;
 };
+
+void log_set_level(LogLevel a_level);
+
+template <typename... Args>
+void log_trace(const char *a_format, const Args &...a_args);
+
+template <typename... Args>
+void log_debug(const char *a_format, const Args &...a_args);
+
+template <typename... Args>
+void log_info(const char *a_format, const Args &...a_args);
+
+template <typename... Args>
+void log_warn(const char *a_format, const Args &...a_args);
+
+template <typename... Args>
+void log_error(const char *a_format, const Args &...a_args);
+
+template <typename... Args>
+void log_critical(const char *a_format, const Args &...a_args);
+
 }        // namespace ror
 
 #include "rorlog.hh"

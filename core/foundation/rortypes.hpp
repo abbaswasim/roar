@@ -59,6 +59,17 @@ using float32_t   = float;              // Just for consistancy reasons, also co
 using double64_t  = double;             // Just for consistancy reasons, also compile time checked for size
 using double128_t = long double;        // Just for consistancy reasons, also compile time checked for size
 
+
+// Types for hashing
+using hash_32_t = uint32_t;
+using hash_64_t = uint64_t;
+
+struct hash_128_t
+{
+	hash_64_t low;
+	hash_64_t high;
+};
+
 // Check sizes you are getting are what you expect
 static_assert(sizeof(char8_t) == 1, "char8_t is not 1 byte");
 static_assert(sizeof(char16_t) == 2, "char16_t is not 2 bytes");

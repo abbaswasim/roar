@@ -92,7 +92,7 @@ class ConditionalMutex<true>
  * This graph can be used as internally thread safe or not, Graph<T, true> is internally thread safe
  * while Graph<T, false> is not thread safe and can be made externally thread safe
  */
-template <class _type, bool _thread_safe>
+template <class _type, bool _thread_safe = false>
 class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 {
   public:

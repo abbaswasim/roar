@@ -25,7 +25,7 @@
 
 set(ROAR_TEST_NAME roar_test)
 
-set(ROAR_TEST_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(ROAR_TEST_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 set(ROAR_TEST_HEADERS
   ${ROAR_TEST_SOURCE_DIR}/math/vector2.hpp
@@ -62,6 +62,7 @@ set(ROAR_TEST_SOURCES
   ${ROAR_TEST_SOURCE_DIR}/common.cpp
   ${ROAR_TEST_SOURCE_DIR}/graph.cpp
   ${ROAR_TEST_SOURCE_DIR}/log.cpp
+  ${ROAR_TEST_SOURCE_DIR}/watchcat.cpp
   ${ROAR_TEST_SOURCE_DIR}/carray_vs_stdarray.cpp)
 
 add_executable(${ROAR_TEST_NAME} ${ROAR_TEST_HEADERS} ${ROAR_TEST_SOURCES})
@@ -76,9 +77,9 @@ target_include_directories(${ROAR_TEST_NAME} PRIVATE
 add_subdirectory(${ROAR_ROOT_DIR}/thirdparty/gtest ${CMAKE_CURRENT_BINARY_DIR}/gtest_binaries)
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/gtest_binaries)
 
-set(ROAR_REQUIRED_TEST_LIBRARIES ${ROAR_REQUIRED_LIBRARIES} roar spdlog gtest gtest_main)
-target_link_libraries(${ROAR_TEST_NAME} ${ROAR_REQUIRED_TEST_LIBRARIES})
+set(ROAR_REQUIRED_TEST_LIBRARIES ${ROAR_REQUIRED_LIBRARIES} roar spdlog gtest_main)
+target_link_libraries(${ROAR_TEST_NAME} PRIVATE ${ROAR_REQUIRED_TEST_LIBRARIES})
 
-debug_options(${ROAR_TEST_NAME})
+build_options(${ROAR_TEST_NAME})
 
 target_compile_definitions(${ROAR_TEST_NAME} PUBLIC ROAR_IMPORTING_SYMBOLS)

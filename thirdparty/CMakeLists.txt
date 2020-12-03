@@ -23,9 +23,28 @@
 #
 # Version: 1.0.0
 
-cmake_minimum_required(VERSION 3.6)
-
-project(third_party LANGUAGES C CXX)
-
+# Add spdlog library
 add_subdirectory(spdlog)
 target_compile_options(spdlog INTERFACE "-Wno-float-equal")
+
+# Add json library
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+add_subdirectory(nlohmann)
+
+# Add xxHash hashing library
+cmake_policy (SET CMP0042 NEW)
+set(XXHASH_BUILD_XXHSUM 0) # Don't need to build the cli
+add_subdirectory(xxHash/cmake_unofficial)
+# target_compile_options(xxhash PRIVATE XXH_INLINE_ALL)
+
+# add_subdirectory(convhull_3d)
+# target_compile_options(convhull_3d PRIVATE
+#   "-Wno-gnu-anonymous-struct"
+#   "-Wno-nested-anon-types")
+
+# add_library(vulkan INTERFACE)
+# set(VULKAN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vulkan/include)
+# target_sources(vulkan INTERFACE ${VULKAN_INCLUDE_DIR}/vulkan/vulkan.h)
+# target_include_directories(vulkan INTERFACE ${VULKAN_INCLUDE_DIR})
+
+# target_compile_definitions(vulkan INTERFACE VK_NO_PROTOTYPES)

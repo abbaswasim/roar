@@ -128,11 +128,11 @@ constexpr OsType get_os()
 #ifdef OS_TYPE_MAC
 	os_type = OsType::os_mac;
 #elif defined OS_TYPE_ANDROID
-	os_type       = OsType::os_android;
+	os_type = OsType::os_android;
 #elif defined OS_TYPE_IOS
-	os_type       = OsType::os_ios;
+	os_type = OsType::os_ios;
 #elif defined OS_TYPE_IOS_SIMULATOR
-	os_type   = OsType::os_ios_simulator;
+	os_type = OsType::os_ios_simulator;
 #elif defined OS_TYPE_LINUX        // Linux means Linux desktop not Android linux
 	os_type = OsType::os_linux;
 #elif defined OS_TYPE_BSD
@@ -151,9 +151,9 @@ constexpr ArchType get_arch()
 #ifdef ARCH_TYPE_ARM
 	arch_type = ArchType::arch_arm;
 #elif defined ARCH_TYPE_ARM64
-	arch_type     = ArchType::arch_arm64;
+	arch_type = ArchType::arch_arm64;
 #elif defined ARCH_TYPE_X86
-	arch_type     = ArchType::arch_x86;
+	arch_type = ArchType::arch_x86;
 #elif defined ARCH_TYPE_X86_64
 	arch_type = ArchType::arch_x86_64;
 #endif
@@ -183,7 +183,7 @@ constexpr BuildType get_build()
 #ifdef BUILD_TYPE_RELEASE
 	build_type = BuildType::build_release;
 #elif defined BUILD_TYPE_DEBUG
-	build_type    = BuildType::build_debug;
+	build_type = BuildType::build_debug;
 #endif
 
 	return build_type;

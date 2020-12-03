@@ -23,12 +23,14 @@
 #
 # Version: 1.0.0
 
-cmake_minimum_required (VERSION 3.9)
+cmake_minimum_required (VERSION 3.12)
+
+project(RoarEngine VERSION 1.1.0.0 LANGUAGES CXX C)
+list(APPEND CMAKE_MESSAGE_CONTEXT Roar_Engine)
 
 set(ROAR_NAME roar)
-project(${ROAR_NAME} VERSION 1.0 LANGUAGES CXX C)
 
-set(ROAR_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(ROAR_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR}) # Always prefer the _LIST_ version FILES/DIRS instead of the _SOURCE_
 set(ROAR_SOURCE_DIR ${ROAR_ROOT_DIR}/core)
 
 include(${ROAR_ROOT_DIR}/build.cmake)
@@ -36,9 +38,10 @@ include(${ROAR_ROOT_DIR}/build.cmake)
 # Always generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+option(BUILD_GMOCK "Builds the googlemock subproject" OFF)
+add_subdirectory(${ROAR_ROOT_DIR}/tests)
 add_subdirectory(${ROAR_ROOT_DIR}/thirdparty)
 add_subdirectory(${ROAR_SOURCE_DIR})
-add_subdirectory(${ROAR_ROOT_DIR}/tests)
 
 # add_custom_command(
   # TARGET ${ROAR_NAME} POST_BUILD

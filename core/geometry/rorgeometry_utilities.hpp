@@ -99,6 +99,7 @@ FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a
 template <class _type, class _index_type = uint32_t>
 FORCE_INLINE void make_box_triangles_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector3<_index_type>> &a_index_buffer);
 
+// TODO: Provide option for inward or outward normals
 
 /**
 	Same set of functions for creating a box but this time return only lines
@@ -113,10 +114,10 @@ template <class _type>
 FORCE_INLINE void make_box_lines(float32_t a_size, std::vector<_type> &a_output);
 template <class _type>
 FORCE_INLINE std::vector<_type> make_box_lines(float32_t a_size);
- template <class _type, class _index_type = uint32_t>
+template <class _type, class _index_type = uint32_t>
 FORCE_INLINE void make_box_lines_indexed(const _type &a_size, const _type &a_origin,
-											 std::vector<_type> &                    a_vertex_buffer,
-											 std::vector<ror::Vector2<_index_type>> &a_index_buffer);
+										 std::vector<_type> &                    a_vertex_buffer,
+										 std::vector<ror::Vector2<_index_type>> &a_index_buffer);
 template <class _type, class _index_type = uint32_t>
 FORCE_INLINE void make_box_lines_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector2<_index_type>> &a_index_buffer);
 

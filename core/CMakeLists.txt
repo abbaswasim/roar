@@ -23,27 +23,10 @@
 #
 # Version: 1.0.0
 
-function(print_target_properties tgt)
-	if(NOT TARGET ${tgt})
-		message("There is no target named '${tgt}'")
-		return()
-	endif()
-
-	# this list of properties can be extended as needed
-	set(CMAKE_PROPERTY_LIST SOURCE_DIR BINARY_DIR COMPILE_DEFINITIONS CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG SYSTEM_INCLUDE_DIRECTORIES
-			 COMPILE_OPTIONS INCLUDE_DIRECTORIES INTERFACE_INCLUDE_DIRECTORIES LINK_LIBRARIES DEFINE_SYMBOL)
-
-	message("Configuration for target ${tgt}")
-
-	foreach (prop ${CMAKE_PROPERTY_LIST})
-		get_property(propval TARGET ${tgt} PROPERTY ${prop} SET)
-		if (propval)
-			get_target_property(propval ${tgt} ${prop})
-			message (STATUS "${prop} = ${propval}")
-		endif()
-	endforeach(prop)
-
-endfunction(print_target_properties)
+# Configure version source file roar_version.cpp
+configure_file(${ROAR_SOURCE_DIR}/roar_version.cpp.in roar_version.cpp @ONLY)
+add_library(roar_version STATIC ${CMAKE_CURRENT_BINARY_DIR}/roar_version.cpp)
+target_include_directories(roar_version PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/profiling/rorlog.hpp
@@ -98,69 +81,60 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/math/roreuler_angle.hh
   ${ROAR_SOURCE_DIR}/math/rorplane.hpp
   ${ROAR_SOURCE_DIR}/math/rorplane.hh
+  ${ROAR_SOURCE_DIR}/configuration/rorconfiguration.hpp
+  ${ROAR_SOURCE_DIR}/configuration/rorconfiguration.hh
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hpp
-  ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hh)
+  ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hh
+  ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.hpp)
 
 set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/profiling/rorlog.cpp
   ${ROAR_SOURCE_DIR}/profiling/rortimer.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.cpp
-  ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp)
+  ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
+  ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp)
 
 add_library(${ROAR_NAME} SHARED ${ROAR_SOURCES} ${ROAR_HEADERS})
-# add_library(${ROAR_NAME} STATIC ${ROAR_SOURCES})
+set_target_properties(${ROAR_NAME} PROPERTIES VERSION 1.0.0.0 SOVERSION 1)          # TODO: Fix the hardcoded version
+set_target_properties(${ROAR_NAME} PROPERTIES CMAKE_VISIBILITY_INLINES_HIDDEN true) # Don't export all of those C++ template generated symbols
+set_target_properties(${ROAR_NAME} PROPERTIES CMAKE_CXX_VISIBILITY_PRESET hidden)   # Set default to hide symbols visibility for Roar
+set_target_properties(${ROAR_NAME} PROPERTIES CMAKE_C_VISIBILITY_PRESET hidden)     # Set default to hide symbols visibility for Roar
 
+set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)    # Set default to hide symbols visibility for all targets
+set(CMAKE_C_VISIBILITY_PRESET hidden)      # Set default to hide symbols visibility for all targets
+
+message(STATUS "Now generating roar_export_import.h file")
+include(GenerateExportHeader)
+generate_export_header(${ROAR_NAME}
+  EXPORT_FILE_NAME roar_export_import.hpp
+  EXPORT_MACRO_NAME ROAR_ENGINE_ITEM
+  NO_EXPORT_MACRO_NAME ROAR_ENGINE_PRIVATE)
+
+target_include_directories(${ROAR_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 target_include_directories(${ROAR_NAME} PRIVATE ${ROAR_SOURCE_DIR})
 target_include_directories(${ROAR_NAME} PRIVATE ${ROAR_ROOT_DIR})
 
+# Thirdparty include directories
+# target_include_directories(${ROAR_NAME} PRIVATE ../thirdparty/nlohmann/single_include/)
+
+if (APPLE)
+  find_library(CORE_SERVICES CoreServices)
+elseif (LINUX)
+  find_library(CORE_SERVICES something_else_required)
+elseif (WIN32)
+  find_library(CORE_SERVICES something_else_required)
+else ()
+  find_library(CORE_SERVICES not_supported)
+endif()
+
 set(ROAR_REQUIRED_LIBRARIES
-  spdlog)
+  ${CORE_SERVICES}
+  spdlog
+  nlohmann_json
+  xxhash
+  roar_version)
 
-target_link_libraries(${ROAR_NAME} ${ROAR_REQUIRED_LIBRARIES})
+target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_LIBRARIES})
 
-debug_options(${ROAR_NAME})
-
-# MESSAGE( STATUS "CMAKE_CXX_FLAGS that you need are: " ${CMAKE_CXX_FLAGS} )
-
-print_target_properties(${ROAR_NAME})
-
-get_cmake_property(_variableNames VARIABLES)
-foreach (_variableName ${_variableNames})
-	message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
-
-message("Here starts all the properties")
-
-# Get all propreties that cmake supports
-execute_process(COMMAND cmake --help-property-list OUTPUT_VARIABLE CMAKE_PROPERTY_LIST)
-
-# Convert command output into a CMake list
-STRING(REGEX REPLACE ";" "\\\\;" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
-STRING(REGEX REPLACE "\n" ";" CMAKE_PROPERTY_LIST "${CMAKE_PROPERTY_LIST}")
-
-function(print_properties)
-	message ("CMAKE_PROPERTY_LIST = ${CMAKE_PROPERTY_LIST}")
-endfunction(print_properties)
-
-function(print_target_propertie tgt)
-	if(NOT TARGET ${tgt})
-	  message("There is no target named '${tgt}'")
-	  return()
-	endif()
-
-	foreach (prop ${CMAKE_PROPERTY_LIST})
-		string(REPLACE "<CONFIG>" "${CMAKE_BUILD_TYPE}" prop ${prop})
-	# Fix https://stackoverflow.com/questions/32197663/how-can-i-remove-the-the-location-property-may-not-be-read-from-target-error-i
-	if(prop STREQUAL "LOCATION" OR prop MATCHES "^LOCATION_" OR prop MATCHES "_LOCATION$")
-		continue()
-	endif()
-		# message ("Checking ${prop}")
-		get_property(propval TARGET ${tgt} PROPERTY ${prop} SET)
-		if (propval)
-			get_target_property(propval ${tgt} ${prop})
-			message ("${tgt} ${prop} = ${propval}")
-		endif()
-	endforeach(prop)
-endfunction(print_target_propertie)
-
-print_target_propertie(${ROAR_NAME})
+build_options(${ROAR_NAME}) # Set common build options

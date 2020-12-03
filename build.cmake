@@ -23,7 +23,18 @@
 #
 # Version: 1.0.0
 
-function(debug_options target_name)
+include_guard()
+
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE RelWithDebInfo) # good compromise
+endif(NOT CMAKE_BUILD_TYPE)
+
+set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD 20)  # Ask for Cxx20 but not required
+set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(CMAKE_CXX_EXTENSIONS false)
+
+function(build_options target_name)
   if (CMAKE_BUILD_TYPE MATCHES "Debug")
 	target_compile_definitions(${target_name} PUBLIC RORDEBUG)
 	set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
@@ -48,11 +59,4 @@ function(debug_options target_name)
 	-Wshadow
 	-Wfloat-equal)
 
-endfunction(debug_options)
-
-if(NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE RelWithDebInfo) # good compromise
-endif(NOT CMAKE_BUILD_TYPE)
-
-set(CMAKE_CXX_STANDARD 17)
-# set(CMAKE_CXX_STANDARD 20)
+endfunction(build_options)

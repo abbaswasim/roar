@@ -7,3 +7,12 @@
 [submodule "thirdparty/convhull_3d"]
 	path = thirdparty/convhull_3d
 	url = https://github.com/leomccormack/convhull_3d.git
+[submodule "thirdparty/rapidjson"]
+	path = thirdparty/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "thirdparty/nlohmann"]
+	path = thirdparty/nlohmann
+	url = https://github.com/nlohmann/json.git
+[submodule "thirdparty/xxHash"]
+	path = thirdparty/xxHash
+	url = https://github.com/Cyan4973/xxHash.git

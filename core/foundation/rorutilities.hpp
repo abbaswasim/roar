@@ -38,18 +38,22 @@ namespace ror
 #define BUFFER_OFFSET(i) ((char *) nullptr + (i))
 // #define CONSTANT_SEED
 
-constexpr float32_t ror_pi               = 3.1415926535897932384626433832795f;        //even though float32_t can't hold all of it :), also known as 180 degrees
-constexpr float32_t ror_two_pi           = 6.283185307179586f;                        // 360 degrees
-constexpr float32_t ror_half_pi          = 1.570796326794897f;                        // 90 degrees
-constexpr float32_t ror_third_pi         = 1.047197551196598f;                        // 60 degrees
-constexpr float32_t ror_quarter_pi       = 0.785398163397448f;                        // 45 degrees
-constexpr float32_t ror_sixth_pi         = 0.523598775598299f;                        // 30 degrees
-constexpr float32_t ror_two_third_pi     = 2.0f * ror_third_pi;                       // 120 degrees
-constexpr float32_t ror_three_quarter_pi = 3.0f * ror_quarter_pi;                     // 135 degrees
-constexpr float32_t ror_five_sixth_pi    = 5.0f * ror_sixth_pi;                       // 150 degrees
+constexpr float32_t ror_pi = 3.1415926535897932384626433832795f;        //even though float32_t can't hold all of it :), also known as 180 degrees
+
+template <class _type>
+constexpr _type ror_pi_typed = static_cast<_type>(3.1415926535897932384626433832795L);
+
+constexpr float32_t ror_two_pi           = 6.283185307179586f;           // 360 degrees
+constexpr float32_t ror_half_pi          = 1.570796326794897f;           // 90 degrees
+constexpr float32_t ror_third_pi         = 1.047197551196598f;           // 60 degrees
+constexpr float32_t ror_quarter_pi       = 0.785398163397448f;           // 45 degrees
+constexpr float32_t ror_sixth_pi         = 0.523598775598299f;           // 30 degrees
+constexpr float32_t ror_two_third_pi     = 2.0f * ror_third_pi;          // 120 degrees
+constexpr float32_t ror_three_quarter_pi = 3.0f * ror_quarter_pi;        // 135 degrees
+constexpr float32_t ror_five_sixth_pi    = 5.0f * ror_sixth_pi;          // 150 degrees
 constexpr float32_t ror_epsilon          = 1e-5f;
 constexpr float32_t ror_epsilon_squared  = 1e-10f;
-constexpr float32_t ror_epsilon_relaxed  = 1e-4f;
+constexpr float32_t ror_epsilon_relaxed  = 1e-4f;        // Should be used for PBR shaders otherwise you will have artifacts
 
 // Convineance function for roar precision type cast
 template <class _type>
@@ -195,10 +199,10 @@ template <class _type>
 FORCE_INLINE _type random(_type a_min, _type a_max)
 {
 #ifdef CONSTANT_SEED
-	std::mt19937 engine(static_cast<_type>(1));
+	static std::mt19937 engine(static_cast<_type>(1));
 #else
-	std::random_device        device;
-	std::mt19937              engine(device());
+	static std::random_device        device;
+	static std::mt19937              engine(device());
 #endif
 	if (a_min < a_max)
 		return _random<_type, std::mt19937>(a_min, a_max, engine);
@@ -244,6 +248,28 @@ template <typename _type>
 FORCE_INLINE bool is_nan(_type a_value)
 {
 	return a_value != a_value;
+}
+
+template <typename _E>
+constexpr auto enum_to_underlying(_E a_enum) noexcept
+{
+	return static_cast<std::underlying_type_t<_E>>(a_enum);
+}
+
+template<typename _type>
+FORCE_INLINE void vector_remove_duplicates(std::vector<_type> &a_vector)
+{
+	std::sort(a_vector.begin(), a_vector.end());
+	auto last = std::unique(a_vector.begin(), a_vector.end());
+	a_vector.erase(last, a_vector.end());
+}
+
+template<typename _type, typename _predicate>
+FORCE_INLINE void vector_remove_duplicates(std::vector<_type> &a_vector, _predicate a_predicate)
+{
+	std::sort(a_vector.begin(), a_vector.end(), a_predicate);
+	auto last = std::unique(a_vector.begin(), a_vector.end(), a_predicate);
+	a_vector.erase(last, a_vector.end());
 }
 
 }        // namespace ror

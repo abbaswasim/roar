@@ -41,14 +41,14 @@ void log_and_test(std::string a_log_file, ror::LogLevel a_level)
 			print_gtest_header(green);
 		}
 
-		logger.trace("This should not {}", "print");
+		logger.trace("This should {} a trace", "print");
 
 		if (level_to_uint(a_level) <= 1)
 		{
 			print_gtest_header(green);
 		}
 
-		logger.debug("This should {} print as well", "not");
+		logger.debug("This should print a {}", "debug");
 
 		if (level_to_uint(a_level) <= 2)
 		{
@@ -91,7 +91,7 @@ void log_and_test(std::string a_log_file, ror::LogLevel a_level)
 		std::string line;
 		std::getline(log_file, line);
 		line = line.substr(40);
-		ASSERT_STREQ(line.c_str(), "] [trace] This should not print");
+		ASSERT_STREQ(line.c_str(), "] [trace] This should print a trace");
 	}
 
 	if (level_to_uint(a_level) <= 1)
@@ -99,7 +99,7 @@ void log_and_test(std::string a_log_file, ror::LogLevel a_level)
 		std::string line;
 		std::getline(log_file, line);
 		line = line.substr(40);
-		ASSERT_STREQ(line.c_str(), "] [debug] This should not print as well");
+		ASSERT_STREQ(line.c_str(), "] [debug] This should print a debug");
 	}
 
 	if (level_to_uint(a_level) <= 2)

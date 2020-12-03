@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2008-2019
+// Copyright (c) 2020
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -23,30 +23,19 @@
 //
 // Version: 1.0.0
 
-#pragma once
+#if defined(__clang__)
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wnested-anon-types"
+#	pragma clang diagnostic ignored "-Wgnu-anonymous-struct"
+#	pragma clang diagnostic ignored "-Wsign-conversion"
+#	pragma clang diagnostic ignored "-Wold-style-cast"
+#	pragma clang diagnostic ignored "-Wshadow"
+#	pragma clang diagnostic ignored "-Wsign-compare"
+#endif
 
-static_assert(__cplusplus >= 201703L, "Minimum supported compiler 2017 not found");
+#define CONVHULL_3D_ENABLE
+#include "convhull_3d/convhull_3d.h"
 
-#if (__cplusplus < 202001L)        // TODO: Change this to 2020 when available
-
-namespace std
-{
-enum class endian
-{
-#	ifdef _WIN32
-	little = 0,
-	big    = 1,
-	native = little
-#	else
-	little = __ORDER_LITTLE_ENDIAN__,
-	big    = __ORDER_BIG_ENDIAN__,
-	native = __BYTE_ORDER__
-#	endif
-};
-}        // namespace std
-#else
-
-#include <bit>
-static_assert(std::endian::native == std::endian::little, "Building on an unsupported non little-endian system");        // Only C++20
-
+#if defined(__clang__)
+#	pragma clang diagnostic pop
 #endif
