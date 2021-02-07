@@ -112,29 +112,29 @@ generate_export_header(${ROAR_NAME}
   NO_EXPORT_MACRO_NAME ROAR_ENGINE_PRIVATE)
 
 target_include_directories(${ROAR_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
-target_include_directories(${ROAR_NAME} PRIVATE ${ROAR_SOURCE_DIR})
-target_include_directories(${ROAR_NAME} PRIVATE ${ROAR_ROOT_DIR})
+target_include_directories(${ROAR_NAME} PUBLIC ${ROAR_SOURCE_DIR})
+target_include_directories(${ROAR_NAME} PUBLIC ${ROAR_ROOT_DIR})
 
-# Thirdparty include directories
-# target_include_directories(${ROAR_NAME} PRIVATE ../thirdparty/nlohmann/single_include/)
+set(ROAR_REQUIRED_PLATFORM_LIBRARIES "")
 
 if (APPLE)
   find_library(CORE_SERVICES CoreServices)
+  set(ROAR_REQUIRED_PLATFORM_LIBRARIES ${CORE_SERVICES})
 elseif (LINUX)
-  find_library(CORE_SERVICES something_else_required)
 elseif (WIN32)
-  find_library(CORE_SERVICES something_else_required)
 else ()
-  find_library(CORE_SERVICES not_supported)
 endif()
 
-set(ROAR_REQUIRED_LIBRARIES
-  ${CORE_SERVICES}
-  spdlog
-  nlohmann_json
-  xxhash
+set(ROAR_REQUIRED_PRIVATE_LIBRARIES
+  ${ROAR_REQUIRED_PLATFORM_LIBRARIES}
   roar_version)
 
-target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_LIBRARIES})
+set(ROAR_REQUIRED_PUBLIC_LIBRARIES
+  spdlog
+  nlohmann_json
+  xxhash)
+
+target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES}
+								   PUBLIC  ${ROAR_REQUIRED_PUBLIC_LIBRARIES})
 
 build_options(${ROAR_NAME}) # Set common build options
