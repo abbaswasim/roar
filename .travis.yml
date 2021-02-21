@@ -5,10 +5,6 @@ stages:
   - compile
   - test
   
-env:
-- BUILD_TYPE=Debug
-- BUILD_TYPE=Release
-
 matrix:
   include:
   - os: linux
@@ -55,7 +51,9 @@ matrix:
 before_install:
     - eval "${MATRIX_EVAL}"
 
-script: cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=$BUILD_TYPE && VERBOSE=1 cmake --build build --config $BUILD_TYPE -- -j8 && ./build/tests/roar_test
+script: 
+  - cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Debug && VERBOSE=1 cmake --build build --config Debug -- -j8 && ./build/tests/roar_test
+  - cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release && VERBOSE=1 cmake --build build --config Release -- -j8 && ./build/tests/roar_test
 
 notifications:
   email: false
