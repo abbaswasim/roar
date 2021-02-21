@@ -32,6 +32,7 @@ matrix:
           - libc++-10-dev
           - libc++abi-10-dev
           - gcc-10
+          - g++-10
     env:
       - MATRIX_EVAL="CC=clang-10 && CXX=clang++-10"
 
