@@ -53,7 +53,7 @@ function(build_options target_name)
 	-Wunreachable-code
 	-Wuninitialized
 	-Wno-gnu-zero-variadic-macro-arguments # Should fix this in long term, this is only needed for gtest typed tests at the moment
-	-pedantic-errors
+#	-pedantic-errors
 	-Wold-style-cast
 	-Wno-error=unused-variable
 	-Wshadow
