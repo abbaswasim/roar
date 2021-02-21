@@ -31,8 +31,9 @@ matrix:
           - clang-10
           - libc++-10-dev
           - libc++abi-10-dev
+          - gcc-10
     env:
-      - MATRIX_EVAL=""
+      - MATRIX_EVAL="CC=clang-10 && CXX=clang++-10"
 
   - os: osx
     compiler: gcc
