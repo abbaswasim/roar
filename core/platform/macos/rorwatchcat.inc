@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include <CoreServices/CoreServices.h>
+#include <filesystem>
 #include <memory>
 
 namespace ror
@@ -119,6 +120,13 @@ class PlatformData final
 	FSEventStreamContext *m_callbackInfo{nullptr};
 	FSEventStreamRef      m_stream{nullptr};
 };
+
+void WatchCat::rerun(std::filesystem::path a_path)
+{
+	void (a_path); // Don't need path in mac os case
+
+	this->run();
+}
 
 void WatchCat::run()
 {

@@ -117,6 +117,7 @@ void test_create_modify_remove(std::function<void(fs::path)> &created,
 							   fs::path                       file,
 							   int                            calls_count_test = 3)
 {
+
 	// Wait for the watcher to fire up
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 
@@ -131,8 +132,16 @@ void test_create_modify_remove(std::function<void(fs::path)> &created,
 
 	{
 		auto ff = std::ofstream(file);
-		ff << "the quick brown fox ";
-		ff.close();
+
+		if (ff.is_open())
+		{
+			ff << "the quick brown fox ";
+			ff.close();
+		}
+		else
+		{
+			ror::log_error("Can't write out file {} in test_create_modify_remove", file.c_str());
+		}
 	}
 
 	std::this_thread::sleep_for(std::chrono::seconds(2));
@@ -276,7 +285,6 @@ TEST(WatchCatTest, DISABLED_WatchCatTest_multiple_folders_run_again)
 	teardown_environment();
 }
 
-// TEST(WatchCatTest, DISABLED_WatchCatTest_multiple_folders_run_again_add_path)
 TEST(WatchCatTest, DISABLED_WatchCatTest_multiple_folders_run_again_add_path)
 {
 	std::vector<fs::path> root_dir;
@@ -299,7 +307,7 @@ TEST(WatchCatTest, DISABLED_WatchCatTest_multiple_folders_run_again_add_path)
 	test_create_modify_remove(created, removed, modified, file2, 0);        // Here there shouldn't be any calls for 2/file3.txt
 	wc->stop();
 
-	wc->add_path(get_root_dir() / "2");        // also does implicit stop and start
+	wc->add_path(get_root_dir() / "2");        // also does implicit stop and start, if required depending on platform (linux doesn't need it)
 	test_create_modify_remove(created, removed, modified, file1);
 	test_create_modify_remove(created, removed, modified, file2);        // Here there should be any 3 calls for 2/file3.txt which is default argument
 

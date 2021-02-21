@@ -32,6 +32,7 @@
 #include <functional>
 #include <random>
 #include <type_traits>
+#include <stdexcept>
 
 namespace ror
 {

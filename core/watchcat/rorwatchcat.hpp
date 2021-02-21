@@ -34,6 +34,7 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <atomic>
 
 namespace ror
 {
@@ -90,10 +91,11 @@ class ROAR_ENGINE_ITEM WatchCat final
   protected:
   private:
 	WatchCat() = default;        //! Constructor private to prevent creation without paths
+	void                               rerun(std::filesystem::path a_path);                                            // restart watching the paths
 
 	std::vector<std::filesystem::path> m_paths;                         // Copy of all files/directories to watch
-	watchcat_callback                  m_callback;                      // Use callback to forward events to
-	float32_t                          m_latency{1.0f};                 // Poll each second by default
+	watchcat_callback                  m_callback;                      // Use callback to forward events to // TODO: make this per path
+	float32_t                          m_latency{1.0f};                 // Poll each second by default, but can be changed by user
 	std::atomic<bool>                  m_run{true};                     // Should the loop be running capturing events or should it stop
 	std::unique_ptr<std::thread>       m_runner_thread{nullptr};        // The thread that will be used to launch a monitor in
 	std::unique_ptr<PlatformData>      m_platform_data{nullptr};        // Platform specific data should be defined in platform/os/watchcat.inc

@@ -50,12 +50,12 @@ void WatchCat::add_path(std::filesystem::path a_path)
 {
 	this->m_paths.emplace_back(a_path);
 
-	// remove duplicate paths
+	// removes duplicate paths
 	std::sort(this->m_paths.begin(), this->m_paths.end());
 	this->m_paths.erase(std::unique(this->m_paths.begin(), this->m_paths.end()),
 						this->m_paths.end());
 
-	this->run();
+	this->rerun(a_path);
 }
 
 std::vector<std::filesystem::path> WatchCat::get_paths() const

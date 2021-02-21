@@ -27,6 +27,9 @@
 add_subdirectory(spdlog)
 target_compile_options(spdlog INTERFACE "-Wno-float-equal")
 
+set_target_properties(spdlog
+  PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 # Add json library
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(nlohmann)
