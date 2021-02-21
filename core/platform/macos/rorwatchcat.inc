@@ -123,7 +123,7 @@ class PlatformData final
 
 void WatchCat::rerun(std::filesystem::path a_path)
 {
-	void (a_path); // Don't need path in mac os case
+	(void) a_path; // Don't need path in mac os case
 
 	this->run();
 }
