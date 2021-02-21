@@ -53,7 +53,7 @@ matrix:
 before_install:
     - eval "${MATRIX_EVAL}"
     - which clang++
-    - which clang++-10
+    - clang++ --version
     - ls -als `$(brew --prefix llvm)/bin`
 
 script: mkdir build && cd build && VERBOSE=1 cmake -DCMAKE_BUILD_TYPE=Debug .. && VERBOSE=1 make -j8 && ./tests/roar_test
