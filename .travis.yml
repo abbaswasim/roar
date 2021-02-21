@@ -37,7 +37,7 @@ matrix:
   - os: osx
     compiler: gcc
     env:
-      - MATRIX_EVAL="brew install gcc@10 && CC=gcc-10 && CXX=g++-10"
+      - MATRIX_EVAL="brew upgrade gcc && CC=gcc-10 && CXX=g++-10"
 
   - os: osx
     compiler: clang
