@@ -47,7 +47,7 @@ matrix:
       packages:
       - llvm@10
     env:
-      - MATRIX_EVAL="PATH='$(brew --prefix llvm)/bin:$PATH' && CC=clang-10 && CXX=clang++-10"
+      - MATRIX_EVAL="PATH='$(brew --prefix llvm)/bin:$PATH' && CC=clang && CXX=clang++"
 
 before_install:
     - eval "${MATRIX_EVAL}"
