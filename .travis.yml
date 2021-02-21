@@ -43,8 +43,11 @@ matrix:
 
   - os: osx
     compiler: clang
+    homebrew:
+      packages:
+      - llvm@10
     env:
-      - MATRIX_EVAL="CC=clang-10 && CXX=clang++-10"
+      - MATRIX_EVAL="PATH='$(brew --prefix llvm)/bin:$PATH' && CC=clang-10 && CXX=clang++-10"
 
 before_install:
     - eval "${MATRIX_EVAL}"
