@@ -42,13 +42,10 @@ matrix:
       - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
 
   - os: osx
+    osx_image: xcode12.2
     compiler: clang
-    homebrew:
-      packages:
-      - llvm@10
-      update: true
     env:
-      - MATRIX_EVAL="PATH='$(brew --prefix llvm)/bin:$PATH' && CC=clang && CXX=clang++"
+      - MATRIX_EVAL=""
 
 before_install:
     - eval "${MATRIX_EVAL}"
