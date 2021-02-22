@@ -117,7 +117,7 @@ FORCE_INLINE void Quaternion<_type>::set(_type a_x, _type a_y, _type a_z, _type 
 			this->set(m12 - m21, m20 - m02, m01 - m10, t); \
 		}                                                  \
 	}                                                      \
-	*this *= static_cast<_type>(0.5) / std::sqrt(t);
+	*this *= static_cast<_type>(0.5) / std::sqrt(t)
 
 template <class _type>
 FORCE_INLINE void Quaternion<_type>::set(const Matrix3<_type> &a_matrix) noexcept

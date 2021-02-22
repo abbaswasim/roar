@@ -51,7 +51,7 @@ class ROAR_ENGINE_ITEM Timer
 	using Nanoseconds  = std::chrono::nanoseconds;
 	using Microseconds = std::chrono::microseconds;
 
-	TimePoint m_previous_time;
+	TimePoint m_previous_time{};
 };
 
 }        // namespace ror

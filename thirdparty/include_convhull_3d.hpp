@@ -32,6 +32,17 @@
 #	pragma clang diagnostic ignored "-Wshadow"
 #	pragma clang diagnostic ignored "-Wsign-compare"
 #	pragma clang diagnostic ignored "-Weverything"
+#elif defined(__GNUC__) || defined(__GNUG__)
+#	pragma GCC diagnostic push
+#	pragma GCC diagnostic ignored "-Wall"
+#	pragma GCC diagnostic ignored "-Wextra"
+#	pragma GCC diagnostic ignored "-Wpedantic"
+#	pragma GCC diagnostic ignored "-Wold-style-cast"
+#	pragma GCC diagnostic ignored "-Wshadow"
+#	pragma GCC diagnostic ignored "-Wsign-compare"
+#elif defined(_MSVC)
+#else
+#	error Compiler not supported
 #endif
 
 #define CONVHULL_3D_ENABLE

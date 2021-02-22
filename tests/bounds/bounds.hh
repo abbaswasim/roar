@@ -62,16 +62,16 @@ void BoundingTest<_type>::TearDown()
 TYPED_TEST(BoundingTest, BoundingSphere_constructors_work)
 {
 	ror::Round<ror::Vector3<TypeParam>> bounding_sphere1;
-	ASSERT_TRUE((bounding_sphere1.radius()) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(static_cast<float32_t>(bounding_sphere1.radius()) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_sphere1.center() == ror::Vector3<TypeParam>(0.0f, 0.0f, 0.0f));
 	ASSERT_TRUE(bounding_sphere1.m_type == ror::BoundingType::sphere_3d);
 
-	ASSERT_TRUE((bounding_sphere1.radius() - this->m_bounding_sphere.radius()) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(static_cast<float32_t>(bounding_sphere1.radius() - this->m_bounding_sphere.radius()) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_sphere1.center() == this->m_bounding_sphere.center());
 	ASSERT_TRUE(bounding_sphere1.m_type == this->m_bounding_sphere.m_type);
 
 	ror::Round<ror::Vector3<TypeParam>> bounding_sphere2(bounding_sphere1);
-	ASSERT_TRUE((bounding_sphere1.radius() - bounding_sphere2.radius()) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(static_cast<float32_t>(bounding_sphere1.radius() - bounding_sphere2.radius()) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_sphere1.center() == bounding_sphere2.center());
 	ASSERT_TRUE(bounding_sphere1.m_type == bounding_sphere2.m_type);
 }
@@ -84,7 +84,7 @@ TYPED_TEST(BoundingTest, BoundingSphere_accessors_mutators)
 	bounding_sphere1.set_radius(static_cast<TypeParam>(5.0f));
 	bounding_sphere1.set_center(center);
 
-	ASSERT_TRUE((bounding_sphere1.radius() - static_cast<TypeParam>(5.0f)) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(static_cast<float32_t>(bounding_sphere1.radius() - static_cast<TypeParam>(5.0f)) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_sphere1.center() == center);
 }
 
@@ -108,12 +108,12 @@ TYPED_TEST(BoundingTest, BoundingSphere_add_point)
 	nextRadius = bounding_sphere1.radius();
 
 	bounding_sphere1.add_point(this->m_vector3_4);
-	ASSERT_TRUE(abs(bounding_sphere1.radius() - nextRadius) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(bounding_sphere1.radius() - nextRadius)) < ror::ror_epsilon_squared);
 
 	nextRadius = bounding_sphere1.radius();
 
 	bounding_sphere1.add_point(this->m_vector3_2);
-	ASSERT_TRUE(abs(bounding_sphere1.radius() - nextRadius) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(bounding_sphere1.radius() - nextRadius)) < ror::ror_epsilon_squared);
 
 	ror::Vector3<TypeParam> pointx(40.0f, 0.0f, 0.0f);
 	ror::Vector3<TypeParam> pointypositive(20.0f, 20.0f, 0.0f);
@@ -127,25 +127,25 @@ TYPED_TEST(BoundingTest, BoundingSphere_add_point)
 
 	this->m_bounding_sphere.add_point(point1);
 	this->m_bounding_sphere.add_point(pointx);
-	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>(this->m_bounding_sphere.radius()) - 20.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_sphere.add_point(pointypositive);
-	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>(this->m_bounding_sphere.radius()) - 20.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_sphere.add_point(pointynegative);
-	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>(this->m_bounding_sphere.radius()) - 20.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_sphere.add_point(pointzpositive);
-	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>(this->m_bounding_sphere.radius()) - 20.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_sphere.add_point(pointznegative);
-	EXPECT_TRUE(abs(this->m_bounding_sphere.radius() - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>(this->m_bounding_sphere.radius()) - 20.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_sphere.add_point(pointallpositive);
-	EXPECT_GE(this->m_bounding_sphere.radius(), 24.0f);
+	EXPECT_GE(static_cast<float32_t>(this->m_bounding_sphere.radius()), 24.0f);
 
 	this->m_bounding_sphere.add_point(pointallnegative);
-	EXPECT_GE(this->m_bounding_sphere.radius(), 37.0f);
+	EXPECT_GE(static_cast<float32_t>(this->m_bounding_sphere.radius()), 37.0f);
 
 	ror::Round<ror::Vector3<TypeParam>> bounding_sphere2;
 	ror::Vector3<TypeParam>             pointSameCenter1(20.0f, 0.0f, 0.0f);
@@ -158,7 +158,7 @@ TYPED_TEST(BoundingTest, BoundingSphere_add_point)
 	EXPECT_FALSE(bounding_sphere2.center() == point1);
 
 	bounding_sphere2.add_point(pointSameCenter2);
-	EXPECT_TRUE(abs(bounding_sphere2.radius() - 20.0f) < ror::ror_epsilon);
+	EXPECT_TRUE(abs(static_cast<float32_t>(bounding_sphere2.radius()) - 20.0f) < ror::ror_epsilon);
 	EXPECT_TRUE(bounding_sphere2.center() == point1);
 }
 
@@ -167,7 +167,7 @@ TYPED_TEST(BoundingTest, BoundingSphere_is_point_inside)
 	ror::Round<ror::Vector3<TypeParam>> bounding_sphere1;
 	ror::Round<ror::Vector3<TypeParam>> bounding_sphere2;
 
-	ASSERT_TRUE(abs(this->m_bounding_sphere.radius() - 0.0f) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(this->m_bounding_sphere.radius()) - 0.0f) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(this->m_bounding_sphere.center() == this->m_vector3_0);
 
 	this->m_bounding_sphere.set_radius(20.0f);
@@ -272,7 +272,9 @@ TYPED_TEST(BoundingTest, BoundingSphere_add_bounding_sphere)
 	bounding_sphere1.add_bounding(bounding_sphere2);
 	ASSERT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_1) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_2) == true);
+	}
 	EXPECT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3_3) == true);
 	EXPECT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3_4) == true);
 
@@ -280,7 +282,9 @@ TYPED_TEST(BoundingTest, BoundingSphere_add_bounding_sphere)
 	EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_1) == true);
 	EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_2) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_3) == true);
+	}
 	EXPECT_FALSE(bounding_sphere1.is_point_inside(this->m_vector3_4) == true);
 
 	bounding_sphere1.add_bounding(bounding_sphere4);
@@ -288,37 +292,51 @@ TYPED_TEST(BoundingTest, BoundingSphere_add_bounding_sphere)
 	EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_2) == true);
 	EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_3) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_sphere1.is_point_inside(this->m_vector3_4) == true);
+	}
 
 	bounding_sphere2.add_bounding(bounding_sphere3);
 	EXPECT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_1) == true);
 	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_2) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_3) == true);
+	}
 	EXPECT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_4) == true);
 
 	bounding_sphere2.add_bounding(bounding_sphere4);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_1) == true);
+	}
 	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_2) == true);
 	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_3) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_4) == true);
+	}
 
 	bounding_sphere3.add_bounding(bounding_sphere4);
 	EXPECT_FALSE(bounding_sphere3.is_point_inside(this->m_vector3_1) == true);
 	EXPECT_FALSE(bounding_sphere3.is_point_inside(this->m_vector3_2) == true);
 	EXPECT_TRUE(bounding_sphere3.is_point_inside(this->m_vector3_3) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_sphere3.is_point_inside(this->m_vector3_4) == true);
+	}
 
 	bounding_sphere2.add_bounding(bounding_sphere4);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_FALSE(bounding_sphere2.is_point_inside(this->m_vector3_1) == true);
+	}
 	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_2) == true);
 	EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_3) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_sphere2.is_point_inside(this->m_vector3_4) == true);
+	}
 }
 
 TYPED_TEST(BoundingTest, BoundingSphere_bounding_sphere_collision)
@@ -636,16 +654,16 @@ TYPED_TEST(BoundingTest, BoundingSphere_system_test)
 TYPED_TEST(BoundingTest, BoundingCircle_constructors_work)
 {
 	ror::Round<ror::Vector2<TypeParam>> bounding_circle1;
-	ASSERT_TRUE((bounding_circle1.radius() - 0.0f) < ror::ror_epsilon_squared);
+	ASSERT_TRUE((static_cast<float32_t>(bounding_circle1.radius()) - 0.0f) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_circle1.center() == ror::Vector2<TypeParam>(0.0f, 0.0f));
 	ASSERT_TRUE(bounding_circle1.m_type == ror::BoundingType::circle_2d);
 
-	ASSERT_TRUE((bounding_circle1.radius() - this->m_bounding_circle.radius()) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(static_cast<float32_t>(bounding_circle1.radius() - this->m_bounding_circle.radius()) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_circle1.center() == this->m_bounding_circle.center());
 	ASSERT_TRUE(bounding_circle1.m_type == this->m_bounding_circle.m_type);
 
 	ror::Round<ror::Vector2<TypeParam>> bounding_circle2(bounding_circle1);
-	ASSERT_TRUE((bounding_circle1.radius() - bounding_circle2.radius()) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(static_cast<float32_t>(bounding_circle1.radius() - bounding_circle2.radius()) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_circle1.center() == bounding_circle1.center());
 	ASSERT_TRUE(bounding_circle1.m_type == bounding_circle1.m_type);
 }
@@ -657,7 +675,7 @@ TYPED_TEST(BoundingTest, BoundingCircle_accessors_mutators)
 
 	bounding_circle1.set_radius(5.0f);
 	bounding_circle1.set_center(center);
-	ASSERT_TRUE((bounding_circle1.radius() - 5.0f) < ror::ror_epsilon_squared);
+	ASSERT_TRUE((static_cast<float32_t>(bounding_circle1.radius()) - 5.0f) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(bounding_circle1.center() == center);
 }
 
@@ -677,11 +695,11 @@ TYPED_TEST(BoundingTest, BoundingCircle_add_point)
 
 	nextRadius = bounding_circle1.radius();
 	bounding_circle1.add_point(this->m_vector2_4);
-	ASSERT_TRUE(abs(bounding_circle1.radius() - nextRadius) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(bounding_circle1.radius() - nextRadius)) < ror::ror_epsilon_squared);
 
 	nextRadius = bounding_circle1.radius();
 	bounding_circle1.add_point(this->m_vector2_2);
-	ASSERT_TRUE(abs(bounding_circle1.radius() - nextRadius) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(bounding_circle1.radius() - nextRadius)) < ror::ror_epsilon_squared);
 
 	ror::Vector2<TypeParam> pointx(40.0f, 0.0f);
 	ror::Vector2<TypeParam> pointypositive(20.0f, 20.0f);
@@ -695,15 +713,15 @@ TYPED_TEST(BoundingTest, BoundingCircle_add_point)
 
 	this->m_bounding_circle.add_point(point1);
 	this->m_bounding_circle.add_point(pointx);
-	ASSERT_TRUE(abs(this->m_bounding_circle.radius() - 20.0f) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(this->m_bounding_circle.radius()) - 20.0f) < ror::ror_epsilon_squared);
 	this->m_bounding_circle.add_point(pointypositive);
-	ASSERT_TRUE(abs(this->m_bounding_circle.radius() - 20.0f) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(this->m_bounding_circle.radius()) - 20.0f) < ror::ror_epsilon_squared);
 	this->m_bounding_circle.add_point(pointynegative);
-	ASSERT_TRUE(abs(this->m_bounding_circle.radius() - 20.0f) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(this->m_bounding_circle.radius()) - 20.0f) < ror::ror_epsilon_squared);
 	this->m_bounding_circle.add_point(pointzpositive);
-	ASSERT_TRUE(abs(this->m_bounding_circle.radius() - 20.0f) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(this->m_bounding_circle.radius()) - 20.0f) < ror::ror_epsilon_squared);
 	this->m_bounding_circle.add_point(pointznegative);
-	ASSERT_TRUE(abs(this->m_bounding_circle.radius() - 20.0f) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(this->m_bounding_circle.radius()) - 20.0f) < ror::ror_epsilon_squared);
 
 	ror::Round<ror::Vector2<TypeParam>> bounding_circle2;
 	ror::Vector2<TypeParam>             pointSameCenter1(20.0f, 0.0f);
@@ -716,7 +734,7 @@ TYPED_TEST(BoundingTest, BoundingCircle_add_point)
 	EXPECT_FALSE(bounding_circle2.center() == point1);
 
 	bounding_circle2.add_point(pointSameCenter2);
-	EXPECT_TRUE(abs(bounding_circle2.radius() - 20.0f) < ror::ror_epsilon);
+	EXPECT_TRUE(abs(static_cast<float32_t>(bounding_circle2.radius()) - 20.0f) < ror::ror_epsilon);
 	EXPECT_TRUE(bounding_circle2.center() == point1);
 }
 
@@ -727,7 +745,7 @@ TYPED_TEST(BoundingTest, BoundingCircle_is_point_inside)
 
 	ror::Vector2<TypeParam> point1(10.0f, 10.0f);
 
-	ASSERT_TRUE(abs(this->m_bounding_circle.radius() - 0.0f) < ror::ror_epsilon_squared);
+	ASSERT_TRUE(abs(static_cast<float32_t>(this->m_bounding_circle.radius()) - 0.0f) < ror::ror_epsilon_squared);
 	ASSERT_TRUE(this->m_bounding_circle.center() == this->m_vector2_0);
 
 	this->m_bounding_circle.set_radius(20.0f);
@@ -824,51 +842,69 @@ TYPED_TEST(BoundingTest, BoundingCircle_add_bounding_circle)
 	bounding_circle1.add_bounding(bounding_circle2);
 	EXPECT_TRUE(bounding_circle1.is_point_inside(this->m_vector2_1) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_circle1.is_point_inside(this->m_vector2_2) == true);
+	}
 	EXPECT_FALSE(bounding_circle1.is_point_inside(this->m_vector2_3) == true);
 	EXPECT_FALSE(bounding_circle1.is_point_inside(this->m_vector2_4) == true);
 	bounding_circle1.add_bounding(bounding_circle3);
 	EXPECT_TRUE(bounding_circle1.is_point_inside(this->m_vector2_1) == true);
 	EXPECT_TRUE(bounding_circle1.is_point_inside(this->m_vector2_2) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_circle1.is_point_inside(this->m_vector2_3) == true);
+	}
 	EXPECT_FALSE(bounding_circle1.is_point_inside(this->m_vector2_4) == true);
 	bounding_circle1.add_bounding(bounding_circle4);
 	EXPECT_TRUE(bounding_circle1.is_point_inside(this->m_vector2_1) == true);
 	EXPECT_TRUE(bounding_circle1.is_point_inside(this->m_vector2_2) == true);
 	EXPECT_TRUE(bounding_circle1.is_point_inside(this->m_vector2_3) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_circle1.is_point_inside(this->m_vector2_4) == true);
+	}
 
 	bounding_circle2.add_bounding(bounding_circle3);
 	EXPECT_FALSE(bounding_circle2.is_point_inside(this->m_vector2_1) == true);
 	EXPECT_TRUE(bounding_circle2.is_point_inside(this->m_vector2_2) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_circle2.is_point_inside(this->m_vector2_3) == true);
+	}
 	EXPECT_FALSE(bounding_circle2.is_point_inside(this->m_vector2_4) == true);
 
 	bounding_circle2.add_bounding(bounding_circle4);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_FALSE(bounding_circle2.is_point_inside(this->m_vector2_1) == true);
+	}
 	EXPECT_TRUE(bounding_circle2.is_point_inside(this->m_vector2_2) == true);
 	EXPECT_TRUE(bounding_circle2.is_point_inside(this->m_vector2_3) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_circle2.is_point_inside(this->m_vector2_4) == true);
+	}
 
 	bounding_circle3.add_bounding(bounding_circle4);
 	EXPECT_FALSE(bounding_circle3.is_point_inside(this->m_vector2_1) == true);
 	EXPECT_FALSE(bounding_circle3.is_point_inside(this->m_vector2_2) == true);
 	EXPECT_TRUE(bounding_circle3.is_point_inside(this->m_vector2_3) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_circle3.is_point_inside(this->m_vector2_4) == true);
+	}
 
 	bounding_circle2.add_bounding(bounding_circle4);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_FALSE(bounding_circle2.is_point_inside(this->m_vector2_1) == true);
+	}
 	EXPECT_TRUE(bounding_circle2.is_point_inside(this->m_vector2_2) == true);
 	EXPECT_TRUE(bounding_circle2.is_point_inside(this->m_vector2_3) == true);
 	if (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
+	{
 		EXPECT_TRUE(bounding_circle2.is_point_inside(this->m_vector2_4) == true);
+	}
 }
 
 TYPED_TEST(BoundingTest, BoundingCircle_bounding_circle_collision)
@@ -1169,29 +1205,29 @@ TYPED_TEST(BoundingTest, BoundingBox_add_point)
 
 	this->m_bounding_box.add_point(point1);
 	this->m_bounding_box.add_point(pointx);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y) - 0.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z) - 0.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y)) - 0.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z)) - 0.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_box.add_point(pointypositive);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y) - 20.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z) - 0.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y)) - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z)) - 0.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_box.add_point(pointynegative);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z) - 0.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z)) - 0.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_box.add_point(pointzpositive);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z) - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z)) - 20.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_box.add_point(pointznegative);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().x - this->m_bounding_box.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().y - this->m_bounding_box.minimum().y)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_box.maximum().z - this->m_bounding_box.minimum().z)) - 40.0f) < ror::ror_epsilon_squared);
 }
 
 TYPED_TEST(BoundingTest, BoundingBox_is_point_inside)
@@ -1744,24 +1780,24 @@ TYPED_TEST(BoundingTest, BoundingRectangle_add_point)
 
 	this->m_bounding_rectangle.add_point(point1);
 	this->m_bounding_rectangle.add_point(pointx);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y) - 0.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y)) - 0.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_rectangle.add_point(pointypositive);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y) - 20.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y)) - 20.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_rectangle.add_point(pointynegative);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y)) - 40.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_rectangle.add_point(pointzpositive);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y)) - 40.0f) < ror::ror_epsilon_squared);
 
 	this->m_bounding_rectangle.add_point(pointznegative);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x) - 40.0f) < ror::ror_epsilon_squared);
-	EXPECT_TRUE(abs((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().x - this->m_bounding_rectangle.minimum().x)) - 40.0f) < ror::ror_epsilon_squared);
+	EXPECT_TRUE(abs(static_cast<float32_t>((this->m_bounding_rectangle.maximum().y - this->m_bounding_rectangle.minimum().y)) - 40.0f) < ror::ror_epsilon_squared);
 }
 
 TYPED_TEST(BoundingTest, BoundingRectangle_is_point_inside)

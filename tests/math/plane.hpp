@@ -42,7 +42,7 @@ class PlaneTest : public testing::Test
 	virtual void TearDown() override
 	{}
 
-	ror::Plane<_type> m_Plane;        //!< standard member variable used for comparisions
+	ror::Plane<_type> m_Plane{};        //!< standard member variable used for comparisions
 };
 
 using PlaneTypes = testing::Types<float32_t, double64_t>;

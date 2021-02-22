@@ -48,7 +48,7 @@ enum class CollisionType : int32_t
 class ROAR_ENGINE_ITEM Bounding
 {
   public:
-	BoundingType m_type;        //!< Bounding type defined by BoundingType enum
+	BoundingType m_type{};        //!< Bounding type defined by BoundingType enum
 
 	FORCE_INLINE Bounding()                            = default;                   //! Default constructor
 	FORCE_INLINE Bounding(const Bounding &a_other)     = default;                   //! Copy constructor
@@ -76,7 +76,7 @@ class ROAR_ENGINE_ITEM BoundingBase : public Bounding
 	FORCE_INLINE BoundingBase(BoundingBase &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE BoundingBase &operator=(const BoundingBase &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE BoundingBase &operator=(BoundingBase &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~BoundingBase() noexcept                         = default;        //! Destructor
+	FORCE_INLINE virtual ~BoundingBase() noexcept override                = default;        //! Destructor
 
 	// These are defined here and not in Bounding because I can't templatize Bounding, Otherwise
 	// I can't cast from Bounding<Vector3> => Bounding<Vector2> etc if I want to create an array of Boundings
@@ -130,7 +130,7 @@ using BoundingRectangle = Box<_type, vector2_typename<_type>>;
 
 // TODO: Use squared radius instead
 #define ROUND_COMMON()                                                            \
-	typename _type::value_type m_radius;                                          \
+	typename _type::value_type m_radius{};                                        \
 																				  \
 	FORCE_INLINE Round();                                                         \
 	FORCE_INLINE Round(const Round &a_other)     = default;                       \

@@ -57,13 +57,14 @@ function(build_options target_name)
 	-Wshadow
 	-Werror
 	-Weffc++
-	-Wno-c++98-compat-pedantic
-	-Wno-c++98-compat
 	-Wfloat-equal)
 
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   target_compile_options(${target_name} PRIVATE -Wmost)
-  target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments) # TODO: Find a solution to this for gtest
+  target_compile_options(${target_name} PRIVATE
+	-Wno-c++98-compat-pedantic
+	-Wno-c++98-compat
+	-Wno-gnu-zero-variadic-macro-arguments) # TODO: Find a solution to this for gtest
 
   target_compile_options(${target_name} PRIVATE
 	# The following warnings after everyting are enabled by -Weverything but are not practical to fix hence ignoring

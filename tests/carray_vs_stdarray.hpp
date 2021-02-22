@@ -35,12 +35,12 @@ class ArrayTest : public testing::Test
   public:
 	ArrayTest()
 	{}
-	virtual ~ArrayTest();
+	virtual ~ArrayTest() override;
 
   protected:
-	virtual void SetUp()
+	virtual void SetUp() override
 	{}
-	virtual void TearDown()
+	virtual void TearDown() override
 	{}
 };
 

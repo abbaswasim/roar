@@ -74,7 +74,7 @@ void log_set_level(LogLevel a_level);
 #endif
 
 #ifdef sync_logger
-#	define add_sync() std::lock_guard<std::mutex> lock{get_logger_lock()};
+#	define add_sync() std::lock_guard<std::mutex> lock{get_logger_lock()}
 #else
 #	define add_sync()
 #endif

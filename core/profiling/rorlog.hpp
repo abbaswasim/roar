@@ -47,7 +47,7 @@ class ROAR_ENGINE_ITEM StreamRedirect
 	StreamRedirect &operator=(StreamRedirect &&a_other) noexcept = delete;        //! Move assignment operator
 	virtual ~StreamRedirect();                                                    //! Destructor
 
-	std::stringstream m_messages;        //! all cout messages are redicted here
+	std::stringstream m_messages{};        //! all cout messages are redicted here
 
   protected:
   private:

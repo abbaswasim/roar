@@ -49,8 +49,8 @@ class GraphTest : public testing::Test
 	virtual void TearDown() override;
 
   private:
-	ror::Graph<std::string, false> m_graph1;
-	ror::Graph<std::string, false> m_graph2;
+	ror::Graph<std::string, false> m_graph1{};
+	ror::Graph<std::string, false> m_graph2{};
 };
 
 class GraphTSTest : public testing::Test
@@ -71,8 +71,8 @@ class GraphTSTest : public testing::Test
 	virtual void TearDown() override;
 
   private:
-	ror::Graph<std::string, true> m_graph1;
-	ror::Graph<std::string, true> m_graph2;
+	ror::Graph<std::string, true> m_graph1{};
+	ror::Graph<std::string, true> m_graph2{};
 };
 
 }        // namespace ror_test

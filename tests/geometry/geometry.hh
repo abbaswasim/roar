@@ -135,7 +135,10 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 				}
 				for (size_t i = 0; i < 12; ++i)
 				{
-					test_vector3_equal(ror::Vector3<TypeParam>(indices_tris[3 * i], indices_tris[3 * i + 1], indices_tris[3 * i + 2]), index_buffer[i]);
+					test_vector3_equal(ror::Vector3<TypeParam>(static_cast<TypeParam>(indices_tris[3 * i]),
+															   static_cast<TypeParam>(indices_tris[3 * i + 1]),
+															   static_cast<TypeParam>(indices_tris[3 * i + 2])),
+									   index_buffer[i]);
 				}
 			}
 			{
@@ -152,7 +155,10 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 
 				for (size_t i = 0; i < 12; ++i)
 				{
-					test_vector3_equal(ror::Vector3<TypeParam>(indices_tris[3 * i], indices_tris[3 * i + 1], indices_tris[3 * i + 2]), index_buffer[i]);
+					test_vector3_equal(ror::Vector3<TypeParam>(static_cast<TypeParam>(indices_tris[3 * i]),
+															   static_cast<TypeParam>(indices_tris[3 * i + 1]),
+															   static_cast<TypeParam>(indices_tris[3 * i + 2])),
+									   index_buffer[i]);
 				}
 			}
 			// Lines version of the tests
@@ -212,7 +218,9 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 				}
 				for (size_t i = 0; i < 12; ++i)
 				{
-					test_vector2_equal(ror::Vector2<TypeParam>(indices_lines[2 * i], indices_lines[2 * i + 1]), index_buffer[i]);
+					test_vector2_equal(ror::Vector2<TypeParam>(static_cast<TypeParam>(indices_lines[2 * i]),
+															   static_cast<TypeParam>(indices_lines[2 * i + 1])),
+									   index_buffer[i]);
 				}
 			}
 			{
@@ -229,7 +237,9 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 
 				for (size_t i = 0; i < 12; ++i)
 				{
-					test_vector2_equal(ror::Vector2<TypeParam>(indices_lines[2 * i], indices_lines[2 * i + 1]), index_buffer[i]);
+					test_vector2_equal(ror::Vector2<TypeParam>(static_cast<TypeParam>(indices_lines[2 * i]),
+															   static_cast<TypeParam>(indices_lines[2 * i + 1])),
+									   index_buffer[i]);
 				}
 			}
 		}
@@ -530,7 +540,10 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 				}
 				for (size_t i = 0; i < 2; ++i)
 				{
-					test_vector2_equal(ror::Vector3<TypeParam>(indices_tris[3 * i], indices_tris[3 * i + 1], indices_tris[3 * i + 2]), index_buffer[i]);
+					test_vector2_equal(ror::Vector3<TypeParam>(static_cast<TypeParam>(indices_tris[3 * i]),
+															   static_cast<TypeParam>(indices_tris[3 * i + 1]),
+															   static_cast<TypeParam>(indices_tris[3 * i + 2])),
+									   index_buffer[i]);
 				}
 			}
 			{
@@ -547,7 +560,10 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 
 				for (size_t i = 0; i < 2; ++i)
 				{
-					test_vector2_equal(ror::Vector3<TypeParam>(indices_tris[3 * i], indices_tris[3 * i + 1], indices_tris[3 * i + 2]), index_buffer[i]);
+					test_vector2_equal(ror::Vector3<TypeParam>(static_cast<TypeParam>(indices_tris[3 * i]),
+															   static_cast<TypeParam>(indices_tris[3 * i + 1]),
+															   static_cast<TypeParam>(indices_tris[3 * i + 2])),
+									   index_buffer[i]);
 				}
 			}
 
@@ -608,7 +624,9 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 				}
 				for (size_t i = 0; i < 4; ++i)
 				{
-					test_vector2_equal(ror::Vector2<TypeParam>(indices_lines[2 * i], indices_lines[2 * i + 1]), index_buffer[i]);
+					test_vector2_equal(ror::Vector2<TypeParam>(static_cast<TypeParam>(indices_lines[2 * i]),
+															   static_cast<TypeParam>(indices_lines[2 * i + 1])),
+									   index_buffer[i]);
 				}
 			}
 			{
@@ -625,7 +643,9 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 
 				for (size_t i = 0; i < 4; ++i)
 				{
-					test_vector2_equal(ror::Vector2<TypeParam>(indices_lines[2 * i], indices_lines[2 * i + 1]), index_buffer[i]);
+					test_vector2_equal(ror::Vector2<TypeParam>(static_cast<TypeParam>(indices_lines[2 * i]),
+															   static_cast<TypeParam>(indices_lines[2 * i + 1])),
+									   index_buffer[i]);
 				}
 			}
 		}

@@ -37,9 +37,9 @@ template <class _type>
 class ROAR_ENGINE_ITEM Transform final
 {
   public:
-	Quaternion<_type> m_rotation;                                     //!< Rotation component of the transform
-	Vector3<_type>    m_translation = Vector3<_type>(0, 0, 0);        //!< Translation or origin of the transform
-	Vector3<_type>    m_scale       = Vector3<_type>(1, 1, 1);        //!< Scaling component of the transform
+	Quaternion<_type> m_rotation{};                                     //!< Rotation component of the transform
+	Vector3<_type>    m_translation{0, 0, 0};        //!< Translation or origin of the transform
+	Vector3<_type>    m_scale{1, 1, 1};        //!< Scaling component of the transform
 
 	FORCE_INLINE Transform()                             = default;                   //! Default constructor
 	FORCE_INLINE Transform(const Transform &a_other)     = default;                   //! Copy constructor

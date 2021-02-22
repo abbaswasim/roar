@@ -215,7 +215,8 @@ template <class _type>
 FORCE_INLINE _type closest(_type a_value, _type a_first, _type a_second)
 {
 	// Converts to decimal from all types including unsigned values, in which case you might loose precision, truncation
-	return (std::abs(static_cast<ror_precision<_type>>(a_value) - a_first) < std::abs(static_cast<ror_precision<_type>>(a_value) - a_second) ? a_first : a_second);
+	return (std::abs(ror_precision_cast(a_value) - ror_precision_cast(a_first)) <
+			std::abs(ror_precision_cast(a_value) - ror_precision_cast(a_second)) ? a_first : a_second);
 }
 
 FORCE_INLINE uint32_t power_of_two(uint32_t a_value)

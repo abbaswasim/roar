@@ -504,10 +504,10 @@ template <class _type>
 FORCE_INLINE Matrix4<_type> make_perspective(_type a_fov_in_radians, _type a_aspect_ratio, _type a_z_near, _type a_z_far)
 {
 	// Never set a_z_near to 0.0 otherwise there will be precision loss
-	_type angle_in_radians = a_fov_in_radians / static_cast<_type>(2);
+	_type angle_in_radians = a_fov_in_radians / static_cast<_type>(2.0f);
 
 	_type delta_z   = a_z_near - a_z_far;
-	_type cotangent = static_cast<_type>(1) / tan(angle_in_radians);
+	_type cotangent = static_cast<_type>(1.0f) / std::tan(angle_in_radians);
 
 	Matrix4<_type> matrix;
 
@@ -530,7 +530,7 @@ FORCE_INLINE Matrix4<_type> make_infinite_perspective(_type a_fov_in_radians, _t
 	Matrix4<_type> out = make_perspective(a_fov_in_radians, a_aspect_ratio, a_z_near, static_cast<_type>(100));
 
 	// Using epslion here might be losing all the benefit
-	// TODO: Check UD12.pdf for infinit matrix
+	// TODO: Check UD12.pdf for infinite matrix
 	out.m_values[10] = ror_epsilon - static_cast<_type>(1);
 	out.m_values[14] = (ror_epsilon - static_cast<_type>(2)) * a_z_near;
 

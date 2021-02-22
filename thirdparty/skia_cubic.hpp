@@ -70,8 +70,8 @@ typedef float32_t SkScalar;
 class SkPoint
 {
   public:
-	SkScalar fX;        //!< x-axis value
-	SkScalar fY;        //!< y-axis value
+	SkScalar fX{};        //!< x-axis value
+	SkScalar fY{};        //!< y-axis value
 
 	SkPoint() :
 		fX(0),

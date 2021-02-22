@@ -124,7 +124,7 @@ void Graph<_type, _thread_safe>::add_edge(VertexId a_parent, VertexId a_child)
 		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	const VertexId s = this->m_nodes.size();
-	if ((a_parent >= 0 && a_parent < s) && (a_child >= 0 && a_child < s))
+	if (a_parent < s && a_child < s)
 	{
 		this->add_child(a_parent, a_child);
 	}
@@ -137,7 +137,7 @@ void Graph<_type, _thread_safe>::remove_edge(VertexId a_parent, VertexId a_child
 		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	const VertexId s = this->m_nodes.size();
-	if ((a_parent >= 0 && a_parent < s) && (a_child >= 0 && a_child < s))
+	if (a_parent < s && a_child < s)
 	{
 		std::get<0>(this->m_nodes[a_parent]).remove_child(a_child);
 		std::get<0>(this->m_nodes[a_child]).remove_parent(a_parent);
@@ -188,7 +188,7 @@ std::tuple<GraphNode, _type> *Graph<_type, _thread_safe>::at(const VertexId a_in
 		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	const VertexId s = this->m_nodes.size();
-	if (a_index >= 0 && a_index < s)
+	if (a_index < s)
 		return &this->m_nodes[a_index];
 
 	return nullptr;

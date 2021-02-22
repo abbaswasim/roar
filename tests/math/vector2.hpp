@@ -38,32 +38,32 @@ class Vector2Test : public testing::Test
   public:
 	using value_type = _type;
 
-	ror::Vector2<_type> m_a;
-	ror::Vector2<_type> m_b;
-	ror::Vector2<_type> m_sum_ab;
-	ror::Vector2<_type> m_diff_ab;
-	ror::Vector2<_type> m_mul_ab;
-	ror::Vector2<_type> m_div_ab;
-	ror::Vector2<_type> m_sum_ac;
-	ror::Vector2<_type> m_diff_ac;
-	ror::Vector2<_type> m_mul_ac;
-	ror::Vector2<_type> m_div_ac;
-	ror::Vector2<typename ror::Vector2<_type>::precision> m_normalized_a;
-	ror::Vector2<typename ror::Vector2<_type>::precision> m_normalized_b;
-	ror::Vector2<_type> m_inverse_a;
-	ror::Vector2<_type> m_inverse_b;
-	ror::Vector2<_type> m_cross_ab;
+	ror::Vector2<_type> m_a{};
+	ror::Vector2<_type> m_b{};
+	ror::Vector2<_type> m_sum_ab{};
+	ror::Vector2<_type> m_diff_ab{};
+	ror::Vector2<_type> m_mul_ab{};
+	ror::Vector2<_type> m_div_ab{};
+	ror::Vector2<_type> m_sum_ac{};
+	ror::Vector2<_type> m_diff_ac{};
+	ror::Vector2<_type> m_mul_ac{};
+	ror::Vector2<_type> m_div_ac{};
+	ror::Vector2<typename ror::Vector2<_type>::precision> m_normalized_a{};
+	ror::Vector2<typename ror::Vector2<_type>::precision> m_normalized_b{};
+	ror::Vector2<_type> m_inverse_a{};
+	ror::Vector2<_type> m_inverse_b{};
+	ror::Vector2<_type> m_cross_ab{};
 
-	_type m_scalar;
-	_type m_dot_ab;
-	_type m_min_a;
-	_type m_max_a;
-	_type m_min_b;
-	_type m_max_b;
-	_type m_length_a;
-	_type m_length_b;
-	_type m_length_sq_a;
-	_type m_length_sq_b;
+	_type m_scalar{};
+	_type m_dot_ab{};
+	_type m_min_a{};
+	_type m_max_a{};
+	_type m_min_b{};
+	_type m_max_b{};
+	_type m_length_a{};
+	_type m_length_b{};
+	_type m_length_sq_a{};
+	_type m_length_sq_b{};
 
   protected:
 	virtual void SetUp() override;

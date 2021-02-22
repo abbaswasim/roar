@@ -36,9 +36,9 @@ template <class _type>
 class Matrix3x4Test : public testing::Test
 {
   public:
-	_type m_c = 35.0;
-	ror::Matrix3x4<_type> m_a;
-	ror::Matrix3x4<_type> m_b;
+	_type m_c{static_cast<_type>(35.0)};
+	ror::Matrix3x4<_type> m_a{};
+	ror::Matrix3x4<_type> m_b{};
 
   protected:
 	virtual void SetUp() override;

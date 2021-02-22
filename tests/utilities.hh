@@ -97,8 +97,8 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		auto iv6 = ror::interpolate(max1, min1, static_cast<float32_t>(2));        // This one doesn't seem fully right, have a look later
 		auto iv7 = ror::interpolate(max1, min1, static_cast<float32_t>(-1));
 
-		EXPECT_DOUBLE_EQ(iv0, min1);
-		EXPECT_DOUBLE_EQ(iv1, max1);
+		EXPECT_DOUBLE_EQ(iv0, static_cast<double64_t>(min1));
+		EXPECT_DOUBLE_EQ(iv1, static_cast<double64_t>(max1));
 
 		EXPECT_DOUBLE_EQ(iv2, v1_center);
 		EXPECT_DOUBLE_EQ(iv3, v1_center);
@@ -120,8 +120,8 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		auto iv6 = ror::interpolate(max2, min2, static_cast<float32_t>(2));        // This one doesn't seem fully right, have a look later
 		auto iv7 = ror::interpolate(max2, min2, static_cast<float32_t>(-1));
 
-		EXPECT_DOUBLE_EQ(iv0, min2);
-		EXPECT_DOUBLE_EQ(iv1, max2);
+		EXPECT_DOUBLE_EQ(iv0, static_cast<double64_t>(min2));
+		EXPECT_DOUBLE_EQ(iv1, static_cast<double64_t>(max2));
 
 		EXPECT_DOUBLE_EQ(iv2, v2_center);
 		EXPECT_DOUBLE_EQ(iv3, v2_center);
@@ -143,17 +143,17 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		auto iv6 = ror::interpolate_clamp(max1, min1, static_cast<float32_t>(2));        // This one doesn't seem fully right, have a look later
 		auto iv7 = ror::interpolate_clamp(max1, min1, static_cast<float32_t>(-1));
 
-		EXPECT_DOUBLE_EQ(iv0, min1);
-		EXPECT_DOUBLE_EQ(iv1, max1);
+		EXPECT_DOUBLE_EQ(iv0, static_cast<double64_t>(min1));
+		EXPECT_DOUBLE_EQ(iv1, static_cast<double64_t>(max1));
 
 		EXPECT_DOUBLE_EQ(iv2, v1_center);
 		EXPECT_DOUBLE_EQ(iv3, v1_center);
 
-		EXPECT_DOUBLE_EQ(iv4, max1);
-		EXPECT_DOUBLE_EQ(iv6, min1);
+		EXPECT_DOUBLE_EQ(iv4, static_cast<double64_t>(max1));
+		EXPECT_DOUBLE_EQ(iv6, static_cast<double64_t>(min1));
 
-		EXPECT_DOUBLE_EQ(iv5, min1);
-		EXPECT_DOUBLE_EQ(iv7, max1);
+		EXPECT_DOUBLE_EQ(iv5, static_cast<double64_t>(min1));
+		EXPECT_DOUBLE_EQ(iv7, static_cast<double64_t>(max1));
 	}
 
 	{
@@ -166,17 +166,17 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		auto iv6 = ror::interpolate_clamp(max2, min2, static_cast<float32_t>(2));        // This one doesn't seem fully right, have a look later
 		auto iv7 = ror::interpolate_clamp(max2, min2, static_cast<float32_t>(-1));
 
-		EXPECT_DOUBLE_EQ(iv0, min2);
-		EXPECT_DOUBLE_EQ(iv1, max2);
+		EXPECT_DOUBLE_EQ(iv0, static_cast<double64_t>(min2));
+		EXPECT_DOUBLE_EQ(iv1, static_cast<double64_t>(max2));
 
 		EXPECT_DOUBLE_EQ(iv2, v2_center);
 		EXPECT_DOUBLE_EQ(iv3, v2_center);
 
-		EXPECT_DOUBLE_EQ(iv4, max2);
-		EXPECT_DOUBLE_EQ(iv6, min2);
+		EXPECT_DOUBLE_EQ(iv4, static_cast<double64_t>(max2));
+		EXPECT_DOUBLE_EQ(iv6, static_cast<double64_t>(min2));
 
-		EXPECT_DOUBLE_EQ(iv5, min2);
-		EXPECT_DOUBLE_EQ(iv7, max2);
+		EXPECT_DOUBLE_EQ(iv5, static_cast<double64_t>(min2));
+		EXPECT_DOUBLE_EQ(iv7, static_cast<double64_t>(max2));
 	}
 
 	{
@@ -329,8 +329,8 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		auto iv6 = ror::remap(max1, min1, max2, min2, static_cast<TypeParam>(v1_twice));        // This one doesn't seem fully right, have a look later
 		auto iv7 = ror::remap(max1, min1, max2, min2, static_cast<TypeParam>(v1_twice_minus));
 
-		EXPECT_DOUBLE_EQ(iv0, min2);
-		EXPECT_DOUBLE_EQ(iv1, max2);
+		EXPECT_DOUBLE_EQ(iv0, static_cast<double64_t>(min2));
+		EXPECT_DOUBLE_EQ(iv1, static_cast<double64_t>(max2));
 
 		EXPECT_DOUBLE_EQ(iv2, v2_center);
 		EXPECT_DOUBLE_EQ(iv3, v2_center);
@@ -358,8 +358,8 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		auto iv6 = ror::remap(max2, min2, max1, min1, static_cast<TypeParam>(v2_twice));        // This one doesn't seem fully right, have a look later
 		auto iv7 = ror::remap(max2, min2, max1, min1, static_cast<TypeParam>(v2_twice_minus));
 
-		EXPECT_DOUBLE_EQ(iv0, min1);
-		EXPECT_DOUBLE_EQ(iv1, max1);
+		EXPECT_DOUBLE_EQ(iv0, static_cast<double64_t>(min1));
+		EXPECT_DOUBLE_EQ(iv1, static_cast<double64_t>(max1));
 
 		EXPECT_DOUBLE_EQ(iv2, v1_center);
 		EXPECT_DOUBLE_EQ(iv3, v1_center);
@@ -387,8 +387,8 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		auto iv6 = ror::remap_clamp(max1, min1, max2, min2, static_cast<TypeParam>(v1_twice));        // This one doesn't seem fully right, have a look later
 		auto iv7 = ror::remap_clamp(max1, min1, max2, min2, static_cast<TypeParam>(v1_twice_minus));
 
-		EXPECT_DOUBLE_EQ(iv0, min2);
-		EXPECT_DOUBLE_EQ(iv1, max2);
+		EXPECT_DOUBLE_EQ(iv0, static_cast<double64_t>(min2));
+		EXPECT_DOUBLE_EQ(iv1, static_cast<double64_t>(max2));
 
 		EXPECT_DOUBLE_EQ(iv2, v2_center);
 		EXPECT_DOUBLE_EQ(iv3, v2_center);
@@ -398,11 +398,11 @@ TYPED_TEST(UtilitiesTest, functions_test)
 			std::is_same<TypeParam, int32_t>::value ||
 			std::is_same<TypeParam, int64_t>::value)
 		{
-			EXPECT_DOUBLE_EQ(iv4, max2);
-			EXPECT_DOUBLE_EQ(iv6, min2);
+			EXPECT_DOUBLE_EQ(iv4, static_cast<double64_t>(max2));
+			EXPECT_DOUBLE_EQ(iv6, static_cast<double64_t>(min2));
 
-			EXPECT_DOUBLE_EQ(iv5, min2);
-			EXPECT_DOUBLE_EQ(iv7, max2);
+			EXPECT_DOUBLE_EQ(iv5, static_cast<double64_t>(min2));
+			EXPECT_DOUBLE_EQ(iv7, static_cast<double64_t>(max2));
 		}
 	}
 
@@ -416,8 +416,8 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		auto iv6 = ror::remap_clamp(max2, min2, max1, min1, static_cast<TypeParam>(v2_twice));        // This one doesn't seem fully right, have a look later
 		auto iv7 = ror::remap_clamp(max2, min2, max1, min1, static_cast<TypeParam>(v2_twice_minus));
 
-		EXPECT_DOUBLE_EQ(iv0, min1);
-		EXPECT_DOUBLE_EQ(iv1, max1);
+		EXPECT_DOUBLE_EQ(iv0, static_cast<double64_t>(min1));
+		EXPECT_DOUBLE_EQ(iv1, static_cast<double64_t>(max1));
 
 		EXPECT_DOUBLE_EQ(iv2, v1_center);
 		EXPECT_DOUBLE_EQ(iv3, v1_center);
@@ -427,11 +427,11 @@ TYPED_TEST(UtilitiesTest, functions_test)
 			std::is_same<TypeParam, int32_t>::value ||
 			std::is_same<TypeParam, int64_t>::value)
 		{
-			EXPECT_DOUBLE_EQ(iv4, max1);
-			EXPECT_DOUBLE_EQ(iv6, min1);
+			EXPECT_DOUBLE_EQ(iv4, static_cast<double64_t>(max1));
+			EXPECT_DOUBLE_EQ(iv6, static_cast<double64_t>(min1));
 
-			EXPECT_DOUBLE_EQ(iv5, min1);
-			EXPECT_DOUBLE_EQ(iv7, max1);
+			EXPECT_DOUBLE_EQ(iv5, static_cast<double64_t>(min1));
+			EXPECT_DOUBLE_EQ(iv7, static_cast<double64_t>(max1));
 		}
 	}
 
@@ -453,19 +453,19 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		TypeParam center      = (min1 < static_cast<TypeParam>(0) ? static_cast<TypeParam>(25.0f) : static_cast<TypeParam>(50.0f));
 
 		auto c0 = ror::closest(static_cast<TypeParam>(center + 1), min1, max1);
-		ASSERT_DOUBLE_EQ(c0, max1);
+		ASSERT_DOUBLE_EQ(static_cast<double64_t>(c0), static_cast<double64_t>(max1));
 
 		auto c1 = ror::closest(static_cast<TypeParam>(center - 1), min1, max1);
-		ASSERT_DOUBLE_EQ(c1, min1);
+		ASSERT_DOUBLE_EQ(static_cast<double64_t>(c1), static_cast<double64_t>(min1));
 
 		auto c2 = ror::closest(center, min2, max2);
-		ASSERT_DOUBLE_EQ(c2, min2);
+		ASSERT_DOUBLE_EQ(static_cast<double64_t>(c2), static_cast<double64_t>(min2));
 
 		auto c3 = ror::closest(static_cast<TypeParam>(center - 1), min2, max2);
-		ASSERT_DOUBLE_EQ(c3, min2);
+		ASSERT_DOUBLE_EQ(static_cast<double64_t>(c3), static_cast<double64_t>(min2));
 
 		auto c4 = ror::closest(static_cast<TypeParam>(center + 1), min2, max2);
-		ASSERT_DOUBLE_EQ(c4, min2);
+		ASSERT_DOUBLE_EQ(static_cast<double64_t>(c4), static_cast<double64_t>(min2));
 	}
 
 	{

@@ -41,18 +41,18 @@ class BoundingTest : public testing::Test
 	virtual void SetUp() override;
 	virtual void TearDown() override;
 
-	ror::Box<ror::Vector3<_type>>   m_bounding_box;
-	ror::Box<ror::Vector2<_type>>   m_bounding_rectangle;
-	ror::Round<ror::Vector3<_type>> m_bounding_sphere;
-	ror::Round<ror::Vector2<_type>> m_bounding_circle;
+	ror::Box<ror::Vector3<_type>>   m_bounding_box{};
+	ror::Box<ror::Vector2<_type>>   m_bounding_rectangle{};
+	ror::Round<ror::Vector3<_type>> m_bounding_sphere{};
+	ror::Round<ror::Vector2<_type>> m_bounding_circle{};
 
-	ror::Vector3<_type> m_vector3_0, m_vector3_1, m_vector3_2, m_vector3_3, m_vector3_4;
-	ror::Vector3<_type> m_vector_negative3_1, m_vector_negative3_2;
-	ror::Vector3<_type> m_vector_negative3_3, m_vector_negative3_4;
+	ror::Vector3<_type> m_vector3_0{}, m_vector3_1{}, m_vector3_2{}, m_vector3_3{}, m_vector3_4{};
+	ror::Vector3<_type> m_vector_negative3_1{}, m_vector_negative3_2{};
+	ror::Vector3<_type> m_vector_negative3_3{}, m_vector_negative3_4{};
 
-	ror::Vector2<_type> m_vector2_0, m_vector2_1, m_vector2_2, m_vector2_3, m_vector2_4;
-	ror::Vector2<_type> m_vector_negative2_1, m_vector_negative2_2;
-	ror::Vector2<_type> m_vector_negative2_3, m_vector_negative2_4;
+	ror::Vector2<_type> m_vector2_0{}, m_vector2_1{}, m_vector2_2{}, m_vector2_3{}, m_vector2_4{};
+	ror::Vector2<_type> m_vector_negative2_1{}, m_vector_negative2_2{};
+	ror::Vector2<_type> m_vector_negative2_3{}, m_vector_negative2_4{};
 };
 
 // using BoundingTypesToTest = ::testing::Types<int64_t, uint64_t, int32_t, int16_t, int8_t, uint32_t, uint16_t, uint8_t, float32_t, double64_t>;

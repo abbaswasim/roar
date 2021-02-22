@@ -121,7 +121,7 @@ template <class _type>
 FORCE_INLINE void Matrix3x4<_type>::set_axis(uint32_t a_axis_index, const Vector3<_type> &a_axis) noexcept
 {
 	// Last column also considered as axis although its the origin
-	assert(a_axis_index >= 0 && a_axis_index <= 3 && "Index out of bounds");
+	assert(a_axis_index <= 3 && "Index out of bounds");
 
 	uint32_t axis_index = a_axis_index * 3;
 
@@ -195,7 +195,7 @@ FORCE_INLINE Vector3<_type> Matrix3x4<_type>::origin() const        //!< Get 3D 
 template <class _type>
 FORCE_INLINE Vector3<_type> Matrix3x4<_type>::column(uint32_t a_index) const
 {
-	assert(a_index >= 0 && a_index <= 3 && "Index out of bounds");
+	assert(a_index <= 3 && "Index out of bounds");
 
 	uint32_t axis_index = a_index * 3;
 

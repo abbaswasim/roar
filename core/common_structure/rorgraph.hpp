@@ -60,8 +60,8 @@ class ROAR_ENGINE_ITEM GraphNode final
 
   protected:
   private:
-	std::vector<VertexId> m_children;        //! Also describes link to child from current GraphNode
-	std::vector<VertexId> m_parents;         //! Also describes link from parent to current GraphNode
+	std::vector<VertexId> m_children{};        //! Also describes link to child from current GraphNode
+	std::vector<VertexId> m_parents{};         //! Also describes link from parent to current GraphNode
 };
 
 /**
@@ -82,7 +82,7 @@ template <>
 class ConditionalMutex<true>
 {
   public:
-	std::mutex m_mutex;        //! Use to synchronize access from different threads
+	std::mutex m_mutex{};        //! Use to synchronize access from different threads
 };
 
 /**
@@ -203,9 +203,9 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	 */
 	void update_sorted_list();
 
-	std::vector<Vertex>   m_nodes;                 //! List of vertices in the graph
-	std::vector<VertexId> m_sorted_list;           //! List of vertices in topographical sorted order of the graph
-	VertexId              m_edge_count = 0;        //! Total amount of edges in the graph at a time
+	std::vector<Vertex>   m_nodes{};              //! List of vertices in the graph
+	std::vector<VertexId> m_sorted_list{};        //! List of vertices in topographical sorted order of the graph
+	VertexId              m_edge_count{0};        //! Total amount of edges in the graph at a time
 };
 
 }        // namespace ror

@@ -32,7 +32,7 @@ namespace ror_test
 	{                                                      \
 		TypeParam next_rand = rands.next();                \
 		ASSERT_TRUE(next_rand >= min && next_rand <= max); \
-	}
+	} (void) 1
 
 TYPED_TEST(RandomTest, constructors_work)
 {

@@ -31,10 +31,10 @@
 namespace ror
 {
 template <class _type>
-class ROAR_ENGINE_ITEM Vector2;
+class Vector2;
 
 template <class _type>
-class ROAR_ENGINE_ITEM Vector4;
+class Vector4;
 
 /**
 Template class for 3-component vector storage and manipulation.

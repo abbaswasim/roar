@@ -42,8 +42,8 @@ class QuaternionTest : public testing::Test
 	virtual void SetUp() override;
 	virtual void TearDown() override;
 
-	ror::Quaternion<_type> m_quaternion1;        //!< standard member variable used for comparisions
-	ror::Quaternion<_type> m_quaternion2;        //!< standard member variable used for comparisions
+	ror::Quaternion<_type> m_quaternion1{};        //!< standard member variable used for comparisions
+	ror::Quaternion<_type> m_quaternion2{};        //!< standard member variable used for comparisions
 };
 
 using QuaternionTypesToTest = ::testing::Types<float32_t, double64_t>;

@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "bounds/rorbounding.hpp"
+#include <foundation/rorutilities.hpp>
 #include <iostream>
 #include <sys/types.h>
 
@@ -127,11 +128,11 @@ template <class _type>
 FORCE_INLINE CollisionType BoundingSphere<_type>::collision(const BoundingSphere<Vector3<typename _type::value_type>> &a_bounding) const noexcept
 {
 	auto center_to_center_distance = distance(this->m_points[0], a_bounding.m_points[0]);
-	if (center_to_center_distance > this->m_radius + a_bounding.m_radius)
+	if (center_to_center_distance > ror_precision_cast(this->m_radius + a_bounding.m_radius))
 	{
 		return CollisionType::outside;
 	}
-	else if (center_to_center_distance + a_bounding.m_radius <= this->m_radius)
+	else if (center_to_center_distance + ror_precision_cast(a_bounding.m_radius) <= ror_precision_cast(this->m_radius))
 	{
 		return CollisionType::inside;
 	}
@@ -147,9 +148,9 @@ FORCE_INLINE CollisionType BoundingSphere<_type>::collision(const BoundingBox<Ve
 
 	auto dist = distance(this->m_points[0], closest);
 
-	if (dist < this->m_radius)
+	if (dist < ror_precision_cast(this->m_radius))
 	{
-		if (distance(this->m_points[0], a_bounding.m_points[0]) < this->m_radius && distance(this->m_points[0], a_bounding.m_points[1]) < this->m_radius)
+		if (distance(this->m_points[0], a_bounding.m_points[0]) < ror_precision_cast(this->m_radius) && distance(this->m_points[0], a_bounding.m_points[1]) < ror_precision_cast(this->m_radius))
 		{
 			return CollisionType::inside;
 		}
@@ -171,11 +172,11 @@ FORCE_INLINE CollisionType BoundingSphere<_type>::collision(const BoundingCircle
 
 	auto center_to_center_distance = distance(this->m_points[0], circle_center_3d);
 
-	if ((center_to_center_distance > this->m_radius + a_bounding.m_radius) || (std::abs(this->m_points[0].z) > this->m_radius))
+	if ((center_to_center_distance > ror_precision_cast(this->m_radius + a_bounding.m_radius)) || (std::abs(this->m_points[0].z) > this->m_radius))
 	{
 		return CollisionType::outside;
 	}
-	else if (center_to_center_distance + a_bounding.m_radius <= this->m_radius)
+	else if (center_to_center_distance + ror_precision_cast(a_bounding.m_radius) <=  ror_precision_cast(this->m_radius))
 	{
 		return CollisionType::inside;
 	}
@@ -194,9 +195,9 @@ FORCE_INLINE CollisionType BoundingSphere<_type>::collision(const BoundingRectan
 
 	auto dist = distance(this->m_points[0], closest);
 
-	if (dist < this->m_radius)
+	if (dist < ror_precision_cast(this->m_radius))
 	{
-		if (this->m_radius > distance(this->m_points[0], rec_min) && this->m_radius > distance(this->m_points[0], rec_max))
+		if (ror_precision_cast(this->m_radius) > distance(this->m_points[0], rec_min) && ror_precision_cast(this->m_radius) > distance(this->m_points[0], rec_max))
 		{
 			return CollisionType::inside;
 		}
@@ -211,7 +212,7 @@ template <class _type>
 FORCE_INLINE bool BoundingSphere<_type>::intersects(const BoundingSphere<Vector3<typename _type::value_type>> &a_bounding) const noexcept
 {
 	auto center_to_center_distance = distance(this->m_points[0], a_bounding.m_points[0]);
-	if (center_to_center_distance > this->m_radius + a_bounding.m_radius)
+	if (center_to_center_distance > ror_precision_cast(this->m_radius + a_bounding.m_radius))
 	{
 		return false;
 	}
@@ -225,7 +226,7 @@ FORCE_INLINE bool BoundingSphere<_type>::intersects(const BoundingBox<Vector3<ty
 	auto closest = vector_clamp(this->m_points[0], a_bounding.m_points[0], a_bounding.m_points[1]);
 	auto dist    = distance(this->m_points[0], closest);
 
-	if (dist < this->m_radius)
+	if (dist < ror_precision_cast(this->m_radius))
 	{
 		return true;
 	}
@@ -240,7 +241,7 @@ FORCE_INLINE bool BoundingSphere<_type>::intersects(const BoundingCircle<Vector2
 
 	auto center_to_center_distance = distance(this->m_points[0], circle_center_3d);
 
-	if ((center_to_center_distance > this->m_radius + a_bounding.m_radius) || (std::abs(this->m_points[0].z) > this->m_radius))
+	if ((center_to_center_distance > ror_precision_cast(this->m_radius + a_bounding.m_radius)) || (std::abs(this->m_points[0].z) > this->m_radius))
 	{
 		return false;
 	}
@@ -257,7 +258,7 @@ FORCE_INLINE bool BoundingSphere<_type>::intersects(const BoundingRectangle<Vect
 	auto closest = vector_clamp(this->m_points[0], rec_min, rec_max);
 	auto dist    = distance(this->m_points[0], closest);
 
-	if (dist < this->m_radius)
+	if (dist < ror_precision_cast(this->m_radius))
 	{
 		return true;
 	}
@@ -273,7 +274,7 @@ FORCE_INLINE void BoundingSphere<_type>::add_bounding(const BoundingSphere<Vecto
 	// Distance of a_sphere to the center of the sphere
 	auto center_to_center_distance = direction_to_center.length();
 
-	if (center_to_center_distance + a_sphere.m_radius < this->m_radius || center_to_center_distance + this->m_radius < a_sphere.m_radius)
+	if (center_to_center_distance + ror_precision_cast(a_sphere.m_radius) < ror_precision_cast(this->m_radius) || center_to_center_distance + ror_precision_cast(this->m_radius) < ror_precision_cast(a_sphere.m_radius))
 	{
 		if (this->m_radius < a_sphere.m_radius)
 		{
@@ -284,10 +285,10 @@ FORCE_INLINE void BoundingSphere<_type>::add_bounding(const BoundingSphere<Vecto
 	else
 	{
 		auto old_radius = this->m_radius;
-		this->m_radius  = static_cast<typename _type::value_type>((center_to_center_distance + this->m_radius + a_sphere.m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
+		this->m_radius  = static_cast<typename _type::value_type>((center_to_center_distance + ror_precision_cast(this->m_radius + a_sphere.m_radius)) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
 		if (center_to_center_distance > ror::ror_epsilon)
 		{
-			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>((this->m_radius - old_radius) / center_to_center_distance);
+			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>(ror_precision_cast(this->m_radius - old_radius) / center_to_center_distance);
 		}
 	}
 }
@@ -309,7 +310,7 @@ FORCE_INLINE void BoundingSphere<_type>::add_bounding(const BoundingCircle<Vecto
 	// Distance of a_bounding to the center of the sphere
 	auto center_to_center_distance = direction_to_center.length();
 
-	if (center_to_center_distance + a_bounding.m_radius < this->m_radius || center_to_center_distance + this->m_radius < a_bounding.m_radius)
+	if (center_to_center_distance + ror_precision_cast(a_bounding.m_radius) < ror_precision_cast(this->m_radius) || center_to_center_distance + ror_precision_cast(this->m_radius) < ror_precision_cast(a_bounding.m_radius))
 	{
 		if (this->m_radius < a_bounding.m_radius)
 		{
@@ -320,10 +321,10 @@ FORCE_INLINE void BoundingSphere<_type>::add_bounding(const BoundingCircle<Vecto
 	else
 	{
 		auto old_radius = this->m_radius;
-		this->m_radius  = static_cast<typename _type::value_type>((center_to_center_distance + this->m_radius + a_bounding.m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
+		this->m_radius  = static_cast<typename _type::value_type>((center_to_center_distance + ror_precision_cast(this->m_radius + a_bounding.m_radius)) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
 		if (center_to_center_distance > ror::ror_epsilon)
 		{
-			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>((this->m_radius - old_radius) / center_to_center_distance);
+			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>(ror_precision_cast(this->m_radius - old_radius) / center_to_center_distance);
 		}
 	}
 }
@@ -412,15 +413,15 @@ FORCE_INLINE void BoundingSphere<_type>::add_point(const _type &a_point)
 	auto center_to_point_distance = direction_to_point.length();
 
 	// Consider only if the point is outside the current sphere
-	if (center_to_point_distance > this->m_radius)
+	if (center_to_point_distance > ror_precision_cast(this->m_radius))
 	{
-		auto old_radius = this->m_radius;
-		auto new_radius = (center_to_point_distance + this->m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f);
+		auto old_radius = ror_precision_cast(this->m_radius);
+		auto new_radius = (center_to_point_distance + old_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f);
 
 		// Could call normalized but length is already calculated so lets use it
-		Vector3<ror_precision<typename _type::value_type>> normalized_direction(direction_to_point.x / center_to_point_distance,
-																				direction_to_point.y / center_to_point_distance,
-																				direction_to_point.z / center_to_point_distance);
+		Vector3<ror_precision<typename _type::value_type>> normalized_direction(ror_precision_cast(direction_to_point.x) / center_to_point_distance,
+																				ror_precision_cast(direction_to_point.y) / center_to_point_distance,
+																				ror_precision_cast(direction_to_point.z) / center_to_point_distance);
 
 		auto radius_diff = (new_radius - old_radius);
 
@@ -438,7 +439,7 @@ FORCE_INLINE bool BoundingSphere<_type>::is_point_inside(const _type &a_point) c
 	// Perhaps one day use radius * radius against squared distance
 	auto center_to_point_distance = distance(this->m_points[0], a_point);
 
-	return !(center_to_point_distance > this->m_radius);
+	return !(center_to_point_distance > ror_precision_cast(this->m_radius));
 }
 
 template <class _type>
@@ -501,11 +502,11 @@ FORCE_INLINE CollisionType BoundingCircle<_type>::collision(const BoundingSphere
 
 	auto center_to_center_distance = distance(a_bounding.m_points[0], circle_center_3d);
 
-	if ((center_to_center_distance > this->m_radius + a_bounding.m_radius) || (std::abs(a_bounding.m_points[0].z) > a_bounding.m_radius))
+	if ((center_to_center_distance > ror_precision_cast(this->m_radius + a_bounding.m_radius)) || (std::abs(a_bounding.m_points[0].z) > a_bounding.m_radius))
 	{
 		return CollisionType::outside;
 	}
-	else if (center_to_center_distance + a_bounding.m_radius <= this->m_radius)
+	else if (center_to_center_distance + ror_precision_cast(a_bounding.m_radius) <= ror_precision_cast(this->m_radius))
 	{
 		return CollisionType::inside;
 	}
@@ -523,10 +524,10 @@ FORCE_INLINE CollisionType BoundingCircle<_type>::collision(const BoundingBox<Ve
 	auto closest = vector_clamp(circle_center, a_bounding.m_points[0], a_bounding.m_points[1]);
 	auto dist    = distance(circle_center, closest);
 
-	if (dist < this->m_radius && ror::equal_zero(closest.z))
+	if (dist < ror_precision_cast(this->m_radius) && ror::equal_zero(closest.z))
 	{
-		if (distance(circle_center, a_bounding.m_points[0]) < this->m_radius &&
-			distance(circle_center, a_bounding.m_points[1]) < this->m_radius)
+		if (distance(circle_center, a_bounding.m_points[0]) < ror_precision_cast(this->m_radius) &&
+			distance(circle_center, a_bounding.m_points[1]) < ror_precision_cast(this->m_radius))
 		{
 			return CollisionType::inside;
 		}
@@ -546,11 +547,11 @@ FORCE_INLINE CollisionType BoundingCircle<_type>::collision(const BoundingCircle
 {
 	auto center_to_center_distance = distance(this->m_points[0], a_bounding.m_points[0]);
 
-	if (center_to_center_distance > this->m_radius + a_bounding.m_radius)
+	if (center_to_center_distance > ror_precision_cast(this->m_radius + a_bounding.m_radius))
 	{
 		return CollisionType::outside;
 	}
-	else if (center_to_center_distance + a_bounding.m_radius <= this->m_radius)
+	else if (center_to_center_distance + ror_precision_cast(a_bounding.m_radius) <= ror_precision_cast(this->m_radius))
 	{
 		return CollisionType::inside;
 	}
@@ -564,9 +565,9 @@ FORCE_INLINE CollisionType BoundingCircle<_type>::collision(const BoundingRectan
 	auto closest = vector_clamp(this->m_points[0], a_bounding.m_points[0], a_bounding.m_points[1]);
 	auto dist    = distance(this->m_points[0], closest);
 
-	if (dist < this->m_radius)
+	if (dist < ror_precision_cast(this->m_radius))
 	{
-		if (distance(this->m_points[0], a_bounding.m_points[0]) < this->m_radius && distance(this->m_points[0], a_bounding.m_points[1]) < this->m_radius)
+		if (distance(this->m_points[0], a_bounding.m_points[0]) < ror_precision_cast(this->m_radius) && distance(this->m_points[0], a_bounding.m_points[1]) < ror_precision_cast(this->m_radius))
 		{
 			return CollisionType::inside;
 		}
@@ -587,7 +588,7 @@ FORCE_INLINE bool BoundingCircle<_type>::intersects(const BoundingSphere<Vector3
 
 	auto center_to_center_distance = distance(a_bounding.m_points[0], circle_center_3d);
 
-	if ((center_to_center_distance > this->m_radius + a_bounding.m_radius) || (std::abs(a_bounding.m_points[0].z) > a_bounding.m_radius))
+	if ((center_to_center_distance > ror_precision_cast(this->m_radius + a_bounding.m_radius)) || (std::abs(a_bounding.m_points[0].z) > a_bounding.m_radius))
 	{
 		return false;
 	}
@@ -604,7 +605,7 @@ FORCE_INLINE bool BoundingCircle<_type>::intersects(const BoundingBox<Vector3<ty
 	auto closest = vector_clamp(circle_center, a_bounding.m_points[0], a_bounding.m_points[1]);
 	auto dist    = distance(circle_center, closest);
 
-	if (dist < this->m_radius && ror::equal_zero(closest.z))
+	if (dist < ror_precision_cast(this->m_radius) && ror::equal_zero(closest.z))
 	{
 		return true;
 	}
@@ -617,7 +618,7 @@ FORCE_INLINE bool BoundingCircle<_type>::intersects(const BoundingCircle<Vector2
 {
 	auto center_to_center_distance = distance(this->m_points[0], a_bounding.m_points[0]);
 
-	if (center_to_center_distance > this->m_radius + a_bounding.m_radius)
+	if (center_to_center_distance > ror_precision_cast(this->m_radius + a_bounding.m_radius))
 	{
 		return false;
 	}
@@ -631,7 +632,7 @@ FORCE_INLINE bool BoundingCircle<_type>::intersects(const BoundingRectangle<Vect
 	auto closest = vector_clamp(this->m_points[0], a_bounding.m_points[0], a_bounding.m_points[1]);
 	auto dist    = distance(this->m_points[0], closest);
 
-	if (dist < this->m_radius)
+	if (dist < ror_precision_cast(this->m_radius))
 	{
 		return true;
 	}
@@ -649,7 +650,7 @@ FORCE_INLINE void BoundingCircle<_type>::add_bounding(const BoundingSphere<Vecto
 	// Distance of a_sphere to the center of the sphere
 	auto center_to_center_distance = direction_to_center.length();
 
-	if (center_to_center_distance + a_sphere.m_radius < this->m_radius || center_to_center_distance + this->m_radius < a_sphere.m_radius)
+	if (center_to_center_distance + ror_precision_cast(a_sphere.m_radius) < ror_precision_cast(this->m_radius) || center_to_center_distance + ror_precision_cast(this->m_radius) < ror_precision_cast(a_sphere.m_radius))
 	{
 		if (this->m_radius < a_sphere.m_radius)
 		{
@@ -660,10 +661,10 @@ FORCE_INLINE void BoundingCircle<_type>::add_bounding(const BoundingSphere<Vecto
 	else
 	{
 		auto old_radius = this->m_radius;
-		this->m_radius  = static_cast<typename _type::value_type>((center_to_center_distance + this->m_radius + a_sphere.m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
+		this->m_radius  = static_cast<typename _type::value_type>((center_to_center_distance + ror_precision_cast(this->m_radius + a_sphere.m_radius)) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
 		if (center_to_center_distance > ror::ror_epsilon)
 		{
-			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>((this->m_radius - old_radius) / center_to_center_distance);
+			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>(ror_precision_cast(this->m_radius - old_radius) / center_to_center_distance);
 		}
 	}
 }
@@ -683,7 +684,7 @@ FORCE_INLINE void BoundingCircle<_type>::add_bounding(const BoundingCircle<Vecto
 	// Distance of a_circle to the center of the sphere
 	auto center_to_center_distance = direction_to_center.length();
 
-	if (center_to_center_distance + a_circle.m_radius < this->m_radius || center_to_center_distance + this->m_radius < a_circle.m_radius)
+	if (center_to_center_distance + ror_precision_cast(a_circle.m_radius) < ror_precision_cast(this->m_radius) || center_to_center_distance + ror_precision_cast(this->m_radius) < ror_precision_cast(a_circle.m_radius))
 	{
 		if (this->m_radius < a_circle.m_radius)
 		{
@@ -695,10 +696,10 @@ FORCE_INLINE void BoundingCircle<_type>::add_bounding(const BoundingCircle<Vecto
 	{
 		auto old_radius = this->m_radius;
 
-		this->m_radius = static_cast<typename _type::value_type>((center_to_center_distance + this->m_radius + a_circle.m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
+		this->m_radius = static_cast<typename _type::value_type>((center_to_center_distance + ror_precision_cast(this->m_radius + a_circle.m_radius)) * static_cast<ror_precision<typename _type::value_type>>(0.5f));
 		if (center_to_center_distance > ror::ror_epsilon)
 		{
-			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>((this->m_radius - old_radius) / center_to_center_distance);
+			this->m_points[0] = this->m_points[0] + direction_to_center * static_cast<typename _type::value_type>(ror_precision_cast(this->m_radius - old_radius) / center_to_center_distance);
 		}
 	}
 }
@@ -786,14 +787,14 @@ FORCE_INLINE void BoundingCircle<_type>::add_point(const _type &a_point)
 	auto center_to_point_distance = direction_to_point.length();
 
 	// Consider only if the point is outside the current sphere
-	if (center_to_point_distance > this->m_radius)
+	if (center_to_point_distance > ror_precision_cast(this->m_radius))
 	{
-		auto old_radius = this->m_radius;
-		auto new_radius = (center_to_point_distance + this->m_radius) * static_cast<ror_precision<typename _type::value_type>>(0.5f);
+		auto old_radius = ror_precision_cast(this->m_radius);
+		auto new_radius = (center_to_point_distance + ror_precision_cast(this->m_radius)) * static_cast<ror_precision<typename _type::value_type>>(0.5f);
 
 		// Could call normalized but length is already calculated so lets use it
-		Vector2<ror_precision<typename _type::value_type>> normalized_direction(direction_to_point.x / center_to_point_distance,
-																				direction_to_point.y / center_to_point_distance);
+		Vector2<ror_precision<typename _type::value_type>> normalized_direction(ror_precision_cast(direction_to_point.x) / center_to_point_distance,
+																				ror_precision_cast(direction_to_point.y) / center_to_point_distance);
 
 		auto radius_diff = (new_radius - old_radius);
 
@@ -810,7 +811,7 @@ FORCE_INLINE bool BoundingCircle<_type>::is_point_inside(const _type &a_point) c
 	// Perhaps one day use radius * radius against squared distance
 	auto center_to_point_distance = distance(this->m_points[0], a_point);
 
-	return !(center_to_point_distance > this->m_radius);
+	return !(center_to_point_distance > ror_precision_cast(this->m_radius));
 }
 
 template <class _type>
@@ -884,7 +885,7 @@ FORCE_INLINE CollisionType BoundingRectangle<_type>::collision(const BoundingSph
 	auto closest = vector_clamp(a_bounding.m_points[0], points_0, points_1);
 	auto dist    = distance(a_bounding.m_points[0], closest);
 
-	if (dist < a_bounding.m_radius)
+	if (dist < ror_precision_cast(a_bounding.m_radius))
 	{
 		// This check done in 2D
 		if (this->m_points[0].x <= a_bounding.m_points[0].x - a_bounding.m_radius &&
@@ -926,7 +927,7 @@ FORCE_INLINE CollisionType BoundingRectangle<_type>::collision(const BoundingCir
 	auto closest = vector_clamp(a_bounding.m_points[0], this->m_points[0], this->m_points[1]);
 	auto dist    = distance(a_bounding.m_points[0], closest);
 
-	if (dist < a_bounding.m_radius)
+	if (dist < ror_precision_cast(a_bounding.m_radius))
 	{
 		if (this->m_points[0].x <= a_bounding.m_points[0].x - a_bounding.m_radius &&
 			this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
@@ -969,7 +970,7 @@ FORCE_INLINE bool BoundingRectangle<_type>::intersects(const BoundingSphere<Vect
 	auto closest = vector_clamp(a_bounding.m_points[0], points_0, points_1);
 	auto dist    = distance(a_bounding.m_points[0], closest);
 
-	if (dist < a_bounding.m_radius)
+	if (dist < ror_precision_cast(a_bounding.m_radius))
 		return true;
 
 	return false;
@@ -995,7 +996,7 @@ FORCE_INLINE bool BoundingRectangle<_type>::intersects(const BoundingCircle<Vect
 	auto closest = vector_clamp(a_bounding.m_points[0], this->m_points[0], this->m_points[1]);
 	auto dist    = distance(a_bounding.m_points[0], closest);
 
-	if (dist < a_bounding.m_radius)
+	if (dist < ror_precision_cast(a_bounding.m_radius))
 	{
 		return true;
 	}
@@ -1225,7 +1226,7 @@ FORCE_INLINE CollisionType BoundingBox<_type>::collision(const BoundingSphere<Ve
 	auto closest = vector_clamp(a_bounding.m_points[0], this->m_points[0], this->m_points[1]);
 	auto dist    = distance(a_bounding.m_points[0], closest);
 
-	if (dist < a_bounding.m_radius)
+	if (dist < ror_precision_cast(a_bounding.m_radius))
 	{
 		if (this->m_points[0].x <= a_bounding.m_points[0].x - a_bounding.m_radius &&
 			this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
@@ -1275,7 +1276,7 @@ FORCE_INLINE CollisionType BoundingBox<_type>::collision(const BoundingCircle<Ve
 	auto closest = vector_clamp(a_bounding_m_points_0_, this->m_points[0], this->m_points[1]);
 	auto dist    = distance(a_bounding_m_points_0_, closest);
 
-	if (dist < a_bounding.m_radius && ror::equal_zero(closest.z))
+	if (dist < ror_precision_cast(a_bounding.m_radius) && ror::equal_zero(closest.z))
 	{
 		// This check is done in 2D
 		if (this->m_points[0].x <= a_bounding.m_points[0].x - a_bounding.m_radius &&
@@ -1319,7 +1320,7 @@ FORCE_INLINE bool BoundingBox<_type>::intersects(const BoundingSphere<Vector3<ty
 	auto closest = vector_clamp(a_bounding.m_points[0], this->m_points[0], this->m_points[1]);
 	auto dist    = distance(a_bounding.m_points[0], closest);
 
-	if (dist < a_bounding.m_radius)
+	if (dist < ror_precision_cast(a_bounding.m_radius))
 	{
 		return true;
 	}
@@ -1349,7 +1350,7 @@ FORCE_INLINE bool BoundingBox<_type>::intersects(const BoundingCircle<Vector2<ty
 	auto closest = vector_clamp(a_bounding_m_points_0_, this->m_points[0], this->m_points[1]);
 	auto dist    = distance(a_bounding_m_points_0_, closest);
 
-	if (dist < a_bounding.m_radius && ror::equal_zero(closest.z))
+	if (dist < ror_precision_cast(a_bounding.m_radius) && ror::equal_zero(closest.z))
 	{
 		return true;
 	}

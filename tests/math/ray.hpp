@@ -36,9 +36,9 @@ template <class _type>
 class Ray3Test : public testing::Test
 {
   public:
-	ror::Vector3<_type> m_origin;
-	ror::Vector3<_type> m_direction;
-	ror::Vector3<_type> m_normalized_direction;
+	ror::Vector3<_type> m_origin{};
+	ror::Vector3<_type> m_direction{};
+	ror::Vector3<_type> m_normalized_direction{};
 
   protected:
 	virtual void SetUp() override;
@@ -51,9 +51,9 @@ template <class _type>
 class Ray2Test : public testing::Test
 {
   public:
-	ror::Vector2<_type> m_origin;
-	ror::Vector2<_type> m_direction;
-	ror::Vector2<_type> m_normalized_direction;
+	ror::Vector2<_type> m_origin{};
+	ror::Vector2<_type> m_direction{};
+	ror::Vector2<_type> m_normalized_direction{};
 
   protected:
 	virtual void SetUp() override;

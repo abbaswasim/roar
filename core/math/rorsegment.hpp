@@ -84,7 +84,7 @@ class ROAR_ENGINE_ITEM Line<_type, 1, vector2_typename<_type>> final : public Se
 	FORCE_INLINE Line(Line &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Line &operator=(const Line &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Line &operator=(Line &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Line() noexcept                         = default;        //! Destructor
+	FORCE_INLINE ~Line() noexcept override                = default;        //! Destructor
 
 	FORCE_INLINE      Line(_type a_point1, _type a_point2);
 	FORCE_INLINE      Line(typename _type::value_type a_slope, typename _type::value_type a_intercept);
@@ -103,7 +103,7 @@ class ROAR_ENGINE_ITEM Line<_type, 1, vector3_typename<_type>> final : public Se
 	FORCE_INLINE Line(Line &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Line &operator=(const Line &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Line &operator=(Line &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Line() noexcept                         = default;        //! Destructor
+	FORCE_INLINE ~Line() noexcept override                = default;        //! Destructor
 
 	FORCE_INLINE      Line(_type a_point1, _type a_point2);
 	FORCE_INLINE      Line(typename _type::value_type a_slope, typename _type::value_type a_intercept);
@@ -126,7 +126,7 @@ class ROAR_ENGINE_ITEM Triangle<_type, 2, vector2_typename<_type>> final : publi
 	FORCE_INLINE Triangle(Triangle &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Triangle &operator=(const Triangle &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Triangle &operator=(Triangle &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Triangle() noexcept                             = default;        //! Destructor
+	FORCE_INLINE ~Triangle() noexcept override                    = default;        //! Destructor
 
 	FORCE_INLINE      Triangle(_type a_point1, _type a_point2, _type a_point3);
 	FORCE_INLINE void set(_type a_point1, _type a_point2, _type a_point3);
@@ -144,7 +144,7 @@ class ROAR_ENGINE_ITEM Triangle<_type, 2, vector3_typename<_type>> final : publi
 	FORCE_INLINE Triangle(Triangle &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Triangle &operator=(const Triangle &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Triangle &operator=(Triangle &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Triangle() noexcept                             = default;        //! Destructor
+	FORCE_INLINE ~Triangle() noexcept override                    = default;        //! Destructor
 
 	FORCE_INLINE      Triangle(_type a_point1, _type a_point2, _type a_point3);
 	FORCE_INLINE void set(_type a_point1, _type a_point2, _type a_point3);
@@ -166,7 +166,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public 
 	FORCE_INLINE Bezier(Bezier &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Bezier &operator=(const Bezier &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Bezier &operator=(Bezier &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Bezier() noexcept                           = default;        //! Destructor
+	FORCE_INLINE ~Bezier() noexcept override                  = default;        //! Destructor
 
 	FORCE_INLINE      Bezier(_type a_point1, _type a_control_point, _type a_point2);
 	FORCE_INLINE void set(_type a_point1, _type a_control_point, _type a_point2);
@@ -195,7 +195,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 3, vector2_typename<_type>> final : public 
 	FORCE_INLINE Bezier(Bezier &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Bezier &operator=(const Bezier &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Bezier &operator=(Bezier &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Bezier() noexcept                           = default;        //! Destructor
+	FORCE_INLINE ~Bezier() noexcept override                  = default;        //! Destructor
 
 	FORCE_INLINE      Bezier(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2);
 	FORCE_INLINE void set(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2);
@@ -212,7 +212,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, vector3_typename<_type>> final : public 
 	FORCE_INLINE Bezier(Bezier &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Bezier &operator=(const Bezier &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Bezier &operator=(Bezier &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Bezier() noexcept                           = default;        //! Destructor
+	FORCE_INLINE ~Bezier() noexcept override                  = default;        //! Destructor
 
 	FORCE_INLINE      Bezier(_type a_point1, _type a_control_point, _type a_point2);
 	FORCE_INLINE void set(_type a_point1, _type a_control_point, _type a_point2);
@@ -235,7 +235,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 3, vector3_typename<_type>> final : public 
 	FORCE_INLINE Bezier(Bezier &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Bezier &operator=(const Bezier &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Bezier &operator=(Bezier &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Bezier() noexcept                           = default;        //! Destructor
+	FORCE_INLINE ~Bezier() noexcept override                  = default;        //! Destructor
 
 	FORCE_INLINE      Bezier(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2);
 	FORCE_INLINE void set(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2);

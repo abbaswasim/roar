@@ -40,14 +40,14 @@ template <class _type>
 class ROAR_ENGINE_ITEM RandomType<_type, true>
 {
   public:
-	std::unique_ptr<std::uniform_int_distribution<_type>> m_distribution;
+	std::unique_ptr<std::uniform_int_distribution<_type>> m_distribution{};
 };
 
 template <class _type>
 class ROAR_ENGINE_ITEM RandomType<_type, false>
 {
   public:
-	std::unique_ptr<std::uniform_real_distribution<_type>> m_distribution;
+	std::unique_ptr<std::uniform_real_distribution<_type>> m_distribution{};
 };
 
 template <class _type>
@@ -75,8 +75,8 @@ class ROAR_ENGINE_ITEM Random final : public std::conditional<std::is_integral<_
 	FORCE_INLINE _type _next(std::true_type);
 	FORCE_INLINE _type _next(std::false_type);
 
-	std::random_device            m_device;        //!< Could be static
-	std::unique_ptr<std::mt19937> m_engine;        //!< Could be static
+	std::random_device            m_device{};        //!< Could be static
+	std::unique_ptr<std::mt19937> m_engine{};        //!< Could be static
 };
 
 using Randomd = Random<double64_t>;
