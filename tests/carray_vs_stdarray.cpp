@@ -11,7 +11,7 @@ using namespace std;
 
 namespace ror_test
 {
-TEST(ArrayTest, DISABLE_ArrayTest_carray_vs_stdarray)
+TEST(ArrayTest, DISABLED_ArrayTest_carray_vs_stdarray)
 {
 	const uint32_t max_size = 100000;
 
@@ -72,7 +72,7 @@ inline float32_t clamp(const float32_t &v, const float32_t &min, const float32_t
 	return (v > max ? max : v < min ? min : v);
 }
 
-TEST(SDTClamp, DISABLE_STDClamp_vs_manual)
+TEST(SDTClamp, DISABLED_STDClamp_vs_manual)
 {
 	const uint32_t max_size = 100000;
 
