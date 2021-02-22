@@ -182,7 +182,7 @@ FORCE_INLINE _type _random(_type a_min, _type a_max, _genarator &a_engine)
 	return dist(a_engine);
 }
 
-// Not very high quality and slow random generators, better user ror::Random
+// Not very high quality and slow random generators, better use ror::Random
 template <class _type>
 FORCE_INLINE _type random()
 {
@@ -190,7 +190,7 @@ FORCE_INLINE _type random()
 	static std::mt19937 engine(1);
 #else
 	static std::random_device device;
-	static std::mt19937       engine(device);
+	static std::mt19937       engine(device());
 #endif
 	return _random(std::numeric_limits<_type>::min(), std::numeric_limits<_type>::max(), engine);
 }

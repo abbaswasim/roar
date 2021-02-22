@@ -8,40 +8,42 @@ stages:
 matrix:
   include:
   - os: linux
+    dist: bionic
     compiler: gcc
-    dist: xenial
     addons:
       apt:
         sources:
           - ubuntu-toolchain-r-test
         packages:
-          - g++-7
+          - g++-10
     env:
-      - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
 
   - os: linux
+    dist: bionic
     compiler: clang
-    dist: xenial
     addons:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - llvm-toolchain-trusty-7
+          - llvm-toolchain-bionic-10
         packages:
-          - clang-7
-          - libc++-7-dev
-          - libc++abi-7-dev
+          - clang-10
+          - libc++-10-dev
+          - libc++abi-10-dev
+          - gcc-9
+          - g++-9
     env:
-      - MATRIX_EVAL="CC=clang-7 && CXX='clang++-7 -stdlib=libc++'"
+      - MATRIX_EVAL="CC=clang-10 && CXX=clang++-10"
 
   - os: osx
-    osx_image: xcode10.1
+    osx_image: xcode12.2
     compiler: gcc
     env:
-      - MATRIX_EVAL="brew install gcc@8 && CC=gcc-8 && CXX=g++-8"
+      - MATRIX_EVAL="CC=gcc-10 && CXX=g++-10"
 
   - os: osx
-    osx_image: xcode10.1
+    osx_image: xcode12.2
     compiler: clang
     env:
       - MATRIX_EVAL=""
@@ -49,7 +51,9 @@ matrix:
 before_install:
     - eval "${MATRIX_EVAL}"
 
-script: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j8 && ./tests/roar_test
+script: 
+  - cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Debug && VERBOSE=1 cmake --build build --config Debug -- -j8 && ./build/tests/roar_test
+  - cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=Release && VERBOSE=1 cmake --build build --config Release -- -j8 && ./build/tests/roar_test
 
 notifications:
   email: false
