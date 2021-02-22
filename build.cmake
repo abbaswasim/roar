@@ -59,7 +59,13 @@ function(build_options target_name)
 	-Weffc++
 	-Wno-c++98-compat-pedantic
 	-Wno-c++98-compat
-	-Wfloat-equal
+	-Wfloat-equal)
+
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+  target_compile_options(${target_name} PRIVATE -Wmost)
+  target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments) # TODO: Find a solution to this for gtest
+
+  target_compile_options(${target_name} PRIVATE
 	# The following warnings after everyting are enabled by -Weverything but are not practical to fix hence ignoring
 	-Weverything
 	-Wno-exit-time-destructors        # worth enabling if getting crashes at exit time
@@ -69,10 +75,6 @@ function(build_options target_name)
 	-Wno-padded                       # TODO: This one is interesting, enable to fix all issues
 	-Wno-double-promotion             # re-enable this later
 	)
-
-if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  target_compile_options(${target_name} PRIVATE -Wmost)
-  target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments) # TODO: Find a solution to this for gtest
 else()
   # target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments)
 endif()
