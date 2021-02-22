@@ -40,6 +40,8 @@
 #	pragma GCC diagnostic ignored "-Wold-style-cast"
 #	pragma GCC diagnostic ignored "-Wshadow"
 #	pragma GCC diagnostic ignored "-Wsign-compare"
+#	pragma GCC diagnostic ignored "-Wstringop-truncation"
+#	pragma GCC diagnostic ignored "-Wstringop-overflow"
 #elif defined(_MSVC)
 #else
 #	error Compiler not supported
