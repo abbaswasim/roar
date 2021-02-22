@@ -31,8 +31,8 @@
 #include <cstdlib>
 #include <functional>
 #include <random>
-#include <type_traits>
 #include <stdexcept>
+#include <type_traits>
 
 namespace ror
 {
@@ -202,8 +202,8 @@ FORCE_INLINE _type random(_type a_min, _type a_max)
 #ifdef CONSTANT_SEED
 	static std::mt19937 engine(static_cast<_type>(1));
 #else
-	static std::random_device        device;
-	static std::mt19937              engine(device());
+	static std::random_device device;
+	static std::mt19937       engine(device());
 #endif
 	if (a_min < a_max)
 		return _random<_type, std::mt19937>(a_min, a_max, engine);
@@ -257,7 +257,7 @@ constexpr auto enum_to_underlying(_E a_enum) noexcept
 	return static_cast<std::underlying_type_t<_E>>(a_enum);
 }
 
-template<typename _type>
+template <typename _type>
 FORCE_INLINE void vector_remove_duplicates(std::vector<_type> &a_vector)
 {
 	std::sort(a_vector.begin(), a_vector.end());
@@ -265,7 +265,7 @@ FORCE_INLINE void vector_remove_duplicates(std::vector<_type> &a_vector)
 	a_vector.erase(last, a_vector.end());
 }
 
-template<typename _type, typename _predicate>
+template <typename _type, typename _predicate>
 FORCE_INLINE void vector_remove_duplicates(std::vector<_type> &a_vector, _predicate a_predicate)
 {
 	std::sort(a_vector.begin(), a_vector.end(), a_predicate);
@@ -281,7 +281,7 @@ FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
 {
 	if (static_cast<_type_big>(a_value) > static_cast<_type_big>(std::numeric_limits<_type_to>::max()))
 	{
-		throw std::runtime_error("Loss of data doing casting.\n"); // TODO: Add some line number indication etc
+		throw std::runtime_error("Loss of data doing casting.\n");        // TODO: Add some line number indication etc
 	}
 
 	return static_cast<_type_to>(a_value);

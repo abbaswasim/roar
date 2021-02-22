@@ -25,19 +25,25 @@
 
 #pragma once
 
-#include <gtest/gtest.h>
 #include "foundation/rorrandom.hpp"
+#include <gtest/gtest.h>
 
 namespace ror_test
 {
-	class ArrayTest : public testing::Test
-	{
-	public:
-		ArrayTest(){};
-		virtual ~ArrayTest(){}
+class ArrayTest : public testing::Test
+{
+  public:
+	ArrayTest()
+	{}
+	virtual ~ArrayTest();
 
-	protected:
-		virtual void SetUp(){}
-		virtual void TearDown(){}
-	};
-}
+  protected:
+	virtual void SetUp()
+	{}
+	virtual void TearDown()
+	{}
+};
+
+ArrayTest::~ArrayTest()
+{}
+}        // namespace ror_test

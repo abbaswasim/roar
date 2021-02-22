@@ -48,15 +48,47 @@ function(build_options target_name)
   target_compile_options(${target_name} PRIVATE
 	-Wall
 	-Wextra
-#	-Wmost
 	-Wconversion
 	-Wunreachable-code
 	-Wuninitialized
-	-Wno-gnu-zero-variadic-macro-arguments # Should fix this in long term, this is only needed for gtest typed tests at the moment
 	-pedantic-errors
 	-Wold-style-cast
 	-Wno-error=unused-variable
 	-Wshadow
-	-Wfloat-equal)
+	-Werror
+	-Weffc++
+	-Wno-c++98-compat-pedantic
+	-Wno-c++98-compat
+	-Wfloat-equal
+	# The following warnings after everyting are enabled by -Weverything but are not practical to fix hence ignoring
+	-Weverything
+	-Wno-exit-time-destructors        # worth enabling if getting crashes at exit time
+	-Wno-global-constructors          # worth enabling if getting crashes at exit time
+	-Wno-c++2a-compat
+	-Wno-missing-prototypes
+	-Wno-padded                       # TODO: This one is interesting, enable to fix all issues
+	-Wno-double-promotion             # re-enable this later
+	)
+
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+  target_compile_options(${target_name} PRIVATE -Wmost)
+  target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments) # TODO: Find a solution to this for gtest
+else()
+  # target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments)
+endif()
 
 endfunction(build_options)
+
+# Inspired by https://stackoverflow.com/questions/52135983/cmake-target-link-libraries-include-as-system-to-suppress-compiler-warnings
+function(target_link_libraries_system target scope)
+  set(dependencies ${ARGN})
+  foreach(dependency ${dependencies})
+	get_target_property(dependency_include_dirs ${dependency} INTERFACE_INCLUDE_DIRECTORIES)
+	if(dependency_include_dirs)
+	  target_include_directories(${target} SYSTEM ${scope} ${dependency_include_dirs})
+	else()
+	  message("Warning: ${dependency} doesn't set INTERFACE_INCLUDE_DIRECTORIES. No INCLUDE_DIRECTORIES set.")
+	endif()
+	target_link_libraries(${target} ${scope} ${dependency})
+  endforeach(dependency)
+endfunction(target_link_libraries_system)

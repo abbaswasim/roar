@@ -126,7 +126,6 @@ else ()
 endif()
 
 set(ROAR_REQUIRED_PRIVATE_LIBRARIES
-  ${ROAR_REQUIRED_PLATFORM_LIBRARIES}
   roar_version)
 
 set(ROAR_REQUIRED_PUBLIC_LIBRARIES
@@ -134,7 +133,11 @@ set(ROAR_REQUIRED_PUBLIC_LIBRARIES
   nlohmann_json
   xxhash)
 
-target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES}
-								   PUBLIC  ${ROAR_REQUIRED_PUBLIC_LIBRARIES})
+target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PLATFORM_LIBRARIES})
 
-build_options(${ROAR_NAME}) # Set common build options
+# To make sure project warning levels are not transferred to dependencies, one can link to these as SYSTEM libraries
+# This still seems like a hack, target_link_libraries_system is defined in build.cmake
+target_link_libraries_system(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES})
+target_link_libraries_system(${ROAR_NAME} PUBLIC ${ROAR_REQUIRED_PUBLIC_LIBRARIES})
+
+build_options(${ROAR_NAME})                               # Set common build options

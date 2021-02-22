@@ -35,16 +35,14 @@ enum class BoundingType : int32_t
 	circle_2d,
 	rectangle_2d,
 	sphere_3d,
-	box_3d,
-	max
+	box_3d
 };
 
 enum class CollisionType : int32_t
 {
 	outside    = -1,
 	intersects = 0,
-	inside     = 1,
-	max        = 4
+	inside     = 1
 };
 
 class ROAR_ENGINE_ITEM Bounding
@@ -62,6 +60,9 @@ class ROAR_ENGINE_ITEM Bounding
 	FORCE_INLINE virtual CollisionType collision(const Bounding &a_bounding) const  = 0;
 	FORCE_INLINE virtual bool          intersects(const Bounding &a_bounding) const = 0;
 	FORCE_INLINE virtual void          add_bounding(const Bounding &a_bounding)     = 0;
+
+  private:
+	virtual void _force_compiler_vtable();
 };
 
 template <class _type, int _point_count = 1>
@@ -136,7 +137,7 @@ using BoundingRectangle = Box<_type, vector2_typename<_type>>;
 	FORCE_INLINE Round(Round &&a_other) noexcept = default;                       \
 	FORCE_INLINE Round &operator=(const Round &a_other) = default;                \
 	FORCE_INLINE Round &operator=(Round &&a_other) noexcept = default;            \
-	FORCE_INLINE ~Round() noexcept                          = default;            \
+	FORCE_INLINE ~Round() noexcept override                 = default;            \
 	FORCE_INLINE      Round(_type a_center, typename _type::value_type a_radius); \
 	FORCE_INLINE void set(_type a_center, typename _type::value_type a_radius);   \
 	FORCE_INLINE auto radius() const noexcept->typename _type::value_type;        \
@@ -166,7 +167,7 @@ class ROAR_ENGINE_ITEM Round<_type, vector3_typename<_type>> final : public Boun
 	FORCE_INLINE Box(Box &&a_other) noexcept = default;                            \
 	FORCE_INLINE Box &operator=(const Box &a_other) = default;                     \
 	FORCE_INLINE Box &operator=(Box &&a_other) noexcept = default;                 \
-	FORCE_INLINE ~Box() noexcept                        = default;                 \
+	FORCE_INLINE ~Box() noexcept override               = default;                 \
 	FORCE_INLINE                            Box(_type a_minimum, _type a_maximum); \
 	FORCE_INLINE void                       set(_type a_minimum, _type a_maximum); \
 	FORCE_INLINE _type                      minimum() const noexcept;              \

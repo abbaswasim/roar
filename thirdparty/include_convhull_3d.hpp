@@ -31,6 +31,7 @@
 #	pragma clang diagnostic ignored "-Wold-style-cast"
 #	pragma clang diagnostic ignored "-Wshadow"
 #	pragma clang diagnostic ignored "-Wsign-compare"
+#	pragma clang diagnostic ignored "-Weverything"
 #endif
 
 #define CONVHULL_3D_ENABLE

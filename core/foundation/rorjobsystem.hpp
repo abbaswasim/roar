@@ -30,12 +30,11 @@
 
 namespace ror
 {
-
 uint32_t get_hardware_threads()
 {
 	return std::thread::hardware_concurrency();
 }
 
-} // namespace ror
+}        // namespace ror
 
 #include "rorjobsystem.hh"

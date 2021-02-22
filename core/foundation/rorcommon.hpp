@@ -57,9 +57,9 @@ static std::string get_os_string()
 		case OsType::os_windows:
 			return std::string("OsType::os_windows");
 			break;
-		default:
-			return std::string("OsType::os_unknown");
 	}
+
+	return std::string("OsType::os_unknown");
 }
 
 static std::string get_arch_string()
@@ -80,9 +80,8 @@ static std::string get_arch_string()
 		case ArchType::arch_x86_64:
 			return std::string("ArchType::arch_x86_64");
 			break;
-		default:
-			return std::string("ArchType::arch_unknown");
 	}
+	return std::string("ArchType::arch_unknown");
 }
 
 static std::string get_compiler_string()
@@ -100,9 +99,8 @@ static std::string get_compiler_string()
 		case CompilerType::comp_msvc:
 			return std::string("CompilerType::comp_msvc");
 			break;
-		default:
-			return std::string("CompilerType::comp_unknown");
 	}
+	return std::string("CompilerType::comp_unknown");
 }
 
 static std::string get_build_string()
@@ -117,9 +115,8 @@ static std::string get_build_string()
 		case BuildType::build_debug:
 			return std::string("BuildType::build_debug");
 			break;
-		default:
-			return std::string("BuildType::build_unknown");
 	}
+	return std::string("BuildType::build_unknown");
 }
 
 }        // namespace ror

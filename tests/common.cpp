@@ -51,8 +51,6 @@ TEST(System, System_constants)
 		case ror::OsType::os_windows:
 			print_with_gtest_header("Building for windows", green);
 			break;
-		default:
-			print_with_gtest_header("Building for unknown", red);
 	}
 
 	print_with_gtest_header(ror::get_os_string().c_str(), green);
@@ -71,8 +69,6 @@ TEST(System, System_constants)
 		case ror::ArchType::arch_x86_64:
 			print_with_gtest_header("Building for x86_64", green);
 			break;
-		default:
-			print_with_gtest_header("Building for unknown", red);
 	}
 
 	print_with_gtest_header(ror::get_arch_string().c_str(), green);
@@ -88,8 +84,6 @@ TEST(System, System_constants)
 		case ror::CompilerType::comp_msvc:
 			print_with_gtest_header("Building with msvc", green);
 			break;
-		default:
-			print_with_gtest_header("Building with unknown", red);
 	}
 
 	print_with_gtest_header(ror::get_compiler_string().c_str(), green);
@@ -102,8 +96,6 @@ TEST(System, System_constants)
 		case ror::BuildType::build_debug:
 			print_with_gtest_header("Building in debug", green);
 			break;
-		default:
-			print_with_gtest_header("Building in unknown", red);
 	}
 
 	print_with_gtest_header(ror::get_build_string().c_str(), green);

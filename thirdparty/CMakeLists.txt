@@ -38,7 +38,6 @@ add_subdirectory(nlohmann)
 cmake_policy (SET CMP0042 NEW)
 set(XXHASH_BUILD_XXHSUM 0) # Don't need to build the cli
 add_subdirectory(xxHash/cmake_unofficial)
-# target_compile_options(xxhash PRIVATE XXH_INLINE_ALL)
 
 # add_subdirectory(convhull_3d)
 # target_compile_options(convhull_3d PRIVATE

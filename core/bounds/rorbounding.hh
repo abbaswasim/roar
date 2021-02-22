@@ -29,6 +29,9 @@
 
 namespace ror
 {
+void Bounding::_force_compiler_vtable()
+{}
+
 // Bounding methods
 template <class _type, int _points_count>
 void BoundingBase<_type, _points_count>::create_from_points(const std::vector<_type> &a_points)

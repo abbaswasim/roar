@@ -35,7 +35,6 @@ namespace ror
  * @param      a_minimum Minimum of the box to create
  * @param      a_maximum Maximum of the box to create
  * @param      a_vertex_buffer A vector to append the vertices created to
- * @return     return void
  */
 template <class _type>
 FORCE_INLINE void make_box_triangles(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum);
@@ -45,7 +44,6 @@ FORCE_INLINE void make_box_triangles(std::vector<_type> &a_vertex_buffer, const 
  * @param      a_size a 2D or 3D vector defining its size
  * @param      a_origin Origin of the Box
  * @param      a_output A vector to append the vertices created to
- * @return     return void
  */
 template <class _type>
 FORCE_INLINE void make_box_triangles(const _type &a_size, const _type &a_origin, std::vector<_type> &a_output);
@@ -55,7 +53,6 @@ FORCE_INLINE void make_box_triangles(const _type &a_size, const _type &a_origin,
  * @param      a_size float defining its size in all 3 or 2 dimentions
  * @param      a_origin Origin of the Box
  * @param      a_output A vector to append the vertices created to
- * @return     return void
  */
 template <class _type>
 FORCE_INLINE void make_box_triangles(float32_t a_size, const _type &a_origin, std::vector<_type> &a_output);
@@ -64,7 +61,6 @@ FORCE_INLINE void make_box_triangles(float32_t a_size, const _type &a_origin, st
  * @brief      Creates a Box with size in all 3 or 2 dimensions at origin
  * @param      a_size float defining its size in all 3 or 2 dimentions
  * @param      a_output A vector to append the vertices created to
- * @return     return void
  */
 template <class _type>
 FORCE_INLINE void make_box_triangles(float32_t a_size, std::vector<_type> &a_output);
@@ -83,7 +79,6 @@ FORCE_INLINE std::vector<_type> make_box_triangles(float32_t a_size);
  * @param      a_origin Origin of the Box
  * @param      a_vertex_buffer A vector to append the vertices created to
  * @param      a_index_buffer A vector to append the indices created to
- * @return     return void
  */
 template <class _type, class _index_type = uint32_t>
 FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a_origin,
@@ -94,7 +89,6 @@ FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a
  * @brief      Creates a Box with unit size 3 or 2 dimensions at the origin
  * @param      a_vertex_buffer A vector to append the vertices created to
  * @param      a_index_buffer A vector to append the indices created to
- * @return     return void
  */
 template <class _type, class _index_type = uint32_t>
 FORCE_INLINE void make_box_triangles_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector3<_index_type>> &a_index_buffer);
@@ -125,8 +119,7 @@ FORCE_INLINE void make_box_lines_indexed(std::vector<_type> &a_vertex_buffer, st
  * @brief      Creates a unit sphere with samples(=default 50) number of points
  * @param      a_samples number of points in the sphere
  * @param      a_vertex_buffer A 3D vertex buffer with given type for all the vertices
- * @param      a_vertex_buffer A 3D index buffer with given type for all the indices
- * @return     return void
+ * @param      a_index_buffer A 3D index buffer with given type for all the indices
  */
 template <class _type = float32_t, class _index_type = uint32_t>
 void make_sphere_triangles(std::vector<ror::Vector3<_type>> &      a_vertex_buffer,
@@ -136,7 +129,7 @@ void make_sphere_triangles(std::vector<ror::Vector3<_type>> &      a_vertex_buff
 /**
  * @brief      Creates a sphere with samples number of points in all 3 or 2 dimensions at origin
  * @param      a_samples number of points
- * @return     return A vector to append the vertices created to
+ * @param      a_output a vector to append the vertices created into
  */
 template <class _type>
 FORCE_INLINE void make_sphere_triangles(uint32_t a_samples, const _type &a_origin, std::vector<_type> &a_output);
@@ -147,7 +140,6 @@ FORCE_INLINE void make_sphere_triangles(uint32_t a_samples, const _type &a_origi
  * @param      a_index_buffer Optional index buffer
  * @param      a_size Amount of trianlges
  * @param      a_output Normals for each vertex are created in a_output
- * @return     return void
  */
 template <class _type>
 FORCE_INLINE void add_normals(const std::vector<_type> &a_vertex_buffer,
@@ -160,7 +152,6 @@ FORCE_INLINE void add_normals(const std::vector<_type> &a_vertex_buffer,
  * @param      a_index_buffer Optional index buffer
  * @param      a_size Amount of trianlges
  * @param      a_output Normals for each vertex are created in a_output
- * @return     return void
  */
 template <class _type>
 FORCE_INLINE void add_colors(const std::vector<_type> &a_vertex_buffer,

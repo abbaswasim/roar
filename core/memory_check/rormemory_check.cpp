@@ -46,13 +46,13 @@ FORCE_INLINE void *operator new[](size_t a_allocation_size, const char *a_file_n
 	return ptr;
 }
 
-FORCE_INLINE void operator delete(void *a_pointer_to_delete) throw()
+FORCE_INLINE void operator delete(void *a_pointer_to_delete)
 {
 	delete_allocation(a_pointer_to_delete);
 	free(a_pointer_to_delete);
 }
 
-FORCE_INLINE void operator delete[](void *a_pointer_to_delete) throw()
+FORCE_INLINE void operator delete[](void *a_pointer_to_delete)
 {
 	delete_allocation(a_pointer_to_delete);
 	free(a_pointer_to_delete);

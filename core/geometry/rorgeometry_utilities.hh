@@ -36,7 +36,6 @@ namespace ror
  * @param      a_maximum Finishing point of the box
  * @param      a_corners The amount of corners requested (8, 4)
  * @param      a_output Corners are returned here
- * @return     return void
  */
 template <class _type>
 FORCE_INLINE void _box_corners_internal(const _type &a_minimum, const _type &a_maximum, uint32_t a_corners, std::vector<_type> &a_output)
@@ -56,8 +55,7 @@ FORCE_INLINE void _box_corners_internal(const _type &a_minimum, const _type &a_m
  * @brief      Returns 8 corners for a cube or 4 corners of a box
  * @param      a_minimum Starting point of the box
  * @param      a_maximum Finishing point of the box
- * @param      a_output Corners are returned here
- * @return     return void
+ * @param      a_vertex_buffer Corners are returned here
  */
 template <class _type>
 FORCE_INLINE void _box_points_internal(const _type &a_minimum, const _type &a_maximum, std::vector<_type> &a_vertex_buffer)
@@ -77,8 +75,7 @@ FORCE_INLINE void _box_points_internal(const _type &a_minimum, const _type &a_ma
  * @brief      Returns 12 or 2 triangles created from 8 corners of a cube or 4 corners of a box
  * @param      a_minimum Starting point of the box
  * @param      a_maximum Finishing point of the box
- * @param      a_output Corners are returned here
- * @return     return void
+ * @param      a_vertex_buffer Corners are returned here
  */
 template <class _type>
 FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a_maximum, std::vector<_type> &a_vertex_buffer)
@@ -112,7 +109,6 @@ FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a
  * @brief      Returns indices for a_triangles amount of triangles for a Cube or Box
  * @param      a_index_buffer Triangle indices are returned here
  * @param      a_triangles Amount of triangles requested (2 for a box, 12 for a Cube)
- * @return     return void
  */
 template <class _index_type = uint32_t>
 FORCE_INLINE void _box_triangles_indices_internal(uint32_t a_triangles, std::vector<ror::Vector3<_index_type>> &a_index_buffer)
@@ -325,6 +321,7 @@ void make_sphere_triangles(std::vector<ror::Vector3<_type>> &a_vertex_buffer, st
 template <class _type>
 FORCE_INLINE void make_sphere_triangles(uint32_t a_samples)
 {
+	(void) a_samples;
 }
 
 template <class _type>
@@ -332,6 +329,10 @@ FORCE_INLINE void add_normals(const std::vector<_type> &a_vertex_buffer,
 							  uint32_t a_size, std::vector<_type> &a_output,
 							  const std::vector<_type> *a_index_buffer)
 {
+	(void) a_vertex_buffer;
+	(void) a_size;
+	(void) a_output;
+	(void) a_index_buffer;
 }
 
 template <class _type>
@@ -339,6 +340,10 @@ FORCE_INLINE void add_colors(const std::vector<_type> &a_vertex_buffer,
 							 uint32_t a_size, std::vector<_type> &a_output,
 							 const std::vector<_type> *a_index_buffer)
 {
+	(void) a_vertex_buffer;
+	(void) a_size;
+	(void) a_output;
+	(void) a_index_buffer;
 }
 
 }        // namespace ror

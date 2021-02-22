@@ -176,7 +176,6 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public 
 	 * @details    This method will subdivide the bezier curve in 2 bezier curves
 	 *             the new bezier curves are created as P1 Q1 C1 and C1 Q2 P2 where Q1 is center of P1-C1 and Q2 is center of C1-P2
 	 * @param      a_children where the result is appended
-	 * @return     void
 	 */
 	FORCE_INLINE void subdivide(std::vector<Bezier<_type, 2>> &a_children);
 	FORCE_INLINE bool is_point_inside_my_2d_triangle(const _type &a_point);

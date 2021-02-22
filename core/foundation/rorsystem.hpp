@@ -83,47 +83,39 @@ namespace ror
 {
 enum class OsType
 {
-	os_unknown,
 	os_mac,
 	os_android,
 	os_ios,
 	os_ios_simulator,
 	os_linux,
 	os_bsd,
-	os_windows,
-	os_max
+	os_windows
 };
 
 enum class ArchType
 {
-	arch_unknown,
 	arch_arm,
 	arch_arm64,
 	arch_x86,
-	arch_x86_64,
-	arch_max
+	arch_x86_64
 };
 
 enum class CompilerType
 {
-	comp_unknown,
 	comp_gcc,
 	comp_clang,
-	comp_msvc,
-	comp_max
+	comp_msvc
 };
 
 enum class BuildType
 {
-	build_unknown,
 	build_release,
-	build_debug,
-	build_max
+	build_debug
 };
 
 constexpr OsType get_os()
 {
-	OsType os_type = OsType::os_unknown;
+	OsType os_type = OsType::os_mac;
 
 #ifdef OS_TYPE_MAC
 	os_type = OsType::os_mac;
@@ -146,7 +138,7 @@ constexpr OsType get_os()
 
 constexpr ArchType get_arch()
 {
-	ArchType arch_type = ArchType::arch_unknown;
+	ArchType arch_type = ArchType::arch_x86_64;
 
 #ifdef ARCH_TYPE_ARM
 	arch_type = ArchType::arch_arm;
@@ -163,7 +155,7 @@ constexpr ArchType get_arch()
 
 constexpr CompilerType get_compiler()
 {
-	CompilerType compiler_type = CompilerType::comp_unknown;
+	CompilerType compiler_type = CompilerType::comp_clang;
 
 #ifdef COMPILER_TYPE_GCC
 	compiler_type = CompilerType::comp_gcc;
@@ -178,7 +170,7 @@ constexpr CompilerType get_compiler()
 
 constexpr BuildType get_build()
 {
-	BuildType build_type = BuildType::build_unknown;
+	BuildType build_type = BuildType::build_debug;
 
 #ifdef BUILD_TYPE_RELEASE
 	build_type = BuildType::build_release;

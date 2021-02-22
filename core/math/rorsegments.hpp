@@ -67,7 +67,7 @@ class ROAR_ENGINE_ITEM Lines<_type, vector2_typename<_type>> final : public Segm
 	FORCE_INLINE Lines(Lines &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Lines &operator=(const Lines &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Lines &operator=(Lines &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Lines() noexcept                          = default;        //! Destructor
+	FORCE_INLINE ~Lines() noexcept override                 = default;        //! Destructor
 
 	FORCE_INLINE void   add_line(_type a_point1, _type a_point2);
 	FORCE_INLINE size_t get_count() const noexcept override;

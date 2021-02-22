@@ -81,9 +81,8 @@ spdlog::level::level_enum convert_to_spdlog_level(LogLevel a_level)
 			return spdlog::level::err;
 		case LogLevel::critical:
 			return spdlog::level::critical;
-		default:
-			return spdlog::level::off;
 	}
+	return spdlog::level::off;
 }
 
 void Log::set_level(LogLevel a_level)

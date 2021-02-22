@@ -25,9 +25,8 @@ uint16_t level_to_uint(ror::LogLevel a_level)
 			return 4;
 		case ror::LogLevel::critical:
 			return 5;
-		default:
-			return 6;
 	}
+	return 0;
 }
 
 void log_and_test(std::string a_log_file, ror::LogLevel a_level)

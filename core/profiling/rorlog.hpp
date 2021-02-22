@@ -62,10 +62,9 @@ enum class LogLevel
 	warn,
 	error,
 	critical,
-	max
 };
 
-class ROAR_ENGINE_ITEM Log
+class ROAR_ENGINE_ITEM Log final
 {
   public:
 	Log(const std::string &a_log_file = "");                 //! Default constructor
@@ -73,7 +72,7 @@ class ROAR_ENGINE_ITEM Log
 	Log(Log &&a_other) noexcept = delete;                    //! Move constructor
 	Log &operator=(const Log &a_other) = delete;             //! Copy assignment operator
 	Log &operator=(Log &&a_other) noexcept = delete;         //! Move assignment operator
-	virtual ~Log() noexcept                = default;        //! Destructor
+	~Log() noexcept                        = default;        //! Destructor
 
 	template <typename... Args>
 	void trace(const char *a_format, const Args &...a_args);

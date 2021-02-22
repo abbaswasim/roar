@@ -48,8 +48,8 @@ class Allocation
 
 FORCE_INLINE void *operator new(size_t a_allocation_size, const char *a_file_name, int a_line_number);
 FORCE_INLINE void *operator new[](size_t a_allocation_size, const char *a_file_name, int a_line_number);
-void               operator delete(void *a_pointer_to_delete) throw();
-void               operator delete[](void *a_pointer_to_delete) throw();
+void               operator delete(void *a_pointer_to_delete) noexcept;
+void               operator delete[](void *a_pointer_to_delete) noexcept;
 
 FORCE_INLINE void record_allocation(void *a_address, size_t a_size, const char *a_file_name, size_t a_line_number);
 FORCE_INLINE void delete_allocation(void *a_address);

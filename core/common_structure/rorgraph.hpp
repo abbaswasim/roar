@@ -38,7 +38,7 @@ using VertexId = size_t;
  * Node for Graph
  * Each node contains a list of children and parents
  */
-class ROAR_ENGINE_ITEM GraphNode
+class ROAR_ENGINE_ITEM GraphNode final
 {
   public:
 	GraphNode()                             = default;                   //! Default constructor
@@ -46,7 +46,7 @@ class ROAR_ENGINE_ITEM GraphNode
 	GraphNode(GraphNode &&a_other) noexcept = default;                   //! Move constructor
 	GraphNode &operator=(const GraphNode &a_other) = default;            //! Copy assignment operator
 	GraphNode &operator=(GraphNode &&a_other) noexcept = default;        //! Move assignment operator
-	virtual ~GraphNode() noexcept                      = default;        //! Destructor
+	~GraphNode() noexcept                              = default;        //! Destructor
 
 	FORCE_INLINE VertexId get_child(VertexId a_child) const;
 	FORCE_INLINE VertexId get_parent(VertexId a_parent) const;
@@ -120,7 +120,6 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	 * @details    Takes a tuple and appends it to the graph. It then returns the index of the inserted tuple
 	 *             this function does not do any linking, clients needs to call add_edge to link vertices inserted
 	 *             this way
-	 * @param      none
 	 * @return     Index of the inserted vertex
 	 */
 	FORCE_INLINE VertexId add_vertex(const Vertex &a_vertex);
@@ -132,7 +131,6 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	 *             to the list of children in a_parent, it also add a_prent to list of parents into a_child
 	 * @param      a_parent Index of the parent vertex
 	 * @param      a_child Index of the child vertex
-	 * @return     None
 	 */
 	FORCE_INLINE void add_edge(VertexId a_parent, VertexId a_child);
 
@@ -142,14 +140,12 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	 *             The link is assumed to be from the parent to the child but child also links to its parent
 	 * @param      a_parent Index of the parent vertex
 	 * @param      a_child Index of the child vertex
-	 * @return     None
 	 */
 	FORCE_INLINE void remove_edge(VertexId a_parent, VertexId a_child);
 
 	/**
 	 * @brief      Returns vertex count
 	 * @details    Returns vertex count
-	 * @param      None
 	 * @return     Total vertex count
 	 */
 	FORCE_INLINE size_t vertex_count() const;
@@ -157,8 +153,6 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	/**
 	 * @brief      Clears the Graph
 	 * @details    Clears the Graph by calling every elements destructors
-	 * @param      None
-	 * @return     None
 	 */
 	FORCE_INLINE void clear();
 
@@ -174,7 +168,6 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	 * @brief      Checks if the graph is acylic
 	 * @details    This function goes through all the vertices of the graph and their links
 	 *             to determine if the graph is acyclic or not
-	 * @param      None
 	 * @return     true if the graph is acyclick and false otherwise
 	 */
 	bool is_acyclic();
@@ -182,7 +175,6 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	/**
 	 * @brief      Returns the topological sorted list
 	 * @details    Returns the topological sorted list by copying it into returned
-	 * @param      None
 	 * @return     std::vector<VertexId> with topological sorted list of the graph
 	 */
 	std::vector<VertexId> get_sorted_list();
@@ -193,7 +185,6 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	 * @brief      Adds a leaf node
 	 * @details    Adds a leaf node and increments m_leaf_count
 	 * @param      a_vertex Vertex to be added as a leaf node
-	 * @return     None
 	 */
 	FORCE_INLINE void add_leaf(const Vertex &a_vertex);
 
@@ -202,7 +193,6 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	 * @details    Adds a children for a_parent and decrements m_leaf_count if a_parent was a leaf before
 	 * @param      a_parent Index of the parent node
 	 * @param      a_child Index of the child node
-	 * @return     None
 	 */
 	FORCE_INLINE void add_child(VertexId a_parent, VertexId a_child);
 
@@ -210,8 +200,6 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	 * @brief      Updates topological sorted list of the graph
 	 * @details    Updates topological sorted list of the graph by first calling kahn algorithm to check for cycles
 	 *             If the graph is acyclic the sorted list will contain all vertices otherwise empty
-	 * @param      None
-	 * @return     None
 	 */
 	void update_sorted_list();
 

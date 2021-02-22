@@ -59,7 +59,6 @@ using float32_t   = float;              // Just for consistancy reasons, also co
 using double64_t  = double;             // Just for consistancy reasons, also compile time checked for size
 using double128_t = long double;        // Just for consistancy reasons, also compile time checked for size
 
-
 // Types for hashing
 using hash_32_t = uint32_t;
 using hash_64_t = uint64_t;
