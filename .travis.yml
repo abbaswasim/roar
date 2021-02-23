@@ -1,11 +1,12 @@
-sudo: required
 language: cpp
+os: linux
+dist: bionic
 
 stages:
   - compile
   - test
   
-matrix:
+jobs:
   include:
   - os: linux
     dist: bionic
