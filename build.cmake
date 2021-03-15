@@ -64,6 +64,7 @@ if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   target_compile_options(${target_name} PRIVATE
 	-Wno-c++98-compat-pedantic
 	-Wno-c++98-compat
+	-Wno-poison-system-directories
 	-Wno-gnu-zero-variadic-macro-arguments) # TODO: Find a solution to this for gtest
 
   target_compile_options(${target_name} PRIVATE
@@ -75,6 +76,7 @@ if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 	-Wno-missing-prototypes
 	-Wno-padded                       # TODO: This one is interesting, enable to fix all issues
 	-Wno-double-promotion             # re-enable this later
+	-Wno-documentation                # I don't understand why this is passed through to thirdparty deps still, investigate later
 	)
 else()
   # target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments)
