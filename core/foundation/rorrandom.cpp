@@ -23,10 +23,8 @@
 //
 // Version: 1.0.0
 
-
 #include "rorrandom.hpp"
 
 namespace ror
 {
-
-} // namespace ror
+}        // namespace ror

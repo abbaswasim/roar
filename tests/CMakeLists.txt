@@ -63,6 +63,7 @@ set(ROAR_TEST_SOURCES
   ${ROAR_TEST_SOURCE_DIR}/graph.cpp
   ${ROAR_TEST_SOURCE_DIR}/log.cpp
   ${ROAR_TEST_SOURCE_DIR}/watchcat.cpp
+  ${ROAR_TEST_SOURCE_DIR}/configuration/configuration.cpp
   ${ROAR_TEST_SOURCE_DIR}/carray_vs_stdarray.cpp)
 
 add_executable(${ROAR_TEST_NAME} ${ROAR_TEST_HEADERS} ${ROAR_TEST_SOURCES})

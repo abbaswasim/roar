@@ -25,27 +25,14 @@
 
 #include "common.hpp"
 #include "profiling/rorlog.hpp"
-#include <filesystem>
-#include <fstream>
-#include <functional>
 #include <gtest/gtest.h>
-#include <istream>
 #include <memory>
 
 #include "watchcat/rorwatchcat.hpp"
 
-namespace fs = std::filesystem;
-
 namespace ror_test
 {
 using callback_signature = std::function<void(fs::path a_path)>;
-
-fs::path get_root_dir()
-{
-	fs::current_path(fs::temp_directory_path());
-	std::filesystem::path root("sandbox");
-	return fs::current_path() / root;
-}
 
 //Would have been better to have created a WatchCatTest class instead, but for this kind of setup_enviroment function
 // Its much harder to make the SetUp and Teardown functions work that gtest provides
@@ -103,12 +90,6 @@ std::unique_ptr<ror::WatchCat> setup_environment(callback_signature &   created,
 		0.00001f);
 
 	return wc;
-}
-
-void teardown_environment()
-{
-	auto root_dir = get_root_dir();
-	fs::remove_all(root_dir);
 }
 
 void test_create_modify_remove(std::function<void(fs::path)> &created,

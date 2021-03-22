@@ -63,3 +63,10 @@
 #endif
 
 #define ROAR_ALIGN_AS(_type, _alignment) alignas(_alignment) _type
+
+#define declare_translation_unit_vtable() \
+	virtual void _temp_virtual()
+
+#define define_translation_unit_vtable(_type) \
+	void _type::_temp_virtual()               \
+	{}

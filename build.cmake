@@ -36,7 +36,7 @@ set(CMAKE_CXX_EXTENSIONS false)
 
 function(build_options target_name)
   if (CMAKE_BUILD_TYPE MATCHES "Debug")
-	target_compile_definitions(${target_name} PUBLIC RORDEBUG)
+	target_compile_definitions(${target_name} PRIVATE RORDEBUG)
 	set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 	set(CMAKE_C_FLAGS_DEBUG "-O0 -g")
   else()
@@ -49,6 +49,7 @@ function(build_options target_name)
 	-Wall
 	-Wextra
 	-Wconversion
+	-Wsign-conversion
 	-Wunreachable-code
 	-Wuninitialized
 	-pedantic-errors
@@ -85,15 +86,25 @@ endif()
 endfunction(build_options)
 
 # Inspired by https://stackoverflow.com/questions/52135983/cmake-target-link-libraries-include-as-system-to-suppress-compiler-warnings
-function(target_link_libraries_system target scope)
+function(target_link_libraries_system target_name scope)
   set(dependencies ${ARGN})
   foreach(dependency ${dependencies})
 	get_target_property(dependency_include_dirs ${dependency} INTERFACE_INCLUDE_DIRECTORIES)
 	if(dependency_include_dirs)
-	  target_include_directories(${target} SYSTEM ${scope} ${dependency_include_dirs})
+	  target_include_directories(${target_name} SYSTEM ${scope} ${dependency_include_dirs})
 	else()
 	  message("Warning: ${dependency} doesn't set INTERFACE_INCLUDE_DIRECTORIES. No INCLUDE_DIRECTORIES set.")
 	endif()
-	target_link_libraries(${target} ${scope} ${dependency})
+	target_link_libraries(${target_name} ${scope} ${dependency})
   endforeach(dependency)
+endfunction(target_link_libraries_system)
+
+# Use this to hide your library header warnings from clients
+# Inspired by https://foonathan.net/2018/10/cmake-warnings/
+function(target_include_directories_system target_name)
+  set(include_dirs ${ARGN})
+  foreach(include_dir ${include_dirs})
+	target_include_directories(${target_name} PUBLIC ${include_dir})
+	target_include_directories(${target_name} SYSTEM INTERFACE ${include_dir})
+  endforeach(include_dir)
 endfunction(target_link_libraries_system)

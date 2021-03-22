@@ -44,43 +44,51 @@ namespace ror
 enum class ResourceSemantic
 {
 	materials,
-	textures,
+	textures,        // Perhaps distinguish between 2D/3D/Cube textures
 	shaders,
 	scripts,
 	objects,
 	configs,
-	models,
+	models,        //Also a mesh
 	caches,
+	audio,
+	cubemap,
+	animation,
+	font,
 	logs,
-	misc,
+	misc
 };
 
 std::string get_resource_semantic_string(ResourceSemantic a_semantic);
 
 // TODO: Use pools and/or shared mem for all resources, something encapsulating Resource(s)
+// Inface make sure to use a separate pool for each ResourceSemantic type of resource, this will add in bindless descriptor assignment
 
 class ROAR_ENGINE_ITEM Resource
 {
   public:
-	FORCE_INLINE Resource(const Resource &a_other)     = delete;                   //! Copy constructor TODO: Implement when needed
-	FORCE_INLINE Resource(Resource &&a_other) noexcept = delete;                   //! Move constructor TODO: Implement when needed
-	FORCE_INLINE Resource &operator=(const Resource &a_other) = delete;            //! Copy assignment operator TODO: Implement when needed
-	FORCE_INLINE Resource &operator=(Resource &&a_other) noexcept = delete;        //! Move assignment operator  TODO: Implement when needed
-	FORCE_INLINE virtual ~Resource() noexcept;                                     //! Destructor
+	FORCE_INLINE Resource(const Resource &a_other)     = delete;                   //! Copy constructor
+	FORCE_INLINE Resource(Resource &&a_other) noexcept = delete;                   //! Move constructor
+	FORCE_INLINE Resource &operator=(const Resource &a_other) = delete;            //! Copy assignment operator
+	FORCE_INLINE Resource &operator=(Resource &&a_other) noexcept = delete;        //! Move assignment operator
 
-	FORCE_INLINE Resource(std::filesystem::path a_absolute_path, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
-	FORCE_INLINE Resource(std::filesystem::path a_relative_path, ResourceSemantic a_resource_semantic, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
+	virtual ~Resource() noexcept;        //! Destructor
+
+	Resource(std::filesystem::path a_absolute_path, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
+	Resource(std::filesystem::path a_relative_path, ResourceSemantic a_resource_semantic, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
 
 	// TODO: Need to work out how this works. Can one change vector via this const pointer?
 	// What will be the best way to send it back in to update data
 	const std::shared_ptr<std::vector<uint8_t>> get_data() const;
 	void                                        update_data(std::shared_ptr<std::vector<uint8_t>> a_data);
 
+	virtual void temp();
+
   protected:
   private:
 	void                  cache();                        // Check if cached, returnes cached filename otherwise creates a cached resource
 	void                  load();                         // Loads the resource
-	void                  load_or_mmap();                 // Loads or mmpas the resource depending on whether its read only or not
+	void                  load_or_mmap();                 // Loads or mmaps the resource depending on whether its read only or not
 	void                  load_or_generate_uuid();        // Generates or Reads UUID for the resource
 	std::filesystem::path find_resource();                // Tries hard to find the resource in the paths it knows
 

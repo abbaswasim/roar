@@ -51,7 +51,7 @@ class ROAR_ENGINE_ITEM Crtp
 
   private:
 	FORCE_INLINE Crtp() = default;        //! Default constructor
-	friend _derived_type<_type>;          //! Any type derives from Crtp will have access to constructor
+	friend _derived_type<_type>;          //! Any type derived from Crtp will have access to constructor
 };
 
 /**
@@ -82,7 +82,7 @@ class ROAR_ENGINE_ITEM CrtpClient : public Crtp<_type, CrtpClient>
 /**
 * And here is an implementation of the CrtpClient interface
 */
-class ROAR_ENGINE_ITEM CrtpClientImpl : public CrtpClient<CrtpClientImpl>
+class ROAR_ENGINE_ITEM CrtpClientImpl : public CrtpClient<CrtpClientImpl>        // Could be final in which case no virtual dtor
 {
   public:
 	FORCE_INLINE CrtpClientImpl()                                  = default;                   //! Default constructor

@@ -21,6 +21,39 @@ void print_gtest_header(const std::string &color)
 	printf("\033[m");        // Resets the terminal to default.
 }
 
+fs::path get_root_dir()
+{
+	fs::current_path(fs::temp_directory_path());
+	std::filesystem::path root("sandbox");
+	return fs::current_path() / root;
+}
+
+fs::path create_root_dir()
+{
+	auto rd = get_root_dir();
+	fs::create_directories(rd);
+	return rd;
+}
+
+void teardown_environment()
+{
+	auto root_dir = get_root_dir();
+	fs::remove_all(root_dir);
+}
+
+void write_file(fs::path file, std::string data)
+{
+	std::ofstream f(file);
+	if (!f.is_open())
+	{
+		FAIL();
+	}
+
+	f.write(&data[0], static_cast<long>(data.size()));
+
+	f.close();
+}
+
 TEST(System, System_constants)
 {
 	auto os    = ror::get_os();

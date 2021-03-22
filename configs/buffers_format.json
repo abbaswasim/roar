@@ -7,7 +7,7 @@
 			"buffers":[
 				{
 					"size":150,
-					"format":[
+					"semantic":[
 						{
 							"vertex_position":100,
 							"vertex_weight":25,
@@ -17,7 +17,7 @@
 				},
 				{
 					"size":200,
-					"format":[
+					"semantic":[
 						{
 							"vertex_texture_coord_0":100,
 							"vertex_normal":50,
@@ -27,7 +27,7 @@
 				},
 				{
 					"size":100,
-					"format":[
+					"semantic":[
 						{
 							"vertex_index":100
 						}
@@ -35,7 +35,7 @@
 				},
 				{
 					"size":100,
-					"format":[
+					"semantic":[
 						{
 							"instance_translation":80
 							"instance_rotation":10
@@ -46,7 +46,7 @@
 				{
 					"size":200,
 					"interleaved":"global",
-					"format":[
+					"semantic":[
 
 					]
 				}
@@ -58,7 +58,7 @@
 				{
 					"size":400,
 					"interleaved":"local",
-					"format":[
+					"semantic":[
 
 					]
 				}
@@ -70,7 +70,7 @@
 				{
 					"size":400,
 					"interleaved":"global",
-					"format":[
+					"semantic":[
 
 					]
 				}
@@ -82,7 +82,7 @@
 				{
 					"size":100,
 					"interleaved":"local",
-					"format":[
+					"semantic":[
 						{
 							"vertex_position":30,
 							"vertex_normal":30
@@ -97,7 +97,7 @@
 				{
 					"size":200,
 					"interleaved":"global",
-					"format":[
+					"semantic":[
 
 					]
 				}
@@ -109,7 +109,7 @@
 				{
 					"size":20,
 					"interleaved":"local",
-					"format":[
+					"semantic":[
 						{
 							"vertex_position":20
 						}
@@ -117,7 +117,7 @@
 				},
 				{
 					"size":10,
-					"format":[
+					"semantic":[
 						{
 							"vertex_texture_coord_0":20,
 							"vertex_texture_coord_1":10,
@@ -127,7 +127,7 @@
 				},
 				{
 					"size":10,
-					"format":[
+					"semantic":[
 						{
 							"vertex_normal":10
 						}
@@ -135,7 +135,7 @@
 				},
 				{
 					"size":10,
-					"format":[
+					"semantic":[
 						{
 							"vertex_tangent":10
 						}
@@ -143,7 +143,7 @@
 				},
 				{
 					"size":10,
-					"format":[
+					"semantic":[
 						{
 							"vertex_bone_id":10
 						}
@@ -151,7 +151,7 @@
 				},
 				{
 					"size":10,
-					"format":[
+					"semantic":[
 						{
 							"vertex_weight":10
 						}
@@ -159,7 +159,7 @@
 				},
 				{
 					"size":10,
-					"format":[
+					"semantic":[
 						{
 							"vertex_index":10
 						}
@@ -167,7 +167,7 @@
 				},
 				{
 					"size":10,
-					"format":[
+					"semantic":[
 						{
 							"instance_translation":10
 						}
@@ -176,7 +176,7 @@
 				{
 					"size":10,
 					"interleaved":"global",
-					"format":[
+					"semantic":[
 
 					]
 				}

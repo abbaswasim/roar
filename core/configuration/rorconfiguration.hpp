@@ -28,6 +28,7 @@
 #include "foundation/rorcrtp.hpp"
 #include "nlohmann/json.hpp"
 #include "resources/rorresource.hpp"
+#include <foundation/rortypes.hpp>
 
 // for convenience
 using json = nlohmann::json;
@@ -45,16 +46,32 @@ class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 	FORCE_INLINE Configuration &operator=(Configuration &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Configuration() noexcept                          = default;        //! Destructor
 
-	void load()
+	void load(std::filesystem::path a_config_path)
 	{
+		this->m_resource   = std::make_shared<Resource>(a_config_path, ResourceSemantic::configs);
+		this->m_json_file = json::parse(*this->m_resource->get_data());        // Perhaps remove the *
 
+		this->underlying().load_specific();
+	}
+
+	template<typename _type_inner>
+	bool contains(_type_inner &&a_key) const
+	{
+		return this->m_json_file.contains(std::forward(a_key));
+	}
+
+	template <typename _type_inner>
+	auto integer(_type_inner &&a_key) const
+	{
+		return this->m_json_file.integer(std::forward(a_key));
 	}
 
   protected:
   private:
-	Resource m_resource;        // The resource link for this configuration
+	json                      m_json_file;
+	std::shared_ptr<Resource> m_resource{nullptr};        //! The resource link for this configuration
+	friend _type;                                         //! Any type derived from Configuration will have access to constructor and private members
 };
-
 }        // namespace ror
 
 #include "rorconfiguration.hh"

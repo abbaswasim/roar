@@ -26,8 +26,14 @@
 #pragma once
 
 #include "foundation/rortypes.hpp"
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <istream>
 #include <gtest/gtest.h>
 #include <iostream>
+
+namespace fs = std::filesystem;
 
 namespace ror_test
 {
@@ -202,4 +208,12 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 		EXPECT_NEAR(static_cast<double64_t>(a.z), static_cast<double64_t>(b.z), test_epsilon); \
 		EXPECT_NEAR(static_cast<double64_t>(a.w), static_cast<double64_t>(b.w), test_epsilon); \
 	}(void) 1
+
+void write_file(fs::path, std::string data);
+
+fs::path get_root_dir();
+fs::path create_root_dir();
+
+void teardown_environment();
+
 }        // namespace ror_test

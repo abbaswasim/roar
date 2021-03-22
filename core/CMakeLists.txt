@@ -26,7 +26,7 @@
 # Configure version source file roar_version.cpp
 configure_file(${ROAR_SOURCE_DIR}/roar_version.cpp.in roar_version.cpp @ONLY)
 add_library(roar_version STATIC ${CMAKE_CURRENT_BINARY_DIR}/roar_version.cpp)
-target_include_directories(roar_version PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories_system(roar_version PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/profiling/rorlog.hpp
@@ -85,14 +85,17 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/configuration/rorconfiguration.hh
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hpp
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hh
-  ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.hpp)
+  ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.hpp
+  ${ROAR_SOURCE_DIR}/resources/rorresource.hpp)
 
 set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/profiling/rorlog.cpp
   ${ROAR_SOURCE_DIR}/profiling/rortimer.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
-  ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp)
+  ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
+  ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
+  ${ROAR_SOURCE_DIR}/resources/rorprojectroot.cpp)
 
 add_library(${ROAR_NAME} SHARED ${ROAR_SOURCES} ${ROAR_HEADERS})
 set_target_properties(${ROAR_NAME} PROPERTIES VERSION 1.0.0.0 SOVERSION 1)          # TODO: Fix the hardcoded version
@@ -111,9 +114,9 @@ generate_export_header(${ROAR_NAME}
   EXPORT_MACRO_NAME ROAR_ENGINE_ITEM
   NO_EXPORT_MACRO_NAME ROAR_ENGINE_PRIVATE)
 
-target_include_directories(${ROAR_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
-target_include_directories(${ROAR_NAME} PUBLIC ${ROAR_SOURCE_DIR})
-target_include_directories(${ROAR_NAME} PUBLIC ${ROAR_ROOT_DIR})
+target_include_directories_system(${ROAR_NAME} "${CMAKE_CURRENT_BINARY_DIR}")
+target_include_directories_system(${ROAR_NAME} ${ROAR_SOURCE_DIR})
+target_include_directories_system(${ROAR_NAME} ${ROAR_ROOT_DIR})
 
 set(ROAR_REQUIRED_PLATFORM_LIBRARIES "")
 

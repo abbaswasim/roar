@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2008-2019
+// Copyright (c) 2021
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -44,40 +44,38 @@ std::string get_resource_semantic_string(ResourceSemantic a_semantic)
 	{
 		case ResourceSemantic::materials:
 			return "materials";
-			break;
 		case ResourceSemantic::textures:
 			return "textures";
-			break;
 		case ResourceSemantic::shaders:
 			return "shaders";
-			break;
 		case ResourceSemantic::scripts:
 			return "scripts";
-			break;
 		case ResourceSemantic::objects:
 			return "objects";
-			break;
 		case ResourceSemantic::configs:
 			return "configs";
-			break;
 		case ResourceSemantic::models:
 			return "models";
-			break;
 		case ResourceSemantic::caches:
 			return "caches";
-			break;
+		case ResourceSemantic::audio:
+			return "audio";
+		case ResourceSemantic::cubemap:
+			return "cubemap";
+		case ResourceSemantic::animation:
+			return "animation";
+		case ResourceSemantic::font:
+			return "font";
 		case ResourceSemantic::logs:
 			return "logs";
-			break;
 		case ResourceSemantic::misc:
 			return "misc";
-			break;
 	}
 
 	return "";
 }
 
-FORCE_INLINE Resource::~Resource() noexcept
+Resource::~Resource() noexcept
 {
 	if (this->m_mapped)
 	{
@@ -85,18 +83,18 @@ FORCE_INLINE Resource::~Resource() noexcept
 	}
 }
 
-FORCE_INLINE Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_read_only, bool a_mapped) :
+Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_read_only, bool a_mapped) :
 	m_absolute_path(a_absolute_path), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
 {
 	if (!this->m_absolute_path.is_absolute())
 	{
-		log_error("{} path is not absolute, either use absolute filename or use the relative constructor", this->m_absolute_path);
+		log_error("{} path is not absolute, either use absolute filename or use the relative constructor", this->m_absolute_path.c_str());
 	}
 
 	this->load();
 }
 
-FORCE_INLINE Resource::Resource(std::filesystem::path a_relative_path, ResourceSemantic a_resource_semantic, bool a_binary, bool a_read_only, bool a_mapped) :
+Resource::Resource(std::filesystem::path a_relative_path, ResourceSemantic a_resource_semantic, bool a_binary, bool a_read_only, bool a_mapped) :
 	m_absolute_path(a_relative_path), m_semantic(a_resource_semantic), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
 {
 	this->m_absolute_path = this->find_resource();
@@ -178,11 +176,12 @@ std::filesystem::path Resource::find_resource()
 	if (std::strftime(gen_filename, sizeof(gen_filename), "%d_%m_%Y_%H_%M_%S", std::localtime(&t)))
 	{
 		auto temp = pr.get_project_root() / get_resource_semantic_string(this->m_semantic) / this->m_absolute_path;
-		log_error("File name generation failed using {} as a file name", temp);
+		log_error("File name generation failed using {} as a file name", temp.c_str());
 
 		return temp;
 	}
 
+	// If std::strftime failes return what was expected without anything more we can do
 	return pr.get_project_root() / get_resource_semantic_string(this->m_semantic) / gen_filename;
 }
 
@@ -197,7 +196,7 @@ void Resource::load()
 			if (this->m_binary_file)
 				mode |= std::ios::binary;
 
-			log_warn("{} file does not exit, creating now, but contents will be empty", this->m_absolute_path);
+			log_warn("{} file does not exit, creating now, but contents will be empty", this->m_absolute_path.c_str());
 
 			// Create the file, if we tried our best but couldn't find it
 			std::ofstream of(this->m_absolute_path, mode);
@@ -209,7 +208,7 @@ void Resource::load()
 	this->cache();
 	this->load_or_mmap();
 
-	log_info("Loaded cached resource {} for {} file", this->m_cached_path, this->m_absolute_path);
+	log_info("Loaded cached resource {} for {} file", this->m_cached_path.c_str(), this->m_absolute_path.c_str());
 
 	std::string path_string{this->m_absolute_path};
 	// Create Path hash from absolute path as compared to cached path
@@ -221,9 +220,9 @@ void Resource::load()
 void Resource::load_or_mmap()
 {
 	// If we are asked to create mmaped file or the resource is readonly, lets mmap it
-	if (this->m_mapped || this->m_read_only)
+	if (this->m_mapped)        // || this->m_read_only)
 	{
-		// mmap me
+		// TODO: mmap me and consider m_read_only
 	}
 	else
 	{
@@ -232,21 +231,23 @@ void Resource::load_or_mmap()
 		if (this->m_binary_file)
 			mode |= std::ios::binary;
 
-		std::basic_ifstream<uint8_t> as_file(this->m_cached_path, mode);
+		// std::basic_ifstream<uint8_t> as_file(std::string(this->m_cached_path), mode);
+		std::ifstream as_file(this->m_cached_path, mode);
 		if (!as_file.is_open())
 		{
-			log_critical("Can't open file {}", this->m_cached_path);
+			log_critical("Can't open file {}", this->m_cached_path.c_str());
 			return;
 		}
 
-		// No point to synchronise here because the some other process might be writing into the file
+		// No point to synchronise here because some other process might be writing into the file
 		std::streampos bytes_count = as_file.tellg();
 		as_file.seekg(0, std::ios::beg);
 
 		this->m_data = std::make_shared<std::vector<std::uint8_t>>();
 		// Cast is ok because if byte_count is bigger than size_t range, we have a bigger problem
 		this->m_data->resize(static_cast<size_t>(bytes_count));
-		as_file.read(reinterpret_cast<uint8_t *>(this->m_data->data()), bytes_count);
+		as_file.read(reinterpret_cast<char *>(this->m_data->data()), bytes_count);        // Weird that int8_t is 'signed char' and can't be converted to 'char'
+
 		as_file.close();
 	}
 }
@@ -271,4 +272,6 @@ const std::shared_ptr<std::vector<uint8_t>> Resource::get_data() const
 	return this->m_data;
 }
 
+void Resource::temp()
+{}
 }        // namespace ror
