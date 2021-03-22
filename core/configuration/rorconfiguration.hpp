@@ -54,17 +54,17 @@ class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 		this->underlying().load_specific();
 	}
 
-	template<typename _type_inner>
-	bool contains(_type_inner &&a_key) const
-	{
-		return this->m_json_file.contains(std::forward(a_key));
-	}
+	// template<typename _type_inner>
+	// bool contains(_type_inner &&a_key) const
+	// {
+	//	return this->m_json_file.contains(std::forward(a_key));
+	// }
 
-	template <typename _type_inner>
-	auto integer(_type_inner &&a_key) const
-	{
-		return this->m_json_file.integer(std::forward(a_key));
-	}
+	// template <typename _type_inner>
+	// auto integer(_type_inner &&a_key) const
+	// {
+	//	return this->m_json_file.integer(std::forward(a_key));
+	// }
 
   protected:
   private:
