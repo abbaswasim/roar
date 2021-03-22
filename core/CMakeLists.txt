@@ -86,6 +86,9 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hpp
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hh
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.hpp
+  ${ROAR_SOURCE_DIR}/rhi/rorrhi_base.hpp
+  ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.hpp
+  ${ROAR_SOURCE_DIR}/rhi/rorbuffer.hpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.hpp)
 
 set(ROAR_SOURCES
@@ -95,6 +98,9 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
+  ${ROAR_SOURCE_DIR}/rhi/rorrhi_base.cpp
+  ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.cpp
+  ${ROAR_SOURCE_DIR}/rhi/rorbuffer.cpp
   ${ROAR_SOURCE_DIR}/resources/rorprojectroot.cpp)
 
 add_library(${ROAR_NAME} SHARED ${ROAR_SOURCES} ${ROAR_HEADERS})
@@ -107,7 +113,7 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN YES)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)    # Set default to hide symbols visibility for all targets
 set(CMAKE_C_VISIBILITY_PRESET hidden)      # Set default to hide symbols visibility for all targets
 
-message(STATUS "Now generating roar_export_import.h file")
+message(STATUS "Now generating roar_export_import.hpp file")
 include(GenerateExportHeader)
 generate_export_header(${ROAR_NAME}
   EXPORT_FILE_NAME roar_export_import.hpp

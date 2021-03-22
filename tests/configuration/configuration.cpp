@@ -1,4 +1,5 @@
 #include "common.hpp"
+#include "core/rhi/rorbuffer.hpp"
 #include "core/rhi/rorbuffers_format.hpp"
 #include <cstddef>
 #include <gtest/gtest-typed-test.h>

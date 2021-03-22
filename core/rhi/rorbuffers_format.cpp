@@ -1,0 +1,102 @@
+// Roar Source Code
+// Wasim Abbas
+// http://www.waZim.com
+// Copyright (c) 2021
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the 'Software'),
+// to deal in the Software without restriction, including without limitation
+// the rights to use, copy, modify, merge, publish, distribute, sublicense,
+// and/or sell copies of the Software, and to permit persons to whom the Software
+// is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+// CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+// TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+// Version: 1.0.0
+
+#include "rhi/rorbuffers_format.hpp"
+
+namespace ror
+{
+void BuffersFormatConfig::load_specific()
+{
+	assert(this->m_json_file.contains("buffer_packs") && "BufferFormatConfig file must contain a list of buffer_packs");
+
+	this->m_buffers_format = std::make_shared<BuffersFormat>();
+
+	if (this->m_json_file.contains("unit"))
+		this->m_buffers_format->m_unit = this->m_json_file["unit"];
+
+	std::string current_buffer_pack{};
+	if (this->m_json_file.contains("buffer_pack_current"))
+		current_buffer_pack = this->m_json_file["buffer_pack_current"];
+
+	auto buffer_packs = this->m_json_file["buffer_packs"];
+
+	this->m_buffers_format->m_buffer_packs.reserve(buffer_packs.size());
+	for (auto &bp : buffer_packs)
+	{
+		BufferPack buffer_pack;
+		buffer_pack.m_name = bp["name"];
+
+		auto buffers = bp["buffers"];
+		buffer_pack.m_buffers.reserve(buffers.size());
+		for (auto &b : buffers)
+		{
+			rhi::Buffer buffer;
+			assert(b.contains("size") && "Each buffer should specifiy a size");
+			uint64_t size = b["size"];
+			size *= this->m_buffers_format->m_unit;
+			buffer.size(size);
+
+			if (b.contains("interleaved"))
+				buffer.interleaved(b["interleaved"] == "global" ? false : true);
+
+			auto semantics = b["semantic"];
+			buffer.semantics_reserve(semantics.size());
+			for (auto &f : semantics)
+			{
+				for (auto it = f.begin(); it != f.end(); ++it)
+					buffer.emplace_semantic(std::make_pair(rhi::get_format_shader_semantic(it.key()), it.value()));
+			}
+
+			buffer_pack.m_buffers.emplace_back(std::move(buffer));
+		}
+
+		this->m_buffers_format->m_buffer_packs.emplace_back(std::move(buffer_pack));
+	}
+
+	for (size_t k = 0; k < this->m_buffers_format->m_buffer_packs.size(); ++k)
+	{
+		if (this->m_buffers_format->m_buffer_packs[k].m_name == current_buffer_pack)
+		{
+			this->m_buffers_format->m_current_format = static_cast_safe<uint32_t>(k);
+			break;
+		}
+	}
+}
+
+const std::shared_ptr<BuffersFormat> BuffersFormatConfig::buffers_format() const
+{
+	return this->m_buffers_format;
+}
+
+define_translation_unit_vtable(BuffersFormatConfig);
+
+auto get_buffer_pack()
+{
+	static BuffersFormatConfig bfc{};
+	bfc.load("buffers_format.json");        // Loads a predefined config file required to setup buffers formats, since this is a resource it will just work without full path
+	return bfc.buffers_format();
+}
+
+}        // namespace ror
