@@ -27,6 +27,11 @@
 
 namespace rhi
 {
+Buffer::Buffer()
+{
+	this->m_semantics.reserve(20);        // About enough for now, ror::ShaderSemantic is about 18 entries, if it grows in the future it doens't matter much
+}
+
 uint64_t Buffer::request(uint64_t a_bytes)
 {
 	assert(this->m_filled_size + a_bytes < this->m_size_in_bytes && "Requesting more bytes than the buffer has available");
@@ -79,11 +84,6 @@ void Buffer::interleaved(bool a_interleaved)
 bool Buffer::interleaved() const noexcept
 {
 	return this->m_interleaved_local;
-}
-
-void Buffer::semantics_reserve(size_t a_size)
-{
-	this->m_semantics.reserve(a_size);
 }
 
 void Buffer::emplace_semantic(std::pair<ShaderSemantic, uint64_t> &&a_pair)

@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "rhi/rorbuffers_format.hpp"
+#include <rhi/rorbuffer.hpp>
 
 namespace ror
 {
@@ -62,7 +63,6 @@ void BuffersFormatConfig::load_specific()
 				buffer.interleaved(b["interleaved"] == "global" ? false : true);
 
 			auto semantics = b["semantic"];
-			buffer.semantics_reserve(semantics.size());
 			for (auto &f : semantics)
 			{
 				for (auto it = f.begin(); it != f.end(); ++it)

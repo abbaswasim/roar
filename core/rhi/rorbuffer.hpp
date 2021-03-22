@@ -37,7 +37,7 @@ namespace rhi
 class Buffer        // : public Crtp<Buffer>
 {
   public:
-	FORCE_INLINE Buffer()                          = default;                   //! Default constructor
+	Buffer();                                                                   //! Default constructor
 	FORCE_INLINE Buffer(const Buffer &a_other)     = default;                   //! Copy constructor
 	FORCE_INLINE Buffer(Buffer &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Buffer &operator=(const Buffer &a_other) = default;            //! Copy assignment operator
@@ -55,19 +55,18 @@ class Buffer        // : public Crtp<Buffer>
 	/**
 	 * Returns offset of the location available
 	 */
-	uint64_t                            request(uint64_t a_bytes);                         //TODO: Does it need to be inline
-	uint64_t                            upload(uint8_t &a_data, uint64_t a_length);        //TODO: Does it need to be inline
-	uint32_t                            handle();
-	void                                map();
-	void                                unmap();
-	void                                size(uint64_t a_size);
-	uint64_t                            size() const noexcept;
-	void                                interleaved(bool a_interleaved);
-	bool                                interleaved() const noexcept;
-	void                                semantics_reserve(size_t a_size);
-	void                                emplace_semantic(std::pair<ShaderSemantic, uint64_t> &&a_pair);
-	std::pair<ShaderSemantic, uint64_t> semantic(size_t a_index) const noexcept;
+	uint64_t request(uint64_t a_bytes);                         //TODO: Does it need to be inline
+	uint64_t upload(uint8_t &a_data, uint64_t a_length);        //TODO: Does it need to be inline
+	uint32_t handle();
+	void     map();
+	void     unmap();
+	void     size(uint64_t a_size);
+	uint64_t size() const noexcept;
+	void     interleaved(bool a_interleaved);
+	bool     interleaved() const noexcept;
+	void     emplace_semantic(std::pair<ShaderSemantic, uint64_t> &&a_pair);
 
+	std::pair<ShaderSemantic, uint64_t>                     semantic(size_t a_index) const noexcept;
 	const std::vector<std::pair<ShaderSemantic, uint64_t>> &semantics() const noexcept;
 
   private:
