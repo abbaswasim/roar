@@ -92,8 +92,8 @@ class ROAR_ENGINE_ITEM Resource
 	void                  load_or_generate_uuid();        // Generates or Reads UUID for the resource
 	std::filesystem::path find_resource();                // Tries hard to find the resource in the paths it knows
 
-	std::filesystem::path                      m_absolute_path;                           // Path to the resource
-	std::filesystem::path                      m_cached_path;                             // Cached path to the resource
+	std::filesystem::path                      m_absolute_path{};                         // Path to the resource
+	std::filesystem::path                      m_cached_path{};                           // Cached path to the resource
 	std::shared_ptr<std::vector<std::uint8_t>> m_data;                                    // Pointer to its data
 	ResourceSemantic                           m_semantic{ResourceSemantic::misc};        // What's the default semantic of the resource
 	bool                                       m_binary_file{false};                      // True if its a binary file and false if its text file
@@ -102,7 +102,7 @@ class ROAR_ENGINE_ITEM Resource
 	hash_64_t                                  m_path_hash{0};                            // Hash of the path of the resource
 	hash_64_t                                  m_data_hash{0};                            // Hash of the contents of the resource
 	hash_128_t                                 m_uuid{0, 0};                              // The UUID of the resource, if it doesn't have one, one will be generated for it
-	std::mutex                                 m_mutex;                                   // Mutex to lock resource load/unloaad and existence, this
+	std::mutex                                 m_mutex{};                                 // Mutex to lock resource load/unloaad and existence, this
 																						  // is required because we don't know if the generated filenames are used by other jobs
 };
 }        // namespace ror

@@ -32,9 +32,6 @@
 
 namespace ror
 {
-// TODO: To be changed later on with proper abstraction
-const std::string project_path("/personal/roar_engine/project/");
-
 class ROAR_ENGINE_ITEM ProjectRoot final
 {
   public:
@@ -44,30 +41,10 @@ class ROAR_ENGINE_ITEM ProjectRoot final
 	FORCE_INLINE ProjectRoot &operator=(ProjectRoot &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~ProjectRoot() noexcept                                = default;        //! Destructor
 
-	FORCE_INLINE ProjectRoot()
-	{
-		this->m_project_root = std::filesystem::absolute(project_path);
-		std::filesystem::create_directory(this->m_project_root);
-	}
-
-	FORCE_INLINE void change_project_root(std::string a_root_path)
-	{
-		this->m_project_root = std::filesystem::absolute(a_root_path);
-		std::filesystem::create_directory(this->m_project_root);
-
-		// Update the hash
-		this->m_project_root_hash = static_cast<size_t>(std::hash<std::string>{}(this->m_project_root));
-	}
-
-	const std::filesystem::path &get_project_root() const
-	{
-		return this->m_project_root;
-	}
-
-	static uint64_t get_project_root_hash()
-	{
-		return m_project_root_hash;
-	}
+	ProjectRoot();
+	void                         change_project_root(std::string a_root_path);
+	const std::filesystem::path &get_project_root() const;
+	static uint64_t              get_project_root_hash();
 
   protected:
   private:
