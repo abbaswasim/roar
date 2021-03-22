@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "rhi/rorbuffer.hpp"
+#include <cassert>
 
 namespace rhi
 {
@@ -106,6 +107,6 @@ void Buffer::_upload(uint8_t &a_data, uint64_t a_length)        // TODO: To be i
 	(void) a_length;
 }
 
-define_translation_unit_vtable(Buffer);
+define_translation_unit_vtable(Buffer){}
 
 }        // namespace rhi

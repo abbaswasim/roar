@@ -68,5 +68,4 @@
 	virtual void _temp_virtual()
 
 #define define_translation_unit_vtable(_type) \
-	void _type::_temp_virtual()               \
-	{}
+	void _type::_temp_virtual()

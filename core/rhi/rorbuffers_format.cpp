@@ -90,7 +90,7 @@ const std::shared_ptr<BuffersFormat> BuffersFormatConfig::buffers_format() const
 	return this->m_buffers_format;
 }
 
-define_translation_unit_vtable(BuffersFormatConfig);
+define_translation_unit_vtable(BuffersFormatConfig){}
 
 auto get_buffer_pack()
 {
