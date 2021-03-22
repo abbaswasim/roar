@@ -94,7 +94,7 @@ class ROAR_ENGINE_ITEM Resource
 
 	std::filesystem::path                      m_absolute_path{};                         // Path to the resource
 	std::filesystem::path                      m_cached_path{};                           // Cached path to the resource
-	std::shared_ptr<std::vector<std::uint8_t>> m_data;                                    // Pointer to its data
+	std::shared_ptr<std::vector<std::uint8_t>> m_data{nullptr};                           // Pointer to its data
 	ResourceSemantic                           m_semantic{ResourceSemantic::misc};        // What's the default semantic of the resource
 	bool                                       m_binary_file{false};                      // True if its a binary file and false if its text file
 	bool                                       m_read_only{true};                         // If readonly we can optimise synchronisation and perhaps map it instead
