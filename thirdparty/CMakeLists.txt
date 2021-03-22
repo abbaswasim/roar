@@ -39,6 +39,9 @@ cmake_policy (SET CMP0042 NEW)
 set(XXHASH_BUILD_XXHSUM 0) # Don't need to build the cli
 add_subdirectory(xxHash/cmake_unofficial)
 
+set_target_properties(xxHash
+  PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 # add_subdirectory(convhull_3d)
 # target_compile_options(convhull_3d PRIVATE
 #   "-Wno-gnu-anonymous-struct"
