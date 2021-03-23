@@ -28,7 +28,7 @@
 namespace ror
 {
 // TODO: To be changed later on with proper abstraction
-const std::string project_path("/personal/roar_engine/project/");
+const std::string project_path("roar_project/");
 
 hash_64_t ProjectRoot::m_project_root_hash = std::hash<std::string>{}(project_path);
 

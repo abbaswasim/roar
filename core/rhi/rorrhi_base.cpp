@@ -173,7 +173,7 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 			return 36;
 		case VertexFormat::float32_16:
 			return 64;
-	};
+	}
 
 	return 0;
 }
@@ -248,7 +248,7 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 		case VertexFormat::float32_9:
 		case VertexFormat::float32_16:
 			return 3;        // TODO: This is a guess, confirm
-	};
+	}
 
 	return 0;
 }
