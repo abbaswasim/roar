@@ -1,6 +1,8 @@
 #include "common.hpp"
 #include "core/rhi/rorbuffer.hpp"
 #include "core/rhi/rorbuffers_format.hpp"
+#include "profiling/rorlog.hpp"
+#include "resources/rorprojectroot.hpp"
 #include <cstddef>
 #include <gtest/gtest-typed-test.h>
 #include <gtest/gtest.h>
@@ -10,57 +12,17 @@ namespace ror_test
 {
 TEST(ConfigurationTest, BufferFormat)
 {
-	std::string format_config{R"format(
-{
-	"buffer_pack_current":"optimal",
-	"unit": 1024,
-	"buffer_packs":[
-		{
-			"name": "optimal",
-			"buffers":[
-				{
-					"size":150,
-					"semantic":[
-						{
-							"vertex_position":100,
-							"vertex_weight":25,
-							"vertex_bone_id":25
-						}
-					]
-				},
-				{
-					"size":200,
-					"interleaved":"global",
-					"semantic":[
-						{
-							"vertex_texture_coord_0":100,
-							"vertex_normal":50,
-							"vertex_tangent":50
-						}
-					]
-				}
-			]
-		}
-	]
-})format"};
-
-	auto root_dir = create_root_dir();
+	std::filesystem::path file_path{ror::get_project_root().path() / "assets/configs/simple_format.json"};
 
 	ror::BuffersFormatConfig bfc{};
-
-	std::filesystem::path file_path{root_dir / "buffers_format.json"};
-
-	// First write out input to temp
-	write_file(file_path, format_config);
-
-	// Read it back in as resource
+	// Read it in as resource
 	bfc.load(file_path);
 
 	auto                   bf  = bfc.buffers_format();
-	const ror::BufferPack &bfp = bf->m_buffer_packs[0];
+	const ror::BufferPack &bfp = bf.m_buffer_packs[0];
 
-	EXPECT_EQ(bf->m_unit, 1024);
-	EXPECT_EQ(bf->m_current_format, 0);
+	EXPECT_EQ(bf.m_unit, 1024);
+	EXPECT_EQ(bf.m_current_format, 0);
 
 	const rhi::Buffer &b1 = bfp.m_buffers[0];
 

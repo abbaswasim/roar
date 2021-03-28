@@ -1,0 +1,39 @@
+{
+	"buffer_pack_current":"optimal",
+	"unit": 1024,
+	"buffer_packs":[
+		{
+			"name": "optimal",
+			"buffers":[
+				{
+					"size":150,
+					"semantic":[
+						{
+							"vertex_position":100,
+							"vertex_weight":25,
+							"vertex_bone_id":25
+						}
+					]
+				},
+				{
+					"size":200,
+					"interleaved":"global",
+					"semantic":[
+						{
+							"vertex_texture_coord_0":100,
+							"vertex_normal":50,
+							"vertex_tangent":50
+						}
+					]
+				},
+				{
+					"size":200,
+					"interleaved":"global",
+					"semantic":[
+					]
+				}
+
+			]
+		}
+	]
+}

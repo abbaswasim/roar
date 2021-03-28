@@ -23,11 +23,10 @@
 //
 // Version: 1.0.0
 
-#include "rhi/rorrhi_base.hpp"
+#include "rhi/rorrhi_types.hpp"
 
 namespace rhi
 {
-
 uint32_t pixel_format_to_bytes(PixelFormat a_pixel_format)
 {
 	switch (a_pixel_format)
@@ -102,6 +101,7 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 		case VertexFormat::int8_1_norm:
 		case VertexFormat::uint8_1:
 		case VertexFormat::uint8_1_norm:
+		case VertexFormat::uint8_custom:
 			return 1;
 		case VertexFormat::int8_2:
 		case VertexFormat::int8_2_norm:
@@ -112,6 +112,7 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 		case VertexFormat::uint16_1:
 		case VertexFormat::uint16_1_norm:
 		case VertexFormat::half16_1:
+		case VertexFormat::uint16_custom:
 			return 2;
 		case VertexFormat::int8_3:
 		case VertexFormat::int8_3_norm:
@@ -135,6 +136,8 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 		case VertexFormat::int101111_norm:
 		case VertexFormat::uint101111_norm:
 		case VertexFormat::uint8_4_norm_bgra:
+		case VertexFormat::uint32_custom:
+		case VertexFormat::float32_custom:
 			return 4;
 		case VertexFormat::int16_3:
 		case VertexFormat::int16_3_norm:
@@ -235,6 +238,10 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 		case VertexFormat::int101111_norm:
 		case VertexFormat::uint101111_norm:
 		case VertexFormat::uint8_4_norm_bgra:
+		case VertexFormat::uint8_custom:          // To be handled differently
+		case VertexFormat::uint16_custom:          // To be handled differently
+		case VertexFormat::uint32_custom:         // To be handled differently
+		case VertexFormat::float32_custom:        // To be handled differently
 			return 1;
 		case VertexFormat::uint64_1:
 		case VertexFormat::uint64_2:
@@ -246,41 +253,15 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 		case VertexFormat::float64_4:
 			return 1;        // TODO: This is only true if vertex attribute is used in Vulkan Vertex shader
 		case VertexFormat::float32_9:
-		case VertexFormat::float32_16:
 			return 3;        // TODO: This is a guess, confirm
+		case VertexFormat::float32_16:
+			return 4;        // TODO: This is a guess, confirm
 	}
 
 	return 0;
 }
 
-uint32_t index_format_to_bytes(IndexFormat a_index_format)
-{
-	switch (a_index_format)
-	{
-		case IndexFormat::uint8_1:
-			return 1;
-		case IndexFormat::uint8_2:
-		case IndexFormat::uint16_1:
-			return 2;
-		case IndexFormat::uint8_3:
-			return 3;
-		case IndexFormat::uint8_4:
-		case IndexFormat::uint16_2:
-		case IndexFormat::uint32_1:
-			return 4;
-		case IndexFormat::uint16_3:
-			return 6;
-		case IndexFormat::uint16_4:
-		case IndexFormat::uint32_2:
-			return 8;
-		case IndexFormat::uint32_3:
-			return 12;
-		case IndexFormat::uint32_4:
-			return 16;
-	}
-	return 0;
-}
-
+// clang-format off
 ShaderSemantic get_format_shader_semantic(const std::string &a_format)
 {
 
@@ -289,7 +270,7 @@ ShaderSemantic get_format_shader_semantic(const std::string &a_format)
 
 static std::unordered_map<std::string, ShaderSemantic> string_to_shader_semantic
 {
-	describe_formats(item)
+	describe_shader_semantics(item)
 };
 
 #undef item

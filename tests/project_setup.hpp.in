@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2008-2019
+// Copyright (c) 2021
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -25,48 +25,23 @@
 
 #pragma once
 
-#include <utility>
-static_assert(__cplusplus >= 201703L, "Minimum supported compiler 2017 not found");
+#include "resources/rorprojectroot.hpp"
+#include "utilities.hpp"
+#include <filesystem>
 
-#if (__cplusplus < 202001L)        // TODO: Change this to 2020 when available
+#cmakedefine tests_root_dir "${tests_root_dir}"
 
-namespace std
+void setup_project_root()
 {
-enum class endian
-{
-#	ifdef _WIN32
-	little = 0,
-	big    = 1,
-	native = little
-#	else
-	little = __ORDER_LITTLE_ENDIAN__,
-	big    = __ORDER_BIG_ENDIAN__,
-	native = __BYTE_ORDER__
-#	endif
-};
-}        // namespace std
-#else
+	const auto copy_options = std::filesystem::copy_options::update_existing |
+							  std::filesystem::copy_options::recursive |
+							  std::filesystem::copy_options::copy_symlinks;
 
-#	include <bit>
-static_assert(std::endian::native == std::endian::little, "Building on an unsupported non little-endian system");        // Only C++20
+	std::filesystem::path root_dir_path{tests_root_dir};
+	std::filesystem::path destination{ror::get_project_root("roar_test_project").path() / "assets"};
 
-#endif
+	auto assets = root_dir_path / "assets";
 
-// Before std::overload is available in C++ here is a workaround, keeping it outside std for now
-// https://arne-mertz.de/2018/05/overload-build-a-variant-visitor-on-the-fly/
-namespace ror
-{
-template <class... Fs>
-struct Overload : Fs...
-{
-	template <class... Ts>
-	Overload(Ts &&...ts) :
-		Fs{std::forward<Ts>(ts)}...
-	{}
-
-	using Fs::operator()...;
-};
-
-template <class... Ts>
-Overload(Ts &&...) -> Overload<std::remove_reference_t<Ts>...>;
-}        // namespace ror
+	// get_default_project_root returns absolute path to "roar_project"
+	std::filesystem::copy(assets, destination, copy_options);
+}

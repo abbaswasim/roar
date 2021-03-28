@@ -26,7 +26,7 @@
 # Configure version source file roar_version.cpp
 configure_file(${ROAR_SOURCE_DIR}/roar_version.cpp.in roar_version.cpp @ONLY)
 add_library(roar_version STATIC ${CMAKE_CURRENT_BINARY_DIR}/roar_version.cpp)
-target_include_directories_system(roar_version PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_include_directories(roar_version PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/profiling/rorlog.hpp
@@ -86,7 +86,7 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hpp
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hh
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.hpp
-  ${ROAR_SOURCE_DIR}/rhi/rorrhi_base.hpp
+  ${ROAR_SOURCE_DIR}/rhi/rorrhi_types.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffer.hpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.hpp)
@@ -98,7 +98,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
-  ${ROAR_SOURCE_DIR}/rhi/rorrhi_base.cpp
+  ${ROAR_SOURCE_DIR}/rhi/rorrhi_types.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffer.cpp
   ${ROAR_SOURCE_DIR}/resources/rorprojectroot.cpp)
@@ -120,9 +120,17 @@ generate_export_header(${ROAR_NAME}
   EXPORT_MACRO_NAME ROAR_ENGINE_ITEM
   NO_EXPORT_MACRO_NAME ROAR_ENGINE_PRIVATE)
 
-target_include_directories_system(${ROAR_NAME} "${CMAKE_CURRENT_BINARY_DIR}")
-target_include_directories_system(${ROAR_NAME} ${ROAR_SOURCE_DIR})
-target_include_directories_system(${ROAR_NAME} ${ROAR_ROOT_DIR})
+# If using roar as library, make sure you define ROAR_AS_SYSTEM if you don't want warnings from roar polluting your build logs
+if (ROAR_AS_LIBRARY)
+  # Using target_include_directories_system so that clients don't have issues with warnings in roar
+  target_include_directories_system(${ROAR_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+  target_include_directories_system(${ROAR_NAME} PUBLIC ${ROAR_SOURCE_DIR})
+  target_include_directories_system(${ROAR_NAME} PUBLIC ${ROAR_ROOT_DIR})
+else()
+  target_include_directories(${ROAR_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+  target_include_directories(${ROAR_NAME} PUBLIC ${ROAR_SOURCE_DIR})
+  target_include_directories(${ROAR_NAME} PUBLIC ${ROAR_ROOT_DIR})
+endif()
 
 set(ROAR_REQUIRED_PLATFORM_LIBRARIES "")
 
@@ -143,10 +151,10 @@ set(ROAR_REQUIRED_PUBLIC_LIBRARIES
   xxhash)
 
 target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PLATFORM_LIBRARIES})
+target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES})
 
 # To make sure project warning levels are not transferred to dependencies, one can link to these as SYSTEM libraries
 # This still seems like a hack, target_link_libraries_system is defined in build.cmake
-target_link_libraries_system(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES})
 target_link_libraries_system(${ROAR_NAME} PUBLIC ${ROAR_REQUIRED_PUBLIC_LIBRARIES})
 
 build_options(${ROAR_NAME})                               # Set common build options

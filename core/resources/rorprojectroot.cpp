@@ -23,37 +23,61 @@
 //
 // Version: 1.0.0
 
+#include "profiling/rorlog.hpp"
 #include "rorprojectroot.hpp"
 
 namespace ror
 {
-// TODO: To be changed later on with proper abstraction
-const std::string project_path("roar_project/");
-
-hash_64_t ProjectRoot::m_project_root_hash = std::hash<std::string>{}(project_path);
+// Convenience name for default initialized projects
+const std::string project_path("roar_project");
 
 ProjectRoot::ProjectRoot() :
-	m_project_root(std::filesystem::absolute(project_path))
+	m_project_root(std::filesystem::absolute(project_path)),
+	m_project_root_hash(std::hash<std::string>{}(project_path))
 {
-	std::filesystem::create_directory(this->m_project_root);
+	std::filesystem::create_directory(this->m_project_root);        // its ok if already exists
 }
 
-void ProjectRoot::change_project_root(std::string a_root_path)
+ProjectRoot::ProjectRoot(std::filesystem::path a_project_path) :
+	m_project_root(std::filesystem::absolute(a_project_path)),
+	m_project_root_hash(std::hash<std::string>{}(a_project_path))
+{
+	if (a_project_path.empty())
+		ror::log_error("ProjectRoot is initilaized with empty path.");
+
+	std::filesystem::create_directory(this->m_project_root);        // its ok if already exists
+}
+
+void ProjectRoot::change_project(std::string a_root_path)
 {
 	this->m_project_root = std::filesystem::absolute(a_root_path);
-	std::filesystem::create_directory(this->m_project_root);
+	std::filesystem::create_directory(this->m_project_root);        // its ok if already exists
 
 	// Update the hash
-	this->m_project_root_hash = static_cast<size_t>(std::hash<std::string>{}(this->m_project_root));
+	this->m_project_root_hash = std::hash<std::string>{}(this->m_project_root);
 }
 
-const std::filesystem::path &ProjectRoot::get_project_root() const
+const std::filesystem::path &ProjectRoot::path() const noexcept
 {
 	return this->m_project_root;
 }
 
-uint64_t ProjectRoot::get_project_root_hash()
+uint64_t ProjectRoot::hash() const noexcept
 {
 	return m_project_root_hash;
 }
+
+// One shot project root creation utility, can be used later to query global root project multiple times
+const ProjectRoot &get_project_root(std::filesystem::path a_path)
+{
+	static ProjectRoot pr{a_path};
+	return pr;
+}
+
+const ProjectRoot &get_default_project_root()
+{
+	static const ProjectRoot pr{};
+	return pr;
+}
+
 }        // namespace ror

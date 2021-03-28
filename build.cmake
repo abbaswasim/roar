@@ -48,15 +48,14 @@ function(build_options target_name)
   target_compile_options(${target_name} PRIVATE
 	-Wall
 	-Wextra
+	-Werror
 	-Wconversion
 	-Wsign-conversion
 	-Wunreachable-code
 	-Wuninitialized
 	-pedantic-errors
 	-Wold-style-cast
-	-Wno-error=unused-variable
 	-Wshadow
-	-Werror
 	-Weffc++
 	-Wfloat-equal)
 

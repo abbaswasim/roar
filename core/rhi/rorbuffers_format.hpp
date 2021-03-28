@@ -59,14 +59,17 @@ class ROAR_ENGINE_ITEM BuffersFormatConfig : public Configuration<BuffersFormatC
 	FORCE_INLINE virtual ~BuffersFormatConfig() noexcept override                       = default;        //! Destructor
 
 	declare_translation_unit_vtable();
-	void                                 load_specific();
-	const std::shared_ptr<BuffersFormat> buffers_format() const;
+	BuffersFormatConfig(std::filesystem::path a_config_path);        //! Default constructor
+
+	void                 load_specific();
+	const BuffersFormat &buffers_format() const;
+	void                 load_remaining_buffers();        //! Allocate buffer locations to semantics not specified in the config
 
   protected:
   private:
-	std::shared_ptr<BuffersFormat> m_buffers_format{nullptr};
+	BuffersFormat m_buffers_format{};
 };
 
-auto get_buffer_pack();
+const BuffersFormat &get_buffers_format();
 
 }        // namespace ror

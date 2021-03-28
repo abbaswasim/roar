@@ -104,7 +104,7 @@ class PlatformData final
 											 this->m_paths_to_watch,
 											 kFSEventStreamEventIdSinceNow,
 											 this->m_latency,
-											 kFSEventStreamCreateFlagFileEvents | kFSEventStreamEventFlagRootChanged | kFSEventStreamEventFlagItemCreated);
+											 static_cast<uint32_t>(kFSEventStreamCreateFlagFileEvents) | static_cast<uint32_t>(kFSEventStreamEventFlagRootChanged) | static_cast<uint32_t>(kFSEventStreamEventFlagItemCreated));
 	}
 
 	FSEventStreamRef get_stream()

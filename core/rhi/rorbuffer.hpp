@@ -25,7 +25,8 @@
 
 #pragma once
 
-#include "rhi/rorrhi_base.hpp"
+#include "rhi/rorrhi_types.hpp"
+#include "roar_export_import.hpp"
 
 namespace rhi
 {
@@ -33,8 +34,7 @@ namespace rhi
  * Device buffer encapsulation
  * Can be used for Vertex, Index, Instance, Constant as well as texture data
  */
-// class ROAR_ENGINE_ITEM Buffer        // : public Crtp<Buffer>
-class Buffer        // : public Crtp<Buffer>
+class ROAR_ENGINE_ITEM Buffer        // : public Crtp<Buffer>
 {
   public:
 	Buffer();                                                                   //! Default constructor
@@ -55,8 +55,8 @@ class Buffer        // : public Crtp<Buffer>
 	/**
 	 * Returns offset of the location available
 	 */
-	uint64_t request(uint64_t a_bytes);                         //TODO: Does it need to be inline
-	uint64_t upload(uint8_t &a_data, uint64_t a_length);        //TODO: Does it need to be inline
+	uint64_t request(uint64_t a_bytes);                         //! Returns offset of the location available
+	uint64_t upload(uint8_t &a_data, uint64_t a_length);        //! Also returns the offset where the data is uploaded
 	uint32_t handle();
 	void     map();
 	void     unmap();
@@ -73,9 +73,9 @@ class Buffer        // : public Crtp<Buffer>
 	void _upload(uint8_t &a_data, uint64_t a_length);        // TODO: To be implemented in renderer or via CRTP
 
 	uint64_t                                         m_filled_size{0};                 //! How much of the buffer is filled, this should be aligned(to_something)
-	uint32_t                                         m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
-	uint8_t *                                        m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
-	bool                                             m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
+	// uint32_t                                         m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
+	// uint8_t *                                        m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
+	// bool                                             m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
 	uint64_t                                         m_size_in_bytes{0};               //! As the name suggests, this is the size in bytes
 	std::vector<std::pair<ShaderSemantic, uint64_t>> m_semantics{};                    //! Pair of semantic and size required
 	bool                                             m_interleaved_local{true};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT

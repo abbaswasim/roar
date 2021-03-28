@@ -24,18 +24,27 @@
 // Version: 1.0.0
 
 #include "rhi/rorbuffers_format.hpp"
-#include <rhi/rorbuffer.hpp>
+#include <cstdio>
+#include "foundation/rorutilities.hpp"
+#include <functional>
+#include <memory>
+#include "rhi/rorbuffer.hpp"
+#include "rhi/rorrhi_types.hpp"
+#include <unordered_map>
 
 namespace ror
 {
+BuffersFormatConfig::BuffersFormatConfig(std::filesystem::path a_config_path)
+{
+	this->load(a_config_path);
+}
+
 void BuffersFormatConfig::load_specific()
 {
 	assert(this->m_json_file.contains("buffer_packs") && "BufferFormatConfig file must contain a list of buffer_packs");
 
-	this->m_buffers_format = std::make_shared<BuffersFormat>();
-
 	if (this->m_json_file.contains("unit"))
-		this->m_buffers_format->m_unit = this->m_json_file["unit"];
+		this->m_buffers_format.m_unit = this->m_json_file["unit"];
 
 	std::string current_buffer_pack{};
 	if (this->m_json_file.contains("buffer_pack_current"))
@@ -43,7 +52,7 @@ void BuffersFormatConfig::load_specific()
 
 	auto buffer_packs = this->m_json_file["buffer_packs"];
 
-	this->m_buffers_format->m_buffer_packs.reserve(buffer_packs.size());
+	this->m_buffers_format.m_buffer_packs.reserve(buffer_packs.size());
 	for (auto &bp : buffer_packs)
 	{
 		BufferPack buffer_pack;
@@ -56,7 +65,7 @@ void BuffersFormatConfig::load_specific()
 			rhi::Buffer buffer;
 			assert(b.contains("size") && "Each buffer should specifiy a size");
 			uint64_t size = b["size"];
-			size *= this->m_buffers_format->m_unit;
+			size *= this->m_buffers_format.m_unit;
 			buffer.size(size);
 
 			if (b.contains("interleaved"))
@@ -72,31 +81,82 @@ void BuffersFormatConfig::load_specific()
 			buffer_pack.m_buffers.emplace_back(std::move(buffer));
 		}
 
-		this->m_buffers_format->m_buffer_packs.emplace_back(std::move(buffer_pack));
+		this->m_buffers_format.m_buffer_packs.emplace_back(std::move(buffer_pack));
 	}
 
-	for (size_t k = 0; k < this->m_buffers_format->m_buffer_packs.size(); ++k)
+	for (size_t k = 0; k < this->m_buffers_format.m_buffer_packs.size(); ++k)
 	{
-		if (this->m_buffers_format->m_buffer_packs[k].m_name == current_buffer_pack)
+		if (this->m_buffers_format.m_buffer_packs[k].m_name == current_buffer_pack)
 		{
-			this->m_buffers_format->m_current_format = static_cast_safe<uint32_t>(k);
+			this->m_buffers_format.m_current_format = static_cast_safe<uint32_t>(k);
 			break;
 		}
 	}
+
+	// Add buffers that might be required but not specified in the config
+	this->load_remaining_buffers();
 }
 
-const std::shared_ptr<BuffersFormat> BuffersFormatConfig::buffers_format() const
+void BuffersFormatConfig::load_remaining_buffers()
+{
+	std::vector<rhi::ShaderSemantic> all_semantics{
+#define item(_enum) rhi::ShaderSemantic::_enum
+#define item_value(_enum)
+		describe_shader_semantics(item)
+#undef item
+#undef item_value
+	};
+
+	std::unordered_map<rhi::ShaderSemantic, bool> remaining;
+	remaining.clear();
+	remaining.reserve(all_semantics.size());
+
+	for (auto &buffer_pack : this->m_buffers_format.m_buffer_packs)
+	{
+		rhi::Buffer *empty_buffer{nullptr};        // Non-owning ptr, so its ok to use raw pointer here
+
+		for (auto &semantic : all_semantics)
+			remaining[semantic] = false;        // Deliberately using the [] operator here, which inserts or updates
+
+		for (auto &buffer : buffer_pack.m_buffers)
+		{
+			if (buffer.semantics().size() == 0)        // While we are at it find an empty buffer as well
+				empty_buffer = &buffer;
+
+			for (auto &semantic : buffer.semantics())
+			{
+				remaining[semantic.first] = true;
+			}
+		}
+
+		// We have been through all buffers, there should be an empty buffer available now
+		assert(empty_buffer != nullptr && "Buffer pack doesn't provide an empty buffer for remaining buffers");
+
+		// In the empty buffer find place for the remaining semantics
+		size_t result = std::accumulate(std::begin(remaining), std::end(remaining), 0ULL,
+										[](const size_t previous, const std::pair<rhi::ShaderSemantic, bool> &p) {
+											return previous + (p.second ? 0 : 1);
+										});
+
+		uint64_t per_buffer_size = empty_buffer->size() / result;        // Roughly split the size of the empty buffer between the remaining semantics
+		for (auto &semantic : remaining)
+			if (semantic.second == false)
+				empty_buffer->emplace_semantic({semantic.first, per_buffer_size});
+	}
+}
+
+const BuffersFormat &BuffersFormatConfig::buffers_format() const
 {
 	return this->m_buffers_format;
 }
 
-define_translation_unit_vtable(BuffersFormatConfig){}
+define_translation_unit_vtable(BuffersFormatConfig)
+{}
 
-auto get_buffer_pack()
+const BuffersFormat &get_buffers_format()
 {
-	static BuffersFormatConfig bfc{};
-	bfc.load("buffers_format.json");        // Loads a predefined config file required to setup buffers formats, since this is a resource it will just work without full path
-	return bfc.buffers_format();
+	static BuffersFormatConfig bfc{"buffers_format.json"};        // Loads a predefined config file required to setup buffers formats, since this is a resource it will just work without full path
+	return bfc.buffers_format();                                  // The path could be extracted out to clients further later
 }
 
 }        // namespace ror

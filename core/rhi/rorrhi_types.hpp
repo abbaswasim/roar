@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
+#include "foundation/rorutilities.hpp"
 #include "roar.hpp"
 #include <unordered_map>
 
@@ -100,8 +102,6 @@ enum class PixelFormat
 	depth32_float32,
 	depth32_stencil8_float32,        //! Not sure if this is supported anywhere?
 };
-
-uint32_t pixel_format_to_bytes(PixelFormat a_pixel_format);
 
 enum class VertexFormat
 {
@@ -181,7 +181,12 @@ enum class VertexFormat
 	uint1010102_norm,
 	int101111_norm,
 	uint101111_norm,
-	uint8_4_norm_bgra
+	uint8_4_norm_bgra,
+
+	uint8_custom,
+	uint16_custom,
+	uint32_custom,
+	float32_custom
 };
 
 /*
@@ -196,34 +201,6 @@ enum class VertexFormat
   uint32_3_norm,
   uint32_4_norm,
 */
-
-uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format);
-
-
-uint32_t vertex_format_to_location(VertexFormat a_vertex_format);
-
-
-/*
-  Only unit16_1 and unit32_1 are really used in reality
- */
-enum class IndexFormat
-{
-	uint8_1,
-	uint16_1,
-	uint32_1,
-	uint8_2,
-	uint16_2,
-	uint32_2,
-	uint8_3,
-	uint16_3,
-	uint32_3,
-	uint8_4,
-	uint16_4,
-	uint32_4,
-};
-
-uint32_t index_format_to_bytes(IndexFormat a_index_format);
-
 
 // Defines what's in the buffer
 enum class BufferPackSemantic
@@ -287,7 +264,7 @@ struct BufferRange
 // Scale is usually a non-uniform scale in x, y and z axis
 // Transformation is usually a matrix4
 // clang-format off
-#define describe_formats(item)                          \
+#define describe_shader_semantics(item)                 \
 	item(vertex_position)        item_value(= 1 << 0),  \
 	item(vertex_texture_coord_0) item_value(= 1 << 1),  \
 	item(vertex_texture_coord_1) item_value(= 1 << 2),  \
@@ -307,17 +284,29 @@ struct BufferRange
 	item(drawcall_data)          item_value(= 1 << 16), \
 	item(custom)                 item_value(= 1 << 17)
 
+// clang-format on
 #define item(_enum) _enum
 #define item_value(_enum) _enum
 
 enum class ShaderSemantic : uint32_t
 {
-	describe_formats(item)
+	describe_shader_semantics(item)
 };
 
 #undef item
 #undef item_value
 
+uint32_t       pixel_format_to_bytes(PixelFormat a_pixel_format);
+uint32_t       vertex_format_to_bytes(VertexFormat a_vertex_format);
+uint32_t       vertex_format_to_location(VertexFormat a_vertex_format);
 ShaderSemantic get_format_shader_semantic(const std::string &a_format);
+
+
+static uint32_t position_only = ror::enum_to_type_cast(ShaderSemantic::vertex_position);
+static uint32_t position_uv = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0);
+static uint32_t position_normal_uv = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0)| ror::enum_to_type_cast(ShaderSemantic::vertex_normal);
+static uint32_t position_normal_uv_color = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0)| ror::enum_to_type_cast(ShaderSemantic::vertex_normal)| ror::enum_to_type_cast(ShaderSemantic::vertex_color);
+static uint32_t position_normal_uv_weight = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0)| ror::enum_to_type_cast(ShaderSemantic::vertex_normal)| ror::enum_to_type_cast(ShaderSemantic::vertex_weight);
+static uint32_t position_normal_uv_weight_joint = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0)| ror::enum_to_type_cast(ShaderSemantic::vertex_normal)| ror::enum_to_type_cast(ShaderSemantic::vertex_weight)| ror::enum_to_type_cast(ShaderSemantic::vertex_bone_id);
 
 }        // namespace rhi

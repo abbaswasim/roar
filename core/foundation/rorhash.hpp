@@ -36,12 +36,14 @@ namespace ror
 {
 FORCE_INLINE hash_32_t hash_32(const void *a_input, size_t a_size)
 {
-	return XXH32(a_input, a_size, static_cast<uint32_t>(ProjectRoot::get_project_root_hash()));
+	static const uint32_t seed = static_cast<uint32_t>(get_default_project_root().hash());        // Truncation from uint64_t to uint32_t is ok here
+	return XXH32(a_input, a_size, seed);
 }
 
 FORCE_INLINE hash_64_t hash_64(const void *a_input, size_t a_size)
 {
-	return XXH64(a_input, a_size, ProjectRoot::get_project_root_hash());
+	static const uint64_t seed = get_default_project_root().hash();        // Truncation from uint64_t to uint32_t is ok here
+	return XXH64(a_input, a_size, seed);
 }
 
 FORCE_INLINE hash_128_t hash_128(const void *a_input, size_t a_size)

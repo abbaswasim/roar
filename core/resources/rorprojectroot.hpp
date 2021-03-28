@@ -41,15 +41,37 @@ class ROAR_ENGINE_ITEM ProjectRoot final
 	FORCE_INLINE ProjectRoot &operator=(ProjectRoot &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~ProjectRoot() noexcept                                = default;        //! Destructor
 
+	/**
+	 * Creates a project with the hardcoded project name "roar_project"
+	 * in some directory depending on the OS provided working dir
+	 */
 	ProjectRoot();
-	void                         change_project_root(std::string a_root_path);
-	const std::filesystem::path &get_project_root() const;
-	static uint64_t              get_project_root_hash();
+
+	/**
+	 * Creates a project with the provided root dir
+	 */
+	ProjectRoot(std::filesystem::path a_project_path);
+
+	void                         change_project(std::string a_root_path);
+	const std::filesystem::path &path() const noexcept;
+	uint64_t                     hash() const noexcept;
 
   protected:
   private:
-	std::filesystem::path m_project_root;             // Root folder copy
-	static hash_64_t      m_project_root_hash;        // Root folder hash used for seeding ror_hash
+	std::filesystem::path m_project_root{};                    // Root folder copy
+	hash_64_t             m_project_root_hash{};               // Root folder hash used for seeding ror_hash
 };
 
+/**
+* One shot project root creation utility, can be used later to query global root project multiple times
+* Calling get_project_root with a different path will have no effect
+* If not called with a valid path the first time, ProjectRoot constructor will report error,
+* any preceding calls can be with empty path
+*/
+const ProjectRoot &get_project_root(std::filesystem::path a_path = "");
+
+/**
+* Default project root creation utility
+*/
+const ProjectRoot &get_default_project_root();
 }        // namespace ror
