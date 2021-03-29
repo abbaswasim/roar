@@ -76,15 +76,15 @@ class PlatformData final
 
 			for (auto &p : paths)
 			{
-				auto search = this->m_watched_paths.find(a_path.c_str());
+				auto search = this->m_watched_paths.find(p.c_str());
 				if (search == this->m_watched_paths.end())
 				{
 					auto path_fd = inotify_add_watch(this->m_inotify_instance,
-													 a_path.c_str(),
+													 p.c_str(),
 													 IN_CREATE | IN_DELETE | IN_MODIFY);
 
-					this->m_watched_descriptors[path_fd] = a_path;
-					this->m_watched_paths[a_path]        = path_fd;
+					this->m_watched_descriptors[path_fd] = p;
+					this->m_watched_paths[p]             = path_fd;
 				}
 			}
 		}
@@ -94,16 +94,16 @@ class PlatformData final
 		}
 	}
 
-	void handle_events(int32_t a_length)
+	void handle_events(size_t a_length)
 	{
-		int i = 0;
+		size_t i = 0;
 
 		std::vector<WatchCatEvent> events;
 		events.reserve(this->m_notify_events_buffer.size());        // Conservative reserve
 
 		while (i < a_length)
 		{
-			struct inotify_event *event = (struct inotify_event *) &this->m_notify_events_buffer[i];
+			struct inotify_event *event = static_cast<struct inotify_event *> (&this->m_notify_events_buffer[i]);
 			if (!(event->mask & IN_ISDIR) && event->len)        // this means its a file instead of a directory
 			{
 				if (event->mask & IN_CREATE)
@@ -119,7 +119,7 @@ class PlatformData final
 					events.emplace_back(WatchCatEventType::change, this->m_watched_descriptors[event->wd] / std::filesystem::path(event->name));
 				}
 			}
-			i += sizeof(inotify_event) + event->len;
+			i += sizeof(inotify_event) + static_cast<size_t>(event->len);
 		}
 
 		this->m_watchcat->notify(events);
@@ -150,7 +150,7 @@ class PlatformData final
 		if (rv == 0)
 			return;
 
-		int32_t length = read(this->m_inotify_instance, this->m_notify_events_buffer.data(), this->m_notify_events_buffer.size());
+		size_t length = read(this->m_inotify_instance, this->m_notify_events_buffer.data(), this->m_notify_events_buffer.size());
 
 		if (length < 0)
 			ror::log_error("No data available from inotify file descriptor");
@@ -163,9 +163,9 @@ class PlatformData final
 	PlatformData() = default;                                               //! Default constructor
 	WatchCat *                               m_watchcat{nullptr};           // Alias to the watchcat, non-owning
 	int32_t                                  m_inotify_instance{-1};        //! inotify file descriptor
-	std::unordered_map<int32_t, std::string> m_watched_descriptors;
-	std::unordered_map<std::string, int32_t> m_watched_paths;
-	std::vector<inotify_event>               m_notify_events_buffer;
+	std::unordered_map<int32_t, std::string> m_watched_descriptors{};
+	std::unordered_map<std::string, int32_t> m_watched_paths{};
+	std::vector<inotify_event>               m_notify_events_buffer{};
 };
 
 void WatchCat::rerun(std::filesystem::path a_path)

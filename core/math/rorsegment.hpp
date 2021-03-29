@@ -60,7 +60,7 @@ template <class _type, uint32_t _degree>
 class ROAR_ENGINE_ITEM Segment
 {
   public:
-	_type m_points[_degree + 1];        //!< All points in the line or bezier curve, 3D or 2D quadratic or cubic curve points
+	_type m_points[_degree + 1U];        //!< All points in the line or bezier curve, 3D or 2D quadratic or cubic curve points
 
 	FORCE_INLINE Segment()                           = default;                   //! Default constructor
 	FORCE_INLINE Segment(const Segment &a_other)     = default;                   //! Copy constructor
@@ -70,12 +70,12 @@ class ROAR_ENGINE_ITEM Segment
 	FORCE_INLINE virtual ~Segment() noexcept                    = default;        //! Destructor
 };
 
-template <class _type, int _degree, typename enable = void>
+template <class _type, uint32_t _degree, typename enable = void>
 class ROAR_ENGINE_ITEM Line final : public Segment<_type, _degree>
 {};
 
 template <class _type>
-class ROAR_ENGINE_ITEM Line<_type, 1, vector2_typename<_type>> final : public Segment<_type, 1>
+class ROAR_ENGINE_ITEM Line<_type, 1U, vector2_typename<_type>> final : public Segment<_type, 1U>
 {
   public:
 	const SegmentType m_type = SegmentType::line_2d;
@@ -94,7 +94,7 @@ class ROAR_ENGINE_ITEM Line<_type, 1, vector2_typename<_type>> final : public Se
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Line<_type, 1, vector3_typename<_type>> final : public Segment<_type, 1>
+class ROAR_ENGINE_ITEM Line<_type, 1U, vector3_typename<_type>> final : public Segment<_type, 1U>
 {
   public:
 	const SegmentType m_type = SegmentType::line_3d;
@@ -112,12 +112,12 @@ class ROAR_ENGINE_ITEM Line<_type, 1, vector3_typename<_type>> final : public Se
 	FORCE_INLINE void set(typename _type::value_type a_slope, typename _type::value_type a_intercept);
 };
 
-template <class _type, int _degree, typename enable = void>
+template <class _type, uchar32_t _degree, typename enable = void>
 class ROAR_ENGINE_ITEM Triangle final : public Segment<_type, _degree>
 {};
 
 template <class _type>
-class ROAR_ENGINE_ITEM Triangle<_type, 2, vector2_typename<_type>> final : public Segment<_type, 2>
+class ROAR_ENGINE_ITEM Triangle<_type, 2U, vector2_typename<_type>> final : public Segment<_type, 2U>
 {
   public:
 	const SegmentType m_type = SegmentType::triangle_2d;
@@ -135,7 +135,7 @@ class ROAR_ENGINE_ITEM Triangle<_type, 2, vector2_typename<_type>> final : publi
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Triangle<_type, 2, vector3_typename<_type>> final : public Segment<_type, 2>
+class ROAR_ENGINE_ITEM Triangle<_type, 2U, vector3_typename<_type>> final : public Segment<_type, 2U>
 {
   public:
 	const SegmentType m_type = SegmentType::triangle_3d;
@@ -152,12 +152,12 @@ class ROAR_ENGINE_ITEM Triangle<_type, 2, vector3_typename<_type>> final : publi
 	FORCE_INLINE bool is_point_inside_my_2d_triangle(const _type &a_point);
 };
 
-template <class _type, int _degree, typename enable = void>
+template <class _type, uint32_t _degree, typename enable = void>
 class ROAR_ENGINE_ITEM Bezier final : public Segment<_type, _degree>
 {};
 
 template <class _type>
-class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public Segment<_type, 2>
+class ROAR_ENGINE_ITEM Bezier<_type, 2U, vector2_typename<_type>> final : public Segment<_type, 2U>
 {
   public:
 	SegmentType m_type = SegmentType::quadratic_2d_outer;
@@ -178,7 +178,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public 
 	 *             the new bezier curves are created as P1 Q1 C1 and C1 Q2 P2 where Q1 is center of P1-C1 and Q2 is center of C1-P2
 	 * @param      a_children where the result is appended
 	 */
-	FORCE_INLINE void subdivide(std::vector<Bezier<_type, 2>> &a_children);
+	FORCE_INLINE void subdivide(std::vector<Bezier<_type, 2U>> &a_children);
 	FORCE_INLINE bool is_point_inside_my_2d_triangle(const _type &a_point);
 
   private:
@@ -186,7 +186,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, vector2_typename<_type>> final : public 
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Bezier<_type, 3, vector2_typename<_type>> final : public Segment<_type, 3>
+class ROAR_ENGINE_ITEM Bezier<_type, 3U, vector2_typename<_type>> final : public Segment<_type, 3U>
 {
   public:
 	const SegmentType m_type = SegmentType::cubic_2d;
@@ -203,7 +203,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 3, vector2_typename<_type>> final : public 
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Bezier<_type, 2, vector3_typename<_type>> final : public Segment<_type, 2>
+class ROAR_ENGINE_ITEM Bezier<_type, 2U, vector3_typename<_type>> final : public Segment<_type, 2U>
 {
   public:
 	SegmentType m_type = SegmentType::quadratic_3d_outer;
@@ -218,7 +218,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, vector3_typename<_type>> final : public 
 	FORCE_INLINE      Bezier(_type a_point1, _type a_control_point, _type a_point2);
 	FORCE_INLINE void set(_type a_point1, _type a_control_point, _type a_point2);
 
-	FORCE_INLINE void subdivide(std::vector<Bezier<_type, 2>> &a_children);
+	FORCE_INLINE void subdivide(std::vector<Bezier<_type, 2U>> &a_children);
 	FORCE_INLINE bool is_point_inside_my_2d_triangle(const _type &a_point);
 
   private:
@@ -226,7 +226,7 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2, vector3_typename<_type>> final : public 
 };
 
 template <class _type>
-class ROAR_ENGINE_ITEM Bezier<_type, 3, vector3_typename<_type>> final : public Segment<_type, 3>
+class ROAR_ENGINE_ITEM Bezier<_type, 3U, vector3_typename<_type>> final : public Segment<_type, 3U>
 {
   public:
 	const SegmentType m_type = SegmentType::cubic_3d;
@@ -242,33 +242,33 @@ class ROAR_ENGINE_ITEM Bezier<_type, 3, vector3_typename<_type>> final : public 
 	FORCE_INLINE void set(_type a_point1, _type a_control_point1, _type a_control_point2, _type a_point2);
 };
 
-using Line2f = Line<ror::Vector2<float32_t>, 1>;
-using Line2d = Line<ror::Vector2<double64_t>, 1>;
-using Line2i = Line<ror::Vector2<int32_t>, 1>;
-using Line3f = Line<ror::Vector3<float32_t>, 1>;
-using Line3d = Line<ror::Vector3<double64_t>, 1>;
-using Line3i = Line<ror::Vector3<int32_t>, 1>;
+using Line2f = Line<ror::Vector2<float32_t>, 1U>;
+using Line2d = Line<ror::Vector2<double64_t>, 1U>;
+using Line2i = Line<ror::Vector2<int32_t>, 1U>;
+using Line3f = Line<ror::Vector3<float32_t>, 1U>;
+using Line3d = Line<ror::Vector3<double64_t>, 1U>;
+using Line3i = Line<ror::Vector3<int32_t>, 1U>;
 
-using Triangle2f = Triangle<ror::Vector2<float32_t>, 2>;
-using Triangle2d = Triangle<ror::Vector2<double64_t>, 2>;
-using Triangle2i = Triangle<ror::Vector2<int32_t>, 2>;
-using Triangle3f = Triangle<ror::Vector3<float32_t>, 2>;
-using Triangle3d = Triangle<ror::Vector3<double64_t>, 2>;
-using Triangle3i = Triangle<ror::Vector3<int32_t>, 2>;
+using Triangle2f = Triangle<ror::Vector2<float32_t>, 2U>;
+using Triangle2d = Triangle<ror::Vector2<double64_t>, 2U>;
+using Triangle2i = Triangle<ror::Vector2<int32_t>, 2U>;
+using Triangle3f = Triangle<ror::Vector3<float32_t>, 2U>;
+using Triangle3d = Triangle<ror::Vector3<double64_t>, 2U>;
+using Triangle3i = Triangle<ror::Vector3<int32_t>, 2U>;
 
-using QuadraticBezier2f = Bezier<ror::Vector2<float32_t>, 2>;
-using QuadraticBezier2d = Bezier<ror::Vector2<double64_t>, 2>;
-using QuadraticBezier2i = Bezier<ror::Vector2<int32_t>, 2>;
-using QuadraticBezier3f = Bezier<ror::Vector3<float32_t>, 2>;
-using QuadraticBezier3d = Bezier<ror::Vector3<double64_t>, 2>;
-using QuadraticBezier3i = Bezier<ror::Vector3<int32_t>, 2>;
+using QuadraticBezier2f = Bezier<ror::Vector2<float32_t>, 2U>;
+using QuadraticBezier2d = Bezier<ror::Vector2<double64_t>, 2U>;
+using QuadraticBezier2i = Bezier<ror::Vector2<int32_t>, 2U>;
+using QuadraticBezier3f = Bezier<ror::Vector3<float32_t>, 2U>;
+using QuadraticBezier3d = Bezier<ror::Vector3<double64_t>, 2U>;
+using QuadraticBezier3i = Bezier<ror::Vector3<int32_t>, 2U>;
 
-using CubicBezier2f = Bezier<ror::Vector2<float32_t>, 3>;
-using CubicBezier2d = Bezier<ror::Vector2<double64_t>, 3>;
-using CubicBezier2i = Bezier<ror::Vector2<int32_t>, 3>;
-using CubicBezier3f = Bezier<ror::Vector3<float32_t>, 3>;
-using CubicBezier3d = Bezier<ror::Vector3<double64_t>, 3>;
-using CubicBezier3i = Bezier<ror::Vector3<int32_t>, 3>;
+using CubicBezier2f = Bezier<ror::Vector2<float32_t>, 3U>;
+using CubicBezier2d = Bezier<ror::Vector2<double64_t>, 3U>;
+using CubicBezier2i = Bezier<ror::Vector2<int32_t>, 3U>;
+using CubicBezier3f = Bezier<ror::Vector3<float32_t>, 3U>;
+using CubicBezier3d = Bezier<ror::Vector3<double64_t>, 3U>;
+using CubicBezier3i = Bezier<ror::Vector3<int32_t>, 3U>;
 
 }        // namespace ror
 
