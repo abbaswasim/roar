@@ -90,7 +90,7 @@ class ROAR_ENGINE_ITEM Resource
 	void                  load();                         // Loads the resource
 	void                  load_or_mmap();                 // Loads or mmaps the resource depending on whether its read only or not
 	void                  load_or_generate_uuid();        // Generates or Reads UUID for the resource
-	std::filesystem::path find_resource();                // Tries hard to find the resource in the paths it knows
+	std::filesystem::path find_resource();                // Tries very hard to find the resource in the paths it knows, it has an order to it
 
 	std::filesystem::path                      m_absolute_path{};                         // Path to the resource
 	std::filesystem::path                      m_cached_path{};                           // Cached path to the resource

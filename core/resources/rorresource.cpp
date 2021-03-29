@@ -102,11 +102,29 @@ Resource::Resource(std::filesystem::path a_relative_path, ResourceSemantic a_res
 	this->load();
 }
 
+/**
+ * Tries hard to find resource in the paths we know.
+ * For example if "astro_boy/boy10.jpg" is provided as assets path, it will search in the following places in that order
+ project_root/astro_boy/boy10.jpg
+ project_root/textures/astro_boy/boy10.jpg
+ project_root/assets/astro_boy/boy10.jpg
+ project_root/assets/textures/astro_boy/boy10.jpg
+ project_root/astro_boy/assets/boy10.jpg
+ project_root/astro_boy/textures/boy10.jpg
+ project_root/textures/astro_boy/materials/boy10.jpg
+ project_root/textures/astro_boy/textures/boy10.jpg
+ project_root/textures/astro_boy/shaders/boy10.jpg
+ project_root/textures/astro_boy/scripts/boy10.jpg
+ project_root/textures/astro_boy/objects/boy10.jpg
+ project_root/textures/astro_boy/configs/boy10.jpg
+ project_root/textures/astro_boy/models/boy10.jpg
+ project_root/textures/astro_boy/misc/boy10.jpg
+*/
+
 std::filesystem::path Resource::find_resource()
 {
-	auto project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies one clients who must have called and initalized project_root
-
-	if (this->m_absolute_path.is_absolute())
+	// If absolute path or has no filename, just return as it is
+	if (this->m_absolute_path.is_absolute() || !this->m_absolute_path.has_filename())
 	{
 		return this->m_absolute_path;
 	}
@@ -114,17 +132,22 @@ std::filesystem::path Resource::find_resource()
 	// Here we just create a path so if two threads do the same thing thats fine at least there is no contention
 	// std::lock_guard<std::mutex> mtx(this->m_mutex);        // You don't want any other thread to claim this resource
 
+	std::filesystem::path semantic_path{get_resource_semantic_string(this->m_semantic)};
+	std::filesystem::path resource_semantic_path{semantic_path / this->m_absolute_path};
+
+	auto project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies one clients who must have called and initalized project_root
+
 	// Is it at the root of the project?
 	std::filesystem::path p{project_root_path / this->m_absolute_path};
 
-	// If its a directory only or if the file exists don't muck around just return, incase of directory path provided it will result in error later
-	if (!this->m_absolute_path.has_filename() || std::filesystem::exists(p))
+	// If the file exists don't muck around just return
+	if (std::filesystem::exists(p))
 	{
 		return p;
 	}
 	else        // Try to find it on the filesystem inside the project root
 	{
-		std::filesystem::path q{project_root_path / get_resource_semantic_string(this->m_semantic) / this->m_absolute_path};
+		std::filesystem::path q{project_root_path / resource_semantic_path};
 
 		if (std::filesystem::exists(q))
 		{
@@ -141,8 +164,7 @@ std::filesystem::path Resource::find_resource()
 			}
 			else
 			{
-				// Some times projects have "assets" folder, lets search that too
-				std::filesystem::path s{project_root_path / "assets" / get_resource_semantic_string(this->m_semantic) / this->m_absolute_path};
+				std::filesystem::path s{project_root_path / "assets" / resource_semantic_path};
 
 				if (std::filesystem::exists(s))
 				{
@@ -154,7 +176,7 @@ std::filesystem::path Resource::find_resource()
 					auto parent_path = this->m_absolute_path.parent_path();
 					auto file_name   = this->m_absolute_path.filename();
 
-					std::filesystem::path t{project_root_path / parent_path / get_resource_semantic_string(this->m_semantic) / file_name};
+					std::filesystem::path t{project_root_path / parent_path / "assets" / file_name};
 
 					if (std::filesystem::exists(t))
 					{
@@ -162,24 +184,33 @@ std::filesystem::path Resource::find_resource()
 					}
 					else
 					{
-						// Now we are desperate, trying hard to find this resource
-						for (auto item : {ResourceSemantic::materials,
-										  ResourceSemantic::textures,
-										  ResourceSemantic::shaders,
-										  ResourceSemantic::scripts,
-										  ResourceSemantic::objects,
-										  ResourceSemantic::configs,
-										  ResourceSemantic::models,
-										  ResourceSemantic::misc})        // Different way of dealing with caches and logs
+						std::filesystem::path u{project_root_path / parent_path / semantic_path / file_name};
+
+						if (std::filesystem::exists(u))
 						{
-							auto items_path = get_resource_semantic_string(item);
-
-							std::filesystem::path u{project_root_path /
-													get_resource_semantic_string(this->m_semantic) / parent_path / items_path / file_name};
-
-							if (std::filesystem::exists(u))
+							return u;
+						}
+						else
+						{
+							// Now we are desperate, trying hard to find this resource
+							for (auto item : {ResourceSemantic::materials,
+											  ResourceSemantic::textures,
+											  ResourceSemantic::shaders,
+											  ResourceSemantic::scripts,
+											  ResourceSemantic::objects,
+											  ResourceSemantic::configs,
+											  ResourceSemantic::models,
+											  ResourceSemantic::misc})        // Different way of dealing with caches and logs
 							{
-								return u;
+								auto items_path = get_resource_semantic_string(item);
+
+								std::filesystem::path v{project_root_path /
+														semantic_path / parent_path / items_path / file_name};
+
+								if (std::filesystem::exists(v))
+								{
+									return v;
+								}
 							}
 						}
 					}
@@ -188,20 +219,22 @@ std::filesystem::path Resource::find_resource()
 		}
 	}
 
+	// TODO: Try a recursive search if still hasnt' found the resource
+
 	// If no valid path provided and we have exhausted all posibilites just create a file with current time
 	std::time_t t = std::time(nullptr);
 	char        gen_filename[30];
 
 	if (std::strftime(gen_filename, sizeof(gen_filename), "%d_%m_%Y_%H_%M_%S", std::localtime(&t)))
 	{
-		auto temp = project_root_path / get_resource_semantic_string(this->m_semantic) / this->m_absolute_path;
+		auto temp = project_root_path / resource_semantic_path;
 		log_error("File name generation failed using {} as a file name", temp.c_str());
 
 		return temp;
 	}
 
 	// If std::strftime failes return what was expected without anything more we can do
-	return project_root_path / get_resource_semantic_string(this->m_semantic) / gen_filename;
+	return project_root_path / semantic_path / gen_filename;
 }
 
 void Resource::load()
