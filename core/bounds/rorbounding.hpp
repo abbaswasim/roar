@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"
 
@@ -65,7 +66,7 @@ class ROAR_ENGINE_ITEM Bounding
 	virtual void _force_compiler_vtable();
 };
 
-template <class _type, int _point_count = 1>
+template <class _type, uint32_t _point_count = 1>
 class ROAR_ENGINE_ITEM BoundingBase : public Bounding
 {
   public:

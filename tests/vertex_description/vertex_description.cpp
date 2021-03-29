@@ -1,22 +1,26 @@
 #include "common.hpp"
 #include "core/rhi/rorrhi_vertex_description.hpp"
 #include "foundation/rorutilities.hpp"
+#include "rhi/rorrhi_types.hpp"
 #include <cstddef>
 #include <foundation/rortypes.hpp>
 #include <gtest/gtest-typed-test.h>
 #include <gtest/gtest.h>
 #include <iostream>
-#include "rhi/rorrhi_types.hpp"
 
 namespace ror_test
 {
 TEST(VertexDescritionTest, automated_description)
 {
+	static uint32_t position_only             = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position);
+	static uint32_t position_normal_uv        = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_normal);
+	static uint32_t position_normal_uv_weight = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_normal) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_weight);
+
 	{
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position};
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_only);
+		ASSERT_EQ(vd.type(), position_only);
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -41,7 +45,7 @@ TEST(VertexDescritionTest, automated_description)
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::StepFunction::instance};
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_only);
+		ASSERT_EQ(vd.type(), position_only);
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -67,7 +71,7 @@ TEST(VertexDescritionTest, automated_description)
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_4};
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_only);
+		ASSERT_EQ(vd.type(), position_only);
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -92,7 +96,7 @@ TEST(VertexDescritionTest, automated_description)
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_4, rhi::StepFunction::instance, 3};
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_only);
+		ASSERT_EQ(vd.type(), position_only);
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -117,7 +121,7 @@ TEST(VertexDescritionTest, automated_description)
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::StepFunction::instance, 3};
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_only);
+		ASSERT_EQ(vd.type(), position_only);
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -142,7 +146,7 @@ TEST(VertexDescritionTest, automated_description)
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, 3};
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_only);
+		ASSERT_EQ(vd.type(), position_only);
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -175,7 +179,7 @@ TEST(VertexDescritionTest, automated_description)
 		// clang-format on
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_normal_uv_weight | ror::enum_to_type_cast(rhi::ShaderSemantic::mesh_index) | ror::enum_to_type_cast(rhi::ShaderSemantic::instance_transform));
+		ASSERT_EQ(vd.type(), position_normal_uv_weight | ror::enum_to_type_cast(rhi::ShaderSemantic::mesh_index) | ror::enum_to_type_cast(rhi::ShaderSemantic::instance_transform));
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -386,7 +390,7 @@ TEST(VertexDescritionTest, automated_description)
 			rhi::ShaderSemantic::vertex_normal};
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_normal_uv);
+		ASSERT_EQ(vd.type(), position_normal_uv);
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -450,7 +454,7 @@ TEST(VertexDescritionTest, automated_description)
 			rhi::ShaderSemantic::vertex_normal, rhi::VertexFormat::float32_3};
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_normal_uv);
+		ASSERT_EQ(vd.type(), position_normal_uv);
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -515,7 +519,7 @@ TEST(VertexDescritionTest, automated_description)
 			rhi::ShaderSemantic::vertex_index, rhi::VertexFormat::uint32_1};
 
 		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), rhi::position_normal_uv | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_index));
+		ASSERT_EQ(vd.type(), position_normal_uv | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_index));
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
@@ -601,7 +605,7 @@ TEST(VertexDescritionTest, automated_description)
 			rhi::ShaderSemantic::vertex_index, rhi::VertexFormat::uint32_1};
 
 		ASSERT_TRUE(vd.complete());
-		// ASSERT_EQ(vd.type(), rhi::position_normal_uv | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_index));
+		// ASSERT_EQ(vd.type(), position_normal_uv | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_index));
 
 		{
 			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);

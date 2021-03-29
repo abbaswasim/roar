@@ -68,7 +68,7 @@ class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 
   protected:
   private:
-	json                      m_json_file;
+	json                      m_json_file{};
 	std::shared_ptr<Resource> m_resource{nullptr};        //! The resource link for this configuration
 	friend _type;                                         //! Any type derived from Configuration will have access to constructor and private members
 };

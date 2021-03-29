@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "bounds/rorbounding.hpp"
+#include "foundation/rortypes.hpp"
 #include <foundation/rorutilities.hpp>
 #include <iostream>
 #include <sys/types.h>
@@ -34,7 +35,7 @@ void Bounding::_force_compiler_vtable()
 {}
 
 // Bounding methods
-template <class _type, int _points_count>
+template <class _type, uint32_t _points_count>
 void BoundingBase<_type, _points_count>::create_from_points(const std::vector<_type> &a_points)
 {
 	auto min = std::numeric_limits<typename _type::value_type>::min();

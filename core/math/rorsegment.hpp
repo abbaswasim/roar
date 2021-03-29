@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
 #include "math/rorvector.hpp"
 
 namespace ror
@@ -55,7 +56,7 @@ enum class SegmentType
  *             Quadratic as well as Cubic bezier curves in 2D or 3D
  */
 
-template <class _type, int _degree>
+template <class _type, uint32_t _degree>
 class ROAR_ENGINE_ITEM Segment
 {
   public:

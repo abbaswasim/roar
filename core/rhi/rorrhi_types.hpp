@@ -301,12 +301,4 @@ uint32_t       vertex_format_to_bytes(VertexFormat a_vertex_format);
 uint32_t       vertex_format_to_location(VertexFormat a_vertex_format);
 ShaderSemantic get_format_shader_semantic(const std::string &a_format);
 
-
-static uint32_t position_only = ror::enum_to_type_cast(ShaderSemantic::vertex_position);
-static uint32_t position_uv = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0);
-static uint32_t position_normal_uv = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0)| ror::enum_to_type_cast(ShaderSemantic::vertex_normal);
-static uint32_t position_normal_uv_color = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0)| ror::enum_to_type_cast(ShaderSemantic::vertex_normal)| ror::enum_to_type_cast(ShaderSemantic::vertex_color);
-static uint32_t position_normal_uv_weight = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0)| ror::enum_to_type_cast(ShaderSemantic::vertex_normal)| ror::enum_to_type_cast(ShaderSemantic::vertex_weight);
-static uint32_t position_normal_uv_weight_joint = ror::enum_to_type_cast(ShaderSemantic::vertex_position) | ror::enum_to_type_cast(ShaderSemantic::vertex_texture_coord_0)| ror::enum_to_type_cast(ShaderSemantic::vertex_normal)| ror::enum_to_type_cast(ShaderSemantic::vertex_weight)| ror::enum_to_type_cast(ShaderSemantic::vertex_bone_id);
-
 }        // namespace rhi

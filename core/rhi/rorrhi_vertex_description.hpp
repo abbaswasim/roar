@@ -25,18 +25,18 @@
 
 #pragma once
 
+#include "foundation/rorcompiler_workarounds.hpp"
+#include "foundation/rormacros.hpp"
+#include "foundation/rorutilities.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/rorrhi_buffers_pack.hpp"
+#include "rhi/rorrhi_types.hpp"
 #include "rhi/rorrhi_vertex_attribute.hpp"
 #include "rhi/rorrhi_vertex_layout.hpp"
 #include <cassert>
 #include <cstddef>
-#include "foundation/rorcompiler_workarounds.hpp"
-#include "foundation/rormacros.hpp"
-#include "foundation/rorutilities.hpp"
 #include <functional>
 #include <memory>
-#include "profiling/rorlog.hpp"
-#include "rhi/rorrhi_types.hpp"
 #include <stdexcept>
 #include <stdint.h>
 #include <tuple>
@@ -54,10 +54,15 @@ struct Rate
 	Rate(uint32_t a_value) :
 		m_value(a_value)
 	{}
-	uint32_t m_value;
+	uint32_t m_value{};
 };
 
-// TODO: Make sure VertexDescriptor returns a message saying whether there were packing/alignment and cache line issues
+/**
+* Can be used to describe a vertex attributes and layouts for a mesh.
+* It uses get_buffers_pack() to access the default buffers allocated via "buffers_format.json"
+* Currently there is no way to provide a different set of buffers or use a different config file
+*/
+
 class ROAR_ENGINE_ITEM VertexDescriptor final
 {
   public:
@@ -68,15 +73,14 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	FORCE_INLINE VertexDescriptor &operator=(VertexDescriptor &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~VertexDescriptor() noexcept                                     = default;        //! Destructor
 
-	// Probably the r-value refs should be removed here
 	/**
 	 * Use this constructor to create mapping of attributes to layouts that you think works.
 	 * If you are not sure what layout do I need and what is the buffers format use the single arguemnt ctor instead
+	 * Its usage might be risky and and slightly complicated, forcing you to work out layouts and alignments manually
 	 */
-	// TODO: Perhaps think about removing this ctor, its usage is risky and complicated
-	FORCE_INLINE VertexDescriptor(std::vector<VertexAttribute> &&a_attributes, std::vector<VertexLayout> &&a_layouts) :
-		m_attributes(std::move(a_attributes)),
-		m_layouts(std::move(a_layouts))
+	FORCE_INLINE VertexDescriptor(std::vector<VertexAttribute> a_attributes, std::vector<VertexLayout> a_layouts) :
+		m_attributes(a_attributes),
+		m_layouts(a_layouts)
 	{
 		this->create_mapping();
 	}
@@ -124,6 +128,8 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			if (!layout.complete())
 				return false;
 		}
+
+		// TODO: Make sure VertexDescriptor returns a message saying whether there were packing/alignment and cache line issues
 
 		return true;
 	}

@@ -40,6 +40,7 @@
 #	pragma GCC diagnostic ignored "-Wold-style-cast"
 #	pragma GCC diagnostic ignored "-Wshadow"
 #	pragma GCC diagnostic ignored "-Wsign-compare"
+#	pragma GCC diagnostic ignored "-Wsign-conversion"
 #	pragma GCC diagnostic ignored "-Wstringop-truncation"
 #	pragma GCC diagnostic ignored "-Wstringop-overflow"
 #elif defined(_MSVC)
@@ -52,4 +53,6 @@
 
 #if defined(__clang__)
 #	pragma clang diagnostic pop
+#elif defined(__GNUC__) || defined(__GNUG__)
+#	pragma GCC diagnostic pop
 #endif
