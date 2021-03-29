@@ -27,6 +27,7 @@
 
 #include "foundation/rorcompiler_workarounds.hpp"
 #include "foundation/rormacros.hpp"
+#include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rorrhi_buffers_pack.hpp"
@@ -52,7 +53,7 @@ struct Rate
 	Rate()
 	{}
 	Rate(uint32_t a_value) :
-		m_value(a_value)
+	    m_value(a_value)
 	{}
 	uint32_t m_value{};
 };
@@ -79,8 +80,8 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Its usage might be risky and and slightly complicated, forcing you to work out layouts and alignments manually
 	 */
 	FORCE_INLINE VertexDescriptor(std::vector<VertexAttribute> a_attributes, std::vector<VertexLayout> a_layouts) :
-		m_attributes(a_attributes),
-		m_layouts(a_layouts)
+	    m_attributes(a_attributes),
+	    m_layouts(a_layouts)
 	{
 		this->create_mapping();
 	}
@@ -177,9 +178,9 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			assert(found != this->m_layouts.end() && "No vertex layout available for this attribute!, invalid layout attributes combination provided");
 
 			this->m_mapping.emplace(attribute.semantics(),
-									std::make_pair(
-										std::ref(attribute),
-										std::ref(*found)));
+			                        std::make_pair(
+			                            std::ref(attribute),
+			                            std::ref(*found)));
 		}
 	}
 
@@ -208,32 +209,63 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 		for (auto &attb : attributes)
 		{
-			// Instead of this the alternative is to do somethign like  "if (auto shader_semantic = std::get_if<ShaderSemantic>(&attb))" and build a chain
-			std::visit(
-				ror::Overload{
-					[&](ShaderSemantic sm) {
-						if (started)        // If we have alraedy started and we found another ShaderSemantic, we have completed one attribute at least
-						{
-							attributes_tuple_vector.push_back(temp_tuple);
-							// Also lets reset the temp_tuple
-							temp_tuple = default_tuple;
-						}
-						else
-							started = true;
+			if constexpr (ror::get_compiler() == ror::CompilerType::comp_gcc)
+			{
+				if (auto shader_semantic = std::get_if<ShaderSemantic>(&attb))
+				{
+					if (started)        // If we have already started and we found another ShaderSemantic, we have completed one attribute at least
+					{
+						attributes_tuple_vector.push_back(temp_tuple);
+						// Also lets reset the temp_tuple
+						temp_tuple = default_tuple;
+					}
+					else
+						started = true;
 
-						std::get<ShaderSemantic>(temp_tuple) = sm;
-					},
-					[&](VertexFormat vf) {
-						std::get<VertexFormat>(temp_tuple) = vf;
-					},
-					[&](StepFunction sf) {
-						std::get<StepFunction>(temp_tuple) = sf;
-					},
-					[&](Rate rt) {
-						std::get<uint32_t>(temp_tuple) = rt.m_value;
-					},
-				},
-				attb);
+					std::get<ShaderSemantic>(temp_tuple) = *shader_semantic;
+				}
+				else if (auto vertex_format = std::get_if<VertexFormat>(&attb))
+				{
+					std::get<VertexFormat>(temp_tuple) = *vertex_format;
+				}
+				else if (auto step_function = std::get_if<StepFunction>(&attb))
+				{
+					std::get<StepFunction>(temp_tuple) = *step_function;
+				}
+				else if (auto rate = std::get_if<Rate>(&attb))
+				{
+					std::get<uint32_t>(temp_tuple) = rate->m_value;
+				}
+			}
+			else
+			{
+				// Instead of this the alternative is to do something like  "if (auto shader_semantic = std::get_if<ShaderSemantic>(&attb))" and build a chain
+				std::visit(
+				    ror::Overload{
+				        [&](ShaderSemantic sm) {
+					        if (started)        // If we have already started and we found another ShaderSemantic, we have completed one attribute at least
+					        {
+						        attributes_tuple_vector.push_back(temp_tuple);
+						        // Also lets reset the temp_tuple
+						        temp_tuple = default_tuple;
+					        }
+					        else
+						        started = true;
+
+					        std::get<ShaderSemantic>(temp_tuple) = sm;
+				        },
+				        [&](VertexFormat vf) {
+					        std::get<VertexFormat>(temp_tuple) = vf;
+				        },
+				        [&](StepFunction sf) {
+					        std::get<StepFunction>(temp_tuple) = sf;
+				        },
+				        [&](Rate rt) {
+					        std::get<uint32_t>(temp_tuple) = rt.m_value;
+				        },
+				    },
+				    attb);
+			}
 		}
 
 		// Last one that was incomplete in the loop
@@ -268,8 +300,8 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			uint32_t format_to_bytes = vertex_format_to_bytes(format);
 
 			if (semantic == rhi::ShaderSemantic::custom &&
-				(format == rhi::VertexFormat::uint8_custom || format == rhi::VertexFormat::uint16_custom || format == rhi::VertexFormat::float32_custom) &&
-				(rate >> 16))
+			    (format == rhi::VertexFormat::uint8_custom || format == rhi::VertexFormat::uint16_custom || format == rhi::VertexFormat::float32_custom) &&
+			    (rate >> 16))
 				format_to_bytes *= (rate >> 16);        // Use the format multiplier from upper 16bits of rate
 
 			auto [buffer, success] = strides.insert({buffer_index, format_to_bytes});
