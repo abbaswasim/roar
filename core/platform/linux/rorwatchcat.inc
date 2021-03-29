@@ -150,12 +150,12 @@ class PlatformData final
 		if (rv == 0)
 			return;
 
-		size_t length = read(this->m_inotify_instance, this->m_notify_events_buffer.data(), this->m_notify_events_buffer.size());
+		ssize_t length = read(this->m_inotify_instance, this->m_notify_events_buffer.data(), this->m_notify_events_buffer.size());
 
 		if (length < 0)
 			ror::log_error("No data available from inotify file descriptor");
 		else
-			handle_events(length);
+			handle_events(static_cast<size_t>(length));
 	}
 
   protected:
