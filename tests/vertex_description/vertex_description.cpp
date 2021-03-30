@@ -35,284 +35,128 @@
 
 namespace ror_test
 {
+static uint32_t position_only             = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position);
+static uint32_t position_uv               = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_0);
+static uint32_t position_normal_uv        = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_normal);
+static uint32_t position_normal_uv_weight = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_normal) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_weight);
+
+void test_one_vertex_description(rhi::VertexDescriptor &vd,
+								 rhi::ShaderSemantic    semantic,
+								 uint32_t               location,
+								 uint32_t               offset,
+								 uint64_t               buffer_offset,
+								 uint32_t               binding,
+								 uint32_t               buffer_index,
+								 rhi::VertexFormat      format,
+
+								 rhi::StepFunction function,
+								 uint64_t          stride,
+								 rhi::Rate         rate,
+								 uint32_t          multiplier,
+								 uint32_t          semantic_type,
+								 uint32_t          line)
+{
+	(void) buffer_offset;
+	(void) buffer_index;
+	(void) multiplier;
+
+	std::string line_header{"Looking at like = "};
+	line_header += std::to_string(line);
+	print_with_gtest_header(line_header.c_str(), green);
+
+	ASSERT_TRUE(vd.complete());
+	ASSERT_EQ(vd.type(), semantic_type);
+
+	auto lp = vd.layout(semantic);
+	auto at = vd.attribute(semantic);
+
+	ASSERT_TRUE(lp.complete());
+	ASSERT_EQ(lp.binding(), binding);
+	ASSERT_EQ(lp.rate(), rate.m_value);
+	ASSERT_EQ(lp.step_function(), function);
+	ASSERT_EQ(lp.stride(), stride);
+
+	ASSERT_TRUE(at.complete());
+	ASSERT_EQ(at.binding(), binding);
+	ASSERT_EQ(at.format(), format);
+	ASSERT_EQ(at.location(), location);
+	ASSERT_EQ(at.offset(), offset);
+	ASSERT_EQ(at.semantics(), semantic);
+}
+
 TEST(VertexDescritionTest, automated_description)
 {
-	static uint32_t position_only             = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position);
-	static uint32_t position_normal_uv        = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_normal);
-	static uint32_t position_normal_uv_weight = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_normal) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_weight);
-
 	{
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position};
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3, 1, 1, position_only, __LINE__);
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_only);
+		vd.add();
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3, 1, 1, position_only, __LINE__);
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
+		vd.add(rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::uint16_2);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_texture_coord_0, 1, 0, 0, 1, 0, rhi::VertexFormat::uint16_2, rhi::StepFunction::vertex, sizeof(uint16_t) * 2, 1, 1, position_uv, __LINE__);
 
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
+		vd.add(rhi::ShaderSemantic::vertex_normal, rhi::VertexFormat::float32_4, rhi::StepFunction::instance, 3);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_normal, 2, 0, 0, 2, 0, rhi::VertexFormat::float32_4, rhi::StepFunction::instance, sizeof(uint16_t) * 2 + sizeof(float32_t) * 4, 3, 1, position_normal_uv, __LINE__);
 	}
 
 	{
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::StepFunction::instance};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_only);
+		uint32_t semantics = position_only;
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::instance);
-			ASSERT_NE(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::instance, sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 	}
 
 	{
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_4};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_only);
+		uint32_t semantics = position_only;
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 4);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_4);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_4, rhi::StepFunction::vertex, sizeof(float32_t) * 4, 1, 1, semantics, __LINE__);
 	}
 
 	{
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_4, rhi::StepFunction::instance, 3};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_only);
+		uint32_t semantics = position_only;
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 3);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::instance);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 4);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_4);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_4, rhi::StepFunction::instance, sizeof(float32_t) * 4, 3, 1, semantics, __LINE__);
 	}
 
 	{
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::StepFunction::instance, 3};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_only);
+		uint32_t semantics = position_only;
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 3);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::instance);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::instance, sizeof(float32_t) * 3, 3, 1, semantics, __LINE__);
 	}
 
 	{
 		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, 3};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_only);
+		uint32_t semantics = position_only;
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 3);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3, 3, 1, semantics, __LINE__);
 	}
+
 	{
 		// clang-format off
-		rhi::VertexDescriptor vd{
-			rhi::ShaderSemantic::vertex_position, rhi::StepFunction::vertex,
-			rhi::ShaderSemantic::vertex_normal, 2,
-			rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::uint16_2, rhi::StepFunction::vertex,
-			rhi::ShaderSemantic::vertex_weight,
+		rhi::VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::StepFunction::vertex, rhi::ShaderSemantic::vertex_normal, 2,
+			rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::uint16_2, rhi::StepFunction::vertex, rhi::ShaderSemantic::vertex_weight,
 			rhi::ShaderSemantic::mesh_index, rhi::StepFunction::instance, 2,
 			rhi::ShaderSemantic::instance_transform, rhi::VertexFormat::float32_16, rhi::StepFunction::instance, 1,
 		};
 		// clang-format on
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_normal_uv_weight | ror::enum_to_type_cast(rhi::ShaderSemantic::mesh_index) | ror::enum_to_type_cast(rhi::ShaderSemantic::instance_transform));
+		uint32_t semantics = position_normal_uv_weight | ror::enum_to_type_cast(rhi::ShaderSemantic::mesh_index) | ror::enum_to_type_cast(rhi::ShaderSemantic::instance_transform);
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3 + sizeof(float32_t) * 3);        // Position + Weight
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_normal);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_normal);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 1);
-			ASSERT_EQ(lp.rate(), 2);        // TODO: This fails
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3 + sizeof(uint16_t) * 2);        // Normal + UV
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 1);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 1);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_normal);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_texture_coord_0);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_texture_coord_0);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 2);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3 + sizeof(uint16_t) * 2);        // Normal + UV
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 2);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::uint16_2);
-			ASSERT_EQ(at.location(), 2);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_texture_coord_0);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_weight);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_weight);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 3);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3 + sizeof(float32_t) * 3);        // Position + Weight
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 3);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 3);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_weight);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::mesh_index);
-			auto at = vd.attribute(rhi::ShaderSemantic::mesh_index);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 4);
-			ASSERT_EQ(lp.rate(), 2);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::instance);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3);        // MeshIndex only because globally interleaved
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 4);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 4);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::mesh_index);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::instance_transform);
-			auto at = vd.attribute(rhi::ShaderSemantic::instance_transform);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 5);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::instance);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 16);        // MeshIndex + Matrix4x4
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 5);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_16);
-			ASSERT_EQ(at.location(), 5);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::instance_transform);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_normal, 1, 0, 0, 1, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(uint16_t) * 2, 2, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_texture_coord_0, 2, 0, 0, 2, 0, rhi::VertexFormat::uint16_2, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(uint16_t) * 2, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_weight, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::mesh_index, 4, 0, 0, 4, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::instance, sizeof(float32_t) * 3, 2, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::instance_transform, 5, 0, 0, 5, 0, rhi::VertexFormat::float32_16, rhi::StepFunction::instance, sizeof(float32_t) * 16, 1, 1, semantics, __LINE__);
 	}
 
 	{
@@ -323,27 +167,9 @@ TEST(VertexDescritionTest, automated_description)
 			1,
 		};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), ror::enum_to_type_cast(rhi::ShaderSemantic::custom));
+		uint32_t semantics = ror::enum_to_type_cast(rhi::ShaderSemantic::custom);
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::custom);
-			auto at = vd.attribute(rhi::ShaderSemantic::custom);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.format_multiplier(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t));
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_custom);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::custom);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::custom, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_custom, rhi::StepFunction::vertex, sizeof(float32_t), 1, 1, semantics, __LINE__);
 	}
 
 	{
@@ -354,27 +180,9 @@ TEST(VertexDescritionTest, automated_description)
 			(128 << 16) | 1,
 		};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), ror::enum_to_type_cast(rhi::ShaderSemantic::custom));
+		uint32_t semantics = ror::enum_to_type_cast(rhi::ShaderSemantic::custom);
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::custom);
-			auto at = vd.attribute(rhi::ShaderSemantic::custom);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.format_multiplier(), 128);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 128);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_custom);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::custom);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::custom, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_custom, rhi::StepFunction::vertex, sizeof(float32_t) * 128, 1, 1, semantics, __LINE__);
 	}
 
 	{
@@ -385,359 +193,58 @@ TEST(VertexDescritionTest, automated_description)
 			(128 << 16) | 2,
 		};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), ror::enum_to_type_cast(rhi::ShaderSemantic::custom));
+		uint32_t semantics = ror::enum_to_type_cast(rhi::ShaderSemantic::custom);
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::custom);
-			auto at = vd.attribute(rhi::ShaderSemantic::custom);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 2);
-			ASSERT_EQ(lp.format_multiplier(), 128);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::instance);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 128);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_custom);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::custom);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::custom, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_custom, rhi::StepFunction::instance, sizeof(float32_t) * 128, 2, 1, semantics, __LINE__);
 	}
 
 	{
 		rhi::VertexDescriptor vd{
-			rhi::ShaderSemantic::vertex_position,
-			rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2,
-			rhi::ShaderSemantic::vertex_normal};
+			rhi::ShaderSemantic::vertex_position, rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2, rhi::ShaderSemantic::vertex_normal};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_normal_uv);
+		uint32_t semantics = position_normal_uv;
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_texture_coord_0);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_texture_coord_0);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 1);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 2 + sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 1);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_2);
-			ASSERT_EQ(at.location(), 1);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_texture_coord_0);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_normal);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_normal);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 2);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 2 + sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 2);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 2);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_normal);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_texture_coord_0, 1, 0, 0, 1, 0, rhi::VertexFormat::float32_2, rhi::StepFunction::vertex, sizeof(float32_t) * 2 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_normal, 2, 0, 0, 2, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 2 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 	}
 
 	{
 		rhi::VertexDescriptor vd{
-			rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3,
-			rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2,
-			rhi::ShaderSemantic::vertex_normal, rhi::VertexFormat::float32_3};
+			rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2, rhi::ShaderSemantic::vertex_normal, rhi::VertexFormat::float32_3};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_normal_uv);
+		uint32_t semantics = position_normal_uv;
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_texture_coord_0);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_texture_coord_0);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 1);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 2 + sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 1);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_2);
-			ASSERT_EQ(at.location(), 1);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_texture_coord_0);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_normal);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_normal);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 2);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 2 + sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 2);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 2);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_normal);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_texture_coord_0, 1, 0, 0, 1, 0, rhi::VertexFormat::float32_2, rhi::StepFunction::vertex, sizeof(float32_t) * 2 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_normal, 2, 0, 0, 2, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 2 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 	}
 
 	{
 		rhi::VertexDescriptor vd{
-			rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3,
-			rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2,
-			rhi::ShaderSemantic::vertex_normal, rhi::VertexFormat::float32_3,
-			rhi::ShaderSemantic::vertex_index, rhi::VertexFormat::uint32_1};
+			rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2, rhi::ShaderSemantic::vertex_normal, rhi::VertexFormat::float32_3, rhi::ShaderSemantic::vertex_index, rhi::VertexFormat::uint32_1};
 
-		ASSERT_TRUE(vd.complete());
-		ASSERT_EQ(vd.type(), position_normal_uv | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_index));
+		uint32_t semantics = position_normal_uv | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_index);
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_texture_coord_0);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_texture_coord_0);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 1);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 2 + sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 1);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_2);
-			ASSERT_EQ(at.location(), 1);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_texture_coord_0);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_normal);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_normal);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 2);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 2 + sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 2);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 2);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_normal);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_index);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_index);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 3);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(uint32_t));
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 3);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::uint32_1);
-			ASSERT_EQ(at.location(), 3);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_index);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_texture_coord_0, 1, 0, 0, 1, 0, rhi::VertexFormat::float32_2, rhi::StepFunction::vertex, sizeof(float32_t) * 2 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_normal, 2, 0, 0, 2, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 2 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_index, 3, 0, 0, 3, 0, rhi::VertexFormat::uint32_1, rhi::StepFunction::vertex, sizeof(uint32_t), 1, 1, semantics, __LINE__);
 	}
 
 	{
-		// Testing different formats that takes a location of more than 1
 		rhi::VertexDescriptor vd{
-			rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3,
-			rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_9,
-			rhi::ShaderSemantic::vertex_normal, rhi::VertexFormat::float32_3,
-			rhi::ShaderSemantic::vertex_texture_coord_1, rhi::VertexFormat::float32_9,
-			rhi::ShaderSemantic::vertex_texture_coord_2, rhi::VertexFormat::float32_2,
-			rhi::ShaderSemantic::vertex_index, rhi::VertexFormat::uint32_1};
+			rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::ShaderSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_9, rhi::ShaderSemantic::vertex_normal, rhi::VertexFormat::float32_3, rhi::ShaderSemantic::vertex_texture_coord_1, rhi::VertexFormat::float32_9, rhi::ShaderSemantic::vertex_texture_coord_2, rhi::VertexFormat::float32_2, rhi::ShaderSemantic::vertex_index, rhi::VertexFormat::uint32_1};
 
-		ASSERT_TRUE(vd.complete());
-		// ASSERT_EQ(vd.type(), position_normal_uv | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_index));
+		uint32_t semantics = ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_position) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_normal) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_1) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_texture_coord_2) | ror::enum_to_type_cast(rhi::ShaderSemantic::vertex_index);
 
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_position);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_position);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 0);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 0);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 0);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_position);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_texture_coord_0);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_texture_coord_0);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 1);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 9 + sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 1);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_9);
-			ASSERT_EQ(at.location(), 1);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_texture_coord_0);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_normal);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_normal);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 2);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 9 + sizeof(float32_t) * 3);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 2);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_3);
-			ASSERT_EQ(at.location(), 4);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_normal);
-		}
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_texture_coord_1);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_texture_coord_1);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 3);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 9);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 3);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_9);
-			ASSERT_EQ(at.location(), 5);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_texture_coord_1);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_texture_coord_2);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_texture_coord_2);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 4);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(float32_t) * 2);
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 4);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::float32_2);
-			ASSERT_EQ(at.location(), 8);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_texture_coord_2);
-		}
-
-		{
-			auto lp = vd.layout(rhi::ShaderSemantic::vertex_index);
-			auto at = vd.attribute(rhi::ShaderSemantic::vertex_index);
-
-			ASSERT_TRUE(lp.complete());
-			ASSERT_EQ(lp.binding(), 5);
-			ASSERT_EQ(lp.rate(), 1);
-			ASSERT_EQ(lp.step_function(), rhi::StepFunction::vertex);
-			ASSERT_EQ(lp.stride(), sizeof(uint32_t));
-
-			ASSERT_TRUE(at.complete());
-			ASSERT_EQ(at.binding(), 5);
-			ASSERT_EQ(at.format(), rhi::VertexFormat::uint32_1);
-			ASSERT_EQ(at.location(), 9);
-			ASSERT_EQ(at.offset(), 0);
-			ASSERT_EQ(at.semantics(), rhi::ShaderSemantic::vertex_index);
-		}
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_texture_coord_0, 1, 0, 0, 1, 0, rhi::VertexFormat::float32_9, rhi::StepFunction::vertex, sizeof(float32_t) * 9 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_normal, 4, 0, 0, 2, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 9 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_texture_coord_1, 5, 0, 0, 3, 0, rhi::VertexFormat::float32_9, rhi::StepFunction::vertex, sizeof(float32_t) * 9, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_texture_coord_2, 8, 0, 0, 4, 0, rhi::VertexFormat::float32_2, rhi::StepFunction::vertex, sizeof(float32_t) * 2, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::ShaderSemantic::vertex_index, 9, 0, 0, 5, 0, rhi::VertexFormat::uint32_1, rhi::StepFunction::vertex, sizeof(uint32_t), 1, 1, semantics, __LINE__);
 	}
 }
+
 }        // namespace ror_test
