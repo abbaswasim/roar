@@ -134,7 +134,15 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	{
 		std::vector<tuple_type> attributes_tuple_vector{};
 
-		attributes_tuple_vector.emplace_back(a_attribute.semantics(), a_attribute.format(), a_Layout.step_function(), a_Layout.rate());
+		auto rate       = a_Layout.rate();
+		auto multiplier = a_Layout.format_multiplier();
+
+		assert(rate <= 65535 && "Rate doesn't fit in 16bit!");
+		assert(multiplier <= 65535 && "Format multiplier doesn't fit in 16bit!");
+
+		rate = rate | (multiplier << 16);
+
+		attributes_tuple_vector.emplace_back(a_attribute.semantics(), a_attribute.format(), a_Layout.step_function(), rate);
 		this->create_attributes_and_layouts(attributes_tuple_vector);
 		this->create_mapping();
 	}
@@ -146,10 +154,20 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 */
 	void add(std::vector<VertexAttribute> a_attribute, std::vector<VertexLayout> a_Layout)
 	{
+		assert(a_attribute.size() == a_Layout.size() && "Attributes and layouts should be the to use this version of add!");
 		std::vector<tuple_type> attributes_tuple_vector{};
 
 		for (size_t i = 0; i < a_attribute.size(); ++i)
-			attributes_tuple_vector.emplace_back(a_attribute[i].semantics(), a_attribute[i].format(), a_Layout[i].step_function(), a_Layout[i].rate());
+		{
+			auto rate       = a_Layout[i].rate();
+			auto multiplier = a_Layout[i].format_multiplier();
+
+			assert(rate <= 65535 && "Rate doesn't fit in 16bit!");
+			assert(multiplier <= 65535 && "Format multiplier doesn't fit in 16bit!");
+
+			rate = rate | (multiplier << 16);
+			attributes_tuple_vector.emplace_back(a_attribute[i].semantics(), a_attribute[i].format(), a_Layout[i].step_function(), rate);
+		}
 
 		this->create_attributes_and_layouts(attributes_tuple_vector);
 		this->create_mapping();
@@ -366,16 +384,16 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			// Get the old stride from existing layouts before inserting a new one
 			if (existing_layouts_size > 0)
 			{
-				// FIXME: Also fix the stride for the old layouts that are already setup
-				// This could be optimised by either adding a buffer_index in layout or creating another mapping
+				// This could be optimised by either adding a buffer_index in layout or creating another mapping, but this shouldn't be on hot path
 				auto old_attribute = std::find_if(std::begin(this->m_attributes), std::end(this->m_attributes), [&](VertexAttribute &va) { return va.buffer_index() == buffer_index; });
-				if (old_attribute != this->m_attributes.end()) // If an attribute with this buffer index exists find its layout so we can use its binding
+				if (old_attribute != this->m_attributes.end())        // If an attribute with this buffer index exists then find its layout so we can use its binding
 				{
-					auto old_layout    = std::find_if(std::begin(this->m_layouts), std::end(this->m_layouts), [&](VertexLayout &vl) { return vl.binding() == old_attribute->binding(); });
+					auto old_layout = std::find_if(std::begin(this->m_layouts), std::end(this->m_layouts), [&](VertexLayout &vl) { return vl.binding() == old_attribute->binding(); });
 
 					assert(old_layout != this->m_layouts.end() && "Can't find a layout for attribute that should exis, something went wrong!");
 
 					format_to_bytes += old_layout->stride();
+					old_layout->stride(format_to_bytes);        // Also update the stride of this layout which will now be shared with this new attribute
 				}
 			}
 

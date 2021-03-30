@@ -36,7 +36,6 @@ namespace rhi
 class ROAR_ENGINE_ITEM VertexAttribute final
 {
   public:
-	FORCE_INLINE VertexAttribute()                                   = default;                   //! Default constructor
 	FORCE_INLINE VertexAttribute(const VertexAttribute &a_other)     = default;                   //! Copy constructor
 	FORCE_INLINE VertexAttribute(VertexAttribute &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE VertexAttribute &operator=(const VertexAttribute &a_other) = default;            //! Copy assignment operator
@@ -53,7 +52,7 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 								 VertexFormat   a_format    = VertexFormat::float32_3) :
 		m_semantics(a_semantics),
 		m_format(a_format)
-	{}
+	{}        //! Default constructor as well
 
 	/**
 	 * Use this version of the constructor if you want to take care of creating buffers yourself
