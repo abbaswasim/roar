@@ -146,6 +146,8 @@ set(ROAR_REQUIRED_PRIVATE_LIBRARIES
   roar_version)
 
 set(ROAR_REQUIRED_PUBLIC_LIBRARIES
+  cimage
+  stb
   spdlog
   nlohmann_json
   xxhash)

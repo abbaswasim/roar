@@ -35,5 +35,20 @@
 #include "rormatrix3x4_functions.hpp"
 #include "rormatrix4_functions.hpp"
 
+static_assert(sizeof(ror::Matrix2f) == 16, "Matrix is not tightly packed");
+static_assert(sizeof(ror::Matrix3f) == 36, "Matrix is not tightly packed");
+static_assert(sizeof(ror::Matrix3x4f) == 48, "Matrix is not tightly packed");
+static_assert(sizeof(ror::Matrix4f) == 64, "Matrix is not tightly packed");
+
+static_assert(sizeof(ror::Matrix2i) == 16, "Matrix is not tightly packed");
+static_assert(sizeof(ror::Matrix3i) == 36, "Matrix is not tightly packed");
+static_assert(sizeof(ror::Matrix3x4i) == 48, "Matrix is not tightly packed");
+static_assert(sizeof(ror::Matrix4i) == 64, "Matrix is not tightly packed");
+
+static_assert(sizeof(ror::Matrix2d) == 32, "Matrix is not tightly packed");
+static_assert(sizeof(ror::Matrix3d) == 72, "Matrix is not tightly packed");
+static_assert(sizeof(ror::Matrix3x4d) == 96, "Matrix is not tightly packed");
+static_assert(sizeof(ror::Matrix4d) == 128, "Matrix is not tightly packed");
+
 namespace ror
 {}        // namespace ror

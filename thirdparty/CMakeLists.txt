@@ -42,6 +42,16 @@ add_subdirectory(xxHash/cmake_unofficial)
 set_target_properties(xxhash
   PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+# Add CImg library as interface
+add_library(cimage INTERFACE)
+target_sources(cimage INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/CImg/CImg.h)
+target_include_directories(cimage SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Add stb library as interface
+add_library(stb INTERFACE)
+target_sources(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h)
+target_include_directories(stb INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+
 # add_subdirectory(convhull_3d)
 # target_compile_options(convhull_3d PRIVATE
 #   "-Wno-gnu-anonymous-struct"

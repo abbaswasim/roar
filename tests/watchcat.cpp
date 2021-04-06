@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "common.hpp"
+#include "foundation/rortypes.hpp"
 #include "profiling/rorlog.hpp"
 #include <gtest/gtest.h>
 #include <memory>
@@ -99,8 +100,9 @@ void test_create_modify_remove(std::function<void(fs::path)> &created,
 							   int                            calls_count_test = 3)
 {
 
+	uint32_t seconds = 2;
 	// Wait for the watcher to fire up
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	std::this_thread::sleep_for(std::chrono::seconds(seconds));
 
 	std::atomic<int> call_count = 0;
 
@@ -125,13 +127,16 @@ void test_create_modify_remove(std::function<void(fs::path)> &created,
 		}
 	}
 
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	std::this_thread::sleep_for(std::chrono::seconds(seconds));
+
 	if (calls_count_test != 0)
 		EXPECT_EQ(call_count, 1);
 	else
 		EXPECT_EQ(call_count, calls_count_test);
+
 	created = [](fs::path) {};
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+	std::this_thread::sleep_for(std::chrono::seconds(seconds));
 
 	modified = [&](fs::path p) {
 		std::string ps  = p;
@@ -153,14 +158,17 @@ void test_create_modify_remove(std::function<void(fs::path)> &created,
 		ff.close();
 	}
 
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	std::this_thread::sleep_for(std::chrono::seconds(seconds));
+
 	if (calls_count_test != 0)
 		EXPECT_EQ(call_count, 2);
 	else
 		EXPECT_EQ(call_count, calls_count_test);
+
 	created  = [](fs::path) {};
 	modified = [](fs::path) {};
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+
+	std::this_thread::sleep_for(std::chrono::seconds(seconds));
 
 	removed = [&](fs::path p) {
 		std::string ps  = p;
@@ -173,7 +181,7 @@ void test_create_modify_remove(std::function<void(fs::path)> &created,
 		std::filesystem::remove(file);
 	}
 
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	std::this_thread::sleep_for(std::chrono::seconds(seconds));
 
 	if (calls_count_test != 0)
 		EXPECT_EQ(call_count, 3);
