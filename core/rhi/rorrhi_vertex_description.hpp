@@ -60,7 +60,9 @@ struct Rate
 	uint32_t m_value{};
 };
 
-using tuple_type = std::tuple<ShaderSemantic, VertexFormat, StepFunction, uint32_t>;
+using tuple_type     = std::tuple<ShaderSemantic, VertexFormat, StepFunction, uint32_t>;
+using attrib_variant = std::variant<const BuffersPack *, ShaderSemantic, VertexFormat, StepFunction, Rate>;
+using attrib_vector  = std::vector<attrib_variant>;
 
 /**
 * Can be used to describe a vertex attributes and layouts for a mesh.
@@ -104,6 +106,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * or
 	 * VertexDescriptor vd{ShaderSemantic::vertex_position, StepFunction::vertex}; etc etc
 	 * Argument that are not provided for each attribute will be the default values
+	 * NOTE: Make sure you provide a BuffersPack somewhere  in the list otherwise it can't work out which buffers to use
 	 */
 	template <class... _types>
 	FORCE_INLINE VertexDescriptor(_types... a_attributes)
@@ -117,6 +120,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * This is unlike the constructor which takes a vector of attributes and a vector of layouts, in which case client takes resonsibility of correctness
 	 * In this case add takes care of the correctness of the attributes and layouts created
 	 * As you can guess add with no arguments doesn't do anything but is still a valid call
+	 * NOTE: Make sure you provide a BuffersPack somewhere  in the list otherwise it can't work out which buffers to use
 	 */
 	template <class... _types>
 	void add(_types... a_attributes)
@@ -130,7 +134,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * This is unlike the constructor which takes a vector of attributes and a vector of layouts, in which case client takes resonsibility of correctness
 	 * In this case add takes care of the correctness of the attributes and layouts created
 	 */
-	void add(VertexAttribute a_attribute, VertexLayout a_Layout)
+	void add(VertexAttribute a_attribute, VertexLayout a_Layout, const BuffersPack *a_buffers_pack)
 	{
 		std::vector<tuple_type> attributes_tuple_vector{};
 
@@ -143,7 +147,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		rate = rate | (multiplier << 16);
 
 		attributes_tuple_vector.emplace_back(a_attribute.semantics(), a_attribute.format(), a_Layout.step_function(), rate);
-		this->create_attributes_and_layouts(attributes_tuple_vector);
+		this->create_attributes_and_layouts(attributes_tuple_vector, a_buffers_pack);
 		this->create_mapping();
 	}
 
@@ -152,7 +156,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * This is unlike the constructor which takes a vector of attributes and a vector of layouts, in which case client takes resonsibility of correctness
 	 * In this case add takes care of the correctness of the attributes and layouts created, size of the attributes and layouts vector must be same
 	 */
-	void add(std::vector<VertexAttribute> a_attribute, std::vector<VertexLayout> a_Layout)
+	void add(std::vector<VertexAttribute> a_attribute, std::vector<VertexLayout> a_Layout, const BuffersPack *a_buffers_pack)
 	{
 		assert(a_attribute.size() == a_Layout.size() && "Attributes and layouts should be the to use this version of add!");
 		std::vector<tuple_type> attributes_tuple_vector{};
@@ -169,7 +173,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			attributes_tuple_vector.emplace_back(a_attribute[i].semantics(), a_attribute[i].format(), a_Layout[i].step_function(), rate);
 		}
 
-		this->create_attributes_and_layouts(attributes_tuple_vector);
+		this->create_attributes_and_layouts(attributes_tuple_vector, a_buffers_pack);
 		this->create_mapping();
 	}
 
@@ -257,7 +261,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	FORCE_INLINE void parse_attributes_and_layouts(_types &...a_attributes)
 	{
 		// Using Rate here just to make it typesafe
-		std::vector<std::variant<ShaderSemantic, VertexFormat, StepFunction, Rate>> attributes{a_attributes...};
+		attrib_vector attributes{a_attributes...};
 
 		if (attributes.size() < 1)
 			return;
@@ -266,6 +270,8 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		tuple_type              temp_tuple{default_tuple};
 		std::vector<tuple_type> attributes_tuple_vector{};
 		attributes_tuple_vector.reserve(attributes.size());        // Worst case scenario
+
+		const BuffersPack *any_buffers_pack{nullptr};
 
 		bool started = false;
 
@@ -301,6 +307,10 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 				{
 					std::get<uint32_t>(temp_tuple) = rate->m_value;
 				}
+				else if (auto buffers_pack = std::get_if<const BuffersPack *>(&attb))
+				{
+					any_buffers_pack = *buffers_pack;
+				}
 			}
 			else
 			{
@@ -328,22 +338,26 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 						[&](Rate rt) {
 							std::get<uint32_t>(temp_tuple) = rt.m_value;
 						},
-					},
+						[&](const BuffersPack *bp) {
+							any_buffers_pack = bp;
+						}},
 					attb);
 			}
 		}
 
+		assert(any_buffers_pack != nullptr && "No buffers pack provided, can't continue!");
+
 		// Last one that was incomplete in the loop
 		attributes_tuple_vector.push_back(temp_tuple);
 
-		this->create_attributes_and_layouts(attributes_tuple_vector);
+		this->create_attributes_and_layouts(attributes_tuple_vector, any_buffers_pack);
 	}
 
 	/**
 	 * Used for vertex attributes and layouts for both vertex and instance types
 	 * This function resets/recreates the m_attributes and m_layouts member variables
 	 */
-	FORCE_INLINE void create_attributes_and_layouts(const std::vector<std::tuple<ShaderSemantic, VertexFormat, StepFunction, uint32_t>> &a_attributes)
+	FORCE_INLINE void create_attributes_and_layouts(const std::vector<tuple_type> &a_attributes, const BuffersPack *a_buffers_pack)
 	{
 		size_t                                 existing_layouts_size{this->m_layouts.size()};
 		size_t                                 existing_attributes_size{this->m_attributes.size()};
@@ -363,8 +377,6 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		this->m_attributes.reserve(this->m_attributes.size() + a_attributes.size());
 		this->m_layouts.reserve(this->m_layouts.size() + a_attributes.size());
 
-		const auto &bp = get_buffers_pack();        // TODO: Should I have my own static BuffersPack in here? That way I can change it around without consequences?
-
 		// Iterate over the attributes, create internal attributes vector as well as strides for layouts
 		for (auto &attribute : a_attributes)
 		{
@@ -372,7 +384,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			auto format   = std::get<VertexFormat>(attribute);
 			auto rate     = std::get<uint32_t>(attribute);
 
-			uint32_t buffer_index = bp.attribute_buffer_index(semantic);
+			uint32_t buffer_index = a_buffers_pack->attribute_buffer_index(semantic);
 			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // FIXME: How many bytes do we need for this, this has to be done later in a second pass
 			uint32_t format_to_bytes = vertex_format_to_bytes(format);
 
@@ -402,7 +414,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			if (!success)
 			{
 				// Check if we are locally or globally interleaved, in the later case don't need to update stride
-				if (bp.attribute_buffer_interleaved(semantic))
+				if (a_buffers_pack->attribute_buffer_interleaved(semantic))
 					buffer->second += format_to_bytes;
 			}
 
@@ -425,7 +437,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 			uint32_t stride = strides[final_attribute.buffer_index()];
 
-			if (!bp.attribute_buffer_interleaved(final_attribute.semantics()))        // If global interleaved buffer then use the format bytes as stride, otherwise multiply it
+			if (!a_buffers_pack->attribute_buffer_interleaved(final_attribute.semantics()))        // If global interleaved buffer then use the format bytes as stride, otherwise multiply it
 				stride = vertex_format_to_bytes(format) * multiplier;
 
 			this->m_layouts.emplace_back(final_attribute.binding(), stride, rate & 65535, multiplier, step_function);
@@ -439,5 +451,4 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	SemanticToAttribLayoutMap    m_mapping{};           //! Mapping of each Semantic to its pair of layout and attribute
 };
 
-// static_assert(std::is_trivially_copyable<VertexDescriptor>::value, "VertexDescriptor is not trivially copyable");
 }        // namespace rhi

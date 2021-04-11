@@ -25,11 +25,16 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
 
 #include "rorvector_functions.hpp"
+
+static_assert(sizeof(ror::Vector2<uint8_t>) == 2, "Vector is not tightly packed");
+static_assert(sizeof(ror::Vector3<uint8_t>) == 3, "Vector is not tightly packed");
+static_assert(sizeof(ror::Vector4<uint8_t>) == 4, "Vector is not tightly packed");
 
 static_assert(sizeof(ror::Vector2f) == 8, "Vector is not tightly packed");
 static_assert(sizeof(ror::Vector3f) == 12, "Vector is not tightly packed");
