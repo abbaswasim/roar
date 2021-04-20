@@ -16,9 +16,6 @@
 [submodule "thirdparty/xxHash"]
 	path = thirdparty/xxHash
 	url = https://github.com/Cyan4973/xxHash.git
-[submodule "thirdparty/CImg"]
-	path = thirdparty/CImg
-	url = https://github.com/dtschump/CImg.git
 [submodule "thirdparty/stb"]
 	path = thirdparty/stb
 	url = https://github.com/nothings/stb.git
