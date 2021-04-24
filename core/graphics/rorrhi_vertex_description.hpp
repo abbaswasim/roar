@@ -29,11 +29,11 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
+#include "graphics/rorrhi_vertex_attribute.hpp"
+#include "graphics/rorrhi_vertex_layout.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rorrhi_buffers_pack.hpp"
 #include "rhi/rorrhi_types.hpp"
-#include "rhi/rorrhi_vertex_attribute.hpp"
-#include "rhi/rorrhi_vertex_layout.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -59,9 +59,12 @@ struct Rate
 	{}
 	uint32_t m_value{};
 };
+}        // namespace rhi
 
-using tuple_type     = std::tuple<ShaderSemantic, VertexFormat, StepFunction, uint32_t>;
-using attrib_variant = std::variant<const BuffersPack *, ShaderSemantic, VertexFormat, StepFunction, Rate>;
+namespace ror
+{
+using tuple_type     = std::tuple<rhi::ShaderSemantic, rhi::VertexFormat, rhi::StepFunction, uint32_t>;
+using attrib_variant = std::variant<const rhi::BuffersPack *, rhi::ShaderSemantic, rhi::VertexFormat, rhi::StepFunction, rhi::Rate>;
 using attrib_vector  = std::vector<attrib_variant>;
 
 /**
@@ -98,15 +101,15 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Rate is special, any of the formats are custom then rate is split between two uin16_t, lower bits has rate while upper bits has format multiplier
 	 * If no formats are custom then its value is used as it is, in other words the top bits when 0 or 1 both means single format multiplier
 	 * Usage could be something like
-	 * VertexDescriptor vd{ShaderSemantic::vertex_position};
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position};
 	 * or
-	 * VertexDescriptor vd{ShaderSemantic::vertex_position, VertexFormat::float32_3};
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3};
 	 * or
-	 * VertexDescriptor vd{ShaderSemantic::vertex_position, VertexFormat::float32_3, StepFunction::vertex};
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex};
 	 * or
-	 * VertexDescriptor vd{ShaderSemantic::vertex_position, StepFunction::vertex}; etc etc
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::StepFunction::vertex}; etc etc
 	 * Argument that are not provided for each attribute will be the default values
-	 * NOTE: Make sure you provide a BuffersPack somewhere  in the list otherwise it can't work out which buffers to use
+	 * NOTE: Make sure you provide a rhi::BuffersPack somewhere  in the list otherwise it can't work out which buffers to use
 	 */
 	template <class... _types>
 	FORCE_INLINE VertexDescriptor(_types... a_attributes)
@@ -120,7 +123,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * This is unlike the constructor which takes a vector of attributes and a vector of layouts, in which case client takes resonsibility of correctness
 	 * In this case add takes care of the correctness of the attributes and layouts created
 	 * As you can guess add with no arguments doesn't do anything but is still a valid call
-	 * NOTE: Make sure you provide a BuffersPack somewhere  in the list otherwise it can't work out which buffers to use
+	 * NOTE: Make sure you provide a rhi::BuffersPack somewhere  in the list otherwise it can't work out which buffers to use
 	 */
 	template <class... _types>
 	void add(_types... a_attributes)
@@ -134,7 +137,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * This is unlike the constructor which takes a vector of attributes and a vector of layouts, in which case client takes resonsibility of correctness
 	 * In this case add takes care of the correctness of the attributes and layouts created
 	 */
-	void add(VertexAttribute a_attribute, VertexLayout a_Layout, const BuffersPack *a_buffers_pack)
+	void add(VertexAttribute a_attribute, VertexLayout a_Layout, const rhi::BuffersPack *a_buffers_pack)
 	{
 		std::vector<tuple_type> attributes_tuple_vector{};
 
@@ -156,7 +159,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * This is unlike the constructor which takes a vector of attributes and a vector of layouts, in which case client takes resonsibility of correctness
 	 * In this case add takes care of the correctness of the attributes and layouts created, size of the attributes and layouts vector must be same
 	 */
-	void add(std::vector<VertexAttribute> a_attribute, std::vector<VertexLayout> a_Layout, const BuffersPack *a_buffers_pack)
+	void add(std::vector<VertexAttribute> a_attribute, std::vector<VertexLayout> a_Layout, const rhi::BuffersPack *a_buffers_pack)
 	{
 		assert(a_attribute.size() == a_Layout.size() && "Attributes and layouts should be the to use this version of add!");
 		std::vector<tuple_type> attributes_tuple_vector{};
@@ -219,7 +222,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Returns an attribute for specified semantic
 	 * If the key doesn't exisit expect std::out_of_range exception, I can't really catch this exception meaningfully
 	 */
-	FORCE_INLINE const VertexAttribute &attribute(ShaderSemantic a_semantic_key) const
+	FORCE_INLINE const VertexAttribute &attribute(rhi::ShaderSemantic a_semantic_key) const
 	{
 		return this->m_mapping.at(a_semantic_key).first;
 	}
@@ -228,7 +231,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Returns a layout for specified semantic
 	 * If the key doesn't exisit expect std::out_of_range exception, I can't really catch this exception meaningfully
 	 */
-	FORCE_INLINE const VertexLayout &layout(ShaderSemantic a_semantic_key) const
+	FORCE_INLINE const VertexLayout &layout(rhi::ShaderSemantic a_semantic_key) const
 	{
 		return this->m_mapping.at(a_semantic_key).second;
 	}
@@ -266,23 +269,23 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		if (attributes.size() < 1)
 			return;
 
-		tuple_type              default_tuple{ShaderSemantic::vertex_position, VertexFormat::float32_3, StepFunction::vertex, 1};
+		tuple_type              default_tuple{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, 1};
 		tuple_type              temp_tuple{default_tuple};
 		std::vector<tuple_type> attributes_tuple_vector{};
 		attributes_tuple_vector.reserve(attributes.size());        // Worst case scenario
 
-		const BuffersPack *any_buffers_pack{nullptr};
+		const rhi::BuffersPack *any_buffers_pack{nullptr};
 
 		bool started = false;
 
-		assert(std::get_if<ShaderSemantic>(&attributes[0]) != nullptr && "Attribute description should be created with ShaderSemantics!");
+		assert(std::get_if<rhi::ShaderSemantic>(&attributes[0]) != nullptr && "Attribute description should be created with ShaderSemantics!");
 
 		for (auto &attb : attributes)
 		{
 			// Very gross hack to make visiting variants work on GCC
 			if constexpr (ror::get_compiler() == ror::CompilerType::comp_gcc)
 			{
-				if (auto shader_semantic = std::get_if<ShaderSemantic>(&attb))
+				if (auto shader_semantic = std::get_if<rhi::ShaderSemantic>(&attb))
 				{
 					if (started)        // If we have already started and we found another ShaderSemantic, we have completed one attribute at least
 					{
@@ -293,31 +296,31 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 					else
 						started = true;
 
-					std::get<ShaderSemantic>(temp_tuple) = *shader_semantic;
+					std::get<rhi::ShaderSemantic>(temp_tuple) = *shader_semantic;
 				}
-				else if (auto vertex_format = std::get_if<VertexFormat>(&attb))
+				else if (auto vertex_format = std::get_if<rhi::VertexFormat>(&attb))
 				{
-					std::get<VertexFormat>(temp_tuple) = *vertex_format;
+					std::get<rhi::VertexFormat>(temp_tuple) = *vertex_format;
 				}
-				else if (auto step_function = std::get_if<StepFunction>(&attb))
+				else if (auto step_function = std::get_if<rhi::StepFunction>(&attb))
 				{
-					std::get<StepFunction>(temp_tuple) = *step_function;
+					std::get<rhi::StepFunction>(temp_tuple) = *step_function;
 				}
-				else if (auto rate = std::get_if<Rate>(&attb))
+				else if (auto rate = std::get_if<rhi::Rate>(&attb))
 				{
 					std::get<uint32_t>(temp_tuple) = rate->m_value;
 				}
-				else if (auto buffers_pack = std::get_if<const BuffersPack *>(&attb))
+				else if (auto buffers_pack = std::get_if<const rhi::BuffersPack *>(&attb))
 				{
 					any_buffers_pack = *buffers_pack;
 				}
 			}
 			else
 			{
-				// Instead of this the alternative is to do something like  "if (auto shader_semantic = std::get_if<ShaderSemantic>(&attb))" and build a chain
+				// Instead of this the alternative is to do something like  "if (auto shader_semantic = std::get_if<rhi::ShaderSemantic>(&attb))" and build a chain
 				std::visit(
 					ror::Overload{
-						[&](ShaderSemantic sm) {
+						[&](rhi::ShaderSemantic sm) {
 							if (started)        // If we have already started and we found another ShaderSemantic, we have completed one attribute at least
 							{
 								attributes_tuple_vector.push_back(temp_tuple);
@@ -327,18 +330,18 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 							else
 								started = true;
 
-							std::get<ShaderSemantic>(temp_tuple) = sm;
+							std::get<rhi::ShaderSemantic>(temp_tuple) = sm;
 						},
-						[&](VertexFormat vf) {
-							std::get<VertexFormat>(temp_tuple) = vf;
+						[&](rhi::VertexFormat vf) {
+							std::get<rhi::VertexFormat>(temp_tuple) = vf;
 						},
-						[&](StepFunction sf) {
-							std::get<StepFunction>(temp_tuple) = sf;
+						[&](rhi::StepFunction sf) {
+							std::get<rhi::StepFunction>(temp_tuple) = sf;
 						},
-						[&](Rate rt) {
+						[&](rhi::Rate rt) {
 							std::get<uint32_t>(temp_tuple) = rt.m_value;
 						},
-						[&](const BuffersPack *bp) {
+						[&](const rhi::BuffersPack *bp) {
 							any_buffers_pack = bp;
 						}},
 					attb);
@@ -357,7 +360,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Used for vertex attributes and layouts for both vertex and instance types
 	 * This function resets/recreates the m_attributes and m_layouts member variables
 	 */
-	FORCE_INLINE void create_attributes_and_layouts(const std::vector<tuple_type> &a_attributes, const BuffersPack *a_buffers_pack)
+	FORCE_INLINE void create_attributes_and_layouts(const std::vector<tuple_type> &a_attributes, const rhi::BuffersPack *a_buffers_pack)
 	{
 		size_t                                 existing_layouts_size{this->m_layouts.size()};
 		size_t                                 existing_attributes_size{this->m_attributes.size()};
@@ -380,12 +383,12 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		// Iterate over the attributes, create internal attributes vector as well as strides for layouts
 		for (auto &attribute : a_attributes)
 		{
-			auto semantic = std::get<ShaderSemantic>(attribute);
-			auto format   = std::get<VertexFormat>(attribute);
+			auto semantic = std::get<rhi::ShaderSemantic>(attribute);
+			auto format   = std::get<rhi::VertexFormat>(attribute);
 			auto rate     = std::get<uint32_t>(attribute);
 
 			uint32_t buffer_index = a_buffers_pack->attribute_buffer_index(semantic);
-			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // FIXME: How many bytes do we need for this, this has to be done later in a second pass
+			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // How many bytes do we need for this, this has to be done later in a second pass
 			uint32_t format_to_bytes = vertex_format_to_bytes(format);
 
 			if (semantic == rhi::ShaderSemantic::custom &&
@@ -431,7 +434,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			auto &final_attribute = this->m_attributes[existing_attributes_size + i];
 			auto &raw_attribute   = a_attributes[i];
 			auto  format          = final_attribute.format();
-			auto  step_function   = std::get<StepFunction>(raw_attribute);
+			auto  step_function   = std::get<rhi::StepFunction>(raw_attribute);
 			auto  rate            = std::get<uint32_t>(raw_attribute);
 			auto  multiplier      = std::max(1U, rate >> 16);
 
@@ -444,11 +447,11 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		}
 	}
 
-	using SemanticToAttribLayoutMap = std::unordered_map<ShaderSemantic, std::pair<VertexAttribute &, VertexLayout &>>;
+	using SemanticToAttribLayoutMap = std::unordered_map<rhi::ShaderSemantic, std::pair<VertexAttribute &, VertexLayout &>>;
 
-	std::vector<VertexAttribute> m_attributes{};        //! All attributes, either provided or created from ShaderSemantic and VertexFormat
+	std::vector<VertexAttribute> m_attributes{};        //! All attributes, either provided or created from ShaderSemantic and rhi::VertexFormat
 	std::vector<VertexLayout>    m_layouts{};           //! All layouts for each buffer providing data for m_attributes
 	SemanticToAttribLayoutMap    m_mapping{};           //! Mapping of each Semantic to its pair of layout and attribute
 };
 
-}        // namespace rhi
+}        // namespace ror

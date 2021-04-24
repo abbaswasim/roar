@@ -265,25 +265,27 @@ struct BufferRange
 // Transformation is usually a matrix4
 // clang-format off
 #define describe_shader_semantics(item)                 \
-	item(vertex_position)        item_value(= 1 << 0),  \
-	item(vertex_texture_coord_0) item_value(= 1 << 1),  \
-	item(vertex_texture_coord_1) item_value(= 1 << 2),  \
-	item(vertex_texture_coord_2) item_value(= 1 << 3),  \
-	item(vertex_normal)          item_value(= 1 << 4),  \
+	item(vertex_position)        item_value(= 0),       \
+	item(vertex_texture_coord_0) item_value(= 1 << 0),  \
+	item(vertex_texture_coord_1) item_value(= 1 << 1),  \
+	item(vertex_texture_coord_2) item_value(= 1 << 2),  \
+	item(vertex_normal)          item_value(= 1 << 3),  \
+	item(vertex_bent_normal)     item_value(= 1 << 4),  \
 	item(vertex_tangent)         item_value(= 1 << 5),  \
 	item(vertex_color)           item_value(= 1 << 6),  \
 	item(vertex_bone_id)         item_value(= 1 << 7),  \
 	item(vertex_weight)          item_value(= 1 << 8),  \
-	item(instance_translation)   item_value(= 1 << 9),  \
-	item(instance_rotation)      item_value(= 1 << 10), \
-	item(instance_scale)         item_value(= 1 << 11), \
-	item(instance_transform)     item_value(= 1 << 12), \
-	item(vertex_index)           item_value(= 1 << 13), \
-	item(mesh_index)             item_value(= 1 << 14), \
-	item(meshlet_data)           item_value(= 1 << 15), \
-	item(drawcall_data)          item_value(= 1 << 16), \
-	item(custom)                 item_value(= 1 << 17)
-
+	item(vertex_morph_target)    item_value(= 1 << 9),  \
+	item(vertex_morph_weight)    item_value(= 1 << 10), \
+	item(instance_translation)   item_value(= 1 << 11), \
+	item(instance_rotation)      item_value(= 1 << 12), \
+	item(instance_scale)         item_value(= 1 << 13), \
+	item(instance_transform)     item_value(= 1 << 14), \
+	item(vertex_index)           item_value(= 1 << 15), \
+	item(mesh_index)             item_value(= 1 << 16), \
+	item(meshlet_data)           item_value(= 1 << 17), \
+	item(drawcall_data)          item_value(= 1 << 18), \
+	item(custom)                 item_value(= 1 << 19)
 // clang-format on
 #define item(_enum) _enum
 #define item_value(_enum) _enum
