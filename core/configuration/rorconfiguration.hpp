@@ -44,11 +44,11 @@ class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 	FORCE_INLINE Configuration(Configuration &&a_other) noexcept = default;                   //! Move constructor
 	FORCE_INLINE Configuration &operator=(const Configuration &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Configuration &operator=(Configuration &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~Configuration() noexcept                          = default;        //! Destructor
+	FORCE_INLINE virtual ~Configuration() noexcept override                 = default;        //! Destructor
 
 	void load(std::filesystem::path a_config_path)
 	{
-		this->m_resource   = std::make_shared<Resource>(a_config_path, ResourceSemantic::configs);
+		this->m_resource  = std::make_shared<Resource>(a_config_path, ResourceSemantic::configs);
 		this->m_json_file = json::parse(*this->m_resource->get_data());        // Perhaps remove the *
 
 		this->underlying().load_specific();
