@@ -261,8 +261,7 @@ void Resource::load()
 
 			// Create the file, and the directories, if we tried our best but couldn't find it
 			std::filesystem::create_directory(this->m_absolute_path.parent_path());
-			std::ofstream of(this->m_absolute_path, mode);                            // Maybe this is not such a good idea, for textures/shaders you will have empty files created
-			of << get_resource_semantic_string(this->m_semantic) << std::endl;        // Just insert the semantic type into the file so readers know what failed
+			std::ofstream of(this->m_absolute_path, mode);        // Maybe this is not such a good idea, for textures/shaders you will have empty files created
 		}
 	}
 
