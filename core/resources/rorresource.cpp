@@ -27,14 +27,18 @@
 #include "foundation/rorrandom.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorprojectroot.hpp"
+#include "rhi/rortypes.hpp"
 #include "rorresource.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <ios>
 #include <memory>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace ror
@@ -76,32 +80,6 @@ std::string get_resource_semantic_string(ResourceSemantic a_semantic)
 	return "";
 }
 
-Resource::~Resource() noexcept
-{
-	if (this->m_mapped)
-	{
-		// TODO: Unmap
-	}
-}
-
-Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_read_only, bool a_mapped) :
-	m_absolute_path(a_absolute_path), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
-{
-	if (!this->m_absolute_path.is_absolute())
-	{
-		log_error("{} path is not absolute, either use absolute filename or use the relative constructor", this->m_absolute_path.c_str());
-	}
-
-	this->load();
-}
-
-Resource::Resource(std::filesystem::path a_relative_path, ResourceSemantic a_resource_semantic, bool a_binary, bool a_read_only, bool a_mapped) :
-	m_absolute_path(a_relative_path), m_semantic(a_resource_semantic), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
-{
-	this->m_absolute_path = this->find_resource();
-	this->load();
-}
-
 /**
  * Tries hard to find resource in the paths we know.
  * For example if "astro_boy/boy10.jpg" is provided as assets path, it will search in the following places in that order
@@ -121,24 +99,24 @@ Resource::Resource(std::filesystem::path a_relative_path, ResourceSemantic a_res
  project_root/textures/astro_boy/misc/boy10.jpg
 */
 
-std::filesystem::path Resource::find_resource()
+std::filesystem::path find_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
 {
 	// If absolute path or has no filename, just return as it is
-	if (this->m_absolute_path.is_absolute() || !this->m_absolute_path.has_filename())
+	if (a_path.is_absolute() || !a_path.has_filename())
 	{
-		return this->m_absolute_path;
+		return a_path;
 	}
 
 	// Here we just create a path so if two threads do the same thing thats fine at least there is no contention
 	// std::lock_guard<std::mutex> mtx(this->m_mutex);        // You don't want any other thread to claim this resource
 
-	std::filesystem::path semantic_path{get_resource_semantic_string(this->m_semantic)};
-	std::filesystem::path resource_semantic_path{semantic_path / this->m_absolute_path};
+	std::filesystem::path semantic_path{get_resource_semantic_string(a_semantic)};
+	std::filesystem::path resource_semantic_path{semantic_path / a_path};
 
-	auto project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies one clients who must have called and initalized project_root
+	auto project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
 
 	// Is it at the root of the project?
-	std::filesystem::path p{project_root_path / this->m_absolute_path};
+	std::filesystem::path p{project_root_path / a_path};
 
 	// If the file exists don't muck around just return
 	if (std::filesystem::exists(p))
@@ -156,7 +134,7 @@ std::filesystem::path Resource::find_resource()
 		else
 		{
 			// Some times projects have "assets" folder, lets search that too
-			std::filesystem::path r{project_root_path / "assets" / this->m_absolute_path};
+			std::filesystem::path r{project_root_path / "assets" / a_path};
 
 			if (std::filesystem::exists(r))
 			{
@@ -173,8 +151,8 @@ std::filesystem::path Resource::find_resource()
 				else
 				{
 					// Split the path for parent and file name, its ok if these don't exist and return ""
-					auto parent_path = this->m_absolute_path.parent_path();
-					auto file_name   = this->m_absolute_path.filename();
+					auto parent_path = a_path.parent_path();
+					auto file_name   = a_path.filename();
 
 					std::filesystem::path t{project_root_path / parent_path / "assets" / file_name};
 
@@ -237,6 +215,44 @@ std::filesystem::path Resource::find_resource()
 	return project_root_path / semantic_path / gen_filename;
 }
 
+Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
+{
+	using ResourceCache = Cache<std::filesystem::path, std::shared_ptr<Resource>, true, PathHash>;        // Thread Safe resource cache
+
+	static ResourceCache resource_cache{};
+
+	auto a_absolute_path = find_resource(a_path, a_semantic);
+	auto result          = resource_cache.insert(a_absolute_path, std::make_shared<Resource>(a_absolute_path));
+
+	return *result.first;
+}
+
+Resource::~Resource() noexcept
+{
+	if (this->m_mapped)
+	{
+		// TODO: Unmap
+	}
+}
+
+Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_read_only, bool a_mapped) :
+	m_absolute_path(a_absolute_path), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
+{
+	if (!this->m_absolute_path.is_absolute())
+	{
+		log_error("{} path is not absolute, Resource only accepts absolute filename ", this->m_absolute_path.c_str());
+	}
+
+	this->load();
+}
+
+// Resource::Resource(std::filesystem::path a_path, ResourceSemantic a_resource_semantic, bool a_binary, bool a_read_only, bool a_mapped) :
+//	m_absolute_path(a_path), m_semantic(a_resource_semantic), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
+// {
+//	this->m_absolute_path = find_resource(a_path, a_resource_semantic);
+//	this->load();
+// }
+
 void Resource::load()
 {
 	{
@@ -258,11 +274,10 @@ void Resource::load()
 	}
 
 	// Create cache or load cached file name
-	this->load_or_generate_uuid();
-	this->cache();
+	this->generate_uuid();
 	this->load_or_mmap();
 
-	ror::log_info("Loaded cached resource {} for {} file", this->m_cached_path.c_str(), this->m_absolute_path.c_str());
+	ror::log_info("Loaded cached resource file {}", this->m_absolute_path.c_str());
 
 	std::string path_string{this->m_absolute_path};
 	// Create Path hash from absolute path as compared to cached path
@@ -272,7 +287,7 @@ void Resource::load()
 	if (!this->m_data->empty())
 		this->m_data_hash = ror::hash_64(this->m_data->data(), this->m_data->size());
 	else
-		ror::log_error("Loaded cached resource {} for {} file has nothing in it.", this->m_cached_path.c_str(), this->m_absolute_path.c_str());
+		ror::log_error("Loaded cached resource file {} that has nothing in it.", this->m_absolute_path.c_str());
 }
 
 void Resource::load_or_mmap()
@@ -289,11 +304,10 @@ void Resource::load_or_mmap()
 		if (this->m_binary_file)
 			mode |= std::ios::binary;
 
-		// std::basic_ifstream<uint8_t> as_file(std::string(this->m_cached_path), mode);
-		std::ifstream as_file(this->m_cached_path, mode);
+		std::ifstream as_file(this->m_absolute_path, mode);
 		if (!as_file.is_open())
 		{
-			log_critical("Can't open file {}", this->m_cached_path.c_str());
+			ror::log_critical("Can't open file {}", this->m_absolute_path.c_str());
 			return;
 		}
 
@@ -310,13 +324,7 @@ void Resource::load_or_mmap()
 	}
 }
 
-void Resource::cache()
-{
-	// TODO: Implement proper cacheing
-	this->m_cached_path = this->m_absolute_path;
-}
-
-void Resource::load_or_generate_uuid()
+void Resource::generate_uuid()
 {
 	// TODO: Implement proper UUID generation
 	// Read UUID config file or generate it
@@ -328,6 +336,14 @@ void Resource::load_or_generate_uuid()
 const std::shared_ptr<std::vector<uint8_t>> Resource::get_data() const
 {
 	return this->m_data;
+}
+
+std::filesystem::path get_cache_path()
+{
+	auto project_root_path = get_project_root().path();        // Calling get_project_root without any arguments relies on clients who must call to initalized project_root
+
+	// TODO: Reach cache dir from config files
+	return project_root_path / ".roar_cache";
 }
 
 void Resource::temp()

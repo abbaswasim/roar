@@ -24,11 +24,11 @@
 // Version: 1.0.0
 
 #include "common.hpp"
-#include "core/graphics/rorrhi_vertex_description.hpp"
+#include "core/graphics/rorvertex_description.hpp"
 #include "foundation/rorutilities.hpp"
-#include "graphics/rorrhi_vertex_attribute.hpp"
-#include "graphics/rorrhi_vertex_layout.hpp"
-#include "rhi/rorrhi_types.hpp"
+#include "graphics/rorvertex_attribute.hpp"
+#include "graphics/rorvertex_layout.hpp"
+#include "rhi/rortypes.hpp"
 #include <cstddef>
 #include <foundation/rortypes.hpp>
 #include <gtest/gtest-typed-test.h>

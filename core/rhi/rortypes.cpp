@@ -23,7 +23,7 @@
 //
 // Version: 1.0.0
 
-#include "rhi/rorrhi_types.hpp"
+#include "rhi/rortypes.hpp"
 
 namespace rhi
 {
@@ -239,7 +239,7 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 		case VertexFormat::uint101111_norm:
 		case VertexFormat::uint8_4_norm_bgra:
 		case VertexFormat::uint8_custom:          // To be handled differently
-		case VertexFormat::uint16_custom:          // To be handled differently
+		case VertexFormat::uint16_custom:         // To be handled differently
 		case VertexFormat::uint32_custom:         // To be handled differently
 		case VertexFormat::float32_custom:        // To be handled differently
 			return 1;

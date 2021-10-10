@@ -287,4 +287,16 @@ FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
 
 	return static_cast<_type_to>(a_value);
 }
+
+template <bool>
+class ConditionalMutex
+{};
+
+template <>
+class ConditionalMutex<true>
+{
+  public:
+	std::mutex m_mutex{};        //! Use to synchronize access from different threads
+};
+
 }        // namespace ror

@@ -29,11 +29,11 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "graphics/rorrhi_vertex_attribute.hpp"
-#include "graphics/rorrhi_vertex_layout.hpp"
+#include "graphics/rorvertex_attribute.hpp"
+#include "graphics/rorvertex_layout.hpp"
 #include "profiling/rorlog.hpp"
-#include "rhi/rorrhi_buffers_pack.hpp"
-#include "rhi/rorrhi_types.hpp"
+#include "rhi/rorbuffers_pack.hpp"
+#include "rhi/rortypes.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -98,16 +98,16 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	/**
 	 * Use this constructor if you want the system to work out what layout and mapping you need
 	 * Just provide the attribute semantics, the only compulsory argument and optional format, step function and rate and let VertexDescriptor take care of the rest for you
-	 * Rate is special, any of the formats are custom then rate is split between two uin16_t, lower bits has rate while upper bits has format multiplier
+	 * Rate is special, if any of the formats are custom then rate is split between two uin16_t, lower bits has rate while upper bits has format multiplier
 	 * If no formats are custom then its value is used as it is, in other words the top bits when 0 or 1 both means single format multiplier
 	 * Usage could be something like
-	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position};
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, &bp};
 	 * or
-	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3};
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3 &bp};
 	 * or
-	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex};
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex &bp};
 	 * or
-	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::StepFunction::vertex}; etc etc
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::StepFunction::vertex, &bp}; etc etc
 	 * Argument that are not provided for each attribute will be the default values
 	 * NOTE: Make sure you provide a rhi::BuffersPack somewhere  in the list otherwise it can't work out which buffers to use
 	 */

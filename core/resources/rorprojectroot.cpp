@@ -71,6 +71,7 @@ uint64_t ProjectRoot::hash() const noexcept
 const ProjectRoot &get_project_root(std::filesystem::path a_path)
 {
 	static ProjectRoot pr{a_path};
+	assert(a_path != pr.path() && "Trying to re-initialize project root");
 	return pr;
 }
 

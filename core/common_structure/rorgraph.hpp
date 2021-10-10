@@ -74,17 +74,6 @@ class ROAR_ENGINE_ITEM GraphNode final
  */
 std::vector<VertexId> get_topologicaly_sorted_list_kahn(std::vector<GraphNode> &a_graph, VertexId a_edge_count);
 
-template <bool>
-class ConditionalMutex
-{};
-
-template <>
-class ConditionalMutex<true>
-{
-  public:
-	std::mutex m_mutex{};        //! Use to synchronize access from different threads
-};
-
 /**
  * Directed graph that might or might not be acyclic
  * It can be created from a set of vertices or consecutively added vertices one after the other

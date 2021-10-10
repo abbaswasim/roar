@@ -29,7 +29,7 @@
 #include <functional>
 #include <memory>
 #include "rhi/rorbuffer.hpp"
-#include "rhi/rorrhi_types.hpp"
+#include "rhi/rortypes.hpp"
 #include <unordered_map>
 
 namespace ror

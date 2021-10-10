@@ -81,7 +81,7 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	// clang-format on
 
   private:
-	uint32_t          m_binding{0};                                 //! Stride from attribute to attribute, set by VertexDescriptor
+	uint32_t          m_binding{0};                                 //! Binding in shaders set by VertexDescriptor
 	uint32_t          m_stride{0};                                  //! Stride from attribute to attribute, set by VertexDescriptor
 	uint32_t          m_rate{1};                                    //! Contain rate at which attributes are read. Default 1, only use when m_function is instance
 	uint32_t          m_format_multiplier{1};                       //! Defined for custom formats and arrays

@@ -39,17 +39,17 @@ template <typename _type>
 class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 {
   public:
-	FORCE_INLINE Configuration()                                 = default;                   //! Default constructor
-	FORCE_INLINE Configuration(const Configuration &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Configuration(Configuration &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Configuration &operator=(const Configuration &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE Configuration &operator=(Configuration &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~Configuration() noexcept override                 = default;        //! Destructor
+	FORCE_INLINE                Configuration()                                 = default;        //! Default constructor
+	FORCE_INLINE                Configuration(const Configuration &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                Configuration(Configuration &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE Configuration &operator=(const Configuration &a_other) = default;                //! Copy assignment operator
+	FORCE_INLINE Configuration &operator=(Configuration &&a_other) noexcept = default;            //! Move assignment operator
+	FORCE_INLINE virtual ~Configuration() noexcept override                 = default;            //! Destructor
 
 	void load(std::filesystem::path a_config_path)
 	{
-		this->m_resource  = std::make_shared<Resource>(a_config_path, ResourceSemantic::configs);
-		this->m_json_file = json::parse(*this->m_resource->get_data());        // Perhaps remove the *
+		auto &resource    = load_resource(a_config_path, ResourceSemantic::configs);
+		this->m_json_file = json::parse(*resource.get_data());        // Perhaps remove the *
 
 		this->underlying().load_specific();
 	}
@@ -68,9 +68,8 @@ class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 
   protected:
   private:
-	json                      m_json_file{};
-	std::shared_ptr<Resource> m_resource{nullptr};        //! The resource link for this configuration
-	friend _type;                                         //! Any type derived from Configuration will have access to constructor and private members
+	json m_json_file{};
+	friend _type;        //! Any type derived from Configuration will have access to constructor and private members
 };
 }        // namespace ror
 

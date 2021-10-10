@@ -43,6 +43,8 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.hpp
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.hh
   ${ROAR_SOURCE_DIR}/foundation/rorcommon.hpp
+  ${ROAR_SOURCE_DIR}/foundation/rorcache.hpp
+  ${ROAR_SOURCE_DIR}/foundation/rorcache.hh
   ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hpp
   ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hh
   ${ROAR_SOURCE_DIR}/math/rorvector2.hpp
@@ -85,8 +87,10 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/configuration/rorconfiguration.hh
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hpp
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hh
+  ${ROAR_SOURCE_DIR}/graphics/rormaterial.hpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.hpp
-  ${ROAR_SOURCE_DIR}/rhi/rorrhi_types.hpp
+  ${ROAR_SOURCE_DIR}/rhi/rortypes.hpp
+  ${ROAR_SOURCE_DIR}/rhi/rorhandles.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffer.hpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.hpp)
@@ -98,7 +102,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
-  ${ROAR_SOURCE_DIR}/rhi/rorrhi_types.cpp
+  ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffer.cpp
   ${ROAR_SOURCE_DIR}/resources/rorprojectroot.cpp)

@@ -27,7 +27,7 @@
 
 #include "rhi/rorrhi_vertex_description.hpp"
 
-namespace rhi
+namespace ror
 {
 class ROAR_ENGINE_ITEM Material;
 
@@ -62,4 +62,4 @@ class ROAR_ENGINE_ITEM Model
 
 // static_assert(std::is_trivially_copyable<Model>::value, "Model is not trivially copyable");
 
-}        // namespace rhi
+}        // namespace ror

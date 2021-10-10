@@ -236,6 +236,62 @@ struct BufferRange
 	uint64_t m_length;          // How many bytes are available
 };
 
+enum class PrimitiveType
+{
+	points,
+	lines,
+	line_loop,
+	line_strip,
+	triangles,
+	triangle_strip,
+	triangle_fan,
+};
+
+enum class TextureFilter
+{
+	nearest,
+	linear,
+	nearest_mipmap_nearest,
+	linear_mipmap_nearest,
+	nearest_mipmap_linear,
+	linear_mipmap_linear
+};
+
+enum class TextureWrap
+{
+	clamp_to_edge,
+	mirrored_repeat,
+	repeat
+};
+
+struct Sampler
+{
+	TextureFilter m_mag_filter{TextureFilter::linear};
+	TextureFilter m_min_filter{TextureFilter::linear_mipmap_linear};
+	TextureWrap   m_wrap_s{TextureWrap::repeat};
+	TextureWrap   m_wrap_t{TextureWrap::repeat};
+};
+
+enum class BlendMode
+{
+	opaque,
+	mask,
+	blend
+};
+
+enum class MaterialModel
+{
+	lit,
+	eye,
+	hair,
+	cloth,
+	water,
+	unlit,
+	// twosided,           // This is handled in the material itself
+	clearcoat,
+	subsurface
+};
+
 // enum class ShaderSemantic : uint32_t
 // {
 //	vertex_position        = 1 << 0,
