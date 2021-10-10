@@ -114,9 +114,6 @@ class ROAR_ENGINE_ITEM Resource
 	hash_128_t            m_uuid{0, 0};                // The UUID of the resource, if it doesn't have one, one will be generated for it
 	std::mutex            m_mutex{};                   // Mutex to lock resource load/unload and existence, this
 													   // is required because we don't know if the generated filenames are used by other jobs
-
-	// ResourceSemantic      m_semantic{ResourceSemantic::misc};        // What's the default semantic of the resource
-	// std::filesystem::path m_cached_path{};                           // Cached path to the resource
 };
 
 
