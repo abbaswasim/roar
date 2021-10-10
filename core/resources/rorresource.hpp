@@ -88,7 +88,6 @@ class ROAR_ENGINE_ITEM Resource
 	virtual ~Resource() noexcept;        //! Destructor
 
 	Resource(std::filesystem::path a_absolute_path, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
-	Resource(std::filesystem::path a_path, ResourceSemantic a_resource_semantic, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
 
 	using data_ptr = std::shared_ptr<std::vector<uint8_t>>;
 

@@ -246,13 +246,6 @@ Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_
 	this->load();
 }
 
-// Resource::Resource(std::filesystem::path a_path, ResourceSemantic a_resource_semantic, bool a_binary, bool a_read_only, bool a_mapped) :
-//	m_absolute_path(a_path), m_semantic(a_resource_semantic), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
-// {
-//	this->m_absolute_path = find_resource(a_path, a_resource_semantic);
-//	this->load();
-// }
-
 void Resource::load()
 {
 	{
