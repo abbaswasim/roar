@@ -48,6 +48,8 @@ target_sources(cimage INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/CImg/CImg.h)
 target_include_directories(cimage SYSTEM INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Add stb library as interface
+# TODO: Check if SSE2 support is triggered or not
+# TODO: For ARM Neon must be explicitely requested for stb image
 add_library(stb INTERFACE)
 target_sources(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h)
 target_include_directories(stb INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -71,10 +73,10 @@ target_sources(cgltf INTERFACE ${CGLTF_INCLUDE_DIR}/cgltf.h)
 target_include_directories(cgltf INTERFACE ${CGLTF_INCLUDE_DIR})
 
 # Add CTPL
-# add_library(ctpl INTERFACE)
-# set(CTPL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CTPL)
-# target_sources(ctpl INTERFACE ${CTPL_INCLUDE_DIR}/ctpl_stl.h)
-# target_include_directories(ctpl INTERFACE ${CTPL_INCLUDE_DIR})
+add_library(ctpl INTERFACE)
+set(CTPL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CTPL)
+target_sources(ctpl INTERFACE ${CTPL_INCLUDE_DIR}/ctpl_stl.h)
+target_include_directories(ctpl INTERFACE ${CTPL_INCLUDE_DIR})
 
 # add_subdirectory(convhull_3d)
 # target_compile_options(convhull_3d PRIVATE

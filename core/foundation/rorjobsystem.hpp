@@ -71,7 +71,7 @@ class ROAR_ENGINE_ITEM Job
 	FORCE_INLINE Job &operator=(Job &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE virtual ~Job() noexcept                = default;        //! Destructor
 
-	FORCE_INLINE Job(std::function<void(void)> a_function) :
+	FORCE_INLINE explicit Job(std::function<void(void)> a_function) :
 		m_payload(a_function)
 	{}
 
@@ -87,10 +87,15 @@ class ROAR_ENGINE_ITEM Job
 		this->m_done.test_and_set();
 	}
 
+	[[nodiscard]] FORCE_INLINE bool finished() noexcept
+	{
+		return this->m_done.test();
+	}
+
 	FORCE_INLINE virtual bool ready() noexcept
 	{
-		// Always ready unless done
-		return !this->m_done.test();
+		// Always ready because no dependencies
+		return true;
 	}
 
 	// TODO: Add debug code to check how many jobs are alive at one time. Are we actually deleting all those shared_ptrs or not
@@ -117,7 +122,7 @@ class ROAR_ENGINE_ITEM JobDepend final : public Job
 	FORCE_INLINE ~JobDepend() noexcept override                     = default;        //! Destructor
 
 	FORCE_INLINE JobDepend(std::function<void(void)> a_function, std::vector<std::shared_ptr<Job>> a_dependencies) :
-		Job(a_function), m_dependencies(a_dependencies)
+		Job(a_function), m_dependencies(std::move(a_dependencies))
 	{}
 
 	declare_translation_unit_vtable() override;
@@ -127,7 +132,7 @@ class ROAR_ENGINE_ITEM JobDepend final : public Job
 		// Ready when all dependencies are "done"
 		for (auto &d : this->m_dependencies)
 			if (d)
-				if (d->ready())        // If its still ready() it means its not finished yet
+				if (!d->finished())
 					return false;
 
 		return true;
@@ -163,7 +168,7 @@ class ROAR_ENGINE_ITEM JobDepend1 final : public Job
 	{
 		// Ready when dependency is "done"
 		if (this->m_dependency)
-			if (this->m_dependency->ready())        // If its still ready() it means its not finished yet
+			if (!this->m_dependency->finished())
 				return false;
 
 		return true;
@@ -173,6 +178,8 @@ class ROAR_ENGINE_ITEM JobDepend1 final : public Job
   private:
 	std::shared_ptr<Job> m_dependency{};        // A job dependency, needs synchronisation before reading
 };
+
+using Dependencies = std::vector<std::shared_ptr<Job>>;
 
 /**
  * JobHandle is public interface to the job system.
@@ -252,7 +259,7 @@ class ROAR_ENGINE_ITEM JobSystem final
 			return this->_pop();
 		}
 
-		// Without stealing scheduling support this has no point
+		// TODO: Remove: Without stealing scheduling support this has no point
 		FORCE_INLINE std::shared_ptr<Job> steal()
 		{
 			std::lock_guard<std::mutex> lock{this->m_lock};
@@ -305,8 +312,6 @@ class ROAR_ENGINE_ITEM JobSystem final
 		using return_type = decltype(a_function(a_arguments...));
 		return JobHandle<return_type>{job, pack_task->get_future()};
 	}
-
-	using Dependencies = std::vector<std::shared_ptr<Job>>;
 
 	template <class _function, class... _arguments>
 	decltype(auto) push_job(_function &&a_function, Dependencies a_dependencies, _arguments &&...a_arguments)
@@ -396,7 +401,6 @@ class ROAR_ENGINE_ITEM JobSystem final
 					{
 						(*job)();        // Execute the job
 						job->finish();
-						// log_critical("Job finished using thread = {}", a_thread_id);
 					}
 					else
 						this->m_worker_queue.push(job);

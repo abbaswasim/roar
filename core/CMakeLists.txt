@@ -150,6 +150,7 @@ set(ROAR_REQUIRED_PRIVATE_LIBRARIES
   roar_version)
 
 set(ROAR_REQUIRED_PUBLIC_LIBRARIES
+  ctpl
   cimage
   stb
   spdlog

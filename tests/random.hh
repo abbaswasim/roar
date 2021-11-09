@@ -24,6 +24,8 @@
 // Version: 1.0.0
 
 #include "random.hpp"
+#include <complex>
+#include <foundation/rorutilities.hpp>
 
 namespace ror_test
 {
@@ -32,7 +34,8 @@ namespace ror_test
 	{                                                      \
 		TypeParam next_rand = rands.next();                \
 		ASSERT_TRUE(next_rand >= min && next_rand <= max); \
-	} (void) 1
+	}                                                      \
+	(void) 1
 
 TYPED_TEST(RandomTest, constructors_work)
 {
@@ -89,6 +92,54 @@ TYPED_TEST(RandomTestSigned, constructors_work)
 
 		ror::Random<TypeParam> rands(min, max);
 		BETWEEN_MIN_MAX();
+	}
+}
+
+TYPED_TEST(RandomTestSigned, has_min_and_max)
+{
+	{
+		int32_t min = 10;
+		int32_t max = 10;
+
+		ror::Random<int32_t> rands(min, max);
+
+		bool has_min = false;
+		bool has_max = false;
+
+		for (size_t i = 0; i < 2000; ++i)
+		{
+			int32_t next_rand = rands.next();
+			if (next_rand == min)
+				has_min = true;
+
+			if (next_rand == max)
+				has_max = true;
+		}
+
+		ASSERT_TRUE(has_min);
+		ASSERT_TRUE(has_max);
+	}
+	{
+		uint32_t min = 0;
+		uint32_t max = 5;
+
+		ror::Random<uint32_t> rands(min, max);
+
+		bool has_min = false;
+		bool has_max = false;
+
+		for (size_t i = 0; i < 2000; ++i)
+		{
+			uint32_t next_rand = rands.next();
+			if (next_rand == min)
+				has_min = true;
+
+			if (next_rand == max)
+				has_max = true;
+		}
+
+		ASSERT_TRUE(has_min);
+		ASSERT_TRUE(has_max);
 	}
 }
 

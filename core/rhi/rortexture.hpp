@@ -58,7 +58,7 @@ class ROAR_ENGINE_ITEM Texture final
 	{
 		uint32_t m_width{0};         // Width of this mipmap
 		uint32_t m_height{0};        // Height of this mipmap
-		uint32_t m_depth{1};         // Also known as bits per pixel (bpp)
+		uint32_t m_depth{1};         // Depth of this mipmap, always 1 unless 3D volume texture
 		uint64_t m_offset{0};        // Offset in the data array inside the Texture
 	};
 

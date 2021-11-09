@@ -34,6 +34,8 @@
 // #include <stdlib.h>
 // #include <crtdbg.h>
 
+#define CONSERVATIVEOPTIMIZATION
+
 #ifndef CONSERVATIVEOPTIMIZATION
 #	define LESSCONSERVATIVEOPTIMIZATION
 #endif

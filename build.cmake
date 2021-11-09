@@ -85,6 +85,9 @@ endif()
 endfunction(build_options)
 
 # Inspired by https://stackoverflow.com/questions/52135983/cmake-target-link-libraries-include-as-system-to-suppress-compiler-warnings
+# Important: This only works if there is a target created that uses this link command, but make sure all includes are via the target
+# Standalone includes if not using the target link will still produce warnings/errors
+# For example "CTPL/ctpl_stl.h" is a target include but "thirdparty/CTPL/ctpl_stl.h" is not and will produce warnings
 function(target_link_libraries_system target_name scope)
   set(dependencies ${ARGN})
   foreach(dependency ${dependencies})
