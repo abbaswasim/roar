@@ -29,4 +29,13 @@
 namespace ror
 {
 
-} // namespace ror
+define_translation_unit_vtable(Job)
+{}
+
+define_translation_unit_vtable(JobDepend)
+{}
+
+define_translation_unit_vtable(JobDepend1)
+{}
+
+}        // namespace ror
