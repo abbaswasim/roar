@@ -80,6 +80,46 @@ std::string get_resource_semantic_string(ResourceSemantic a_semantic)
 	return "";
 }
 
+ResourceExtension get_resource_extension(const std::filesystem::path &a_path)
+{
+	auto extension = a_path.extension();
+
+	// clang-format off
+	if (extension == ".jpeg")  return ResourceExtension::texture_jpeg;
+	if (extension == ".png")   return ResourceExtension::texture_png;
+	if (extension == ".bmp")   return ResourceExtension::texture_bmp;
+	if (extension == ".psd")   return ResourceExtension::texture_psd;
+	if (extension == ".tga")   return ResourceExtension::texture_tga;
+	if (extension == ".gif")   return ResourceExtension::texture_gif;
+	if (extension == ".hdr")   return ResourceExtension::texture_hdr;
+	if (extension == ".pic")   return ResourceExtension::texture_pic;
+	if (extension == ".pnm")   return ResourceExtension::texture_pnm;
+	if (extension == ".astc")  return ResourceExtension::texture_astc;
+	if (extension == ".ktx")   return ResourceExtension::texture_ktx;
+	if (extension == ".ktx2")  return ResourceExtension::texture_ktx2;
+	if (extension == ".basis") return ResourceExtension::texture_basis;
+	if (extension == ".vert")  return ResourceExtension::shaders_vertex;
+	if (extension == ".frag")  return ResourceExtension::shaders_fragment;
+	if (extension == ".comp")  return ResourceExtension::shaders_compute;
+	if (extension == ".mesh")  return ResourceExtension::shaders_mesh;
+	if (extension == ".py")    return ResourceExtension::scripts_python;
+	if (extension == ".c")     return ResourceExtension::scripts_c;
+	if (extension == ".cpp")   return ResourceExtension::scripts_cpp;
+	if (extension == ".lua")   return ResourceExtension::scripts_lua;
+	if (extension == ".json")  return ResourceExtension::configs_json;
+	if (extension == ".ini")   return ResourceExtension::configs_ini;
+	if (extension == ".gltf")  return ResourceExtension::models_gltf;
+	if (extension == ".obj")   return ResourceExtension::models_obj;
+	if (extension == ".fbx")   return ResourceExtension::models_fbx;
+	if (extension == ".ogg")   return ResourceExtension::audio_ogg;
+	if (extension == ".ttf")   return ResourceExtension::font_ttf;
+	if (extension == ".otf")   return ResourceExtension::font_otf;
+	if (extension == ".txt")   return ResourceExtension::logs_txt;
+	// clang-format on
+
+	return ResourceExtension::unknown;
+}
+
 /**
  * Tries hard to find resource in the paths we know.
  * For example if "astro_boy/boy10.jpg" is provided as assets path, it will search in the following places in that order
@@ -243,6 +283,8 @@ Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_
 		log_error("{} path is not absolute, Resource only accepts absolute filename ", this->m_absolute_path.c_str());
 	}
 
+	this->m_extension = get_resource_extension(this->m_absolute_path);
+
 	this->load();
 }
 
@@ -307,7 +349,13 @@ void Resource::load_or_mmap()
 		std::streampos bytes_count = as_file.tellg();
 		as_file.seekg(0, std::ios::beg);
 
-		this->m_data = std::make_shared<std::vector<std::uint8_t>>();
+		if (bytes_count <= 0)
+		{
+			ror::log_critical("Error! reading file size {}", this->m_absolute_path.c_str());
+			return;
+		}
+
+		this->m_data = std::make_shared<bytes_vector>();
 		// Cast is ok because if byte_count is bigger than size_t range, we have a bigger problem
 		this->m_data->resize(static_cast<size_t>(bytes_count));
 		as_file.read(reinterpret_cast<char *>(this->m_data->data()), bytes_count);        // Weird that int8_t is 'signed char' and can't be converted to 'char'
@@ -328,6 +376,11 @@ void Resource::generate_uuid()
 const std::shared_ptr<std::vector<uint8_t>> Resource::get_data() const
 {
 	return this->m_data;
+}
+
+ResourceExtension Resource::extension()
+{
+	return this->m_extension;
 }
 
 std::filesystem::path get_cache_path()

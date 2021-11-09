@@ -60,7 +60,43 @@ enum class ResourceSemantic
 	misc
 };
 
-std::string get_resource_semantic_string(ResourceSemantic a_semantic);
+enum class ResourceExtension
+{
+	unknown,
+	texture_jpeg,
+	texture_png,
+	texture_bmp,
+	texture_psd,
+	texture_tga,
+	texture_gif,
+	texture_hdr,
+	texture_pic,
+	texture_pnm,
+	texture_astc,
+	texture_ktx,
+	texture_ktx2,
+	texture_basis,
+	shaders_vertex,
+	shaders_fragment,
+	shaders_compute,
+	shaders_mesh,
+	scripts_python,
+	scripts_c,
+	scripts_cpp,
+	scripts_lua,
+	configs_json,
+	configs_ini,
+	models_gltf,
+	models_obj,
+	models_fbx,
+	audio_ogg,
+	font_ttf,
+	font_otf,
+	logs_txt
+};
+
+std::string       get_resource_semantic_string(ResourceSemantic a_semantic);
+ResourceExtension get_resource_extension(const std::filesystem::path &a_path);
 
 // A hash function object to work with unordered_* containers:
 struct PathHash
@@ -70,6 +106,9 @@ struct PathHash
 		return std::filesystem::hash_value(a_path);
 	}
 };
+
+using bytes_vector = std::vector<uint8_t>;
+static_assert(alignof(bytes_vector) == 8, "Bytes vector not aligned to 8 bytes");
 
 std::filesystem::path get_cache_path();
 std::filesystem::path find_resource(const std::filesystem::path &, ResourceSemantic);        // Tries very hard to find the resource in the paths it knows, it has an order to it
@@ -89,12 +128,13 @@ class ROAR_ENGINE_ITEM Resource
 
 	Resource(std::filesystem::path a_absolute_path, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
 
-	using data_ptr = std::shared_ptr<std::vector<uint8_t>>;
+	using data_ptr = std::shared_ptr<bytes_vector>;
 
 	// TODO: Need to work out how this works. Can one change vector via this const pointer?
 	// What will be the best way to send it back in to update data
-	const data_ptr get_data() const;
-	void           update_data(data_ptr a_data);
+	const data_ptr    get_data() const;
+	void              update_data(data_ptr a_data);
+	ResourceExtension extension();
 
 	virtual void temp();
 
@@ -104,18 +144,18 @@ class ROAR_ENGINE_ITEM Resource
 	void load_or_mmap();         // Loads or mmaps the resource depending on whether its read only or not
 	void generate_uuid();        // Generates or Reads UUID for the resource
 
-	std::filesystem::path m_absolute_path{};           // Path to the resource
-	data_ptr              m_data{nullptr};             // Pointer to its data
-	bool                  m_binary_file{false};        // True if its a binary file and false if its text file
-	bool                  m_read_only{true};           // If readonly we can optimise synchronisation and perhaps map it instead
-	bool                  m_mapped{false};             // True if data is mmapped
-	hash_64_t             m_path_hash{0};              // Hash of the path of the resource
-	hash_64_t             m_data_hash{0};              // Hash of the contents of the resource
-	hash_128_t            m_uuid{0, 0};                // The UUID of the resource, if it doesn't have one, one will be generated for it
-	std::mutex            m_mutex{};                   // Mutex to lock resource load/unload and existence, this
-													   // is required because we don't know if the generated filenames are used by other jobs
+	std::filesystem::path m_absolute_path{};                              // Path to the resource
+	ResourceExtension     m_extension{ResourceExtension::unknown};        // Extension of the resource loaded for further processing down the pipeline
+	data_ptr              m_data{nullptr};                                // Pointer to its data
+	bool                  m_binary_file{false};                           // True if its a binary file and false if its text file
+	bool                  m_read_only{true};                              // If readonly we can optimise synchronisation and perhaps map it instead
+	bool                  m_mapped{false};                                // True if data is mmapped
+	hash_64_t             m_path_hash{0};                                 // Hash of the path of the resource
+	hash_64_t             m_data_hash{0};                                 // Hash of the contents of the resource
+	hash_128_t            m_uuid{0, 0};                                   // The UUID of the resource, if it doesn't have one, one will be generated for it
+	std::mutex            m_mutex{};                                      // Mutex to lock resource load/unload and existence, this
+																		  // is required because we don't know if the generated filenames are used by other jobs
 };
-
 
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
 
