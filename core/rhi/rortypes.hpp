@@ -348,7 +348,7 @@ enum class MaterialModel
 #define item(_enum) _enum
 #define item_value(_enum) _enum
 
-enum class ShaderSemantic : uint32_t
+enum class BufferSemantic : uint32_t
 {
 	describe_shader_semantics(item)
 };
@@ -359,6 +359,6 @@ enum class ShaderSemantic : uint32_t
 uint32_t       pixel_format_to_bytes(PixelFormat a_pixel_format);
 uint32_t       vertex_format_to_bytes(VertexFormat a_vertex_format);
 uint32_t       vertex_format_to_location(VertexFormat a_vertex_format);
-ShaderSemantic get_format_shader_semantic(const std::string &a_format);
+BufferSemantic get_format_shader_semantic(const std::string &a_format);
 
 }        // namespace rhi

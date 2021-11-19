@@ -92,19 +92,19 @@ class ROAR_ENGINE_ITEM BuffersPack final
 		}
 	}
 
-	FORCE_INLINE uint32_t attribute_buffer_index(ShaderSemantic a_semantic) const
+	FORCE_INLINE uint32_t attribute_buffer_index(BufferSemantic a_semantic) const
 	{
 		return this->m_attribute_indices.at(a_semantic);
 	}
 
-	FORCE_INLINE uint64_t attribute_buffer_offset(ShaderSemantic a_semantic, uint64_t a_bytes)
+	FORCE_INLINE uint64_t attribute_buffer_offset(BufferSemantic a_semantic, uint64_t a_bytes)
 	{
 		uint32_t index = this->attribute_buffer_index(a_semantic);
 
 		return this->m_buffers[index].request(a_bytes);
 	}
 
-	FORCE_INLINE bool attribute_buffer_interleaved(ShaderSemantic a_semantic) const
+	FORCE_INLINE bool attribute_buffer_interleaved(BufferSemantic a_semantic) const
 	{
 		return this->m_buffers[this->attribute_buffer_index(a_semantic)].interleaved();
 	}
@@ -113,7 +113,7 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	 * Returns a pair with buffer index and the offsets in that buffer where the data is copied
 	 */
 	// TODO: This will be contentious amongs threads, think about how would this work asynchronously
-	FORCE_INLINE std::pair<uint64_t, uint64_t> insert_data(ShaderSemantic a_semantic, uint8_t &a_data, uint64_t a_bytes)
+	FORCE_INLINE std::pair<uint64_t, uint64_t> insert_data(BufferSemantic a_semantic, uint8_t &a_data, uint64_t a_bytes)
 	{
 		uint32_t index = this->attribute_buffer_index(a_semantic);
 		return std::make_pair(index, this->m_buffers[index].upload(a_data, a_bytes));
@@ -129,7 +129,7 @@ class ROAR_ENGINE_ITEM BuffersPack final
 
   private:
 	std::vector<Buffer>                          m_buffers{};                  //! All buffers created for different type data
-	std::unordered_map<ShaderSemantic, uint32_t> m_attribute_indices{};        //! All indices for any of the ShaderSemantic type, Position and its buffer index, Normal and its buffer index etc
+	std::unordered_map<BufferSemantic, uint32_t> m_attribute_indices{};        //! All indices for any of the ShaderSemantic type, Position and its buffer index, Normal and its buffer index etc
 };
 
 // define_translation_unit_vtable(BuffersPack)

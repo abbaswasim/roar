@@ -262,13 +262,13 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 }
 
 // clang-format off
-ShaderSemantic get_format_shader_semantic(const std::string &a_format)
+BufferSemantic get_format_shader_semantic(const std::string &a_format)
 {
 
 #define item(_string){#_string, ShaderSemantic::_string}
 #define item_value(_enum)
 
-static std::unordered_map<std::string, ShaderSemantic> string_to_shader_semantic
+static std::unordered_map<std::string, BufferSemantic> string_to_shader_semantic
 {
 	describe_shader_semantics(item)
 };

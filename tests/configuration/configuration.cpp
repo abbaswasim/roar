@@ -39,13 +39,13 @@ TEST(ConfigurationTest, BufferFormat)
 	{
 		auto fmt = b1.semantic(static_cast<size_t>(i));
 
-		if (fmt.first == rhi::ShaderSemantic::vertex_position)
+		if (fmt.first == rhi::BufferSemantic::vertex_position)
 			pi = i;
 
-		if (fmt.first == rhi::ShaderSemantic::vertex_weight)
+		if (fmt.first == rhi::BufferSemantic::vertex_weight)
 			wi = i;
 
-		if (fmt.first == rhi::ShaderSemantic::vertex_bone_id)
+		if (fmt.first == rhi::BufferSemantic::vertex_bone_id)
 			ji = i;
 	}
 
@@ -53,9 +53,9 @@ TEST(ConfigurationTest, BufferFormat)
 	ASSERT_NE(wi, -1);
 	ASSERT_NE(ji, -1);
 
-	EXPECT_EQ(b1.semantic(static_cast<size_t>(pi)).first, rhi::ShaderSemantic::vertex_position);
-	EXPECT_EQ(b1.semantic(static_cast<size_t>(wi)).first, rhi::ShaderSemantic::vertex_weight);
-	EXPECT_EQ(b1.semantic(static_cast<size_t>(ji)).first, rhi::ShaderSemantic::vertex_bone_id);
+	EXPECT_EQ(b1.semantic(static_cast<size_t>(pi)).first, rhi::BufferSemantic::vertex_position);
+	EXPECT_EQ(b1.semantic(static_cast<size_t>(wi)).first, rhi::BufferSemantic::vertex_weight);
+	EXPECT_EQ(b1.semantic(static_cast<size_t>(ji)).first, rhi::BufferSemantic::vertex_bone_id);
 
 	EXPECT_EQ(b1.semantic(static_cast<size_t>(pi)).second, 100);
 	EXPECT_EQ(b1.semantic(static_cast<size_t>(wi)).second, 25);
@@ -73,13 +73,13 @@ TEST(ConfigurationTest, BufferFormat)
 
 	for (int i = 0; i < 3; ++i)
 	{
-		if (b2.semantic(static_cast<size_t>(i)).first == rhi::ShaderSemantic::vertex_texture_coord_0)
+		if (b2.semantic(static_cast<size_t>(i)).first == rhi::BufferSemantic::vertex_texture_coord_0)
 			ti = i;
 
-		if (b2.semantic(static_cast<size_t>(i)).first == rhi::ShaderSemantic::vertex_normal)
+		if (b2.semantic(static_cast<size_t>(i)).first == rhi::BufferSemantic::vertex_normal)
 			ni = i;
 
-		if (b2.semantic(static_cast<size_t>(i)).first == rhi::ShaderSemantic::vertex_tangent)
+		if (b2.semantic(static_cast<size_t>(i)).first == rhi::BufferSemantic::vertex_tangent)
 			gi = i;
 	}
 
@@ -87,9 +87,9 @@ TEST(ConfigurationTest, BufferFormat)
 	ASSERT_NE(ni, -1);
 	ASSERT_NE(gi, -1);
 
-	EXPECT_EQ(b2.semantic(static_cast<size_t>(ti)).first, rhi::ShaderSemantic::vertex_texture_coord_0);
-	EXPECT_EQ(b2.semantic(static_cast<size_t>(ni)).first, rhi::ShaderSemantic::vertex_normal);
-	EXPECT_EQ(b2.semantic(static_cast<size_t>(gi)).first, rhi::ShaderSemantic::vertex_tangent);
+	EXPECT_EQ(b2.semantic(static_cast<size_t>(ti)).first, rhi::BufferSemantic::vertex_texture_coord_0);
+	EXPECT_EQ(b2.semantic(static_cast<size_t>(ni)).first, rhi::BufferSemantic::vertex_normal);
+	EXPECT_EQ(b2.semantic(static_cast<size_t>(gi)).first, rhi::BufferSemantic::vertex_tangent);
 
 	EXPECT_EQ(b2.semantic(static_cast<size_t>(ti)).second, 100);
 	EXPECT_EQ(b2.semantic(static_cast<size_t>(ni)).second, 50);

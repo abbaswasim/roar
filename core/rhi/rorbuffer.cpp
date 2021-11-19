@@ -88,19 +88,19 @@ bool Buffer::interleaved() const noexcept
 	return this->m_interleaved_local;
 }
 
-void Buffer::emplace_semantic(std::pair<ShaderSemantic, uint64_t> &&a_pair)
+void Buffer::emplace_semantic(std::pair<BufferSemantic, uint64_t> &&a_pair)
 {
 	this->m_semantics.emplace_back(std::move(a_pair));
 }
 
-std::pair<ShaderSemantic, uint64_t> Buffer::semantic(size_t a_index) const noexcept
+std::pair<BufferSemantic, uint64_t> Buffer::semantic(size_t a_index) const noexcept
 {
 	assert(a_index < this->m_semantics.size());
 
 	return this->m_semantics[a_index];
 }
 
-const std::vector<std::pair<ShaderSemantic, uint64_t>> &Buffer::semantics() const noexcept
+const std::vector<std::pair<BufferSemantic, uint64_t>> &Buffer::semantics() const noexcept
 {
 	return this->m_semantics;
 }

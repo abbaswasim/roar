@@ -95,7 +95,7 @@ void BuffersFormatConfig::load_specific()
 
 void BuffersFormatConfig::load_remaining_buffers()
 {
-	std::vector<rhi::ShaderSemantic> all_semantics{
+	std::vector<rhi::BufferSemantic> all_semantics{
 #define item(_enum) rhi::ShaderSemantic::_enum
 #define item_value(_enum)
 		describe_shader_semantics(item)
@@ -103,7 +103,7 @@ void BuffersFormatConfig::load_remaining_buffers()
 #undef item_value
 	};
 
-	std::unordered_map<rhi::ShaderSemantic, bool> remaining;
+	std::unordered_map<rhi::BufferSemantic, bool> remaining;
 	remaining.clear();
 	remaining.reserve(all_semantics.size());
 
@@ -130,7 +130,7 @@ void BuffersFormatConfig::load_remaining_buffers()
 
 		// In the empty buffer find place for the remaining semantics
 		size_t result = std::accumulate(std::begin(remaining), std::end(remaining), 0ULL,
-										[](const size_t previous, const std::pair<rhi::ShaderSemantic, bool> &p) {
+										[](const size_t previous, const std::pair<rhi::BufferSemantic, bool> &p) {
 											return previous + (p.second ? 0 : 1);
 										});
 

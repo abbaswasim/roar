@@ -63,8 +63,8 @@ struct Rate
 
 namespace ror
 {
-using tuple_type     = std::tuple<rhi::ShaderSemantic, rhi::VertexFormat, rhi::StepFunction, uint32_t>;
-using attrib_variant = std::variant<const rhi::BuffersPack *, rhi::ShaderSemantic, rhi::VertexFormat, rhi::StepFunction, rhi::Rate>;
+using tuple_type     = std::tuple<rhi::BufferSemantic, rhi::VertexFormat, rhi::StepFunction, uint32_t>;
+using attrib_variant = std::variant<const rhi::BuffersPack *, rhi::BufferSemantic, rhi::VertexFormat, rhi::StepFunction, rhi::Rate>;
 using attrib_vector  = std::vector<attrib_variant>;
 
 /**
@@ -222,7 +222,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Returns an attribute for specified semantic
 	 * If the key doesn't exisit expect std::out_of_range exception, I can't really catch this exception meaningfully
 	 */
-	FORCE_INLINE const VertexAttribute &attribute(rhi::ShaderSemantic a_semantic_key) const
+	FORCE_INLINE const VertexAttribute &attribute(rhi::BufferSemantic a_semantic_key) const
 	{
 		return this->m_mapping.at(a_semantic_key).first;
 	}
@@ -231,7 +231,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Returns a layout for specified semantic
 	 * If the key doesn't exisit expect std::out_of_range exception, I can't really catch this exception meaningfully
 	 */
-	FORCE_INLINE const VertexLayout &layout(rhi::ShaderSemantic a_semantic_key) const
+	FORCE_INLINE const VertexLayout &layout(rhi::BufferSemantic a_semantic_key) const
 	{
 		return this->m_mapping.at(a_semantic_key).second;
 	}
@@ -269,7 +269,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		if (attributes.size() < 1)
 			return;
 
-		tuple_type              default_tuple{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, 1};
+		tuple_type              default_tuple{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, 1};
 		tuple_type              temp_tuple{default_tuple};
 		std::vector<tuple_type> attributes_tuple_vector{};
 		attributes_tuple_vector.reserve(attributes.size());        // Worst case scenario
@@ -278,14 +278,14 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 		bool started = false;
 
-		assert(std::get_if<rhi::ShaderSemantic>(&attributes[0]) != nullptr && "Attribute description should be created with ShaderSemantics!");
+		assert(std::get_if<rhi::BufferSemantic>(&attributes[0]) != nullptr && "Attribute description should be created with ShaderSemantics!");
 
 		for (auto &attb : attributes)
 		{
 			// Very gross hack to make visiting variants work on GCC
 			if constexpr (ror::get_compiler() == ror::CompilerType::comp_gcc)
 			{
-				if (auto shader_semantic = std::get_if<rhi::ShaderSemantic>(&attb))
+				if (auto shader_semantic = std::get_if<rhi::BufferSemantic>(&attb))
 				{
 					if (started)        // If we have already started and we found another ShaderSemantic, we have completed one attribute at least
 					{
@@ -296,7 +296,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 					else
 						started = true;
 
-					std::get<rhi::ShaderSemantic>(temp_tuple) = *shader_semantic;
+					std::get<rhi::BufferSemantic>(temp_tuple) = *shader_semantic;
 				}
 				else if (auto vertex_format = std::get_if<rhi::VertexFormat>(&attb))
 				{
@@ -320,7 +320,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 				// Instead of this the alternative is to do something like  "if (auto shader_semantic = std::get_if<rhi::ShaderSemantic>(&attb))" and build a chain
 				std::visit(
 					ror::Overload{
-						[&](rhi::ShaderSemantic sm) {
+						[&](rhi::BufferSemantic sm) {
 							if (started)        // If we have already started and we found another ShaderSemantic, we have completed one attribute at least
 							{
 								attributes_tuple_vector.push_back(temp_tuple);
@@ -330,7 +330,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 							else
 								started = true;
 
-							std::get<rhi::ShaderSemantic>(temp_tuple) = sm;
+							std::get<rhi::BufferSemantic>(temp_tuple) = sm;
 						},
 						[&](rhi::VertexFormat vf) {
 							std::get<rhi::VertexFormat>(temp_tuple) = vf;
@@ -383,7 +383,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		// Iterate over the attributes, create internal attributes vector as well as strides for layouts
 		for (auto &attribute : a_attributes)
 		{
-			auto semantic = std::get<rhi::ShaderSemantic>(attribute);
+			auto semantic = std::get<rhi::BufferSemantic>(attribute);
 			auto format   = std::get<rhi::VertexFormat>(attribute);
 			auto rate     = std::get<uint32_t>(attribute);
 
@@ -391,7 +391,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // How many bytes do we need for this, this has to be done later in a second pass
 			uint32_t format_to_bytes = vertex_format_to_bytes(format);
 
-			if (semantic == rhi::ShaderSemantic::custom &&
+			if (semantic == rhi::BufferSemantic::custom &&
 				(format == rhi::VertexFormat::uint8_custom || format == rhi::VertexFormat::uint16_custom || format == rhi::VertexFormat::float32_custom) &&
 				(rate >> 16))
 				format_to_bytes *= (rate >> 16);        // Use the format multiplier from upper 16bits of rate
@@ -447,7 +447,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		}
 	}
 
-	using SemanticToAttribLayoutMap = std::unordered_map<rhi::ShaderSemantic, std::pair<VertexAttribute &, VertexLayout &>>;
+	using SemanticToAttribLayoutMap = std::unordered_map<rhi::BufferSemantic, std::pair<VertexAttribute &, VertexLayout &>>;
 
 	std::vector<VertexAttribute> m_attributes{};        //! All attributes, either provided or created from ShaderSemantic and rhi::VertexFormat
 	std::vector<VertexLayout>    m_layouts{};           //! All layouts for each buffer providing data for m_attributes
