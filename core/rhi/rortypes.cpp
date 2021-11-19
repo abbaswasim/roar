@@ -265,7 +265,7 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 BufferSemantic get_format_shader_semantic(const std::string &a_format)
 {
 
-#define item(_string){#_string, ShaderSemantic::_string}
+#define item(_string){#_string, BufferSemantic::_string}
 #define item_value(_enum)
 
 static std::unordered_map<std::string, BufferSemantic> string_to_shader_semantic

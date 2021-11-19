@@ -96,7 +96,7 @@ void BuffersFormatConfig::load_specific()
 void BuffersFormatConfig::load_remaining_buffers()
 {
 	std::vector<rhi::BufferSemantic> all_semantics{
-#define item(_enum) rhi::ShaderSemantic::_enum
+#define item(_enum) rhi::BufferSemantic::_enum
 #define item_value(_enum)
 		describe_shader_semantics(item)
 #undef item
