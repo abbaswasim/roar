@@ -38,8 +38,8 @@ class ROAR_ENGINE_ITEM Buffer        // : public Crtp<Buffer>
 {
   public:
 	Buffer();                                                                   //! Default constructor
-	FORCE_INLINE Buffer(const Buffer &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Buffer(Buffer &&a_other) noexcept = default;                   //! Move constructor
+	FORCE_INLINE         Buffer(const Buffer &a_other)     = default;           //! Copy constructor
+	FORCE_INLINE         Buffer(Buffer &&a_other) noexcept = default;           //! Move constructor
 	FORCE_INLINE Buffer &operator=(const Buffer &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Buffer &operator=(Buffer &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Buffer() noexcept                   = default;        //! Destructor // TODO: Remove if not to be used as polymorphic type
@@ -57,12 +57,12 @@ class ROAR_ENGINE_ITEM Buffer        // : public Crtp<Buffer>
 	 */
 	uint64_t request(uint64_t a_bytes);                         //! Returns offset of the location available
 	uint64_t upload(uint8_t &a_data, uint64_t a_length);        //! Also returns the offset where the data is uploaded
-	uint32_t handle();
-	void     map();
-	void     unmap();
-	void     size(uint64_t a_size);
+	uint32_t handle() noexcept;
+	void     map() noexcept;
+	void     unmap() noexcept;
+	void     size(uint64_t a_size) noexcept;
 	uint64_t size() const noexcept;
-	void     interleaved(bool a_interleaved);
+	void     interleaved(bool a_interleaved) noexcept;
 	bool     interleaved() const noexcept;
 	void     emplace_semantic(std::pair<ShaderSemantic, uint64_t> &&a_pair);
 

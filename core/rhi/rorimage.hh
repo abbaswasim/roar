@@ -25,13 +25,23 @@
 
 #pragma once
 
-#include "rhi/rorrhi_image.hpp"
+#include "rhi/rorimage.hpp"
 
 namespace rdr
 {
 
-uint32_t Image::width() const
+FORCE_INLINE uint32_t Image::width() const
 {
 	return this->m_width;
+}
+
+FORCE_INLINE uint32_t Image::height() const
+{
+	return this->m_height;
+}
+
+FORCE_INLINE uint32_t Image::bpp() const
+{
+	return this->m_bpp;
 }
 }        // namespace rdr

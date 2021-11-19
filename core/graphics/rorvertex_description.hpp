@@ -103,9 +103,9 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Usage could be something like
 	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, &bp};
 	 * or
-	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3 &bp};
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, &bp};
 	 * or
-	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex &bp};
+	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, &bp};
 	 * or
 	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, rhi::StepFunction::vertex, &bp}; etc etc
 	 * Argument that are not provided for each attribute will be the default values

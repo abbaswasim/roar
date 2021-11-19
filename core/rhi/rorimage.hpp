@@ -29,32 +29,26 @@
 
 namespace rdr
 {
+// TODO: I don't think I need an image class, do with Texture for now and see whats missing
 class ROAR_ENGINE_ITEM Image final
 {
   public:
-	FORCE_INLINE Image()                         = default;                   //! Default constructor
-	FORCE_INLINE Image(const Image &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Image(Image &&a_other) noexcept = default;                   //! Move constructor
+	FORCE_INLINE        Image()                         = default;            //! Default constructor
+	FORCE_INLINE        Image(const Image &a_other)     = default;            //! Copy constructor
+	FORCE_INLINE        Image(Image &&a_other) noexcept = default;            //! Move constructor
 	FORCE_INLINE Image &operator=(const Image &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Image &operator=(Image &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Image() noexcept                          = default;        //! Destructor
 
-	uint32_t width() const;
-	uint32_t height() const
-	{
-		return this->m_height;
-	}
-
-	uint32_t bpp() const
-	{
-		return this->m_bpp;
-	}
+	FORCE_INLINE uint32_t width() const;
+	FORCE_INLINE uint32_t height() const;
+	FORCE_INLINE uint32_t bpp() const;
 
   protected:
   private:
-	uint32_t  m_width{0};
-	uint32_t  m_height{0};
-	uint32_t  m_bpp{4};
+	uint32_t m_width{0};
+	uint32_t m_height{0};
+	uint32_t m_bpp{4};
 };
 
 static_assert(std::is_trivially_copyable_v<Image>, "Image is not trivially copyable");

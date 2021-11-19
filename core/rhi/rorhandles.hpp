@@ -29,6 +29,12 @@
 
 namespace rhi
 {
+/**
+ * This defines a type safe handle class
+ * Instead of just defining engine wide handles as uin64_t which are not type safe
+ * there is a big chance of using a texture handle for a material handle etc
+ * RoarHandle defines a public m_handle member variable which can be used directly
+ */
 template <class _handle, class _type>
 class ROAR_ENGINE_ITEM RoarHandle final
 {
@@ -36,9 +42,9 @@ class ROAR_ENGINE_ITEM RoarHandle final
 	FORCE_INLINE             RoarHandle()                              = default;        //! Default constructor
 	FORCE_INLINE             RoarHandle(const RoarHandle &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE             RoarHandle(RoarHandle &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE RoarHandle &operator=(const RoarHandle &a_other)      = default;        //! Copy assignment operator
-	FORCE_INLINE RoarHandle &operator=(RoarHandle &&a_other) noexcept  = default;        //! Move assignment operator
-	FORCE_INLINE ~RoarHandle() noexcept                                = default;        //! Destructor
+	FORCE_INLINE RoarHandle &operator=(const RoarHandle &a_other) = default;             //! Copy assignment operator
+	FORCE_INLINE RoarHandle &operator=(RoarHandle &&a_other) noexcept = default;         //! Move assignment operator
+	FORCE_INLINE ~RoarHandle() noexcept                               = default;         //! Destructor
 
 	FORCE_INLINE RoarHandle(_type a_handle) :
 		m_handle(a_handle)
@@ -60,8 +66,9 @@ class ROAR_ENGINE_ITEM RoarHandle final
 	static_assert(std::is_standard_layout_v<handle>,     srfy(handle is not standard layout))
 // clang-format on
 
+create_handle(TextureImageHandle, int32_t);
+create_handle(TextureSamplerHandle, uint32_t);
 create_handle(TextureHandle, int32_t);
-create_handle(SamplerHandle, int32_t);
-create_handle(ImageHandle, int32_t);
+create_handle(TextureAPIHandle, int32_t);
 
 }        // namespace rhi

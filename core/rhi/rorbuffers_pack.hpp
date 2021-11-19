@@ -64,16 +64,16 @@ namespace rhi
  *     1 for instanced data
  * But depending on the config provided the buffers created migh be very different
  */
-class ROAR_ENGINE_ITEM BuffersPack
+class ROAR_ENGINE_ITEM BuffersPack final
 {
   public:
-	FORCE_INLINE BuffersPack(const BuffersPack &a_other)     = delete;                    //! Copy constructor
-	FORCE_INLINE BuffersPack(BuffersPack &&a_other) noexcept = delete;                    //! Move constructor
-	FORCE_INLINE BuffersPack &operator=(const BuffersPack &a_other) = delete;             //! Copy assignment operator
-	FORCE_INLINE BuffersPack &operator=(BuffersPack &&a_other) noexcept = delete;         //! Move assignment operator
-	FORCE_INLINE virtual ~BuffersPack() noexcept                        = default;        //! Destructor
+	FORCE_INLINE              BuffersPack(const BuffersPack &a_other)     = delete;        //! Copy constructor
+	FORCE_INLINE              BuffersPack(BuffersPack &&a_other) noexcept = delete;        //! Move constructor
+	FORCE_INLINE BuffersPack &operator=(const BuffersPack &a_other) = delete;              //! Copy assignment operator
+	FORCE_INLINE BuffersPack &operator=(BuffersPack &&a_other) noexcept = delete;          //! Move assignment operator
+	FORCE_INLINE ~BuffersPack() noexcept                                = default;         //! Destructor
 
-	declare_translation_unit_vtable();
+	// declare_translation_unit_vtable();
 
 	FORCE_INLINE BuffersPack(const ror::BuffersFormat &a_buffers_format)
 	{
@@ -113,10 +113,18 @@ class ROAR_ENGINE_ITEM BuffersPack
 	 * Returns a pair with buffer index and the offsets in that buffer where the data is copied
 	 */
 	// TODO: This will be contentious amongs threads, think about how would this work asynchronously
-	FORCE_INLINE std::pair<uint64_t, uint64_t> upload_data(ShaderSemantic a_semantic, uint8_t &a_data, uint64_t a_bytes)
+	FORCE_INLINE std::pair<uint64_t, uint64_t> insert_data(ShaderSemantic a_semantic, uint8_t &a_data, uint64_t a_bytes)
 	{
 		uint32_t index = this->attribute_buffer_index(a_semantic);
 		return std::make_pair(index, this->m_buffers[index].upload(a_data, a_bytes));
+	}
+
+	/**
+	 * Uploads all the data in the buffer to the GPU
+	 */
+	FORCE_INLINE void upload()
+	{
+		// TODO: Upload to GPU
 	}
 
   private:
@@ -124,11 +132,11 @@ class ROAR_ENGINE_ITEM BuffersPack
 	std::unordered_map<ShaderSemantic, uint32_t> m_attribute_indices{};        //! All indices for any of the ShaderSemantic type, Position and its buffer index, Normal and its buffer index etc
 };
 
-define_translation_unit_vtable(BuffersPack)
-{}
+// define_translation_unit_vtable(BuffersPack)
+// {}
 
 // TODO: Eventually this should be owned by some higher entity and provided to model loaders and VertexDescriptions
-BuffersPack &get_buffers_pack()
+FORCE_INLINE BuffersPack &get_buffers_pack()
 {
 	static BuffersPack bfp{ror::get_buffers_format()};
 	return bfp;

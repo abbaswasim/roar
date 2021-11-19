@@ -30,14 +30,15 @@ namespace rhi
 {
 Buffer::Buffer()
 {
-	this->m_semantics.reserve(20);        // About enough for now, ror::ShaderSemantic is about 18 entries, if it grows in the future it doens't matter much
+	this->m_semantics.reserve(32);        // About enough for now, ror::ShaderSemantic is about 28 entries, if it grows in the future it doens't matter much
 }
 
 uint64_t Buffer::request(uint64_t a_bytes)
 {
+	// TODO: Make me thread safe once requested by multiple threads
 	assert(this->m_filled_size + a_bytes < this->m_size_in_bytes && "Requesting more bytes than the buffer has available");
 
-	uint64_t offset{this->m_filled_size};
+	auto offset{this->m_filled_size};
 
 	this->m_filled_size += a_bytes;
 
@@ -46,28 +47,28 @@ uint64_t Buffer::request(uint64_t a_bytes)
 
 uint64_t Buffer::upload(uint8_t &a_data, uint64_t a_length)
 {
-	uint64_t offset{this->request(a_length)};
+	auto offset{this->request(a_length)};
 
 	// TODO: Thats how you do copy
 	// std::copy(data, data + size, mapped_data + offset);
 
-	_upload(a_data, a_length);
+	this->_upload(a_data, a_length);
 
 	return offset;
 }
 
-uint32_t Buffer::handle()
+uint32_t Buffer::handle() noexcept
 {
 	return 0;
 }
 
-void Buffer::map()
+void Buffer::map() noexcept
 {}
 
-void Buffer::unmap()
+void Buffer::unmap() noexcept
 {}
 
-void Buffer::size(uint64_t a_size)
+void Buffer::size(uint64_t a_size) noexcept
 {
 	this->m_size_in_bytes = a_size;
 }
@@ -77,7 +78,7 @@ uint64_t Buffer::size() const noexcept
 	return this->m_size_in_bytes;
 }
 
-void Buffer::interleaved(bool a_interleaved)
+void Buffer::interleaved(bool a_interleaved) noexcept
 {
 	this->m_interleaved_local = a_interleaved;
 }
@@ -94,19 +95,23 @@ void Buffer::emplace_semantic(std::pair<ShaderSemantic, uint64_t> &&a_pair)
 
 std::pair<ShaderSemantic, uint64_t> Buffer::semantic(size_t a_index) const noexcept
 {
-	return this->m_semantics[a_index];        // Not doing boundary checks delibrately
+	assert(a_index < this->m_semantics.size());
+
+	return this->m_semantics[a_index];
 }
 
 const std::vector<std::pair<ShaderSemantic, uint64_t>> &Buffer::semantics() const noexcept
 {
 	return this->m_semantics;
 }
+
 void Buffer::_upload(uint8_t &a_data, uint64_t a_length)        // TODO: To be implemented in renderer or via CRTP
 {
 	(void) a_data;
 	(void) a_length;
 }
 
-define_translation_unit_vtable(Buffer){}
+define_translation_unit_vtable(Buffer)
+{}
 
 }        // namespace rhi

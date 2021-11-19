@@ -26,11 +26,12 @@
 #pragma once
 
 #include "foundation/rortypes.hpp"
-#include "graphics/rortexture.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
 #include "rhi/rorbuffer.hpp"
+#include "rhi/rorhandles.hpp"
+#include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <bitset>
 #include <limits>
@@ -54,14 +55,21 @@ class ROAR_ENGINE_ITEM Material final
 	FORCE_INLINE Material &operator=(Material &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Material() noexcept                             = default;        //! Destructor
 
+	enum class MaterialComponentType
+	{
+		factor_only,
+		texture_only,
+		both
+	};
+
 	template <typename _factor_type>
 	struct MaterialComponent
 	{
-		_factor_type   m_factor{1.0f};          //! TODO: Should be set differently for different textures
-		int32_t        m_texture_id{-1};        //! Texture ID of a Texture within a textures array
-		uint32_t       m_sampler_id{0};         //! Texture sampler ID of a Sampler within a samplers array
-		uint32_t       m_uv_map{0};             //! Which UV map set should be used, 0 is default but some things like light maps usually use uv set 1
-		std::bitset<4> m_channels{0};           //! RGBA and all combinations of it, where R=bit1, B=bit2, G=bit3, A=bit4
+		_factor_type          m_factor{1.0f};                             //! TODO: Should be set differently for different textures
+		rhi::TextureHandle    m_texture;                                  //! Texture ID of a Texture within a textures array (contains texture image id and texture sampler id)
+		uint32_t              m_uv_map{0};                                //! Which UV map set should be used, 0 is default but some things like light maps usually use uv set 1
+		MaterialComponentType m_type{MaterialComponentType::both};        //! Whether it has factor or texture only or both
+		std::bitset<4>        m_channels{0};                              //! RGBA and all combinations of it, where R=bit1, B=bit2, G=bit3, A=bit4
 	};
 
 	enum class MaterialType

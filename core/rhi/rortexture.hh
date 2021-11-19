@@ -23,66 +23,65 @@
 //
 // Version: 1.0.0
 
-#include "foundation/rormacros.hpp"
 #include "rhi/rortexture.hpp"
 
 namespace rhi
 {
-FORCE_INLINE TextureHandle Texture::handle() const noexcept
+FORCE_INLINE TextureHandle TextureImage::handle() const noexcept
 {
 	return this->m_handle;
 }
 
-FORCE_INLINE uint32_t Texture::width() const noexcept
+FORCE_INLINE uint32_t TextureImage::width() const noexcept
 {
 	return this->m_mips[0].m_width;
 }
 
-FORCE_INLINE uint32_t Texture::height() const noexcept
+FORCE_INLINE uint32_t TextureImage::height() const noexcept
 {
 	return this->m_mips[0].m_height;
 }
 
-FORCE_INLINE PixelFormat Texture::format() const noexcept
+FORCE_INLINE PixelFormat TextureImage::format() const noexcept
 {
 	return this->m_format;
 }
 
-FORCE_INLINE uint32_t Texture::levels() const noexcept
+FORCE_INLINE uint32_t TextureImage::levels() const noexcept
 {
 	return ror::static_cast_safe<uint32_t>(this->m_mips.size());
 }
-FORCE_INLINE Texture::TextureTarget Texture::target() const noexcept
+FORCE_INLINE TextureImage::TextureTarget TextureImage::target() const noexcept
 {
 	return this->m_target;
 }
 
-FORCE_INLINE void Texture::handle(TextureHandle a_handle) noexcept
+FORCE_INLINE void TextureImage::handle(TextureHandle a_handle) noexcept
 {
 	this->m_handle = a_handle;
 }
 
-FORCE_INLINE void Texture::width(uint32_t a_width) noexcept
+FORCE_INLINE void TextureImage::width(uint32_t a_width) noexcept
 {
 	this->m_mips[0].m_width = a_width;
 }
 
-FORCE_INLINE void Texture::height(uint32_t a_height) noexcept
+FORCE_INLINE void TextureImage::height(uint32_t a_height) noexcept
 {
 	this->m_mips[0].m_height = a_height;
 }
 
-FORCE_INLINE void Texture::format(PixelFormat a_format) noexcept
+FORCE_INLINE void TextureImage::format(PixelFormat a_format) noexcept
 {
 	this->m_format = a_format;
 }
 
-FORCE_INLINE void Texture::target(TextureTarget a_target) noexcept
+FORCE_INLINE void TextureImage::target(TextureTarget a_target) noexcept
 {
 	this->m_target = a_target;
 }
 
-FORCE_INLINE void Texture::allocate(uint64_t a_size)
+FORCE_INLINE void TextureImage::allocate(uint64_t a_size)
 {
 	this->m_size = a_size;
 	this->m_data.resize(this->m_size);

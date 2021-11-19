@@ -34,10 +34,6 @@
 
 namespace ror
 {
-BuffersFormatConfig::BuffersFormatConfig(std::filesystem::path a_config_path)
-{
-	this->load(a_config_path);
-}
 
 void BuffersFormatConfig::load_specific()
 {
@@ -145,18 +141,7 @@ void BuffersFormatConfig::load_remaining_buffers()
 	}
 }
 
-const BuffersFormat &BuffersFormatConfig::buffers_format() const
-{
-	return this->m_buffers_format;
-}
-
 define_translation_unit_vtable(BuffersFormatConfig)
 {}
-
-const BuffersFormat &get_buffers_format()
-{
-	static BuffersFormatConfig bfc{"buffers_format.json"};        // Loads a predefined config file required to setup buffers formats, since this is a resource it will just work without full path
-	return bfc.buffers_format();                                  // The path could be extracted out to clients further later
-}
 
 }        // namespace ror
