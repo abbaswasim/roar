@@ -61,7 +61,7 @@ class ROAR_ENGINE_ITEM BuffersFormatConfig : public Configuration<BuffersFormatC
 
 	declare_translation_unit_vtable();
 
-	FORCE_INLINE BuffersFormatConfig(std::filesystem::path a_config_path);        //! Single argument constructor
+	FORCE_INLINE explicit BuffersFormatConfig(std::filesystem::path a_config_path);        //! Single argument constructor
 
 	void                              load_specific();
 	FORCE_INLINE const BuffersFormat &buffers_format() const noexcept;

@@ -189,6 +189,9 @@ enum class VertexFormat
 	float32_custom
 };
 
+// Generic name when semantics are not clear
+using Format = VertexFormat;
+
 /*
   The following types are not used widely so not supported
   details https://github.com/KhronosGroup/glTF/issues/832
@@ -236,15 +239,15 @@ struct BufferRange
 	uint64_t m_length;          // How many bytes are available
 };
 
-enum class PrimitiveType
+enum class PrimitiveTopology
 {
 	points,
 	lines,
-	line_loop,
-	line_strip,
+	lines_loop,
+	lines_strip,
 	triangles,
-	triangle_strip,
-	triangle_fan,
+	triangles_strip,
+	triangles_fan,
 };
 
 enum class TextureFilter
@@ -303,7 +306,8 @@ enum class MaterialModel
 //	mesh_index             = 1 << 14,
 //	meshlet_data           = 1 << 15,
 //	drawcall_data          = 1 << 16,
-//	custom                 = 1 << 17
+//	...
+//  ...
 // };
 
 // All this gross dance is required to not have to define the enum values and strings twice, basically defines the one above

@@ -27,6 +27,8 @@
 
 #include "rhi/rortypes.hpp"
 #include "roar_export_import.hpp"
+#include <cassert>
+#include <cstddef>
 
 namespace rhi
 {

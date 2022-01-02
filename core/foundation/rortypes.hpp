@@ -96,6 +96,8 @@ static_assert(sizeof(float32_t) == 4, "uint32_t is not 4 bytes");
 static_assert(sizeof(double64_t) == 8, "double64_t is not 8 bytes");
 static_assert(sizeof(double128_t) == 16, "double64_t is not 16 bytes");
 
+static_assert(sizeof(hash_128_t) == 16, "hash_128_t is not 16 bytes");
+
 #if 1
 
 static_assert(std::alignment_of_v<char8_t> == 1, "char8_t is not 1 bytes aligned");
@@ -124,6 +126,8 @@ static_assert(std::alignment_of_v<double128_t> == 16, "double128_t is not 16 byt
 static_assert(std::alignment_of_v<intptr_t> == 8, "intptr_t is not 8 bytes aligned");          // This will fail on 32bit
 static_assert(std::alignment_of_v<ptrdiff_t> == 8, "ptrdiff_t is not 8 bytes aligned");        // This will fail on 32bit
 
+static_assert(std::alignment_of_v<hash_128_t> == 8, "has_128_t is not 16 bytes aligned");
+
 #else
 
 static_assert(std::alignment_of<char8_t>() == 1, "char8_t is not 1 bytes aligned");
@@ -151,6 +155,8 @@ static_assert(std::alignment_of<double128_t>() == 16, "double128_t is not 16 byt
 
 static_assert(std::alignment_of<intptr_t>() == 8, "intptr_t is not 8 bytes aligned");          // This will fail on 32bit
 static_assert(std::alignment_of<ptrdiff_t>() == 8, "ptrdiff_t is not 8 bytes aligned");        // This will fail on 32bit
+
+static_assert(std::alignment_of<hash_128_t>() == 8, "has_128_t is not 16 bytes aligned");
 
 #endif
 

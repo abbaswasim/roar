@@ -27,7 +27,7 @@
 
 namespace rhi
 {
-FORCE_INLINE TextureHandle TextureImage::handle() const noexcept
+FORCE_INLINE TextureAPIHandle TextureImage::handle() const noexcept
 {
 	return this->m_handle;
 }

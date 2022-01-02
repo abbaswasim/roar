@@ -62,12 +62,12 @@ class ROAR_ENGINE_ITEM TextureImage final
 		uint64_t m_offset{0};        // Offset in the data array inside the TexturImagee
 	};
 
-	FORCE_INLINE TextureHandle handle() const noexcept;
-	FORCE_INLINE uint32_t      width() const noexcept;
-	FORCE_INLINE uint32_t      height() const noexcept;
-	FORCE_INLINE PixelFormat   format() const noexcept;
-	FORCE_INLINE uint32_t      levels() const noexcept;
-	FORCE_INLINE TextureTarget target() const noexcept;
+	FORCE_INLINE TextureAPIHandle handle() const noexcept;
+	FORCE_INLINE uint32_t         width() const noexcept;
+	FORCE_INLINE uint32_t         height() const noexcept;
+	FORCE_INLINE PixelFormat      format() const noexcept;
+	FORCE_INLINE uint32_t         levels() const noexcept;
+	FORCE_INLINE TextureTarget    target() const noexcept;
 
 	FORCE_INLINE void handle(TextureHandle) noexcept;
 	FORCE_INLINE void width(uint32_t) noexcept;

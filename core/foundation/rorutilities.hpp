@@ -33,6 +33,7 @@
 #include <random>
 #include <stdexcept>
 #include <type_traits>
+#include <mutex>
 
 namespace ror
 {
