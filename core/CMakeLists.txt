@@ -47,6 +47,8 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/foundation/rorcache.hh
   ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hpp
   ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hh
+  ${ROAR_SOURCE_DIR}/managers/rormanager.hpp
+  ${ROAR_SOURCE_DIR}/managers/rormanager.hh
   ${ROAR_SOURCE_DIR}/math/rorvector2.hpp
   ${ROAR_SOURCE_DIR}/math/rorvector2.hh
   ${ROAR_SOURCE_DIR}/math/rorvector3.hpp
@@ -83,6 +85,8 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/math/roreuler_angle.hh
   ${ROAR_SOURCE_DIR}/math/rorplane.hpp
   ${ROAR_SOURCE_DIR}/math/rorplane.hh
+  ${ROAR_SOURCE_DIR}/bounds/rorbounding.hpp
+  ${ROAR_SOURCE_DIR}/bounds/rorbounding.hh
   ${ROAR_SOURCE_DIR}/configuration/rorconfiguration.hpp
   ${ROAR_SOURCE_DIR}/configuration/rorconfiguration.hh
   ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.hpp
@@ -100,6 +104,8 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/profiling/rortimer.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
+  ${ROAR_SOURCE_DIR}/managers/rormanager.cpp
+  ${ROAR_SOURCE_DIR}/bounds/rorbounding.cpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp

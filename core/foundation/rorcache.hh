@@ -25,17 +25,18 @@
 
 #include "rorcache.hpp"
 #include <functional>
+#include <utility>
 
 namespace ror
 {
 template <class _key, class _type, bool _thread_safe, class _hasher>
-std::pair<_type, bool> Cache<_key, _type, _thread_safe, _hasher>::insert(_key a_key, _type a_value)
+bool Cache<_key, _type, _thread_safe, _hasher>::insert(_key a_key, _type a_value)
 {
 	if constexpr (_thread_safe)
 		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	auto result = this->m_cache.emplace(a_key, a_value);
-	return std::make_pair(result.first->second, result.second);
+	return result.second;
 }
 
 template <class _key, class _type, bool _thread_safe, class _hasher>
@@ -50,15 +51,23 @@ _type Cache<_key, _type, _thread_safe, _hasher>::remove(_key a_key)
 	return to_be_erased->second;
 }
 
-// Might produce runtime exception if key doesn't exist
-// This shouldn't be used at all, only inserts and remove should be the public interface
+/**
+ * Returns a flag and value in the map looked up by key.
+ * It will always return a value and bool even if the value didn't exist, in which case bool=false
+ * The reason I am returning _type and not iterator is because iterator could be invalidated
+ * by another thread insert in the meantime.
+ */
 template <class _key, class _type, bool _thread_safe, class _hasher>
-_type Cache<_key, _type, _thread_safe, _hasher>::at(_key a_key)
+std::pair<_type, bool> Cache<_key, _type, _thread_safe, _hasher>::find(_key a_key)
 {
 	if constexpr (_thread_safe)
 		std::lock_guard<std::mutex> mtx(this->m_mutex);
 
-	return this->m_cache.at(a_key);
+	auto iter = this->m_cache.find(a_key);
+
+	return iter != this->m_cache.end() ?
+			   std::make_pair(iter->second, true) :
+			   std::make_pair(_type{}, false);
 }
 
 }        // namespace ror

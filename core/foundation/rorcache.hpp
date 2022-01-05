@@ -27,8 +27,6 @@
 
 #include "foundation/rorutilities.hpp"
 #include "roar.hpp"
-#include <functional>
-#include <thread>
 #include <unordered_map>
 
 namespace ror
@@ -50,11 +48,10 @@ class ROAR_ENGINE_ITEM Cache final : ConditionalMutex<_thread_safe>
 	FORCE_INLINE Cache &operator=(Cache &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Cache() noexcept                          = default;        //! Destructor
 
-	// Don't add methods like begin() or end() which makes thread safety impossible
-	// std::pair<std::reference_wrapper<_type>, bool> insert(_key a_key, _type a_value);
-	std::pair<_type, bool> insert(_key a_key, _type a_value);
+	// PATL: Don't add methods like begin() or end() which makes thread safety impossible
+	bool                   insert(_key a_key, _type a_value);
 	_type                  remove(_key a_key);
-	_type                  at(_key a_key);
+	std::pair<_type, bool> find(_key a_key);
 
   protected:
   private:

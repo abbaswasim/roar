@@ -63,7 +63,7 @@ class ROAR_ENGINE_ITEM Bounding
 	FORCE_INLINE virtual void          add_bounding(const Bounding &a_bounding)     = 0;
 
   private:
-	virtual void _force_compiler_vtable();
+	declare_translation_unit_vtable();
 };
 
 template <class _type, uint32_t _point_count = 1>

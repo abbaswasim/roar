@@ -114,7 +114,18 @@ class ROAR_ENGINE_ITEM Material final
 static_assert(std::is_trivially_copyable_v<Material>, "Material is not trivially copyable");
 static_assert(std::is_standard_layout_v<Material>, "Material is not standard layout");
 
-#define STBI_NO_FAILURE_STRINGS
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+// #define STBI_NO_FAILURE_STRINGS
+// #define STB_IMAGE_IMPLEMENTATION
+// #include "stb_image.h"
+
 }        // namespace ror
+
+namespace rhi
+{
+
+define_type_to_shader_semantics(ror::Material)
+{
+	return rhi::BufferSemantic::material_data;
+}
+
+}        // namespace rhi

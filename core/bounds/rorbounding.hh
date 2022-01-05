@@ -31,8 +31,6 @@
 
 namespace ror
 {
-void Bounding::_force_compiler_vtable()
-{}
 
 // Bounding methods
 template <class _type, uint32_t _points_count>
