@@ -37,7 +37,6 @@
 #include <iomanip>
 #include <ios>
 #include <memory>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -261,10 +260,14 @@ Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_
 
 	static ResourceCache resource_cache{};
 
-	auto a_absolute_path = find_resource(a_path, a_semantic);
-	auto result          = resource_cache.insert(a_absolute_path, std::make_shared<Resource>(a_absolute_path));
+	auto absolute_path = find_resource(a_path, a_semantic);
+	auto pointer       = std::make_shared<Resource>(absolute_path);
+	auto result        = resource_cache.insert(absolute_path, pointer);
 
-	return *result.first;
+	assert(result && "Resource wasn't inserted, probably already exists or failure happend");
+	(void) result; // in release builds it will complain otherwise
+
+	return *pointer;
 }
 
 Resource::~Resource() noexcept

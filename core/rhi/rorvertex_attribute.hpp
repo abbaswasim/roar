@@ -28,20 +28,20 @@
 #include "rhi/rorbuffers_format.hpp"
 #include <type_traits>
 
-namespace ror
+namespace rhi
 {
 /**
-* Description of a geometry vertex
-* Prefered to be used via VertexDescriptor not directly
-*/
+ * Description of a geometry vertex
+ * Prefered to be used via VertexDescriptor not directly
+ */
 class ROAR_ENGINE_ITEM VertexAttribute final
 {
   public:
-	FORCE_INLINE VertexAttribute(const VertexAttribute &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE VertexAttribute(VertexAttribute &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE VertexAttribute &operator=(const VertexAttribute &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE VertexAttribute &operator=(VertexAttribute &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~VertexAttribute() noexcept                                    = default;        //! Destructor
+	FORCE_INLINE                  VertexAttribute(const VertexAttribute &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                  VertexAttribute(VertexAttribute &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE VertexAttribute &operator=(const VertexAttribute &a_other) = default;                  //! Copy assignment operator
+	FORCE_INLINE VertexAttribute &operator=(VertexAttribute &&a_other) noexcept = default;              //! Move assignment operator
+	FORCE_INLINE ~VertexAttribute() noexcept                                    = default;              //! Destructor
 
 	/**
 	 * Use this version of the constructor if you want VertexDescriptor to take care of
@@ -58,7 +58,7 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	/**
 	 * Use this version of the constructor if you want to take care of creating buffers yourself
 	 * At the time of use make sure a_binding is valid
-	  */
+	 */
 	FORCE_INLINE VertexAttribute(uint32_t            a_location,
 								 uint32_t            a_offset,
 								 uint64_t            a_buffer_offset,
@@ -110,4 +110,4 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 static_assert(std::is_trivially_copyable_v<VertexAttribute>, "VertexAttribute is not trivially copyable");
 static_assert(std::is_standard_layout_v<VertexAttribute>, "VertexAttribute is not standard layout");
 
-}        // namespace ror
+}        // namespace rhi

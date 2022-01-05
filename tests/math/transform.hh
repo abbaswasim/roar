@@ -139,9 +139,9 @@ TYPED_TEST(TransformTest, sets)
 	}
 	{
 		ror::Transform<TypeParam> q;
-		q.set_translation(ot);
-		q.set_scale(os);
-		q.set_rotation(oq);
+		q.translation(ot);
+		q.scale(os);
+		q.rotation(oq);
 
 		auto r = q.rotation();
 		auto t = q.translation();

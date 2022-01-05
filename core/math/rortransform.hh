@@ -120,19 +120,19 @@ FORCE_INLINE Vector3<_type> Transform<_type>::scale() const
 }
 
 template <class _type>
-FORCE_INLINE void Transform<_type>::set_rotation(const Quaternion<_type> &a_rotation) noexcept
+FORCE_INLINE void Transform<_type>::rotation(const Quaternion<_type> &a_rotation) noexcept
 {
 	this->m_rotation = a_rotation;
 }
 
 template <class _type>
-FORCE_INLINE void Transform<_type>::set_translation(const Vector3<_type> &a_translation) noexcept
+FORCE_INLINE void Transform<_type>::translation(const Vector3<_type> &a_translation) noexcept
 {
 	this->m_translation = a_translation;
 }
 
 template <class _type>
-FORCE_INLINE void Transform<_type>::set_scale(const Vector3<_type> &a_scale) noexcept
+FORCE_INLINE void Transform<_type>::scale(const Vector3<_type> &a_scale) noexcept
 {
 	this->m_scale = a_scale;
 }

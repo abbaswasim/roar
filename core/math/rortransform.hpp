@@ -37,13 +37,13 @@ template <class _type>
 class ROAR_ENGINE_ITEM Transform final
 {
   public:
-	Quaternion<_type> m_rotation{};                                     //!< Rotation component of the transform
+	Quaternion<_type> m_rotation{};                  //!< Rotation component of the transform
 	Vector3<_type>    m_translation{0, 0, 0};        //!< Translation or origin of the transform
-	Vector3<_type>    m_scale{1, 1, 1};        //!< Scaling component of the transform
+	Vector3<_type>    m_scale{1, 1, 1};              //!< Scaling component of the transform
 
-	FORCE_INLINE Transform()                             = default;                   //! Default constructor
-	FORCE_INLINE Transform(const Transform &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Transform(Transform &&a_other) noexcept = default;                   //! Move constructor
+	FORCE_INLINE            Transform()                             = default;        //! Default constructor
+	FORCE_INLINE            Transform(const Transform &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE            Transform(Transform &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE Transform &operator=(const Transform &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Transform &operator=(Transform &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Transform() noexcept                              = default;        //! Destructor
@@ -62,13 +62,16 @@ class ROAR_ENGINE_ITEM Transform final
 	FORCE_INLINE Vector3<_type> translation() const;
 	FORCE_INLINE Vector3<_type> scale() const;
 
-	FORCE_INLINE void set_rotation(const Quaternion<_type> &a_rotation) noexcept;
-	FORCE_INLINE void set_translation(const Vector3<_type> &a_translation) noexcept;
-	FORCE_INLINE void set_scale(const Vector3<_type> &a_scale) noexcept;
+	FORCE_INLINE void rotation(const Quaternion<_type> &a_rotation) noexcept;
+	FORCE_INLINE void translation(const Vector3<_type> &a_translation) noexcept;
+	FORCE_INLINE void scale(const Vector3<_type> &a_scale) noexcept;
 
   protected:
   private:
 };
+
+using Transformf = Transform<float32_t>;
+using Transformd = Transform<double64_t>;
 
 }        // namespace ror
 

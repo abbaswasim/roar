@@ -48,7 +48,7 @@ class ROAR_ENGINE_ITEM Cache final : ConditionalMutex<_thread_safe>
 	FORCE_INLINE Cache &operator=(Cache &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Cache() noexcept                          = default;        //! Destructor
 
-	// PATL: Don't add methods like begin() or end() which makes thread safety impossible
+	// NOTE: Don't add methods like begin() or end() which makes thread safety impossible
 	bool                   insert(_key a_key, _type a_value);
 	_type                  remove(_key a_key);
 	std::pair<_type, bool> find(_key a_key);

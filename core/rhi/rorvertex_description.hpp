@@ -29,8 +29,8 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "graphics/rorvertex_attribute.hpp"
-#include "graphics/rorvertex_layout.hpp"
+#include "rhi/rorvertex_attribute.hpp"
+#include "rhi/rorvertex_layout.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
@@ -59,29 +59,26 @@ struct Rate
 	{}
 	uint32_t m_value{};
 };
-}        // namespace rhi
 
-namespace ror
-{
 using tuple_type     = std::tuple<rhi::BufferSemantic, rhi::VertexFormat, rhi::StepFunction, uint32_t>;
 using attrib_variant = std::variant<const rhi::BuffersPack *, rhi::BufferSemantic, rhi::VertexFormat, rhi::StepFunction, rhi::Rate>;
 using attrib_vector  = std::vector<attrib_variant>;
 
 /**
-* Can be used to describe a vertex attributes and layouts for a mesh.
-* It uses get_buffers_pack() to access the default buffers allocated via "buffers_format.json"
-* Currently there is no way to provide a different set of buffers or use a different config file
-*/
+ * Can be used to describe a vertex attributes and layouts for a mesh.
+ * It uses get_buffers_pack() to access the default buffers allocated via "buffers_format.json"
+ * Currently there is no way to provide a different set of buffers or use a different config file
+ */
 
 class ROAR_ENGINE_ITEM VertexDescriptor final
 {
   public:
-	FORCE_INLINE VertexDescriptor()                                    = default;                   //! Default constructor
-	FORCE_INLINE VertexDescriptor(const VertexDescriptor &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE VertexDescriptor(VertexDescriptor &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE VertexDescriptor &operator=(const VertexDescriptor &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE VertexDescriptor &operator=(VertexDescriptor &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~VertexDescriptor() noexcept                                     = default;        //! Destructor
+	FORCE_INLINE                   VertexDescriptor()                                    = default;        //! Default constructor
+	FORCE_INLINE                   VertexDescriptor(const VertexDescriptor &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                   VertexDescriptor(VertexDescriptor &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE VertexDescriptor &operator=(const VertexDescriptor &a_other) = default;                   //! Copy assignment operator
+	FORCE_INLINE VertexDescriptor &operator=(VertexDescriptor &&a_other) noexcept = default;               //! Move assignment operator
+	FORCE_INLINE ~VertexDescriptor() noexcept                                     = default;               //! Destructor
 
 	/**
 	 * Use this constructor to create mapping of attributes to layouts that you think works.
@@ -454,4 +451,4 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	SemanticToAttribLayoutMap    m_mapping{};           //! Mapping of each Semantic to its pair of layout and attribute
 };
 
-}        // namespace ror
+}        // namespace rhi

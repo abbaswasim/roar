@@ -253,10 +253,10 @@ FORCE_INLINE bool is_nan(_type a_value)
 	return a_value != a_value;
 }
 
-template <typename _E>
-constexpr auto enum_to_type_cast(_E a_enum) noexcept
+template <typename _e>
+constexpr auto enum_to_type_cast(_e a_enum) noexcept
 {
-	return static_cast<std::underlying_type_t<_E>>(a_enum);
+	return static_cast<std::underlying_type_t<_e>>(a_enum);
 }
 
 template <typename _type>

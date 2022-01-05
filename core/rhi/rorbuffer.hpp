@@ -29,6 +29,7 @@
 #include "roar_export_import.hpp"
 #include <cassert>
 #include <cstddef>
+#include <vector>
 
 namespace rhi
 {
@@ -54,33 +55,40 @@ class ROAR_ENGINE_ITEM Buffer        // : public Crtp<Buffer>
 	//	// TODO: Dispatch for device buffer creation
 	// }
 
+
+	// TODO: Remove the following, no need for individual semantic size
+	using BufferSemanticPair    = std::pair<BufferSemantic, uint64_t>;
+	using BufferSemanticPairVec = std::vector<BufferSemanticPair>;
+
 	/**
 	 * Returns offset of the location available
 	 */
-	uint64_t request(uint64_t a_bytes);                         //! Returns offset of the location available
-	uint64_t upload(uint8_t &a_data, uint64_t a_length);        //! Also returns the offset where the data is uploaded
-	uint32_t handle() noexcept;
-	void     map() noexcept;
-	void     unmap() noexcept;
-	void     size(uint64_t a_size) noexcept;
-	uint64_t size() const noexcept;
-	void     interleaved(bool a_interleaved) noexcept;
-	bool     interleaved() const noexcept;
-	void     emplace_semantic(std::pair<BufferSemantic, uint64_t> &&a_pair);
-
-	std::pair<BufferSemantic, uint64_t>                     semantic(size_t a_index) const noexcept;
-	const std::vector<std::pair<BufferSemantic, uint64_t>> &semantics() const noexcept;
+	uint64_t                     offset(uint64_t a_bytes);                          //! Returns offset of the location available
+	uint8_t                     *request(uint64_t a_bytes);                         //! Returns pointer offset
+	uint64_t                     upload(uint8_t &a_data, uint64_t a_length);        //! Also returns the offset where the data is uploaded
+	uint32_t                     handle() noexcept;
+	void                         map() noexcept;
+	void                         unmap() noexcept;
+	void                         size(uint64_t a_size) noexcept;
+	uint64_t                     size() const noexcept;
+	void                         interleaved(bool a_interleaved) noexcept;
+	bool                         interleaved() const noexcept;
+	void                         emplace_semantic(BufferSemanticPair &&a_pair);
+	BufferSemanticPair           semantic(size_t a_index) const noexcept;
+	const BufferSemanticPairVec &semantics() const noexcept;
 
   private:
-	void _upload(uint8_t &a_data, uint64_t a_length);        // TODO: To be implemented in renderer or via CRTP
+	void     _upload(uint8_t &a_data, uint64_t a_length);        // TODO: To be implemented in renderer or via CRTP
+	uint64_t _offset(uint64_t a_bytes);                          //! Returns offset of the location available
 
-	// uint32_t                                         m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
-	// uint8_t *                                        m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
-	// bool                                             m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
-	uint64_t                                         m_filled_size{0};                 //! How much of the buffer is filled, this should be aligned(to_something)
-	uint64_t                                         m_size_in_bytes{0};               //! This is the size in bytes
-	std::vector<std::pair<BufferSemantic, uint64_t>> m_semantics{};                    //! Pair of semantic and size required
-	bool                                             m_interleaved_local{true};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT
+	// uint32_t           m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
+	// uint8_t *          m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
+	// bool               m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
+	uint64_t              m_filled_size{0};                 //! How much of the buffer is filled, this should be aligned(to_something)
+	uint64_t              m_size_in_bytes{0};               //! This is the total size in bytes
+	BufferSemanticPairVec m_semantics{};                    //! Pair of semantic and size required
+	bool                  m_interleaved_local{true};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT
+	std::vector<uint8_t>  m_data{};                         //! Data block of the buffer
 };
 
 }        // namespace rhi

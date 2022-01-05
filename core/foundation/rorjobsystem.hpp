@@ -211,7 +211,7 @@ class ROAR_ENGINE_ITEM JobHandle final
 
 	FORCE_INLINE _future_type data()
 	{
-		return this->m_future.get();        // PATL: There is a move happening here, if move is expensive for the return type of the job, fix this
+		return this->m_future.get();        // NOTE: There is a move happening here, if move is expensive for the return type of the job, fix this
 	}
 
   protected:

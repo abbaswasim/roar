@@ -79,15 +79,19 @@ add_executable(${ROAR_TEST_NAME} ${ROAR_TEST_HEADERS} ${ROAR_TEST_SOURCES})
 target_include_directories(${ROAR_TEST_NAME} PRIVATE
   ${ROAR_ROOT_DIR}
   ${ROAR_ROOT_DIR}/thirdparty
-  ${ROAR_ROOT_DIR}/thirdparty/gtest/include
   ${ROAR_ROOT_DIR}/core
   ${ROAR_ROOT_DIR}/tests)
+
+# target_include_directories_system(${ROAR_TEST_NAME} PUBLIC ${ROAR_ROOT_DIR}/thirdparty/gtest/googletest/include/)
 
 add_subdirectory(${ROAR_ROOT_DIR}/thirdparty/gtest ${CMAKE_CURRENT_BINARY_DIR}/gtest_binaries)
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/gtest_binaries)
 
-set(ROAR_REQUIRED_TEST_LIBRARIES ${ROAR_REQUIRED_LIBRARIES} roar spdlog gtest_main)
+set(ROAR_REQUIRED_TEST_LIBRARIES ${ROAR_REQUIRED_LIBRARIES} roar spdlog)
+set(ROAR_REQUIRED_TEST_SYSTEM_LIBRARIES gtest_main)
+
 target_link_libraries(${ROAR_TEST_NAME} PRIVATE ${ROAR_REQUIRED_TEST_LIBRARIES})
+target_link_libraries_system(${ROAR_TEST_NAME} PRIVATE ${ROAR_REQUIRED_TEST_SYSTEM_LIBRARIES})
 
 # Does this make any different, first tests didn't find any, explore some day
 target_precompile_headers(${ROAR_TEST_NAME} PRIVATE <gtest/gtest.h> <vector> <array> <complex> <map> <optional> <iostream> <iomanip> <memory>)

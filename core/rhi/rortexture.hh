@@ -58,7 +58,7 @@ FORCE_INLINE TextureImage::TextureTarget TextureImage::target() const noexcept
 
 FORCE_INLINE void TextureImage::handle(TextureHandle a_handle) noexcept
 {
-	this->m_handle = a_handle;
+	this->m_handle = a_handle.m_handle;
 }
 
 FORCE_INLINE void TextureImage::width(uint32_t a_width) noexcept

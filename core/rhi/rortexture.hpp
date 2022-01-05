@@ -170,6 +170,22 @@ class ROAR_ENGINE_ITEM Texture final
 static_assert(std::is_trivially_copyable_v<Texture>, "Texture is not trivially copyable");
 static_assert(std::is_standard_layout_v<Texture>, "Texture is not standard layout");
 
+// Define type to semantic for buffers allocator
+define_type_to_shader_semantics(TextureImage)
+{
+	return BufferSemantic::texture_image_data;
+}
+
+define_type_to_shader_semantics(TextureSampler)
+{
+	return BufferSemantic::texture_sampler_data;
+}
+
+define_type_to_shader_semantics(Texture)
+{
+	return BufferSemantic::texture_data;
+}
+
 }        // namespace rhi
 
 #include "rortexture.hh"

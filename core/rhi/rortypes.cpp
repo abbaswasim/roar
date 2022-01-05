@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "rhi/rortypes.hpp"
+#include <unordered_map>
 
 namespace rhi
 {

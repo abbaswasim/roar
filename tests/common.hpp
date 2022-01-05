@@ -30,7 +30,7 @@
 #include <fstream>
 #include <functional>
 #include <istream>
-#include <gtest/gtest.h>
+#include "include/gtest/gtest.h"
 #include <iostream>
 
 namespace fs = std::filesystem;

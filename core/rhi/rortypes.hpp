@@ -28,7 +28,6 @@
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "roar.hpp"
-#include <unordered_map>
 
 namespace rhi
 {
@@ -223,15 +222,6 @@ enum class StepFunction
 	patch_control_point
 };
 
-enum class PrimitiveTopology
-{
-	point,
-	line,
-	lineStrip,
-	triangle,
-	triangleStrip
-};
-
 struct BufferRange
 {
 	uint32_t m_location;        // Which buffer is returned
@@ -329,11 +319,11 @@ enum class MaterialModel
 	item(vertex_weight)                   item_value(= 1 << 8),       \
 	item(vertex_morph_target)             item_value(= 1 << 9),       \
 	item(vertex_morph_weight)             item_value(= 1 << 10),      \
-	item(instance_translation)            item_value(= 1 << 11),      \
-	item(instance_rotation)               item_value(= 1 << 12),      \
-	item(instance_scale)                  item_value(= 1 << 13),      \
-	item(instance_transform)              item_value(= 1 << 14),      \
-	item(vertex_index)                    item_value(= 1 << 15),      \
+	item(vertex_index)                    item_value(= 1 << 11),      \
+	item(instance_translation)            item_value(= 1 << 12),      \
+	item(instance_rotation)               item_value(= 1 << 13),      \
+	item(instance_scale)                  item_value(= 1 << 14),      \
+	item(instance_transform)              item_value(= 1 << 15),      \
 	item(mesh_index)                      item_value(= 1 << 16),      \
 	item(meshlet_data)                    item_value(= 1 << 17),      \
 	item(drawcall_data)                   item_value(= 1 << 18),      \
@@ -347,6 +337,7 @@ enum class MaterialModel
 	item(animation_sampler_data)          item_value(= 1 << 26),      \
 	item(animation_channel_data)          item_value(= 1 << 27),      \
 	item(animation_data)                  item_value(= 1 << 28),      \
+	item(bounding_box_data)               item_value(= 1 << 29),      \
 	item(custom)                          item_value(= 1 << 30)
 // clang-format on
 #define item(_enum) _enum
@@ -360,9 +351,38 @@ enum class BufferSemantic : uint32_t
 #undef item
 #undef item_value
 
+#define item(_enum) _enum
+#define item_value(_enum)
+
+enum class AttributeIndex : uint32_t
+{
+	describe_shader_semantics(item)
+};
+
+#undef item
+#undef item_value
+
 uint32_t       pixel_format_to_bytes(PixelFormat a_pixel_format);
 uint32_t       vertex_format_to_bytes(VertexFormat a_vertex_format);
 uint32_t       vertex_format_to_location(VertexFormat a_vertex_format);
 BufferSemantic get_format_shader_semantic(const std::string &a_format);
 
+// Specialisation of these are defined in different places
+template <typename _semantic_type>
+constexpr rhi::BufferSemantic get_format_shader_semantic()
+{
+	assert(0 && "Can't use generic version of this function, define specialisation first");
+	return rhi::BufferSemantic::custom;
+}
+
+#define define_type_to_shader_semantics(type) \
+	template <>                               \
+	constexpr rhi::BufferSemantic get_format_shader_semantic<type>()
+/*
+// To use the above for an Animation type do
+define_type_to_shader_semantics(Animation)
+{
+	return BufferSemantic::animation_data;
+}
+*/
 }        // namespace rhi

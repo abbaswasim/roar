@@ -27,17 +27,17 @@
 
 #include "rhi/rorbuffers_format.hpp"
 
-namespace ror
+namespace rhi
 {
 class ROAR_ENGINE_ITEM VertexLayout final
 {
   public:
-	FORCE_INLINE VertexLayout()                                = default;                   //! Default constructor
-	FORCE_INLINE VertexLayout(const VertexLayout &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE VertexLayout(VertexLayout &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE VertexLayout &operator=(const VertexLayout &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE VertexLayout &operator=(VertexLayout &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~VertexLayout() noexcept                                 = default;        //! Destructor
+	FORCE_INLINE               VertexLayout()                                = default;        //! Default constructor
+	FORCE_INLINE               VertexLayout(const VertexLayout &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE               VertexLayout(VertexLayout &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE VertexLayout &operator=(const VertexLayout &a_other) = default;               //! Copy assignment operator
+	FORCE_INLINE VertexLayout &operator=(VertexLayout &&a_other) noexcept = default;           //! Move assignment operator
+	FORCE_INLINE ~VertexLayout() noexcept                                 = default;           //! Destructor
 
 	/**
 	 * Use this version of the constructor if you want VertexDescriptor to take care of
@@ -92,4 +92,4 @@ class ROAR_ENGINE_ITEM VertexLayout final
 static_assert(std::is_trivially_copyable_v<VertexLayout>, "VertexLayout is not trivially copyable");
 static_assert(std::is_standard_layout_v<VertexLayout>, "VertexLayout is not standard layout");
 
-}        // namespace ror
+}        // namespace rhi

@@ -1,8 +1,19 @@
+#include "bounds/rorbounding.hpp"
 #include "foundation/rorcommon.hpp"
+#include "foundation/rorhash.hpp"
 #include "foundation/rortypes.hpp"
+#include "graphics/rormesh.hpp"
+#include "math/rorquaternion.hpp"
+#include "math/rortransform.hpp"
+#include "math/rorvector3.hpp"
+#include "profiling/rortimer.hpp"
+#include <atomic>
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <iostream>
-#include <atomic>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace ror_test
 {
@@ -33,7 +44,7 @@ TEST(RoarGeneral, RoarGeneral_standard_types_atomic_is_lock_free)
 	std::atomic<uchar16_t>   uchar16_t_type;
 	std::atomic<char8_t>     char8_t_type;
 	std::atomic<ptrdiff_t>   ptrdiff_t_type;
-	std::atomic<hash_128_t>   hash128_t_type;
+	std::atomic<hash_128_t>  hash128_t_type;
 
 	EXPECT_TRUE(std::atomic_is_lock_free<char8_t>(&char8_t_type)) << "atomic char8_t is not lock_free";
 	EXPECT_TRUE(std::atomic_is_lock_free<char16_t>(&char16_t_type)) << "atomic char16_t is not lock_free";
@@ -64,4 +75,119 @@ TEST(RoarGeneral, RoarGeneral_standard_types_atomic_is_lock_free)
 	EXPECT_TRUE(std::atomic_is_lock_free<hash_128_t>(&hash128_t_type)) << "atomic hash128_t is not lock_free";
 }
 
+struct timer
+{
+	std::string                                    m_name;
+	std::chrono::high_resolution_clock::time_point start;
+
+	timer(const std::string &name) :
+		m_name(name), start(std::chrono::high_resolution_clock::now())
+	{}
+
+	~timer()
+	{
+		auto end = std::chrono::high_resolution_clock::now();
+		std::cout << m_name << ": " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << " milliseconds" << std::endl;
+	}
+};
+
+TEST(RoarGeneral, DISABLED_RoarGeneral_hash_performance_string)
+{
+	using str_map = std::unordered_map<std::string, std::string>;
+
+	str_map map;
+
+	str_map::hasher map_hasher = map.hash_function();
+
+	uint32_t count = 1000000;
+	std::string str{"atomic intptr_t is not lock_free"};
+
+	{
+		auto s = map_hasher(str);
+		auto t = timer("loop test: ");
+
+		size_t sum = s;
+		for (size_t i = 0; i < count; ++i)
+		{
+			sum += map_hasher(str);
+		}
+		std::cout << "sum = " << sum << std::endl;
+	}
+	{
+		auto s = ror::hash_64(str.c_str(), str.size());
+		auto t = timer("loop test: ");
+
+		size_t sum = s;
+		for (size_t i = 0; i < count; ++i)
+		{
+			sum += ror::hash_64(str.c_str(), str.size());
+		}
+		std::cout << "sum = " << sum << std::endl;
+	}
+	{
+		auto s = ror::hash_32(str.c_str(), str.size());
+		auto t = timer("loop test: ");
+
+		size_t sum = s;
+		for (size_t i = 0; i < count; ++i)
+		{
+			sum += ror::hash_32(str.c_str(), str.size());
+		}
+		std::cout << "sum = " << sum << std::endl;
+	}
+}
+
+TEST(RoarGeneral, DISABLED_RoarGeneral_hash_performance_size_t)
+{
+	using str_map = std::unordered_map<std::size_t, std::string>;
+
+	str_map map;
+
+	str_map::hasher map_hasher = map.hash_function();
+
+	uint32_t count = 10000000;
+	std::size_t str{987654321034567890};
+	std::size_t str_size{sizeof(str)};
+
+	{
+		auto s = map_hasher(str);
+		auto t = timer("loop test: ");
+
+		size_t sum = s;
+		for (size_t i = 0; i < count; ++i)
+		{
+			sum += map_hasher(str);
+		}
+		std::cout << "sum = " << sum << std::endl;
+	}
+	{
+		auto s = ror::hash_64(&str, str_size);
+		auto t = timer("loop test: ");
+
+		size_t sum = s;
+		for (size_t i = 0; i < count; ++i)
+		{
+			sum += ror::hash_64(&str, str_size);
+		}
+		std::cout << "sum = " << sum << std::endl;
+	}
+
+	std::cout << " sizeof Drawable = " << sizeof(ror::Mesh::Drawable);
+}
+
+TEST(RoarGeneral, size_of_stuff)
+{
+	// std::cout << " sizeof Vec3 = " << sizeof(ror::Vector3f);
+	// std::cout << " sizeof BoundingBox = " << sizeof(ror::BoundingBoxf);
+	std::cout << " Max vertex attributes = " << ror::max_vertex_attributes << std::endl;
+	std::cout << " sizeof Bufferview = " << sizeof(rhi::BufferView) << std::endl;
+	std::cout << " sizeof Drawable = " << sizeof(ror::Mesh::Drawable) << std::endl;
+	std::cout << " sizeof Mesh " << sizeof(ror::Mesh) << std::endl;
+	std::cout << " sizeof std::vector " << sizeof(std::vector<ror::Mesh>) << std::endl;
+
+	std::cout << " sizeof transform " << sizeof(ror::Transformf) << std::endl;
+	std::cout << " sizeof quat " << sizeof(ror::Quaternionf) << std::endl;
+	std::cout << " sizeof scale/trans " << sizeof(ror::Vector3f) << std::endl;
+
+}
 }        // namespace ror_test

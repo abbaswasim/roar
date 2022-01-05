@@ -26,6 +26,7 @@
 #pragma once
 
 #include "rhi/rorbuffers_format.hpp"
+#include "rhi/rortypes.hpp"
 #include <unordered_map>
 #include <vector>
 
@@ -99,9 +100,9 @@ class ROAR_ENGINE_ITEM BuffersPack final
 
 	FORCE_INLINE uint64_t attribute_buffer_offset(BufferSemantic a_semantic, uint64_t a_bytes)
 	{
-		uint32_t index = this->attribute_buffer_index(a_semantic);
+		const uint32_t index = this->attribute_buffer_index(a_semantic);
 
-		return this->m_buffers[index].request(a_bytes);
+		return this->m_buffers[index].offset(a_bytes);
 	}
 
 	FORCE_INLINE bool attribute_buffer_interleaved(BufferSemantic a_semantic) const
@@ -115,7 +116,7 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	// TODO: This will be contentious amongs threads, think about how would this work asynchronously
 	FORCE_INLINE std::pair<uint64_t, uint64_t> insert_data(BufferSemantic a_semantic, uint8_t &a_data, uint64_t a_bytes)
 	{
-		uint32_t index = this->attribute_buffer_index(a_semantic);
+		const uint32_t index = this->attribute_buffer_index(a_semantic);
 		return std::make_pair(index, this->m_buffers[index].upload(a_data, a_bytes));
 	}
 

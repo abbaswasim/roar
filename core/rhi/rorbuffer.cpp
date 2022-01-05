@@ -33,7 +33,7 @@ Buffer::Buffer()
 	this->m_semantics.reserve(32);        // About enough for now, ror::ShaderSemantic is about 28 entries, if it grows in the future it doens't matter much
 }
 
-uint64_t Buffer::request(uint64_t a_bytes)
+uint64_t Buffer::_offset(uint64_t a_bytes)
 {
 	// TODO: Make me thread safe once requested by multiple threads
 	assert(this->m_filled_size + a_bytes < this->m_size_in_bytes && "Requesting more bytes than the buffer has available");
@@ -45,9 +45,19 @@ uint64_t Buffer::request(uint64_t a_bytes)
 	return offset;
 }
 
+uint64_t Buffer::offset(uint64_t a_bytes)
+{
+	return this->_offset(a_bytes);
+}
+
+uint8_t *Buffer::request(uint64_t a_bytes)
+{
+	return this->m_data.data() + this->_offset(a_bytes);
+}
+
 uint64_t Buffer::upload(uint8_t &a_data, uint64_t a_length)
 {
-	auto offset{this->request(a_length)};
+	auto offset{this->offset(a_length)};
 
 	// TODO: Thats how you do copy
 	// std::copy(data, data + size, mapped_data + offset);
@@ -70,6 +80,8 @@ void Buffer::unmap() noexcept
 
 void Buffer::size(uint64_t a_size) noexcept
 {
+	// this->m_data.reserve(a_size);
+	this->m_data.resize(a_size);
 	this->m_size_in_bytes = a_size;
 }
 
