@@ -88,7 +88,7 @@ class ROAR_ENGINE_ITEM Buffer        // : public Crtp<Buffer>
 	uint64_t              m_size_in_bytes{0};               //! This is the total size in bytes
 	BufferSemanticPairVec m_semantics{};                    //! Pair of semantic and size required
 	bool                  m_interleaved_local{true};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT
-	std::vector<uint8_t>  m_data{};                         //! Data block of the buffer
+	std::vector<uint8_t>  m_data{};                         //! Data block of the buffer, TODO: This needs to be triple buffered
 };
 
 }        // namespace rhi

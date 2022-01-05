@@ -31,9 +31,9 @@
 namespace ror
 {
 /**
-* Stnadard quaternion class, only really valid for real values
-* One can still it for other data types but some precision will be lost
-*/
+ * Standard quaternion class, only really valid for real values
+ * One can still it for other data types but some precision will be lost
+ */
 template <class _type>
 class ROAR_ENGINE_ITEM Quaternion final
 {
@@ -43,12 +43,12 @@ class ROAR_ENGINE_ITEM Quaternion final
 	_type z = 0;
 	_type w = 1;        // TODO: What happens if you have this and a no arg assign ctor?
 
-	FORCE_INLINE Quaternion(_type a_w = 1);                                             //! Default constructor
-	FORCE_INLINE Quaternion(const Quaternion &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Quaternion(Quaternion &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Quaternion &operator=(const Quaternion &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE Quaternion &operator=(Quaternion &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~Quaternion() noexcept                               = default;        //! Destructor
+	FORCE_INLINE             Quaternion(_type a_w = 1);                                  //! Default constructor
+	FORCE_INLINE             Quaternion(const Quaternion &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE             Quaternion(Quaternion &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE Quaternion &operator=(const Quaternion &a_other) = default;             //! Copy assignment operator
+	FORCE_INLINE Quaternion &operator=(Quaternion &&a_other) noexcept = default;         //! Move assignment operator
+	FORCE_INLINE ~Quaternion() noexcept                               = default;         //! Destructor
 
 	FORCE_INLINE Quaternion(_type a_x, _type a_y, _type a_z, _type a_w);
 	FORCE_INLINE Quaternion(const Matrix3<_type> &a_matrix);

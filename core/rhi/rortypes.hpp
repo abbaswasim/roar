@@ -306,46 +306,48 @@ enum class MaterialModel
 // Scale is usually a non-uniform scale in x, y and z axis
 // Transformation is usually a matrix4
 // clang-format off
-#define describe_shader_semantics(item)                               \
-	item(vertex_position)                 item_value(= 0),            \
-	item(vertex_texture_coord_0)          item_value(= 1 << 0),       \
-	item(vertex_texture_coord_1)          item_value(= 1 << 1),       \
-	item(vertex_texture_coord_2)          item_value(= 1 << 2),       \
-	item(vertex_normal)                   item_value(= 1 << 3),       \
-	item(vertex_bent_normal)              item_value(= 1 << 4),       \
-	item(vertex_tangent)                  item_value(= 1 << 5),       \
-	item(vertex_color)                    item_value(= 1 << 6),       \
-	item(vertex_bone_id)                  item_value(= 1 << 7),       \
-	item(vertex_weight)                   item_value(= 1 << 8),       \
-	item(vertex_morph_target)             item_value(= 1 << 9),       \
-	item(vertex_morph_weight)             item_value(= 1 << 10),      \
-	item(vertex_index)                    item_value(= 1 << 11),      \
-	item(instance_translation)            item_value(= 1 << 12),      \
-	item(instance_rotation)               item_value(= 1 << 13),      \
-	item(instance_scale)                  item_value(= 1 << 14),      \
-	item(instance_transform)              item_value(= 1 << 15),      \
-	item(mesh_index)                      item_value(= 1 << 16),      \
-	item(meshlet_data)                    item_value(= 1 << 17),      \
-	item(drawcall_data)                   item_value(= 1 << 18),      \
-	item(texture_image_data)              item_value(= 1 << 19),      \
-	item(texture_sampler_data)            item_value(= 1 << 20),      \
-	item(texture_data)                    item_value(= 1 << 21),      \
-	item(material_data)                   item_value(= 1 << 22),      \
-	item(mesh_data)                       item_value(= 1 << 23),      \
-	item(skin_data)                       item_value(= 1 << 24),      \
-	item(node_data)                       item_value(= 1 << 25),      \
-	item(animation_sampler_data)          item_value(= 1 << 26),      \
-	item(animation_channel_data)          item_value(= 1 << 27),      \
-	item(animation_data)                  item_value(= 1 << 28),      \
-	item(bounding_box_data)               item_value(= 1 << 29),      \
-	item(custom)                          item_value(= 1 << 30)
+#define describe_buffer_semantics(item)                                \
+	item(vertex_position)                 item_value(= 0),             \
+	item(vertex_texture_coord_0)          item_value(= 1ul << 0),       \
+	item(vertex_texture_coord_1)          item_value(= 1ul << 1),       \
+	item(vertex_texture_coord_2)          item_value(= 1ul << 2),       \
+	item(vertex_normal)                   item_value(= 1ul << 3),       \
+	item(vertex_bent_normal)              item_value(= 1ul << 4),       \
+	item(vertex_tangent)                  item_value(= 1ul << 5),       \
+	item(vertex_color)                    item_value(= 1ul << 6),       \
+	item(vertex_bone_id)                  item_value(= 1ul << 7),       \
+	item(vertex_weight)                   item_value(= 1ul << 8),       \
+	item(vertex_morph_target)             item_value(= 1ul << 9),       \
+	item(vertex_morph_weight)             item_value(= 1ul << 10),      \
+	item(vertex_index)                    item_value(= 1ul << 11),      \
+	item(instance_translation)            item_value(= 1ul << 12),      \
+	item(instance_rotation)               item_value(= 1ul << 13),      \
+	item(instance_scale)                  item_value(= 1ul << 14),      \
+	item(instance_transform)              item_value(= 1ul << 15),      \
+	item(mesh_index)                      item_value(= 1ul << 16),      \
+	item(meshlet_data)                    item_value(= 1ul << 17),      \
+	item(drawcall_data)                   item_value(= 1ul << 18),      \
+	item(texture_image_data)              item_value(= 1ul << 19),      \
+	item(texture_sampler_data)            item_value(= 1ul << 20),      \
+	item(texture_data)                    item_value(= 1ul << 21),      \
+	item(material_data)                   item_value(= 1ul << 22),      \
+	item(mesh_data)                       item_value(= 1ul << 23),      \
+	item(skin_data)                       item_value(= 1ul << 24),      \
+	item(node_data)                       item_value(= 1ul << 25),      \
+	item(animation_sampler_data)          item_value(= 1ul << 26),      \
+	item(animation_channel_data)          item_value(= 1ul << 27),      \
+	item(animation_data)                  item_value(= 1ul << 28),      \
+	item(bounding_box_data)               item_value(= 1ul << 29),      \
+	item(index_data)                      item_value(= 1ul << 31),      \
+	item(instance_trs)                    item_value(= 1ul << 32),      \
+	item(custom)                          item_value(= 1ul << 63)
 // clang-format on
 #define item(_enum) _enum
 #define item_value(_enum) _enum
 
-enum class BufferSemantic : uint32_t
+enum class BufferSemantic : uint64_t
 {
-	describe_shader_semantics(item)
+	describe_buffer_semantics(item)
 };
 
 #undef item
@@ -356,7 +358,7 @@ enum class BufferSemantic : uint32_t
 
 enum class AttributeIndex : uint32_t
 {
-	describe_shader_semantics(item)
+	describe_buffer_semantics(item)
 };
 
 #undef item

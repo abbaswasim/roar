@@ -271,7 +271,7 @@ BufferSemantic get_format_shader_semantic(const std::string &a_format)
 
 static std::unordered_map<std::string, BufferSemantic> string_to_shader_semantic
 {
-	describe_shader_semantics(item)
+	describe_buffer_semantics(item)
 };
 
 #undef item
