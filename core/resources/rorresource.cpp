@@ -261,11 +261,16 @@ Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_
 	static ResourceCache resource_cache{};
 
 	auto absolute_path = find_resource(a_path, a_semantic);
-	auto pointer       = std::make_shared<Resource>(absolute_path);
-	auto result        = resource_cache.insert(absolute_path, pointer);
+
+	auto found = resource_cache.find(absolute_path);
+	if (found.second)
+		return *found.first;
+
+	auto pointer = std::make_shared<Resource>(absolute_path);
+	auto result  = resource_cache.insert(absolute_path, pointer);
 
 	assert(result && "Resource wasn't inserted, probably already exists or failure happend");
-	(void) result; // in release builds it will complain otherwise
+	(void) result;        // in release builds it will complain otherwise
 
 	return *pointer;
 }
@@ -330,13 +335,13 @@ void Resource::load()
 void Resource::load_or_mmap()
 {
 	// If we are asked to create mmaped file or the resource is readonly, lets mmap it
-	if (this->m_mapped)// || this->m_read_only)
+	if (this->m_mapped)        // || this->m_read_only)
 	{
 		// TODO: mmap me and consider m_read_only
 	}
 	else
 	{
-		this->m_read_only = false; // TODO: Remove, its here because its not used otherwise and I get warnings
+		this->m_read_only            = true;        // TODO: Remove, although already true its here because its not used otherwise and I get warnings
 		std::ios_base::openmode mode = std::ios::ate | std::ios::in;
 
 		if (this->m_binary_file)
@@ -376,7 +381,7 @@ void Resource::generate_uuid()
 	this->m_uuid     = ror::hash_128(path.c_str(), path.size());
 }
 
-const std::vector<uint8_t>& Resource::get_data() const
+const std::vector<uint8_t> &Resource::get_data() const
 {
 	return this->m_data;
 }
