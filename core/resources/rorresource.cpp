@@ -336,7 +336,7 @@ void Resource::load_or_mmap()
 	}
 	else
 	{
-		this->m_read_only = false;
+		this->m_read_only = false; // TODO: Remove, its here because its not used otherwise and I get warnings
 		std::ios_base::openmode mode = std::ios::ate | std::ios::in;
 
 		if (this->m_binary_file)
@@ -359,8 +359,6 @@ void Resource::load_or_mmap()
 			return;
 		}
 
-		ror::log_critical("Now reading file it should work. {}", this->m_absolute_path.c_str());
-		// this->m_data = std::make_shared<bytes_vector>();
 		// Cast is ok because if byte_count is bigger than size_t range, we have a bigger problem
 		this->m_data.resize(static_cast<size_t>(bytes_count));
 		as_file.read(reinterpret_cast<char *>(this->m_data.data()), bytes_count);        // Weird that int8_t is 'signed char' and can't be converted to 'char'
