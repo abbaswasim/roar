@@ -203,9 +203,9 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	/**
 	 * Returns a bitmask of all the attributes in the VertexDescriptor
 	 */
-	FORCE_INLINE uint32_t type() const
+	FORCE_INLINE uint64_t type() const
 	{
-		uint32_t result = 0;
+		uint64_t result = 0;
 
 		for (auto &attribute : this->m_attributes)
 		{
@@ -385,7 +385,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			auto rate     = std::get<uint32_t>(attribute);
 
 			uint32_t buffer_index = a_buffers_pack->attribute_buffer_index(semantic);
-			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // How many bytes do we need for this, this has to be done later in a second pass
+			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // TODO: How many bytes do we need for this, this has to be done later in a second pass
 			uint32_t format_to_bytes = vertex_format_to_bytes(format);
 
 			if (semantic == rhi::BufferSemantic::custom &&
