@@ -32,6 +32,8 @@
 // Using third party xxHash implementation
 #include "thirdparty/xxHash/xxhash.h"
 
+// TODO: Check performance of this with std::hash, in some tests with std::string std::hash performs better
+
 namespace ror
 {
 FORCE_INLINE hash_32_t hash_32(const void *a_input, size_t a_size)
