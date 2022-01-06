@@ -132,8 +132,8 @@ class ROAR_ENGINE_ITEM Resource
 
 	// TODO: Need to work out how this works. Can one change vector via this const pointer?
 	// What will be the best way to send it back in to update data
-	const data_ptr    get_data() const;
-	void              update_data(data_ptr a_data);
+	const bytes_vector &get_data() const;
+	// void               update_data(data_ptr a_data);
 	ResourceExtension extension();
 
 	virtual void temp();
@@ -146,7 +146,7 @@ class ROAR_ENGINE_ITEM Resource
 
 	std::filesystem::path m_absolute_path{};                              // Path to the resource
 	ResourceExtension     m_extension{ResourceExtension::unknown};        // Extension of the resource loaded for further processing down the pipeline
-	data_ptr              m_data{nullptr};                                // Pointer to its data
+	bytes_vector          m_data{};                                       // Pointer to its data
 	bool                  m_binary_file{false};                           // True if its a binary file and false if its text file
 	bool                  m_read_only{true};                              // If readonly we can optimise synchronisation and perhaps map it instead
 	bool                  m_mapped{false};                                // True if data is mmapped
@@ -157,6 +157,14 @@ class ROAR_ENGINE_ITEM Resource
 																		  // is required because we don't know if the generated filenames are used by other jobs
 };
 
+/**
+ * @brief      External interface to loading resources
+ * @details    Use load_resource to load any resource via the resource catche system
+ *             This will try hard to find the resource from semantic. Load it and return a pointer to it.
+ * @param      a_path to the resource. It doesn't have to be absolute only name and extension is enough
+ * @param      a_semantic Type of the resource via ResourceSemantic::XXX. For example a config, texture etc.
+ * @return     Reference to heap allocated Resource object. Client doesn't need to worry about mem management
+ */
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
 
 // static_assert(std::is_trivially_copyable_v<Resource>, "Resource is not trivially copyable");

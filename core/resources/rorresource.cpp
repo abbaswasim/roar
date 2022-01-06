@@ -321,8 +321,8 @@ void Resource::load()
 	this->m_path_hash = ror::hash_64(path_string.c_str(), path_string.size());
 
 	// Create Data hash from cached data as compared to actual file data
-	if (!this->m_data->empty())
-		this->m_data_hash = ror::hash_64(this->m_data->data(), this->m_data->size());
+	if (!this->m_data.empty())
+		this->m_data_hash = ror::hash_64(this->m_data.data(), this->m_data.size());
 	else
 		ror::log_error("Loaded cached resource file {} that has nothing in it.", this->m_absolute_path.c_str());
 }
@@ -330,12 +330,13 @@ void Resource::load()
 void Resource::load_or_mmap()
 {
 	// If we are asked to create mmaped file or the resource is readonly, lets mmap it
-	if (this->m_mapped)        // || this->m_read_only)
+	if (this->m_mapped)// || this->m_read_only)
 	{
 		// TODO: mmap me and consider m_read_only
 	}
 	else
 	{
+		this->m_read_only = false;
 		std::ios_base::openmode mode = std::ios::ate | std::ios::in;
 
 		if (this->m_binary_file)
@@ -358,10 +359,11 @@ void Resource::load_or_mmap()
 			return;
 		}
 
-		this->m_data = std::make_shared<bytes_vector>();
+		ror::log_critical("Now reading file it should work. {}", this->m_absolute_path.c_str());
+		// this->m_data = std::make_shared<bytes_vector>();
 		// Cast is ok because if byte_count is bigger than size_t range, we have a bigger problem
-		this->m_data->resize(static_cast<size_t>(bytes_count));
-		as_file.read(reinterpret_cast<char *>(this->m_data->data()), bytes_count);        // Weird that int8_t is 'signed char' and can't be converted to 'char'
+		this->m_data.resize(static_cast<size_t>(bytes_count));
+		as_file.read(reinterpret_cast<char *>(this->m_data.data()), bytes_count);        // Weird that int8_t is 'signed char' and can't be converted to 'char'
 
 		as_file.close();
 	}
@@ -376,7 +378,7 @@ void Resource::generate_uuid()
 	this->m_uuid     = ror::hash_128(path.c_str(), path.size());
 }
 
-const std::shared_ptr<std::vector<uint8_t>> Resource::get_data() const
+const std::vector<uint8_t>& Resource::get_data() const
 {
 	return this->m_data;
 }
