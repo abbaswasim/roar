@@ -10,8 +10,8 @@
 					"semantic":[
 						{
 							"vertex_position":100,
-							"vertex_weight":25,
-							"vertex_bone_id":25
+							"vertex_weight_0":25,
+							"vertex_bone_id_0":25
 						}
 					]
 				},
@@ -71,7 +71,7 @@
 					"size":100,
 					"semantic":[
 						{
-							"vertex_color":100
+							"vertex_color_0":100
 						}
 					]
 				},
@@ -248,6 +248,14 @@
 					"semantic":[
 						{
 							"instance_trs":200
+						}
+					]
+				},
+				{
+					"size":400,
+					"semantic":[
+						{
+							"gltf_bin_buffer":400
 						}
 					]
 				},

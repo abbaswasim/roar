@@ -137,7 +137,7 @@ TEST(System, System_constants)
 TEST(JobSystem, JobSystem_hardware_threads)
 {
 	uint32_t threads          = ror::get_hardware_threads();
-	uint32_t expected_threads = 2;
+	uint32_t expected_threads = 15;
 	EXPECT_EQ(threads, expected_threads) << "Not enough threads available";
 }
 

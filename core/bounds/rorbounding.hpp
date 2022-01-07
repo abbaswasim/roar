@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"

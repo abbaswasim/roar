@@ -386,12 +386,12 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 			uint32_t buffer_index = a_buffers_pack->attribute_buffer_index(semantic);
 			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // TODO: How many bytes do we need for this, this has to be done later in a second pass
-			uint32_t format_to_bytes = vertex_format_to_bytes(format);
+			uint32_t vert_format_to_bytes = vertex_format_to_bytes(format);
 
 			if (semantic == rhi::BufferSemantic::custom &&
 				(format == rhi::VertexFormat::uint8_custom || format == rhi::VertexFormat::uint16_custom || format == rhi::VertexFormat::float32_custom) &&
 				(rate >> 16))
-				format_to_bytes *= (rate >> 16);        // Use the format multiplier from upper 16bits of rate
+				vert_format_to_bytes *= (rate >> 16);        // Use the format multiplier from upper 16bits of rate
 
 			// Get the old stride from existing layouts before inserting a new one
 			if (existing_layouts_size > 0)
@@ -404,18 +404,18 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 					assert(old_layout != this->m_layouts.end() && "Can't find a layout for attribute that should exis, something went wrong!");
 
-					format_to_bytes += old_layout->stride();
-					old_layout->stride(format_to_bytes);        // Also update the stride of this layout which will now be shared with this new attribute
+					vert_format_to_bytes += old_layout->stride();
+					old_layout->stride(vert_format_to_bytes);        // Also update the stride of this layout which will now be shared with this new attribute
 				}
 			}
 
-			auto [buffer, success] = strides.insert({buffer_index, format_to_bytes});
+			auto [buffer, success] = strides.insert({buffer_index, vert_format_to_bytes});
 
 			if (!success)
 			{
 				// Check if we are locally or globally interleaved, in the later case don't need to update stride
 				if (a_buffers_pack->attribute_buffer_interleaved(semantic))
-					buffer->second += format_to_bytes;
+					buffer->second += vert_format_to_bytes;
 			}
 
 			this->m_attributes.emplace_back(location, /* offset */ 0, /* buffer_offset */ 0ULL, binding, buffer_index, semantic, format);        // Hopefully its moved into the vector

@@ -434,6 +434,16 @@ class ROAR_ENGINE_ITEM JobSystem final
 	std::vector<std::unique_ptr<std::thread>> m_workers{};                   // list of workers running jobs that needs running
 };
 
+/**
+ * Returns a static global JobSystem object, this isn't the only way one can use JobSystem but
+ * is the prefered way, because threads creation and destruction isn't for free
+ */
+FORCE_INLINE JobSystem& get_job_system()
+{
+	static JobSystem js;
+
+	return js;
+}
 }        // namespace ror
 
 #include "rorjobsystem.hh"

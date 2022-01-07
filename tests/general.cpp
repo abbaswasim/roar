@@ -2,6 +2,7 @@
 #include "foundation/rorcommon.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rortypes.hpp"
+#include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
@@ -179,15 +180,18 @@ TEST(RoarGeneral, size_of_stuff)
 {
 	// std::cout << " sizeof Vec3 = " << sizeof(ror::Vector3f);
 	// std::cout << " sizeof BoundingBox = " << sizeof(ror::BoundingBoxf);
-	std::cout << " Max vertex attributes = " << ror::max_vertex_attributes << std::endl;
-	std::cout << " sizeof Bufferview = " << sizeof(rhi::BufferView) << std::endl;
-	std::cout << " sizeof Drawable = " << sizeof(ror::Mesh::Drawable) << std::endl;
-	std::cout << " sizeof Mesh " << sizeof(ror::Mesh) << std::endl;
-	std::cout << " sizeof std::vector " << sizeof(std::vector<ror::Mesh>) << std::endl;
+	// std::cout << " Max vertex attributes = " << ror::max_vertex_attributes << std::endl;
+	// std::cout << " sizeof Bufferview = " << sizeof(rhi::BufferView) << std::endl;
+	// std::cout << " sizeof Drawable = " << sizeof(ror::Mesh::Drawable) << std::endl;
+	// std::cout << " sizeof Mesh " << sizeof(ror::Mesh) << std::endl;
+	// std::cout << " sizeof std::vector " << sizeof(std::vector<ror::Mesh>) << std::endl;
 
-	std::cout << " sizeof transform " << sizeof(ror::Transformf) << std::endl;
-	std::cout << " sizeof quat " << sizeof(ror::Quaternionf) << std::endl;
-	std::cout << " sizeof scale/trans " << sizeof(ror::Vector3f) << std::endl;
+	// std::cout << " sizeof transform " << sizeof(ror::Transformf) << std::endl;
+	// std::cout << " sizeof quat " << sizeof(ror::Quaternionf) << std::endl;
+	// std::cout << " sizeof scale/trans " << sizeof(ror::Vector3f) << std::endl;
+
+	std::cout << " sizeof Material " << sizeof(ror::Material) << std::endl;
+	std::cout << " sizeof Material::Comp " << sizeof(ror::Material::MaterialComponent<ror::Color3f>) << std::endl;
 
 }
 }        // namespace ror_test

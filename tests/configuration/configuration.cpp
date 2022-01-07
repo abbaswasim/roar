@@ -42,10 +42,10 @@ TEST(ConfigurationTest, BufferFormat)
 		if (fmt.first == rhi::BufferSemantic::vertex_position)
 			pi = i;
 
-		if (fmt.first == rhi::BufferSemantic::vertex_weight)
+		if (fmt.first == rhi::BufferSemantic::vertex_weight_0)
 			wi = i;
 
-		if (fmt.first == rhi::BufferSemantic::vertex_bone_id)
+		if (fmt.first == rhi::BufferSemantic::vertex_bone_id_0)
 			ji = i;
 	}
 
@@ -54,8 +54,8 @@ TEST(ConfigurationTest, BufferFormat)
 	ASSERT_NE(ji, -1);
 
 	EXPECT_EQ(b1.semantic(static_cast<size_t>(pi)).first, rhi::BufferSemantic::vertex_position);
-	EXPECT_EQ(b1.semantic(static_cast<size_t>(wi)).first, rhi::BufferSemantic::vertex_weight);
-	EXPECT_EQ(b1.semantic(static_cast<size_t>(ji)).first, rhi::BufferSemantic::vertex_bone_id);
+	EXPECT_EQ(b1.semantic(static_cast<size_t>(wi)).first, rhi::BufferSemantic::vertex_weight_0);
+	EXPECT_EQ(b1.semantic(static_cast<size_t>(ji)).first, rhi::BufferSemantic::vertex_bone_id_0);
 
 	EXPECT_EQ(b1.semantic(static_cast<size_t>(pi)).second, 100);
 	EXPECT_EQ(b1.semantic(static_cast<size_t>(wi)).second, 25);

@@ -108,6 +108,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/bounds/rorbounding.cpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
+  ${ROAR_SOURCE_DIR}/graphics/rormodel.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffer.cpp

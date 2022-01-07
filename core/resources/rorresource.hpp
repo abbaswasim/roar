@@ -133,9 +133,10 @@ class ROAR_ENGINE_ITEM Resource
 
 	// TODO: Need to work out how this works. Can one change vector via this const pointer?
 	// What will be the best way to send it back in to update data
-	const bytes_vector &get_data() const;
+	const bytes_vector          &get_data() const;
+	const std::filesystem::path &absolute_path() const;
+	ResourceExtension            extension();
 	// void               update_data(data_ptr a_data);
-	ResourceExtension extension();
 
 	virtual void temp();
 

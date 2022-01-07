@@ -386,6 +386,11 @@ const std::vector<uint8_t> &Resource::get_data() const
 	return this->m_data;
 }
 
+const std::filesystem::path &Resource::absolute_path() const
+{
+	return this->m_absolute_path;
+}
+
 ResourceExtension Resource::extension()
 {
 	return this->m_extension;

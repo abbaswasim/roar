@@ -30,11 +30,23 @@
 #include "graphics/rormesh.hpp"
 #include "graphics/rornode.hpp"
 #include "graphics/rorskin.hpp"
+#include "resources/rorresource.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rortexture.hpp"
+#include <vector>
 
 namespace ror
 {
+struct BinBuffer
+{
+	uint8_t m_byte;
+};
+
+using BinBuffer_Allocator     = rhi::BufferAllocator<BinBuffer>;
+using BinBuffer_Vector        = std::vector<BinBuffer, BinBuffer_Allocator>;
+using BinBuffer_Vector_Vector = std::vector<BinBuffer_Vector, rhi::BufferAllocator<BinBuffer_Vector>>;
+
 class ROAR_ENGINE_ITEM Model
 {
   public:
@@ -45,18 +57,31 @@ class ROAR_ENGINE_ITEM Model
 	FORCE_INLINE Model &operator=(Model &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Model() noexcept                          = default;        //! Destructor
 
+	// Populates data from a gltf file loaded as a resource.
+	// TODO: If this or any other load functions are called before, append data
+	void load_from_gltf_file(std::filesystem::path a_filename);
+
   private:
 	// TODO: This works for 1 model at the moment. Next append to these when a second asset is loaded
-	// This would require going through all the models that needs loading and getting max bounds of each
-	std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     m_images{};
-	std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> m_samplers{};
-	std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               m_textures{};
-	std::vector<ror::Material, rhi::BufferAllocator<Material>>                  m_materials{};
-	std::vector<Mesh, rhi::BufferAllocator<Mesh>>                               m_meshes{};
-	std::vector<Skin, rhi::BufferAllocator<Skin>>                               m_skins{};
-	std::vector<Node, rhi::BufferAllocator<Node>>                               m_nodes{};
-	std::vector<Animation, rhi::BufferAllocator<Animation>>                     m_animations{};
+	// This would require going through all the models that needs loading and getting max bounds of each and then adjusting indices
+
+	std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     m_images{};                 //! All images, by handles
+	std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> m_samplers{};               //! All samplers, by handles
+	std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               m_textures{};               //! All textures by handles
+	std::vector<ror::Material, rhi::BufferAllocator<Material>>                  m_materials{};              //! All the materials in this asset
+	std::vector<Mesh, rhi::BufferAllocator<Mesh>>                               m_meshes{};                 //! All the meshes in this asset
+	std::vector<Skin, rhi::BufferAllocator<Skin>>                               m_skins{};                  //! All the skins we have
+	std::vector<Node, rhi::BufferAllocator<Node>>                               m_nodes{};                  //! All the nodes in this assets
+	std::vector<NodeData, rhi::BufferAllocator<NodeData>>                       m_nodes_side_data{};        //! All the nodes parallel data that needs to be maintained
+	std::vector<Animation, rhi::BufferAllocator<Animation>>                     m_animations{};             //! All the animations in this asset
+	BinBuffer_Vector_Vector                                                     m_buffers{};                //! All the buffers provided in gltf, only required temporarily
+	// std::vector<std::vector<BinBuffer>> m_buffers{};        //! All the buffers provided in gltf, only required temporarily
 };
+
+/**
+ * Generic image loader that will invoke the right decoder based on extension
+ */
+rhi::TextureImage read_texture_from_file(std::filesystem::path a_texture_file);
 
 }        // namespace ror
 
@@ -66,6 +91,16 @@ namespace rhi
 define_type_to_shader_semantics(ror::Model)
 {
 	return rhi::BufferSemantic::mesh_data;
+}
+
+define_type_to_shader_semantics(ror::BinBuffer)
+{
+	return rhi::BufferSemantic::gltf_bin_buffer;
+}
+
+define_type_to_shader_semantics(ror::BinBuffer_Vector)
+{
+	return rhi::BufferSemantic::gltf_bin_buffer;
 }
 
 }        // namespace rhi

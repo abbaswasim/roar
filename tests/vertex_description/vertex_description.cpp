@@ -41,7 +41,7 @@ namespace ror_test
 static auto position_only             = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position);
 static auto position_uv               = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0);
 static auto position_normal_uv        = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal);
-static auto position_normal_uv_weight = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight);
+static auto position_normal_uv_weight = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0);
 
 void test_one_vertex_description(rhi::VertexDescriptor &vd,
 								 rhi::BufferSemantic    semantic,
@@ -163,7 +163,7 @@ TEST(VertexDescritionTest, automated_description)
 		rhi::VertexDescriptor vd{rhi::BufferSemantic::vertex_position, rhi::StepFunction::vertex,
 			rhi::BufferSemantic::vertex_normal, 2,
 								 rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::uint16_2, rhi::StepFunction::vertex,
-								 rhi::BufferSemantic::vertex_weight,
+								 rhi::BufferSemantic::vertex_weight_0,
 								 rhi::BufferSemantic::mesh_index, rhi::StepFunction::instance, 2,
 								 rhi::BufferSemantic::instance_transform, rhi::VertexFormat::float32_16, rhi::StepFunction::instance, 1, &bp};
 		// clang-format on
@@ -175,7 +175,7 @@ TEST(VertexDescritionTest, automated_description)
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_normal, 1, 0, 0, 1, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(uint16_t) * 2, 2, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_texture_coord_0, 2, 0, 0, 2, 0, rhi::VertexFormat::uint16_2, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(uint16_t) * 2, 1, 1, semantics, __LINE__);
-		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight_0, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::mesh_index, 4, 0, 0, 4, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::instance, sizeof(float32_t) * 3, 2, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::instance_transform, 5, 0, 0, 5, 0, rhi::VertexFormat::float32_16, rhi::StepFunction::instance, sizeof(float32_t) * 16, 1, 1, semantics, __LINE__);
 
@@ -198,8 +198,8 @@ TEST(VertexDescritionTest, automated_description)
 
 		semantics = position_normal_uv_weight;
 
-		vd.add(rhi::BufferSemantic::vertex_weight, &bp);
-		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		vd.add(rhi::BufferSemantic::vertex_weight_0, &bp);
+		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight_0, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 
 		semantics = position_normal_uv_weight | ror::enum_to_type_cast(rhi::BufferSemantic::mesh_index);
 		vd.add(rhi::BufferSemantic::mesh_index, rhi::StepFunction::instance, 2, &bp);
@@ -230,11 +230,11 @@ TEST(VertexDescritionTest, automated_description)
 
 		semantics = position_normal_uv_weight;
 
-		rhi::VertexAttribute va0{3, 0, 0, 3, 0, rhi::BufferSemantic::vertex_weight, rhi::VertexFormat::float32_3};
+		rhi::VertexAttribute va0{3, 0, 0, 3, 0, rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_3};
 		rhi::VertexLayout    vl0{3, sizeof(float32_t) * 6, 1};
 
 		vd.add(va0, vl0, &bp);
-		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight_0, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 
 		semantics = position_normal_uv_weight | ror::enum_to_type_cast(rhi::BufferSemantic::mesh_index);
 
@@ -267,7 +267,7 @@ TEST(VertexDescritionTest, automated_description)
 		rhi::VertexLayout    vl0{0, 0, 2};
 		rhi::VertexAttribute va1{2, 0, 0, 2, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::uint16_2};
 		rhi::VertexLayout    vl1{};
-		rhi::VertexAttribute va2{3, 0, 0, 3, 0, rhi::BufferSemantic::vertex_weight, rhi::VertexFormat::float32_3};
+		rhi::VertexAttribute va2{3, 0, 0, 3, 0, rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_3};
 		rhi::VertexLayout    vl2{};
 		rhi::VertexAttribute va3{4, 0, 0, 4, 0, rhi::BufferSemantic::mesh_index, rhi::VertexFormat::float32_3};
 		rhi::VertexLayout    vl3{3, 0, 2, 1, rhi::StepFunction::instance};        // Notice the binding=3 isn't used
@@ -285,7 +285,7 @@ TEST(VertexDescritionTest, automated_description)
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_normal, 1, 0, 0, 1, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(uint16_t) * 2, 2, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_texture_coord_0, 2, 0, 0, 2, 0, rhi::VertexFormat::uint16_2, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(uint16_t) * 2, 1, 1, semantics, __LINE__);
-		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight_0, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::mesh_index, 4, 0, 0, 4, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::instance, sizeof(float32_t) * 3, 2, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::instance_transform, 5, 0, 0, 5, 0, rhi::VertexFormat::float32_16, rhi::StepFunction::instance, sizeof(float32_t) * 16, 1, 1, semantics, __LINE__);
 
@@ -302,7 +302,7 @@ TEST(VertexDescritionTest, automated_description)
 		rhi::VertexLayout    vl0{0, 0, 2};
 		rhi::VertexAttribute va1{2, 0, 0, 2, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::uint16_2};
 		rhi::VertexLayout    vl1{};
-		rhi::VertexAttribute va2{3, 0, 0, 3, 0, rhi::BufferSemantic::vertex_weight, rhi::VertexFormat::float32_3};
+		rhi::VertexAttribute va2{3, 0, 0, 3, 0, rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_3};
 		rhi::VertexLayout    vl2{};
 		rhi::VertexAttribute va3{4, 0, 0, 4, 0, rhi::BufferSemantic::custom, rhi::VertexFormat::uint16_custom};
 		rhi::VertexLayout    vl3{3, 24, 2, 3, rhi::StepFunction::instance};        // Notice the binding=3 isn't used
@@ -323,7 +323,7 @@ TEST(VertexDescritionTest, automated_description)
 		vd.add();
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_texture_coord_0, 2, 0, 0, 2, 0, rhi::VertexFormat::uint16_2, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(uint16_t) * 2, 1, 1, semantics, __LINE__);
 		vd.add();
-		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight_0, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 		vd.add();
 		test_one_vertex_description(vd, rhi::BufferSemantic::custom, 4, 0, 0, 4, 0, rhi::VertexFormat::uint16_custom, rhi::StepFunction::instance, sizeof(uint16_t) * 3, 2, 3, semantics, __LINE__);
 		vd.add();
@@ -395,12 +395,12 @@ TEST(VertexDescritionTest, automated_description)
 		auto semantics = position_normal_uv_weight;
 
 		// Lets add the following now and test if older layout strides are updated or not
-		vd.add(rhi::BufferSemantic::vertex_weight, rhi::VertexFormat::float32_4, &bp);
+		vd.add(rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_4, &bp);
 		vd.add(rhi::BufferSemantic::vertex_normal, rhi::VertexFormat::float32_3, &bp);
 
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4, 1, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_texture_coord_0, 1, 0, 0, 1, 0, rhi::VertexFormat::float32_2, rhi::StepFunction::vertex, sizeof(float32_t) * 2 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
-		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight, 2, 0, 0, 2, 0, rhi::VertexFormat::float32_4, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4, 1, 1, semantics, __LINE__);
+		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight_0, 2, 0, 0, 2, 0, rhi::VertexFormat::float32_4, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4, 1, 1, semantics, __LINE__);
 		test_one_vertex_description(vd, rhi::BufferSemantic::vertex_normal, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 2 + sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
 	}
 
