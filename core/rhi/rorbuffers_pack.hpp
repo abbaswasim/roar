@@ -121,6 +121,23 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	}
 
 	/**
+	 * Returns a buffer by semantic
+	 */
+	FORCE_INLINE Buffer& buffer(BufferSemantic a_semantic)
+	{
+		const uint32_t index = this->attribute_buffer_index(a_semantic);
+		return this->m_buffers[index];
+	}
+
+	/**
+	 * Returns a buffer by index, shouldn't be used if semantics are a better choice
+	 */
+	FORCE_INLINE const Buffer& buffer(size_t a_index) const
+	{
+		return this->m_buffers[a_index];
+	}
+
+	/**
 	 * Uploads all the data in the buffer to the GPU
 	 */
 	FORCE_INLINE void upload()

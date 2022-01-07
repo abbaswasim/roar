@@ -59,8 +59,11 @@ uint64_t Buffer::upload(uint8_t &a_data, uint64_t a_length)
 {
 	auto offset{this->offset(a_length)};
 
+	assert(0);
+
 	// TODO: Thats how you do copy
-	// std::copy(data, data + size, mapped_data + offset);
+	// TODO: Need to upload data here. Into the buffer
+	// std::copy(a_data, a_data + a_length, this->m_data.begin() + offset);
 
 	this->_upload(a_data, a_length);
 
@@ -81,6 +84,7 @@ void Buffer::unmap() noexcept
 void Buffer::size(uint64_t a_size) noexcept
 {
 	// this->m_data.reserve(a_size);
+	// TODO: Make this lazy allocated, perhaps on first _offset() call
 	this->m_data.resize(a_size);
 	this->m_size_in_bytes = a_size;
 }
