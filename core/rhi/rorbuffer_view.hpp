@@ -58,7 +58,7 @@ class ROAR_ENGINE_ITEM BufferView
 	size_t  m_offset{0};                        // Start of the data
 	size_t  m_stride{0};                        // Start of the next value
 	size_t  m_count{0};                         // How much of the data we need
-	int32_t m_buffer_index{-1};                 // Where the data is
+	int32_t m_buffer_index{-1};                 // Where the data is, source
 	Format  m_format{Format::float32_4};        // What is the size in bytes and whether its scalar, vector or matrix type
 };
 

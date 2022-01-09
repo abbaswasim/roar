@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
 #include "rhi/rorbuffers_format.hpp"
 #include "rhi/rortypes.hpp"
 #include <unordered_map>
@@ -113,7 +114,7 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	/**
 	 * Returns a pair with buffer index and the offsets in that buffer where the data is copied
 	 */
-	// TODO: This will be contentious amongs threads, think about how would this work asynchronously
+	// TODO: This will be contentious amongt threads, think about how would this work asynchronously
 	FORCE_INLINE std::pair<uint64_t, uint64_t> insert_data(BufferSemantic a_semantic, uint8_t &a_data, uint64_t a_bytes)
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
@@ -138,11 +139,17 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	}
 
 	/**
-	 * Uploads all the data in the buffer to the GPU
+	 * Uploads all the data in the buffers to the GPU
 	 */
-	FORCE_INLINE void upload()
+	[[noreturn]] FORCE_INLINE void upload()
 	{
+		assert(0 && "Upload not implemented yet");
 		// TODO: Upload to GPU
+		for (auto&buffer : this->m_buffers) {
+			uint8_t a;
+			size_t s{0};
+			buffer.upload(a, s);
+		}
 	}
 
   private:

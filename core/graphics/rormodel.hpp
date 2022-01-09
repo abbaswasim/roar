@@ -68,14 +68,13 @@ class ROAR_ENGINE_ITEM Model
 	std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     m_images{};                 //! All images, by handles
 	std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> m_samplers{};               //! All samplers, by handles
 	std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               m_textures{};               //! All textures by handles
-	std::vector<ror::Material, rhi::BufferAllocator<Material>>                  m_materials{};              //! All the materials in this asset
-	std::vector<Mesh, rhi::BufferAllocator<Mesh>>                               m_meshes{};                 //! All the meshes in this asset
-	std::vector<Skin, rhi::BufferAllocator<Skin>>                               m_skins{};                  //! All the skins we have
-	std::vector<Node, rhi::BufferAllocator<Node>>                               m_nodes{};                  //! All the nodes in this assets
-	std::vector<NodeData, rhi::BufferAllocator<NodeData>>                       m_nodes_side_data{};        //! All the nodes parallel data that needs to be maintained
-	std::vector<Animation, rhi::BufferAllocator<Animation>>                     m_animations{};             //! All the animations in this asset
+	std::vector<ror::Material, rhi::BufferAllocator<ror::Material>>             m_materials{};              //! All the materials in this asset
+	std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>>                     m_meshes{};                 //! All the meshes in this asset
+	std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>>                     m_skins{};                  //! All the skins we have
+	std::vector<ror::Node, rhi::BufferAllocator<ror::Node>>                     m_nodes{};                  //! All the nodes in this assets
+	std::vector<ror::NodeData, rhi::BufferAllocator<ror::NodeData>>             m_nodes_side_data{};        //! All the nodes parallel data that needs to be maintained
+	std::vector<ror::Animation, rhi::BufferAllocator<ror::Animation>>           m_animations{};             //! All the animations in this asset
 	BinBuffer_Vector_Vector                                                     m_buffers{};                //! All the buffers provided in gltf, only required temporarily
-	// std::vector<std::vector<BinBuffer>> m_buffers{};        //! All the buffers provided in gltf, only required temporarily
 };
 
 /**

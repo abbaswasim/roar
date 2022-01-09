@@ -101,7 +101,7 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	uint32_t            m_offset{0};                                              //! Offset of this attribute relative to other attributes
 	uint64_t            m_buffer_offset{0};                                       //! Offset of this attribute in buffer buffer_index from the start, decided by layout
 	uint32_t            m_binding{0};                                             //! Which layout binding describes this attribute
-	uint32_t            m_buffer_index{0};                                        //! Which buffer do I live in? this is the buffer_pack index
+	uint32_t            m_buffer_index{0};                                        //! Which buffer do I live in? this is the buffer_pack index, destination buffer index
 	rhi::BufferSemantic m_semantics{rhi::BufferSemantic::vertex_position};        //! Whats the type of attribute? Position, UV, Normal etc
 	rhi::VertexFormat   m_format{rhi::VertexFormat::float32_3};                   //! float/int vec2/vec3/vec4 normalized/not packed/unpacked
 	bool                m_complete{false};                                        //! Whether the vertex attribute is complete and valid, worked out by layout walk

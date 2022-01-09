@@ -31,6 +31,7 @@
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorbuffer_view.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rorvertex_description.hpp"
 #include <vector>
 
 namespace ror

@@ -368,7 +368,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 	if (result == cgltf_result_success)
 	{
 		std::unordered_map<const cgltf_image *, int32_t>    image_to_index{};
-		std::unordered_map<const cgltf_sampler *, int32_t> sampler_to_index{};
+		std::unordered_map<const cgltf_sampler *, int32_t>  sampler_to_index{};
 		std::unordered_map<const cgltf_texture *, int32_t>  texture_to_index{};
 		std::unordered_map<const cgltf_material *, int32_t> material_to_index{};
 		std::unordered_map<const cgltf_buffer *, int32_t>   buffer_to_index{};
@@ -616,7 +616,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 			mesh.m_parts.resize(cmesh.primitives_count);
 			mesh.m_primitive_types.resize(cmesh.primitives_count);
 			mesh.m_has_indices_states.resize(cmesh.primitives_count);
-			// The last 2 are important and needs reserving because these are BufferAllocated
+			// The last 2 are important and definitely needs reserving because these are BufferAllocated
 			mesh.m_bounding_boxes.resize(cmesh.primitives_count);
 			mesh.m_material_indices.resize(cmesh.primitives_count);
 
@@ -642,7 +642,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						   "Indices are not in the right component type , only uint8_t, uint16_t and uint32_t supported");
 
 					assert(cprim.indices->buffer_view && "Indices doesn't have a valid buffer view");
-					// assert(cprim.indices->buffer_view->type == cgltf_buffer_view_type_indices && "Indices buffer view type is wrong"); type is alway invalid, because no such thing in bufferView in glTF
+					// assert(cprim.indices->buffer_view->type == cgltf_buffer_view_type_indices && "Indices buffer view type is wrong"); type is always invalid, because no such thing in bufferView in glTF
 
 					if (cprim.indices->buffer_view->has_meshopt_compression)
 						ror::log_critical("Mesh has meshopt_compression but its not supported");

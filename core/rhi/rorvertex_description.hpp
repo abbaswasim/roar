@@ -65,7 +65,7 @@ using attrib_variant = std::variant<const rhi::BuffersPack *, rhi::BufferSemanti
 using attrib_vector  = std::vector<attrib_variant>;
 
 /**
- * Can be used to describe a vertex attributes and layouts for a mesh.
+ * Can be used to describe vertex attributes and layouts for a single mesh drawable.
  * It uses get_buffers_pack() to access the default buffers allocated via "buffers_format.json"
  * Currently there is no way to provide a different set of buffers or use a different config file
  */
@@ -82,8 +82,8 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 	/**
 	 * Use this constructor to create mapping of attributes to layouts that you think works.
-	 * If you are not sure what layout do I need and what is the buffers format use the single arguemnt ctor instead
-	 * Its usage might be risky and and slightly complicated, forcing you to work out layouts and alignments manually
+	 * If you are not sure what layout do I need and what is the buffers format use the single argument ctor instead
+	 * Its usage might be risky and slightly complicated, forcing you to work out layouts and alignments manually
 	 */
 	FORCE_INLINE VertexDescriptor(std::vector<VertexAttribute> a_attributes, std::vector<VertexLayout> a_layouts) :
 		m_attributes(a_attributes),

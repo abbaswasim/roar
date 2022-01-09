@@ -37,7 +37,7 @@ namespace rhi
  * Device buffer encapsulation
  * Can be used for Vertex, Index, Instance, Constant as well as texture data
  */
-class ROAR_ENGINE_ITEM Buffer        // : public Crtp<Buffer>
+class ROAR_ENGINE_ITEM Buffer final
 {
   public:
 	Buffer();                                                                   //! Default constructor
@@ -45,7 +45,7 @@ class ROAR_ENGINE_ITEM Buffer        // : public Crtp<Buffer>
 	FORCE_INLINE         Buffer(Buffer &&a_other) noexcept = default;           //! Move constructor
 	FORCE_INLINE Buffer &operator=(const Buffer &a_other) = default;            //! Copy assignment operator
 	FORCE_INLINE Buffer &operator=(Buffer &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~Buffer() noexcept                   = default;        //! Destructor // TODO: Remove if not to be used as polymorphic type
+	FORCE_INLINE ~Buffer() noexcept                           = default;        //! Destructor
 
 	declare_translation_unit_vtable();
 
@@ -55,8 +55,7 @@ class ROAR_ENGINE_ITEM Buffer        // : public Crtp<Buffer>
 	//	// TODO: Dispatch for device buffer creation
 	// }
 
-
-	// TODO: Remove the following, no need for individual semantic size
+	// TODO: Remove the following, no need for individual semantic size, turn semantic into uint64_t value instead of vector
 	using BufferSemanticPair    = std::pair<BufferSemantic, uint64_t>;
 	using BufferSemanticPairVec = std::vector<BufferSemanticPair>;
 
