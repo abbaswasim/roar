@@ -26,8 +26,10 @@
 #pragma once
 
 #include "foundation/rortypes.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/rorbuffers_format.hpp"
 #include "rhi/rortypes.hpp"
+#include <cstddef>
 #include <unordered_map>
 #include <vector>
 
@@ -99,7 +101,7 @@ class ROAR_ENGINE_ITEM BuffersPack final
 		return this->m_attribute_indices.at(a_semantic);
 	}
 
-	FORCE_INLINE uint64_t attribute_buffer_offset(BufferSemantic a_semantic, uint64_t a_bytes)
+	FORCE_INLINE ptrdiff_t attribute_buffer_offset(BufferSemantic a_semantic, ptrdiff_t a_bytes)
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
 
@@ -114,17 +116,47 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	/**
 	 * Returns a pair with buffer index and the offsets in that buffer where the data is copied
 	 */
-	// TODO: This will be contentious amongt threads, think about how would this work asynchronously
-	FORCE_INLINE std::pair<uint64_t, uint64_t> insert_data(BufferSemantic a_semantic, uint8_t &a_data, uint64_t a_bytes)
+	// TODO: This will be contentious amongst threads, think about how would this work asynchronously
+	FORCE_INLINE void upload(BufferSemantic a_semantic, const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
-		return std::make_pair(index, this->m_buffers[index].upload(a_data, a_bytes));
+		this->m_buffers[index].upload(a_data, a_offset);
+	}
+
+	FORCE_INLINE void upload(size_t a_index, const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
+	{
+		this->m_buffers[a_index].upload(a_data, a_offset);
+	}
+
+	/**
+	 * Uploads all the data in all the buffers to the GPU
+	 */
+	FORCE_INLINE void upload()
+	{
+		for (auto &buffer : this->m_buffers)
+			buffer.gpu_upload();
+	}
+
+	/**
+	 * Uploads the buffer for a specific semantic to the GPU
+	 */
+	FORCE_INLINE void upload(rhi::BufferSemantic a_semantic)
+	{
+		this->buffer(a_semantic).gpu_upload();
+	}
+
+	/**
+	 * Uploads the buffer for a specific index to the GPU
+	 */
+	FORCE_INLINE void upload(size_t a_index)
+	{
+		this->m_buffers[a_index].gpu_upload();
 	}
 
 	/**
 	 * Returns a buffer by semantic
 	 */
-	FORCE_INLINE Buffer& buffer(BufferSemantic a_semantic)
+	FORCE_INLINE Buffer &buffer(BufferSemantic a_semantic)
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
 		return this->m_buffers[index];
@@ -133,27 +165,13 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	/**
 	 * Returns a buffer by index, shouldn't be used if semantics are a better choice
 	 */
-	FORCE_INLINE const Buffer& buffer(size_t a_index) const
+	FORCE_INLINE Buffer &buffer(size_t a_index)
 	{
 		return this->m_buffers[a_index];
 	}
 
-	/**
-	 * Uploads all the data in the buffers to the GPU
-	 */
-	[[noreturn]] FORCE_INLINE void upload()
-	{
-		assert(0 && "Upload not implemented yet");
-		// TODO: Upload to GPU
-		for (auto&buffer : this->m_buffers) {
-			uint8_t a;
-			size_t s{0};
-			buffer.upload(a, s);
-		}
-	}
-
   private:
-	std::vector<Buffer>                          m_buffers{};                  //! All buffers created for different type data
+	std::vector<rhi::Buffer>                     m_buffers{};                  //! All buffers created for different type data
 	std::unordered_map<BufferSemantic, uint32_t> m_attribute_indices{};        //! All indices for any of the ShaderSemantic type, Position and its buffer index, Normal and its buffer index etc
 };
 

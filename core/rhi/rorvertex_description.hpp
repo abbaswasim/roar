@@ -29,11 +29,11 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "rhi/rorvertex_attribute.hpp"
-#include "rhi/rorvertex_layout.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rorvertex_attribute.hpp"
+#include "rhi/rorvertex_layout.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -219,7 +219,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Returns an attribute for specified semantic
 	 * If the key doesn't exisit expect std::out_of_range exception, I can't really catch this exception meaningfully
 	 */
-	FORCE_INLINE const VertexAttribute &attribute(rhi::BufferSemantic a_semantic_key) const
+	FORCE_INLINE VertexAttribute &attribute(rhi::BufferSemantic a_semantic_key) const
 	{
 		return this->m_mapping.at(a_semantic_key).first;
 	}
@@ -228,9 +228,78 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * Returns a layout for specified semantic
 	 * If the key doesn't exisit expect std::out_of_range exception, I can't really catch this exception meaningfully
 	 */
-	FORCE_INLINE const VertexLayout &layout(rhi::BufferSemantic a_semantic_key) const
+	FORCE_INLINE VertexLayout &layout(rhi::BufferSemantic a_semantic_key) const
 	{
 		return this->m_mapping.at(a_semantic_key).second;
+	}
+
+	/**
+	 * Does an upload into the buffer for these attributes
+	 * It can do element wise or bulk upload depending on the source and destination strides
+	 */
+	FORCE_INLINE void upload(const std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> &a_attrib_data, rhi::BuffersPack *a_buffers_pack)
+	{
+		std::unordered_map<size_t, ptrdiff_t> sem_to_buffer_map{};        // TODO: Remove after debugging
+		std::unordered_map<size_t, ptrdiff_t> att_to_buffer_map{};
+
+		for (const auto &attribute : this->m_attributes)
+		{
+			sem_to_buffer_map[attribute.buffer_index()] += rhi::format_to_bytes(attribute.format());        // TODO: Remove after debugging
+			auto data_vec = a_attrib_data.find(attribute.semantics());
+			if (data_vec != a_attrib_data.end())
+			{
+				auto [buffer_pointer, buffer_size, buffer_stride] = data_vec->second;
+				att_to_buffer_map[attribute.buffer_index()] += buffer_size;
+			}
+		}
+
+		// TODO: Remove later, just for testing for now
+		assert(this->m_attributes.size() == this->m_layouts.size());
+		for (size_t i = 0; i < this->m_attributes.size(); ++i)
+			assert(m_layouts[i].stride() == sem_to_buffer_map[m_attributes[i].buffer_index()]);
+
+		// Allocate space for all of the attributes in a specific buffer
+		for (const auto &attr_data : att_to_buffer_map)
+		{
+			auto &buffer = a_buffers_pack->buffer(attr_data.first);
+			auto &attrib = this->m_attributes[attr_data.first];
+			attrib.buffer_offset(buffer.offset(attr_data.second));        // Do allocation by calling Buffer::offset()
+		}
+
+		// Upload the data into the allocated space
+		for (auto &attribute : a_attrib_data)
+		{
+			auto &attrib = this->attribute(attribute.first);
+			auto &layout = this->layout(attribute.first);
+
+			auto  stride        = layout.stride();
+			auto  buffer_index  = attrib.buffer_index();
+			auto  buffer_offset = attrib.buffer_offset();
+			auto  format_bytes  = rhi::format_to_bytes(attrib.format());
+			auto &buffer        = a_buffers_pack->buffer(buffer_index);
+
+			auto [buffer_pointer, buffer_size, buffer_stride] = attribute.second;
+
+			if (stride == format_bytes && buffer_stride == format_bytes)        // Case 1: both source and destination strides are equal to format_bytes, everything is packed
+			{
+				buffer.upload(buffer_pointer, buffer_size, buffer_offset);        // Do a bulk upload
+
+				// attrib.buffer_offset(something);                    // Already set above
+			}
+			else
+			{
+				// Case 2: Destination stride is packed but source stride isn't, destination packed source interleaved
+				// Case 3: Destination stride is interleaved but source stride is packed, destination interleaved source packed
+				// Case 4: Both destination and source stride means they are interleaved
+				auto offset = attrib.offset();
+				auto attrib_offset = buffer_offset + offset;
+				attrib.buffer_offset(attrib_offset);        // And update offset
+
+				// Now lets do elements upload
+				for (size_t i = 0; i < buffer_size; ++i)
+					buffer.upload(buffer_pointer + i * buffer_stride, format_bytes, attrib_offset + stride * static_cast<ptrdiff_t>(i));
+			}
+		}
 	}
 
   private:
@@ -425,7 +494,6 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		}
 
 		// Iterate over attributes to allocate their layouts
-		// for (size_t i = 0; i < this->m_attributes.size(); ++i)
 		for (size_t i = 0; i < a_attributes.size(); ++i)
 		{
 			auto &final_attribute = this->m_attributes[existing_attributes_size + i];

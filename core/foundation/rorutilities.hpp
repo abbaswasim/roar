@@ -30,17 +30,17 @@
 #include <atomic>
 #include <cstdlib>
 #include <functional>
+#include <mutex>
 #include <random>
 #include <stdexcept>
 #include <type_traits>
-#include <mutex>
 
 namespace ror
 {
 #define BUFFER_OFFSET(i) ((char *) nullptr + (i))
 // #define CONSTANT_SEED
 
-constexpr float32_t ror_pi = 3.1415926535897932384626433832795f;        //even though float32_t can't hold all of it :), also known as 180 degrees
+constexpr float32_t ror_pi = 3.1415926535897932384626433832795f;        // even though float32_t can't hold all of it :), also known as 180 degrees
 
 template <class _type>
 constexpr _type ror_pi_typed = static_cast<_type>(3.1415926535897932384626433832795L);
@@ -217,7 +217,9 @@ FORCE_INLINE _type closest(_type a_value, _type a_first, _type a_second)
 {
 	// Converts to decimal from all types including unsigned values, in which case you might loose precision, truncation
 	return (std::abs(ror_precision_cast(a_value) - ror_precision_cast(a_first)) <
-			std::abs(ror_precision_cast(a_value) - ror_precision_cast(a_second)) ? a_first : a_second);
+					std::abs(ror_precision_cast(a_value) - ror_precision_cast(a_second)) ?
+				a_first :
+				a_second);
 }
 
 FORCE_INLINE uint32_t power_of_two(uint32_t a_value)
@@ -287,6 +289,48 @@ FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
 	}
 
 	return static_cast<_type_to>(a_value);
+}
+
+/**
+ * Only valid for positive _type(s) so the compiler will complain otherwise
+ * returns _alignment aligned value/pointer given of the input value/pointer
+ */
+template <class _type,
+		  size_t _alignment>
+constexpr FORCE_INLINE _type align(_type a_input)
+{
+	return static_cast<_type>(static_cast<uint64_t>(a_input + _alignment - 1) & ~uint64_t(_alignment - 1));
+}
+
+template <class _type,
+		  size_t _alignment>
+constexpr FORCE_INLINE _type* align(_type *a_input)
+{
+	return reinterpret_cast<_type*>(reinterpret_cast<uintptr_t>(a_input + _alignment - 1) & ~uintptr_t(_alignment - 1));
+}
+
+template <class _type>
+constexpr FORCE_INLINE _type align4(_type a_input)
+{
+	return align<_type, 4>(a_input);
+}
+
+template <class _type>
+constexpr FORCE_INLINE _type align8(_type a_input)
+{
+	return align<_type, 8>(a_input);
+}
+
+template <class _type>
+constexpr FORCE_INLINE _type* align4(_type* a_input)
+{
+	return align<_type, 4>(a_input);
+}
+
+template <class _type>
+constexpr FORCE_INLINE _type* align8(_type* a_input)
+{
+	return align<_type, 8>(a_input);
 }
 
 template <bool>

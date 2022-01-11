@@ -23,13 +23,13 @@
 //
 // Version: 1.0.0
 
-#include "rhi/rorbuffers_format.hpp"
-#include <cstdio>
 #include "foundation/rorutilities.hpp"
+#include "rhi/rorbuffer.hpp"
+#include "rhi/rorbuffers_format.hpp"
+#include "rhi/rortypes.hpp"
+#include <cstdio>
 #include <functional>
 #include <memory>
-#include "rhi/rorbuffer.hpp"
-#include "rhi/rortypes.hpp"
 #include <unordered_map>
 
 namespace ror
@@ -60,7 +60,7 @@ void BuffersFormatConfig::load_specific()
 		{
 			rhi::Buffer buffer;
 			assert(b.contains("size") && "Each buffer should specifiy a size");
-			uint64_t size = b["size"];
+			ptrdiff_t size = b["size"];
 			size *= this->m_buffers_format.m_unit;
 			buffer.size(size);
 
@@ -131,12 +131,12 @@ void BuffersFormatConfig::load_remaining_buffers()
 		assert(empty_buffer != nullptr && "Buffer pack doesn't provide an empty buffer for remaining buffers");
 
 		// In the empty buffer find place for the remaining semantics
-		size_t result = std::accumulate(std::begin(remaining), std::end(remaining), 0ULL,
-										[](const size_t previous, const std::pair<rhi::BufferSemantic, bool> &p) {
-											return previous + (p.second ? 0 : 1);
-										});
+		auto result = std::accumulate(std::begin(remaining), std::end(remaining), 0LL,
+									  [](const size_t previous, const std::pair<rhi::BufferSemantic, bool> &p) {
+										  return previous + (p.second ? 0 : 1);
+									  });
 
-		uint64_t per_buffer_size = empty_buffer->size() / result;        // Roughly split the size of the empty buffer between the remaining semantics
+		auto per_buffer_size = empty_buffer->size() / result;        // Roughly split the size of the empty buffer between the remaining semantics
 		for (auto &semantic : remaining)
 			if (semantic.second == false)
 				empty_buffer->emplace_semantic({semantic.first, per_buffer_size});

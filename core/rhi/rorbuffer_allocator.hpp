@@ -27,6 +27,7 @@
 
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
+#include <cstddef>
 
 // #define WITHOUT_BUFFER_ALLOCATOR
 
@@ -76,7 +77,7 @@ class ROAR_ENGINE_ITEM BufferAllocator final
 				throw std::bad_alloc();
 		}
 
-		return reinterpret_cast<_type *>(b.request(a_count * sizeof(_type)));
+		return reinterpret_cast<_type *>(b.request(static_cast<ptrdiff_t>(a_count * sizeof(_type))));
 	}
 
 	FORCE_INLINE void deallocate(_type *a_pointer, std::size_t a_count) noexcept

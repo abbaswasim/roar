@@ -49,12 +49,6 @@ class ROAR_ENGINE_ITEM Buffer final
 
 	declare_translation_unit_vtable();
 
-	// FORCE_INLINE Buffer(uint32_t a_size)
-	// {
-	//	this->m_size_in_bytes = a_size;
-	//	// TODO: Dispatch for device buffer creation
-	// }
-
 	// TODO: Remove the following, no need for individual semantic size, turn semantic into uint64_t value instead of vector
 	using BufferSemanticPair    = std::pair<BufferSemantic, uint64_t>;
 	using BufferSemanticPairVec = std::vector<BufferSemanticPair>;
@@ -62,29 +56,34 @@ class ROAR_ENGINE_ITEM Buffer final
 	/**
 	 * Returns offset of the location available
 	 */
-	uint64_t                     offset(uint64_t a_bytes);                          //! Returns offset of the location available
-	uint8_t                     *request(uint64_t a_bytes);                         //! Returns pointer offset
-	uint64_t                     upload(uint8_t &a_data, uint64_t a_length);        //! Also returns the offset where the data is uploaded
+	ptrdiff_t                    offset(ptrdiff_t a_bytes);                                               //! Returns offset of the location available
+	uint8_t                     *request(ptrdiff_t a_bytes);                                              //! Returns pointer offset
+	void                         upload(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset);        //! Also returns the offset where the data is uploaded
+	void                         upload(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset);          //! Also returns the offset where the data is uploaded
 	uint32_t                     handle() noexcept;
 	void                         map() noexcept;
 	void                         unmap() noexcept;
-	void                         size(uint64_t a_size) noexcept;
-	uint64_t                     size() const noexcept;
+	void                         size(ptrdiff_t a_size) noexcept;
+	ptrdiff_t                    size() const noexcept;
 	void                         interleaved(bool a_interleaved) noexcept;
 	bool                         interleaved() const noexcept;
 	void                         emplace_semantic(BufferSemanticPair &&a_pair);
 	BufferSemanticPair           semantic(size_t a_index) const noexcept;
 	const BufferSemanticPairVec &semantics() const noexcept;
+	void                         gpu_upload() noexcept;        //! Uploads the buffer to the GPU
 
   private:
-	void     _upload(uint8_t &a_data, uint64_t a_length);        // TODO: To be implemented in renderer or via CRTP
-	uint64_t _offset(uint64_t a_bytes);                          //! Returns offset of the location available
+	void      _upload();                                                      // TODO: To be implemented in renderer or via CRTP
+	void      _partial_upload(ptrdiff_t a_offset, ptrdiff_t a_length);        // TODO: To be implemented in renderer or via CRTP
+	ptrdiff_t _offset(ptrdiff_t a_bytes);                                     //! Returns offset of the location available
+
+	// TODO: Make me thread safe
 
 	// uint32_t           m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
 	// uint8_t *          m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
 	// bool               m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
-	uint64_t              m_filled_size{0};                 //! How much of the buffer is filled, this should be aligned(to_something)
-	uint64_t              m_size_in_bytes{0};               //! This is the total size in bytes
+	ptrdiff_t             m_filled_size{0};                 //! How much of the buffer is filled, this should be aligned(to_something)
+	ptrdiff_t             m_size_in_bytes{0};               //! This is the total size in bytes
 	BufferSemanticPairVec m_semantics{};                    //! Pair of semantic and size required
 	bool                  m_interleaved_local{true};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT
 	std::vector<uint8_t>  m_data{};                         //! Data block of the buffer, TODO: This needs to be triple buffered
