@@ -28,3 +28,6 @@
 [submodule "thirdparty/CTPL"]
 	path = thirdparty/CTPL
 	url = https://github.com/vit-vit/CTPL.git
+[submodule "thirdparty/basis_universal"]
+	path = thirdparty/basis_universal
+	url = https://github.com/BinomialLLC/basis_universal.git
