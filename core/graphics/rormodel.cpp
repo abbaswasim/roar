@@ -618,7 +618,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 			Mesh             &mesh  = this->m_meshes[i];
 			const cgltf_mesh &cmesh = data->meshes[i];
 
-			mesh.m_parts.resize(cmesh.primitives_count);
+			mesh.m_attribute_vertex_descriptors.resize(cmesh.primitives_count);
+			mesh.m_morph_targets_vertex_descriptors.resize(cmesh.primitives_count);
 			mesh.m_primitive_types.resize(cmesh.primitives_count);
 			mesh.m_has_indices_states.resize(cmesh.primitives_count);
 			// The last 2 are important and definitely needs reserving because these are BufferAllocated
@@ -628,7 +629,10 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 			for (size_t j = 0; j < cmesh.primitives_count; ++j)
 			{
 				const cgltf_primitive &cprim = cmesh.primitives[j];
-				Mesh::Drawable        &prim  = mesh.m_parts[j];
+				auto                  &avd   = mesh.m_attribute_vertex_descriptors[j];
+				auto                  &amts  = mesh.m_morph_targets_vertex_descriptors[j];
+
+				std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> attribs_data;
 
 				assert(cprim.type == cgltf_primitive_type_triangles && "Mesh primitive type is not triangles which is the only supported type at the moment");
 				mesh.m_primitive_types[i] = static_cast<rhi::PrimitiveTopology>(cprim.type);        // TODO: Create a switch for this, incase the types don't match in the future, also support more types
@@ -656,8 +660,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					auto index_format            = get_format_from_gltf_type_format(cprim.indices->type, cprim.indices->component_type);
 
 					// TODO: GL expects stride to be zero if data is tightly packed
-
 					// TODO: Check if accessor is sparse to unpack it using cgltf_accessor_unpack_floats first before calling the bellow
+
 					auto attrib_accessor   = cprim.indices;
 					auto buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
 					auto indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
