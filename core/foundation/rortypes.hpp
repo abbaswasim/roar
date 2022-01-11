@@ -29,6 +29,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <type_traits>
+#include <vector>
 
 using ::int16_t;
 using ::int32_t;
@@ -159,6 +160,12 @@ static_assert(std::alignment_of<ptrdiff_t>() == 8, "ptrdiff_t is not 8 bytes ali
 static_assert(std::alignment_of<hash_128_t>() == 8, "has_128_t is not 16 bytes aligned");
 
 #endif
+
+// Loads data at 8 bytes aligned address
+static_assert(alignof(std::vector<uint8_t>) == 8, "Bytes vector not aligned to 8 bytes");
+static_assert(alignof(std::vector<int8_t>) == 8, "Bytes vector not aligned to 8 bytes");
+static_assert(alignof(std::vector<char8_t>) == 8, "Bytes vector not aligned to 8 bytes");
+static_assert(alignof(std::vector<char>) == 8, "Bytes vector not aligned to 8 bytes");
 
 namespace ror
 {
