@@ -32,11 +32,15 @@
 #include "graphics/rornode.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rorvertex_description.hpp"
 #include <cassert>
 #include <cstddef>
 #include <cstring>
+#include <unordered_map>
+#include <vector>
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf/cgltf.h"
@@ -341,7 +345,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 	auto &filename = resource.absolute_path();
 
 	// Get an instance of job system
-	auto &js = get_job_system();
+	auto &js = ror::get_job_system();
+	auto &bp = rhi::get_buffers_pack();
 
 	cgltf_options options{};        // Default setting
 	cgltf_data   *data{nullptr};
@@ -648,24 +653,22 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						ror::log_critical("Mesh has meshopt_compression but its not supported");
 
 					mesh.m_has_indices_states[j] = true;
+					auto index_format            = get_format_from_gltf_type_format(cprim.indices->type, cprim.indices->component_type);
 
-					prim.m_attributes[AttributeIndices::vertex_index_index].m_count        = cprim.indices->count;
-					prim.m_attributes[AttributeIndices::vertex_index_index].m_buffer_index = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
-					prim.m_attributes[AttributeIndices::vertex_index_index].m_offset       = cprim.indices->buffer_view->offset + cprim.indices->offset;
-					prim.m_attributes[AttributeIndices::vertex_index_index].m_stride       = /* cprim.indices->buffer_view->stride +  */ cprim.indices->stride;
-					prim.m_attributes[AttributeIndices::vertex_index_index].m_stride       = cprim.indices->buffer_view->stride;        // Override previous set stride
-					prim.m_attributes[AttributeIndices::vertex_index_index].m_format       = get_format_from_gltf_type_format(cprim.indices->type, cprim.indices->component_type);
+					// TODO: GL expects stride to be zero if data is tightly packed
 
-					auto indices_byte_size = cgltf_calc_size(cprim.indices->type, cprim.indices->component_type);
+					// TODO: Check if accessor is sparse to unpack it using cgltf_accessor_unpack_floats first before calling the bellow
+					auto attrib_accessor   = cprim.indices;
+					auto buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
+					auto indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
+					auto stride            = cprim.indices->buffer_view->stride;
 
-					// TODO: This is only required because GL expects stride to be zero in data is tightly packed
-					if (prim.m_attributes[AttributeIndices::vertex_index_index].m_stride >= indices_byte_size)
-					{
-						prim.m_attributes[AttributeIndices::vertex_index_index].m_stride -= indices_byte_size;
-						ror::log_error("Stride is adjusted for GL, it won't work in Vulkan/Metal/DX");
-					}
+					uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
 
-					// assert(cprim.indices->stride == 0 && "Index accessor shouldn't have a stride value");
+					std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * indices_byte_size, stride};
+					attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
+
+					avd.add(rhi::BufferSemantic::vertex_index, index_format, &bp);
 				}
 
 				// Read all other vertex attributes
@@ -683,6 +686,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						case cgltf_attribute_type_position:
 							assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Position not in the right format, float3 required");        // FIXME: Allow other types
 							assert(attrib.data->has_min && attrib.data->has_max && "Position attributes must provide min and max");
+							assert(attrib.index == 0 && "Don't suport more than 1 position");
 
 							current_index = AttributeIndices::vertex_position_index;
 							mesh.m_bounding_boxes[j].create_from_min_max({attrib.data->min[0], attrib.data->min[1], attrib.data->min[2]},
@@ -690,85 +694,68 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 							break;
 						case cgltf_attribute_type_normal:
 							assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Normal not in the right format, float3 required");
+							assert(attrib.index == 0 && "Don't suport more than 1 normal");
 							current_index = AttributeIndices::vertex_normal_index;
 							break;
 						case cgltf_attribute_type_tangent:
 							assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec4 && "Tangent not in the right format, float3 required");
+							assert(attrib.index == 0 && "Don't suport more than 1 tangent");
 							current_index = AttributeIndices::vertex_tangent_index;
 							break;
 						case cgltf_attribute_type_texcoord:
 							assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec2 && "Texture coordinate not in the right format, float2 required");
-							current_index = AttributeIndices::vertex_texture_coord_0_index;
-							if (prim.m_attributes[current_index].m_buffer_index != -1)        // This means already assigned once
-							{
-								current_index = AttributeIndices::vertex_texture_coord_1_index;
-								assert(prim.m_attributes[current_index].m_buffer_index == -1 && "Don't support more than 2 texture coordinate sets");
-								assert(attrib.index == 1 && "rhi::BufferView index is wrong, it should be 1 if we are updating texcoord1");
-							}
+							assert(attrib.index < 2 && "Don't support more than 2 texture coordinate sets");
+							current_index = static_cast<AttributeIndices>(AttributeIndices::vertex_texture_coord_0_index + attrib.index);
 							break;
 						case cgltf_attribute_type_color:
-							// if (attrib.data->type == cgltf_type_vec4)
-							//	ror::log_critical("Its vector 4");
 							// assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Color not in the right format, float3 required");
-							current_index = AttributeIndices::vertex_color_0_index;
-							if (prim.m_attributes[current_index].m_buffer_index != -1)        // This means already assigned once
-							{
-								current_index = AttributeIndices::vertex_color_1_index;
-								assert(prim.m_attributes[current_index].m_buffer_index == -1 && "Don't support more than 2 color sets");
-								assert(attrib.index == 1 && "rhi::BufferView index is wrong, it should be 1 if we are updating color1");
-							}
+							assert(attrib.index < 2 && "Don't support more than 2 color sets");
+							current_index = static_cast<AttributeIndices>(AttributeIndices::vertex_color_0_index + attrib.index);
 							break;
 						case cgltf_attribute_type_joints:
 							assert((attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
 								   attrib.data->type == cgltf_type_vec4 && "Joints not in the right format, unsigned8/16_4 required");
-							current_index = AttributeIndices::vertex_bone_id_0_index;
-							if (prim.m_attributes[current_index].m_buffer_index != -1)        // This means already assigned once
-							{
-								current_index = AttributeIndices::vertex_bone_id_1_index;
-								assert(prim.m_attributes[current_index].m_buffer_index == -1 && "Don't support more than 2 joint sets");
-								assert(attrib.index == 1 && "rhi::BufferView index is wrong, it should be 1 if we are updating joint1");
-							}
+							assert(attrib.index < 2 && "Don't support more than 2 joint sets");
+							current_index = static_cast<AttributeIndices>(AttributeIndices::vertex_bone_id_0_index + attrib.index);
 							break;
 						case cgltf_attribute_type_weights:
 							assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
 								   attrib.data->type == cgltf_type_vec4 && "Weights not in the right format, unsigned_8/16/float_4 required");
-							current_index = AttributeIndices::vertex_weight_0_index;
-							if (prim.m_attributes[current_index].m_buffer_index != -1)        // This means already assigned once
-							{
-								current_index = AttributeIndices::vertex_weight_1_index;
-								assert(prim.m_attributes[current_index].m_buffer_index == -1 && "Don't support more than 2 weight sets");
-								assert(attrib.index == 1 && "rhi::BufferView index is wrong, it should be 1 if we are updating weight1");
-							}
+							assert(attrib.index < 2 && "Don't support more than 2 weight sets");
+							current_index = static_cast<AttributeIndices>(AttributeIndices::vertex_weight_0_index + attrib.index);
 							break;
 						case cgltf_attribute_type_invalid:
 							assert(0 && "rhi::BufferView not valid yet");
 							break;
 					}
 
-					prim.m_attributes[current_index].m_buffer_index = find_safe_index(buffer_to_index, attrib.data->buffer_view->buffer);
-					prim.m_attributes[current_index].m_count        = attrib.data->count;
-					prim.m_attributes[current_index].m_offset       = attrib.data->buffer_view->offset + attrib.data->offset;
-					prim.m_attributes[current_index].m_stride       = /* attrib.data->buffer_view->stride +  */ attrib.data->stride;
-					prim.m_attributes[current_index].m_stride       = attrib.data->buffer_view->stride;
-					prim.m_attributes[current_index].m_format       = get_format_from_gltf_type_format(attrib.data->type, attrib.data->component_type);
+					// TODO: GL expects stride to be zero if data is tightly packed
+					// TODO: Check for sparse accessors and unpack it
 
-					auto attrib_byte_size = cgltf_calc_size(attrib.data->type, attrib.data->component_type);
+					const auto *attrib_accessor  = attrib.data;
+					auto        attrib_format    = get_format_from_gltf_type_format(attrib_accessor->type, attrib_accessor->component_type);
+					auto        buffer_index     = find_safe_index(buffer_to_index, attrib_accessor->buffer_view->buffer);
+					auto        attrib_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
+					auto        stride           = attrib_accessor->buffer_view->stride;
+					uint8_t    *data_pointer     = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
 
-					// TODO: This is only required because GL expects stride to be zero in data is tightly packed
-					if (prim.m_attributes[current_index].m_stride >= attrib_byte_size)
-					{
-						prim.m_attributes[current_index].m_stride -= attrib_byte_size;
-						ror::log_error("Stride is adjusted for GL, it won't work in Vulkan/Metal/DX");
-					}
+					std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * attrib_byte_size, stride};
+					attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
 
-					// assert(attrib.data->stride == 0 && "rhi::BufferView accessor shouldn't have a stride");
+					avd.add(static_cast<rhi::BufferSemantic>(current_index), attrib_format);
 				}
+
+				// Now upload data from all the attributes int avd
+				avd.upload(attribs_data, &bp);
 
 				// Read morph targets
 				assert(cprim.targets_count <= max_morph_targets && "Too many morph targets provided");
 				for (size_t k = 0; k < cprim.targets_count; ++k)
 				{
 					const cgltf_morph_target &target = cprim.targets[k];
+
+					std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> morph_targets_attribs_data;
+
 					for (size_t l = 0; l < target.attributes_count; ++l)
 					{
 						const cgltf_attribute &attrib = target.attributes[l];
@@ -811,24 +798,24 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 								break;
 						}
 
-						prim.m_morph_targets[k][current_index].m_buffer_index = find_safe_index(buffer_to_index, attrib.data->buffer_view->buffer);
-						prim.m_morph_targets[k][current_index].m_count        = attrib.data->count;
-						prim.m_morph_targets[k][current_index].m_offset       = attrib.data->buffer_view->offset + attrib.data->offset;
-						prim.m_morph_targets[k][current_index].m_stride       = /* attrib.data->buffer_view->stride +  */ attrib.data->stride;
-						prim.m_morph_targets[k][current_index].m_stride       = attrib.data->buffer_view->stride;
-						prim.m_morph_targets[k][current_index].m_format       = get_format_from_gltf_type_format(attrib.data->type, attrib.data->component_type);
+						// TODO: GL expects stride to be zero if data is tightly packed
+						// TODO: Check for sparse accessors and unpack it
 
-						auto attrib_byte_size = cgltf_calc_size(attrib.data->type, attrib.data->component_type);
+						const auto *attrib_accessor  = attrib.data;
+						auto        attrib_format    = get_format_from_gltf_type_format(attrib_accessor->type, attrib_accessor->component_type);
+						auto        buffer_index     = find_safe_index(buffer_to_index, attrib_accessor->buffer_view->buffer);
+						auto        attrib_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
+						auto        stride           = attrib_accessor->buffer_view->stride;
+						uint8_t    *data_pointer     = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
 
-						// TODO: This is only required because GL expects stride to be zero in data is tightly packed
-						if (prim.m_morph_targets[k][current_index].m_stride >= attrib_byte_size)
-						{
-							prim.m_morph_targets[k][current_index].m_stride -= attrib_byte_size;
-							ror::log_error("Stride is adjusted for GL, it won't work in Vulkan/Metal/DX");
-						}
+						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * attrib_byte_size, stride};
+						attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
 
-						// assert(attrib.data->stride == 0 && "rhi::BufferView accessor shouldn't have a stride");
+						amts[k].add(static_cast<rhi::BufferSemantic>(current_index), attrib_format);
 					}
+
+					// TODO: Now copy all the buffer_views for morph_targets
+					amts[k].upload(morph_targets_attribs_data, &bp);
 				}
 
 				// Save Morph target weights
@@ -885,7 +872,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 				assert(inverse_bind_matrices_accessor->buffer_view->stride == attrib_byte_size && "Looks like inverse_bind_matrices data is interleaved, not supported");
 
-				// TODO: This is only required because GL expects stride to be zero in data is tightly packed
+				// TODO: This is only required because GL expects stride to be zero if data is tightly packed
 				if (inverse_bind_matrices_accessor->buffer_view->stride >= attrib_byte_size)
 				{
 					ror::log_error("Stride was suppose to be adjusted for GL, it won't work in Vulkan/Metal/DX");
@@ -988,13 +975,13 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						auto bytes = rhi::format_to_bytes(fmt);
 						assert(bytes == 4 && "Animation sampler input value is not floats and 4 bytes");
 					}
-					animation_sampler.m_input.resize(anim_sampler_accessor->count);
+					auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
+					animation_sampler.m_input.resize(anim_sampler_accessor->count * attrib_byte_size / sizeof(float32_t));        // This will be 4/4 which is fine
 
 					cgltf_accessor_unpack_floats(anim_sampler_accessor,
 												 reinterpret_cast<cgltf_float *>(animation_sampler.m_input.data()),
 												 animation_sampler.m_input.size());
 
-					auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
 					assert(anim_sampler_accessor->buffer_view->stride == attrib_byte_size && "Looks like sampler input data is interleaved, not supported");
 				}
 
@@ -1012,7 +999,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 					cgltf_accessor_unpack_floats(anim_sampler_accessor,
 												 reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
-												 animation_sampler.m_output.size() * anim_sampler_accessor->count);
+												 animation_sampler.m_output.size());        // TODO: Why was I doing this before * anim_sampler_accessor->count);
 
 					assert(anim_sampler_accessor->buffer_view->stride == attrib_byte_size && "Looks like sampler output data is interleaved, not supported");
 				}

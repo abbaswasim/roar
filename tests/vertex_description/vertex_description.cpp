@@ -25,6 +25,7 @@
 
 #include "common.hpp"
 #include "graphics/rormesh.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorvertex_description.hpp"
 #include "foundation/rorutilities.hpp"

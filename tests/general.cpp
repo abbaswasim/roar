@@ -172,8 +172,6 @@ TEST(RoarGeneral, DISABLED_RoarGeneral_hash_performance_size_t)
 		}
 		std::cout << "sum = " << sum << std::endl;
 	}
-
-	std::cout << " sizeof Drawable = " << sizeof(ror::Mesh::Drawable);
 }
 
 TEST(RoarGeneral, size_of_stuff)
