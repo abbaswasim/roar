@@ -32,7 +32,6 @@
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorhandles.hpp"
-#include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <bitset>
 #include <limits>

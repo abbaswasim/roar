@@ -26,14 +26,38 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rortypes.hpp"
+#include <atomic>
 #include <filesystem>
+#include <memory>
+#include <utility>
 #include <vector>
+
+// Global function to create rhi::TextureImage
+#include "transcoder/basisu_transcoder.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+// #include "stb/stb_image.h"
 
 namespace rhi
 {
+
+enum class TextureTarget
+{
+	texture_1D,
+	texture_2D,
+	texture_3D,
+	texture_cube,
+	texture_2D_MS,
+	texture_2D_MS_array,
+	texture_1D_array,
+	texture_2D_array,
+	texture_cube_array
+};
+
 class ROAR_ENGINE_ITEM TextureImage final
 {
   public:
@@ -44,50 +68,42 @@ class ROAR_ENGINE_ITEM TextureImage final
 	FORCE_INLINE TextureImage &operator=(TextureImage &&a_other) noexcept = default;           //! Move assignment operator
 	FORCE_INLINE ~TextureImage() noexcept                                 = default;           //! Destructor
 
-	enum class TextureTarget
-	{
-		texture_1D,
-		texture_2D,
-		texture_3D,
-		texture_cube,
-		texture_2D_MS,
-		texture_2D_MS_array,
-		texture_1D_array,
-		texture_2D_array,
-		texture_cube_array
-	};
-
 	struct Mipmap
 	{
 		uint32_t m_width{0};         // Width of this mipmap
 		uint32_t m_height{0};        // Height of this mipmap
 		uint32_t m_depth{1};         // Depth of this mipmap, always 1 unless 3D volume texture
-		uint64_t m_offset{0};        // Offset in the data array inside the TexturImagee
+		uint64_t m_offset{0};        // Offset in the data array inside the TexturImage
 	};
 
 	FORCE_INLINE TextureAPIHandle handle() const noexcept;
 	FORCE_INLINE uint32_t         width() const noexcept;
 	FORCE_INLINE uint32_t         height() const noexcept;
+	FORCE_INLINE uint32_t         depth() const noexcept;
 	FORCE_INLINE PixelFormat      format() const noexcept;
 	FORCE_INLINE uint32_t         levels() const noexcept;
 	FORCE_INLINE TextureTarget    target() const noexcept;
+	FORCE_INLINE uint8_t         *data() const noexcept;
+	FORCE_INLINE std::vector<Mipmap> &mips() noexcept;
 
 	FORCE_INLINE void handle(TextureHandle) noexcept;
 	FORCE_INLINE void width(uint32_t) noexcept;
 	FORCE_INLINE void height(uint32_t) noexcept;
+	FORCE_INLINE void depth(uint32_t) noexcept;
 	FORCE_INLINE void format(PixelFormat) noexcept;
 	FORCE_INLINE void target(TextureTarget) noexcept;
+	FORCE_INLINE void reset(uint8_t *, uint64_t) noexcept;
+	FORCE_INLINE void push_empty_mip() noexcept;
+	FORCE_INLINE void allocate(uint64_t a_size);
 
   protected:
   private:
-	FORCE_INLINE void allocate(uint64_t a_size);
-
-	TextureAPIHandle     m_handle{-1};                                            // Texture id used by the Renderer APIs
-	uint64_t             m_size{0};                                               // Size of all mipmaps combined in bytes
-	TextureTarget        m_target{TextureTarget::texture_2D};                     // Can be 1D, 2D or 3D etc texture
-	PixelFormat          m_format{PixelFormat::r8g8b8a8_uint32_norm_srgb};        // Pixel format of the texture
-	std::vector<uint8_t> m_data{};                                                // All mipmaps data, NOTE: This doesn't have to be BufferAllocated
-	std::vector<Mipmap>  m_mips{};                                                // Will have at least one level, base texture width and height are mip[0] width/height, NOTE: This doesn't have to be BufferAllocated
+	TextureAPIHandle           m_handle{-1};                                            // Texture id used by the Renderer APIs
+	uint64_t                   m_size{0};                                               // Size of all mipmaps combined in bytes
+	TextureTarget              m_target{TextureTarget::texture_2D};                     // Can be 1D, 2D or 3D etc texture
+	PixelFormat                m_format{PixelFormat::r8g8b8a8_uint32_norm_srgb};        // Pixel format of the texture
+	std::unique_ptr<uint8_t[]> m_data{};                                                // All mipmaps data, NOTE: This doesn't have to be BufferAllocated
+	std::vector<Mipmap>        m_mips{};                                                // Will have at least one level, base texture width and height are mip[0] width/height, NOTE: This doesn't have to be BufferAllocated
 };
 
 // static_assert(std::is_trivially_copyable_v<TextureImage>, "TextureImage is not trivially copyable");
@@ -145,6 +161,21 @@ define_type_to_shader_semantics(Texture)
 {
 	return BufferSemantic::texture_data;
 }
+
+/**
+ * @brief      Generic image loader that will invoke the right decoder based on extension from absolute path
+ * @details    Read a texture via absolute file name via resource loading mechanism.
+ *             Internally it might use stb or basisu or ktx to load different types of texture images
+ * @param      a_absolute_file_name As the name suggests, an absolute file name of the texture to load
+ * @return     TextureImage that contains all the mipmaps of the texture and all pixel data
+ */
+template <TextureTarget _target>
+FORCE_INLINE TextureImage read_texture_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
+
+FORCE_INLINE TextureImage read_texture_1d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
+FORCE_INLINE TextureImage read_texture_2d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
+FORCE_INLINE TextureImage read_texture_3d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
+FORCE_INLINE TextureImage read_texture_cube_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
 
 }        // namespace rhi
 

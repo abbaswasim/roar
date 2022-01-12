@@ -55,16 +55,16 @@ target_sources(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h)
 target_include_directories(stb INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # Add basis
-# set(BASIS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/basis_universal)
-# set(BASIS_SOURCE_FILES
-#	${BASIS_DIR}/transcoder/basisu_transcoder.cpp
-#	${BASIS_DIR}/transcoder/basisu_transcoder.h
-#	${BASIS_DIR}/zstd/zstddeclib.c)
+set(BASIS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/basis_universal)
+set(BASIS_SOURCE_FILES
+	${BASIS_DIR}/transcoder/basisu_transcoder.cpp
+	${BASIS_DIR}/transcoder/basisu_transcoder.h
+	${BASIS_DIR}/zstd/zstddeclib.c)
 
-# add_library(basisu STATIC ${BASIS_SOURCE_FILES})
-# target_include_directories(basisu PUBLIC ${BASIS_DIR})
-# target_include_directories(basisu PUBLIC ${BASIS_DIR}/transcoder)
-# target_compile_options(basisu PUBLIC "-fno-strict-aliasing")
+add_library(basisu STATIC ${BASIS_SOURCE_FILES})
+target_include_directories(basisu PUBLIC ${BASIS_DIR})
+target_include_directories(basisu PUBLIC ${BASIS_DIR}/transcoder)
+target_compile_options(basisu PUBLIC "-fno-strict-aliasing")
 
 # Add cgltf
 add_library(cgltf INTERFACE)

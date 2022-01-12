@@ -169,6 +169,10 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	{
 		return this->m_buffers[a_index];
 	}
+	FORCE_INLINE const Buffer &buffer(size_t a_index) const
+	{
+		return this->m_buffers[a_index];
+	}
 
   private:
 	std::vector<rhi::Buffer>                     m_buffers{};                  //! All buffers created for different type data

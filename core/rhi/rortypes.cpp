@@ -89,6 +89,9 @@ uint32_t pixel_format_to_bytes(PixelFormat a_pixel_format)
 		case PixelFormat::r32g32b32a32_uint128:
 		case PixelFormat::r32g32b32a32_float128:
 			return 128;
+		case PixelFormat::astc_4x4_srgb_block:
+		case PixelFormat::bc7_srgb_block:
+			return 16;
 	}
 
 	return 0;

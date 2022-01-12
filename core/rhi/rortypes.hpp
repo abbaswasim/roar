@@ -100,6 +100,10 @@ enum class PixelFormat
 	depth24_stencil8_uint32_norm,
 	depth32_float32,
 	depth32_stencil8_float32,        //! Not sure if this is supported anywhere?
+
+	// TODO: Add more astc and other compressed types
+	astc_4x4_srgb_block,
+	bc7_srgb_block
 };
 
 enum class VertexFormat

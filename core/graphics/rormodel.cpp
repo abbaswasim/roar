@@ -26,12 +26,15 @@
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
+#include "foundation/rorutilities.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
+#include "graphics/rortexture.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rorbuffer_view.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
@@ -44,8 +47,6 @@
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf/cgltf.h"
-
-#include "ctpl_stl.h"
 
 namespace ror
 {
@@ -70,17 +71,6 @@ ResourceExtension extension_from_mimetype(const char *a_mimetype)
 
 	assert(0 && "Add other mimetypes");
 	return ResourceExtension::unknown;
-}
-
-rhi::TextureImage read_texture_from_file(std::filesystem::path a_texture_file)
-{
-	(void) a_texture_file;
-
-	rhi::TextureImage ti;
-	// TODO: Now read the image from memory using stb_image
-	// First read as Resource then read from memory
-	// stbi_load_from_memory(buffer,size,x,y,nc,dc);
-	return ti;
 }
 
 rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options, const char *a_uri, const char *a_mimetype)
@@ -109,10 +99,10 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 	cgltf_result res  = cgltf_load_buffer_base64(a_options, data_size, data_start, reinterpret_cast<void **>(&data));
 	assert(res == cgltf_result_success && "Base64 decoding failed for image");
 
-	assert(0);
 	// TODO: Now read the image from memory using stb_image
 	// stbi_load_from_memory(buffer,size,x,y,nc,dc);
 	// Later need to delete data pointer
+	ror::log_critical("read_texture_from_cgltf_base64 not implemented");
 	delete[] data;
 
 	return ti;
@@ -234,29 +224,6 @@ cgltf_result cgltf_load_buffers_as_resource(const cgltf_options *options, cgltf_
 
 	return cgltf_result_success;
 }
-
-// typedef enum cgltf_component_type
-// {
-//	cgltf_component_type_invalid,
-//	cgltf_component_type_r_8,   /* BYTE */
-//	cgltf_component_type_r_8u,  /* UNSIGNED_BYTE */
-//	cgltf_component_type_r_16,  /* SHORT */
-//	cgltf_component_type_r_16u, /* UNSIGNED_SHORT */
-//	cgltf_component_type_r_32u, /* UNSIGNED_INT */
-//	cgltf_component_type_r_32f, /* FLOAT */
-// } cgltf_component_type;
-
-// typedef enum cgltf_type
-// {
-//	cgltf_type_invalid,
-//	cgltf_type_scalar,
-//	cgltf_type_vec2,
-//	cgltf_type_vec3,
-//	cgltf_type_vec4,
-//	cgltf_type_mat2,
-//	cgltf_type_mat3,
-//	cgltf_type_mat4,
-// } cgltf_type;
 
 rhi::Format get_format_from_gltf_type_format(cgltf_type a_type, cgltf_component_type a_component_type)
 {
@@ -382,7 +349,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 		std::unordered_map<const cgltf_skin *, int32_t>     skin_to_index{};
 
 		auto from_file_lambda = [](std::filesystem::path &a_texture_path) -> rhi::TextureImage {
-			return ror::read_texture_from_file(a_texture_path.c_str());
+			return rhi::read_texture_2d_from_file(a_texture_path);
 		};
 
 		auto from_base64_lambda = [&options](const char *a_uri, const char *a_mimetype) -> rhi::TextureImage {
@@ -660,14 +627,13 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					auto index_format            = get_format_from_gltf_type_format(cprim.indices->type, cprim.indices->component_type);
 
 					// TODO: GL expects stride to be zero if data is tightly packed
-					// TODO: Check if accessor is sparse to unpack it using cgltf_accessor_unpack_floats first before calling the bellow
+					assert(!cprim.indices->is_sparse && "Sparce index buffers not supported");
 
-					auto attrib_accessor   = cprim.indices;
-					auto buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
-					auto indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
-					auto stride            = cprim.indices->buffer_view->stride;
-
-					uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
+					auto     attrib_accessor   = cprim.indices;
+					auto     buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
+					auto     indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
+					auto     stride            = cprim.indices->buffer_view->stride;
+					uint8_t *data_pointer      = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
 
 					std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * indices_byte_size, stride};
 					attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
@@ -683,7 +649,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					assert(attrib.data->buffer_view && "rhi::BufferView doesn't have a valid buffer view");
 					assert(!attrib.data->is_sparse && "Don't support sparse attribute accessors");
 
-					AttributeIndices current_index = AttributeIndices::vertex_position_index;
+					rhi::BufferSemantic current_index = rhi::BufferSemantic::vertex_position;
 
 					switch (attrib.type)
 					{
@@ -692,41 +658,41 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 							assert(attrib.data->has_min && attrib.data->has_max && "Position attributes must provide min and max");
 							assert(attrib.index == 0 && "Don't suport more than 1 position");
 
-							current_index = AttributeIndices::vertex_position_index;
+							current_index = rhi::BufferSemantic::vertex_position;
 							mesh.m_bounding_boxes[j].create_from_min_max({attrib.data->min[0], attrib.data->min[1], attrib.data->min[2]},
 																		 {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
 							break;
 						case cgltf_attribute_type_normal:
 							assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Normal not in the right format, float3 required");
 							assert(attrib.index == 0 && "Don't suport more than 1 normal");
-							current_index = AttributeIndices::vertex_normal_index;
+							current_index = rhi::BufferSemantic::vertex_normal;
 							break;
 						case cgltf_attribute_type_tangent:
 							assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec4 && "Tangent not in the right format, float3 required");
 							assert(attrib.index == 0 && "Don't suport more than 1 tangent");
-							current_index = AttributeIndices::vertex_tangent_index;
+							current_index = rhi::BufferSemantic::vertex_tangent;
 							break;
 						case cgltf_attribute_type_texcoord:
 							assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec2 && "Texture coordinate not in the right format, float2 required");
 							assert(attrib.index < 2 && "Don't support more than 2 texture coordinate sets");
-							current_index = static_cast<AttributeIndices>(AttributeIndices::vertex_texture_coord_0_index + attrib.index);
+							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) + static_cast_safe<uint64_t>(attrib.index));
 							break;
 						case cgltf_attribute_type_color:
 							// assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Color not in the right format, float3 required");
 							assert(attrib.index < 2 && "Don't support more than 2 color sets");
-							current_index = static_cast<AttributeIndices>(AttributeIndices::vertex_color_0_index + attrib.index);
+							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0) + static_cast_safe<uint64_t>(attrib.index));
 							break;
 						case cgltf_attribute_type_joints:
 							assert((attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
 								   attrib.data->type == cgltf_type_vec4 && "Joints not in the right format, unsigned8/16_4 required");
 							assert(attrib.index < 2 && "Don't support more than 2 joint sets");
-							current_index = static_cast<AttributeIndices>(AttributeIndices::vertex_bone_id_0_index + attrib.index);
+							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0) + static_cast_safe<uint64_t>(attrib.index));
 							break;
 						case cgltf_attribute_type_weights:
 							assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
 								   attrib.data->type == cgltf_type_vec4 && "Weights not in the right format, unsigned_8/16/float_4 required");
 							assert(attrib.index < 2 && "Don't support more than 2 weight sets");
-							current_index = static_cast<AttributeIndices>(AttributeIndices::vertex_weight_0_index + attrib.index);
+							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0) + static_cast_safe<uint64_t>(attrib.index));
 							break;
 						case cgltf_attribute_type_invalid:
 							assert(0 && "rhi::BufferView not valid yet");
@@ -734,22 +700,22 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					}
 
 					// TODO: GL expects stride to be zero if data is tightly packed
-					// TODO: Check for sparse accessors and unpack it
 
 					const auto *attrib_accessor  = attrib.data;
 					auto        attrib_format    = get_format_from_gltf_type_format(attrib_accessor->type, attrib_accessor->component_type);
 					auto        buffer_index     = find_safe_index(buffer_to_index, attrib_accessor->buffer_view->buffer);
 					auto        attrib_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
 					auto        stride           = attrib_accessor->buffer_view->stride;
+					auto        offset           = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
 					uint8_t    *data_pointer     = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
 
-					std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * attrib_byte_size, stride};
-					attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
+					std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * attrib_byte_size, stride};
+					attribs_data.emplace(current_index, std::move(data_tuple));
 
-					avd.add(static_cast<rhi::BufferSemantic>(current_index), attrib_format);
+					avd.add(current_index, attrib_format, &bp);
 				}
 
-				// Now upload data from all the attributes int avd
+				// Now upload data from all the attributes into avd
 				avd.upload(attribs_data, &bp);
 
 				// Read morph targets
@@ -766,7 +732,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 						assert(!attrib.data->is_sparse && "Don't support sparse attribute accessors");
 						assert(attrib.data->buffer_view && "rhi::BufferView doesn't have a valid buffer view");
-						AttributeIndices current_index = AttributeIndices::vertex_position_index;
+						rhi::BufferSemantic current_index = rhi::BufferSemantic::vertex_position;
 
 						switch (attrib.type)
 						{
@@ -774,7 +740,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 								assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Position not in the right format, float3 required");        // FIXME: Allow other types
 								assert(attrib.data->has_min && attrib.data->has_max && "Position attributes must provide min and max");
 
-								current_index = AttributeIndices::vertex_position_index;
+								current_index = rhi::BufferSemantic::vertex_position;
 								{
 									ror::BoundingBoxf total_bbox;
 
@@ -787,11 +753,11 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 								break;
 							case cgltf_attribute_type_normal:
 								assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Normal not in the right format, float3 required");
-								current_index = AttributeIndices::vertex_normal_index;
+								current_index = rhi::BufferSemantic::vertex_normal;
 								break;
 							case cgltf_attribute_type_tangent:
 								// assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec4 && "Tangent not in the right format, float3 required");
-								current_index = AttributeIndices::vertex_tangent_index;
+								current_index = rhi::BufferSemantic::vertex_tangent;
 								break;
 							case cgltf_attribute_type_texcoord:
 							case cgltf_attribute_type_color:
@@ -803,19 +769,19 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						}
 
 						// TODO: GL expects stride to be zero if data is tightly packed
-						// TODO: Check for sparse accessors and unpack it
 
 						const auto *attrib_accessor  = attrib.data;
 						auto        attrib_format    = get_format_from_gltf_type_format(attrib_accessor->type, attrib_accessor->component_type);
 						auto        buffer_index     = find_safe_index(buffer_to_index, attrib_accessor->buffer_view->buffer);
 						auto        attrib_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
 						auto        stride           = attrib_accessor->buffer_view->stride;
+						auto        offset           = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
 						uint8_t    *data_pointer     = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
 
-						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * attrib_byte_size, stride};
-						attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
+						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * attrib_byte_size, stride};
+						attribs_data.emplace(current_index, std::move(data_tuple));
 
-						amts[k].add(static_cast<rhi::BufferSemantic>(current_index), attrib_format);
+						amts[k].add(current_index, attrib_format, &bp);
 					}
 
 					// TODO: Now copy all the buffer_views for morph_targets
@@ -874,7 +840,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 				auto attrib_byte_size = cgltf_calc_size(inverse_bind_matrices_accessor->type, inverse_bind_matrices_accessor->component_type);
 
-				assert(inverse_bind_matrices_accessor->buffer_view->stride == attrib_byte_size && "Looks like inverse_bind_matrices data is interleaved, not supported");
+				assert(inverse_bind_matrices_accessor->stride == attrib_byte_size && "Looks like inverse_bind_matrices data is interleaved, not supported");
 
 				// TODO: This is only required because GL expects stride to be zero if data is tightly packed
 				if (inverse_bind_matrices_accessor->buffer_view->stride >= attrib_byte_size)

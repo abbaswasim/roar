@@ -77,11 +77,6 @@ class ROAR_ENGINE_ITEM Model
 	BinBuffer_Vector_Vector                                                     m_buffers{};                //! All the buffers provided in gltf, only required temporarily
 };
 
-/**
- * Generic image loader that will invoke the right decoder based on extension
- */
-rhi::TextureImage read_texture_from_file(std::filesystem::path a_texture_file);
-
 }        // namespace ror
 
 namespace rhi

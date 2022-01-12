@@ -30,6 +30,7 @@
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
@@ -42,6 +43,7 @@
 #include <memory>
 #include <stdexcept>
 #include <stdint.h>
+#include <sys/wait.h>
 #include <tuple>
 #include <unordered_map>
 #include <utility>
@@ -60,9 +62,10 @@ struct Rate
 	uint32_t m_value{};
 };
 
-using tuple_type     = std::tuple<rhi::BufferSemantic, rhi::VertexFormat, rhi::StepFunction, uint32_t>;
-using attrib_variant = std::variant<const rhi::BuffersPack *, rhi::BufferSemantic, rhi::VertexFormat, rhi::StepFunction, rhi::Rate>;
-using attrib_vector  = std::vector<attrib_variant>;
+using tuple_type            = std::tuple<rhi::BufferSemantic, rhi::VertexFormat, rhi::StepFunction, uint32_t>;
+using tuple_type_vector     = std::vector<tuple_type>;
+using attrib_variant        = std::variant<const rhi::BuffersPack *, rhi::BufferSemantic, rhi::VertexFormat, rhi::StepFunction, rhi::Rate>;
+using attrib_variant_vector = std::vector<attrib_variant>;
 
 /**
  * Can be used to describe vertex attributes and layouts for a single mesh drawable.
@@ -136,7 +139,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 */
 	void add(VertexAttribute a_attribute, VertexLayout a_Layout, const rhi::BuffersPack *a_buffers_pack)
 	{
-		std::vector<tuple_type> attributes_tuple_vector{};
+		tuple_type_vector attributes_tuple_vector{};
 
 		auto rate       = a_Layout.rate();
 		auto multiplier = a_Layout.format_multiplier();
@@ -158,8 +161,9 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 */
 	void add(std::vector<VertexAttribute> a_attribute, std::vector<VertexLayout> a_Layout, const rhi::BuffersPack *a_buffers_pack)
 	{
-		assert(a_attribute.size() == a_Layout.size() && "Attributes and layouts should be the to use this version of add!");
-		std::vector<tuple_type> attributes_tuple_vector{};
+		assert(a_attribute.size() == a_Layout.size() && "Attributes and layouts should be equal to use this version of add!");
+		tuple_type_vector attributes_tuple_vector{};
+		attributes_tuple_vector.reserve(a_attribute.size());
 
 		for (size_t i = 0; i < a_attribute.size(); ++i)
 		{
@@ -221,6 +225,11 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 */
 	FORCE_INLINE VertexAttribute &attribute(rhi::BufferSemantic a_semantic_key) const
 	{
+		if constexpr (ror::get_build() == ror::BuildType::build_debug)
+		{
+			auto key = this->m_mapping.find(a_semantic_key);
+			assert(key != this->m_mapping.end() && "A semantic key requested but it doesn't exist in the map");
+		}
 		return this->m_mapping.at(a_semantic_key).first;
 	}
 
@@ -230,6 +239,11 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 */
 	FORCE_INLINE VertexLayout &layout(rhi::BufferSemantic a_semantic_key) const
 	{
+		if constexpr (ror::get_build() == ror::BuildType::build_debug)
+		{
+			auto key = this->m_mapping.find(a_semantic_key);
+			assert(key != this->m_mapping.end() && "A semantic key requested but it doesn't exist in the map");
+		}
 		return this->m_mapping.at(a_semantic_key).second;
 	}
 
@@ -291,7 +305,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 				// Case 2: Destination stride is packed but source stride isn't, destination packed source interleaved
 				// Case 3: Destination stride is interleaved but source stride is packed, destination interleaved source packed
 				// Case 4: Both destination and source stride means they are interleaved
-				auto offset = attrib.offset();
+				auto offset        = attrib.offset();
 				auto attrib_offset = buffer_offset + offset;
 				attrib.buffer_offset(attrib_offset);        // And update offset
 
@@ -330,21 +344,21 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	FORCE_INLINE void parse_attributes_and_layouts(_types &...a_attributes)
 	{
 		// Using Rate here just to make it typesafe
-		attrib_vector attributes{a_attributes...};
+		attrib_variant_vector attributes{a_attributes...};
 
 		if (attributes.size() < 1)
 			return;
 
-		tuple_type              default_tuple{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, 1};
-		tuple_type              temp_tuple{default_tuple};
-		std::vector<tuple_type> attributes_tuple_vector{};
+		tuple_type        default_tuple{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, 1};
+		tuple_type        temp_tuple{default_tuple};
+		tuple_type_vector attributes_tuple_vector{};
 		attributes_tuple_vector.reserve(attributes.size());        // Worst case scenario
 
 		const rhi::BuffersPack *any_buffers_pack{nullptr};
 
 		bool started = false;
 
-		assert(std::get_if<rhi::BufferSemantic>(&attributes[0]) != nullptr && "Attribute description should be created with ShaderSemantics!");
+		assert(std::get_if<rhi::BufferSemantic>(&attributes[0]) != nullptr && "Attribute description should be started with ShaderSemantics!");
 
 		for (auto &attb : attributes)
 		{
@@ -424,11 +438,10 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 	/**
 	 * Used for vertex attributes and layouts for both vertex and instance types
-	 * This function resets/recreates the m_attributes and m_layouts member variables
+	 * This function updates/resets/recreates the m_attributes and m_layouts member variables
 	 */
-	FORCE_INLINE void create_attributes_and_layouts(const std::vector<tuple_type> &a_attributes, const rhi::BuffersPack *a_buffers_pack)
+	FORCE_INLINE void create_attributes_and_layouts(const tuple_type_vector &a_attributes, const rhi::BuffersPack *a_buffers_pack)
 	{
-		size_t                                 existing_layouts_size{this->m_layouts.size()};
 		size_t                                 existing_attributes_size{this->m_attributes.size()};
 		uint32_t                               location{0};        // Assuming we start with 'an' order, zero is a good start for location
 		std::unordered_map<uint32_t, uint32_t> strides{};          // Accumulated stride per buffer index
@@ -436,11 +449,19 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 		if (!this->m_attributes.empty())        // If this is not the first time we are calling this function
 		{
-			location = this->m_attributes[existing_attributes_size - 1].location();           // Location as it is is not correct, needs to be updated later
-			binding  = this->m_attributes[existing_attributes_size - 1].binding() + 1;        // Increment by 1 for next binding
+			auto &last_attribute = this->m_attributes[existing_attributes_size - 1];
+			auto  format         = last_attribute.format();        // Get the format for location increment
 
-			auto format = this->m_attributes[existing_attributes_size - 1].format();
-			location += vertex_format_to_location(format);        // Increment by the format to bytes of the last attribute
+			// Lets get end attributes location and binding to use in this iteration
+			location = last_attribute.location() + vertex_format_to_location(format);        // Location for next attribute
+			binding  = last_attribute.binding() + 1;                                         // Increment by 1 for next binding
+
+			// Lets warm up our strides map
+			strides.reserve(this->m_mapping.size());
+			for (auto &attrib_layout : this->m_mapping)
+				strides.emplace(attrib_layout.second.first.buffer_index(), attrib_layout.second.second.stride());
+
+			assert(this->m_layouts.size() == this->m_attributes.size() && "Layouts attributes should be equal");
 		}
 
 		this->m_attributes.reserve(this->m_attributes.size() + a_attributes.size());
@@ -452,6 +473,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			auto semantic = std::get<rhi::BufferSemantic>(attribute);
 			auto format   = std::get<rhi::VertexFormat>(attribute);
 			auto rate     = std::get<uint32_t>(attribute);
+			auto offset   = 0U;        // Could be updated to the stride from layout for this buffer later
 
 			uint32_t buffer_index = a_buffers_pack->attribute_buffer_index(semantic);
 			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // TODO: How many bytes do we need for this, this has to be done later in a second pass
@@ -462,50 +484,43 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 				(rate >> 16))
 				vert_format_to_bytes *= (rate >> 16);        // Use the format multiplier from upper 16bits of rate
 
-			// Get the old stride from existing layouts before inserting a new one
-			if (existing_layouts_size > 0)
-			{
-				// This could be optimised by either adding a buffer_index in layout or creating another mapping, but this shouldn't be on hot path
-				auto old_attribute = std::find_if(std::begin(this->m_attributes), std::end(this->m_attributes), [&](VertexAttribute &va) { return va.buffer_index() == buffer_index; });
-				if (old_attribute != this->m_attributes.end())        // If an attribute with this buffer index exists then find its layout so we can use its binding
-				{
-					auto old_layout = std::find_if(std::begin(this->m_layouts), std::end(this->m_layouts), [&](VertexLayout &vl) { return vl.binding() == old_attribute->binding(); });
-
-					assert(old_layout != this->m_layouts.end() && "Can't find a layout for attribute that should exis, something went wrong!");
-
-					vert_format_to_bytes += old_layout->stride();
-					old_layout->stride(vert_format_to_bytes);        // Also update the stride of this layout which will now be shared with this new attribute
-				}
-			}
-
 			auto [buffer, success] = strides.insert({buffer_index, vert_format_to_bytes});
 
 			if (!success)
 			{
 				// Check if we are locally or globally interleaved, in the later case don't need to update stride
-				if (a_buffers_pack->attribute_buffer_interleaved(semantic))
+				if (a_buffers_pack->buffer(buffer_index).interleaved())
+				{
+					offset = buffer->second;
 					buffer->second += vert_format_to_bytes;
+				}
 			}
 
-			this->m_attributes.emplace_back(location, /* offset */ 0, /* buffer_offset */ 0ULL, binding, buffer_index, semantic, format);        // Hopefully its moved into the vector
+			this->m_attributes.emplace_back(location, offset, /* buffer_offset */ 0ULL, binding, buffer_index, semantic, format);
 
 			location += vertex_format_to_location(format);
 			binding += 1;
 		}
 
+		// Lets update all the existing layouts with new strides
+		// This assumes the property that there is 1:1 mapping of attributes to layouts
+		for (size_t i = 0; i < this->m_layouts.size(); ++i)
+			this->m_layouts[i].stride(strides[this->m_attributes[i].buffer_index()]);
+
 		// Iterate over attributes to allocate their layouts
 		for (size_t i = 0; i < a_attributes.size(); ++i)
 		{
-			auto &final_attribute = this->m_attributes[existing_attributes_size + i];
-			auto &raw_attribute   = a_attributes[i];
-			auto  format          = final_attribute.format();
-			auto  step_function   = std::get<rhi::StepFunction>(raw_attribute);
-			auto  rate            = std::get<uint32_t>(raw_attribute);
-			auto  multiplier      = std::max(1U, rate >> 16);
+			const auto &final_attribute = this->m_attributes[existing_attributes_size + i];
+			const auto &raw_attribute   = a_attributes[i];
+			const auto  format          = final_attribute.format();
+			const auto  step_function   = std::get<rhi::StepFunction>(raw_attribute);
+			const auto  rate            = std::get<uint32_t>(raw_attribute);
+			const auto  multiplier      = std::max(1U, rate >> 16);
+			const auto  buffer_index    = final_attribute.buffer_index();
 
-			uint32_t stride = strides[final_attribute.buffer_index()];
+			uint32_t stride = strides[buffer_index];
 
-			if (!a_buffers_pack->attribute_buffer_interleaved(final_attribute.semantics()))        // If global interleaved buffer then use the format bytes as stride, otherwise multiply it
+			if (!a_buffers_pack->buffer(buffer_index).interleaved())        // If global interleaved buffer then use the format bytes as stride, otherwise multiply it
 				stride = vertex_format_to_bytes(format) * multiplier;
 
 			this->m_layouts.emplace_back(final_attribute.binding(), stride, rate & 65535, multiplier, step_function);

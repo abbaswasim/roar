@@ -43,7 +43,7 @@ namespace rhi
  */
 #if defined (WITHOUT_BUFFER_ALLOCATOR)
 template <class _type>
-class ROAR_ENGINE_ITEM BufferAllocator final : public std::Allocator<_type>
+class ROAR_ENGINE_ITEM BufferAllocator final : public std::allocator<_type>
 {};
 #else
 template <class _type>

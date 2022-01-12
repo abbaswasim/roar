@@ -1,0 +1,10 @@
+{
+	"unit": 1024,
+	"visualise_mipmaps": false,
+	"multisample_count": 8,
+	"vsync": false,
+	"window_transparent": false,
+	"window_premultiplied": false,
+	"window_prerotated": false,
+	"zoom_speed": 3.14
+}

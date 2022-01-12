@@ -47,8 +47,6 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/foundation/rorcache.hh
   ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hpp
   ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hh
-  ${ROAR_SOURCE_DIR}/managers/rormanager.hpp
-  ${ROAR_SOURCE_DIR}/managers/rormanager.hh
   ${ROAR_SOURCE_DIR}/math/rorvector2.hpp
   ${ROAR_SOURCE_DIR}/math/rorvector2.hh
   ${ROAR_SOURCE_DIR}/math/rorvector3.hpp
@@ -97,6 +95,8 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/rhi/rorhandles.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffer.hpp
+  ${ROAR_SOURCE_DIR}/rhi/rorvertex_attribute.hpp
+  ${ROAR_SOURCE_DIR}/rhi/rorvertex_description.hpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.hpp)
 
 set(ROAR_SOURCES
@@ -104,7 +104,6 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/profiling/rortimer.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
-  ${ROAR_SOURCE_DIR}/managers/rormanager.cpp
   ${ROAR_SOURCE_DIR}/bounds/rorbounding.cpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
@@ -160,6 +159,7 @@ set(ROAR_REQUIRED_PUBLIC_LIBRARIES
   ctpl
   cimage
   stb
+  basisu
   spdlog
   nlohmann_json
   xxhash)
