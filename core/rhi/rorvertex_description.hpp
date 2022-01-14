@@ -248,69 +248,65 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	}
 
 	/**
-	 * Does an upload into the buffer for these attributes
+	 * Does an upload into the buffer for these attributes, it doesn't have to be all the attributes
 	 * It can do element wise or bulk upload depending on the source and destination strides
+	 * It requires a tuple of buffer_pointer, buffer_size and buffer_size for each attribute keyed by semantic.
+	 * The buffer_size is the total bytes required for this attribute, it doesn't necessarily means the whole buffer available.
+	 * This is because the data might be interleaved. In which case the buffer_size for both attributes will be added up using stride.
 	 */
 	FORCE_INLINE void upload(const std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> &a_attrib_data, rhi::BuffersPack *a_buffers_pack)
 	{
-		std::unordered_map<size_t, ptrdiff_t> sem_to_buffer_map{};        // TODO: Remove after debugging
-		std::unordered_map<size_t, ptrdiff_t> att_to_buffer_map{};
+		std::unordered_map<size_t, ptrdiff_t> buffer_to_size_map{};
 
-		for (const auto &attribute : this->m_attributes)
+		// First calculate the total allocation size required for each buffer from the different attributes it can have
+		for (const auto &attrib_data : a_attrib_data)
 		{
-			sem_to_buffer_map[attribute.buffer_index()] += rhi::format_to_bytes(attribute.format());        // TODO: Remove after debugging
-			auto data_vec = a_attrib_data.find(attribute.semantics());
-			if (data_vec != a_attrib_data.end())
+			auto buffer_index = a_buffers_pack->attribute_buffer_index(attrib_data.first);
+
+			auto [buffer_pointer, buffer_size, buffer_stride] = attrib_data.second;
+			buffer_to_size_map[buffer_index] += buffer_size;
+		}
+
+		// Allocate space for all of the attributes in its specific buffer
+		for (const auto &attr_data : buffer_to_size_map)
+		{
+			auto &buffer        = a_buffers_pack->buffer(attr_data.first);
+			auto  buffer_offset = buffer.offset(attr_data.second);        // Do allocation by calling Buffer::offset()
+
+			// Now update every attribute's buffer_offset that is using this buffer and this allocation
+			for (auto &attribute : this->m_attributes)
 			{
-				auto [buffer_pointer, buffer_size, buffer_stride] = data_vec->second;
-				att_to_buffer_map[attribute.buffer_index()] += buffer_size;
+				if (attribute.buffer_index() == attr_data.first)
+					attribute.buffer_offset(buffer_offset);
 			}
 		}
 
-		// TODO: Remove later, just for testing for now
-		assert(this->m_attributes.size() == this->m_layouts.size());
-		for (size_t i = 0; i < this->m_attributes.size(); ++i)
-			assert(m_layouts[i].stride() == sem_to_buffer_map[m_attributes[i].buffer_index()]);
-
-		// Allocate space for all of the attributes in a specific buffer
-		for (const auto &attr_data : att_to_buffer_map)
-		{
-			auto &buffer = a_buffers_pack->buffer(attr_data.first);
-			auto &attrib = this->m_attributes[attr_data.first];
-			attrib.buffer_offset(buffer.offset(attr_data.second));        // Do allocation by calling Buffer::offset()
-		}
-
 		// Upload the data into the allocated space
-		for (auto &attribute : a_attrib_data)
+		for (auto &attrib_data : a_attrib_data)
 		{
-			auto &attrib = this->attribute(attribute.first);
-			auto &layout = this->layout(attribute.first);
+			auto &attribute = this->attribute(attrib_data.first);
+			auto &layout    = this->layout(attrib_data.first);
 
 			auto  stride        = layout.stride();
-			auto  buffer_index  = attrib.buffer_index();
-			auto  buffer_offset = attrib.buffer_offset();
-			auto  format_bytes  = rhi::format_to_bytes(attrib.format());
+			auto  buffer_index  = attribute.buffer_index();
+			auto  format_bytes  = rhi::format_to_bytes(attribute.format());
 			auto &buffer        = a_buffers_pack->buffer(buffer_index);
+			auto  attrib_offset = attribute.buffer_offset() + attribute.offset();        // Will be 0 in case of single attribute or bulk upload;
 
-			auto [buffer_pointer, buffer_size, buffer_stride] = attribute.second;
+			auto [buffer_pointer, buffer_size, buffer_stride] = attrib_data.second;
 
 			if (stride == format_bytes && buffer_stride == format_bytes)        // Case 1: both source and destination strides are equal to format_bytes, everything is packed
 			{
-				buffer.upload(buffer_pointer, buffer_size, buffer_offset);        // Do a bulk upload
-
-				// attrib.buffer_offset(something);                    // Already set above
+				buffer.upload(buffer_pointer, buffer_size, attrib_offset);        // Do a bulk upload
 			}
 			else
 			{
 				// Case 2: Destination stride is packed but source stride isn't, destination packed source interleaved
 				// Case 3: Destination stride is interleaved but source stride is packed, destination interleaved source packed
 				// Case 4: Both destination and source stride means they are interleaved
-				auto offset        = attrib.offset();
-				auto attrib_offset = buffer_offset + offset;
-				attrib.buffer_offset(attrib_offset);        // And update offset
-
-				// Now lets do elements upload
-				for (size_t i = 0; i < buffer_size; ++i)
+				// Thats why lets do element by element upload
+				auto element_count = buffer_size / format_bytes;
+				for (size_t i = 0; i < element_count; ++i)
 					buffer.upload(buffer_pointer + i * buffer_stride, format_bytes, attrib_offset + stride * static_cast<ptrdiff_t>(i));
 			}
 		}

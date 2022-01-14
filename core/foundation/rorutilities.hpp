@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rorsystem.hpp"
 #include "rormacros.hpp"
 #include "rortypes.hpp"
 #include <atomic>
@@ -281,12 +282,11 @@ FORCE_INLINE void vector_remove_duplicates(std::vector<_type> &a_vector, _predic
 template <class _type_to,
 		  class _type_from,
 		  class _type_big = typename std::conditional<std::is_integral<_type_from>::value, unsigned long long, long double>::type>
-FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
+constexpr FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
 {
-	if (static_cast<_type_big>(a_value) > static_cast<_type_big>(std::numeric_limits<_type_to>::max()))
-	{
-		throw std::runtime_error("Loss of data doing casting.\n");        // TODO: Add some line number indication etc
-	}
+	if constexpr (get_build() == BuildType::build_debug)
+		if (static_cast<_type_big>(a_value) > static_cast<_type_big>(std::numeric_limits<_type_to>::max()))
+			throw std::runtime_error("Loss of data doing safe casting.\n");
 
 	return static_cast<_type_to>(a_value);
 }
@@ -304,9 +304,9 @@ constexpr FORCE_INLINE _type align(_type a_input)
 
 template <class _type,
 		  size_t _alignment>
-constexpr FORCE_INLINE _type* align(_type *a_input)
+constexpr FORCE_INLINE _type *align(_type *a_input)
 {
-	return reinterpret_cast<_type*>(reinterpret_cast<uintptr_t>(a_input + _alignment - 1) & ~uintptr_t(_alignment - 1));
+	return reinterpret_cast<_type *>(reinterpret_cast<uintptr_t>(a_input + _alignment - 1) & ~uintptr_t(_alignment - 1));
 }
 
 template <class _type>
@@ -322,13 +322,13 @@ constexpr FORCE_INLINE _type align8(_type a_input)
 }
 
 template <class _type>
-constexpr FORCE_INLINE _type* align4(_type* a_input)
+constexpr FORCE_INLINE _type *align4(_type *a_input)
 {
 	return align<_type, 4>(a_input);
 }
 
 template <class _type>
-constexpr FORCE_INLINE _type* align8(_type* a_input)
+constexpr FORCE_INLINE _type *align8(_type *a_input)
 {
 	return align<_type, 8>(a_input);
 }

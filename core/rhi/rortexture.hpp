@@ -102,7 +102,7 @@ class ROAR_ENGINE_ITEM TextureImage final
 	uint64_t                   m_size{0};                                               // Size of all mipmaps combined in bytes
 	TextureTarget              m_target{TextureTarget::texture_2D};                     // Can be 1D, 2D or 3D etc texture
 	PixelFormat                m_format{PixelFormat::r8g8b8a8_uint32_norm_srgb};        // Pixel format of the texture
-	std::unique_ptr<uint8_t[]> m_data{};                                                // All mipmaps data, NOTE: This doesn't have to be BufferAllocated
+	std::unique_ptr<uint8_t[]> m_data{};                                                // All mipmaps data
 	std::vector<Mipmap>        m_mips{};                                                // Will have at least one level, base texture width and height are mip[0] width/height, NOTE: This doesn't have to be BufferAllocated
 };
 
@@ -119,11 +119,12 @@ class ROAR_ENGINE_ITEM TextureSampler final
 	FORCE_INLINE TextureSampler &operator=(TextureSampler &&a_other) noexcept = default;             //! Move assignment operator
 	FORCE_INLINE ~TextureSampler() noexcept                                   = default;             //! Destructor
 
-	TextureFilter m_mag_filter{TextureFilter::linear};                      // Magnification filter
-	TextureFilter m_min_filter{TextureFilter::linear_mipmap_linear};        // Minification filter
-	TextureWrap   m_wrap_s{TextureWrap::repeat};                            // Wrapping mode in X direction
-	TextureWrap   m_wrap_t{TextureWrap::repeat};                            // Wrapping mode in Y direction
-	TextureWrap   m_wrap_u{TextureWrap::repeat};                            // Wrapping mode in Z direction
+	TextureFilter      m_mag_filter{TextureFilter::linear};         // Magnification filter
+	TextureFilter      m_min_filter{TextureFilter::linear};         // Minification filter
+	TextureFilter      m_mip_mode{TextureFilter::linear};           // Mipmapping mode
+	TextureAddressMode m_wrap_s{TextureAddressMode::repeat};        // Wrapping mode in X direction
+	TextureAddressMode m_wrap_t{TextureAddressMode::repeat};        // Wrapping mode in Y direction
+	TextureAddressMode m_wrap_u{TextureAddressMode::repeat};        // Wrapping mode in Z direction
 };
 
 static_assert(std::is_trivially_copyable_v<TextureSampler>, "TextureSampler is not trivially copyable");

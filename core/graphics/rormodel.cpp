@@ -305,6 +305,28 @@ rhi::Format get_format_from_gltf_type_format(cgltf_type a_type, cgltf_component_
 	return rhi::VertexFormat::float32_4;
 }
 
+rhi::TextureSampler cgltf_sampler_to_sampler(const cgltf_sampler *a_sampler)
+{
+	// gltf Spec values for reference
+	// "enum" :           [ 9728,      9729,     9984,                     9985,                    9986,                    9987],
+	// "gltf_enumNames" : ["NEAREST", "LINEAR", "NEAREST_MIPMAP_NEAREST", "LINEAR_MIPMAP_NEAREST", "NEAREST_MIPMAP_LINEAR", "LINEAR_MIPMAP_LINEAR"],
+
+	// "enum" : [33071, 33648, 10497],
+	// "gltf_enumNames" : ["CLAMP_TO_EDGE", "MIRRORED_REPEAT", "REPEAT"],
+
+	rhi::TextureSampler sampler;
+
+	sampler.m_mag_filter = static_cast<rhi::TextureFilter>(a_sampler->mag_filter - 9728);                                  // 9728 is NEAREST GLTF GL value for Mag filter (can only be NEAREST and LINEAR)
+	sampler.m_min_filter = a_sampler->min_filter % 2 ? rhi::TextureFilter::linear : rhi::TextureFilter::nearest;           // All NEAREST min filters are even, it can be all of the above
+	sampler.m_mip_mode   = a_sampler->min_filter > 9985 ? rhi::TextureFilter::linear : rhi::TextureFilter::nearest;        // Only values above 9985 are mipmapped linear
+	if (a_sampler->wrap_s != 10497)
+		sampler.m_wrap_s = a_sampler->wrap_s == 33648 ? rhi::TextureAddressMode::mirrored_repeat : rhi::TextureAddressMode::clamp_to_edge;        // Else leave the default repeat
+	if (a_sampler->wrap_t != 10497)
+		sampler.m_wrap_t = a_sampler->wrap_t == 33648 ? rhi::TextureAddressMode::mirrored_repeat : rhi::TextureAddressMode::clamp_to_edge;        // Else leave the default repeat
+
+	return sampler;
+}
+
 void Model::load_from_gltf_file(std::filesystem::path a_filename)
 {
 	// Lets start by reading a_filename via resource cache
@@ -386,14 +408,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 		for (size_t i = 0; i < data->samplers_count; ++i)
 		{
-			rhi::TextureSampler sampler;
-
-			sampler.m_mag_filter = static_cast<rhi::TextureFilter>(data->samplers[i].mag_filter);
-			sampler.m_min_filter = static_cast<rhi::TextureFilter>(data->samplers[i].min_filter);
-			sampler.m_wrap_s     = static_cast<rhi::TextureWrap>(data->samplers[i].wrap_s);
-			sampler.m_wrap_t     = static_cast<rhi::TextureWrap>(data->samplers[i].wrap_t);
-
-			this->m_samplers.emplace_back(std::move(sampler));
+			this->m_samplers.emplace_back(cgltf_sampler_to_sampler(&data->samplers[i]));
 			sampler_to_index.emplace(&data->samplers[i], i + 1);        // Index 0 is default hence the +1
 		}
 
@@ -629,11 +644,13 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					// TODO: GL expects stride to be zero if data is tightly packed
 					assert(!cprim.indices->is_sparse && "Sparce index buffers not supported");
 
-					auto     attrib_accessor   = cprim.indices;
-					auto     buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
-					auto     indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
-					auto     stride            = cprim.indices->buffer_view->stride;
-					uint8_t *data_pointer      = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
+					auto attrib_accessor   = cprim.indices;
+					auto buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
+					auto indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
+					auto stride            = cprim.indices->buffer_view->stride;
+
+					assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this index buffer");
+					uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
 
 					std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * indices_byte_size, stride};
 					attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
@@ -654,7 +671,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					switch (attrib.type)
 					{
 						case cgltf_attribute_type_position:
-							assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Position not in the right format, float3 required");        // FIXME: Allow other types
 							assert(attrib.data->has_min && attrib.data->has_max && "Position attributes must provide min and max");
 							assert(attrib.index == 0 && "Don't suport more than 1 position");
 
@@ -675,24 +691,24 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						case cgltf_attribute_type_texcoord:
 							assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec2 && "Texture coordinate not in the right format, float2 required");
 							assert(attrib.index < 2 && "Don't support more than 2 texture coordinate sets");
-							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) + static_cast_safe<uint64_t>(attrib.index));
+							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) << static_cast<uint64_t>(attrib.index));
 							break;
 						case cgltf_attribute_type_color:
 							// assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Color not in the right format, float3 required");
 							assert(attrib.index < 2 && "Don't support more than 2 color sets");
-							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0) + static_cast_safe<uint64_t>(attrib.index));
+							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0) << static_cast<uint64_t>(attrib.index));
 							break;
 						case cgltf_attribute_type_joints:
 							assert((attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
 								   attrib.data->type == cgltf_type_vec4 && "Joints not in the right format, unsigned8/16_4 required");
 							assert(attrib.index < 2 && "Don't support more than 2 joint sets");
-							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0) + static_cast_safe<uint64_t>(attrib.index));
+							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0) << static_cast<uint64_t>(attrib.index));
 							break;
 						case cgltf_attribute_type_weights:
 							assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
 								   attrib.data->type == cgltf_type_vec4 && "Weights not in the right format, unsigned_8/16/float_4 required");
 							assert(attrib.index < 2 && "Don't support more than 2 weight sets");
-							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0) + static_cast_safe<uint64_t>(attrib.index));
+							current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0) << static_cast<uint64_t>(attrib.index));
 							break;
 						case cgltf_attribute_type_invalid:
 							assert(0 && "rhi::BufferView not valid yet");
@@ -707,7 +723,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					auto        attrib_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
 					auto        stride           = attrib_accessor->buffer_view->stride;
 					auto        offset           = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
-					uint8_t    *data_pointer     = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
+
+					assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this attribute");
+					uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
 
 					std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * attrib_byte_size, stride};
 					attribs_data.emplace(current_index, std::move(data_tuple));
@@ -737,7 +755,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						switch (attrib.type)
 						{
 							case cgltf_attribute_type_position:
-								assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Position not in the right format, float3 required");        // FIXME: Allow other types
 								assert(attrib.data->has_min && attrib.data->has_max && "Position attributes must provide min and max");
 
 								current_index = rhi::BufferSemantic::vertex_position;
@@ -776,7 +793,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						auto        attrib_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
 						auto        stride           = attrib_accessor->buffer_view->stride;
 						auto        offset           = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
-						uint8_t    *data_pointer     = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());        // or cprim.indices->buffer_view->buffer??? TODO: Verify
+
+						assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this morph target attribute");
+						uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
 
 						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * attrib_byte_size, stride};
 						attribs_data.emplace(current_index, std::move(data_tuple));

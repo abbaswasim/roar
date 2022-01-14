@@ -233,6 +233,7 @@ struct BufferRange
 	uint64_t m_length;          // How many bytes are available
 };
 
+// If new types are required make sure to change in rormodel.hpp
 enum class PrimitiveTopology
 {
 	points,
@@ -248,13 +249,9 @@ enum class TextureFilter
 {
 	nearest,
 	linear,
-	nearest_mipmap_nearest,
-	linear_mipmap_nearest,
-	nearest_mipmap_linear,
-	linear_mipmap_linear
 };
 
-enum class TextureWrap
+enum class TextureAddressMode
 {
 	clamp_to_edge,
 	mirrored_repeat,
