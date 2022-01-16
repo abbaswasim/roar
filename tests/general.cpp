@@ -1,11 +1,11 @@
 #include "bounds/rorbounding.hpp"
+#include "common.hpp"
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorcommon.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rortypes.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
-#include "graphics/rormodel.hpp"
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
 #include "math/rorvector3.hpp"
@@ -17,6 +17,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "fox.h"
+#include "graphics/rormodel.hpp"
+#include "rhi/rorbuffers_pack.hpp"
+#include "rhi/rortypes.hpp"
 
 namespace ror_test
 {
@@ -102,7 +107,7 @@ TEST(RoarGeneral, DISABLED_RoarGeneral_hash_performance_string)
 
 	str_map::hasher map_hasher = map.hash_function();
 
-	uint32_t count = 1000000;
+	uint32_t    count = 1000000;
 	std::string str{"atomic intptr_t is not lock_free"};
 
 	{
@@ -148,7 +153,7 @@ TEST(RoarGeneral, DISABLED_RoarGeneral_hash_performance_size_t)
 
 	str_map::hasher map_hasher = map.hash_function();
 
-	uint32_t count = 10000000;
+	uint32_t    count = 10000000;
 	std::size_t str{987654321034567890};
 	std::size_t str_size{sizeof(str)};
 
@@ -177,21 +182,163 @@ TEST(RoarGeneral, DISABLED_RoarGeneral_hash_performance_size_t)
 }
 
 TEST(RoarGeneral, size_of_stuff)
+{}
+
+TEST(RoarGeneral, settings_test)
 {
-	// std::cout << " sizeof Vec3 = " << sizeof(ror::Vector3f);
-	// std::cout << " sizeof BoundingBox = " << sizeof(ror::BoundingBoxf);
-	// std::cout << " Max vertex attributes = " << ror::max_vertex_attributes << std::endl;
-	// std::cout << " sizeof Bufferview = " << sizeof(rhi::BufferView) << std::endl;
-	// std::cout << " sizeof Drawable = " << sizeof(ror::Mesh::Drawable) << std::endl;
-	// std::cout << " sizeof Mesh " << sizeof(ror::Mesh) << std::endl;
-	// std::cout << " sizeof std::vector " << sizeof(std::vector<ror::Mesh>) << std::endl;
+	auto &config = ror::get_settings();
 
-	// std::cout << " sizeof transform " << sizeof(ror::Transformf) << std::endl;
-	// std::cout << " sizeof quat " << sizeof(ror::Quaternionf) << std::endl;
-	// std::cout << " sizeof scale/trans " << sizeof(ror::Vector3f) << std::endl;
-
-	std::cout << " sizeof Material " << sizeof(ror::Material) << std::endl;
-	std::cout << " sizeof Material::Comp " << sizeof(ror::Material::MaterialComponent<ror::Color3f>) << std::endl;
-
+	EXPECT_EQ(config.get<uint32_t>("unit"), 1024);
+	EXPECT_EQ(config.get<bool>("visualise_mipmaps"), false);
+	EXPECT_EQ(config.get<uint32_t>("multisample_count"), 8);
+	EXPECT_EQ(config.get<bool>("vsync"), false);
+	EXPECT_EQ(config.get<bool>("window_transparent"), true);
+	EXPECT_EQ(config.get<bool>("window_premultiplied"), false);
+	EXPECT_EQ(config.get<bool>("window_prerotated"), false);
+	EXPECT_FLOAT_EQ(config.get<float32_t>("zoom_speed"), 3.1400001049041748f);
 }
+
+TEST(ModelTest, gltf_loader_test)
+{
+	ror::Model model;
+	model.load_from_gltf_file("Fox/Fox.gltf");
+
+	EXPECT_EQ(model.meshes().size(), 1);
+	auto &m = model.meshes()[0];
+	EXPECT_EQ(m.m_attribute_vertex_descriptors.size(), 1);
+	EXPECT_EQ(m.m_morph_targets_vertex_descriptors.size(), 1);
+	EXPECT_EQ(m.m_has_indices_states[0], false);
+	EXPECT_EQ(m.m_primitive_types[0], rhi::PrimitiveTopology::triangles);
+
+	auto &vd = m.m_attribute_vertex_descriptors[0];
+
+	auto semantics = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) |
+					 ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0);
+
+	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4 + sizeof(uint16_t) * 4, 1, 1, semantics, __LINE__);
+	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_texture_coord_0, 1, 0, 0, 1, 1, rhi::VertexFormat::float32_2, rhi::StepFunction::vertex, sizeof(float32_t) * 2, 1, 1, semantics, __LINE__);
+	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_bone_id_0, 2, sizeof(float32_t) * 3, 0, 2, 0, rhi::VertexFormat::uint16_4, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4 + sizeof(uint16_t) * 4, 1, 1, semantics, __LINE__);
+	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight_0, 3, sizeof(float32_t) * 3 + sizeof(uint16_t) * 4, 0, 3, 0, rhi::VertexFormat::float32_4, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4 + sizeof(uint16_t) * 4, 1, 1, semantics, __LINE__);
+
+	{
+		auto &attrib_pos = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_position);
+		EXPECT_EQ(attrib_pos.location(), 0);
+		EXPECT_EQ(attrib_pos.offset(), 0);
+		EXPECT_EQ(attrib_pos.buffer_offset(), 0);
+		EXPECT_EQ(attrib_pos.binding(), 0);
+		EXPECT_EQ(attrib_pos.buffer_index(), 0);
+		EXPECT_EQ(attrib_pos.semantics(), rhi::BufferSemantic::vertex_position);
+		EXPECT_EQ(attrib_pos.format(), rhi::VertexFormat::float32_3);
+		EXPECT_EQ(attrib_pos.complete(), true);
+	}
+	{
+		auto &attrib_uv = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_texture_coord_0);
+		EXPECT_EQ(attrib_uv.location(), 1);
+		EXPECT_EQ(attrib_uv.offset(), 0);
+		EXPECT_EQ(attrib_uv.buffer_offset(), 0);
+		EXPECT_EQ(attrib_uv.binding(), 1);
+		EXPECT_EQ(attrib_uv.buffer_index(), 1);
+		EXPECT_EQ(attrib_uv.semantics(), rhi::BufferSemantic::vertex_texture_coord_0);
+		EXPECT_EQ(attrib_uv.format(), rhi::VertexFormat::float32_2);
+		EXPECT_EQ(attrib_uv.complete(), true);
+	}
+	{
+		auto &attrib_bone = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_bone_id_0);
+		EXPECT_EQ(attrib_bone.location(), 2);
+		EXPECT_EQ(attrib_bone.offset(), sizeof(float32_t) * 3);
+		EXPECT_EQ(attrib_bone.buffer_offset(), 0);
+		EXPECT_EQ(attrib_bone.binding(), 2);
+		EXPECT_EQ(attrib_bone.buffer_index(), 0);
+		EXPECT_EQ(attrib_bone.semantics(), rhi::BufferSemantic::vertex_bone_id_0);
+		EXPECT_EQ(attrib_bone.format(), rhi::VertexFormat::uint16_4);
+		EXPECT_EQ(attrib_bone.complete(), true);
+	}
+	{
+		auto &attrib_weight = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_weight_0);
+		EXPECT_EQ(attrib_weight.location(), 3);
+		EXPECT_EQ(attrib_weight.offset(), sizeof(float32_t) * 3 + sizeof(uint16_t) * 4);
+		EXPECT_EQ(attrib_weight.buffer_offset(), 0);
+		EXPECT_EQ(attrib_weight.binding(), 3);
+		EXPECT_EQ(attrib_weight.buffer_index(), 0);
+		EXPECT_EQ(attrib_weight.semantics(), rhi::BufferSemantic::vertex_weight_0);
+		EXPECT_EQ(attrib_weight.format(), rhi::VertexFormat::float32_4);
+		EXPECT_EQ(attrib_weight.complete(), true);
+	}
+
+	// Now lets see if the attributes data is copied correctly or not
+	auto &bp = rhi::get_buffers_pack();
+
+	const uint8_t *pos_buff    = bp.buffer(rhi::BufferSemantic::vertex_position).data().data();
+	const uint8_t *uv_buff     = bp.buffer(rhi::BufferSemantic::vertex_texture_coord_0).data().data();
+	const uint8_t *bone_buff   = bp.buffer(rhi::BufferSemantic::vertex_bone_id_0).data().data();
+	const uint8_t *weight_buff = bp.buffer(rhi::BufferSemantic::vertex_weight_0).data().data();
+
+	const float epsilon = 0.000001f;
+	{
+		auto  semantic = rhi::BufferSemantic::vertex_position;
+		auto &attrib   = m.m_attribute_vertex_descriptors[0].attribute(semantic);
+		auto &layout   = m.m_attribute_vertex_descriptors[0].layout(semantic);
+
+		uint32_t comp_count = 3;
+		uint8_t *ptr        = const_cast<uint8_t *>(pos_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
+		for (size_t i = 0; i < fox_attrib_count; ++i)
+		{
+			for (size_t j = 0; j < comp_count; ++j)
+			{
+				EXPECT_NEAR(fox_positions[i * comp_count + j], reinterpret_cast<float32_t *>(ptr)[j], epsilon);
+			}
+
+			ptr += layout.stride();
+		}
+	}
+	{
+		auto     semantic   = rhi::BufferSemantic::vertex_texture_coord_0;
+		auto    &attrib     = m.m_attribute_vertex_descriptors[0].attribute(semantic);
+		auto    &layout     = m.m_attribute_vertex_descriptors[0].layout(semantic);
+		uint32_t comp_count = 2;
+		uint8_t *ptr        = const_cast<uint8_t *>(uv_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
+		for (size_t i = 0; i < fox_attrib_count; ++i)
+		{
+			for (size_t j = 0; j < comp_count; ++j)
+			{
+				EXPECT_NEAR(fox_uvs[i * comp_count + j], reinterpret_cast<float32_t *>(ptr)[j], epsilon);
+			}
+
+			ptr += layout.stride();
+		}
+	}
+	{
+		auto     semantic   = rhi::BufferSemantic::vertex_bone_id_0;
+		auto    &attrib     = m.m_attribute_vertex_descriptors[0].attribute(semantic);
+		auto    &layout     = m.m_attribute_vertex_descriptors[0].layout(semantic);
+		uint32_t comp_count = 4;
+		uint8_t *ptr        = const_cast<uint8_t *>(bone_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
+		for (size_t i = 0; i < fox_attrib_count; ++i)
+		{
+			for (size_t j = 0; j < comp_count; ++j)
+			{
+				EXPECT_EQ(fox_joint_ids[i * comp_count + j], reinterpret_cast<uint16_t *>(ptr)[j]);
+			}
+
+			ptr += layout.stride();
+		}
+	}
+	{
+		auto     semantic   = rhi::BufferSemantic::vertex_weight_0;
+		auto    &attrib     = m.m_attribute_vertex_descriptors[0].attribute(semantic);
+		auto    &layout     = m.m_attribute_vertex_descriptors[0].layout(semantic);
+		uint32_t comp_count = 4;
+		uint8_t *ptr        = const_cast<uint8_t *>(weight_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
+		for (size_t i = 0; i < fox_attrib_count; ++i)
+		{
+			for (size_t j = 0; j < comp_count; ++j)
+			{
+				EXPECT_NEAR(fox_weights[i * comp_count + j], reinterpret_cast<float32_t *>(ptr)[j], epsilon);
+			}
+
+			ptr += layout.stride();
+		}
+	}
+}
+
 }        // namespace ror_test

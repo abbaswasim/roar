@@ -71,6 +71,7 @@ class ROAR_ENGINE_ITEM Buffer final
 	BufferSemanticPair           semantic(size_t a_index) const noexcept;
 	const BufferSemanticPairVec &semantics() const noexcept;
 	void                         gpu_upload() noexcept;        //! Uploads the buffer to the GPU
+	const std::vector<uint8_t>  &data() const;                 //! Pointer to the data store, shouldn't be manipulated directly
 
   private:
 	void      _upload();                                                      // TODO: To be implemented in renderer or via CRTP

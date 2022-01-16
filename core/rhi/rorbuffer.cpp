@@ -148,6 +148,11 @@ void Buffer::gpu_upload() noexcept
 	this->_upload();
 }
 
+const std::vector<uint8_t> &Buffer::data() const
+{
+	return this->m_data;
+}
+
 define_translation_unit_vtable(Buffer)
 {}
 

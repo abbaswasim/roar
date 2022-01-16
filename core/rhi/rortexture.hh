@@ -26,7 +26,6 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "managers/rormanager.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
@@ -101,7 +100,7 @@ FORCE_INLINE void TextureImage::target(TextureTarget a_target) noexcept
 FORCE_INLINE void TextureImage::allocate(uint64_t a_size)
 {
 	this->m_size = a_size;
-	auto *ptr = new uint8_t[this->m_size];
+	auto *ptr    = new uint8_t[this->m_size];
 	this->m_data.reset(ptr);
 }
 
@@ -128,12 +127,9 @@ FORCE_INLINE void TextureImage::push_empty_mip() noexcept
 
 static void read_texture_from_file_stb(ror::Resource &a_texture_resource, TextureImage &a_texture)
 {
-	int32_t w=0, h=0, bpp=0;
-	// auto   &resource_data = a_texture_resource.get_data();
-	// auto   *a_data        = stbi_load_from_memory(resource_data.data(), ror::static_cast_safe<int32_t>(resource_data.size()), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
-
-	uint8_t*a_data = new uint8_t();
-	(void) a_texture_resource;
+	int32_t w = 0, h = 0, bpp = 0;
+	auto   &resource_data = a_texture_resource.get_data();
+	auto   *a_data        = stbi_load_from_memory(resource_data.data(), ror::static_cast_safe<int32_t>(resource_data.size()), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
 
 	a_texture.push_empty_mip();
 	a_texture.format(PixelFormat::r8g8b8a8_uint32_norm_srgb);           // TODO: How do I read this via STB?

@@ -44,52 +44,6 @@ static auto position_uv               = ror::enum_to_type_cast(rhi::BufferSemant
 static auto position_normal_uv        = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal);
 static auto position_normal_uv_weight = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0);
 
-void test_one_vertex_description(rhi::VertexDescriptor &vd,
-								 rhi::BufferSemantic    semantic,
-								 uint32_t               location,
-								 uint32_t               offset,
-								 uint64_t               buffer_offset,
-								 uint32_t               binding,
-								 uint32_t               buffer_index,
-								 rhi::VertexFormat      format,
-
-								 rhi::StepFunction function,
-								 uint64_t          stride,
-								 rhi::Rate         rate,
-								 uint32_t          multiplier,
-								 uint64_t          semantic_type,
-								 uint32_t          line)
-{
-	(void) buffer_offset;
-	(void) buffer_index;
-	(void) multiplier;
-
-	// Uncomment to find out the error line
-	(void) line;
-	// std::string line_header{"Looking at like = "};
-	// line_header += std::to_string(line);
-	// print_with_gtest_header(line_header.c_str(), green);
-
-	ASSERT_TRUE(vd.complete());
-	ASSERT_EQ(vd.type(), semantic_type);
-
-	auto lp = vd.layout(semantic);
-	auto at = vd.attribute(semantic);
-
-	ASSERT_TRUE(lp.complete());
-	ASSERT_EQ(lp.binding(), binding);
-	ASSERT_EQ(lp.rate(), rate.m_value);
-	ASSERT_EQ(lp.step_function(), function);
-	ASSERT_EQ(lp.stride(), stride);
-
-	ASSERT_TRUE(at.complete());
-	ASSERT_EQ(at.binding(), binding);
-	ASSERT_EQ(at.format(), format);
-	ASSERT_EQ(at.location(), location);
-	ASSERT_EQ(at.offset(), offset);
-	ASSERT_EQ(at.semantics(), semantic);
-}
-
 TEST(VertexDescritionTest, automated_description)
 {
 	// TODO: Also check other ShaderSemantics added recently (Animation, texture etc)

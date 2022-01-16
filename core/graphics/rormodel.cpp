@@ -31,7 +31,6 @@
 #include "graphics/rormesh.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
-#include "graphics/rortexture.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffer_view.hpp"
@@ -95,14 +94,21 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 	rhi::TextureImage ti;
 
 	cgltf_size   data_size{((strlen(a_uri) + 2) / 3) << 2};        // Size calculated from the fact that base64 each 3 bytes turns into 4 bytes
-	int8_t      *data = new int8_t[data_size];                     // Data that needs to be allocated for decoding
+	uint8_t     *data = new uint8_t[data_size];                    // Data that needs to be allocated for decoding
 	cgltf_result res  = cgltf_load_buffer_base64(a_options, data_size, data_start, reinterpret_cast<void **>(&data));
 	assert(res == cgltf_result_success && "Base64 decoding failed for image");
 
-	// TODO: Now read the image from memory using stb_image
-	// stbi_load_from_memory(buffer,size,x,y,nc,dc);
-	// Later need to delete data pointer
-	ror::log_critical("read_texture_from_cgltf_base64 not implemented");
+	int32_t w = 0, h = 0, bpp = 0;
+	auto   *new_data = stbi_load_from_memory(data, static_cast_safe<int32_t>(data_size), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
+
+	ti.push_empty_mip();
+	ti.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);        // TODO: How do I read this via STB or gltf?
+	ti.reset(new_data, static_cast<uint64_t>(w * h * bpp));        // ti now owns the new_data pointer returned by stbi
+	ti.width(static_cast<uint32_t>(w));
+	ti.height(static_cast<uint32_t>(h));
+	ti.depth(static_cast<uint32_t>(bpp));
+
+	// Delete data pointer
 	delete[] data;
 
 	return ti;
@@ -325,6 +331,24 @@ rhi::TextureSampler cgltf_sampler_to_sampler(const cgltf_sampler *a_sampler)
 		sampler.m_wrap_t = a_sampler->wrap_t == 33648 ? rhi::TextureAddressMode::mirrored_repeat : rhi::TextureAddressMode::clamp_to_edge;        // Else leave the default repeat
 
 	return sampler;
+}
+
+rhi::PrimitiveTopology cglf_primitive_to_primitive_topology(cgltf_primitive_type a_type)
+{
+	// clang-format off
+	switch (a_type)
+	{
+		case cgltf_primitive_type_points:            return rhi::PrimitiveTopology::points;
+		case cgltf_primitive_type_lines:             return rhi::PrimitiveTopology::lines;
+		case cgltf_primitive_type_line_loop:         return rhi::PrimitiveTopology::lines_loop;
+		case cgltf_primitive_type_line_strip:        return rhi::PrimitiveTopology::lines_strip;
+		case cgltf_primitive_type_triangles:         return rhi::PrimitiveTopology::triangles;
+		case cgltf_primitive_type_triangle_strip:    return rhi::PrimitiveTopology::triangles_strip;
+		case cgltf_primitive_type_triangle_fan:      return rhi::PrimitiveTopology::triangles_fan;
+	}
+	// clang-format on
+
+	return rhi::PrimitiveTopology::triangles;
 }
 
 void Model::load_from_gltf_file(std::filesystem::path a_filename)
@@ -617,7 +641,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> attribs_data;
 
 				assert(cprim.type == cgltf_primitive_type_triangles && "Mesh primitive type is not triangles which is the only supported type at the moment");
-				mesh.m_primitive_types[i] = static_cast<rhi::PrimitiveTopology>(cprim.type);        // TODO: Create a switch for this, incase the types don't match in the future, also support more types
+				mesh.m_primitive_types[i] = cglf_primitive_to_primitive_topology(cprim.type);
 
 				if (cprim.has_draco_mesh_compression)
 					ror::log_critical("Mesh has draco mesh compression but its not supported");
@@ -803,7 +827,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						amts[k].add(current_index, attrib_format, &bp);
 					}
 
-					// TODO: Now copy all the buffer_views for morph_targets
+					// Now copy all the buffer_views for morph_targets
 					amts[k].upload(morph_targets_attribs_data, &bp);
 				}
 

@@ -33,6 +33,15 @@
 #include "include/gtest/gtest.h"
 #include <iostream>
 
+#include "graphics/rormesh.hpp"
+#include "include/gtest/gtest.h"
+#include "profiling/rorlog.hpp"
+#include "rhi/rorbuffer_allocator.hpp"
+#include "rhi/rortypes.hpp"
+#include "rhi/rorvertex_attribute.hpp"
+#include "rhi/rorvertex_description.hpp"
+#include "rhi/rorvertex_layout.hpp"
+
 namespace fs = std::filesystem;
 
 namespace ror_test
@@ -215,5 +224,21 @@ fs::path get_root_dir();
 fs::path create_root_dir();
 
 void teardown_environment();
+
+void test_one_vertex_description(rhi::VertexDescriptor &vd,
+								 rhi::BufferSemantic    semantic,
+								 uint32_t               location,
+								 uint32_t               offset,
+								 uint64_t               buffer_offset,
+								 uint32_t               binding,
+								 uint32_t               buffer_index,
+								 rhi::VertexFormat      format,
+
+								 rhi::StepFunction function,
+								 uint64_t          stride,
+								 rhi::Rate         rate,
+								 uint32_t          multiplier,
+								 uint64_t          semantic_type,
+								 uint32_t          line);
 
 }        // namespace ror_test
