@@ -47,6 +47,8 @@
 #define CGLTF_IMPLEMENTATION
 #include "cgltf/cgltf.h"
 
+#define USE_JS 1
+
 namespace ror
 {
 
@@ -93,9 +95,9 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 
 	rhi::TextureImage ti;
 
-	cgltf_size   data_size{((strlen(a_uri) + 2) / 3) << 2};        // Size calculated from the fact that base64 each 3 bytes turns into 4 bytes
-	uint8_t     *data = new uint8_t[data_size];                    // Data that needs to be allocated for decoding
-	cgltf_result res  = cgltf_load_buffer_base64(a_options, data_size, data_start, reinterpret_cast<void **>(&data));
+	cgltf_size data_size{((strlen(a_uri) + 2) / 3) << 2};        // Size calculated from the fact that base64 each 3 bytes turns into 4 bytes
+	uint8_t   *data = new uint8_t[data_size];                    // Data that needs to be allocated for decoding
+	cgltf_result res = cgltf_load_buffer_base64(a_options, data_size, data_start + 1, reinterpret_cast<void **>(&data));
 	assert(res == cgltf_result_success && "Base64 decoding failed for image");
 
 	int32_t w = 0, h = 0, bpp = 0;
