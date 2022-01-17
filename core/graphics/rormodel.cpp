@@ -961,7 +961,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 		}
 
 		// Read the animations
-		this->m_animations.reserve(data->animations_count);
+		this->m_animations.resize(data->animations_count);
 		for (size_t i = 0; i < data->animations_count; ++i)
 		{
 			const cgltf_animation &canimation = data->animations[i];
@@ -969,7 +969,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 			assert(canimation.channels_count > 0 && "No animation channels availabled in the animation");
 			assert(canimation.samplers_count > 0 && "No animation samplers availabled in the animation");
 
-			Animation animation;
+			Animation &animation = this->m_animations[i];
 
 			std::unordered_map<const cgltf_animation_sampler *, int32_t> animation_sampler_to_index{};
 			animation_sampler_to_index.reserve(canimation.samplers_count);
@@ -1071,8 +1071,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 				animation.m_channels.emplace_back(std::move(animation_channel));
 			}
-
-			this->m_animations.emplace_back(animation);
 		}
 
 		// Place where I wait for all JobSystem jobs to finish
