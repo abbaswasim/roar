@@ -95,9 +95,9 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 
 	rhi::TextureImage ti;
 
-	cgltf_size data_size{((strlen(a_uri) + 2) / 3) << 2};        // Size calculated from the fact that base64 each 3 bytes turns into 4 bytes
-	uint8_t   *data = new uint8_t[data_size];                    // Data that needs to be allocated for decoding
-	cgltf_result res = cgltf_load_buffer_base64(a_options, data_size, data_start + 1, reinterpret_cast<void **>(&data));
+	cgltf_size   data_size{((strlen(a_uri) + 2) / 3) << 2};        // Size calculated from the fact that base64 each 3 bytes turns into 4 bytes
+	uint8_t     *data = new uint8_t[data_size];                    // Data that needs to be allocated for decoding
+	cgltf_result res  = cgltf_load_buffer_base64(a_options, data_size, data_start + 1, reinterpret_cast<void **>(&data));
 	assert(res == cgltf_result_success && "Base64 decoding failed for image");
 
 	int32_t w = 0, h = 0, bpp = 0;
@@ -889,6 +889,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 					auto *inverse_bind_matrices_accessor = cskin.inverse_bind_matrices;
 					skin.m_inverse_bind_matrices.resize(cskin.inverse_bind_matrices->count);
+					// TODO: Do this unpacking manually, there is a lot of overhead of doing it this way
 					cgltf_accessor_unpack_floats(inverse_bind_matrices_accessor,
 												 reinterpret_cast<cgltf_float *>(skin.m_inverse_bind_matrices.data()),
 												 skin.m_inverse_bind_matrices.size() * 16);
@@ -1021,6 +1022,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
 						animation_sampler.m_output.resize(anim_sampler_accessor->count * attrib_byte_size / sizeof(float32_t));
 
+						// TODO: Do this unpacking manually, there is a lot of overhead of doing it this way
 						cgltf_accessor_unpack_floats(anim_sampler_accessor,
 													 reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
 													 animation_sampler.m_output.size());        // TODO: Why was I doing this before * anim_sampler_accessor->count);

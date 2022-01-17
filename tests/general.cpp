@@ -340,6 +340,46 @@ TEST(ModelTest, gltf_loader_test)
 			ptr += layout.stride();
 		}
 	}
+	{
+		EXPECT_EQ(model.skins().size(), 1);
+		auto &s = model.skins()[0];
+		EXPECT_EQ(s.m_inverse_bind_matrices.size(), fox_inverse_bind_matrices_count);
+		EXPECT_EQ(s.m_joints.size(), fox_inverse_bind_matrices_count);
+
+		for (size_t i = 0; i < s.m_inverse_bind_matrices.size(); ++i)
+			for (size_t j = 0; j < 16; ++j)
+				EXPECT_NEAR(s.m_inverse_bind_matrices[i].m_values[j], fox_inverse_bind_matrices[i * 16 + j], epsilon);
+
+		for (size_t i = 0; i < s.m_joints.size(); ++i)
+			EXPECT_EQ(s.m_joints[i], fox_joints[i]);
+
+		EXPECT_EQ(s.m_root, 2);
+		EXPECT_EQ(s.m_node_index, 1);
+	}
+	{
+		EXPECT_EQ(model.animations().size(), 3);
+		auto&a = model.animations()[0];
+
+		EXPECT_EQ(a.m_samplers.size(), 21);
+		EXPECT_EQ(a.m_channels.size(), 21);
+
+		auto &s = a.m_samplers[0];
+		auto &i = s.m_input;
+		auto &o = s.m_output;
+
+		EXPECT_EQ(i.size(), 83);
+		EXPECT_EQ(o.size(), 83 * 4);
+
+		for (size_t j = 0; j < i.size(); ++j)
+		{
+			EXPECT_NEAR(i[j].m_value, fox_sampler0_input[j], epsilon);
+
+			EXPECT_NEAR(o[j * 4 + 0].m_value, fox_sampler0_output[j * 4 + 0], epsilon);
+			EXPECT_NEAR(o[j * 4 + 1].m_value, fox_sampler0_output[j * 4 + 1], epsilon);
+			EXPECT_NEAR(o[j * 4 + 2].m_value, fox_sampler0_output[j * 4 + 2], epsilon);
+			EXPECT_NEAR(o[j * 4 + 3].m_value, fox_sampler0_output[j * 4 + 3], epsilon);
+		}
+	}
 
 	// Signal free to BufferPack so allocator can free stuff
 	bp.free();
