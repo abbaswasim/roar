@@ -9,6 +9,7 @@
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
 #include "math/rorvector3.hpp"
+#include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
 #include <atomic>
 #include <filesystem>
@@ -339,6 +340,9 @@ TEST(ModelTest, gltf_loader_test)
 			ptr += layout.stride();
 		}
 	}
+
+	// Signal free to BufferPack so allocator can free stuff
+	bp.free();
 }
 
 }        // namespace ror_test

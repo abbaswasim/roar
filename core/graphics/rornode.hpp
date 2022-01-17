@@ -87,14 +87,14 @@ define_type_to_shader_semantics(ror::NodeData)
 	return rhi::BufferSemantic::node_suplementory_data;
 }
 
-// define_type_to_shader_semantics(ror::Matrix4f)
-// {
-//	return rhi::BufferSemantic::instance_transform;
-// }
+define_type_to_shader_semantics(ror::Matrix4f)
+{
+	return rhi::BufferSemantic::instance_transform;
+}
 
-// define_type_to_shader_semantics(ror::Transformf)
-// {
-//	return rhi::BufferSemantic::instance_trs;
-// }
+define_type_to_shader_semantics(ror::Transformf)
+{
+	return rhi::BufferSemantic::instance_trs;
+}
 
 }        // namespace rhi

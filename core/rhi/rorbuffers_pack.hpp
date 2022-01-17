@@ -29,6 +29,7 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/rorbuffers_format.hpp"
 #include "rhi/rortypes.hpp"
+#include <cassert>
 #include <cstddef>
 #include <unordered_map>
 #include <vector>
@@ -174,9 +175,24 @@ class ROAR_ENGINE_ITEM BuffersPack final
 		return this->m_buffers[a_index];
 	}
 
+	/**
+	 * Sets BufferPack to be free-able, should only be called once and at the end of the program
+	 */
+	FORCE_INLINE void free()
+	{
+		assert(this->m_ready_to_free == false && "Free called on BufferPack again");
+		this->m_ready_to_free = true;
+	}
+
+	FORCE_INLINE bool ready_to_free() const
+	{
+		return this->m_ready_to_free;
+	}
+
   private:
-	std::vector<rhi::Buffer>                     m_buffers{};                  //! All buffers created for different type data
-	std::unordered_map<BufferSemantic, uint32_t> m_attribute_indices{};        //! All indices for any of the ShaderSemantic type, Position and its buffer index, Normal and its buffer index etc
+	std::vector<rhi::Buffer>                     m_buffers{};                   //! All buffers created for different type data
+	std::unordered_map<BufferSemantic, uint32_t> m_attribute_indices{};         //! All indices for any of the ShaderSemantic type, Position and its buffer index, Normal and its buffer index etc
+	bool                                         m_ready_to_free{false};        //! True when we can deallocate all buffers safely, doesn't have to be atomic, because this is end of everything
 };
 
 // define_translation_unit_vtable(BuffersPack)

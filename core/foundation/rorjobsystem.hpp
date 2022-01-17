@@ -230,11 +230,14 @@ class ROAR_ENGINE_ITEM JobHandle final
 class ROAR_ENGINE_ITEM JobSystem final
 {
   public:
-	FORCE_INLINE            JobSystem(const JobSystem &a_other)     = delete;         //! Copy constructor
-	FORCE_INLINE            JobSystem(JobSystem &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE JobSystem &operator=(const JobSystem &a_other) = delete;             //! Copy assignment operator
-	FORCE_INLINE JobSystem &operator=(JobSystem &&a_other) noexcept = delete;         //! Move assignment operator
-	FORCE_INLINE ~JobSystem() noexcept                              = default;        //! Destructor
+	FORCE_INLINE            JobSystem(const JobSystem &a_other)     = delete;        //! Copy constructor
+	FORCE_INLINE            JobSystem(JobSystem &&a_other) noexcept = delete;        //! Move constructor
+	FORCE_INLINE JobSystem &operator=(const JobSystem &a_other) = delete;            //! Copy assignment operator
+	FORCE_INLINE JobSystem &operator=(JobSystem &&a_other) noexcept = delete;        //! Move assignment operator
+	FORCE_INLINE ~JobSystem() noexcept                                               //! Destructor
+	{
+		this->stop();
+	}
 
   private:
 	class ROAR_ENGINE_ITEM WorkerQueue final
@@ -438,7 +441,7 @@ class ROAR_ENGINE_ITEM JobSystem final
  * Returns a static global JobSystem object, this isn't the only way one can use JobSystem but
  * is the prefered way, because threads creation and destruction isn't for free
  */
-FORCE_INLINE JobSystem& get_job_system()
+FORCE_INLINE JobSystem &get_job_system()
 {
 	static JobSystem js;
 

@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "profiling/rorlog.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
 #include <cstddef>
@@ -41,7 +42,7 @@ namespace rhi
  * For each type of allocations the allocator knows about, it tries to find a buffer
  * from that type semantic and uses that for allocation
  */
-#if defined (WITHOUT_BUFFER_ALLOCATOR)
+#if defined(WITHOUT_BUFFER_ALLOCATOR)
 template <class _type>
 class ROAR_ENGINE_ITEM BufferAllocator final : public std::allocator<_type>
 {};
@@ -85,7 +86,15 @@ class ROAR_ENGINE_ITEM BufferAllocator final
 		(void) a_pointer;
 		(void) a_count;
 
-		assert(0 && "BufferAllocator can't deallocate at the moment, this shouldn't happen, something went wrong");
+		if constexpr (ror::get_build() == ror::BuildType::build_debug)
+		{
+			const auto &bp = rhi::get_buffers_pack();
+			if (!bp.ready_to_free())
+			{
+				ror::log_critical("Allocation size = {}", a_count);
+				assert(0 && "BufferAllocator can't deallocate at the moment, this shouldn't happen, something went wrong");
+			}
+		}
 	}
 
   protected:
