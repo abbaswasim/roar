@@ -43,12 +43,17 @@ ptrdiff_t Buffer::_offset(ptrdiff_t a_bytes)
 {
 	assert(a_bytes > 0 && "Requested bytes must be positive");
 
+	static std::mutex           mutex{};        // Using a static mutex here because only this method needs synchronising and using mutex in Buffer makes it non-moveable (can't make vectors)
+	std::lock_guard<std::mutex> mtx(mutex);
+
 	assert(this->m_filled_size + a_bytes < this->m_size_in_bytes && "Requesting more bytes than the buffer has available");
 
-	this->m_filled_size += a_bytes;
-	this->m_filled_size = static_cast<ptrdiff_t>(ror::align8(static_cast<uint64_t>(this->m_filled_size)));
+	auto offset = this->m_filled_size;
 
-	return this->m_filled_size - a_bytes;
+	this->m_filled_size += a_bytes;
+	this->m_filled_size = static_cast<ptrdiff_t>(ror::align8(static_cast<uint64_t>(this->m_filled_size)));        // Aligning next offset for the most common denominator, other types are fine
+
+	return offset;
 }
 
 ptrdiff_t Buffer::offset(ptrdiff_t a_bytes)
@@ -92,8 +97,9 @@ void Buffer::unmap() noexcept
 void Buffer::size(ptrdiff_t a_size) noexcept
 {
 	assert(a_size > 0 && "Buffer size must be positive");
+	assert(this->m_size_in_bytes == 0 && "Buffer::resize is called again, this needs synchronising if this is happening for good reason");
 
-	// TODO: Make this lazy allocated, perhaps on first _offset() call
+	// Probably better to make this lazy allocated, perhaps on first _offset() call
 	this->m_data.resize(static_cast<size_t>(a_size));
 	this->m_size_in_bytes = a_size;
 }

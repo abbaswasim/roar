@@ -1,5 +1,6 @@
 build
 xcode-project
+build-xcode
 *.log
 log/*.log
 logs/*.log

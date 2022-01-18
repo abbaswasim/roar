@@ -72,8 +72,7 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 		m_binding(a_binding),
 		m_buffer_index(a_buffer_index),
 		m_semantics(a_semantics),
-		m_format(a_format),
-		m_complete(true)
+		m_format(a_format)
 	{}
 
 	// clang-format off
@@ -84,7 +83,7 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	FORCE_INLINE uint32_t            buffer_index()     const { return this->m_buffer_index;     }
 	FORCE_INLINE rhi::VertexFormat   format()           const { return this->m_format;           }
 	FORCE_INLINE rhi::BufferSemantic semantics()        const { return this->m_semantics;        }
-	FORCE_INLINE bool                complete()         const { return this->m_complete;         }
+
 
 	FORCE_INLINE void   location(uint32_t a_location)              noexcept { this->m_location         = a_location;     }
 	FORCE_INLINE void   offset(uint32_t a_offset)                  noexcept { this->m_offset           = a_offset;       }
@@ -93,7 +92,6 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	FORCE_INLINE void   buffer_index(uint32_t a_index)             noexcept { this->m_buffer_index     = a_index;        }
 	FORCE_INLINE void   format(rhi::VertexFormat a_format)         noexcept { this->m_format           = a_format;       }
 	FORCE_INLINE void   semantics(rhi::BufferSemantic a_semantics) noexcept { this->m_semantics        = a_semantics;    }
-	FORCE_INLINE void   complete(bool a_complete)                  noexcept { this->m_complete         = a_complete;     }
 	// clang-format on
 
   private:
@@ -104,7 +102,6 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	uint32_t            m_buffer_index{0};                                        //! Which buffer do I live in? this is the buffer_pack index, destination buffer index
 	rhi::BufferSemantic m_semantics{rhi::BufferSemantic::vertex_position};        //! Whats the type of attribute? Position, UV, Normal etc
 	rhi::VertexFormat   m_format{rhi::VertexFormat::float32_3};                   //! float/int vec2/vec3/vec4 normalized/not packed/unpacked
-	bool                m_complete{false};                                        //! Whether the vertex attribute is complete and valid, worked out by layout walk
 };
 
 static_assert(std::is_trivially_copyable_v<VertexAttribute>, "VertexAttribute is not trivially copyable");

@@ -47,6 +47,8 @@ enum class CollisionType : int32_t
 	inside     = 1
 };
 
+// TODO: Instead of virtual polymorphism lets use CRTP instead here to see if it makes any difference
+// TODO: Use https://zeux.io/2010/10/17/aabb-from-obb-with-component-wise-abs/ to easily convert from AABB in local to worldspace
 class ROAR_ENGINE_ITEM Bounding
 {
   public:

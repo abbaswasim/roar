@@ -58,23 +58,23 @@ class ROAR_ENGINE_ITEM Model
 	FORCE_INLINE ~Model() noexcept                          = default;        //! Destructor
 
 	// Populates data from a gltf file loaded as a resource.
-	// TODO: If this or any other load functions are called before, append data
+	// If this or any other load functions are called before, data needs to be appended
 	void load_from_gltf_file(std::filesystem::path a_filename);
 
 	// clang-format off
-	auto &images()              {  return this->m_images;          }
-	auto &samplers()            {  return this->m_samplers;        }
-	auto &textures()            {  return this->m_textures;        }
-	auto &materials()           {  return this->m_materials;       }
-	auto &meshes()              {  return this->m_meshes;          }
-	auto &skins()               {  return this->m_skins;           }
-	auto &nodes()               {  return this->m_nodes;           }
-	auto &nodes_side_data()     {  return this->m_nodes_side_data; }
-	auto &animations()          {  return this->m_animations;      }
+	FORCE_INLINE const auto &images()           const    {  return this->m_images;          }
+	FORCE_INLINE const auto &samplers()         const    {  return this->m_samplers;        }
+	FORCE_INLINE const auto &textures()         const    {  return this->m_textures;        }
+	FORCE_INLINE const auto &materials()        const    {  return this->m_materials;       }
+	FORCE_INLINE const auto &meshes()           const    {  return this->m_meshes;          }
+	FORCE_INLINE const auto &skins()            const    {  return this->m_skins;           }
+	FORCE_INLINE const auto &nodes()            const    {  return this->m_nodes;           }
+	FORCE_INLINE const auto &nodes_side_data()  const    {  return this->m_nodes_side_data; }
+	FORCE_INLINE const auto &animations()       const    {  return this->m_animations;      }
 	// clang-format on
 
   private:
-	// TODO: This works for 1 model at the moment. Next append to these when a second asset is loaded
+	// This works for 1 model at the moment. Next append to these when a second asset is loaded
 	// This would require going through all the models that needs loading and getting max bounds of each and then adjusting indices
 
 	std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     m_images{};                 //! All images, by handles

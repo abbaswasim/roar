@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2008-2021
+// Copyright (c) 2021
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -23,25 +23,11 @@
 //
 // Version: 1.0.0
 
-#pragma once
+#include "configuration/rorsettings_configuration.hpp"
 
-#include "rhi/rorimage.hpp"
-
-namespace rdr
+namespace ror
 {
+define_translation_unit_vtable(SettingsConfig)
+{}
 
-FORCE_INLINE uint32_t Image::width() const
-{
-	return this->m_width;
-}
-
-FORCE_INLINE uint32_t Image::height() const
-{
-	return this->m_height;
-}
-
-FORCE_INLINE uint32_t Image::bpp() const
-{
-	return this->m_bpp;
-}
-}        // namespace rdr
+}        // namespace ror

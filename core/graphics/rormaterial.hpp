@@ -131,3 +131,13 @@ define_type_to_shader_semantics(ror::Material)
 }
 
 }        // namespace rhi
+
+// Credit glTF 2.0 Specification https://www.khronos.org/registry/glTF/specs/2.0/glTF-2.0.html
+// gltf function for calcuating f0 etc
+/*
+function fresnel_mix(ior, base, layer) {
+  f0 = ((1-ior)/(1+ior))^2
+  fr = f0 + (1 - f0)*(1 - abs(VdotH))^5
+  return mix(base, layer, fr)
+}
+*/

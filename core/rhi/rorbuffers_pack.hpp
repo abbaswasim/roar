@@ -36,34 +36,12 @@
 
 namespace rhi
 {
-// template <bool>
-// class HasPositions
-// {};
-
-// template <>
-// class HasPositions<true>
-// {
-//   public:
-//	ror::Vector3f m_positions;
-// };
-
-// template <class _type, bool>
-// class HasPositionsSOA
-// {};
-
-// // This is probably much better for copying later on
-// template <class _type>
-// class HasPositionsSOA<_type, true>
-// {
-//   public:
-//	std::vector<_type> m_positions;
-// };
 
 /**
  * Describes how many buffers are created for static geometry data and with what layout
  * This should only be used for static data that won't be touched later for anything else
  * use Buffer directly. Ideally this will try to create
- *     1 buffer for positions,
+ *     1 buffer for positions, joints and weights,
  *     1 for all other vertex attributes,
  *     1 for index buffers,
  *     1 for instanced data
@@ -77,8 +55,6 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	FORCE_INLINE BuffersPack &operator=(const BuffersPack &a_other) = delete;              //! Copy assignment operator
 	FORCE_INLINE BuffersPack &operator=(BuffersPack &&a_other) noexcept = delete;          //! Move assignment operator
 	FORCE_INLINE ~BuffersPack() noexcept                                = default;         //! Destructor
-
-	// declare_translation_unit_vtable();
 
 	FORCE_INLINE BuffersPack(const ror::BuffersFormat &a_buffers_format)
 	{
@@ -117,7 +93,7 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	/**
 	 * Returns a pair with buffer index and the offsets in that buffer where the data is copied
 	 */
-	// TODO: This will be contentious amongst threads, think about how would this work asynchronously
+	// This will be contentious amongst threads, Since Buffer is thread safe this works asynchronously
 	FORCE_INLINE void upload(BufferSemantic a_semantic, const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
@@ -162,6 +138,11 @@ class ROAR_ENGINE_ITEM BuffersPack final
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
 		return this->m_buffers[index];
 	}
+	FORCE_INLINE const Buffer &buffer(BufferSemantic a_semantic) const
+	{
+		const uint32_t index = this->attribute_buffer_index(a_semantic);
+		return this->m_buffers[index];
+	}
 
 	/**
 	 * Returns a buffer by index, shouldn't be used if semantics are a better choice
@@ -195,10 +176,6 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	bool                                         m_ready_to_free{false};        //! True when we can deallocate all buffers safely, doesn't have to be atomic, because this is end of everything
 };
 
-// define_translation_unit_vtable(BuffersPack)
-// {}
-
-// TODO: Eventually this should be owned by some higher entity and provided to model loaders and VertexDescriptions
 FORCE_INLINE BuffersPack &get_buffers_pack()
 {
 	static BuffersPack bfp{ror::get_buffers_format()};

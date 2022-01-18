@@ -78,6 +78,7 @@ class ROAR_ENGINE_ITEM BufferAllocator final
 				throw std::bad_alloc();
 		}
 
+		// This is thread safe because Buffer is thread safe
 		return reinterpret_cast<_type *>(b.request(static_cast<ptrdiff_t>(a_count * sizeof(_type))));
 	}
 
@@ -90,10 +91,7 @@ class ROAR_ENGINE_ITEM BufferAllocator final
 		{
 			const auto &bp = rhi::get_buffers_pack();
 			if (!bp.ready_to_free())
-			{
-				ror::log_critical("Allocation size = {}", a_count);
 				assert(0 && "BufferAllocator can't deallocate at the moment, this shouldn't happen, something went wrong");
-			}
 		}
 	}
 

@@ -34,6 +34,7 @@
 
 int main(int argc, char **argv)
 {
+	// Copy assets/configs required for tests
 	setup_project_root();
 
 	testing::InitGoogleTest(&argc, argv);

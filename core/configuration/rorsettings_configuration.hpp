@@ -83,9 +83,6 @@ class ROAR_ENGINE_ITEM SettingsConfig : public Configuration<SettingsConfig>
 	std::unordered_map<std::string, generic_config> m_generic_configs{};
 };
 
-define_translation_unit_vtable(SettingsConfig)
-{}
-
 FORCE_INLINE SettingsConfig::SettingsConfig(std::filesystem::path a_config_path)
 {
 	this->load(a_config_path);
@@ -93,8 +90,8 @@ FORCE_INLINE SettingsConfig::SettingsConfig(std::filesystem::path a_config_path)
 
 FORCE_INLINE const SettingsConfig &get_settings()
 {
-	static SettingsConfig sc{"settings.json"};        // Loads a predefined config file required to setup buffers formats, since this is a resource it will just work without full path
-	return sc;                                        // The path could be extracted out to clients further later
+	static SettingsConfig sc{"settings.json"};        // Loads a predefined config file required to load all engine settings, since this is a resource it will just work without full path
+	return sc;
 }
 
 }        // namespace ror

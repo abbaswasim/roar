@@ -65,15 +65,15 @@ class ROAR_ENGINE_ITEM Random final : public std::conditional<std::is_integral<_
 	FORCE_INLINE ~Random() noexcept                           = default;         //! Destructor
 
 	FORCE_INLINE void reset(_type a_min = std::numeric_limits<_type>::min(), _type a_max = std::numeric_limits<_type>::max());
-	FORCE_INLINE _type next();
+	FORCE_INLINE _type next() const;
 
   protected:
   private:
 	FORCE_INLINE void _reset(_type a_min, _type a_max, std::true_type);
 	FORCE_INLINE void _reset(_type a_min, _type a_max, std::false_type);
 
-	FORCE_INLINE _type _next(std::true_type);
-	FORCE_INLINE _type _next(std::false_type);
+	FORCE_INLINE _type _next(std::true_type) const;
+	FORCE_INLINE _type _next(std::false_type) const;
 
 	std::random_device            m_device{};        //!< Could be static
 	std::unique_ptr<std::mt19937> m_engine{};        //!< Could be static

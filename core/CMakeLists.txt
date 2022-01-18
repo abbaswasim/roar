@@ -111,6 +111,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffer.cpp
+  ${ROAR_SOURCE_DIR}/configuration/rorsettings_configuration.cpp
   ${ROAR_SOURCE_DIR}/resources/rorprojectroot.cpp)
 
 add_library(${ROAR_NAME} SHARED ${ROAR_SOURCES} ${ROAR_HEADERS})

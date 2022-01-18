@@ -57,19 +57,19 @@ FORCE_INLINE void Random<_type>::_reset(_type a_min, _type a_max, std::false_typ
 }
 
 template <class _type>
-FORCE_INLINE _type Random<_type>::next()
+FORCE_INLINE _type Random<_type>::next() const
 {
 	return this->_next(std::is_integral<_type>{});
 }
 
 template <class _type>
-FORCE_INLINE _type Random<_type>::_next(std::true_type)
+FORCE_INLINE _type Random<_type>::_next(std::true_type) const
 {
 	return (*this->m_distribution)(*this->m_engine);
 }
 
 template <class _type>
-FORCE_INLINE _type Random<_type>::_next(std::false_type)
+FORCE_INLINE _type Random<_type>::_next(std::false_type) const
 {
 	return (*this->m_distribution)(*this->m_engine);
 }

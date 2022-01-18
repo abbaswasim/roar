@@ -29,6 +29,7 @@
 #include "include/gtest/gtest.h"
 #include "profiling/rorlog.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
+#include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
 #include "rhi/rorvertex_description.hpp"
@@ -44,7 +45,7 @@ static auto position_uv               = ror::enum_to_type_cast(rhi::BufferSemant
 static auto position_normal_uv        = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal);
 static auto position_normal_uv_weight = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0);
 
-TEST(VertexDescritionTest, automated_description)
+TEST(VertexDescriptionTest, automated_description)
 {
 	// TODO: Also check other ShaderSemantics added recently (Animation, texture etc)
 	const auto &bp = rhi::get_buffers_pack();
@@ -409,9 +410,8 @@ TEST(VertexDescritionTest, automated_description)
 	}
 }
 
-TEST(VertexDescritionTest, fox_attributes_description)
+TEST(VertexDescriptionTest, fox_attributes_description)
 {
-	// TODO: Also check other ShaderSemantics added recently (Animation, texture etc)
 	const auto &bp = rhi::get_buffers_pack();
 
 	// type, comps, offset, count, stride/byte_size data_size

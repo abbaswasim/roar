@@ -225,7 +225,7 @@ fs::path create_root_dir();
 
 void teardown_environment();
 
-void test_one_vertex_description(rhi::VertexDescriptor &vd,
+void test_one_vertex_description(const rhi::VertexDescriptor &vd,
 								 rhi::BufferSemantic    semantic,
 								 uint32_t               location,
 								 uint32_t               offset,

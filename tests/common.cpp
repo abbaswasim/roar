@@ -141,7 +141,7 @@ TEST(JobSystem, JobSystem_hardware_threads)
 	EXPECT_EQ(threads, expected_threads) << "Not enough threads available";
 }
 
-void test_one_vertex_description(rhi::VertexDescriptor &vd,
+void test_one_vertex_description(const rhi::VertexDescriptor &vd,
 								 rhi::BufferSemantic    semantic,
 								 uint32_t               location,
 								 uint32_t               offset,
@@ -167,19 +167,16 @@ void test_one_vertex_description(rhi::VertexDescriptor &vd,
 	// line_header += std::to_string(line);
 	// print_with_gtest_header(line_header.c_str(), green);
 
-	ASSERT_TRUE(vd.complete());
 	ASSERT_EQ(vd.type(), semantic_type);
 
 	auto lp = vd.layout(semantic);
 	auto at = vd.attribute(semantic);
 
-	ASSERT_TRUE(lp.complete());
 	ASSERT_EQ(lp.binding(), binding);
 	ASSERT_EQ(lp.rate(), rate.m_value);
 	ASSERT_EQ(lp.step_function(), function);
 	ASSERT_EQ(lp.stride(), stride);
 
-	ASSERT_TRUE(at.complete());
 	ASSERT_EQ(at.binding(), binding);
 	ASSERT_EQ(at.format(), format);
 	ASSERT_EQ(at.location(), location);

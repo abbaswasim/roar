@@ -23,12 +23,14 @@
 //
 // Version: 1.0.0
 
+#include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rorrandom.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorprojectroot.hpp"
 #include "rhi/rortypes.hpp"
 #include "rorresource.hpp"
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -37,6 +39,7 @@
 #include <iomanip>
 #include <ios>
 #include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -337,7 +340,7 @@ void Resource::load_or_mmap()
 	// If we are asked to create mmaped file or the resource is readonly, lets mmap it
 	if (this->m_mapped)        // || this->m_read_only)
 	{
-		// TODO: mmap me and consider m_read_only
+		assert(0 && "mmap me and consider m_read_only");
 	}
 	else
 	{
@@ -400,8 +403,7 @@ std::filesystem::path get_cache_path()
 {
 	auto project_root_path = get_project_root().path();        // Calling get_project_root without any arguments relies on clients who must call to initalized project_root
 
-	// TODO: Reach cache dir from config files
-	return project_root_path / ".roar_cache";
+	return project_root_path / get_settings().get<std::string>("roar_cache");
 }
 
 void Resource::temp()

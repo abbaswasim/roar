@@ -26,6 +26,7 @@
 #pragma once
 
 #include "configuration/rorconfiguration.hpp"
+#include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "rhi/rorbuffer.hpp"
@@ -49,6 +50,12 @@ struct BuffersFormat
 	std::vector<BufferPack> m_buffer_packs{};
 };
 
+/**
+ * Config for all buffers used in the engine.
+ * Buffers config file is loaded from buffers_format.json from settings
+ * There is always ever 1 instance of this if used via get_buffers_format which is const
+ * so doesn't need thread safety
+ */
 class ROAR_ENGINE_ITEM BuffersFormatConfig : public Configuration<BuffersFormatConfig>
 {
   public:
@@ -84,9 +91,9 @@ FORCE_INLINE const BuffersFormat &BuffersFormatConfig::buffers_format() const no
 
 FORCE_INLINE const BuffersFormat &get_buffers_format()
 {
-	// FIXME: This needs to be abstracted out, currently very static and doesn't work for tests
-	static BuffersFormatConfig bfc{"buffers_format.json"};        // Loads a predefined config file required to setup buffers formats, since this is a resource it will just work without full path
-	return bfc.buffers_format();                                  // The path could be extracted out to clients further later
+	static auto &settings = get_settings();
+	static BuffersFormatConfig bfc{settings.get<std::string>("buffers_format")};        // Loads a predefined config file required to setup buffers formats, since this is a resource it will just work without full path
+	return bfc.buffers_format();                                                        // The buffers_format config file name is provided in settings.json
 }
 
 }        // namespace ror

@@ -23,18 +23,19 @@
 //
 // Version: 1.0.0
 
+#include "configuration/rorsettings_configuration.hpp"
 #include "profiling/rorlog.hpp"
 #include "rorprojectroot.hpp"
+#include <string>
 
 namespace ror
 {
-// Convenience name for default initialized projects
-const std::string project_path("roar_project");
-
-ProjectRoot::ProjectRoot() :
-	m_project_root(std::filesystem::absolute(project_path)),
-	m_project_root_hash(std::hash<std::string>{}(project_path))
+ProjectRoot::ProjectRoot()
 {
+	// Convenience name for default initialized projects
+	const std::string project_path{"roar_project"};        // Remember this can't be put in "settings.json" because then you are recursively calling get_settings()
+	this->m_project_root      = std::filesystem::absolute(project_path);
+	this->m_project_root_hash = std::hash<std::string>{}(project_path);
 	std::filesystem::create_directory(this->m_project_root);        // its ok if already exists
 }
 

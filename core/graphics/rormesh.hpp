@@ -36,7 +36,7 @@
 
 namespace ror
 {
-constexpr uint32_t max_morph_targets{8};                                                                   // TODO: Read from config somewhere
+constexpr uint32_t max_morph_targets{8};                                                                   // Could be read from config but then I can't create arrays
 constexpr uint32_t max_vertex_attributes{enum_to_type_cast(rhi::AttributeIndex::vertex_index) + 1};        // Anything that can be a vertex attribute is until vertex_index
 
 #define item(_enum) _enum##_index

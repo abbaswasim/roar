@@ -101,7 +101,6 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	 * @param      a_vertex The vertex to add into the graph
 	 * @return     VertexId where the vertex was appended
 	 */
-	// TODO Does the const reference makes sense here or would I be abetter off with pass by value
 	FORCE_INLINE VertexId append_vertex(const Vertex &a_vertex);
 
 	/**

@@ -60,8 +60,7 @@ class ROAR_ENGINE_ITEM VertexLayout final
 		m_stride(a_stride),
 		m_rate(a_rate),
 		m_format_multiplier(a_multiplier),
-		m_function(a_function),
-		m_complete(true)
+		m_function(a_function)
 	{}
 
 	// clang-format off
@@ -70,14 +69,12 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	FORCE_INLINE uint32_t           rate()                  const { return this->m_rate;                 }          // Make sure to read the lower 16bits only for rate
 	FORCE_INLINE uint32_t           format_multiplier()     const { return this->m_format_multiplier;    }          // Make sure to read the higher 16bits only for rate
 	FORCE_INLINE rhi::StepFunction  step_function()         const { return this->m_function;             }
-	FORCE_INLINE bool               complete()              const { return this->m_complete;             }
 
 	FORCE_INLINE void   binding(uint32_t a_binding)                     noexcept { this->m_binding            = a_binding;           }
 	FORCE_INLINE void   stride(uint32_t a_stride)                       noexcept { this->m_stride             = a_stride;            }
 	FORCE_INLINE void   rate(uint32_t a_rate)                           noexcept { this->m_rate               = a_rate;              }
 	FORCE_INLINE void   format_multiplier(uint32_t a_multiplier)        noexcept { this->m_format_multiplier  = a_multiplier;        }
 	FORCE_INLINE void   step_function(rhi::StepFunction a_function)     noexcept { this->m_function           = a_function;          }
-	FORCE_INLINE void   complete(bool a_complete)                       noexcept { this->m_complete           = a_complete;          }
 	// clang-format on
 
   private:
@@ -86,7 +83,6 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	uint32_t          m_rate{1};                                    //! Contain rate at which attributes are read. Default 1, only use when m_function is instance
 	uint32_t          m_format_multiplier{1};                       //! Defined for custom formats and arrays
 	rhi::StepFunction m_function{rhi::StepFunction::vertex};        //! Only valid for anything that's not vertex attribute for example per instance data
-	bool              m_complete{false};                            //! Whether the vertex layout is complete and valid
 };
 
 static_assert(std::is_trivially_copyable_v<VertexLayout>, "VertexLayout is not trivially copyable");

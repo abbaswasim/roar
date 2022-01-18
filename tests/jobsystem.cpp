@@ -353,13 +353,13 @@ TEST(JobSystemTest, job_group_test)
 		}
 	};
 
-	uint32_t              dataCount = 1000000;
+	uint32_t              dataCount = 10000;
 	ror::Timer            timer;
 	int64_t               loop_time{0};
 	int64_t               threads_time{0};
 	int64_t               group_time{0};
 	uint32_t              threads_count = ror::get_hardware_threads();
-	std::vector<uint32_t> res{999980, 999981, 999982, 999983, 999984, 999985, 999986, 999987, 999988, 999989, 999990, 999991, 999992, 999993, 999994, 999995, 999996, 999997, 999998, 999999};
+	std::vector<uint32_t> res{20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
 
 	// Loop test
 	{
@@ -381,22 +381,33 @@ TEST(JobSystemTest, job_group_test)
 
 		// Threads test:
 		Data *dataSet = new Data[dataCount];
-		auto  f       = [&dataSet](uint32_t j) {
+
+		std::vector<ror::JobHandle<bool>> jobs;
+		jobs.reserve(dataCount);
+
+		auto f = [&dataSet](uint32_t j) -> bool {
 			dataSet[j].compute(j);
+			return true;
 		};
 
 		timer.tick();
 
 		for (uint32_t i = 0; i < dataCount; ++i)
-			js.push_job(f, i);
+			jobs.emplace_back(js.push_job(f, i));
 
-		js.stop();
+		for (uint32_t i = 0; i < dataCount; ++i)
+		{
+			auto b = jobs[i].data();
+			if (!b)
+				EXPECT_TRUE(0);
+		}
 
 		threads_time = timer.tick();
 
 		for (uint32_t i = dataCount - 20, j = 0; i < dataCount; ++i, ++j)
-			EXPECT_EQ(res[j], dataSet[i].index);
+			EXPECT_EQ(dataCount - res[j], dataSet[i].index);
 
+		js.stop();
 		delete[] dataSet;
 	}
 
@@ -421,7 +432,7 @@ TEST(JobSystemTest, job_group_test)
 		group_time = timer.tick();
 
 		for (uint32_t i = dataCount - 20, j = 0; i < dataCount; ++i, ++j)
-			EXPECT_EQ(res[j], dataSet[i].index);
+			EXPECT_EQ(dataCount - res[j], dataSet[i].index);
 
 		delete[] dataSet;
 

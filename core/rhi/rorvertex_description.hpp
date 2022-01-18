@@ -182,29 +182,6 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	}
 
 	/**
-	 * Should return true if all the attributes and layouts are created
-	 * These attributes and layouts might not be valid though
-	 */
-	FORCE_INLINE bool complete() const
-	{
-		for (auto &attribute : this->m_attributes)
-		{
-			if (!attribute.complete())
-				return false;
-		}
-
-		for (auto &layout : this->m_layouts)
-		{
-			if (!layout.complete())
-				return false;
-		}
-
-		// TODO: Make sure VertexDescriptor returns a message saying whether there were packing/alignment and cache line issues
-
-		return true;
-	}
-
-	/**
 	 * Returns a bitmask of all the attributes in the VertexDescriptor
 	 */
 	FORCE_INLINE uint64_t type() const
@@ -472,7 +449,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 			auto offset   = 0U;        // Could be updated to the stride from layout for this buffer later
 
 			uint32_t buffer_index = a_buffers_pack->attribute_buffer_index(semantic);
-			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // TODO: How many bytes do we need for this, this has to be done later in a second pass
+			// uint64_t buffer_offset   = bp.attribute_buffer_offset(semantic, 0ULL);        // How many bytes do we need for this, this has to be done later in a second pass, check ::upload()
 			uint32_t vert_format_to_bytes = vertex_format_to_bytes(format);
 
 			if (semantic == rhi::BufferSemantic::custom &&

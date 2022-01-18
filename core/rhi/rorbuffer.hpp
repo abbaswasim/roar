@@ -41,10 +41,10 @@ class ROAR_ENGINE_ITEM Buffer final
 {
   public:
 	Buffer();                                                                   //! Default constructor
-	FORCE_INLINE         Buffer(const Buffer &a_other)     = default;           //! Copy constructor
-	FORCE_INLINE         Buffer(Buffer &&a_other) noexcept = default;           //! Move constructor
-	FORCE_INLINE Buffer &operator=(const Buffer &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE Buffer &operator=(Buffer &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE         Buffer(const Buffer &a_other)     = default;            //! Copy constructor
+	FORCE_INLINE         Buffer(Buffer &&a_other) noexcept = default;            //! Move constructor
+	FORCE_INLINE Buffer &operator=(const Buffer &a_other) = default;             //! Copy assignment operator
+	FORCE_INLINE Buffer &operator=(Buffer &&a_other) noexcept = default;         //! Move assignment operator
 	FORCE_INLINE ~Buffer() noexcept                           = default;        //! Destructor
 
 	declare_translation_unit_vtable();
@@ -78,16 +78,14 @@ class ROAR_ENGINE_ITEM Buffer final
 	void      _partial_upload(ptrdiff_t a_offset, ptrdiff_t a_length);        // TODO: To be implemented in renderer or via CRTP
 	ptrdiff_t _offset(ptrdiff_t a_bytes);                                     //! Returns offset of the location available
 
-	// TODO: Make me thread safe
-
-	// uint32_t           m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
-	// uint8_t *          m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
-	// bool               m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
-	ptrdiff_t             m_filled_size{0};                 //! How much of the buffer is filled, this should be aligned(to_something)
-	ptrdiff_t             m_size_in_bytes{0};               //! This is the total size in bytes
-	BufferSemanticPairVec m_semantics{};                    //! Pair of semantic and size required
-	bool                  m_interleaved_local{true};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT
-	std::vector<uint8_t>  m_data{};                         //! Data block of the buffer, TODO: This needs to be triple buffered
+	// uint32_t                    m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
+	// uint8_t                    *m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
+	// bool                        m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
+	ptrdiff_t                   m_filled_size{0};                 //! How much of the buffer is filled, this should be aligned, also this needs synchronising
+	ptrdiff_t                   m_size_in_bytes{0};               //! This is the total size in bytes
+	BufferSemanticPairVec       m_semantics{};                    //! Pair of semantic and size required
+	bool                        m_interleaved_local{true};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT
+	std::vector<uint8_t>        m_data{};                         //! Data block of the buffer
 };
 
 }        // namespace rhi

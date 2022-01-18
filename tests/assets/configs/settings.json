@@ -3,10 +3,10 @@
 	"visualise_mipmaps": false,
 	"multisample_count": 8,
 	"vsync": false,
-	"window_transparent": false,
+	"window_transparent": true,
 	"window_premultiplied": false,
 	"window_prerotated": false,
-	"zoom_speed": 3.14,
+	"zoom_speed": 3.1400001049041748,
 	"buffers_format": "buffers_format.json",
 	"roar_cache": ".roar_cache"
 }
