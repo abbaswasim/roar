@@ -228,7 +228,6 @@ class ROAR_ENGINE_ITEM JobHandle final
  * JobSystem is the main job system. You would need an instance of this somewhere to push jobs to
  * JobSystem internally uses deque to push jobs onto. Jobs are ran as they come along unless they have dependecies
  */
-// TODO: Add multiple queues for each thread and add work stealing scheduling
 class ROAR_ENGINE_ITEM JobSystem final
 {
   public:
@@ -264,12 +263,13 @@ class ROAR_ENGINE_ITEM JobSystem final
 			return this->_pop();
 		}
 
-		// TODO: Remove: Without stealing scheduling support this has no point
+#if defined(WORK_STEALING)
 		FORCE_INLINE std::shared_ptr<Job> steal()
 		{
 			std::lock_guard<std::mutex> lock{this->m_lock};
 			return this->_pop();
 		}
+#endif
 
 		FORCE_INLINE bool empty()
 		{
@@ -554,7 +554,7 @@ class ROAR_ENGINE_ITEM JobSystem final
 #endif
 
 #if !defined(WORK_STEALING)
-	WorkerQueue                               m_worker_queue{};              // list of worker queues containing all the jobs for that worker
+	WorkerQueue m_worker_queue{};        // Worker queue that contains all the jobs to be executed
 #else
 	std::vector<std::unique_ptr<WorkerQueue>> m_worker_queues{};        // list of worker queues containing all the jobs for that worker
 #endif
