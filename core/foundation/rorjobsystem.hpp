@@ -44,6 +44,8 @@
 #include <utility>
 #include <vector>
 
+// #define WORK_STEALING 1
+
 namespace ror
 {
 /**
@@ -307,7 +309,12 @@ class ROAR_ENGINE_ITEM JobSystem final
 	{
 		auto                 pack_task = make_packaged(std::forward<_function>(a_function), std::forward<_arguments>(a_arguments)...);
 		std::shared_ptr<Job> job       = std::make_shared<Job>([pack_task]() { (*pack_task)(); });
-		this->m_worker_queue.push(job);        // WorkerQueue is thread safe by itself
+#if defined(WORK_STEALING)
+		auto index = this->random_worker();
+		this->worker(index).push(job);
+#else
+		this->m_worker_queue.push(job);            // WorkerQueue is thread safe by itself
+#endif
 
 		// std::lock_guard<std::mutex> lock(this->m_lock);        // Don't need to take a lock, condition variable doesn't need one. Keep here to debug issues
 		this->m_condition_variable.notify_one();
@@ -321,7 +328,12 @@ class ROAR_ENGINE_ITEM JobSystem final
 	{
 		auto                       pack_task = make_packaged(std::forward<_function>(a_function), std::forward<_arguments>(a_arguments)...);
 		std::shared_ptr<JobDepend> job       = std::make_shared<JobDepend>([pack_task]() { (*pack_task)(); }, std::forward<Dependencies>(a_dependencies));
-		this->m_worker_queue.push(job);        // WorkerQueue is thread safe by itself
+#if defined(WORK_STEALING)
+		auto index = this->random_worker();
+		this->worker(index).push(job);
+#else
+		this->m_worker_queue.push(job);            // WorkerQueue is thread safe by itself
+#endif
 
 		// std::lock_guard<std::mutex> lock(this->m_lock);        // Don't need to take a lock, condition variable doesn't need one. Keep here to debug issues
 		this->m_condition_variable.notify_one();
@@ -336,7 +348,12 @@ class ROAR_ENGINE_ITEM JobSystem final
 		auto pack_task = make_packaged(std::forward<_function>(a_function), std::forward<_arguments>(a_arguments)...);
 
 		std::shared_ptr<JobDepend1> job = std::make_shared<JobDepend1>([pack_task]() { (*pack_task)(); }, std::forward<std::shared_ptr<Job>>(a_dependency));
-		this->m_worker_queue.push(job);        // WorkerQueue is thread safe by itself
+#if defined(WORK_STEALING)
+		auto index = this->random_worker();
+		this->worker(index).push(job);
+#else
+		this->m_worker_queue.push(job);            // WorkerQueue is thread safe by itself
+#endif
 
 		// std::lock_guard<std::mutex> lock(this->m_lock);        // Don't need to take a lock, condition variable doesn't need one. Keep here to debug issues
 		this->m_condition_variable.notify_one();
@@ -362,7 +379,13 @@ class ROAR_ENGINE_ITEM JobSystem final
 				}
 			});
 
+#if defined(WORK_STEALING)
+			auto index = this->random_worker();
+			this->worker(index).push(job);
+#else
 			this->m_worker_queue.push(job);        // WorkerQueue is thread safe by itself
+#endif
+
 			this->m_condition_variable.notify_one();
 
 			handles.emplace_back(job);
@@ -391,6 +414,49 @@ class ROAR_ENGINE_ITEM JobSystem final
 			std::bind(std::forward<_function>(a_function), std::forward<_arguments>(a_arguments)...));
 	}
 
+#if defined(WORK_STEALING)
+	FORCE_INLINE uint32_t random_worker() const
+	{
+		return this->m_random_index.next();
+	}
+
+	FORCE_INLINE WorkerQueue &worker(uint32_t a_index)
+	{
+		return *this->m_worker_queues[static_cast<size_t>(a_index)];
+	}
+
+	FORCE_INLINE std::shared_ptr<Job> any_job()
+	{
+		for (auto &q : this->m_worker_queues)
+			if (auto j = q->steal())
+				return j;
+
+		return nullptr;
+	}
+
+	FORCE_INLINE bool all_empty()
+	{
+		for (auto &q : this->m_worker_queues)
+			if (!q->empty())
+				return false;
+
+		return true;
+	}
+
+	FORCE_INLINE void run_job(std::shared_ptr<Job> a_job, WorkerQueue &a_worker)
+	{
+		if (a_job->ready())
+		{
+			(*a_job)();        // Execute the job
+			a_job->finish();
+		}
+		else
+			// this->m_worker_queue.push(a_job);
+			a_worker.push(a_job);
+	}
+#endif
+
+#if !defined(WORK_STEALING)
 	void init(uint32_t a_workers_count)
 	{
 		const auto payload_function = [this](uint32_t a_thread_id) {
@@ -428,8 +494,70 @@ class ROAR_ENGINE_ITEM JobSystem final
 		for (size_t i = 0; i < a_workers_count; ++i)
 			this->m_workers.emplace_back(std::make_unique<std::thread>(payload_function, i));
 	}
+#else
+	void init(uint32_t a_workers_count)
+	{
+		const auto payload_function = [this](uint32_t a_thread_id) {
+			(void) a_thread_id;
+			auto &my_worker = this->worker(a_thread_id);
+			while (true)
+			{
+				// auto a_job = this->m_worker_queue.pop();
+				auto job = my_worker.pop();
+				if (job)
+				{
+					this->run_job(job, my_worker);
+				}
+				else
+				{
+					auto &other_worker = this->worker(this->random_worker());
+					// Steal a job
+					job = other_worker.steal();
+					if (job != nullptr)
+					{
+						this->run_job(job, other_worker);
+					}
+					else
+					{
+						// Look for jobs in all queues
+						job = this->any_job();
+						if (job != nullptr)
+						{
+							this->run_job(job, my_worker);
+						}
+						else
+						{
+							// Sleep to be awaken later
+							std::unique_lock<std::mutex> lock{this->m_lock};        // Using unique_lock instead of lock_guard because it needs to be relocked in the wait next
+							this->m_condition_variable.wait(lock, [this, &a_thread_id]() {
+								// return !this->m_worker_queue.empty() || this->m_stop.test();
+								return !this->m_worker_queues[a_thread_id]->empty() || !this->all_empty() || this->m_stop.test();
+							});
 
+							if (this->m_stop.test())
+								return;
+						}
+					}
+				}
+			}
+		};
+
+		this->m_random_index.reset(0u, a_workers_count - 1);
+
+		for (size_t i = 0; i < a_workers_count; ++i)
+			this->m_worker_queues.emplace_back(std::make_unique<WorkerQueue>());
+
+		// Kick of all the threads
+		for (size_t i = 0; i < a_workers_count; ++i)
+			this->m_workers.emplace_back(std::make_unique<std::thread>(payload_function, i));
+	}
+#endif
+
+#if !defined(WORK_STEALING)
 	WorkerQueue                               m_worker_queue{};              // list of worker queues containing all the jobs for that worker
+#else
+	std::vector<std::unique_ptr<WorkerQueue>> m_worker_queues{};        // list of worker queues containing all the jobs for that worker
+#endif
 	ror::Random<uint32_t>                     m_random_index{};              // Random index generator from 0 - workers_count - 1
 	std::condition_variable                   m_condition_variable{};        // Used to signal workers to start working
 	std::mutex                                m_lock{};                      // Used to lock shared variables in job system
