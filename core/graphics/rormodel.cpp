@@ -1025,7 +1025,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						// TODO: Do this unpacking manually, there is a lot of overhead of doing it this way
 						cgltf_accessor_unpack_floats(anim_sampler_accessor,
 													 reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
-													 animation_sampler.m_output.size());        // TODO: Why was I doing this before * anim_sampler_accessor->count);
+													 animation_sampler.m_output.size());
 
 						assert(anim_sampler_accessor->buffer_view->stride == attrib_byte_size && "Looks like sampler output data is interleaved, not supported");
 					}
@@ -1095,16 +1095,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 #endif
 
 #if defined(USE_JS)
-#else
-#endif
-
-// Place where I wait for all JobSystem jobs to finish
-// All the images
-#if defined(USE_JS)
+		// Wait for all the images to load
 		this->m_images.reserve(data->images_count);
 		for (size_t i = 0; i < data->images_count; ++i)
 			this->m_images.emplace_back(future_texures[i].data());
 
+		// Wait for all the data to have loaded to load
 		auto data_load_success = rest_of_data_load_handle.data();
 		if (!data_load_success)
 		{
