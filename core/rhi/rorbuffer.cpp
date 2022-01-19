@@ -44,8 +44,10 @@ ptrdiff_t Buffer::_offset(ptrdiff_t a_bytes)
 {
 	assert(a_bytes > 0 && "Requested bytes must be positive");
 
-	static std::mutex           mutex{};        // Using a static mutex here because only this method needs synchronising and using mutex in Buffer makes it non-moveable (can't make vectors)
-	std::lock_guard<std::mutex> mtx(mutex);
+	if (!this->m_mutex)
+		this->m_mutex = std::make_shared<std::mutex>();
+
+	std::lock_guard<std::mutex> mtx(*this->m_mutex);
 
 	assert(this->m_filled_size + a_bytes < this->m_size_in_bytes && "Requesting more bytes than the buffer has available");
 

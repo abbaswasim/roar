@@ -73,4 +73,92 @@ FORCE_INLINE void hash_combine_128(hash_128_t &a_output_hash, hash_128_t a_input
 	hash_combine_64(a_output_hash.low, a_input_hash.low);
 	hash_combine_64(a_output_hash.high, a_input_hash.high);
 }
+
+/**
+ * Use this to create hash from data not known at once, this is statefull function, be-aware, its NOT reinterant and NOT thread-safe
+ * Instead of building a cliend side buffer and adding all your data and then calling hash_32 on that
+ * Its better to use the xxHash streaming functionality
+ * the a_size parameter has multiple roles
+ * a_size == 0 means return the so far generated hash
+ * a_size < 0 means reset the streamer to default setting, ready to accept data
+ * a_size > 0 means incoming data with length == a_size
+
+ * Therefore one would have to use the function like:
+ * hash_stream_32(nullptr, -1);
+ * hash_stream_32(data, 20);
+ * hash_stream_32(data, 10);
+ * hash_stream_32(data, 40);
+ * auto hash = hash_stream_32(data, 0);
+ */
+FORCE_INLINE hash_32_t hash_stream_32(const void *a_input, int32_t a_size)
+{
+	static XXH32_state_t *const state = XXH32_createState();
+	assert(state && "xxHash state can't be initialized can't continue");
+	static const uint32_t seed = static_cast<uint32_t>(get_default_project_root().hash());        // Truncation from uint64_t to uint32_t is ok here
+
+	if (a_size > 0)
+	{
+		auto res = XXH32_update(state, a_input, static_cast<size_t>(a_size));
+		assert(res != XXH_ERROR && "hash_stream_32 update failed");
+		(void) res;
+	}
+	else if (a_size == 0)
+	{
+		XXH32_hash_t const hash = XXH32_digest(state);
+		return hash;
+	}
+	else
+	{
+		auto res = XXH32_reset(state, seed);
+		assert(res != XXH_ERROR && "hash_stream_64 reset failed");
+		(void) res;
+	}
+
+	return 0;
+}
+
+/**
+ * Use this to create hash from data not known at once, this is statefull function, be-aware, its NOT reinterant and NOT thread-safe
+ * Instead of building a cliend side buffer and adding all your data and then calling hash_64 on that
+ * Its better to use the xxHash streaming functionality
+ * the a_size parameter has multiple roles
+ * a_size == 0 means return the so far generated hash
+ * a_size < 0 means reset the streamer to default setting, ready to accept data
+ * a_size > 0 means incoming data with length == a_size
+
+ * Therefore one would have to use the function like:
+ * hash_stream_64(nullptr, -1);
+ * hash_stream_64(data, 20);
+ * hash_stream_64(data, 10);
+ * hash_stream_64(data, 40);
+ * auto hash = hash_stream_64(nullptr, 0);
+ */
+FORCE_INLINE hash_64_t hash_stream_64(const void *a_input, int32_t a_size)
+{
+	static XXH64_state_t *const state = XXH64_createState();
+	assert(state && "xxHash state can't be initialized can't continue");
+	static const uint64_t seed = get_default_project_root().hash();        // Truncation from uint64_t to uint32_t is ok here
+
+	// log_critical("seed = {}",seed);
+	if (a_size > 0)
+	{
+		auto res = XXH64_update(state, a_input, static_cast<size_t>(a_size));
+		assert(res != XXH_ERROR && "hash_stream_64 update failed");
+		(void) res;
+	}
+	else if (a_size == 0)
+	{
+		XXH64_hash_t const hash = XXH64_digest(state);
+		return hash;
+	}
+	else
+	{
+		auto res = XXH64_reset(state, seed);
+		assert(res != XXH_ERROR && "hash_stream_64 reset failed");
+		(void) res;
+	}
+
+	return 0;
+}
+
 }        // namespace ror

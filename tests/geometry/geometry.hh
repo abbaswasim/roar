@@ -339,7 +339,14 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 	{
 		ror::Vector3<TypeParam>              size{10, 20, 30}, origin{0, 0, 0};
 		std::vector<ror::Vector3<TypeParam>> output;
-		std::vector<ror::Vector3<TypeParam>> res_points = {{-5, -10, -15}, {5, -10, -15}, {-5, 10, -15}, {5, 10, -15}, {-5, -10, 15}, {5, -10, 15}, {-5, 10, 15}, {5, 10, 15}};
+		std::vector<ror::Vector3<TypeParam>> res_points = {{static_cast<TypeParam>(-5), static_cast<TypeParam>(-10), static_cast<TypeParam>(-15)},
+														   {static_cast<TypeParam>(5), static_cast<TypeParam>(-10), static_cast<TypeParam>(-15)},
+														   {static_cast<TypeParam>(-5), static_cast<TypeParam>(10), static_cast<TypeParam>(-15)},
+														   {static_cast<TypeParam>(5), static_cast<TypeParam>(10), static_cast<TypeParam>(-15)},
+														   {static_cast<TypeParam>(-5), static_cast<TypeParam>(-10), static_cast<TypeParam>(15)},
+														   {static_cast<TypeParam>(5), static_cast<TypeParam>(-10), static_cast<TypeParam>(15)},
+														   {static_cast<TypeParam>(-5), static_cast<TypeParam>(10), static_cast<TypeParam>(15)},
+														   {static_cast<TypeParam>(5), static_cast<TypeParam>(10), static_cast<TypeParam>(15)}};
 
 		std::vector<ror::Vector3<TypeParam>> res_tris;
 		res_tris.reserve(36);
@@ -741,7 +748,10 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 	{
 		ror::Vector2<TypeParam>              size{10, 20}, origin{0, 0};
 		std::vector<ror::Vector2<TypeParam>> output;
-		std::vector<ror::Vector2<TypeParam>> res_points = {{-5, -10}, {5, -10}, {-5, 10}, {5, 10}};
+		std::vector<ror::Vector2<TypeParam>> res_points = {{static_cast<TypeParam>(-5), static_cast<TypeParam>(-10)},
+														   {static_cast<TypeParam>(5), static_cast<TypeParam>(-10)},
+														   {static_cast<TypeParam>(-5), static_cast<TypeParam>(10)},
+														   {static_cast<TypeParam>(5), static_cast<TypeParam>(10)}};
 
 		std::vector<ror::Vector3<TypeParam>> res_tris;
 		res_tris.reserve(6);

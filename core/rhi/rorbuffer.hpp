@@ -37,16 +37,17 @@ namespace rhi
 {
 /**
  * Device buffer encapsulation
+ * Not copyable but moveable
  * Can be used for Vertex, Index, Instance, Constant as well as texture data
  */
 class ROAR_ENGINE_ITEM Buffer final
 {
   public:
 	Buffer();                                                                   //! Default constructor
-	FORCE_INLINE         Buffer(const Buffer &a_other)     = default;            //! Copy constructor
-	FORCE_INLINE         Buffer(Buffer &&a_other) noexcept = default;            //! Move constructor
-	FORCE_INLINE Buffer &operator=(const Buffer &a_other) = default;             //! Copy assignment operator
-	FORCE_INLINE Buffer &operator=(Buffer &&a_other) noexcept = default;         //! Move assignment operator
+	FORCE_INLINE         Buffer(const Buffer &a_other)     = delete;            //! Copy constructor
+	FORCE_INLINE         Buffer(Buffer &&a_other) noexcept = default;           //! Move constructor
+	FORCE_INLINE Buffer &operator=(const Buffer &a_other) = delete;             //! Copy assignment operator
+	FORCE_INLINE Buffer &operator=(Buffer &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~Buffer() noexcept                           = default;        //! Destructor
 
 	declare_translation_unit_vtable();
@@ -88,6 +89,7 @@ class ROAR_ENGINE_ITEM Buffer final
 	BufferSemanticPairVec       m_semantics{};                    //! Pair of semantic and size required
 	bool                        m_interleaved_local{true};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT
 	std::vector<uint8_t>        m_data{};                         //! Data block of the buffer
+	std::shared_ptr<std::mutex> m_mutex{};                        //! Mutex to lock _offset() calls with, its shared_ptr and not unique_ptr or std::mutex because I need the ctors
 };
 
 }        // namespace rhi
