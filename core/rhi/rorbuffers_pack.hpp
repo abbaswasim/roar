@@ -56,9 +56,9 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	FORCE_INLINE BuffersPack &operator=(BuffersPack &&a_other) noexcept = delete;          //! Move assignment operator
 	FORCE_INLINE ~BuffersPack() noexcept                                = default;         //! Destructor
 
-	FORCE_INLINE BuffersPack(const ror::BuffersFormat &a_buffers_format)
+	FORCE_INLINE BuffersPack(ror::BuffersFormat &&a_buffers_format)
 	{
-		this->m_buffers = a_buffers_format.m_buffer_packs[a_buffers_format.m_current_format].m_buffers;        // Copy the buffers over
+		this->m_buffers = std::move(a_buffers_format.m_buffer_packs[a_buffers_format.m_current_format].m_buffers);        // move the buffers over
 
 		uint32_t i = 0;
 		for (const auto &bfr : this->m_buffers)
@@ -178,7 +178,9 @@ class ROAR_ENGINE_ITEM BuffersPack final
 
 FORCE_INLINE BuffersPack &get_buffers_pack()
 {
-	static BuffersPack bfp{ror::get_buffers_format()};
+	// Everything in bfp constructor are r-values because I don't want to keep a copy of BuffersFormat around its a big store of Buffers
+	// The following loads the format via BuffersFormatConfig's one argument ctor from buffers_format setting and then moves it into bfp
+	static BuffersPack bfp{ror::BuffersFormatConfig{ror::get_settings().get<std::string>("buffers_format")}.move_buffers_format()};        // The buffers_format config file name is provided in settings.json
 	return bfp;
 }
 

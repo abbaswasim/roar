@@ -53,8 +53,8 @@ struct BuffersFormat
 /**
  * Config for all buffers used in the engine.
  * Buffers config file is loaded from buffers_format.json from settings
- * There is always ever 1 instance of this if used via get_buffers_format which is const
- * so doesn't need thread safety
+ * There should always ever be 1 instance of this for memory reasons but not a restriction so doesn't need thread safety
+ * The version that is used by buffer_pack is deleted after the Buffers vectors is moved from it
  */
 class ROAR_ENGINE_ITEM BuffersFormatConfig : public Configuration<BuffersFormatConfig>
 {
@@ -66,34 +66,23 @@ class ROAR_ENGINE_ITEM BuffersFormatConfig : public Configuration<BuffersFormatC
 	FORCE_INLINE BuffersFormatConfig &operator=(BuffersFormatConfig &&a_other) noexcept = default;                  //! Move assignment operator
 	FORCE_INLINE virtual ~BuffersFormatConfig() noexcept override                       = default;                  //! Destructor
 
-	declare_translation_unit_vtable();
-
-	FORCE_INLINE explicit BuffersFormatConfig(std::filesystem::path a_config_path);        //! Single argument constructor
-
-	void                              load_specific();
-	FORCE_INLINE const BuffersFormat &buffers_format() const noexcept;
-	void                              load_remaining_buffers();        //! Allocate buffer locations to semantics not specified in the config
+	FORCE_INLINE explicit BuffersFormatConfig(const std::filesystem::path &a_config_path);        //! Single argument constructor
+	BuffersFormat &&move_buffers_format() &&noexcept;
 
   protected:
   private:
+	void load_specific();
+	void load_remaining_buffers();        //! Allocate buffer locations to semantics not specified in the config
+	declare_translation_unit_vtable();
+
 	BuffersFormat m_buffers_format{};
+
+	friend class Configuration<BuffersFormatConfig>;
 };
 
-FORCE_INLINE BuffersFormatConfig::BuffersFormatConfig(std::filesystem::path a_config_path)
+FORCE_INLINE BuffersFormatConfig::BuffersFormatConfig(const std::filesystem::path &a_config_path)
 {
 	this->load(a_config_path);
-}
-
-FORCE_INLINE const BuffersFormat &BuffersFormatConfig::buffers_format() const noexcept
-{
-	return this->m_buffers_format;
-}
-
-FORCE_INLINE const BuffersFormat &get_buffers_format()
-{
-	static auto &settings = get_settings();
-	static BuffersFormatConfig bfc{settings.get<std::string>("buffers_format")};        // Loads a predefined config file required to setup buffers formats, since this is a resource it will just work without full path
-	return bfc.buffers_format();                                                        // The buffers_format config file name is provided in settings.json
 }
 
 }        // namespace ror

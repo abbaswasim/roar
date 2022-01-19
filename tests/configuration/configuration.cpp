@@ -14,11 +14,12 @@ TEST(ConfigurationTest, BufferFormat)
 {
 	std::filesystem::path file_path{ror::get_project_root().path() / "assets/configs/simple_format.json"};
 
-	ror::BuffersFormatConfig bfc{};
+	ror::BuffersFormatConfig &&bfc{};        // Hack test but this shouldn't happen anyways.
 	// Read it in as resource
 	bfc.load(file_path);
 
-	auto                   bf  = bfc.buffers_format();
+	// After the following line bfc is in undefined state so shouldn't be used further
+	auto                   bf  = static_cast<decltype(bfc)>(bfc).move_buffers_format(); // This magic of static_cast<decltype(bfc)> is casting bfc to r-value reference, alternatively do ror::BuffersFormatConfig&& cast
 	const ror::BufferPack &bfp = bf.m_buffer_packs[0];
 
 	EXPECT_EQ(bf.m_unit, 1024);

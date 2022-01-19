@@ -421,7 +421,7 @@ TEST(VertexDescriptionTest, fox_attributes_description)
 	// r16u,  vec4,  13824,   1728,    8                13824
 	// f32,   vec4,      0,   1728,    16               27648
 
- // rhi::BufferSemantic    semantic, uint32_t               location, uint32_t               offset, uint64_t               buffer_offset, uint32_t               binding, uint32_t               buffer_index, rhi::VertexFormat      format, rhi::StepFunction function, uint64_t          stride, rhi::Rate         rate, uint32_t          multiplier, uint64_t          semantic_type, uint32_t          line)
+	// rhi::BufferSemantic    semantic, uint32_t               location, uint32_t               offset, uint64_t               buffer_offset, uint32_t               binding, uint32_t               buffer_index, rhi::VertexFormat      format, rhi::StepFunction function, uint64_t          stride, rhi::Rate         rate, uint32_t          multiplier, uint64_t          semantic_type, uint32_t          line)
 	{
 		rhi::VertexDescriptor vd{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3,               // 20736, 12
 								 rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2,        // 13824, 8
@@ -469,6 +469,7 @@ TEST(VertexDescriptionTest, attributes_descriptor_hasher)
 								 rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_4,
 								 &bp};
 
+		// Calculating hash once outside to confirm it doesn't change
 		const auto attribs = vd.attributes();
 		const auto type    = vd.type();
 
@@ -483,7 +484,7 @@ TEST(VertexDescriptionTest, attributes_descriptor_hasher)
 
 		auto temp_hash = ror::hash_stream_64(nullptr, 0);
 
-		hash0 = vd.hash_64();
+		hash0       = vd.hash_64();
 		auto hash00 = vd.hash_64();
 
 		EXPECT_EQ(temp_hash, temp_hash);
@@ -517,6 +518,7 @@ TEST(VertexDescriptionTest, attributes_descriptor_hasher)
 		hash3 = vd.hash_64();
 	}
 
+	// Check there are no collisions
 	EXPECT_NE(hash0, hash1);
 	EXPECT_NE(hash0, hash2);
 	EXPECT_NE(hash0, hash3);

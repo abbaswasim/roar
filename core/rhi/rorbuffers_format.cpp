@@ -143,6 +143,11 @@ void BuffersFormatConfig::load_remaining_buffers()
 	}
 }
 
+BuffersFormat &&BuffersFormatConfig::move_buffers_format() &&noexcept
+{
+	return std::move(this->m_buffers_format);
+}
+
 define_translation_unit_vtable(BuffersFormatConfig)
 {}
 
