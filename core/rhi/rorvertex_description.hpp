@@ -289,6 +289,33 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 		}
 	}
 
+	FORCE_INLINE const auto &attributes() const
+	{
+		return this->m_attributes;
+	}
+
+	FORCE_INLINE const auto &layouts() const
+	{
+		return this->m_layouts;
+	}
+
+	// TODO: cache the result if this turns out to be expensive
+	auto hash_64()
+	{
+		const auto type = this->type();
+
+		ror::hash_stream_64(nullptr, -1);                                                    // Init streamer
+		ror::hash_stream_64(reinterpret_cast<const void *>(&type), sizeof(uint64_t));        // Lets start with the type
+
+		for (auto &attrib : this->m_attributes)
+		{
+			const auto format = attrib.format();
+			ror::hash_stream_64(reinterpret_cast<const void *>(&format), sizeof(uint32_t));        // Now lets add all the formats
+		}
+
+		return ror::hash_stream_64(nullptr, 0);
+	}
+
   private:
 	FORCE_INLINE void create_mapping()
 	{
