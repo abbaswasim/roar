@@ -50,7 +50,9 @@ using ::uintmax_t;
 using ::ptrdiff_t;
 using ::size_t;
 
+#if (__cplusplus < 202001L)        // TODO: Change this to 2020 when available
 using char8_t = int8_t;
+#endif
 
 using uchar8_t  = uint8_t;
 using uchar16_t = uint16_t;
