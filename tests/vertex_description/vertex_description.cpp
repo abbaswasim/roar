@@ -453,4 +453,78 @@ TEST(VertexDescriptionTest, fox_attributes_description)
 	}
 }
 
+TEST(VertexDescriptionTest, attributes_descriptor_hasher)
+{
+	const auto &bp = rhi::get_buffers_pack();
+
+	hash_64_t hash0{0};
+	hash_64_t hash1{0};
+	hash_64_t hash2{0};
+	hash_64_t hash3{0};
+
+	{
+		rhi::VertexDescriptor vd{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_4,
+								 rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_4,
+								 rhi::BufferSemantic::vertex_bone_id_0, rhi::VertexFormat::uint16_4,
+								 rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_4,
+								 &bp};
+
+		const auto attribs = vd.attributes();
+		const auto type    = vd.type();
+
+		ror::hash_stream_64(nullptr, -1);                                                    // Init streamer
+		ror::hash_stream_64(reinterpret_cast<const void *>(&type), sizeof(uint64_t));        // Lets start with the type
+
+		for (auto &attrib : attribs)
+		{
+			const auto format = attrib.format();
+			ror::hash_stream_64(reinterpret_cast<const void *>(&format), sizeof(uint32_t));        // Now lets add all the formats
+		}
+
+		auto temp_hash = ror::hash_stream_64(nullptr, 0);
+
+		hash0 = vd.hash_64();
+		auto hash00 = vd.hash_64();
+
+		EXPECT_EQ(temp_hash, temp_hash);
+		EXPECT_EQ(hash0, hash00);
+	}
+
+	{
+		rhi::VertexDescriptor vd{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3,
+								 rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2,
+								 rhi::BufferSemantic::vertex_bone_id_0, rhi::VertexFormat::uint16_4,
+								 rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_4,
+								 &bp};
+
+		hash1 = vd.hash_64();
+	}
+	{
+		rhi::VertexDescriptor vd{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_4,
+								 rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2,
+								 rhi::BufferSemantic::vertex_bone_id_0, rhi::VertexFormat::float32_4,
+								 rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_4,
+								 &bp};
+
+		hash2 = vd.hash_64();
+	}
+	{
+		rhi::VertexDescriptor vd{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3,
+								 rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2,
+								 rhi::BufferSemantic::vertex_bone_id_0, rhi::VertexFormat::uint16_4,
+								 &bp};
+
+		hash3 = vd.hash_64();
+	}
+
+	EXPECT_NE(hash0, hash1);
+	EXPECT_NE(hash0, hash2);
+	EXPECT_NE(hash0, hash3);
+
+	EXPECT_NE(hash1, hash2);
+	EXPECT_NE(hash1, hash3);
+
+	EXPECT_NE(hash3, hash2);
+}
+
 }        // namespace ror_test
