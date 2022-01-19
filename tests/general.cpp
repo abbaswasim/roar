@@ -364,8 +364,8 @@ TEST(ModelTest, gltf_loader_test)
 		auto &i = s.m_input;
 		auto &o = s.m_output;
 
-		EXPECT_EQ(i.size(), 83);
-		EXPECT_EQ(o.size(), 83 * 4);
+		EXPECT_EQ(i.size(), fox_sampler0_count);
+		EXPECT_EQ(o.size(), fox_sampler0_count * 4);
 
 		for (size_t j = 0; j < i.size(); ++j)
 		{

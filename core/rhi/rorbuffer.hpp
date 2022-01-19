@@ -29,6 +29,8 @@
 #include "roar_export_import.hpp"
 #include <cassert>
 #include <cstddef>
+#include <memory>
+#include <mutex>
 #include <vector>
 
 namespace rhi

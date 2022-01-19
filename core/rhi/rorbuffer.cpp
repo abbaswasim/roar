@@ -29,6 +29,7 @@
 #include <cassert>
 #include <cstddef>
 #include <limits>
+#include <memory>
 #include <stdexcept>
 #include <string_view>
 

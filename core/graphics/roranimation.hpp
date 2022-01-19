@@ -84,8 +84,8 @@ class ROAR_ENGINE_ITEM Animation
 		AnimationTarget m_target_node_path{AnimationTarget::translation};        //! Which aspect of the node will be targeted
 	};
 
-	std::vector<AnimationSampler, rhi::BufferAllocator<AnimationSampler>> m_samplers;        //! All samplers in this animation
-	std::vector<AnimationChannel, rhi::BufferAllocator<AnimationChannel>> m_channels;        //! All channels in this animation
+	std::vector<AnimationSampler, rhi::BufferAllocator<AnimationSampler>> m_samplers{};        //! All samplers in this animation
+	std::vector<AnimationChannel, rhi::BufferAllocator<AnimationChannel>> m_channels{};        //! All channels in this animation
 };
 
 static_assert(sizeof(Animation::AnimationInput) == 4, "AnimationInput is not 4 bytes float");

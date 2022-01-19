@@ -28,6 +28,7 @@
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "roar.hpp"
+#include <cassert>
 
 namespace rhi
 {
@@ -106,7 +107,7 @@ enum class PixelFormat
 	bc7_srgb_block
 };
 
-enum class VertexFormat
+enum class VertexFormat : uint32_t
 {
 	int8_1,
 	int8_2,

@@ -69,7 +69,7 @@ class ROAR_ENGINE_ITEM NodeData
 	// Editor only and for debugging purposes
 	// NOTE: Using std::vectors
 	std::string           m_name{};
-	std::vector<uint32_t> m_children;        //! All the list of childrens for each node
+	std::vector<uint32_t> m_children{};        //! All the list of childrens for each node
 };
 
 }        // namespace ror

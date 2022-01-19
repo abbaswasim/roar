@@ -27,10 +27,12 @@
 
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
+#include "profiling/rorlog.hpp"
 #include "resources/rorprojectroot.hpp"
 
 // Using third party xxHash implementation
 #include "thirdparty/xxHash/xxhash.h"
+#include <cstddef>
 
 // TODO: Check performance of this with std::hash, in some tests with std::string std::hash performs better
 
@@ -44,7 +46,7 @@ FORCE_INLINE hash_32_t hash_32(const void *a_input, size_t a_size)
 
 FORCE_INLINE hash_64_t hash_64(const void *a_input, size_t a_size)
 {
-	static const uint64_t seed = get_default_project_root().hash();        // Truncation from uint64_t to uint32_t is ok here
+	static const uint64_t seed = get_default_project_root().hash();
 	return XXH64(a_input, a_size, seed);
 }
 

@@ -43,6 +43,7 @@
 #include <cstring>
 #include <unordered_map>
 #include <vector>
+#include <stack>
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf/cgltf.h"
@@ -1016,7 +1017,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						{
 							auto fmt   = get_format_from_gltf_type_format(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
 							auto bytes = rhi::format_to_bytes(fmt);
-							assert(bytes == 16 || bytes == 12 && "Animation sampler output values are not floats 16 or float 12");
+							assert((bytes == 16 || bytes == 12) && "Animation sampler output values are not floats 16 or float 12");
 						}
 
 						auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);

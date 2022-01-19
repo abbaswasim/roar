@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "common.hpp"
+#include "foundation/rorhash.hpp"
 #include "foundation/rorutilities.hpp"
 #include "graphics/rormesh.hpp"
 #include "include/gtest/gtest.h"

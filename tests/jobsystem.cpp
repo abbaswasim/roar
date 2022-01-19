@@ -399,7 +399,9 @@ TEST(JobSystemTest, job_group_test)
 		{
 			auto b = jobs[i].data();
 			if (!b)
+			{
 				EXPECT_TRUE(0);
+			}
 		}
 
 		threads_time = timer.tick();
