@@ -117,6 +117,10 @@ std::filesystem::path find_resource(const std::filesystem::path &, ResourceSeman
 // TODO: Use pools and/or shared mem for all resources, something encapsulating Resource(s)
 // Infact make sure to use a separate pool for each ResourceSemantic type of resource, this will add in bindless descriptor assignment
 
+/**
+ * A generic resource class to load all resources into, its not thread safe and it needs to be externally synchronised
+ * This externally synchornisation might not work in practice will fix it when it becomes a problem
+ */
 class ROAR_ENGINE_ITEM Resource final
 {
   public:
@@ -132,17 +136,20 @@ class ROAR_ENGINE_ITEM Resource final
 
 	// What will be the best way to send it back in to update data
 	const bytes_vector          &data() const;
-	bytes_vector                &data();
 	const std::filesystem::path &absolute_path() const;
 	ResourceExtension            extension();
-	void                         update_data(bytes_vector a_data);
-	void                         update_hashes();
+	void                         create();
+	void                         remove();
+	void                         load();
+	void                         flush();
+	void                         update(bytes_vector &&a_data, bool a_append = false);
 
   protected:
   private:
-	void load();                 // Loads the resource
-	void load_or_mmap();         // Loads or mmaps the resource depending on whether its read only or not
-	void generate_uuid();        // Generates or Reads UUID for the resource
+	void load_or_mmap();          // Loads or mmaps the resource depending on whether its read only or not
+	void write_or_unmap();        // Writes or unmaps the resource to persistent media
+	void generate_uuid();         // Generates or Reads UUID for the resource
+	void update_hashes();         // Updates hashes for data and path
 
 	std::filesystem::path m_absolute_path{};                              // Path to the resource
 	ResourceExtension     m_extension{ResourceExtension::unknown};        // Extension of the resource loaded for further processing down the pipeline
@@ -150,11 +157,10 @@ class ROAR_ENGINE_ITEM Resource final
 	bool                  m_binary_file{false};                           // True if its a binary file and false if its text file
 	bool                  m_read_only{true};                              // If readonly we can optimise synchronisation and perhaps map it instead
 	bool                  m_mapped{false};                                // True if data is mmapped
+	bool                  m_dirty{false};                                 // True if data is updated while read or while created
 	hash_64_t             m_path_hash{0};                                 // Hash of the path of the resource
 	hash_64_t             m_data_hash{0};                                 // Hash of the contents of the resource
 	hash_128_t            m_uuid{0, 0};                                   // The UUID of the resource, if it doesn't have one, one will be generated for it
-	std::mutex            m_mutex{};                                      // Mutex to lock resource load/unload and existence, this
-																		  // is required because we don't know if the generated filenames are used by other jobs
 };
 
 /**
@@ -167,7 +173,7 @@ class ROAR_ENGINE_ITEM Resource final
  */
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
 
-Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
+Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path = {});
 
 // static_assert(std::is_trivially_copyable_v<Resource>, "Resource is not trivially copyable");
 // static_assert(std::is_standard_layout_v<Resource>, "Resource is not standard layout");

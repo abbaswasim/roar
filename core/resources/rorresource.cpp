@@ -27,10 +27,12 @@
 #include "foundation/rorhash.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rorrandom.hpp"
+#include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorprojectroot.hpp"
 #include "rhi/rortypes.hpp"
 #include "rorresource.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -132,6 +134,7 @@ ResourceExtension get_resource_extension(const std::filesystem::path &a_path)
  project_root/assets/textures/astro_boy/boy10.jpg
  project_root/astro_boy/assets/boy10.jpg
  project_root/astro_boy/textures/boy10.jpg
+ project_root/astro_boy/assets/textures/boy10.jpg
  project_root/textures/astro_boy/materials/boy10.jpg
  project_root/textures/astro_boy/textures/boy10.jpg
  project_root/textures/astro_boy/shaders/boy10.jpg
@@ -151,12 +154,11 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 	}
 
 	// Here we just create a path so if two threads do the same thing thats fine at least there is no contention
-	// std::lock_guard<std::mutex> mtx(this->m_mutex);        // You don't want any other thread to claim this resource
 
 	std::filesystem::path semantic_path{get_resource_semantic_string(a_semantic)};
 	std::filesystem::path resource_semantic_path{semantic_path / a_path};
 
-	auto project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
+	auto &project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
 
 	// Is it at the root of the project?
 	std::filesystem::path p{project_root_path / a_path};
@@ -205,7 +207,7 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 					}
 					else
 					{
-						std::filesystem::path u{project_root_path / parent_path / semantic_path / file_name};
+						std::filesystem::path u{project_root_path / parent_path / "assets" / resource_semantic_path};
 
 						if (std::filesystem::exists(u))
 						{
@@ -213,24 +215,33 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 						}
 						else
 						{
-							// Now we are desperate, trying hard to find this resource
-							for (auto item : {ResourceSemantic::materials,
-											  ResourceSemantic::textures,
-											  ResourceSemantic::shaders,
-											  ResourceSemantic::scripts,
-											  ResourceSemantic::objects,
-											  ResourceSemantic::configs,
-											  ResourceSemantic::models,
-											  ResourceSemantic::misc})        // Different way of dealing with caches and logs
+							std::filesystem::path v{project_root_path / parent_path / semantic_path / file_name};
+
+							if (std::filesystem::exists(v))
 							{
-								auto items_path = get_resource_semantic_string(item);
-
-								std::filesystem::path v{project_root_path /
-														semantic_path / parent_path / items_path / file_name};
-
-								if (std::filesystem::exists(v))
+								return v;
+							}
+							else
+							{
+								// Now we are desperate, trying hard to find this resource
+								for (auto item : {ResourceSemantic::materials,
+												  ResourceSemantic::textures,
+												  ResourceSemantic::shaders,
+												  ResourceSemantic::scripts,
+												  ResourceSemantic::objects,
+												  ResourceSemantic::configs,
+												  ResourceSemantic::models,
+												  ResourceSemantic::misc})        // Different way of dealing with caches and logs
 								{
-									return v;
+									auto items_path = get_resource_semantic_string(item);
+
+									std::filesystem::path w{project_root_path /
+															semantic_path / parent_path / items_path / file_name};
+
+									if (std::filesystem::exists(w))
+									{
+										return w;
+									}
 								}
 							}
 						}
@@ -246,7 +257,7 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 	std::time_t t = std::time(nullptr);
 	char        gen_filename[30];
 
-	if (std::strftime(gen_filename, sizeof(gen_filename), "%d_%m_%Y_%H_%M_%S", std::localtime(&t)))
+	if (!std::strftime(gen_filename, sizeof(gen_filename), "%d_%m_%Y_%H_%M_%S", std::localtime(&t)))
 	{
 		auto temp = project_root_path / resource_semantic_path;
 		log_error("File name generation failed using {} as a file name", temp.c_str());
@@ -254,24 +265,21 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 		return temp;
 	}
 
-	// If std::strftime failes return what was expected without anything more we can do
+	// If std::strftime returned successfully use the generated filename
 	return project_root_path / semantic_path / gen_filename;
 }
 
-Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
+Resource &cache_resource(const std::filesystem::path &a_absolute_path)
 {
 	using ResourceCache = Cache<std::filesystem::path, std::shared_ptr<Resource>, true, PathHash>;        // Thread Safe resource cache
-
 	static ResourceCache resource_cache{};
 
-	auto absolute_path = find_resource(a_path, a_semantic);
-
-	auto found = resource_cache.find(absolute_path);
+	auto found = resource_cache.find(a_absolute_path);
 	if (found.second)
 		return *found.first;
 
-	auto pointer = std::make_shared<Resource>(absolute_path);
-	auto result  = resource_cache.insert(absolute_path, pointer);
+	auto pointer = std::make_shared<Resource>(a_absolute_path);
+	auto result  = resource_cache.insert(a_absolute_path, pointer);
 
 	assert(result && "Resource wasn't inserted, probably already exists or failure happend");
 	(void) result;        // in release builds it will complain otherwise
@@ -279,12 +287,41 @@ Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_
 	return *pointer;
 }
 
+/**
+ * Can be used to load resources relative to project_root anywhere in different folers
+ */
+Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
+{
+	auto  absolute_path = find_resource(a_path, a_semantic);
+	auto &resource      = cache_resource(absolute_path);
+	resource.load();
+	return resource;
+}
+
+/**
+ * Can be used to create resources relative to project_root if they don't already exist
+ * Requires the path to resource that to be created and semantic and will try to create that, parent_path is optional
+ * For example if "boy10.jpg" is provided as assets path with semantic of "textures" while parent path is "astro_boy" will result in
+ * project_root/astro_boy/textures/boy10.jpg
+
+ * if "astro_boy/boy10.jpg" is provided as assets path with semantic of "textures" while parent path is "" will result in
+ * project_root/textures/astro_boy/boy10.jpg
+*/
+Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
+{
+	auto &project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
+
+	std::filesystem::path semantic_path{get_resource_semantic_string(a_semantic)};
+	std::filesystem::path absolute_path{project_root_path / a_parent_path / semantic_path / a_path};
+
+	auto &resource = cache_resource(absolute_path);
+	resource.create();
+	return resource;
+}
+
 Resource::~Resource() noexcept
 {
-	if (this->m_mapped)
-	{
-		// TODO: Unmap
-	}
+	this->write_or_unmap();
 }
 
 Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_read_only, bool a_mapped) :
@@ -296,47 +333,82 @@ Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_
 	}
 
 	this->m_extension = get_resource_extension(this->m_absolute_path);
+}
 
-	this->load();
-	this->generate_uuid();
+void Resource::create()
+{
+	if (!std::filesystem::exists(this->m_absolute_path))
+	{
+		ror::log_info("Creating resource at location {}", this->m_absolute_path.c_str());
+
+		std::ios_base::openmode mode = std::ios::ate | std::ios::out;
+
+		if (this->m_binary_file)
+			mode |= std::ios::binary;
+
+		// Create the file, and the directories, if we tried our best but couldn't find it
+		if (this->m_absolute_path.has_filename())
+		{
+			std::filesystem::create_directories(this->m_absolute_path.parent_path());
+
+			if (this->m_absolute_path.has_extension())
+				std::ofstream of(this->m_absolute_path, mode);
+			else
+				std::filesystem::create_directory(this->m_absolute_path);
+		}
+		else
+			std::filesystem::create_directories(this->m_absolute_path);
+
+		this->update_hashes();
+	}
+	else
+	{
+		log_warn("Trying to create resource but it already exists {}", this->m_absolute_path.c_str());
+	}
+
+	this->m_dirty = true;
+}
+
+void Resource::remove()
+{
+	ror::log_info("Removing resource {}", this->m_absolute_path.c_str());
+
+	if (std::filesystem::exists(this->m_absolute_path))
+	{
+		auto project_root = get_project_root().path();
+		assert(project_root.is_absolute() && "Project root isn't absolute, can't delete files in this path");
+		assert(this->m_absolute_path.is_absolute() && "Resource path isn't absolute");
+		if (this->m_absolute_path.string().find(project_root) != std::string::npos)        // Make sure its relative to the project we are working in
+			std::filesystem::remove_all(this->m_absolute_path);
+		else
+			log_critical("Trying to delete folder {} which is outside project {}", this->m_absolute_path.c_str(), project_root.c_str());
+	}
+
+	this->m_data.clear();
 	this->update_hashes();
+	this->m_dirty = false;
 }
 
 void Resource::load()
 {
-	{
-		std::lock_guard<std::mutex> mtx(this->m_mutex);
-		if (!std::filesystem::exists(this->m_absolute_path))
-		{
-			std::ios_base::openmode mode = std::ios::ate | std::ios::out;
-
-			if (this->m_binary_file)
-				mode |= std::ios::binary;
-
-			ror::log_error("{} file does not exit, creating now, but contents will be empty", this->m_absolute_path.c_str());
-
-			// Create the file, and the directories, if we tried our best but couldn't find it
-			std::filesystem::create_directory(this->m_absolute_path.parent_path());
-			std::ofstream of(this->m_absolute_path, mode);        // Maybe this is not such a good idea, for textures/shaders you will have empty files created
-		}
-	}
-
 	// Create cache or load cached file name
 	this->load_or_mmap();
+	this->update_hashes();
 	ror::log_info("Loaded cached resource file {}", this->m_absolute_path.c_str());
 }
 
 void Resource::update_hashes()
 {
-	std::string path_string{this->m_absolute_path};
+	this->generate_uuid();
+
 	// Create Path hash from absolute path as compared to cached path
-	this->m_path_hash = ror::hash_64(path_string.c_str(), path_string.size());
+	this->m_path_hash = std::filesystem::hash_value(this->m_absolute_path);
 
 	// Create Data hash from cached data as compared to actual file data
 	if (!this->m_data.empty())
 		this->m_data_hash = ror::hash_64(this->m_data.data(), this->m_data.size());
 	else
-		ror::log_error("Loaded cached resource file {} that has nothing in it.", this->m_absolute_path.c_str());
+		this->m_data_hash = 0;
 }
 
 void Resource::load_or_mmap()
@@ -357,7 +429,7 @@ void Resource::load_or_mmap()
 		std::ifstream as_file(this->m_absolute_path, mode);
 		if (!as_file.is_open())
 		{
-			ror::log_critical("Can't open file {}", this->m_absolute_path.c_str());
+			ror::log_critical("Can't open file, it probably doesn't exist {}", this->m_absolute_path.c_str());
 			return;
 		}
 
@@ -367,7 +439,7 @@ void Resource::load_or_mmap()
 
 		if (bytes_count <= 0)
 		{
-			ror::log_critical("Error! reading file size {}", this->m_absolute_path.c_str());
+			ror::log_critical("Error! reading file size, it seems to be empty {}", this->m_absolute_path.c_str());
 			return;
 		}
 
@@ -379,21 +451,49 @@ void Resource::load_or_mmap()
 	}
 }
 
+void Resource::write_or_unmap()
+{
+	if (this->m_dirty)
+	{
+		std::ios_base::openmode mode = std::ios::ate | std::ios::out;
+
+		if (this->m_binary_file)
+			mode |= std::ios::binary;
+
+		std::ofstream as_file(this->m_absolute_path, mode);
+		if (!as_file.is_open())
+		{
+			ror::log_critical("Can't open file for writing {}", this->m_absolute_path.c_str());
+			return;
+		}
+
+		// No point to synchronise here because some other process might be writing into the file, if this is the case, expect UB
+
+		// Cast is ok because if byte_count is bigger than size_t range, we have a bigger problem
+		as_file.write(reinterpret_cast<char *>(this->m_data.data()), static_cast<long>(this->m_data.size()));
+		as_file.close();
+
+		this->m_dirty = false;
+	}
+
+	// TODO: Use the mmap feature too if (this->m_maped == true)
+}
+
+void Resource::flush()
+{
+	this->write_or_unmap();
+}
+
 void Resource::generate_uuid()
 {
 	// TODO: Implement proper UUID generation
 	// Read UUID config file or generate it
 	// For now using a hash
 	std::string path{this->m_absolute_path};
-	this->m_uuid     = ror::hash_128(path.c_str(), path.size());
+	this->m_uuid = ror::hash_128(path.c_str(), path.size());
 }
 
 const std::vector<uint8_t> &Resource::data() const
-{
-	return this->m_data;
-}
-
-std::vector<uint8_t> &Resource::data()
 {
 	return this->m_data;
 }
@@ -408,9 +508,24 @@ ResourceExtension Resource::extension()
 	return this->m_extension;
 }
 
+void Resource::update(bytes_vector &&a_data, bool a_append)
+{
+	if (a_append)
+	{
+		auto psize = this->m_data.size();
+		this->m_data.resize(this->m_data.size() + a_data.size());
+		std::copy(a_data.begin(), a_data.end(), this->m_data.begin() + static_cast_safe<long>(psize));
+	}
+	else
+		this->m_data = std::move(a_data);
+
+	this->update_hashes();
+	this->m_dirty = true;
+}
+
 std::filesystem::path get_cache_path()
 {
-	auto project_root_path = get_project_root().path();        // Calling get_project_root without any arguments relies on clients who must call to initalized project_root
+	auto &project_root_path = get_project_root().path();        // Calling get_project_root without any arguments relies on clients who must call to initalized project_root
 
 	return project_root_path / get_settings().get<std::string>("roar_cache");
 }

@@ -46,8 +46,6 @@ static std::string get_os_string()
 			return std::string("OsType::os_ios_simulator");
 		case OsType::os_android:
 			return std::string("OsType::os_android");
-		case OsType::os_bsd:
-			return std::string("OsType::os_bsd");
 		case OsType::os_windows:
 			return std::string("OsType::os_windows");
 	}

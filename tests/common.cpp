@@ -78,9 +78,6 @@ TEST(System, System_constants)
 		case ror::OsType::os_linux:
 			print_with_gtest_header("Building for linux", green);
 			break;
-		case ror::OsType::os_bsd:
-			print_with_gtest_header("Building for bsd", green);
-			break;
 		case ror::OsType::os_windows:
 			print_with_gtest_header("Building for windows", green);
 			break;

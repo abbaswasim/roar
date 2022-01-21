@@ -41,9 +41,9 @@
 #include <cassert>
 #include <cstddef>
 #include <cstring>
+#include <stack>
 #include <unordered_map>
 #include <vector>
-#include <stack>
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf/cgltf.h"
@@ -163,7 +163,7 @@ cgltf_result cgltf_load_buffer_file_as_resource(const cgltf_options *options, cg
 
 	// Data pointer from the Resource is aliased into out_data within the gltf file
 	// This is ok, because the deleter for this type in cgltf is void so won't be deleted under Resource's feet
-	*out_data = reinterpret_cast<void *>(data.data()); // Notice using non-const data here
+	*out_data = const_cast<void *>(reinterpret_cast<const void *>(data.data()));        // This is gross but I don't want to create resource::data() non-const, small hack because of TP lib interface
 
 	return cgltf_result_success;
 }

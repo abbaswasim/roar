@@ -48,7 +48,7 @@ class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 
 	void load(std::filesystem::path a_config_path)
 	{
-		auto &resource    = load_resource(a_config_path, ResourceSemantic::configs);
+		const auto& resource    = load_resource(a_config_path, ResourceSemantic::configs);
 		this->m_json_file = json::parse(resource.data());
 
 		this->underlying().load_specific();

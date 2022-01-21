@@ -84,12 +84,11 @@ namespace ror
 enum class OsType
 {
 	os_mac,
+	os_linux,
+	os_windows,
 	os_android,
 	os_ios,
-	os_ios_simulator,
-	os_linux,
-	os_bsd,
-	os_windows
+	os_ios_simulator
 };
 
 enum class ArchType
@@ -127,8 +126,6 @@ constexpr OsType get_os()
 	os_type = OsType::os_ios_simulator;
 #elif defined OS_TYPE_LINUX        // Linux means Linux desktop not Android linux
 	os_type = OsType::os_linux;
-#elif defined OS_TYPE_BSD
-	os_type = OsType::os_bsd;
 #elif defined OS_TYPE_WINDOWS
 	os_type = OsType::os_windows;
 #endif
