@@ -43,5 +43,6 @@ void setup_project_root()
 	auto assets = root_dir_path / "assets";
 
 	// get_default_project_root returns absolute path to "roar_project"
+	ror::log_info("Copying assets folder from {} to {}", assets.c_str(), destination.c_str());
 	std::filesystem::copy(assets, destination, copy_options);
 }

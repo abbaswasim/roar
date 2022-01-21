@@ -46,6 +46,7 @@ ProjectRoot::ProjectRoot(std::filesystem::path a_project_path) :
 	if (a_project_path.empty())
 		ror::log_error("ProjectRoot is initilaized with empty path.");
 
+	ror::log_info("Creating roar project root {}", this->m_project_root.c_str());
 	std::filesystem::create_directory(this->m_project_root);        // its ok if already exists
 }
 

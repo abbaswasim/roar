@@ -402,6 +402,8 @@ class ROAR_ENGINE_ITEM JobSystem final
 		for (auto &worker : this->m_workers)
 			if (worker->joinable())
 				worker->join();
+
+		this->m_workers.clear();
 	}
 
   protected:

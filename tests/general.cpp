@@ -3,13 +3,13 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorcommon.hpp"
 #include "foundation/rorhash.hpp"
+#include "foundation/rorjobsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
 #include "math/rorvector3.hpp"
-#include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
 #include <atomic>
 #include <filesystem>
@@ -385,63 +385,6 @@ TEST(ModelTest, gltf_loader_test)
 	ror::Mesh m2;
 	alloc_buffer.push_back(m1);
 	alloc_buffer.push_back(m2);
-
-	// The following is a gross solution to why EXPECT_DEATH doesn't work for me, I have expanded the macro instead and fixed the errors
-	// EXPECT_DEATH(alloc_buffer.push_back(b), "message");
-	switch (0)
-	case 0:
-	default:
-		if (::testing ::internal ::AlwaysTrue())
-		{
-			::testing ::internal ::DeathTest *gtest_dt;
-			if (!::testing ::internal ::DeathTest ::Create("alloc_buffer.reserve(40)", ::testing ::internal ::MakeDeathTestMatcher("BufferAllocator can't deallocate at the moment, this shouldn't happen, something went wrong"), "/System/Volumes/Data/personal/roar_engine/tests/general.cpp", 212, &gtest_dt))
-			{
-				goto gtest_label_212;
-			}
-			if (gtest_dt != nullptr)
-			{
-				std ::unique_ptr<::testing ::internal ::DeathTest> gtest_dt_ptr(gtest_dt);
-				switch (gtest_dt->AssumeRole())
-				{
-					case ::testing ::internal ::DeathTest ::OVERSEE_TEST:
-						if (!gtest_dt->Passed(::testing ::internal ::ExitedUnsuccessfully(gtest_dt->Wait())))
-						{
-							goto gtest_label_212;
-						}
-						break;
-					case ::testing ::internal ::DeathTest ::EXECUTE_TEST: {
-						// ::testing ::internal ::DeathTest ::ReturnSentinel gtest_sentinel(gtest_dt);
-						try
-						{
-							if (::testing ::internal ::AlwaysTrue())
-							{
-								alloc_buffer.reserve(40);
-							}
-							else
-								static_assert(true, "");
-						}
-						catch (const ::std ::exception &gtest_exception)
-						{
-							fprintf(__stderrp, "\n%s: Caught std::exception-derived exception escaping the "
-											   "death test statement. Exception message: %s\n",
-									::testing ::internal ::FormatFileLocation("/System/Volumes/Data/personal/roar_engine/tests/general.cpp", 212).c_str(), gtest_exception.what());
-							fflush(__stderrp);
-							gtest_dt->Abort(::testing ::internal ::DeathTest ::TEST_THREW_EXCEPTION);
-						}
-						catch (...)
-						{
-							gtest_dt->Abort(::testing ::internal ::DeathTest ::TEST_THREW_EXCEPTION);
-						}
-						gtest_dt->Abort(::testing ::internal ::DeathTest ::TEST_DID_NOT_DIE);
-						break;
-					}
-				}
-			}
-		}
-		else
-		gtest_label_212:
-			::testing ::internal ::AssertHelper(::testing ::TestPartResult ::kNonFatalFailure, "/System/Volumes/Data/personal/roar_engine/tests/general.cpp", 212, ::testing ::internal ::DeathTest ::LastMessage()) = ::testing ::Message();
-
 
 	// Signal free to BufferPack so allocator can free stuff
 	bp.free();

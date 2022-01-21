@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "profiling/rorlog.hpp"
 #include <cstddef>
@@ -116,7 +117,7 @@ std::filesystem::path find_resource(const std::filesystem::path &, ResourceSeman
 // TODO: Use pools and/or shared mem for all resources, something encapsulating Resource(s)
 // Infact make sure to use a separate pool for each ResourceSemantic type of resource, this will add in bindless descriptor assignment
 
-class ROAR_ENGINE_ITEM Resource
+class ROAR_ENGINE_ITEM Resource final
 {
   public:
 	FORCE_INLINE           Resource()                            = delete;         //! Constructor
@@ -125,20 +126,16 @@ class ROAR_ENGINE_ITEM Resource
 	FORCE_INLINE Resource &operator=(const Resource &a_other) = delete;            //! Copy assignment operator
 	FORCE_INLINE Resource &operator=(Resource &&a_other) noexcept = delete;        //! Move assignment operator
 
-	virtual ~Resource() noexcept;        //! Destructor
+	~Resource() noexcept;        //! Destructor
 
 	Resource(std::filesystem::path a_absolute_path, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
 
-	using data_ptr = std::shared_ptr<bytes_vector>;
-
-	// TODO: Need to work out how this works. Can one change vector via this const pointer?
 	// What will be the best way to send it back in to update data
-	const bytes_vector          &get_data() const;
+	const bytes_vector          &data() const;
+	bytes_vector                &data();
 	const std::filesystem::path &absolute_path() const;
 	ResourceExtension            extension();
-	// void               update_data(data_ptr a_data);
-
-	virtual void temp();
+	void                         update_data(bytes_vector a_data);
 
   protected:
   private:
@@ -165,9 +162,11 @@ class ROAR_ENGINE_ITEM Resource
  *             This will try hard to find the resource from semantic. Load it and return a pointer to it.
  * @param      a_path to the resource. It doesn't have to be absolute only name and extension is enough
  * @param      a_semantic Type of the resource via ResourceSemantic::XXX. For example a config, texture etc.
- * @return     Reference to heap allocated Resource object. Client doesn't need to worry about mem management
+ * @return     Reference to heap allocated Resource object. Client doesn't need to worry about memory management
  */
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
+
+Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
 
 // static_assert(std::is_trivially_copyable_v<Resource>, "Resource is not trivially copyable");
 // static_assert(std::is_standard_layout_v<Resource>, "Resource is not standard layout");

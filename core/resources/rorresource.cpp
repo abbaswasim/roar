@@ -25,6 +25,7 @@
 
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorhash.hpp"
+#include "foundation/rormacros.hpp"
 #include "foundation/rorrandom.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorprojectroot.hpp"
@@ -384,7 +385,12 @@ void Resource::generate_uuid()
 	this->m_uuid     = ror::hash_128(path.c_str(), path.size());
 }
 
-const std::vector<uint8_t> &Resource::get_data() const
+const std::vector<uint8_t> &Resource::data() const
+{
+	return this->m_data;
+}
+
+std::vector<uint8_t> &Resource::data()
 {
 	return this->m_data;
 }
@@ -406,6 +412,4 @@ std::filesystem::path get_cache_path()
 	return project_root_path / get_settings().get<std::string>("roar_cache");
 }
 
-void Resource::temp()
-{}
 }        // namespace ror

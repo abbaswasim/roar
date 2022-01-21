@@ -127,9 +127,9 @@ FORCE_INLINE void TextureImage::push_empty_mip() noexcept
 
 static void read_texture_from_file_stb(ror::Resource &a_texture_resource, TextureImage &a_texture)
 {
-	int32_t w = 0, h = 0, bpp = 0;
-	auto   &resource_data = a_texture_resource.get_data();
-	auto   *a_data        = stbi_load_from_memory(resource_data.data(), ror::static_cast_safe<int32_t>(resource_data.size()), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
+	int32_t     w = 0, h = 0, bpp = 0;
+	const auto &resource_data = a_texture_resource.data();
+	auto       *a_data        = stbi_load_from_memory(resource_data.data(), ror::static_cast_safe<int32_t>(resource_data.size()), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
 
 	a_texture.push_empty_mip();
 	a_texture.format(PixelFormat::r8g8b8a8_uint32_norm_srgb);           // TODO: How do I read this via STB?
@@ -181,7 +181,7 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 	// FIXME: Should only be called once per execution, check if this could be used in MT environment
 	basist::basisu_transcoder_init();
 
-	const std::vector<uint8_t> &ktx2_file_data = a_texture_resource.get_data();
+	const std::vector<uint8_t> &ktx2_file_data = a_texture_resource.data();
 
 	// Should be done for each transcode
 	basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size, basist::g_global_selector_cb);

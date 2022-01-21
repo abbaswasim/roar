@@ -154,7 +154,7 @@ cgltf_result cgltf_load_buffer_file_as_resource(const cgltf_options *options, cg
 	cgltf_decode_uri(path + strlen(path) - strlen(uri));
 
 	auto &resource = load_resource(path, ResourceSemantic::models);
-	auto &data     = resource.get_data();
+	auto &data     = resource.data();
 
 	assert(data.size() == size && "Resource loaded of wrong size");
 	(void) size;
@@ -163,7 +163,7 @@ cgltf_result cgltf_load_buffer_file_as_resource(const cgltf_options *options, cg
 
 	// Data pointer from the Resource is aliased into out_data within the gltf file
 	// This is ok, because the deleter for this type in cgltf is void so won't be deleted under Resource's feet
-	*out_data = const_cast<void *>(reinterpret_cast<const void *>(data.data()));        // This is gross but no other way but to make resource get_data() non-const, which I don't want to do
+	*out_data = reinterpret_cast<void *>(data.data()); // Notice using non-const data here
 
 	return cgltf_result_success;
 }
@@ -370,7 +370,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 	cgltf_options options{};        // Default setting
 	cgltf_data   *data{nullptr};
 	// Since we have loaded as resource use cgltf_parse instead of cgltf_parse_file(&options, filename.c_str(), &data);
-	cgltf_result result = cgltf_parse(&options, resource.get_data().data(), resource.get_data().size(), &data);
+	cgltf_result result = cgltf_parse(&options, resource.data().data(), resource.data().size(), &data);
 
 	if (result != cgltf_result_success)
 	{
