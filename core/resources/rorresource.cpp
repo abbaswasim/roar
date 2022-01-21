@@ -298,6 +298,8 @@ Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_
 	this->m_extension = get_resource_extension(this->m_absolute_path);
 
 	this->load();
+	this->generate_uuid();
+	this->update_hashes();
 }
 
 void Resource::load()
@@ -320,11 +322,12 @@ void Resource::load()
 	}
 
 	// Create cache or load cached file name
-	this->generate_uuid();
 	this->load_or_mmap();
-
 	ror::log_info("Loaded cached resource file {}", this->m_absolute_path.c_str());
+}
 
+void Resource::update_hashes()
+{
 	std::string path_string{this->m_absolute_path};
 	// Create Path hash from absolute path as compared to cached path
 	this->m_path_hash = ror::hash_64(path_string.c_str(), path_string.size());
@@ -381,7 +384,7 @@ void Resource::generate_uuid()
 	// TODO: Implement proper UUID generation
 	// Read UUID config file or generate it
 	// For now using a hash
-	std::string path = this->m_absolute_path.c_str();
+	std::string path{this->m_absolute_path};
 	this->m_uuid     = ror::hash_128(path.c_str(), path.size());
 }
 

@@ -136,6 +136,7 @@ class ROAR_ENGINE_ITEM Resource final
 	const std::filesystem::path &absolute_path() const;
 	ResourceExtension            extension();
 	void                         update_data(bytes_vector a_data);
+	void                         update_hashes();
 
   protected:
   private:
