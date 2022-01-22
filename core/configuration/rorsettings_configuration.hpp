@@ -34,7 +34,9 @@
 
 namespace ror
 {
+
 using generic_config = std::variant<bool, uint32_t, std::string, float32_t>;
+
 class ROAR_ENGINE_ITEM SettingsConfig : public Configuration<SettingsConfig>
 {
   public:
@@ -49,23 +51,7 @@ class ROAR_ENGINE_ITEM SettingsConfig : public Configuration<SettingsConfig>
 
 	FORCE_INLINE explicit SettingsConfig(std::filesystem::path a_config_path);        //! Single argument constructor
 
-	void load_specific()
-	{
-		for (json::iterator it = this->m_json_file.begin(); it != this->m_json_file.end(); ++it)
-		{
-			generic_config c;
-			if (it->is_number())
-				c = static_cast<uint32_t>(it.value());
-			if (it->is_string())
-				c = static_cast<std::string>(it.value());
-			if (it->is_boolean())
-				c = static_cast<bool>(it.value());
-			if (it->is_number_float())
-				c = static_cast<float32_t>(it.value());
-
-			this->m_generic_configs[it.key()] = c;
-		}
-	}
+	void load_specific();
 
 	template <typename _type>
 	auto get(std::string a_key) const

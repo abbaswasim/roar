@@ -30,4 +30,44 @@ namespace ror
 define_translation_unit_vtable(SettingsConfig)
 {}
 
+generic_config get_generic_config_value(json::iterator a_it)
+{
+	generic_config c;
+
+	if (a_it->is_number())
+		c = static_cast<uint32_t>(a_it.value());
+	if (a_it->is_string())
+		c = static_cast<std::string>(a_it.value());
+	if (a_it->is_boolean())
+		c = static_cast<bool>(a_it.value());
+	if (a_it->is_number_float())
+		c = static_cast<float32_t>(a_it.value());
+
+	return c;
+}
+
+void SettingsConfig::load_specific()
+{
+	std::stack<std::pair<json::iterator, std::string>> objects_stack;        // Iterators stack to not have to do recursive walk of the config tree
+
+	for (json::iterator it = this->m_json_file.begin(); it != this->m_json_file.end(); ++it)
+		objects_stack.push(std::make_pair(it, ""));
+
+	while (!objects_stack.empty())
+	{
+		auto object_iter = objects_stack.top();
+		objects_stack.pop();
+
+		if (object_iter.first->is_object())
+		{
+			for (json::iterator iter = object_iter.first->begin(); iter != object_iter.first->end(); ++iter)
+				objects_stack.push(std::make_pair(iter, object_iter.second + object_iter.first.key() + ":"));
+		}
+		else
+		{
+			generic_config c{get_generic_config_value(object_iter.first)};
+			this->m_generic_configs[object_iter.second + object_iter.first.key()] = c;
+		}
+	}
+}
 }        // namespace ror

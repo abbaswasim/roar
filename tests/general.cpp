@@ -200,6 +200,17 @@ TEST(RoarGeneral, settings_test)
 	EXPECT_EQ(config.get<bool>("window_premultiplied"), false);
 	EXPECT_EQ(config.get<bool>("window_prerotated"), false);
 	EXPECT_FLOAT_EQ(config.get<float32_t>("zoom_speed"), 3.1400001049041748f);
+
+	// Nested roar_args
+	EXPECT_EQ(config.get<std::string>("roar_args:arg1"), "arguno");
+	EXPECT_EQ(config.get<uint32_t>("roar_args:arg2"), 2);
+	EXPECT_EQ(config.get<std::string>("roar_args:arg3"), "thresh");
+	EXPECT_EQ(config.get<std::string>("roar_args:arg4"), "4");
+
+	// Nested:Nest roar_args
+	EXPECT_EQ(config.get<std::string>("roar_args:roar_args2:arg21"), "arg2uno");
+	EXPECT_EQ(config.get<uint32_t>("roar_args:roar_args2:arg22"), 22);
+	EXPECT_EQ(config.get<std::string>("roar_args:roar_args2:arg23"), "23");
 }
 
 TEST(ModelTest, gltf_loader_test)

@@ -8,5 +8,16 @@
 	"window_prerotated": false,
 	"zoom_speed": 3.1400001049041748,
 	"buffers_format": "buffers_format.json",
-	"roar_cache": ".roar_cache"
+	"roar_cache": ".roar_cache",
+	"roar_args": {
+		"arg1" : "arguno",
+		"arg2" : 2,
+		"arg3" : "thresh",
+		"arg4" : "4",
+		"roar_args2": {
+			"arg21" : "arg2uno",
+			"arg22" : 22,
+			"arg23" : "23"
+		}
+	}
 }
