@@ -10,6 +10,7 @@
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
 #include "math/rorvector3.hpp"
+#include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
 #include <atomic>
 #include <filesystem>
@@ -24,6 +25,7 @@
 #include "graphics/rormodel.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
+#include "shader_system/rorshader_system.hpp"
 
 namespace ror_test
 {
@@ -355,7 +357,7 @@ TEST(ModelTest, gltf_loader_test)
 	}
 	{
 		EXPECT_EQ(model.animations().size(), 3);
-		auto&a = model.animations()[0];
+		auto &a = model.animations()[0];
 
 		EXPECT_EQ(a.m_samplers.size(), 21);
 		EXPECT_EQ(a.m_channels.size(), 21);

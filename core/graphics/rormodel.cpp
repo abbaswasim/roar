@@ -48,7 +48,7 @@
 #define CGLTF_IMPLEMENTATION
 #include "cgltf/cgltf.h"
 
-#define USE_JS 1
+#define USE_JS
 
 namespace ror
 {
@@ -248,7 +248,7 @@ rhi::Format get_format_from_gltf_type_format(cgltf_type a_type, cgltf_component_
 		case cgltf_component_type::cgltf_component_type_r_16:          return rhi::VertexFormat::int16_4;
 		case cgltf_component_type::cgltf_component_type_r_16u:         return rhi::VertexFormat::uint16_4;
 		case cgltf_component_type::cgltf_component_type_r_32u:         return rhi::VertexFormat::uint32_4;
-		case cgltf_component_type::cgltf_component_type_r_32f:		   return rhi::VertexFormat::float32_4;
+		case cgltf_component_type::cgltf_component_type_r_32f:		   return (a_type == cgltf_type::cgltf_type_mat2 ? rhi::VertexFormat::float32_2x2 : rhi::VertexFormat::float32_4);
 		}
 		// clang-format on
 	}
@@ -300,14 +300,14 @@ rhi::Format get_format_from_gltf_type_format(cgltf_type a_type, cgltf_component_
 	else if (a_type == cgltf_type::cgltf_type_mat4)
 	{
 		if (a_component_type == cgltf_component_type::cgltf_component_type_r_32f)
-			return rhi::VertexFormat::float32_16;
+			return rhi::VertexFormat::float32_4x4;
 		else
 			assert(0 && "This type of mat4 is not supported");
 	}
 	else if (a_type == cgltf_type::cgltf_type_mat3)
 	{
 		if (a_component_type == cgltf_component_type::cgltf_component_type_r_32f)
-			return rhi::VertexFormat::float32_9;
+			return rhi::VertexFormat::float32_3x3;
 		else
 			assert(0 && "This type of mat4 is not supported");
 	}
@@ -427,9 +427,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 			return ror::read_texture_from_cgltf_base64(&options, a_uri, a_mimetype);
 		};
 
+#if defined(USE_JS)
 		std::vector<JobHandle<rhi::TextureImage>> future_texures{};
 		future_texures.reserve(data->images_count);
+#endif
 		// Create jobs for all the images
+		this->m_images.reserve(data->images_count);
 		for (size_t i = 0; i < data->images_count; ++i)
 		{
 			const char *uri = data->images[i].uri;
@@ -655,46 +658,13 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> attribs_data;
 
 					assert(cprim.type == cgltf_primitive_type_triangles && "Mesh primitive type is not triangles which is the only supported type at the moment");
-					mesh.m_primitive_types[i] = cglf_primitive_to_primitive_topology(cprim.type);
+					mesh.m_primitive_types[j] = cglf_primitive_to_primitive_topology(cprim.type);
 
 					if (cprim.has_draco_mesh_compression)
 						ror::log_critical("Mesh has draco mesh compression but its not supported");
 
 					if (cprim.material)
 						mesh.m_material_indices[j] = find_safe_index(material_to_index, cprim.material);
-
-					// Read vertex indices buffer
-					if (cprim.indices)
-					{
-						assert(cprim.indices->type == cgltf_type_scalar && "Indices are not the right type, only SCALAR indices supported");
-						assert((cprim.indices->component_type == cgltf_component_type_r_32u || cprim.indices->component_type == cgltf_component_type_r_16u || cprim.indices->component_type == cgltf_component_type_r_8u) &&
-							   "Indices are not in the right component type , only uint8_t, uint16_t and uint32_t supported");
-
-						assert(cprim.indices->buffer_view && "Indices doesn't have a valid buffer view");
-						// assert(cprim.indices->buffer_view->type == cgltf_buffer_view_type_indices && "Indices buffer view type is wrong"); type is always invalid, because no such thing in bufferView in glTF
-
-						if (cprim.indices->buffer_view->has_meshopt_compression)
-							ror::log_critical("Mesh has meshopt_compression but its not supported");
-
-						mesh.m_has_indices_states[j] = true;
-						auto index_format            = get_format_from_gltf_type_format(cprim.indices->type, cprim.indices->component_type);
-
-						// TODO: GL expects stride to be zero if data is tightly packed
-						assert(!cprim.indices->is_sparse && "Sparce index buffers not supported");
-
-						auto attrib_accessor   = cprim.indices;
-						auto buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
-						auto indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
-						auto stride            = cprim.indices->buffer_view->stride;
-
-						assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this index buffer");
-						uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
-
-						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * indices_byte_size, stride};
-						attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
-
-						avd.add(rhi::BufferSemantic::vertex_index, index_format, &bp);
-					}
 
 					// Read all other vertex attributes
 					for (size_t k = 0; k < cprim.attributes_count; ++k)
@@ -771,6 +741,39 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						avd.add(current_index, attrib_format, &bp);
 					}
 
+					// Read vertex indices buffer
+					if (cprim.indices)
+					{
+						assert(cprim.indices->type == cgltf_type_scalar && "Indices are not the right type, only SCALAR indices supported");
+						assert((cprim.indices->component_type == cgltf_component_type_r_32u || cprim.indices->component_type == cgltf_component_type_r_16u || cprim.indices->component_type == cgltf_component_type_r_8u) &&
+							   "Indices are not in the right component type , only uint8_t, uint16_t and uint32_t supported");
+
+						assert(cprim.indices->buffer_view && "Indices doesn't have a valid buffer view");
+						// assert(cprim.indices->buffer_view->type == cgltf_buffer_view_type_indices && "Indices buffer view type is wrong"); type is always invalid, because no such thing in bufferView in glTF
+
+						if (cprim.indices->buffer_view->has_meshopt_compression)
+							ror::log_critical("Mesh has meshopt_compression but its not supported");
+
+						mesh.m_has_indices_states[j] = true;
+						auto index_format            = get_format_from_gltf_type_format(cprim.indices->type, cprim.indices->component_type);
+
+						// TODO: GL expects stride to be zero if data is tightly packed
+						assert(!cprim.indices->is_sparse && "Sparce index buffers not supported");
+
+						auto attrib_accessor   = cprim.indices;
+						auto buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
+						auto indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
+						auto stride            = cprim.indices->buffer_view->stride;
+
+						assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this index buffer");
+						uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
+
+						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * indices_byte_size, stride};
+						attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
+
+						avd.add(rhi::BufferSemantic::vertex_index, index_format, &bp);
+					}
+
 					// Now upload data from all the attributes into avd
 					avd.upload(attribs_data, &bp);
 
@@ -836,7 +839,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 							uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
 
 							std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * attrib_byte_size, stride};
-							attribs_data.emplace(current_index, std::move(data_tuple));
+							morph_targets_attribs_data.emplace(current_index, std::move(data_tuple));
 
 							amts[k].add(current_index, attrib_format, &bp);
 						}
@@ -902,7 +905,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					// TODO: This is only required because GL expects stride to be zero if data is tightly packed
 					if (inverse_bind_matrices_accessor->buffer_view->stride >= attrib_byte_size)
 					{
-						ror::log_error("Stride was suppose to be adjusted for GL, it won't work in Vulkan/Metal/DX");
+						ror::log_warn("Stride was suppose to be adjusted for GL, it won't work in Vulkan/Metal/DX");
 					}
 				}
 
@@ -1008,7 +1011,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 													 reinterpret_cast<cgltf_float *>(animation_sampler.m_input.data()),
 													 animation_sampler.m_input.size());
 
-						assert(anim_sampler_accessor->buffer_view->stride == attrib_byte_size && "Looks like sampler input data is interleaved, not supported");
+						assert(anim_sampler_accessor->buffer_view->stride <= attrib_byte_size && "Looks like sampler input data is interleaved, not supported");
 					}
 
 					{
@@ -1017,7 +1020,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						{
 							auto fmt   = get_format_from_gltf_type_format(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
 							auto bytes = rhi::format_to_bytes(fmt);
-							assert((bytes == 16 || bytes == 12) && "Animation sampler output values are not floats 16 or float 12");
+							assert((bytes == 16 || bytes == 12 || bytes == 4) && "Animation sampler output values are not floats 16, float 12 or float 4");
 						}
 
 						auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
@@ -1028,7 +1031,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 													 reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
 													 animation_sampler.m_output.size());
 
-						assert(anim_sampler_accessor->buffer_view->stride == attrib_byte_size && "Looks like sampler output data is interleaved, not supported");
+						assert(anim_sampler_accessor->buffer_view->stride <= attrib_byte_size && "Looks like sampler output data is interleaved, not supported");
 					}
 
 					switch (canimation.samplers[j].interpolation)
@@ -1097,7 +1100,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 #if defined(USE_JS)
 		// Wait for all the images to load
-		this->m_images.reserve(data->images_count);
 		for (size_t i = 0; i < data->images_count; ++i)
 			this->m_images.emplace_back(future_texures[i].data());
 

@@ -71,7 +71,7 @@ void BuffersFormatConfig::load_specific()
 			for (auto &f : semantics)
 			{
 				for (auto it = f.begin(); it != f.end(); ++it)
-					buffer.emplace_semantic(std::make_pair(rhi::get_format_shader_semantic(it.key()), it.value()));
+					buffer.emplace_semantic(std::make_pair(rhi::get_format_semantic(it.key()), it.value()));
 			}
 
 			buffer_pack.m_buffers.emplace_back(std::move(buffer));

@@ -133,8 +133,10 @@ enum class VertexFormat : uint32_t
 	float32_2,
 	float32_3,
 	float32_4,
-	float32_9,
-	float32_16,
+	float32_2x2,
+	float32_3x3,
+	float32_3x4,
+	float32_4x4,
 
 	float64_1,
 	float64_2,
@@ -377,7 +379,8 @@ enum class AttributeIndex : uint32_t
 uint32_t       pixel_format_to_bytes(PixelFormat a_pixel_format);
 uint32_t       vertex_format_to_bytes(VertexFormat a_vertex_format);
 uint32_t       vertex_format_to_location(VertexFormat a_vertex_format);
-BufferSemantic get_format_shader_semantic(const std::string &a_format);
+BufferSemantic get_format_semantic(const std::string &a_format);
+std::string    get_format_semantic(const BufferSemantic &a_semantic);
 
 const auto format_to_bytes = vertex_format_to_bytes;
 
