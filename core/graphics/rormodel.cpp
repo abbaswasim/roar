@@ -651,9 +651,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 				for (size_t j = 0; j < cmesh.primitives_count; ++j)
 				{
-					const cgltf_primitive &cprim = cmesh.primitives[j];
-					auto                  &avd   = mesh.m_attribute_vertex_descriptors[j];
-					auto                  &amts  = mesh.m_morph_targets_vertex_descriptors[j];
+					const cgltf_primitive &cprim                                    = cmesh.primitives[j];
+					auto                  &vertex_attribute_descriptor              = mesh.m_attribute_vertex_descriptors[j];
+					auto                  &morph_target_vertex_attribute_descriptor = mesh.m_morph_targets_vertex_descriptors[j];
 
 					std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> attribs_data;
 
@@ -672,7 +672,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						const cgltf_attribute &attrib = cprim.attributes[k];
 
 						assert(attrib.data->buffer_view && "rhi::BufferView doesn't have a valid buffer view");
-						assert(!attrib.data->is_sparse && "Don't support sparse attribute accessors");
+
+						if (attrib.data->is_sparse)
+							ror::log_critical("Don't support sparse attribute accessors");
 
 						rhi::BufferSemantic current_index = rhi::BufferSemantic::vertex_position;
 
@@ -738,7 +740,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * attrib_byte_size, stride};
 						attribs_data.emplace(current_index, std::move(data_tuple));
 
-						avd.add(current_index, attrib_format, &bp);
+						vertex_attribute_descriptor.add(current_index, attrib_format, &bp);
 					}
 
 					// Read vertex indices buffer
@@ -771,11 +773,11 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * indices_byte_size, stride};
 						attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
 
-						avd.add(rhi::BufferSemantic::vertex_index, index_format, &bp);
+						vertex_attribute_descriptor.add(rhi::BufferSemantic::vertex_index, index_format, &bp);
 					}
 
-					// Now upload data from all the attributes into avd
-					avd.upload(attribs_data, &bp);
+					// Now upload data from all the attributes into vertex_attribute_descriptor
+					vertex_attribute_descriptor.upload(attribs_data, &bp);
 
 					// Read morph targets
 					assert(cprim.targets_count <= max_morph_targets && "Too many morph targets provided");
@@ -785,11 +787,14 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 						std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> morph_targets_attribs_data;
 
+						rhi::VertexDescriptor target_vertex_descriptor{};
 						for (size_t l = 0; l < target.attributes_count; ++l)
 						{
 							const cgltf_attribute &attrib = target.attributes[l];
 
-							assert(!attrib.data->is_sparse && "Don't support sparse attribute accessors");
+							if (attrib.data->is_sparse)
+								ror::log_critical("Don't support sparse attribute accessors");
+
 							assert(attrib.data->buffer_view && "rhi::BufferView doesn't have a valid buffer view");
 							rhi::BufferSemantic current_index = rhi::BufferSemantic::vertex_position;
 
@@ -822,7 +827,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 								case cgltf_attribute_type_joints:
 								case cgltf_attribute_type_weights:
 								case cgltf_attribute_type_invalid:
-									assert(0 && "Morph targer not valid for this attribute");
+									assert(0 && "Morph target not supported for this attribute");
 									break;
 							}
 
@@ -839,29 +844,26 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 							uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
 
 							std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * attrib_byte_size, stride};
+
 							morph_targets_attribs_data.emplace(current_index, std::move(data_tuple));
 
-							amts[k].add(current_index, attrib_format, &bp);
+							target_vertex_descriptor.add(current_index, attrib_format, &bp);
 						}
 
 						// Now copy all the buffer_views for morph_targets
-						amts[k].upload(morph_targets_attribs_data, &bp);
+						target_vertex_descriptor.upload(morph_targets_attribs_data, &bp);
+						morph_target_vertex_attribute_descriptor.emplace_back(std::move(target_vertex_descriptor));
 					}
 
 					// Save Morph target weights
-					mesh.m_morph_weights.reserve(cmesh.weights_count);
-					assert(cmesh.weights_count <= max_morph_targets && "More than supported morpth target weights");
+					assert(cmesh.weights_count == cprim.targets_count && "Targets count and weights don't match data error");
+					mesh.m_morph_weights.resize(cmesh.weights_count);
 
 					// TODO: Do a bulk copy please once tested and it works
 					for (size_t m = 0; m < cmesh.weights_count; ++m)
-						mesh.m_morph_weights.emplace_back(cmesh.weights[m]);
-
-					// No need to do this we were working on prim = m_meshes[i].m_parts[j] reference
-					// mesh.m_parts.emplace_back(prim);
+						mesh.m_morph_weights[m] = cmesh.weights[m];
 				}
 
-				// No need to do this we were working on mesh = m_meshes[i] reference
-				// this->m_meshes.emplace_back(mesh);
 				mesh_to_index.emplace(&cmesh, i);
 			}
 

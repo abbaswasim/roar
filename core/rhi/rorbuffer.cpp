@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rorbuffer.hpp"
@@ -49,7 +50,13 @@ ptrdiff_t Buffer::_offset(ptrdiff_t a_bytes)
 
 	std::lock_guard<std::mutex> mtx(*this->m_mutex);
 
-	assert(this->m_filled_size + a_bytes < this->m_size_in_bytes && "Requesting more bytes than the buffer has available");
+	if (this->m_filled_size + a_bytes >= this->m_size_in_bytes)
+	{
+		const size_t buffer_increment = ror::get_settings().get<uint32_t>("buffer_increment");
+		assert(buffer_increment > 0 && "Setting doesn't contain valid buffer_increment");
+		this->m_data.resize(this->m_data.size() + buffer_increment);
+		this->m_size_in_bytes = ror::static_cast_safe<ptrdiff_t>(this->m_data.size());
+	}
 
 	auto offset = this->m_filled_size;
 

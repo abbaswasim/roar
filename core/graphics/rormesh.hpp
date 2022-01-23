@@ -36,7 +36,6 @@
 
 namespace ror
 {
-constexpr uint32_t max_morph_targets{8};                                                                   // Could be read from config but then I can't create arrays
 constexpr uint32_t max_vertex_attributes{enum_to_type_cast(rhi::AttributeIndex::vertex_index) + 1};        // Anything that can be a vertex attribute is until vertex_index
 
 #define item(_enum) _enum##_index
@@ -68,13 +67,13 @@ class ROAR_ENGINE_ITEM Mesh final
 	// because they will not be sent into the GPU, so don't need them int a big buffer
 	// TODO: Although to save on its allocation costs, one can BufferAllocate those as well
 
-	std::vector<rhi::VertexDescriptor>                                m_attribute_vertex_descriptors{};            //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts)
-	std::vector<std::array<rhi::VertexDescriptor, max_morph_targets>> m_morph_targets_vertex_descriptors{};        //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts)
-	std::vector<rhi::PrimitiveTopology>                               m_primitive_types{};                         //! Its here and not in Drawable for memory locality reasons, should be init with rhi::PrimitiveTopology::triangle
-	std::vector<bool>                                                 m_has_indices_states{};                      //! Its here and not in Drawable for memory locality reasons, should be init with false
-	std::vector<float32_t, rhi::BufferAllocator<float32_t>>           m_morph_weights{};                           //! Optional morph weights provided per mesh
-	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>              m_bounding_boxes{};                          //! Its here and not in Drawable for memory locality reasons, this is per part
-	std::vector<int32_t, rhi::BufferAllocator<int32_t>>               m_material_indices{};                        //! Its here and not in Drawable for memory locality reasons, should be init with -1
+	std::vector<rhi::VertexDescriptor>                      m_attribute_vertex_descriptors{};            //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts)
+	std::vector<std::vector<rhi::VertexDescriptor>>         m_morph_targets_vertex_descriptors{};        //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts) for morph targets
+	std::vector<rhi::PrimitiveTopology>                     m_primitive_types{};                         //! Its here and not in Drawable for memory locality reasons, should be init with rhi::PrimitiveTopology::triangle
+	std::vector<bool>                                       m_has_indices_states{};                      //! Its here and not in Drawable for memory locality reasons, should be init with false
+	std::vector<float32_t, rhi::BufferAllocator<float32_t>> m_morph_weights{};                           //! Optional morph weights provided per mesh
+	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>    m_bounding_boxes{};                          //! Its here and not in Drawable for memory locality reasons, this is per part
+	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Its here and not in Drawable for memory locality reasons, should be init with -1
 };
 
 }        // namespace ror
