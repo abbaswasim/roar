@@ -8,5 +8,6 @@
 	"window_prerotated": false,
 	"zoom_speed": 3.14,
 	"buffers_format": "buffers_format.json",
-	"roar_cache": ".roar_cache"
+	"roar_cache": ".roar_cache",
+	"buffer_increment": 10000000
 }

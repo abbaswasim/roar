@@ -292,6 +292,8 @@ Resource &cache_resource(const std::filesystem::path &a_absolute_path)
  */
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
 {
+	assert(a_path != "" && "load_resource is provided empty path");
+
 	auto  absolute_path = find_resource(a_path, a_semantic);
 	auto &resource      = cache_resource(absolute_path);
 	resource.load();
@@ -309,6 +311,7 @@ Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_
 */
 Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
 {
+	assert(a_path != "" && "create_resource is provided empty path");
 	auto &project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
 
 	std::filesystem::path semantic_path{get_resource_semantic_string(a_semantic)};

@@ -9,6 +9,7 @@
 	"zoom_speed": 3.1400001049041748,
 	"buffers_format": "buffers_format.json",
 	"roar_cache": ".roar_cache",
+	"buffer_increment": 10000000,
 	"roar_args": {
 		"arg1" : "arguno",
 		"arg2" : 2,

@@ -25,21 +25,36 @@
 
 #pragma once
 
+#include "configuration/rorsettings_configuration.hpp"
+#include "foundation/rorutilities.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/rortypes.hpp"
 #include "roar_export_import.hpp"
 #include <cassert>
-#include <cstddef>
 #include <memory>
 #include <mutex>
 #include <vector>
 
 namespace rhi
 {
+
+template <bool>
+class DynamicBuffer
+{};
+
+template <>
+class DynamicBuffer<true>
+{};
+
+using Dynamic = DynamicBuffer<true>;
+using Static  = DynamicBuffer<false>;
+
 /**
  * Device buffer encapsulation
  * Not copyable but moveable
  * Can be used for Vertex, Index, Instance, Constant as well as texture data
  */
+template <typename _type = Static>
 class ROAR_ENGINE_ITEM Buffer final
 {
   public:
@@ -50,8 +65,6 @@ class ROAR_ENGINE_ITEM Buffer final
 	FORCE_INLINE Buffer &operator=(Buffer &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~Buffer() noexcept                           = default;        //! Destructor
 
-	declare_translation_unit_vtable();
-
 	// TODO: Remove the following, no need for individual semantic size, turn semantic into uint64_t value instead of vector
 	using BufferSemanticPair    = std::pair<BufferSemantic, uint64_t>;
 	using BufferSemanticPairVec = std::vector<BufferSemanticPair>;
@@ -60,7 +73,6 @@ class ROAR_ENGINE_ITEM Buffer final
 	 * Returns offset of the location available
 	 */
 	ptrdiff_t                    offset(ptrdiff_t a_bytes);                                               //! Returns offset of the location available
-	uint8_t                     *request(ptrdiff_t a_bytes);                                              //! Returns pointer offset
 	void                         upload(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset);        //! Also returns the offset where the data is uploaded
 	void                         upload(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset);          //! Also returns the offset where the data is uploaded
 	uint32_t                     handle() noexcept;
@@ -76,10 +88,18 @@ class ROAR_ENGINE_ITEM Buffer final
 	void                         gpu_upload() noexcept;        //! Uploads the buffer to the GPU
 	const std::vector<uint8_t>  &data() const;                 //! Pointer to the data store, shouldn't be manipulated directly
 
+	template <typename U = _type, std::enable_if_t<std::is_same<U, Static>::value, bool> = true>
+	uint8_t *request(ptrdiff_t a_bytes);
+
   private:
-	void      _upload();                                                      // TODO: To be implemented in renderer or via CRTP
-	void      _partial_upload(ptrdiff_t a_offset, ptrdiff_t a_length);        // TODO: To be implemented in renderer or via CRTP
-	ptrdiff_t _offset(ptrdiff_t a_bytes);                                     //! Returns offset of the location available
+	void _upload();                                                      // TODO: To be implemented in renderer or via CRTP
+	void _partial_upload(ptrdiff_t a_offset, ptrdiff_t a_length);        // TODO: To be implemented in renderer or via CRTP
+
+	template <typename U = _type, std::enable_if_t<std::is_same<U, Dynamic>::value, bool> = true>
+	ptrdiff_t _offset(ptrdiff_t a_bytes);        //! Returns offset of the location available
+
+	template <typename U = _type, std::enable_if_t<std::is_same<U, Static>::value, bool> = true>
+	ptrdiff_t _offset(ptrdiff_t a_bytes);        //! Returns offset of the location available
 
 	// uint32_t                    m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
 	// uint8_t                    *m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
@@ -92,4 +112,10 @@ class ROAR_ENGINE_ITEM Buffer final
 	std::shared_ptr<std::mutex> m_mutex{};                        //! Mutex to lock _offset() calls with, its shared_ptr and not unique_ptr or std::mutex because I need the ctors
 };
 
+// Template deduction guide CATD for Buffer static
+template <class _type>
+Buffer(_type) -> Buffer<Static>;
+
 }        // namespace rhi
+
+#include "rorbuffer.hh"
