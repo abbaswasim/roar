@@ -41,6 +41,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstring>
+#include <filesystem>
 #include <stack>
 #include <unordered_map>
 #include <vector>
@@ -81,6 +82,7 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 {
 	const char *data_start = strchr(a_uri, ',');
 	assert(data_start && "Can't find start of base64 image data");
+	data_start++;
 
 	ResourceExtension extension{ResourceExtension::unknown};
 
@@ -93,7 +95,7 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 		const char *colon      = strchr(a_uri, ':');
 		const char *semi_colon = strchr(a_uri, ';');
 		assert(colon && semi_colon && "Can't parse base64 uri for mimetype");
-		const auto  len        = static_cast<uint32_t>(semi_colon - colon - 1);
+		const auto  len = static_cast<uint32_t>(semi_colon - colon - 1);
 		std::string mimetype(a_uri, 5, len);        // "data:image/png;base64,AAA" Thats how it should be otherwise we don't have a valid base64 image mimetype
 		extension = extension_from_mimetype(mimetype.c_str());
 	}
@@ -102,13 +104,38 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 
 	rhi::TextureImage ti;
 
-	cgltf_size   data_size{((strlen(a_uri) + 2) / 3) << 2};        // Size calculated from the fact that base64 each 3 bytes turns into 4 bytes
-	uint8_t     *data = new uint8_t[data_size];                    // Data that needs to be allocated for decoding
-	cgltf_result res  = cgltf_load_buffer_base64(a_options, data_size, data_start + 1, reinterpret_cast<void **>(&data));
+	auto     data_start_length = strlen(data_start) - 1;        // Remove the null terminator character
+	size_t   data_size{(data_start_length / 4) * 3};            // Size calculated from the fact that base64 each 3 bytes turns into 4 bytes
+	uint8_t *data = new uint8_t[data_size];                     // Data that needs to be allocated for decoding
+
+	cgltf_result res = cgltf_load_buffer_base64(a_options, data_size, data_start, reinterpret_cast<void **>(&data));
 	assert(res == cgltf_result_success && "Base64 decoding failed for image");
 
-	int32_t w = 0, h = 0, bpp = 0;
-	auto   *new_data = stbi_load_from_memory(data, static_cast_safe<int32_t>(data_size), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
+	rhi::read_texture_from_memory(data, data_size, ti);
+
+	// Delete data pointer
+	delete[] data;
+
+	return ti;
+}
+
+rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a_buffer_view, const char *a_mimetype)
+{
+	// unsigned char *data = static_cast<unsigned char *>(a_buffer_view->data);
+	const uint8_t *data = cgltf_buffer_view_data(a_buffer_view);
+
+	assert(data && "Can't find valid data inside image buffer_view");
+
+	ResourceExtension extension{extension_from_mimetype(a_mimetype)};
+	assert(extension != ResourceExtension::unknown && "Couldn't find extension from mimetype");
+	assert(extension == ResourceExtension::texture_png || extension == ResourceExtension::texture_jpeg && "Unsupported extension in buffer view");
+
+	rhi::TextureImage ti;
+
+	// TODO: Abstract this out into rortexture.cpp
+	cgltf_size data_size{a_buffer_view->size};
+	int32_t    w = 0, h = 0, bpp = 0;
+	auto      *new_data = stbi_load_from_memory(reinterpret_cast<const uint8_t *>(data), static_cast_safe<int32_t>(data_size), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
 
 	ti.push_empty_mip();
 	ti.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);        // TODO: How do I read this via STB or gltf?
@@ -116,9 +143,6 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 	ti.width(static_cast<uint32_t>(w));
 	ti.height(static_cast<uint32_t>(h));
 	ti.depth(static_cast<uint32_t>(bpp));
-
-	// Delete data pointer
-	delete[] data;
 
 	return ti;
 }
@@ -516,12 +540,16 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 #else
 		buffers_load_lambda();
 #endif
-		auto from_file_lambda = [](std::filesystem::path &a_texture_path) -> rhi::TextureImage {
+		auto from_file_lambda = [](std::filesystem::path a_texture_path) -> rhi::TextureImage {
 			return rhi::read_texture_2d_from_file(a_texture_path);
 		};
 
 		auto from_base64_lambda = [&options](const char *a_uri, const char *a_mimetype) -> rhi::TextureImage {
 			return ror::read_texture_from_cgltf_base64(&options, a_uri, a_mimetype);
+		};
+
+		auto from_buffer_view_lambda = [](const cgltf_buffer_view *a_buffer_view, const char *a_mimetype) -> rhi::TextureImage {
+			return ror::read_texture_from_cgltf_buffer_view(a_buffer_view, a_mimetype);
 		};
 
 #if defined(USE_JS)
@@ -533,29 +561,55 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 		for (size_t i = 0; i < data->images_count; ++i)
 		{
 			const char *uri = data->images[i].uri;
-			assert(uri && "Image URI is null, only support URI based images");        // TODO: Read images from bufferviews
-			if (uri_base64_encoded(uri))
+
+			if (uri)
 			{
+				if (uri_base64_encoded(uri))
+				{
 #if defined(USE_JS)
-				future_texures.emplace_back(js.push_job(from_base64_lambda, uri, data->images[i].mime_type));        // vector of job_handles
+					future_texures.emplace_back(js.push_job(from_base64_lambda, uri, data->images[i].mime_type));        // vector of job_handles
 #else
-				this->m_images.emplace_back(from_base64_lambda(uri, data->images[i].mime_type));
+					this->m_images.emplace_back(from_base64_lambda(uri, data->images[i].mime_type));
+#endif
+				}
+				else        // Assumes its a path otherwise
+				{
+					std::string texture_path = filename.parent_path() / uri;
+					size_t      path_size    = texture_path.size();
+					char       *decoded_path = new char[path_size + 1];        // +1 for cgltf_decode_uri
+
+					std::copy(texture_path.begin(), texture_path.end(), decoded_path);
+					decoded_path[path_size] = '\0';
+					cgltf_decode_uri(decoded_path);
+
+#if defined(USE_JS)
+					future_texures.emplace_back(js.push_job(from_file_lambda, decoded_path));        // vector of job_handles
+#else
+					this->m_images.emplace_back(from_file_lambda(texture_path));
+#endif
+				}
+				image_to_index.emplace(&data->images[i], i);
+			}
+			else
+			{
+				assert(data->images[i].buffer_view && data->images[i].mime_type && "Image with buffer view must have a valid buffer view and mimeType");
+#if defined(USE_JS)
+				future_texures.emplace_back(js.push_job(from_buffer_view_lambda, buffers_load_handle.job(), data->images[i].buffer_view, data->images[i].mime_type));        // vector of job_handles
+#else
+				this->m_images.emplace_back(from_buffer_view_lambda(data->images[i].buffer_view, data->images[i].mime_type));
 #endif
 			}
-			else        // Assumes its a path otherwise
-			{
-				auto texture_path = filename.parent_path() / uri;
-#if defined(USE_JS)
-				future_texures.emplace_back(js.push_job(from_file_lambda, texture_path));        // vector of job_handles
-#else
-				this->m_images.emplace_back(from_file_lambda(texture_path));
-#endif
-			}
-			image_to_index.emplace(&data->images[i], i);
 		}
 
 		// This job reads all samplers, textures and materials in one job
 		auto rest_of_data_load_lambda = [&]() -> bool {
+			// Lets validate the data loaded is correct as well
+			if constexpr (get_build() == BuildType::build_debug)
+			{
+				auto res = cgltf_validate(data);
+				assert(res == cgltf_result_success && "Invalid glTF data");
+			}
+
 			// Read all the samplers
 			this->m_samplers.reserve(data->samplers_count + 1);
 
@@ -1222,6 +1276,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 #if defined(USE_JS)
 		// Wait for all the images to load
+		assert(data->images_count == future_texures.size() && "Not all textures were queued for loading");
 		for (size_t i = 0; i < data->images_count; ++i)
 			this->m_images.emplace_back(future_texures[i].data());
 

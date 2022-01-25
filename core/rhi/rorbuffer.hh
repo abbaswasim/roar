@@ -44,7 +44,7 @@ ptrdiff_t Buffer<_type>::_offset(ptrdiff_t a_bytes)
 	std::lock_guard<std::mutex> mtx(*this->m_mutex);
 
 	if (this->m_filled_size + a_bytes > this->m_size_in_bytes)
-		ror::log_critical("Requesting {} bytes than but size if {}", (this->m_filled_size + a_bytes), m_size_in_bytes);
+		ror::log_critical("Requesting {} bytes but size is {}", (this->m_filled_size + a_bytes), m_size_in_bytes);
 
 	assert(this->m_filled_size + a_bytes <= this->m_size_in_bytes && "Requesting more bytes than available in the static buffer");
 

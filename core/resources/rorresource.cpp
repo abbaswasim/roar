@@ -269,17 +269,20 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 	return project_root_path / semantic_path / gen_filename;
 }
 
-Resource &cache_resource(const std::filesystem::path &a_absolute_path)
+static Resource &cache_resource(const std::filesystem::path &a_absolute_path)
 {
-	using ResourceCache = Cache<std::filesystem::path, std::shared_ptr<Resource>, true, PathHash>;        // Thread Safe resource cache
+	using ResourceCache = Cache<std::filesystem::path, std::shared_ptr<Resource>, PathHash>;        // Thread Safe resource cache
 	static ResourceCache resource_cache{};
+
+	assert(a_absolute_path != "" && "Path can't be empty");
 
 	auto found = resource_cache.find(a_absolute_path);
 	if (found.second)
 		return *found.first;
 
 	auto pointer = std::make_shared<Resource>(a_absolute_path);
-	auto result  = resource_cache.insert(a_absolute_path, pointer);
+	assert(pointer);
+	auto result = resource_cache.insert(a_absolute_path, pointer);
 
 	assert(result && "Resource wasn't inserted, probably already exists or failure happend");
 	(void) result;        // in release builds it will complain otherwise

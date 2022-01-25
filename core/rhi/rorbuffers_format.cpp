@@ -58,7 +58,7 @@ void BuffersFormatConfig::load_specific()
 		buffer_pack.m_buffers.reserve(buffers.size());
 		for (auto &b : buffers)
 		{
-			rhi::Buffer buffer;
+			rhi::Buffer buffer;        // Only valid for static buffers
 			assert(b.contains("size") && "Each buffer should specifiy a size");
 			ptrdiff_t size = b["size"];
 			size *= this->m_buffers_format.m_unit;
@@ -111,7 +111,7 @@ void BuffersFormatConfig::load_remaining_buffers()
 
 	for (auto &buffer_pack : this->m_buffers_format.m_buffer_packs)
 	{
-		rhi::Buffer *empty_buffer{nullptr};        // Non-owning ptr, so its ok to use raw pointer here
+		rhi::Buffer<rhi::Static> *empty_buffer{nullptr};        // Non-owning ptr, so its ok to use raw pointer here
 
 		for (auto &semantic : all_semantics)
 			remaining[semantic] = false;        // Deliberately using the [] operator here, which inserts or updates

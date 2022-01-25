@@ -163,6 +163,9 @@ define_type_to_shader_semantics(Texture)
 	return BufferSemantic::texture_data;
 }
 
+FORCE_INLINE void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, TextureImage &a_texture);
+FORCE_INLINE void read_texture_from_resource(ror::Resource &a_texture_resource, TextureImage &a_texture);
+
 /**
  * @brief      Generic image loader that will invoke the right decoder based on extension from absolute path
  * @details    Read a texture via absolute file name via resource loading mechanism.

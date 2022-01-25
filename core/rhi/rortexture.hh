@@ -125,18 +125,23 @@ FORCE_INLINE void TextureImage::push_empty_mip() noexcept
 	this->m_mips.emplace_back();
 }
 
-static void read_texture_from_file_stb(ror::Resource &a_texture_resource, TextureImage &a_texture)
+FORCE_INLINE void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, TextureImage &a_texture)
 {
-	int32_t     w = 0, h = 0, bpp = 0;
-	const auto &resource_data = a_texture_resource.data();
-	auto       *a_data        = stbi_load_from_memory(resource_data.data(), ror::static_cast_safe<int32_t>(resource_data.size()), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
+	int32_t w = 0, h = 0, bpp = 0;
+	auto   *new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
 
 	a_texture.push_empty_mip();
-	a_texture.format(PixelFormat::r8g8b8a8_uint32_norm_srgb);           // TODO: How do I read this via STB?
-	a_texture.reset(a_data, static_cast<uint64_t>(w * h * bpp));        // a_texture now owns the a_data pointer returned by stbi
+	a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);        // TODO: How do I read this via STB or gltf?
+	a_texture.reset(new_data, static_cast<uint64_t>(w * h * bpp));        // a_texture now owns the new_data pointer returned by stbi
 	a_texture.width(static_cast<uint32_t>(w));
 	a_texture.height(static_cast<uint32_t>(h));
 	a_texture.depth(static_cast<uint32_t>(bpp));
+}
+
+FORCE_INLINE void read_texture_from_resource(ror::Resource &a_texture_resource, TextureImage &a_texture)
+{
+	auto &resource_data = a_texture_resource.data();
+	read_texture_from_memory(resource_data.data(), resource_data.size(), a_texture);
 }
 
 static PixelFormat basis_to_format(basist::transcoder_texture_format a_fmt)
@@ -365,7 +370,7 @@ FORCE_INLINE TextureImage read_texture_from_file(const std::filesystem::path &a_
 	else if (a_separate_channels)
 		assert(0 && "Seprate channels not implemented yet");
 	else
-		read_texture_from_file_stb(texture_resource, texture);
+		read_texture_from_resource(texture_resource, texture);
 
 	return texture;
 }
