@@ -29,21 +29,19 @@
 
 namespace ror
 {
-template <class _key, class _type, bool _thread_safe, class _hasher>
-bool Cache<_key, _type, _thread_safe, _hasher>::insert(_key a_key, _type a_value)
+template <class _key, class _type, class _hasher>
+bool Cache<_key, _type, _hasher>::insert(_key a_key, _type a_value)
 {
-	if constexpr (_thread_safe)
-		std::lock_guard<std::mutex> mtx(this->m_mutex);
+	std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	auto result = this->m_cache.emplace(a_key, a_value);
 	return result.second;
 }
 
-template <class _key, class _type, bool _thread_safe, class _hasher>
-_type Cache<_key, _type, _thread_safe, _hasher>::remove(_key a_key)
+template <class _key, class _type, class _hasher>
+_type Cache<_key, _type, _hasher>::remove(_key a_key)
 {
-	if constexpr (_thread_safe)
-		std::lock_guard<std::mutex> mtx(this->m_mutex);
+	std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	auto to_be_erased = this->m_cache.at(a_key);
 	this->m_cache.erase(a_key);
@@ -57,11 +55,10 @@ _type Cache<_key, _type, _thread_safe, _hasher>::remove(_key a_key)
  * The reason I am returning _type and not iterator is because iterator could be invalidated
  * by another thread insert in the meantime.
  */
-template <class _key, class _type, bool _thread_safe, class _hasher>
-std::pair<_type, bool> Cache<_key, _type, _thread_safe, _hasher>::find(_key a_key)
+template <class _key, class _type, class _hasher>
+std::pair<_type, bool> Cache<_key, _type, _hasher>::find(_key a_key)
 {
-	if constexpr (_thread_safe)
-		std::lock_guard<std::mutex> mtx(this->m_mutex);
+	std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	auto iter = this->m_cache.find(a_key);
 

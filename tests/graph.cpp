@@ -6,11 +6,11 @@ namespace ror_test
 
 void GraphTest::SetUp()
 {
-	ror::Graph<std::string, false>::Vertex A = std::make_tuple(ror::GraphNode(), "A");
-	ror::Graph<std::string, false>::Vertex B = std::make_tuple(ror::GraphNode(), "B");
-	ror::Graph<std::string, false>::Vertex C = std::make_tuple(ror::GraphNode(), "C");
-	ror::Graph<std::string, false>::Vertex D = std::make_tuple(ror::GraphNode(), "D");
-	ror::Graph<std::string, false>::Vertex E = std::make_tuple(ror::GraphNode(), "E");
+	ror::Graph<std::string>::Vertex A = std::make_tuple(ror::GraphNode(), "A");
+	ror::Graph<std::string>::Vertex B = std::make_tuple(ror::GraphNode(), "B");
+	ror::Graph<std::string>::Vertex C = std::make_tuple(ror::GraphNode(), "C");
+	ror::Graph<std::string>::Vertex D = std::make_tuple(ror::GraphNode(), "D");
+	ror::Graph<std::string>::Vertex E = std::make_tuple(ror::GraphNode(), "E");
 
 	{
 		ror::VertexId Ai = this->m_graph1.add_vertex(A);
@@ -56,12 +56,12 @@ void GraphTest::SetUp()
 	}
 }
 
-ror::Graph<std::string, false> *GraphTest::get_graph1()
+ror::Graph<std::string> *GraphTest::get_graph1()
 {
 	return &this->m_graph1;
 }
 
-ror::Graph<std::string, false> *GraphTest::get_graph2()
+ror::Graph<std::string> *GraphTest::get_graph2()
 {
 	return &this->m_graph2;
 }
@@ -344,11 +344,11 @@ TEST_F(GraphTest, GraphTest_confirm_topological_sorted_list)
 
 void GraphTSTest::SetUp()
 {
-	ror::Graph<std::string, false>::Vertex A = std::make_tuple(ror::GraphNode(), "A");
-	ror::Graph<std::string, false>::Vertex B = std::make_tuple(ror::GraphNode(), "B");
-	ror::Graph<std::string, false>::Vertex C = std::make_tuple(ror::GraphNode(), "C");
-	ror::Graph<std::string, false>::Vertex D = std::make_tuple(ror::GraphNode(), "D");
-	ror::Graph<std::string, false>::Vertex E = std::make_tuple(ror::GraphNode(), "E");
+	ror::Graph<std::string>::Vertex A = std::make_tuple(ror::GraphNode(), "A");
+	ror::Graph<std::string>::Vertex B = std::make_tuple(ror::GraphNode(), "B");
+	ror::Graph<std::string>::Vertex C = std::make_tuple(ror::GraphNode(), "C");
+	ror::Graph<std::string>::Vertex D = std::make_tuple(ror::GraphNode(), "D");
+	ror::Graph<std::string>::Vertex E = std::make_tuple(ror::GraphNode(), "E");
 
 	{
 		ror::VertexId Ai = this->m_graph1.add_vertex(A);
@@ -394,12 +394,12 @@ void GraphTSTest::SetUp()
 	}
 }
 
-ror::Graph<std::string, true> *GraphTSTest::get_graph1()
+ror::Graph<std::string> *GraphTSTest::get_graph1()
 {
 	return &this->m_graph1;
 }
 
-ror::Graph<std::string, true> *GraphTSTest::get_graph2()
+ror::Graph<std::string> *GraphTSTest::get_graph2()
 {
 	return &this->m_graph2;
 }

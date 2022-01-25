@@ -23,6 +23,7 @@
 
 #include "fox.h"
 #include "graphics/rormodel.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
 #include "shader_system/rorshader_system.hpp"
@@ -375,19 +376,19 @@ TEST(ModelTest, gltf_loader_test)
 
 		auto &s = a.m_samplers[0];
 		auto &i = s.m_input;
-		auto &o = s.m_output;
+		auto *o = reinterpret_cast<const float32_t*>(s.m_output.data());
 
 		EXPECT_EQ(i.size(), fox_sampler0_count);
-		EXPECT_EQ(o.size(), fox_sampler0_count * 4);
+		EXPECT_EQ(s.m_output.size(), fox_sampler0_count * 4 * 4);
 
 		for (size_t j = 0; j < i.size(); ++j)
 		{
 			EXPECT_NEAR(i[j].m_value, fox_sampler0_input[j], epsilon);
 
-			EXPECT_NEAR(o[j * 4 + 0].m_value, fox_sampler0_output[j * 4 + 0], epsilon);
-			EXPECT_NEAR(o[j * 4 + 1].m_value, fox_sampler0_output[j * 4 + 1], epsilon);
-			EXPECT_NEAR(o[j * 4 + 2].m_value, fox_sampler0_output[j * 4 + 2], epsilon);
-			EXPECT_NEAR(o[j * 4 + 3].m_value, fox_sampler0_output[j * 4 + 3], epsilon);
+			EXPECT_NEAR(o[j * 4 + 0], fox_sampler0_output[j * 4 + 0], epsilon);
+			EXPECT_NEAR(o[j * 4 + 1], fox_sampler0_output[j * 4 + 1], epsilon);
+			EXPECT_NEAR(o[j * 4 + 2], fox_sampler0_output[j * 4 + 2], epsilon);
+			EXPECT_NEAR(o[j * 4 + 3], fox_sampler0_output[j * 4 + 3], epsilon);
 		}
 	}
 

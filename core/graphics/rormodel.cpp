@@ -66,6 +66,8 @@ ResourceExtension extension_from_mimetype(const char *a_mimetype)
 		return ResourceExtension::texture_png;
 	else if (std::strcmp(a_mimetype, "image/ktx") == 0)
 		return ResourceExtension::texture_ktx;
+	else if (std::strcmp(a_mimetype, "image/ktx2") == 0)
+		return ResourceExtension::texture_ktx2;
 	else if (std::strcmp(a_mimetype, "image/jpg") == 0)
 		return ResourceExtension::texture_jpeg;
 	else if (std::strcmp(a_mimetype, "image/jpeg") == 0)
@@ -88,7 +90,11 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 	}
 	else
 	{
-		std::string mimetype(a_uri, 5, 9);        // "data:image/png;base64,AAA" Thats how it should be otherwise we don't have a valid base64 image mimetype
+		const char *colon      = strchr(a_uri, ':');
+		const char *semi_colon = strchr(a_uri, ';');
+		assert(colon && semi_colon && "Can't parse base64 uri for mimetype");
+		const auto  len        = static_cast<uint32_t>(semi_colon - colon - 1);
+		std::string mimetype(a_uri, 5, len);        // "data:image/png;base64,AAA" Thats how it should be otherwise we don't have a valid base64 image mimetype
 		extension = extension_from_mimetype(mimetype.c_str());
 	}
 
@@ -315,6 +321,97 @@ rhi::Format get_format_from_gltf_type_format(cgltf_type a_type, cgltf_component_
 	return rhi::VertexFormat::float32_4;
 }
 
+rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
+{
+	switch (a_input)
+	{
+		case rhi::VertexFormat::int8_1:
+		case rhi::VertexFormat::int16_1:
+		case rhi::VertexFormat::int32_1:
+		case rhi::VertexFormat::half16_1:
+			return rhi::VertexFormat::int32_1;
+		case rhi::VertexFormat::uint8_1:
+		case rhi::VertexFormat::uint16_1:
+		case rhi::VertexFormat::uint32_1:
+			return rhi::VertexFormat::uint32_1;
+
+		case rhi::VertexFormat::int8_2:
+		case rhi::VertexFormat::int16_2:
+		case rhi::VertexFormat::int32_2:
+		case rhi::VertexFormat::half16_2:
+			return rhi::VertexFormat::int32_2;
+		case rhi::VertexFormat::uint8_2:
+		case rhi::VertexFormat::uint16_2:
+		case rhi::VertexFormat::uint32_2:
+			return rhi::VertexFormat::uint32_2;
+
+		case rhi::VertexFormat::int8_3:
+		case rhi::VertexFormat::int16_3:
+		case rhi::VertexFormat::int32_3:
+		case rhi::VertexFormat::half16_3:
+			return rhi::VertexFormat::int32_3;
+		case rhi::VertexFormat::uint8_3:
+		case rhi::VertexFormat::uint16_3:
+		case rhi::VertexFormat::uint32_3:
+			return rhi::VertexFormat::uint32_3;
+
+		case rhi::VertexFormat::int8_4:
+		case rhi::VertexFormat::int16_4:
+		case rhi::VertexFormat::int32_4:
+		case rhi::VertexFormat::half16_4:
+			return rhi::VertexFormat::int32_4;
+		case rhi::VertexFormat::uint8_4:
+		case rhi::VertexFormat::uint16_4:
+		case rhi::VertexFormat::uint32_4:
+			return rhi::VertexFormat::uint32_4;
+
+		case rhi::VertexFormat::float32_1:
+		case rhi::VertexFormat::float32_2:
+		case rhi::VertexFormat::float32_3:
+		case rhi::VertexFormat::float32_4:
+		case rhi::VertexFormat::float32_2x2:
+		case rhi::VertexFormat::float32_3x3:
+		case rhi::VertexFormat::float32_3x4:
+		case rhi::VertexFormat::float32_4x4:
+		case rhi::VertexFormat::float64_1:
+		case rhi::VertexFormat::float64_2:
+		case rhi::VertexFormat::float64_3:
+		case rhi::VertexFormat::float64_4:
+		case rhi::VertexFormat::uint64_1:
+		case rhi::VertexFormat::uint64_2:
+		case rhi::VertexFormat::uint64_3:
+		case rhi::VertexFormat::uint64_4:
+		case rhi::VertexFormat::int8_1_norm:
+		case rhi::VertexFormat::int8_2_norm:
+		case rhi::VertexFormat::int8_3_norm:
+		case rhi::VertexFormat::int8_4_norm:
+		case rhi::VertexFormat::int16_1_norm:
+		case rhi::VertexFormat::int16_2_norm:
+		case rhi::VertexFormat::int16_3_norm:
+		case rhi::VertexFormat::int16_4_norm:
+		case rhi::VertexFormat::uint8_1_norm:
+		case rhi::VertexFormat::uint8_2_norm:
+		case rhi::VertexFormat::uint8_3_norm:
+		case rhi::VertexFormat::uint8_4_norm:
+		case rhi::VertexFormat::uint16_1_norm:
+		case rhi::VertexFormat::uint16_2_norm:
+		case rhi::VertexFormat::uint16_3_norm:
+		case rhi::VertexFormat::uint16_4_norm:
+		case rhi::VertexFormat::int1010102_norm:
+		case rhi::VertexFormat::uint1010102_norm:
+		case rhi::VertexFormat::int101111_norm:
+		case rhi::VertexFormat::uint101111_norm:
+		case rhi::VertexFormat::uint8_4_norm_bgra:
+		case rhi::VertexFormat::uint8_custom:
+		case rhi::VertexFormat::uint16_custom:
+		case rhi::VertexFormat::uint32_custom:
+		case rhi::VertexFormat::float32_custom:
+			return a_input;
+	}
+
+	return rhi::VertexFormat::int32_1;
+}
+
 rhi::TextureSampler cgltf_sampler_to_sampler(const cgltf_sampler *a_sampler)
 {
 	// gltf Spec values for reference
@@ -374,7 +471,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 	if (result != cgltf_result_success)
 	{
-		ror::log_critical("Can't load gltf file");
+		ror::log_critical("Can't load gltf file {}", a_filename.c_str());
 		return;
 	}
 
@@ -476,10 +573,16 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 			for (size_t i = 0; i < data->textures_count; ++i)
 			{
-				assert(data->textures[i].image && "Texture must have an image");
+				cgltf_image *image = data->textures[i].image;
+
+				if (!image)
+					image = data->textures[i].basisu_image;
+
+				if (!image)
+					ror::log_critical("Texture must have an image, neither standard image nor basis ktx2 texture found");
 
 				rhi::Texture texture;
-				texture.m_texture_image = find_safe_index(image_to_index, data->textures[i].image);
+				texture.m_texture_image = find_safe_index(image_to_index, image);
 				assert(texture.m_texture_image.m_handle != -1 && "Couldn't find the image loaded for the texture");
 
 				auto texture_sampler = -1;
@@ -541,9 +644,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				}
 				else
 				{
-					assert(mat.has_pbr_specular_glossiness && "Neither Metalic roughness nor specular glossiness material not supported");
-					// TODO: File out specular glossiness data
-					assert(0);
+					assert(mat.has_pbr_specular_glossiness && "The must be either Metalic roughness or specular glossiness material provided");
+					ror::log_critical("FIXME: Specular glossiness material not supported at the moment");
 				}
 
 				if (mat.occlusion_texture.texture)
@@ -606,7 +708,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					//	cgltf_float        specular_factor;
 					// } cgltf_specular;
 
-					assert(0 && "Don't support specular extension, probably shouldn't assert thought");
+					ror::log_critical("Don't support specular extension at the moment");
 				}
 
 				if (mat.has_volume)
@@ -618,7 +720,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					//	cgltf_float        attenuation_color[3];
 					//	cgltf_float        attenuation_distance;
 					// } cgltf_volume;
-					assert(0 && "Don't support volume extension, probably shouldn't assert thought");
+					ror::log_critical("Don't support volume extension at the moment");
 				}
 
 				if (mat.has_sheen)
@@ -689,27 +791,31 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 																			 {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
 								break;
 							case cgltf_attribute_type_normal:
-								assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Normal not in the right format, float3 required");
+								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
+									   (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec2) && "Normal not in the right format, float3 required");
 								assert(attrib.index == 0 && "Don't suport more than 1 normal");
 								current_index = rhi::BufferSemantic::vertex_normal;
 								break;
 							case cgltf_attribute_type_tangent:
-								assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec4 && "Tangent not in the right format, float3 required");
+								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
+									   (attrib.data->type == cgltf_type_vec4 || attrib.data->type == cgltf_type_vec3) && "Tangent not in the right format, float4 required");
 								assert(attrib.index == 0 && "Don't suport more than 1 tangent");
 								current_index = rhi::BufferSemantic::vertex_tangent;
 								break;
 							case cgltf_attribute_type_texcoord:
-								assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec2 && "Texture coordinate not in the right format, float2 required");
+								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_16u) &&
+									   (attrib.data->type == cgltf_type_vec2 || attrib.data->type == cgltf_type_vec3) && "Texture coordinate not in the right format, float2 required");
 								assert(attrib.index < 2 && "Don't support more than 2 texture coordinate sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) << static_cast<uint64_t>(attrib.index));
 								break;
 							case cgltf_attribute_type_color:
-								// assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Color not in the right format, float3 required");
+								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8u) &&
+									   (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec4) && "Color not in the right format, float3 required");
 								assert(attrib.index < 2 && "Don't support more than 2 color sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0) << static_cast<uint64_t>(attrib.index));
 								break;
 							case cgltf_attribute_type_joints:
-								assert((attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
+								assert((attrib.data->component_type == cgltf_component_type_r_32u || attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
 									   attrib.data->type == cgltf_type_vec4 && "Joints not in the right format, unsigned8/16_4 required");
 								assert(attrib.index < 2 && "Don't support more than 2 joint sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0) << static_cast<uint64_t>(attrib.index));
@@ -780,7 +886,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					vertex_attribute_descriptor.upload(attribs_data, &bp);
 
 					// Read morph targets
-					assert(cprim.targets_count <= max_morph_targets && "Too many morph targets provided");
 					for (size_t k = 0; k < cprim.targets_count; ++k)
 					{
 						const cgltf_morph_target &target = cprim.targets[k];
@@ -815,11 +920,13 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 									}
 									break;
 								case cgltf_attribute_type_normal:
-									assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec3 && "Normal not in the right format, float3 required");
+									assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
+										   (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec2) && "Normal not in the right format");
 									current_index = rhi::BufferSemantic::vertex_normal;
 									break;
 								case cgltf_attribute_type_tangent:
-									// assert(attrib.data->component_type == cgltf_component_type_r_32f && attrib.data->type == cgltf_type_vec4 && "Tangent not in the right format, float3 required");
+									assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
+										   (attrib.data->type == cgltf_type_vec4 || attrib.data->type == cgltf_type_vec3) && "Tangent not in the right format");
 									current_index = rhi::BufferSemantic::vertex_tangent;
 									break;
 								case cgltf_attribute_type_texcoord:
@@ -892,6 +999,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				if (cskin.inverse_bind_matrices)
 				{
 					assert(cskin.inverse_bind_matrices->count == cskin.joints_count && "Inverse bind matrix count must match joints count");
+					assert(cskin.inverse_bind_matrices->type == cgltf_type_mat4 && "Inverse bind matrix must be 4x4 matrices");
 
 					auto *inverse_bind_matrices_accessor = cskin.inverse_bind_matrices;
 					skin.m_inverse_bind_matrices.resize(cskin.inverse_bind_matrices->count);
@@ -1002,38 +1110,50 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						const auto *anim_sampler_accessor = canimation.samplers[j].input;
 						if constexpr (get_build() == BuildType::build_debug)
 						{
-							auto fmt   = get_format_from_gltf_type_format(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
-							auto bytes = rhi::format_to_bytes(fmt);
-							assert(bytes == 4 && "Animation sampler input value is not floats and 4 bytes");
-						}
-						auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
-						animation_sampler.m_input.resize(anim_sampler_accessor->count * attrib_byte_size / sizeof(float32_t));        // This will be 4/4 which is fine
+							auto format           = get_format_from_gltf_type_format(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
+							auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
 
+							assert(format == rhi::VertexFormat::float32_1 && attrib_byte_size == 4 && "Animation sampler input value must be in float scalar 4 bytes");
+							assert(anim_sampler_accessor->buffer_view->stride <= attrib_byte_size && "Looks like sampler input data is interleaved, not supported");
+						}
+
+						animation_sampler.m_input.resize(anim_sampler_accessor->count);        // Don't need to multiply attrib_byte_size because m_input is float32_t
 						cgltf_accessor_unpack_floats(anim_sampler_accessor,
 													 reinterpret_cast<cgltf_float *>(animation_sampler.m_input.data()),
 													 animation_sampler.m_input.size());
-
-						assert(anim_sampler_accessor->buffer_view->stride <= attrib_byte_size && "Looks like sampler input data is interleaved, not supported");
 					}
 
 					{
 						const auto *anim_sampler_accessor = canimation.samplers[j].output;
+
 						if constexpr (get_build() == BuildType::build_debug)
 						{
-							auto fmt   = get_format_from_gltf_type_format(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
-							auto bytes = rhi::format_to_bytes(fmt);
-							assert((bytes == 16 || bytes == 12 || bytes == 4) && "Animation sampler output values are not floats 16, float 12 or float 4");
+							auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
+							assert(anim_sampler_accessor->buffer_view->stride <= attrib_byte_size && "Looks like sampler output data is interleaved, not supported");
 						}
+						auto component_size  = cgltf_component_size(anim_sampler_accessor->component_type);        // Bytes
+						auto component_count = cgltf_num_components(anim_sampler_accessor->type);                  // vec2, vec3
+						auto format          = get_format_from_gltf_type_format(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
 
-						auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
-						animation_sampler.m_output.resize(anim_sampler_accessor->count * attrib_byte_size / sizeof(float32_t));
+						animation_sampler.m_output.resize(anim_sampler_accessor->count * sizeof(float32_t) * component_count);        // Using sizeof float32_t which is the same as sizeof uint32_t these are the two types allowed
 
-						// TODO: Do this unpacking manually, there is a lot of overhead of doing it this way
-						cgltf_accessor_unpack_floats(anim_sampler_accessor,
-													 reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
-													 animation_sampler.m_output.size());
-
-						assert(anim_sampler_accessor->buffer_view->stride <= attrib_byte_size && "Looks like sampler output data is interleaved, not supported");
+						if (anim_sampler_accessor->component_type < cgltf_component_type_r_32f)
+						{
+							animation_sampler.m_output_format = int_format_to_int32_format_bit(format);        // Since we are casting everyting to uint lets adjust format accordingly
+							uint32_t *ptr_to_data             = reinterpret_cast<uint32_t *>(animation_sampler.m_output.data());
+							for (size_t index = 0; index < anim_sampler_accessor->count; ++index)
+							{
+								cgltf_accessor_read_uint(anim_sampler_accessor, index, ptr_to_data, component_size);
+								ptr_to_data += component_count;
+							}
+						}
+						else
+						{
+							animation_sampler.m_output_format = format;
+							cgltf_accessor_unpack_floats(anim_sampler_accessor,
+														 reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
+														 animation_sampler.m_output.size());
+						}
 					}
 
 					switch (canimation.samplers[j].interpolation)

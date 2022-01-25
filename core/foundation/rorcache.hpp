@@ -37,8 +37,8 @@ namespace ror
  * std::unordered_map isn't thread safe like other STL containers
  * This class tries to limit its interface to very few methods, all thread safe
  */
-template <class _key, class _type, bool _thread_safe = false, class _hasher = std::hash<_key>>
-class ROAR_ENGINE_ITEM Cache final : ConditionalMutex<_thread_safe>
+template <class _key, class _type, class _hasher = std::hash<_key>>
+class ROAR_ENGINE_ITEM Cache final
 {
   public:
 	FORCE_INLINE        Cache()                         = default;            //! Default constructor
@@ -55,7 +55,8 @@ class ROAR_ENGINE_ITEM Cache final : ConditionalMutex<_thread_safe>
 
   protected:
   private:
-	std::unordered_map<_key, _type, _hasher> m_cache{};
+	std::unordered_map<_key, _type, _hasher> m_cache{};        //! Container to keep _key and _type values
+	std::mutex                               m_mutex{};        //! Use to synchronize access from different threads
 };
 }        // namespace ror
 

@@ -28,6 +28,7 @@
 #include "foundation/rortypes.hpp"
 #include "math/rorvector4.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
+#include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
 
 namespace ror
@@ -65,13 +66,13 @@ class ROAR_ENGINE_ITEM Animation
 
 	struct AnimationOutput
 	{
-		// Vector4f m_values;
-		float32_t m_value;
+		uint8_t m_value;
 	};
 
 	struct AnimationSampler
 	{
 		AnimationInterpolation m_interpolation{AnimationInterpolation::linear};        //! Interpolation of this sampler values
+		rhi::VertexFormat      m_output_format{rhi::VertexFormat::float32_1};          //! Format of the output, could be float32_t1/2/3/4, uint_t1/2/3/4 etc
 
 		std::vector<AnimationInput, rhi::BufferAllocator<AnimationInput>>   m_input{};         //! Input of type float, these are keyframe times
 		std::vector<AnimationOutput, rhi::BufferAllocator<AnimationOutput>> m_output{};        //! Output of type float[3-4], these are keyframe TRS values
@@ -89,7 +90,7 @@ class ROAR_ENGINE_ITEM Animation
 };
 
 static_assert(sizeof(Animation::AnimationInput) == 4, "AnimationInput is not 4 bytes float");
-static_assert(sizeof(Animation::AnimationOutput) == 4, "AnimationOutput is not 4 bytes float");
+static_assert(sizeof(Animation::AnimationOutput) == 1, "AnimationOutput is not 1 byte");
 }        // namespace ror
 
 namespace rhi

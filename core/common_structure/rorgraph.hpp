@@ -81,8 +81,8 @@ std::vector<VertexId> get_topologicaly_sorted_list_kahn(std::vector<GraphNode> &
  * This graph can be used as internally thread safe or not, Graph<T, true> is internally thread safe
  * while Graph<T, false> is not thread safe and can be made externally thread safe
  */
-template <class _type, bool _thread_safe = false>
-class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
+template <class _type>
+class ROAR_ENGINE_ITEM Graph final
 {
   public:
 	using Vertex = std::tuple<GraphNode, _type>;
@@ -194,6 +194,7 @@ class ROAR_ENGINE_ITEM Graph final : public ConditionalMutex<_thread_safe>
 	std::vector<Vertex>   m_nodes{};              //! List of vertices in the graph
 	std::vector<VertexId> m_sorted_list{};        //! List of vertices in topographical sorted order of the graph
 	VertexId              m_edge_count{0};        //! Total amount of edges in the graph at a time
+	std::mutex            m_mutex{};              //! Mutex for locking the graph
 };
 
 }        // namespace ror
