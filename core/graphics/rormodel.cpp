@@ -588,7 +588,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					this->m_images.emplace_back(from_file_lambda(texture_path));
 #endif
 				}
-				image_to_index.emplace(&data->images[i], i);
 			}
 			else
 			{
@@ -599,6 +598,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				this->m_images.emplace_back(from_buffer_view_lambda(data->images[i].buffer_view, data->images[i].mime_type));
 #endif
 			}
+			image_to_index.emplace(&data->images[i], i);
 		}
 
 		// This job reads all samplers, textures and materials in one job
