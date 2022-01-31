@@ -894,6 +894,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						auto        stride           = attrib_accessor->buffer_view->stride;
 						auto        offset           = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
 
+						if (attrib_accessor->normalized)
+							ror::log_critical("Attribute accessor data is normalised but there is no support at the moment for normalised data");
+
 						assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this attribute");
 						uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
 
@@ -926,6 +929,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						auto buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
 						auto indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
 						auto stride            = cprim.indices->buffer_view->stride;
+
+						if (attrib_accessor->normalized)
+							ror::log_critical("Attribute Index data is normalised but there is no support at the moment for normalised data");
 
 						assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this index buffer");
 						uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
@@ -1000,6 +1006,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 							auto        attrib_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
 							auto        stride           = attrib_accessor->buffer_view->stride;
 							auto        offset           = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
+
+							if (attrib_accessor->normalized)
+								ror::log_critical("Attribute morph taget data is normalised but there is no support at the moment for normalised data");
 
 							assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this morph target attribute");
 							uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
@@ -1125,7 +1134,16 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						node.m_trs_transform.m_scale = ror::Vector3f(cnode->scale[0], cnode->scale[1], cnode->scale[2]);
 
 					if (cnode->has_matrix)
-						cgltf_node_transform_local(cnode, node.m_transformation.m_values);
+					{
+						if (cnode->has_scale == cnode->has_rotation == cnode->has_translation == 0)
+						{
+							Matrix4f transformation{};        //! Transformation in the form of a matrix for the node
+							cgltf_node_transform_local(cnode, transformation.m_values);
+							node.m_trs_transform.set(transformation);
+						}
+						else
+							ror::log_critical("Node has transformation as well as a matrix leaving TRS unchanged");
+					}
 
 					for (size_t k = 0; k < cnode->children_count; ++k)
 					{
@@ -1162,6 +1180,10 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 					{
 						const auto *anim_sampler_accessor = canimation.samplers[j].input;
+
+						if (anim_sampler_accessor->normalized)
+							ror::log_critical("Animation sampler input data is normalised but there is no support at the moment for normalised data");
+
 						if constexpr (get_build() == BuildType::build_debug)
 						{
 							auto format           = get_format_from_gltf_type_format(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
@@ -1179,6 +1201,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 					{
 						const auto *anim_sampler_accessor = canimation.samplers[j].output;
+
+						if (anim_sampler_accessor->normalized)
+							ror::log_critical("Animation sampler output data is normalised but there is no support at the moment for normalised data");
 
 						if constexpr (get_build() == BuildType::build_debug)
 						{
