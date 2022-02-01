@@ -49,6 +49,8 @@
 #define CGLTF_IMPLEMENTATION
 #include "cgltf/cgltf.h"
 
+#include "stb/stb_image.h"
+
 #define USE_JS
 
 namespace ror
@@ -859,7 +861,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 							case cgltf_attribute_type_texcoord:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_16u) &&
 									   (attrib.data->type == cgltf_type_vec2 || attrib.data->type == cgltf_type_vec3) && "Texture coordinate not in the right format, float2 required");
-								assert(attrib.index < 2 && "Don't support more than 2 texture coordinate sets");
+								assert(attrib.index < 3 && "Don't support more than 3 texture coordinate sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) << static_cast<uint64_t>(attrib.index));
 								break;
 							case cgltf_attribute_type_color:
@@ -1092,7 +1094,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				this->m_skins.emplace_back(std::move(skin));
 			}
 
-			// Read the scene and flattens all scenes into a node tree
+			// Read the scene and flatten all scenes into a node tree
 			for (size_t i = 0; i < data->scenes_count; ++i)
 			{
 				const cgltf_scene &scene = data->scenes[i];
@@ -1117,6 +1119,10 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					node.m_mesh_index = find_safe_index(mesh_to_index, cnode->mesh);
 					node.m_skin_index = find_safe_index(skin_to_index, cnode->skin);
 					node.m_parent     = find_safe_index(node_to_index, cnode->parent);
+
+					// Lets update Mesh skin_index as well
+					if (node.m_mesh_index > -1)
+						this->m_meshes[static_cast<size_t>(node.m_mesh_index)].m_skin_index = node.m_skin_index;
 
 					if (cnode->name)
 						node_side_data.m_name = cnode->name;

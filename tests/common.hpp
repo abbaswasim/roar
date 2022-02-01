@@ -241,4 +241,11 @@ void test_one_vertex_description(const rhi::VertexDescriptor &vd,
 								 uint64_t          semantic_type,
 								 uint32_t          line);
 
+// From https://stackoverflow.com/questions/52164723/how-to-execute-a-command-and-get-return-code-stdout-and-stderr-of-command-in-c
+/*
+  Calls a command 'cmd' and returns its stdout result and error code in a pair
+  One has to parse the error code comparing with EXIT_SUCCESS
+*/
+std::pair<std::string, int32_t> execute_command(const char *cmd);
+
 }        // namespace ror_test

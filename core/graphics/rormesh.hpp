@@ -69,11 +69,12 @@ class ROAR_ENGINE_ITEM Mesh final
 
 	std::vector<rhi::VertexDescriptor>                      m_attribute_vertex_descriptors{};            //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts)
 	std::vector<std::vector<rhi::VertexDescriptor>>         m_morph_targets_vertex_descriptors{};        //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts) for morph targets
-	std::vector<rhi::PrimitiveTopology>                     m_primitive_types{};                         //! Its here and not in Drawable for memory locality reasons, should be init with rhi::PrimitiveTopology::triangle
-	std::vector<bool>                                       m_has_indices_states{};                      //! Its here and not in Drawable for memory locality reasons, should be init with false
+	std::vector<rhi::PrimitiveTopology>                     m_primitive_types{};                         //! Should be init with rhi::PrimitiveTopology::triangle
+	std::vector<bool>                                       m_has_indices_states{};                      //! Should be init with false
 	std::vector<float32_t, rhi::BufferAllocator<float32_t>> m_morph_weights{};                           //! Optional morph weights provided per mesh
-	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>    m_bounding_boxes{};                          //! Its here and not in Drawable for memory locality reasons, this is per part
-	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Its here and not in Drawable for memory locality reasons, should be init with -1
+	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>    m_bounding_boxes{};                          //! This is per part
+	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Should be init with -1
+	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1
 };
 
 }        // namespace ror

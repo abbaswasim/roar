@@ -80,7 +80,7 @@ class ROAR_ENGINE_ITEM Material final
 	};
 
 	// TODO: Check and verify how this can be packed better
-	MaterialComponent<ror::Color4f> m_base_color{};                                   //! Premultiplied linear RGB like filament, loader takes care of this
+	MaterialComponent<ror::Color4f> m_base_color{};                                   //! Premultiplied linear RGB like filament, loader takes care of this // TODO: Fix the pre-multiplied bit
 	MaterialComponent<ror::Color4f> m_diffuse_color{};                                //! Specular Glossyness specific diffuse color, either will have a factor or texture not both default of (1.0, 1.0, 1.0, 1.0)
 	MaterialComponent<ror::Color4f> m_specular_glossyness{};                          //! Specular Glossyness specific vec3 Specular and float Glossyness factors default (1.0, 1.0, 1.0) and 1.0 or provided via a texture
 	MaterialComponent<ror::Color4f> m_emissive{};                                     //! Used for lit objects, a texture and emissive RGB color with emissive strength in A component of the factor
@@ -101,7 +101,7 @@ class ROAR_ENGINE_ITEM Material final
 	MaterialComponent<float32_t>    m_opacity{};                                      //! Map to create cutouts, or a constant factor as alpha_cutoff_threshold of {0.5} default, also called Mask texture
 	rhi::MaterialModel              m_material_model{rhi::MaterialModel::lit};        //! Is it lit, hair or eyes material etc
 	rhi::BlendMode                  m_blend_mode{rhi::BlendMode::opaque};             //! Blend mode of the material
-	MaterialType                    m_type{MaterialType::metalic_roughness};          //! Material could either be metallic rougness or specular glossy or both in which case one will be chosen
+	MaterialType                    m_type{MaterialType::metalic_roughness};          //! Material could either be metallic roughness or specular glossy or both in which case one will be chosen
 	bool                            m_double_sided{false};                            //! Should this be rendered with double sided triangle state
 	bool                            m_layered{false};                                 //! Is this material part of a layerd material chain
 	ror::Color4f                    m_subsurface_color{0.0f};                         //! Whats the color of scattering

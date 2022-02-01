@@ -39,9 +39,6 @@
 // Global function to create rhi::TextureImage
 #include "transcoder/basisu_transcoder.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
-
 namespace rhi
 {
 
@@ -163,7 +160,7 @@ define_type_to_shader_semantics(Texture)
 	return BufferSemantic::texture_data;
 }
 
-FORCE_INLINE void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, TextureImage &a_texture);
+void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, TextureImage &a_texture);
 FORCE_INLINE void read_texture_from_resource(ror::Resource &a_texture_resource, TextureImage &a_texture);
 
 /**

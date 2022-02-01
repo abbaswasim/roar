@@ -13,6 +13,7 @@
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
 #include <atomic>
+#include <cstdint>
 #include <filesystem>
 #include <gtest/gtest-death-test.h>
 #include <gtest/gtest.h>
@@ -376,7 +377,7 @@ TEST(ModelTest, gltf_loader_test)
 
 		auto &s = a.m_samplers[0];
 		auto &i = s.m_input;
-		auto *o = reinterpret_cast<const float32_t*>(s.m_output.data());
+		auto *o = reinterpret_cast<const float32_t *>(s.m_output.data());
 
 		EXPECT_EQ(i.size(), fox_sampler0_count);
 		EXPECT_EQ(s.m_output.size(), fox_sampler0_count * 4 * 4);

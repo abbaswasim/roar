@@ -54,6 +54,25 @@ void write_file(fs::path file, std::string data)
 	f.close();
 }
 
+std::pair<std::string, int32_t> execute_command(const char *cmd)
+{
+	std::array<char, 128> buffer;
+	std::string           result;
+	auto                  pipe = popen(cmd, "r");
+
+	if (!pipe)
+		throw std::runtime_error("popen() failed while trying to run command in exec_ccommand");
+
+	while (!feof(pipe))
+	{
+		if (fgets(buffer.data(), 128, pipe) != nullptr)
+			result += buffer.data();
+	}
+
+	auto rc = pclose(pipe);
+	return std::make_pair(result, rc);
+}
+
 TEST(System, System_constants)
 {
 	auto os    = ror::get_os();
