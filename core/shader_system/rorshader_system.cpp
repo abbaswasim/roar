@@ -299,7 +299,7 @@ std::string vs_morph_common(size_t a_weights_count, uint32_t a_morph_set, uint32
 const std::string vs_morph_stuff_header_str{"\nvoid morph_@(inout @ @)\n{\n"};
 const std::string vs_morph_stuff_line_str{"\t@ += in_morph_weights.morph_weights[@] * in_target_@@;\n"};
 
-std::string vs_morph_attribute_common(uint32_t a_count, std::string a_name, std::string a_type)
+std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_name, std::string a_type)
 {
 	auto str{vs_morph_stuff_header_str};
 
@@ -587,7 +587,7 @@ static const std::unordered_map<rhi::BufferSemantic, rhi::VertexFormat> attrib_i
 	{rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4},
 	{rhi::BufferSemantic::vertex_color_1, rhi::VertexFormat::float32_4}};
 
-std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset, uint32_t a_target_offset, std::string a_prefix, bool a_output)
+std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset, uint32_t a_target_offset, const std::string &a_prefix, bool a_output)
 {
 	std::string result{};
 	auto       &attributes = a_vertex_descriptor.attributes();

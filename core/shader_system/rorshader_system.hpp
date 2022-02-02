@@ -48,7 +48,7 @@ class ROAR_ENGINE_ITEM ShaderSystem final
   private:
 };
 
-std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset = 0, uint32_t a_target_offset = 0, std::string a_prefix = "", bool a_output = false);
+std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset = 0, uint32_t a_target_offset = 0, const std::string& a_prefix = "", bool a_output = false);
 std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descriptor, const ror::Material &a_material, uint32_t a_location_offset = 0, uint32_t a_target_offset = 0, std::string a_prefix = "");
 
 std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_primitive_index);
