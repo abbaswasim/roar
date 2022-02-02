@@ -688,11 +688,24 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					material.m_roughness.m_texture  = mro_texture_id;
 					material.m_occlusion.m_texture  = mro_texture_id;
 
+					if (material.m_base_color.m_texture.m_handle == -1)
+						material.m_base_color.m_type = Material::MaterialComponentType::factor_only;
+
+					if (material.m_metallic.m_texture.m_handle == -1)
+						material.m_metallic.m_type = Material::MaterialComponentType::factor_only;
+
+					if (material.m_roughness.m_texture.m_handle == -1)
+						material.m_roughness.m_type = Material::MaterialComponentType::factor_only;
+
+					if (material.m_occlusion.m_texture.m_handle == -1)
+						material.m_occlusion.m_type = Material::MaterialComponentType::factor_only;
+
 					material.m_base_color.m_uv_map = static_cast<uint32_t>(mat.pbr_metallic_roughness.base_color_texture.texcoord);
 					material.m_metallic.m_uv_map   = static_cast<uint32_t>(mat.pbr_metallic_roughness.metallic_roughness_texture.texcoord);
 					material.m_occlusion.m_uv_map  = material.m_metallic.m_uv_map;
 					material.m_roughness.m_uv_map  = material.m_metallic.m_uv_map;
-					material.m_reflectance_factor  = mat.has_ior ? convert_ior_to_f0(mat.ior.ior) : 1.0f;
+
+					material.m_reflectance_factor = mat.has_ior ? convert_ior_to_f0(mat.ior.ior) : 1.0f;
 
 					// TODO: Find out why there is scale and transform in textures but not mentioned in gltf 2.0 spec
 					// mat.pbr_metallic_roughness.base_color_texture.scale
@@ -707,13 +720,19 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				if (mat.occlusion_texture.texture)
 				{
 					// TODO: Combine the texture, with metalic roughness if not together already
-					material.m_metallic.m_factor  = mat.occlusion_texture.scale;        // NOTE: This isn't fully correct, gltf doesn't provide an occlusion scale but its close enough
-					material.m_metallic.m_texture = find_safe_index(texture_to_index, mat.occlusion_texture.texture);
-					material.m_metallic.m_uv_map  = static_cast<uint32_t>(mat.occlusion_texture.texcoord);
+					material.m_occlusion.m_factor  = mat.occlusion_texture.scale;        // NOTE: This isn't fully correct, gltf doesn't provide an occlusion scale but its close enough
+					material.m_occlusion.m_texture = find_safe_index(texture_to_index, mat.occlusion_texture.texture);
+					material.m_occlusion.m_uv_map  = static_cast<uint32_t>(mat.occlusion_texture.texcoord);
+
+					if (material.m_occlusion.m_texture.m_handle == -1)
+						material.m_occlusion.m_type = Material::MaterialComponentType::factor_only;
 				}
 
 				material.m_normal.m_texture = find_safe_index(texture_to_index, mat.normal_texture.texture);
 				material.m_normal.m_uv_map  = static_cast<uint32_t>(mat.normal_texture.texcoord);
+
+				if (material.m_normal.m_texture.m_handle == -1)
+					material.m_normal.m_type = Material::MaterialComponentType::factor_only;
 
 				switch (mat.alpha_mode)
 				{
@@ -737,14 +756,26 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				if (mat.has_emissive_strength)
 					material.m_emissive.m_factor.w = mat.emissive_strength.emissive_strength;
 
+				if (material.m_emissive.m_texture.m_handle == -1)
+					material.m_emissive.m_type = Material::MaterialComponentType::factor_only;
+
 				if (mat.has_clearcoat)
 				{
 					material.m_clearcoat_normal.m_texture  = find_safe_index(texture_to_index, mat.clearcoat.clearcoat_normal_texture.texture);
 					material.m_clearcoat_normal.m_factor.x = mat.clearcoat.clearcoat_factor;
 					material.m_clearcoat_normal.m_factor.y = mat.clearcoat.clearcoat_roughness_factor;
 
+					if (material.m_clearcoat_normal.m_texture.m_handle == -1)
+						material.m_clearcoat_normal.m_type = Material::MaterialComponentType::factor_only;
+
 					material.m_clearcoat.m_texture           = find_safe_index(texture_to_index, mat.clearcoat.clearcoat_texture.texture);
 					material.m_clearcoat_roughness.m_texture = find_safe_index(texture_to_index, mat.clearcoat.clearcoat_roughness_texture.texture);
+
+					if (material.m_clearcoat.m_texture.m_handle == -1)
+						material.m_clearcoat.m_type = Material::MaterialComponentType::factor_only;
+
+					if (material.m_clearcoat_roughness.m_texture.m_handle == -1)
+						material.m_clearcoat_roughness.m_type = Material::MaterialComponentType::factor_only;
 				}
 
 				if (mat.has_transmission)
@@ -752,6 +783,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					material.m_transmission.m_texture  = find_safe_index(texture_to_index, mat.transmission.transmission_texture.texture);
 					material.m_transmission.m_factor.x = mat.transmission.transmission_factor;
 					material.m_transmission.m_factor.y = 0.0f;        // Transmission roughness 0.0f, Should this be texture.scale?
+
+					if (material.m_transmission.m_texture.m_handle == -1)
+						material.m_transmission.m_type = Material::MaterialComponentType::factor_only;
 				}
 
 				if (mat.has_specular)
@@ -785,6 +819,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					material.m_sheen_color.m_factor      = convert_to_vec3(mat.sheen.sheen_color_factor);
 					material.m_sheen_roughness.m_texture = find_safe_index(texture_to_index, mat.sheen.sheen_roughness_texture.texture);
 					material.m_sheen_roughness.m_factor  = mat.sheen.sheen_roughness_factor;
+
+					if (material.m_sheen_color.m_texture.m_handle == -1)
+						material.m_sheen_color.m_type = Material::MaterialComponentType::factor_only;
+
+					if (material.m_sheen_roughness.m_texture.m_handle == -1)
+						material.m_sheen_roughness.m_type = Material::MaterialComponentType::factor_only;
 				}
 
 				this->m_materials.emplace_back(std::move(material));
