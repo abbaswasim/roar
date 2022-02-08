@@ -689,27 +689,23 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 				if (mat.has_pbr_metallic_roughness)
 				{
-					auto mro_texture_id = find_safe_index(texture_to_index, mat.pbr_metallic_roughness.metallic_roughness_texture.texture);        // TODO: Separate textures and combine into occlusion
+					auto mr_texture_id = find_safe_index(texture_to_index, mat.pbr_metallic_roughness.metallic_roughness_texture.texture);        // TODO: Separate textures and combine with occlusion
 
 					// material.m_type = Material::MaterialType::metalic_roughness; // Default already
 					material.m_base_color.m_factor = convert_to_vec4(mat.pbr_metallic_roughness.base_color_factor);
 					material.m_metallic.m_factor   = mat.pbr_metallic_roughness.metallic_factor;
 					material.m_roughness.m_factor  = mat.pbr_metallic_roughness.roughness_factor;
-					material.m_occlusion.m_factor  = mat.occlusion_texture.scale;
 					material.m_base_color.m_type   = Material::ComponentType::factor;
 					material.m_metallic.m_type     = Material::ComponentType::factor;
 					material.m_roughness.m_type    = Material::ComponentType::factor;
-					material.m_occlusion.m_type    = Material::ComponentType::factor;
 
 					material.m_base_color.m_texture = find_safe_index(texture_to_index, mat.pbr_metallic_roughness.base_color_texture.texture);
-					material.m_metallic.m_texture   = mro_texture_id;
-					material.m_roughness.m_texture  = mro_texture_id;
-					material.m_occlusion.m_texture  = mro_texture_id;
+					material.m_metallic.m_texture   = mr_texture_id;
+					material.m_roughness.m_texture  = mr_texture_id;
 
 					material.m_base_color.m_has_transform = mat.pbr_metallic_roughness.base_color_texture.has_transform;
 					material.m_metallic.m_has_transform   = mat.pbr_metallic_roughness.metallic_roughness_texture.has_transform;
 					material.m_roughness.m_has_transform  = mat.pbr_metallic_roughness.metallic_roughness_texture.has_transform;
-					material.m_occlusion.m_has_transform  = mat.pbr_metallic_roughness.base_color_texture.has_transform;        // Either use base-color or will use occlusion later
 
 					if (material.m_base_color.m_texture.m_handle != -1)
 						material.m_base_color.m_type = Material::ComponentType::factor_texture;
@@ -720,12 +716,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					if (material.m_roughness.m_texture.m_handle != -1)
 						material.m_roughness.m_type = Material::ComponentType::factor_texture;
 
-					if (material.m_occlusion.m_texture.m_handle != -1)
-						material.m_occlusion.m_type = Material::ComponentType::factor_texture;
-
 					material.m_base_color.m_uv_map = static_cast<uint32_t>(mat.pbr_metallic_roughness.base_color_texture.texcoord);
 					material.m_metallic.m_uv_map   = static_cast<uint32_t>(mat.pbr_metallic_roughness.metallic_roughness_texture.texcoord);
-					material.m_occlusion.m_uv_map  = material.m_metallic.m_uv_map;
 					material.m_roughness.m_uv_map  = material.m_metallic.m_uv_map;
 
 					material.m_reflectance = mat.has_ior ? convert_ior_to_f0(mat.ior.ior) : 1.0f;
@@ -753,14 +745,17 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						material.m_occlusion.m_type = Material::ComponentType::factor_texture;
 				}
 
-				material.m_normal.m_factor        = mat.normal_texture.scale;        // Default 1.0
-				material.m_normal.m_texture       = find_safe_index(texture_to_index, mat.normal_texture.texture);
-				material.m_normal.m_uv_map        = static_cast<uint32_t>(mat.normal_texture.texcoord);
-				material.m_normal.m_has_transform = mat.normal_texture.has_transform;
-				material.m_normal.m_type          = Material::ComponentType::factor;
+				if (mat.normal_texture.texture)
+				{
+					material.m_normal.m_factor        = mat.normal_texture.scale;        // Default 1.0
+					material.m_normal.m_texture       = find_safe_index(texture_to_index, mat.normal_texture.texture);
+					material.m_normal.m_uv_map        = static_cast<uint32_t>(mat.normal_texture.texcoord);
+					material.m_normal.m_has_transform = mat.normal_texture.has_transform;
+					material.m_normal.m_type          = Material::ComponentType::factor;
 
-				if (material.m_normal.m_texture.m_handle != -1)
-					material.m_normal.m_type = Material::ComponentType::factor_texture;
+					if (material.m_normal.m_texture.m_handle != -1)
+						material.m_normal.m_type = Material::ComponentType::factor_texture;
+				}
 
 				switch (mat.alpha_mode)
 				{
@@ -777,17 +772,21 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 				material.m_material_model = (mat.unlit ? rhi::MaterialModel::unlit : rhi::MaterialModel::lit);
 
-				material.m_emissive.m_factor        = convert_vec3_to_vec4(mat.emissive_factor);
-				material.m_emissive.m_texture       = find_safe_index(texture_to_index, mat.emissive_texture.texture);
-				material.m_emissive.m_uv_map        = static_cast<uint32_t>(mat.emissive_texture.texcoord);
-				material.m_emissive.m_has_transform = mat.emissive_texture.has_transform;
-				material.m_emissive.m_type          = Material::ComponentType::factor;
+				if (mat.emissive_texture.texture)
+				{
+					// TODO: There is an Emissive factor default of 0,0,0 which should be used even if no textue available
+					material.m_emissive.m_factor        = convert_vec3_to_vec4(mat.emissive_factor);
+					material.m_emissive.m_texture       = find_safe_index(texture_to_index, mat.emissive_texture.texture);
+					material.m_emissive.m_uv_map        = static_cast<uint32_t>(mat.emissive_texture.texcoord);
+					material.m_emissive.m_has_transform = mat.emissive_texture.has_transform;
+					material.m_emissive.m_type          = Material::ComponentType::factor;
 
-				if (mat.has_emissive_strength)
-					material.m_emissive.m_factor.w = mat.emissive_strength.emissive_strength;
+					if (mat.has_emissive_strength)
+						material.m_emissive.m_factor.w = mat.emissive_strength.emissive_strength;
 
-				if (material.m_emissive.m_texture.m_handle != -1)
-					material.m_emissive.m_type = Material::ComponentType::factor_texture;
+					if (material.m_emissive.m_texture.m_handle != -1)
+						material.m_emissive.m_type = Material::ComponentType::factor_texture;
+				}
 
 				if (mat.has_clearcoat)
 				{
@@ -868,6 +867,14 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 					if (material.m_sheen_roughness.m_texture.m_handle != -1)
 						material.m_sheen_roughness.m_type = Material::ComponentType::factor_texture;
+				}
+				if (mat.has_ior)
+				{
+					// typedef struct cgltf_ior
+					// {
+					//	cgltf_float ior;
+					// } cgltf_ior;
+					ror::log_critical("Don't support ior extension at the moment");
 				}
 
 				this->m_materials.emplace_back(std::move(material));

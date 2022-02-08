@@ -111,8 +111,7 @@ class ROAR_ENGINE_ITEM Material final
 	ror::Color4f            m_subsurface_radius{0.0f};                        //! How far does it go, in each component, red is usually higher compared to blue and then green (1.0, 0.2, 0.1) for human skin
 	float32_t               m_subsurface_scattering{0.0f};                    //! How much SSS do we want
 	float32_t               m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, note we don't need ior here because F0= ((ior − 1 ) / ( ior + 1 ))²
-																			  //! Note we don't need F90 because Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
-																			  //! TODO: Find out who provides m_reflectance_factor, gltf doesn't seem to have it in their material
+																			  //! Note we don't need F90 coz Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
 };
 
 static_assert(std::is_trivially_copyable_v<Material>, "Material is not trivially copyable");

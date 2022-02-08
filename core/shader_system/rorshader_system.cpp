@@ -351,6 +351,31 @@ std::string vs_frame_common(uint32_t a_set, uint32_t a_binding)
 	return str;
 }
 
+/*
+	mat4 projection;
+	mat4 view;
+	mat4 view_projection;
+	mat4 inv_projection;
+	mat4 inv_view;
+	mat4 inv_view_projection;
+	mat4 local_view_projection;
+	mat4 inv_local_view_projection;
+
+	mat4 unjittered_view_projection;
+	mat4 unjittered_inv_view_projection;
+	mat4 unjittered_prev_view_projection;
+
+	mat4 multiview_view_projection[4];
+
+	vec3 camera_position;
+	vec3 camera_front;
+	vec3 camera_right;
+	vec3 camera_up;
+
+	float z_near;
+	float z_far;
+
+*/
 const std::string vs_skin_common_str = R"scom(
 const uint joints_count = @;
 
@@ -868,38 +893,41 @@ if called like texture_lookup(mat_comp, "base_color");
 
 // This will always create a void get_{a_comp_name}() function because a factor is always there
 template <typename _factor_type>
-std::string texture_lookup(const ror::Material::MaterialComponent<_factor_type> &a_mat_comp, const std::string &a_comp_name)
+std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_comp, const std::string &a_comp_name)
 {
-	std::string output{"\nvec4 get_" + a_comp_name + "()\n{\n\t"};
-	std::string factor_cast{factor_vec4_cast<decltype(a_mat_comp.m_factor)>({a_comp_name + "_factor"})};
-
-	if (a_mat_comp.m_type == ror::Material::MaterialComponentType::factor_only)
-		output.append("return " + factor_cast + ";");
-	else
+	if (a_mat_comp.m_type != ror::Material::ComponentType::none)
 	{
-		output.append({"vec3 " + a_comp_name + "_uv = vec3(" +
-					   (a_mat_comp.m_uv_map == 0 ? "out_vertex_texture_coord_0" : (a_mat_comp.m_uv_map == 1 ? "out_vertex_texture_coord_1" : "out_vertex_texture_coord_2")) +
-					   ", 1.0);\n\t"});
+		std::string output{"\nvec4 get_" + a_comp_name + "()\n{\n\t"};
+		std::string factor_cast{factor_vec4_cast<decltype(a_mat_comp.m_factor)>({a_comp_name + "_factor"})};
 
-		// Second work out if it has uv transform or not
-		if (a_mat_comp.m_has_transform)
-			output.append(a_comp_name + "_uv = " + a_comp_name + "_uv_transform * " + a_comp_name + "_uv;\n\t");
-
-		// TODO: Fix a_comp_name type here, it might not be vec4 always, it could be a roughness in R only
-		// Third check if we need to apply _factor and what's the type
-		output.append("return texture(" + a_comp_name + "_sampler, " + a_comp_name + "_uv.xy)");
-
-		if (a_mat_comp.m_type != ror::Material::MaterialComponentType::texture_only)
+		if (a_mat_comp.m_type == ror::Material::ComponentType::factor)
+			output.append("return " + factor_cast);
+		else
 		{
-			output.append(" * ");
-			output.append(factor_cast);
+			output.append({"vec3 " + a_comp_name + "_uv = vec3(" +
+						   (a_mat_comp.m_uv_map == 0 ? "out_vertex_texture_coord_0" : (a_mat_comp.m_uv_map == 1 ? "out_vertex_texture_coord_1" : "out_vertex_texture_coord_2")) +
+						   ", 1.0);\n\t"});
+
+			// Second work out if it has uv transform or not
+			if (a_mat_comp.m_has_transform)
+				output.append(a_comp_name + "_uv = " + a_comp_name + "_uv_transform * " + a_comp_name + "_uv;\n\t");
+
+			// TODO: Fix a_comp_name type here, it might not be vec4 always, it could be a roughness in R only
+			// Third check if we need to apply _factor and what's the type
+			output.append("return texture(" + a_comp_name + "_sampler, " + a_comp_name + "_uv.xy)");
+
+			if (a_mat_comp.m_type == ror::Material::ComponentType::factor_texture)
+			{
+				output.append(" * ");
+				output.append(factor_cast);
+			}
 		}
 
-		output.append(";");
+		output.append(";\n}\n");
+		return output;
 	}
 
-	output.append("\n}\n");
-	return output;
+	return "";
 }
 
 // Calls texture_lookup for all material components if it has textures
@@ -1013,43 +1041,43 @@ std::string material_factors_ubo(const ror::Material &a_material)
 	std::string output{"\nlayout(std140, set = 0, binding = 0) uniform factors\n{\t"};        // TODO: Abstract out the set and binding
 
 	// TODO: Find a way to make these factors conditional
-	if (a_material.m_base_color.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_base_color.m_type != ror::Material::ComponentType::texture)
 		output.append("vec4  base_color_factor;\n\t");
-	if (a_material.m_diffuse_color.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_diffuse_color.m_type != ror::Material::ComponentType::texture)
 		output.append("vec4  diffuse_color_factor;\n\t");
-	if (a_material.m_specular_glossyness.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_specular_glossyness.m_type != ror::Material::ComponentType::texture)
 		output.append("vec4  specular_glossyness_factor;\n\t");
-	if (a_material.m_emissive.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_emissive.m_type != ror::Material::ComponentType::texture)
 		output.append("vec4  emissive_factor;\n\t");
-	if (a_material.m_anisotrophy_normal.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_anisotrophy_normal.m_type != ror::Material::ComponentType::texture)
 		output.append("vec3  anisotrophy_normal_factor;\n\t");
-	if (a_material.m_transmission.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_transmission.m_type != ror::Material::ComponentType::texture)
 		output.append("vec2  transmission_factor;\n\t");
-	if (a_material.m_sheen_color.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_sheen_color.m_type != ror::Material::ComponentType::texture)
 		output.append("vec3  sheen_color_factor;\n\t");
-	if (a_material.m_sheen_roughness.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_sheen_roughness.m_type != ror::Material::ComponentType::texture)
 		output.append("float sheen_roughness_factor;\n\t");
-	if (a_material.m_clearcoat_normal.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_clearcoat_normal.m_type != ror::Material::ComponentType::texture)
 		output.append("vec2  clearcoat_normal_factor;\n\t");
-	if (a_material.m_clearcoat.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_clearcoat.m_type != ror::Material::ComponentType::texture)
 		output.append("float clearcoat_factor;\n\t");
-	if (a_material.m_clearcoat_roughness.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_clearcoat_roughness.m_type != ror::Material::ComponentType::texture)
 		output.append("float clearcoat_roughness_factor;\n\t");
-	if (a_material.m_metallic.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_metallic.m_type != ror::Material::ComponentType::texture)
 		output.append("float metallic_factor;\n\t");
-	if (a_material.m_roughness.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_roughness.m_type != ror::Material::ComponentType::texture)
 		output.append("float roughness_factor;\n\t");
-	if (a_material.m_occlusion.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_occlusion.m_type != ror::Material::ComponentType::texture)
 		output.append("float occlusion_factor;\n\t");
-	if (a_material.m_normal.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_normal.m_type != ror::Material::ComponentType::texture)
 		output.append("float normal_factor;\n\t");
-	if (a_material.m_bent_normal.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_bent_normal.m_type != ror::Material::ComponentType::texture)
 		output.append("float bent_normal_factor;\n\t");
-	if (a_material.m_height.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_height.m_type != ror::Material::ComponentType::texture)
 		output.append("float height_factor;\n\t");
-	if (a_material.m_anisotrophy.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_anisotrophy.m_type != ror::Material::ComponentType::texture)
 		output.append("float anisotrophy_factor;\n\t");
-	if (a_material.m_opacity.m_type != ror::Material::MaterialComponentType::texture_only)
+	if (a_material.m_opacity.m_type != ror::Material::ComponentType::texture)
 		output.append("float opacity_factor;\n");
 
 	// TODO: The following needs some condition, add that later for subsurface scattering support
