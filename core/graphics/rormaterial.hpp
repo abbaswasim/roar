@@ -69,6 +69,7 @@ class ROAR_ENGINE_ITEM Material final
 		rhi::TextureHandle    m_texture{-1};                              //! Texture ID of a Texture within a textures array (contains texture image id and texture sampler id)
 		uint32_t              m_uv_map{0};                                //! Which UV map set should be used, 0 is default but some things like light maps usually use uv set 1
 		MaterialComponentType m_type{MaterialComponentType::both};        //! Whether it has factor or texture only or both
+		bool                  m_has_transform{false};                     //! Whether the UVs has a texture transform or not
 		std::bitset<4>        m_channels{0};                              //! RGBA and all combinations of it, where R=bit1, B=bit2, G=bit3, A=bit4
 	};
 
@@ -93,8 +94,8 @@ class ROAR_ENGINE_ITEM Material final
 	MaterialComponent<float32_t>    m_clearcoat_roughness{};                          //! Similar texture as clearcoat_normal provided by gltf // TODO: Confirm these are used
 	MaterialComponent<float32_t>    m_metallic{};                                     //! Dielectric or conductor(metallic)
 	MaterialComponent<float32_t>    m_roughness{};                                    //! Surface roughness, as compared to internal roughness unlike m_transmission_roughness
-	MaterialComponent<float32_t>    m_occlusion{};                                    //! Occlusion map, not very common and usually not provided
-	MaterialComponent<float32_t>    m_normal{};                                       //! Normal map, Used for normal mapping and bump mapping
+	MaterialComponent<float32_t>    m_occlusion{};                                    //! Occlusion map factor is the strength
+	MaterialComponent<float32_t>    m_normal{};                                       //! Normal map, Used for normal mapping and bump mapping, factor id the normal scale
 	MaterialComponent<float32_t>    m_bent_normal{};                                  //! Map of median rays of un-occluded normal of a hemisphere around a texel, can be used for AO etc
 	MaterialComponent<float32_t>    m_height{};                                       //! Used for bump mapping
 	MaterialComponent<float32_t>    m_anisotrophy{};                                  //! From -1 to 1 uniform value defines wether anisotrophy is along or perpendicular to direction, uniform single value or texture map
@@ -108,7 +109,7 @@ class ROAR_ENGINE_ITEM Material final
 	ror::Color4f                    m_subsurface_radius{0.0f};                        //! How far does it go, in each component, red is usually higher compared to blue and then green (1.0, 0.2, 0.1) for human skin
 	uint8_t                         m_material_name[30];                              //! Can't use string here otherwise not trivially_copyable
 	float32_t                       m_subsurface_scattering{0.0f};                    //! How much SSS do we want
-	float32_t                       m_reflectance_factor{0.0f};                       //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, note we don't need ior here because F0= ((ior − 1 ) / ( ior + 1 ))²
+	float32_t                       m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, note we don't need ior here because F0= ((ior − 1 ) / ( ior + 1 ))²
 																					  //! Note we don't need F90 because Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
 																					  //! TODO: Find out who provides m_reflectance_factor, gltf doesn't seem to have it in their material
 };

@@ -23,12 +23,17 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "graphics/rormaterial.hpp"
 #include "graphics/rormodel.hpp"
+#include "math/rorvector2.hpp"
+#include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rortypes.hpp"
 #include "shader_system/rorshader_system.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <string>
@@ -660,7 +665,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		{rhi::BufferSemantic::vertex_color_0, {0, has_color_0}},
 		{rhi::BufferSemantic::vertex_color_1, {0, has_color_1}}};
 
-	std::string result{"#version 450\n\n"};        // TODO: abstract out version
+	std::string result{"#version 450\n\nprecision highp float;\nprecision highp int;\n"};        // TODO: abstract out version
 
 	// Write out vertex shader input output
 	result.append(rhi::vertex_shader_input_output(vertex_descriptor, 0, 0, "", true));
@@ -775,81 +780,15 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	return result;
 }
 
-std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, uint32_t a_index)
+// Vertex shader methods finish here, now starts fragment shader methods
+
+std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset, uint32_t a_target_offset, std::string a_prefix)
 {
-	auto &vertex_descriptor = a_mesh.m_attribute_vertex_descriptors[a_index];
-
-	std::cout << "\nHere is a fragment shader\n\n";
-
-	rhi::fragment_shader_input_output(vertex_descriptor, ror::Material{});
-
-	std::cout << "\n\n\nEnd of shader";
-
-	return "";
-}
-
-/*
-#ifdef HAS_BASE_COLOR_TEXTURE
-layout(set = 0, binding = 0) uniform sampler2D base_color_texture;
-#endif
-
-layout(location = 0) in vec4 in_pos;
-layout(location = 1) in vec2 in_uv;
-layout(location = 2) in vec3 in_normal;
-layout(location = 3) in vec4 in_shadow_clip;
-
-layout(location = 0) out vec4 o_color;
-
-layout(set = 0, binding = 1) uniform GlobalUniform
-{
-	mat4 model;
-	mat4 view_proj;
-	vec3 camera_position;
-}
-global_uniform;
-
-// Push constants come with a limitation in the size of data.
-// The standard requires at least 128 bytes
-layout(push_constant, std430) uniform PBRMaterialUniform
-{
-	vec4  base_color_factor;
-	float metallic_factor;
-	float roughness_factor;
-}
-pbr_material_uniform;
-
-#include "lighting.h"
-
-layout(set = 0, binding = 4) uniform LightsInfo
-{
-	Light directional_light;
-} lights_info;
-
-layout(set = 0, binding = 6) uniform highp sampler2DShadow tex_shadow;
-
-*/
-/*
-The following results in something like:
-
-Here is a fragment shader
-
-layout (location = 0) in highp ivec3 in_vertex_normal;
-layout (location = 1) in highp uvec3 in_vertex_position;
-layout (location = 2) in highp ivec3 in_target_vertex_normal0;
-layout (location = 3) in highp ivec3 in_target_vertex_position0;
-layout (location = 4) in highp ivec3 in_target_vertex_normal1;
-layout (location = 5) in highp ivec3 in_target_vertex_position1;
-layout (location = 0) out vec4 out_color;
-
-*/
-
-std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descriptor, const ror::Material &a_material, uint32_t a_location_offset, uint32_t a_target_offset, std::string a_prefix)
-{
-	(void) a_vertex_descriptor;
-	(void) a_material;
-	(void) a_location_offset;
-	(void) a_target_offset;
-	(void) a_prefix;
+	// (void) a_vertex_descriptor;
+	// (void) a_material;
+	// (void) a_location_offset;
+	// (void) a_target_offset;
+	// (void) a_prefix;
 
 	std::string result{};
 
@@ -878,10 +817,357 @@ std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descri
 		}
 	}
 
+	// TODO: Change this based on some G-Buffer descriptor when available to something like
+	// vec4, vec3, vec2 and vec2 of base_color, emissive, normal, PBR etc, based on G-buffer layout
 	std::string output{"layout (location = 0) out vec4 out_color;\n"};
 	result.append(output);
 
 	return result;
+}
+
+template <typename _factor_type>
+std::string factor_vec4_cast(const std::string &)
+{}
+
+template <>
+std::string factor_vec4_cast<ror::Color4f>(const std::string &a_comp_name)
+{
+	return "vec4(" + a_comp_name + ")";
+}
+
+template <>
+std::string factor_vec4_cast<ror::Color3f>(const std::string &a_comp_name)
+{
+	return "vec4(" + a_comp_name + ", 1.0)";
+}
+
+template <>
+std::string factor_vec4_cast<ror::Color2f>(const std::string &a_comp_name)
+{
+	return "vec4(" + a_comp_name + ", 1.0, 1.0)";        // TODO: Confirm what the factors should be here
+}
+
+template <>
+std::string factor_vec4_cast<float32_t>(const std::string &a_comp_name)
+{
+	return "vec4(" + a_comp_name + ", " + a_comp_name + ", " + a_comp_name + ", " + a_comp_name + ")";
+}
+
+/*
+The following will make something like
+
+void get_base_color()
+{
+	vec3 base_color_uv = vec3(out_vertex_texture_coord_1, 1.0);
+	base_color_uv = base_color_uv_transform * base_color_uv;
+	base_color = texture(base_color_sampler, base_color_uv.xy) * vec4(base_color_factor, 1.0);
+}
+
+if called like texture_lookup(mat_comp, "base_color");
+*/
+
+// This will always create a void get_{a_comp_name}() function because a factor is always there
+template <typename _factor_type>
+std::string texture_lookup(const ror::Material::MaterialComponent<_factor_type> &a_mat_comp, const std::string &a_comp_name)
+{
+	std::string output{"\nvec4 get_" + a_comp_name + "()\n{\n\t"};
+	std::string factor_cast{factor_vec4_cast<decltype(a_mat_comp.m_factor)>({a_comp_name + "_factor"})};
+
+	if (a_mat_comp.m_type == ror::Material::MaterialComponentType::factor_only)
+		output.append("return " + factor_cast + ";");
+	else
+	{
+		output.append({"vec3 " + a_comp_name + "_uv = vec3(" +
+					   (a_mat_comp.m_uv_map == 0 ? "out_vertex_texture_coord_0" : (a_mat_comp.m_uv_map == 1 ? "out_vertex_texture_coord_1" : "out_vertex_texture_coord_2")) +
+					   ", 1.0);\n\t"});
+
+		// Second work out if it has uv transform or not
+		if (a_mat_comp.m_has_transform)
+			output.append(a_comp_name + "_uv = " + a_comp_name + "_uv_transform * " + a_comp_name + "_uv;\n\t");
+
+		// TODO: Fix a_comp_name type here, it might not be vec4 always, it could be a roughness in R only
+		// Third check if we need to apply _factor and what's the type
+		output.append("return texture(" + a_comp_name + "_sampler, " + a_comp_name + "_uv.xy)");
+
+		if (a_mat_comp.m_type != ror::Material::MaterialComponentType::texture_only)
+		{
+			output.append(" * ");
+			output.append(factor_cast);
+		}
+
+		output.append(";");
+	}
+
+	output.append("\n}\n");
+	return output;
+}
+
+// Calls texture_lookup for all material components if it has textures
+std::string texture_lookups(const ror::Material &a_material)
+{
+	std::string output{""};
+
+	output.append(texture_lookup(a_material.m_base_color, "base_color"));
+	output.append(texture_lookup(a_material.m_diffuse_color, "diffuse_color"));
+	output.append(texture_lookup(a_material.m_specular_glossyness, "specular_glossyness"));
+	output.append(texture_lookup(a_material.m_emissive, "emissive"));
+	output.append(texture_lookup(a_material.m_anisotrophy_normal, "anisotrophy_normal"));
+	output.append(texture_lookup(a_material.m_transmission, "transmission"));
+	output.append(texture_lookup(a_material.m_sheen_color, "sheen_color"));
+	output.append(texture_lookup(a_material.m_sheen_roughness, "sheen_roughness"));
+	output.append(texture_lookup(a_material.m_clearcoat_normal, "clearcoat_normal"));
+	output.append(texture_lookup(a_material.m_clearcoat, "clearcoat"));
+	output.append(texture_lookup(a_material.m_clearcoat_roughness, "clearcoat_roughness"));
+	output.append(texture_lookup(a_material.m_metallic, "metallic"));
+	output.append(texture_lookup(a_material.m_roughness, "roughness"));
+	output.append(texture_lookup(a_material.m_occlusion, "occlusion"));
+	output.append(texture_lookup(a_material.m_normal, "normal"));
+	output.append(texture_lookup(a_material.m_bent_normal, "bent_normal"));
+	output.append(texture_lookup(a_material.m_height, "height"));
+	output.append(texture_lookup(a_material.m_anisotrophy, "anisotrophy"));
+	output.append(texture_lookup(a_material.m_opacity, "opacity"));
+
+	return output;
+}
+
+// Populates all texture loading methods into setup_and_load_textures() which is called in main
+// Unused at the moment
+std::string setup_and_load_textures()
+{
+	std::string output{"void setup_and_load_textures()\n{\t"};
+
+	// This is not correct, need to consider factor only here as well
+	output.append("get_base_color();\n\t");
+	output.append("get_diffuse_color();\n\t");
+	output.append("get_specular_glossyness();\n\t");
+	output.append("get_emissive();\n\t");
+	output.append("get_anisotrophy_normal();\n\t");
+	output.append("get_transmission();\n\t");
+	output.append("get_sheen_color();\n\t");
+	output.append("get_sheen_roughness();\n\t");
+	output.append("get_clearcoat_normal();\n\t");
+	output.append("get_clearcoat();\n\t");
+	output.append("get_clearcoat_roughness();\n\t");
+	output.append("get_metallic();\n\t");
+	output.append("get_roughness();\n\t");
+	output.append("get_occlusion();\n\t");
+	output.append("get_normal();\n\t");
+	output.append("get_bent_normal();\n\t");
+	output.append("get_height();\n\t");
+	output.append("get_anisotrophy();\n\t");
+	output.append("get_opacity();\n");
+
+	output.append("}\n");
+
+	return output;
+}
+
+std::string material_samplers(const ror::Material &a_material)
+{
+	std::string output{"\n"};        // TODO: Abstract out the set and binding for all of the below
+
+	if (a_material.m_base_color.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 0) uniform highp sampler2D base_color_sampler;\n\t");
+	if (a_material.m_diffuse_color.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 1) uniform highp sampler2D diffuse_color_sampler;\n\t");
+	if (a_material.m_specular_glossyness.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 2) uniform highp sampler2D specular_glossyness_sampler;\n\t");
+	if (a_material.m_emissive.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 3) uniform highp sampler2D emissive_sampler;\n\t");
+	if (a_material.m_anisotrophy_normal.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 4) uniform highp sampler2D anisotrophy_normal_sampler;\n\t");
+	if (a_material.m_transmission.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 5) uniform highp sampler2D transmission_sampler;\n\t");
+	if (a_material.m_sheen_color.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 6) uniform highp sampler2D sheen_color_sampler;\n\t");
+	if (a_material.m_sheen_roughness.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 7) uniform highp sampler2D sheen_roughness_sampler;\n\t");
+	if (a_material.m_clearcoat_normal.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 8) uniform highp sampler2D clearcoat_normal_sampler;\n\t");
+	if (a_material.m_clearcoat.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 9) uniform highp sampler2D clearcoat_sampler;\n\t");
+	if (a_material.m_clearcoat_roughness.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 10) uniform highp sampler2D clearcoat_roughness_sampler;\n\t");
+	if (a_material.m_metallic.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 11) uniform highp sampler2D metallic_sampler;\n\t");
+	if (a_material.m_roughness.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 12) uniform highp sampler2D roughness_sampler;\n\t");
+	if (a_material.m_occlusion.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 13) uniform highp sampler2D occlusion_sampler;\n\t");
+	if (a_material.m_normal.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 14) uniform highp sampler2D normal_sampler;\n\t");
+	if (a_material.m_bent_normal.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 15) uniform highp sampler2D bent_normal_sampler;\n\t");
+	if (a_material.m_height.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 16) uniform highp sampler2D height_sampler;\n\t");
+	if (a_material.m_anisotrophy.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 17) uniform highp sampler2D anisotrophy_sampler;\n\t");
+	if (a_material.m_opacity.m_texture.m_handle != -1)
+		output.append("layout(set = 2, binding = 17) uniform highp sampler2D opacity_sampler;\n");
+
+	return output;
+}
+
+std::string material_factors_ubo(const ror::Material &a_material)
+{
+	std::string output{"\nlayout(std140, set = 0, binding = 0) uniform factors\n{\t"};        // TODO: Abstract out the set and binding
+
+	// TODO: Find a way to make these factors conditional
+	if (a_material.m_base_color.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("vec4  base_color_factor;\n\t");
+	if (a_material.m_diffuse_color.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("vec4  diffuse_color_factor;\n\t");
+	if (a_material.m_specular_glossyness.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("vec4  specular_glossyness_factor;\n\t");
+	if (a_material.m_emissive.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("vec4  emissive_factor;\n\t");
+	if (a_material.m_anisotrophy_normal.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("vec3  anisotrophy_normal_factor;\n\t");
+	if (a_material.m_transmission.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("vec2  transmission_factor;\n\t");
+	if (a_material.m_sheen_color.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("vec3  sheen_color_factor;\n\t");
+	if (a_material.m_sheen_roughness.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float sheen_roughness_factor;\n\t");
+	if (a_material.m_clearcoat_normal.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("vec2  clearcoat_normal_factor;\n\t");
+	if (a_material.m_clearcoat.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float clearcoat_factor;\n\t");
+	if (a_material.m_clearcoat_roughness.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float clearcoat_roughness_factor;\n\t");
+	if (a_material.m_metallic.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float metallic_factor;\n\t");
+	if (a_material.m_roughness.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float roughness_factor;\n\t");
+	if (a_material.m_occlusion.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float occlusion_factor;\n\t");
+	if (a_material.m_normal.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float normal_factor;\n\t");
+	if (a_material.m_bent_normal.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float bent_normal_factor;\n\t");
+	if (a_material.m_height.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float height_factor;\n\t");
+	if (a_material.m_anisotrophy.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float anisotrophy_factor;\n\t");
+	if (a_material.m_opacity.m_type != ror::Material::MaterialComponentType::texture_only)
+		output.append("float opacity_factor;\n");
+
+	// TODO: The following needs some condition, add that later for subsurface scattering support
+	// if (a_material.m_subsurface_color.m_type != ror::Material::MaterialComponentType::texture_only)
+	//	output.append("\tvec4  subsurface_color_factor;\n\t");
+	// if (a_material.m_subsurface_radius.m_type != ror::Material::MaterialComponentType::texture_only)
+	//	output.append("vec4  subsurface_radius_factor;\n\t");
+	// if (a_material.m_subsurface_scattering.m_type != ror::Material::MaterialComponentType::texture_only)
+	//	output.append("float subsurface_scattering_factor;\n\t");
+	// if (a_material.m_reflectance.m_type != ror::Material::MaterialComponentType::texture_only)
+	//	output.append("float reflectance_factor;\n");
+
+	output.append("} in_factors;\n");
+	return output;
+}
+
+// TODO: Make this more intellegent
+std::string fs_set_output()
+{
+	std::string output{"\tout_color = "};
+
+	// This is not correct, need to consider factor only here as well
+	output.append("get_base_color() * ");
+	output.append("get_diffuse_color() * ");
+	output.append("get_specular_glossyness() * ");
+	output.append("get_emissive() * ");
+	output.append("get_anisotrophy_normal() * ");
+	output.append("get_transmission() * ");
+	output.append("get_sheen_color() * ");
+	output.append("get_sheen_roughness() * ");
+	output.append("get_clearcoat_normal() * ");
+	output.append("get_clearcoat() * ");
+	output.append("get_clearcoat_roughness() * ");
+	output.append("get_metallic() * ");
+	output.append("get_roughness() * ");
+	output.append("get_occlusion() * ");
+	output.append("get_normal() * ");
+	output.append("get_bent_normal() * ");
+	output.append("get_height() * ");
+	output.append("get_anisotrophy() * ");
+	output.append("get_opacity();\n");
+
+	return output;
+}
+
+std::string fs_set_main()
+{
+	std::string output{"\nvoid main()\n{\n\t"};
+
+	output.append(fs_set_output());
+
+	output.append("}\n");
+	return output;
+}
+
+std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const std::vector<ror::Material, rhi::BufferAllocator<ror::Material>> &a_materials, uint32_t a_index)
+{
+	const auto   &vertex_descriptor = a_mesh.m_attribute_vertex_descriptors[a_index];
+	ror::Material material{};        // Default material if no material available for this mesh primitive
+
+	if (a_mesh.m_material_indices[a_index] != -1)
+		material = a_materials[ror::static_cast_safe<size_t>(a_mesh.m_material_indices[a_index])];
+
+	std::string output{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
+
+	// write out inputs from vertex shader
+	output.append(rhi::fragment_shader_input_output(vertex_descriptor));
+	output.append(material_samplers(material));
+	output.append(material_factors_ubo(material));
+	output.append(texture_lookups(material));
+	output.append(fs_set_main());
+
+	// std::cout << "\nAn example texture_lookup\n";
+
+	// {
+	//	ror::Material::MaterialComponent<ror::Color4f> mc;
+	//	mc.m_has_transform = true;
+	//	mc.m_uv_map        = 1;
+	//	mc.m_type          = ror::Material::MaterialComponentType::both;
+	//	std::cout << texture_lookup(mc, "base_color") << std::endl;
+	// }
+	// {
+	//	ror::Material::MaterialComponent<float32_t> mc;
+	//	mc.m_has_transform = false;
+	//	mc.m_uv_map        = 0;
+	//	mc.m_type          = ror::Material::MaterialComponentType::both;
+	//	std::cout << texture_lookup(mc, "base_color") << std::endl;
+	// }
+	// {
+	//	ror::Material::MaterialComponent<float32_t> mc;
+	//	mc.m_has_transform = true;
+	//	mc.m_uv_map        = 0;
+	//	mc.m_type          = ror::Material::MaterialComponentType::both;
+	//	std::cout << texture_lookup(mc, "base_color") << std::endl;
+	// }
+	// {
+	//	ror::Material::MaterialComponent<ror::Color2f> mc;
+	//	mc.m_has_transform = false;
+	//	mc.m_uv_map        = 0;
+	//	mc.m_type          = ror::Material::MaterialComponentType::both;
+	//	std::cout << texture_lookup(mc, "base_color") << std::endl;
+	// }
+	// {
+	//	ror::Material::MaterialComponent<ror::Color3f> mc;
+	//	mc.m_has_transform = true;
+	//	mc.m_uv_map        = 2;
+	//	mc.m_type          = ror::Material::MaterialComponentType::texture_only;
+	//	std::cout << texture_lookup(mc, "roughness_color") << std::endl;
+	// }
+	// {
+	//	ror::Material::MaterialComponent<ror::Color3f> mc;
+	//	mc.m_has_transform = true;
+	//	mc.m_uv_map        = 2;
+	//	mc.m_type          = ror::Material::MaterialComponentType::factor_only;
+	//	std::cout << texture_lookup(mc, "normal_color") << std::endl;
+	// }
+
+	return output;
 }
 
 }        // namespace rhi
