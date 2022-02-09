@@ -1041,43 +1041,43 @@ std::string material_factors_ubo(const ror::Material &a_material)
 	std::string output{"\nlayout(std140, set = 0, binding = 0) uniform factors\n{\t"};        // TODO: Abstract out the set and binding
 
 	// TODO: Find a way to make these factors conditional
-	if (a_material.m_base_color.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_base_color.m_type == ror::Material::ComponentType::factor)
 		output.append("vec4  base_color_factor;\n\t");
-	if (a_material.m_diffuse_color.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_diffuse_color.m_type == ror::Material::ComponentType::factor)
 		output.append("vec4  diffuse_color_factor;\n\t");
-	if (a_material.m_specular_glossyness.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_specular_glossyness.m_type == ror::Material::ComponentType::factor)
 		output.append("vec4  specular_glossyness_factor;\n\t");
-	if (a_material.m_emissive.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_emissive.m_type == ror::Material::ComponentType::factor)
 		output.append("vec4  emissive_factor;\n\t");
-	if (a_material.m_anisotrophy_normal.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_anisotrophy_normal.m_type == ror::Material::ComponentType::factor)
 		output.append("vec3  anisotrophy_normal_factor;\n\t");
-	if (a_material.m_transmission.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_transmission.m_type == ror::Material::ComponentType::factor)
 		output.append("vec2  transmission_factor;\n\t");
-	if (a_material.m_sheen_color.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor)
 		output.append("vec3  sheen_color_factor;\n\t");
-	if (a_material.m_sheen_roughness.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor)
 		output.append("float sheen_roughness_factor;\n\t");
-	if (a_material.m_clearcoat_normal.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor)
 		output.append("vec2  clearcoat_normal_factor;\n\t");
-	if (a_material.m_clearcoat.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor)
 		output.append("float clearcoat_factor;\n\t");
-	if (a_material.m_clearcoat_roughness.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor)
 		output.append("float clearcoat_roughness_factor;\n\t");
-	if (a_material.m_metallic.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_metallic.m_type == ror::Material::ComponentType::factor)
 		output.append("float metallic_factor;\n\t");
-	if (a_material.m_roughness.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_roughness.m_type == ror::Material::ComponentType::factor)
 		output.append("float roughness_factor;\n\t");
-	if (a_material.m_occlusion.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_occlusion.m_type == ror::Material::ComponentType::factor)
 		output.append("float occlusion_factor;\n\t");
-	if (a_material.m_normal.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor)
 		output.append("float normal_factor;\n\t");
-	if (a_material.m_bent_normal.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_bent_normal.m_type == ror::Material::ComponentType::factor)
 		output.append("float bent_normal_factor;\n\t");
-	if (a_material.m_height.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_height.m_type == ror::Material::ComponentType::factor)
 		output.append("float height_factor;\n\t");
-	if (a_material.m_anisotrophy.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_anisotrophy.m_type == ror::Material::ComponentType::factor)
 		output.append("float anisotrophy_factor;\n\t");
-	if (a_material.m_opacity.m_type != ror::Material::ComponentType::texture)
+	if (a_material.m_opacity.m_type == ror::Material::ComponentType::factor)
 		output.append("float opacity_factor;\n");
 
 	// TODO: The following needs some condition, add that later for subsurface scattering support
@@ -1095,39 +1095,58 @@ std::string material_factors_ubo(const ror::Material &a_material)
 }
 
 // TODO: Make this more intellegent
-std::string fs_set_output()
+std::string fs_set_output(const ror::Material &a_material)
 {
 	std::string output{"\tout_color = "};
 
 	// This is not correct, need to consider factor only here as well
-	output.append("get_base_color() * ");
-	output.append("get_diffuse_color() * ");
-	output.append("get_specular_glossyness() * ");
-	output.append("get_emissive() * ");
-	output.append("get_anisotrophy_normal() * ");
-	output.append("get_transmission() * ");
-	output.append("get_sheen_color() * ");
-	output.append("get_sheen_roughness() * ");
-	output.append("get_clearcoat_normal() * ");
-	output.append("get_clearcoat() * ");
-	output.append("get_clearcoat_roughness() * ");
-	output.append("get_metallic() * ");
-	output.append("get_roughness() * ");
-	output.append("get_occlusion() * ");
-	output.append("get_normal() * ");
-	output.append("get_bent_normal() * ");
-	output.append("get_height() * ");
-	output.append("get_anisotrophy() * ");
-	output.append("get_opacity();\n");
+	if (a_material.m_base_color.m_type != ror::Material::ComponentType::none)
+		output.append("get_base_color() * ");
+	if (a_material.m_diffuse_color.m_type != ror::Material::ComponentType::none)
+		output.append("get_diffuse_color() * ");
+	if (a_material.m_specular_glossyness.m_type != ror::Material::ComponentType::none)
+		output.append("get_specular_glossyness() * ");
+	if (a_material.m_emissive.m_type != ror::Material::ComponentType::none)
+		output.append("get_emissive() * ");
+	if (a_material.m_anisotrophy_normal.m_type != ror::Material::ComponentType::none)
+		output.append("get_anisotrophy_normal() * ");
+	if (a_material.m_transmission.m_type != ror::Material::ComponentType::none)
+		output.append("get_transmission() * ");
+	if (a_material.m_sheen_color.m_type != ror::Material::ComponentType::none)
+		output.append("get_sheen_color() * ");
+	if (a_material.m_sheen_roughness.m_type != ror::Material::ComponentType::none)
+		output.append("get_sheen_roughness() * ");
+	if (a_material.m_clearcoat_normal.m_type != ror::Material::ComponentType::none)
+		output.append("get_clearcoat_normal() * ");
+	if (a_material.m_clearcoat.m_type != ror::Material::ComponentType::none)
+		output.append("get_clearcoat() * ");
+	if (a_material.m_clearcoat_roughness.m_type != ror::Material::ComponentType::none)
+		output.append("get_clearcoat_roughness() * ");
+	if (a_material.m_metallic.m_type != ror::Material::ComponentType::none)
+		output.append("get_metallic() * ");
+	if (a_material.m_roughness.m_type != ror::Material::ComponentType::none)
+		output.append("get_roughness() * ");
+	if (a_material.m_occlusion.m_type != ror::Material::ComponentType::none)
+		output.append("get_occlusion() * ");
+	if (a_material.m_normal.m_type != ror::Material::ComponentType::none)
+		output.append("get_normal() * ");
+	if (a_material.m_bent_normal.m_type != ror::Material::ComponentType::none)
+		output.append("get_bent_normal() * ");
+	if (a_material.m_height.m_type != ror::Material::ComponentType::none)
+		output.append("get_height() * ");
+	if (a_material.m_anisotrophy.m_type != ror::Material::ComponentType::none)
+		output.append("get_anisotrophy() * ");
+	if (a_material.m_opacity.m_type != ror::Material::ComponentType::none)
+		output.append("get_opacity();\n");
 
 	return output;
 }
 
-std::string fs_set_main()
+std::string fs_set_main(const ror::Material &a_material)
 {
 	std::string output{"\nvoid main()\n{\n\t"};
 
-	output.append(fs_set_output());
+	output.append(fs_set_output(a_material));
 
 	output.append("}\n");
 	return output;
@@ -1148,7 +1167,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const st
 	output.append(material_samplers(material));
 	output.append(material_factors_ubo(material));
 	output.append(texture_lookups(material));
-	output.append(fs_set_main());
+	output.append(fs_set_main(material));
 
 	// std::cout << "\nAn example texture_lookup\n";
 
