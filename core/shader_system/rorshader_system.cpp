@@ -328,22 +328,25 @@ std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_nam
 }
 
 // TODO: Should these things be conditional?
-const std::string vs_frame_common_str = R"com(
-layout(std140, set = @, binding = @) uniform frame_transform
+const std::string vs_per_view_common_str = R"com(
+layout(std140, set = @, binding = @) uniform per_view_uniform
 {
 	mat4 mvp_mat4;
-	// mat4 projection_mat4;
 	// mat4 model_mat4;
 	// mat4 view_mat4;
+	// mat4 projection;_mat4;
+	// mat4 view_projection_mat4;
+	// mat4 inverse_projection_mat4;
+	// mat4 inverse_view_projection_mat4;
 	mat3 normal_mat4;
 	// vec4 camera_pos;
 	// vec4 light_pos;
-} in_frame_transforms;
+} in_per_view_uniforms;
 )com";
 
 std::string vs_frame_common(uint32_t a_set, uint32_t a_binding)
 {
-	auto str{vs_frame_common_str};
+	auto str{vs_per_view_common_str};
 
 	replace_next_at(a_set, str);
 	replace_next_at(a_binding, str);
@@ -351,31 +354,6 @@ std::string vs_frame_common(uint32_t a_set, uint32_t a_binding)
 	return str;
 }
 
-/*
-	mat4 projection;
-	mat4 view;
-	mat4 view_projection;
-	mat4 inv_projection;
-	mat4 inv_view;
-	mat4 inv_view_projection;
-	mat4 local_view_projection;
-	mat4 inv_local_view_projection;
-
-	mat4 unjittered_view_projection;
-	mat4 unjittered_inv_view_projection;
-	mat4 unjittered_prev_view_projection;
-
-	mat4 multiview_view_projection[4];
-
-	vec3 camera_position;
-	vec3 camera_front;
-	vec3 camera_right;
-	vec3 camera_up;
-
-	float z_near;
-	float z_far;
-
-*/
 const std::string vs_skin_common_str = R"scom(
 const uint joints_count = @;
 
@@ -478,11 +456,14 @@ std::string vs_skin_position(uint32_t a_joints_weights_count)
 	return result;
 }
 
+// TODO: Create un-projected, perspective correct world position
+// vec3 wp = model * view * vertex_position;
+// wp = wp.xyz / vertex_position.w; // or something like that
 const std::string vs_set_position_str = R"spos(
 void world_transform_position(inout vec4 vertex_position)
 {
 	// vertex_position = model * view * projection * vertex_position;
-	vertex_position = in_frame_transforms.mvp_mat4 * vertex_position;
+	vertex_position = in_per_view_uniforms.mvp_mat4 * vertex_position;
 }
 
 void set_position()
@@ -502,7 +483,7 @@ void set_position()
 const std::string vs_set_normal_str = R"snor(
 void world_transform_normal(inout vec3 vertex_normal)
 {
-	vertex_normal = in_frame_transforms.normal_mat4 * vertex_normal;
+	vertex_normal = in_per_view_uniforms.normal_mat4 * vertex_normal;
 }
 
 void set_normal()
@@ -639,7 +620,7 @@ std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descript
 			if (out_format_iter != attrib_in_out_format.end())
 				in_out_format = out_format_iter->second;
 
-			if (semantic < rhi::BufferSemantic::vertex_index)        // Only support vertex attributes that are bellow vertex_index, FIXME: what happens to custom ones?
+			if (semantic < rhi::BufferSemantic::vertex_index)        // Only need vertex attributes that are bellow vertex_index, FIXME: what happens to custom ones?
 			{
 				auto location          = attrib.location();
 				auto in_out_format_str = attribute_format(in_out_format);
@@ -807,14 +788,8 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 
 // Vertex shader methods finish here, now starts fragment shader methods
 
-std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset, uint32_t a_target_offset, std::string a_prefix)
+std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descriptor)
 {
-	// (void) a_vertex_descriptor;
-	// (void) a_material;
-	// (void) a_location_offset;
-	// (void) a_target_offset;
-	// (void) a_prefix;
-
 	std::string result{};
 
 	auto &attributes = a_vertex_descriptor.attributes();
@@ -826,16 +801,21 @@ std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descri
 	for (auto &attrib : attributes)
 	{
 		auto semantic = attrib.semantics();
-		if (semantic < rhi::BufferSemantic::vertex_index)        // Only support vertex attributes that are bellow vertex_index, FIXME: what happens to custom ones?
+		if (semantic < rhi::BufferSemantic::vertex_bone_id_0)        // Only need vertex attributes that are bellow vertex_bone_id_0, FIXME: what happens to custom ones?
 		{
-			auto location     = attrib.location();
-			auto format       = attrib.format();
-			auto format_str   = attribute_format(format);
+			auto       location        = attrib.location();
+			auto       in_out_format   = attrib.format();
+			const auto out_format_iter = attrib_in_out_format.find(semantic);
+
+			if (out_format_iter != attrib_in_out_format.end())
+				in_out_format = out_format_iter->second;
+
+			auto format_str   = attribute_format(in_out_format);
 			auto semantic_str = get_format_semantic(semantic);
 
-			std::string first_half{layout + std::to_string(location + a_location_offset) + ")"};
+			std::string first_half{layout + std::to_string(location) + ")"};
 			std::string middle_half{precision + format_str};
-			std::string second_half{(a_prefix != "" ? "_" + a_prefix : "") + "_" + semantic_str + (a_prefix != "" ? std::to_string(a_target_offset) : "") + ";\n"};
+			std::string second_half{"_" + semantic_str + ";\n"};
 
 			std::string line{first_half + in + middle_half + in + second_half};
 			result.append(line);
@@ -883,7 +863,7 @@ The following will make something like
 
 void get_base_color()
 {
-	vec3 base_color_uv = vec3(out_vertex_texture_coord_1, 1.0);
+	vec3 base_color_uv = vec3(in_vertex_texture_coord_1, 1.0);
 	base_color_uv = base_color_uv_transform * base_color_uv;
 	base_color = texture(base_color_sampler, base_color_uv.xy) * vec4(base_color_factor, 1.0);
 }
@@ -898,19 +878,29 @@ std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_c
 	if (a_mat_comp.m_type != ror::Material::ComponentType::none)
 	{
 		std::string output{"\nvec4 get_" + a_comp_name + "()\n{\n\t"};
-		std::string factor_cast{factor_vec4_cast<decltype(a_mat_comp.m_factor)>({a_comp_name + "_factor"})};
+		std::string factor_cast{factor_vec4_cast<decltype(a_mat_comp.m_factor)>({"in_factors." + a_comp_name + "_factor"})};
 
 		if (a_mat_comp.m_type == ror::Material::ComponentType::factor)
 			output.append("return " + factor_cast);
 		else
 		{
 			output.append({"vec3 " + a_comp_name + "_uv = vec3(" +
-						   (a_mat_comp.m_uv_map == 0 ? "out_vertex_texture_coord_0" : (a_mat_comp.m_uv_map == 1 ? "out_vertex_texture_coord_1" : "out_vertex_texture_coord_2")) +
+						   (a_mat_comp.m_uv_map == 0 ? "in_vertex_texture_coord_0" : (a_mat_comp.m_uv_map == 1 ? "in_vertex_texture_coord_1" : "in_vertex_texture_coord_2")) +
 						   ", 1.0);\n\t"});
 
 			// Second work out if it has uv transform or not
 			if (a_mat_comp.m_has_transform)
+			{
+				// Encode the matrix into the shader
+				output.append("const mat3 " + a_comp_name + "_uv_transform  = mat3(");
+
+				for (uint32_t i = 0; i < 8; ++i)
+					output.append(std::to_string(a_mat_comp.m_transform.m_values[i]) + ",");
+
+				output.append(std::to_string(a_mat_comp.m_transform.m_values[8]) + ");\n\t");
+
 				output.append(a_comp_name + "_uv = " + a_comp_name + "_uv_transform * " + a_comp_name + "_uv;\n\t");
+			}
 
 			// TODO: Fix a_comp_name type here, it might not be vec4 always, it could be a roughness in R only
 			// Third check if we need to apply _factor and what's the type
@@ -992,92 +982,98 @@ std::string setup_and_load_textures()
 
 std::string material_samplers(const ror::Material &a_material)
 {
-	std::string output{"\n"};        // TODO: Abstract out the set and binding for all of the below
+	std::string       output{"\n"};
+	const std::string set_binding{"layout(set = 0, binding = "};           // TODO: Abstract out the set and binding for all of the below
+	const std::string type_precision{") uniform highp sampler2D "};        // TODO: Abstract out precision
+	uint32_t          binding = 0;
+
+#define output_append(x) output.append(set_binding + std::to_string(binding++) + type_precision + x)
 
 	if (a_material.m_base_color.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 0) uniform highp sampler2D base_color_sampler;\n\t");
+		output_append("base_color_sampler;\n");
 	if (a_material.m_diffuse_color.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 1) uniform highp sampler2D diffuse_color_sampler;\n\t");
+		output_append("diffuse_color_sampler;\n");
 	if (a_material.m_specular_glossyness.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 2) uniform highp sampler2D specular_glossyness_sampler;\n\t");
+		output_append("specular_glossyness_sampler;\n");
 	if (a_material.m_emissive.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 3) uniform highp sampler2D emissive_sampler;\n\t");
+		output_append("emissive_sampler;\n");
 	if (a_material.m_anisotrophy_normal.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 4) uniform highp sampler2D anisotrophy_normal_sampler;\n\t");
+		output_append("anisotrophy_normal_sampler;\n");
 	if (a_material.m_transmission.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 5) uniform highp sampler2D transmission_sampler;\n\t");
+		output_append("transmission_sampler;\n");
 	if (a_material.m_sheen_color.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 6) uniform highp sampler2D sheen_color_sampler;\n\t");
+		output_append("sheen_color_sampler;\n");
 	if (a_material.m_sheen_roughness.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 7) uniform highp sampler2D sheen_roughness_sampler;\n\t");
+		output_append("sheen_roughness_sampler;\n");
 	if (a_material.m_clearcoat_normal.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 8) uniform highp sampler2D clearcoat_normal_sampler;\n\t");
+		output_append("clearcoat_normal_sampler;\n");
 	if (a_material.m_clearcoat.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 9) uniform highp sampler2D clearcoat_sampler;\n\t");
+		output_append("clearcoat_sampler;\n");
 	if (a_material.m_clearcoat_roughness.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 10) uniform highp sampler2D clearcoat_roughness_sampler;\n\t");
+		output_append("clearcoat_roughness_sampler;\n");
 	if (a_material.m_metallic.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 11) uniform highp sampler2D metallic_sampler;\n\t");
+		output_append("metallic_sampler;\n");
 	if (a_material.m_roughness.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 12) uniform highp sampler2D roughness_sampler;\n\t");
+		output_append("roughness_sampler;\n");
 	if (a_material.m_occlusion.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 13) uniform highp sampler2D occlusion_sampler;\n\t");
+		output_append("occlusion_sampler;\n");
 	if (a_material.m_normal.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 14) uniform highp sampler2D normal_sampler;\n\t");
+		output_append("normal_sampler;\n");
 	if (a_material.m_bent_normal.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 15) uniform highp sampler2D bent_normal_sampler;\n\t");
+		output_append("bent_normal_sampler;\n");
 	if (a_material.m_height.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 16) uniform highp sampler2D height_sampler;\n\t");
+		output_append("height_sampler;\n");
 	if (a_material.m_anisotrophy.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 17) uniform highp sampler2D anisotrophy_sampler;\n\t");
+		output_append("anisotrophy_sampler;\n");
 	if (a_material.m_opacity.m_texture.m_handle != -1)
-		output.append("layout(set = 2, binding = 17) uniform highp sampler2D opacity_sampler;\n");
+		output_append("opacity_sampler;\n");
 
 	return output;
 }
 
 std::string material_factors_ubo(const ror::Material &a_material)
 {
-	std::string output{"\nlayout(std140, set = 0, binding = 0) uniform factors\n{\t"};        // TODO: Abstract out the set and binding
+	std::string result{"\nlayout(std140, set = 1, binding = 0) uniform factors\n{\n\t"};        // TODO: Abstract out the set and binding
+	std::string output{};
 
 	// TODO: Find a way to make these factors conditional
-	if (a_material.m_base_color.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_base_color.m_type == ror::Material::ComponentType::factor || a_material.m_base_color.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec4  base_color_factor;\n\t");
-	if (a_material.m_diffuse_color.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_diffuse_color.m_type == ror::Material::ComponentType::factor || a_material.m_diffuse_color.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec4  diffuse_color_factor;\n\t");
-	if (a_material.m_specular_glossyness.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_specular_glossyness.m_type == ror::Material::ComponentType::factor || a_material.m_specular_glossyness.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec4  specular_glossyness_factor;\n\t");
-	if (a_material.m_emissive.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_emissive.m_type == ror::Material::ComponentType::factor || a_material.m_emissive.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec4  emissive_factor;\n\t");
-	if (a_material.m_anisotrophy_normal.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_anisotrophy_normal.m_type == ror::Material::ComponentType::factor || a_material.m_anisotrophy_normal.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec3  anisotrophy_normal_factor;\n\t");
-	if (a_material.m_transmission.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_transmission.m_type == ror::Material::ComponentType::factor || a_material.m_transmission.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec2  transmission_factor;\n\t");
-	if (a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec3  sheen_color_factor;\n\t");
-	if (a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float sheen_roughness_factor;\n\t");
-	if (a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec2  clearcoat_normal_factor;\n\t");
-	if (a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float clearcoat_factor;\n\t");
-	if (a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float clearcoat_roughness_factor;\n\t");
-	if (a_material.m_metallic.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_metallic.m_type == ror::Material::ComponentType::factor || a_material.m_metallic.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float metallic_factor;\n\t");
-	if (a_material.m_roughness.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_roughness.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float roughness_factor;\n\t");
-	if (a_material.m_occlusion.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_occlusion.m_type == ror::Material::ComponentType::factor || a_material.m_occlusion.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float occlusion_factor;\n\t");
-	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor || a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float normal_factor;\n\t");
-	if (a_material.m_bent_normal.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_bent_normal.m_type == ror::Material::ComponentType::factor || a_material.m_bent_normal.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float bent_normal_factor;\n\t");
-	if (a_material.m_height.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_height.m_type == ror::Material::ComponentType::factor || a_material.m_height.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float height_factor;\n\t");
-	if (a_material.m_anisotrophy.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_anisotrophy.m_type == ror::Material::ComponentType::factor || a_material.m_anisotrophy.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float anisotrophy_factor;\n\t");
-	if (a_material.m_opacity.m_type == ror::Material::ComponentType::factor)
+	if (a_material.m_opacity.m_type == ror::Material::ComponentType::factor || a_material.m_opacity.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float opacity_factor;\n");
 
 	// TODO: The following needs some condition, add that later for subsurface scattering support
@@ -1090,14 +1086,20 @@ std::string material_factors_ubo(const ror::Material &a_material)
 	// if (a_material.m_reflectance.m_type != ror::Material::MaterialComponentType::texture_only)
 	//	output.append("float reflectance_factor;\n");
 
-	output.append("} in_factors;\n");
-	return output;
+	if (output.empty())
+		return "";
+
+	result.append(output);
+	result.append("} in_factors;\n");
+
+	return result;
 }
 
 // TODO: Make this more intellegent
 std::string fs_set_output(const ror::Material &a_material)
 {
-	std::string output{"\tout_color = "};
+	std::string result{"\tout_color = "};
+	std::string output{};
 
 	// This is not correct, need to consider factor only here as well
 	if (a_material.m_base_color.m_type != ror::Material::ComponentType::none)
@@ -1139,12 +1141,17 @@ std::string fs_set_output(const ror::Material &a_material)
 	if (a_material.m_opacity.m_type != ror::Material::ComponentType::none)
 		output.append("get_opacity();\n");
 
-	return output;
+	if (output.empty())
+		result.append(" vec4(1.0);");
+	else
+		result.append(output);
+
+	return result;
 }
 
 std::string fs_set_main(const ror::Material &a_material)
 {
-	std::string output{"\nvoid main()\n{\n\t"};
+	std::string output{"\nvoid main()\n{\n"};
 
 	output.append(fs_set_output(a_material));
 
@@ -1152,13 +1159,13 @@ std::string fs_set_main(const ror::Material &a_material)
 	return output;
 }
 
-std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const std::vector<ror::Material, rhi::BufferAllocator<ror::Material>> &a_materials, uint32_t a_index)
+std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const std::vector<ror::Material, rhi::BufferAllocator<ror::Material>> &a_materials, uint32_t a_primitive_index)
 {
-	const auto   &vertex_descriptor = a_mesh.m_attribute_vertex_descriptors[a_index];
+	const auto   &vertex_descriptor = a_mesh.m_attribute_vertex_descriptors[a_primitive_index];
 	ror::Material material{};        // Default material if no material available for this mesh primitive
 
-	if (a_mesh.m_material_indices[a_index] != -1)
-		material = a_materials[ror::static_cast_safe<size_t>(a_mesh.m_material_indices[a_index])];
+	if (a_mesh.m_material_indices[a_primitive_index] != -1)
+		material = a_materials[ror::static_cast_safe<size_t>(a_mesh.m_material_indices[a_primitive_index])];
 
 	std::string output{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 
