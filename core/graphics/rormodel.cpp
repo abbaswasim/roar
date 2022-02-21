@@ -126,6 +126,7 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 
 	cgltf_result res = cgltf_load_buffer_base64(a_options, data_size, data_start, reinterpret_cast<void **>(&data));
 	assert(res == cgltf_result_success && "Base64 decoding failed for image");
+	(void) res;
 
 	rhi::read_texture_from_memory(data, data_size, ti);
 
@@ -145,6 +146,7 @@ rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a
 	ResourceExtension extension{extension_from_mimetype(a_mimetype)};
 	assert(extension != ResourceExtension::unknown && "Couldn't find extension from mimetype");
 	assert(extension == ResourceExtension::texture_png || extension == ResourceExtension::texture_jpeg && "Unsupported extension in buffer view");
+	(void) extension;
 
 	rhi::TextureImage ti;
 
@@ -687,6 +689,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 			{
 				auto res = cgltf_validate(data);
 				assert(res == cgltf_result_success && "Invalid glTF data");
+				(void) res;
 			}
 
 			// Read all the samplers
@@ -1271,6 +1274,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 							assert(format == rhi::VertexFormat::float32_1 && attrib_byte_size == 4 && "Animation sampler input value must be in float scalar 4 bytes");
 							assert(anim_sampler_accessor->buffer_view->stride <= attrib_byte_size && "Looks like sampler input data is interleaved, not supported");
+							(void) format;
+							(void) attrib_byte_size;
 						}
 
 						animation_sampler.m_input.resize(anim_sampler_accessor->count);        // Don't need to multiply attrib_byte_size because m_input is float32_t
@@ -1289,6 +1294,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						{
 							auto attrib_byte_size = cgltf_calc_size(anim_sampler_accessor->type, anim_sampler_accessor->component_type);
 							assert(anim_sampler_accessor->buffer_view->stride <= attrib_byte_size && "Looks like sampler output data is interleaved, not supported");
+							(void) attrib_byte_size;
 						}
 						auto component_size  = cgltf_component_size(anim_sampler_accessor->component_type);        // Bytes
 						auto component_count = cgltf_num_components(anim_sampler_accessor->type);                  // vec2, vec3

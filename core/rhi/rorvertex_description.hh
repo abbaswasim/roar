@@ -68,6 +68,7 @@ FORCE_INLINE VertexAttribute &VertexDescriptor::attribute(rhi::BufferSemantic a_
 	{
 		auto key = this->m_mapping.find(a_semantic_key);
 		assert(key != this->m_mapping.end() && "A semantic key requested but it doesn't exist in the map");
+		(void) key;
 	}
 	return this->m_mapping.at(a_semantic_key).first;
 }
@@ -78,6 +79,7 @@ FORCE_INLINE VertexLayout &VertexDescriptor::layout(rhi::BufferSemantic a_semant
 	{
 		auto key = this->m_mapping.find(a_semantic_key);
 		assert(key != this->m_mapping.end() && "A semantic key requested but it doesn't exist in the map");
+		(void) key;
 	}
 	return this->m_mapping.at(a_semantic_key).second;
 }

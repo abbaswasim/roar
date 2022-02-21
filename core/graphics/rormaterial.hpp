@@ -89,7 +89,7 @@ class ROAR_ENGINE_ITEM Material final
 	Component<ror::Color4f> m_diffuse_color{};                                //! Specular Glossyness specific diffuse color, either will have a factor or texture not both default of (1.0, 1.0, 1.0, 1.0)
 	Component<ror::Color4f> m_specular_glossyness{};                          //! Specular Glossyness specific vec3 Specular and float Glossyness factors default (1.0, 1.0, 1.0) and 1.0 or provided via a texture
 	Component<ror::Color4f> m_emissive{};                                     //! Used for lit objects, a texture and emissive RGB color with emissive strength in A component of the factor
-	Component<ror::Color4f> m_anisotrophy{};                                  //! xyz is directions of anisotophy, mutually exclusive with texture, w is factor [-1 1] defines if anisotrophy is along or perpendicular to direction
+	Component<ror::Color4f> m_anisotropy{};                                   //! xyz is directions of anisotophy, mutually exclusive with texture, w is factor [-1 1] defines if anisotrophy is along or perpendicular to direction
 	Component<ror::Color2f> m_transmission{};                                 //! 1.0 means stuff is fully transparent, Also called Opacity in UE4, factor is transmission factor and internal roughness, m_roughness is external surface roughness
 	Component<ror::Color3f> m_sheen_color{};                                  //! What should be the color of the sheen and its roughness. Roughness means either object color or light color
 	Component<float32_t>    m_sheen_roughness{};                              //! What should be the color of the sheen and its roughness. Roughness means either object color or light color
@@ -101,7 +101,7 @@ class ROAR_ENGINE_ITEM Material final
 	Component<float32_t>    m_occlusion{};                                    //! Occlusion map factor is the strength
 	Component<float32_t>    m_normal{};                                       //! Normal map, Used for normal mapping and bump mapping, factor id the normal scale
 	Component<float32_t>    m_bent_normal{};                                  //! Map of median rays of un-occluded normal of a hemisphere around a texel, can be used for AO etc
-	Component<float32_t>    m_height{};                                       //! Used for bump mapping
+	Component<float32_t>    m_height{};                                       //! Height map that ca be used for bump mapping, factor is the scale
 	Component<float32_t>    m_opacity{};                                      //! Map to create cutouts, or a constant factor as alpha_cutoff_threshold of {0.5} default, also called Mask texture
 	Component<ror::Color4f> m_subsurface_color{};                             //! Whats the color of scattering, could also be a texture map
 	ror::Color4f            m_subsurface{0.0f};                               //! Reach in each component, red is higher compared to blue and green (1.0, 0.2, 0.1) for human skin, w is scattering like how much SSS do we want
@@ -111,7 +111,7 @@ class ROAR_ENGINE_ITEM Material final
 	bool                    m_double_sided{false};                            //! Should this be rendered with double sided triangle state
 	bool                    m_layered{false};                                 //! Is this material part of a layerd material chain
 	uint8_t                 m_material_name[30];                              //! Can't use string here otherwise not trivially_copyable
-	float32_t               m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, note we don't need ior here because F0= ((ior − 1 ) / ( ior + 1 ))²
+	float32_t               m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, we use only F0 from F0=((ior − 1) / (ior + 1))²
 																			  //! Note we don't need F90 coz Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
 };
 

@@ -213,7 +213,13 @@ class ROAR_ENGINE_ITEM JobHandle final
 
 	FORCE_INLINE _future_type data()
 	{
+		assert(this->m_future.valid() && "Calling get on invalid future");
 		return this->m_future.get();        // NOTE: There is a move happening here, if move is expensive for the return type of the job, fix this
+	}
+
+	FORCE_INLINE void wait()
+	{
+		this->data();
 	}
 
   protected:
@@ -396,7 +402,11 @@ class ROAR_ENGINE_ITEM JobSystem final
 
 	FORCE_INLINE void stop()
 	{
-		this->m_stop.test_and_set();
+		{
+			std::lock_guard<std::mutex> lock{this->m_lock};
+			this->m_stop.test_and_set();
+		}
+
 		this->m_condition_variable.notify_all();
 
 		for (auto &worker : this->m_workers)

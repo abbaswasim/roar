@@ -353,7 +353,7 @@ TEST(JobSystemTest, job_group_test)
 		}
 	};
 
-	uint32_t              dataCount = 10000;
+	uint32_t              dataCount = 100000;
 	ror::Timer            timer;
 	int64_t               loop_time{0};
 	int64_t               threads_time{0};

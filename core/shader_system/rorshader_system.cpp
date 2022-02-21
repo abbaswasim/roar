@@ -824,7 +824,7 @@ std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descri
 
 	// TODO: Change this based on some G-Buffer descriptor when available to something like
 	// vec4, vec3, vec2 and vec2 of base_color, emissive, normal, PBR etc, based on G-buffer layout
-	std::string output{"layout (location = 0) out vec4 out_color;\n"};
+	std::string output{"\nlayout (location = 0) out vec4 out_color;\n"};
 	result.append(output);
 
 	return result;
@@ -929,7 +929,7 @@ std::string texture_lookups(const ror::Material &a_material)
 	output.append(texture_lookup(a_material.m_diffuse_color, "diffuse_color"));
 	output.append(texture_lookup(a_material.m_specular_glossyness, "specular_glossyness"));
 	output.append(texture_lookup(a_material.m_emissive, "emissive"));
-	output.append(texture_lookup(a_material.m_anisotrophy_normal, "anisotrophy_normal"));
+	output.append(texture_lookup(a_material.m_anisotropy, "anisotrophy"));
 	output.append(texture_lookup(a_material.m_transmission, "transmission"));
 	output.append(texture_lookup(a_material.m_sheen_color, "sheen_color"));
 	output.append(texture_lookup(a_material.m_sheen_roughness, "sheen_roughness"));
@@ -942,7 +942,7 @@ std::string texture_lookups(const ror::Material &a_material)
 	output.append(texture_lookup(a_material.m_normal, "normal"));
 	output.append(texture_lookup(a_material.m_bent_normal, "bent_normal"));
 	output.append(texture_lookup(a_material.m_height, "height"));
-	output.append(texture_lookup(a_material.m_anisotrophy, "anisotrophy"));
+	output.append(texture_lookup(a_material.m_anisotropy, "anisotrophy"));
 	output.append(texture_lookup(a_material.m_opacity, "opacity"));
 
 	return output;
@@ -997,8 +997,8 @@ std::string material_samplers(const ror::Material &a_material)
 		output_append("specular_glossyness_sampler;\n");
 	if (a_material.m_emissive.m_texture.m_handle != -1)
 		output_append("emissive_sampler;\n");
-	if (a_material.m_anisotrophy_normal.m_texture.m_handle != -1)
-		output_append("anisotrophy_normal_sampler;\n");
+	if (a_material.m_anisotropy.m_texture.m_handle != -1)
+		output_append("anisotrophy_sampler;\n");
 	if (a_material.m_transmission.m_texture.m_handle != -1)
 		output_append("transmission_sampler;\n");
 	if (a_material.m_sheen_color.m_texture.m_handle != -1)
@@ -1023,7 +1023,7 @@ std::string material_samplers(const ror::Material &a_material)
 		output_append("bent_normal_sampler;\n");
 	if (a_material.m_height.m_texture.m_handle != -1)
 		output_append("height_sampler;\n");
-	if (a_material.m_anisotrophy.m_texture.m_handle != -1)
+	if (a_material.m_anisotropy.m_texture.m_handle != -1)
 		output_append("anisotrophy_sampler;\n");
 	if (a_material.m_opacity.m_texture.m_handle != -1)
 		output_append("opacity_sampler;\n");
@@ -1045,8 +1045,8 @@ std::string material_factors_ubo(const ror::Material &a_material)
 		output.append("vec4  specular_glossyness_factor;\n\t");
 	if (a_material.m_emissive.m_type == ror::Material::ComponentType::factor || a_material.m_emissive.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec4  emissive_factor;\n\t");
-	if (a_material.m_anisotrophy_normal.m_type == ror::Material::ComponentType::factor || a_material.m_anisotrophy_normal.m_type == ror::Material::ComponentType::factor_texture)
-		output.append("vec3  anisotrophy_normal_factor;\n\t");
+	if (a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor || a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
+		output.append("vec4  anisotrophy_factor;\n\t");
 	if (a_material.m_transmission.m_type == ror::Material::ComponentType::factor || a_material.m_transmission.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("vec2  transmission_factor;\n\t");
 	if (a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor_texture)
@@ -1071,7 +1071,7 @@ std::string material_factors_ubo(const ror::Material &a_material)
 		output.append("float bent_normal_factor;\n\t");
 	if (a_material.m_height.m_type == ror::Material::ComponentType::factor || a_material.m_height.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float height_factor;\n\t");
-	if (a_material.m_anisotrophy.m_type == ror::Material::ComponentType::factor || a_material.m_anisotrophy.m_type == ror::Material::ComponentType::factor_texture)
+	if (a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor || a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float anisotrophy_factor;\n\t");
 	if (a_material.m_opacity.m_type == ror::Material::ComponentType::factor || a_material.m_opacity.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float opacity_factor;\n");
@@ -1101,7 +1101,6 @@ std::string fs_set_output(const ror::Material &a_material)
 	std::string result{"\tout_color = "};
 	std::string output{};
 
-	// This is not correct, need to consider factor only here as well
 	if (a_material.m_base_color.m_type != ror::Material::ComponentType::none)
 		output.append("get_base_color() * ");
 	if (a_material.m_diffuse_color.m_type != ror::Material::ComponentType::none)
@@ -1110,8 +1109,8 @@ std::string fs_set_output(const ror::Material &a_material)
 		output.append("get_specular_glossyness() * ");
 	if (a_material.m_emissive.m_type != ror::Material::ComponentType::none)
 		output.append("get_emissive() * ");
-	if (a_material.m_anisotrophy_normal.m_type != ror::Material::ComponentType::none)
-		output.append("get_anisotrophy_normal() * ");
+	if (a_material.m_anisotropy.m_type != ror::Material::ComponentType::none)
+		output.append("get_anisotrophy() * ");
 	if (a_material.m_transmission.m_type != ror::Material::ComponentType::none)
 		output.append("get_transmission() * ");
 	if (a_material.m_sheen_color.m_type != ror::Material::ComponentType::none)
@@ -1136,7 +1135,7 @@ std::string fs_set_output(const ror::Material &a_material)
 		output.append("get_bent_normal() * ");
 	if (a_material.m_height.m_type != ror::Material::ComponentType::none)
 		output.append("get_height() * ");
-	if (a_material.m_anisotrophy.m_type != ror::Material::ComponentType::none)
+	if (a_material.m_anisotropy.m_type != ror::Material::ComponentType::none)
 		output.append("get_anisotrophy() * ");
 	if (a_material.m_opacity.m_type != ror::Material::ComponentType::none)
 		output.append("get_opacity();\n");
