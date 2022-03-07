@@ -327,26 +327,52 @@ std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_nam
 	return str;
 }
 
-// TODO: Should these things be conditional?
-const std::string vs_per_view_common_str = R"com(
+// TODO: These should be conditional
+// There should be per_view vs per_renderable uniforms, view requires many more matrices while renderable only needs MVP, Normal matrices
+// TODO: Separate this by view and renderable
+const std::string per_view_common_str = R"com(
 layout(std140, set = @, binding = @) uniform per_view_uniform
 {
 	mat4 mvp_mat4;
-	// mat4 model_mat4;
-	// mat4 view_mat4;
-	// mat4 projection;_mat4;
-	// mat4 view_projection_mat4;
-	// mat4 inverse_projection_mat4;
-	// mat4 inverse_view_projection_mat4;
+	mat4 model_mat4;
+	mat4 view_mat4;
+	mat4 projection_mat4;
+	mat4 view_projection_mat4;
+	mat4 inverse_projection_mat4;
+	mat4 inverse_view_projection_mat4;
 	mat3 normal_mat4;
-	// vec4 camera_pos;
-	// vec4 light_pos;
+	vec3 camera_position;
 } in_per_view_uniforms;
 )com";
 
-std::string vs_frame_common(uint32_t a_set, uint32_t a_binding)
+std::string per_view_common(uint32_t a_set, uint32_t a_binding)
 {
-	auto str{vs_per_view_common_str};
+	auto str{per_view_common_str};
+
+	replace_next_at(a_set, str);
+	replace_next_at(a_binding, str);
+
+	return str;
+}
+
+const std::string per_frame_common_str = R"com(
+layout(std140, set = @, binding = @) uniform per_frame_uniform
+{
+	bool force_opaque;
+	bool debug_all;
+	bool debug_normals;
+	bool debug_positions;
+	bool debug_tangents;
+	bool debug_base_color;
+	bool debug_brdf_visibility;
+	bool debug_brdf_occlusion;
+	bool debug_brdf_fresnel;
+} in_per_frame_uniforms;
+)com";
+
+std::string per_frame_common(uint32_t a_set, uint32_t a_binding)
+{
+	auto str{per_frame_common_str};
 
 	replace_next_at(a_set, str);
 	replace_next_at(a_binding, str);
@@ -372,7 +398,7 @@ layout(std140, set = @, binding = @) uniform joint_transform
 
 const std::string vs_skin_common_normal_str = R"scomn(
 // Source filament shaders from https://google.github.io/filament/Filament.html
-vec3 transform_normal(vec3 normal, uint index)
+vec3 skin_normal(vec3 normal, uint index)
 {
 	vec4 rotation      = in_joint_transforms.joint_transforms[index].rotation;
 	vec3 scale_inverse = in_joint_transforms.joint_transforms[index].scale_inverse;
@@ -385,7 +411,7 @@ vec3 transform_normal(vec3 normal, uint index)
 )scomn";
 
 const std::string vs_skin_common_position_str = R"scomp(
-vec3 transform_position(vec3 vertex, uint index)
+vec3 skin_position(vec3 vertex, uint index)
 {
 	vec4 rotation    = in_joint_transforms.joint_transforms[index].rotation;
 	vec3 translation = in_joint_transforms.joint_transforms[index].translation;
@@ -424,34 +450,34 @@ std::string vs_skin_common(uint32_t a_joints_count, uint32_t a_joint_set, uint32
 
 const std::string vs_skin_normal_header_str{"\nvoid skin_normal(inout vec3 normal)\n{"};
 const std::string vs_skin_normal_str = R"ncom(
-	normal = transform_normal(normal, in_vertex_bone_id_@.x) * in_vertex_weight_@.x +
-			 transform_normal(normal, in_vertex_bone_id_@.y) * in_vertex_weight_@.y +
-			 transform_normal(normal, in_vertex_bone_id_@.z) * in_vertex_weight_@.z +
-			 transform_normal(normal, in_vertex_bone_id_@.w) * in_vertex_weight_@.w;
+	normal = skin_normal(normal, in_vertex_bone_id_@.x) * in_vertex_weight_@.x +
+			 skin_normal(normal, in_vertex_bone_id_@.y) * in_vertex_weight_@.y +
+			 skin_normal(normal, in_vertex_bone_id_@.z) * in_vertex_weight_@.z +
+			 skin_normal(normal, in_vertex_bone_id_@.w) * in_vertex_weight_@.w;
 )ncom";
 
 std::string vs_skin_normal(uint32_t a_joints_weights_count)
 {
 	auto result{vs_skin_normal_header_str};
 	append_count_times(a_joints_weights_count, 8, result, vs_skin_normal_str);
-	result.append("}");
+	result.append("}\n");
 
 	return result;
 }
 
 const std::string vs_skin_position_header_str{"\nvoid skin_position(inout vec3 position) \n{"};
 const std::string vs_skin_position_str = R"pcom(
-	position = transform_position(position, in_vertex_bone_id_@.x) * in_vertex_weight_@.x +
-			   transform_position(position, in_vertex_bone_id_@.y) * in_vertex_weight_@.y +
-			   transform_position(position, in_vertex_bone_id_@.z) * in_vertex_weight_@.z +
-			   transform_position(position, in_vertex_bone_id_@.w) * in_vertex_weight_@.w;
+	position = skin_position(position, in_vertex_bone_id_@.x) * in_vertex_weight_@.x +
+			   skin_position(position, in_vertex_bone_id_@.y) * in_vertex_weight_@.y +
+			   skin_position(position, in_vertex_bone_id_@.z) * in_vertex_weight_@.z +
+			   skin_position(position, in_vertex_bone_id_@.w) * in_vertex_weight_@.w;
 )pcom";
 
 std::string vs_skin_position(uint32_t a_joints_weights_count)
 {
 	auto result{vs_skin_position_header_str};
 	append_count_times(a_joints_weights_count, 8, result, vs_skin_position_str);
-	result.append("}");
+	result.append("}\n");
 
 	return result;
 }
@@ -707,7 +733,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	}
 
 	// Write out common methods
-	result.append(vs_frame_common(0, 0));        // TODO: Abstract out set and binding
+	result.append(per_view_common(0, 0));        // TODO: Abstract out set and binding
 
 	// Only add morph common if mesh has weights and has morph targets
 	if (mesh.m_morph_weights.size() > 0 && vertex_target_descriptor.size() > 0)
@@ -788,6 +814,64 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 
 // Vertex shader methods finish here, now starts fragment shader methods
 
+// TODO: Work out the vec3 padding issues in this UBO
+const std::string fs_directional_light_common_str = R"com(
+const uint directional_lights_count = @;
+struct DirectionalLight
+{
+	vec3  color;
+	vec3  direction;
+	float intensity;
+};
+
+layout(std140, set = @, binding = @) uniform directional_light_uniform
+{
+	DirectionalLight lights[directional_lights_count];
+} in_directional_light_uniforms;
+)com";
+
+const std::string fs_point_light_common_str = R"com(
+const uint point_lights_count = @;
+struct PointLight
+{
+	vec3  color;
+	vec3  position;
+	float intensity;
+};
+
+layout(std140, set = @, binding = @) uniform point_light_uniform
+{
+	PointLight lights[point_lights_count];
+} in_point_light_uniforms;
+)com";
+
+const std::string fs_spot_light_common_str = R"com(
+const uint spot_lights_count = @;
+struct SpotLight
+{
+	vec3  color;
+	vec3  position;
+	vec3  direction;
+	float intensity;
+	float inner_angle;
+	float outer_angle;
+};
+
+layout(std140, set = @, binding = @) uniform spot_light_uniform
+{
+	SpotLight lights[spot_lights_count];
+} in_spot_light_uniforms;
+)com";
+
+std::string fs_light_common(uint32_t a_lights_count, uint32_t a_set, uint32_t a_binding, std::string light_code)
+{
+	replace_next_at(a_lights_count, light_code);
+	replace_next_at(a_set, light_code);
+	replace_next_at(a_binding, light_code);
+
+	return light_code;
+}
+
 std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descriptor)
 {
 	std::string result{};
@@ -822,99 +906,121 @@ std::string fragment_shader_input_output(const VertexDescriptor &a_vertex_descri
 		}
 	}
 
-	// TODO: Change this based on some G-Buffer descriptor when available to something like
-	// vec4, vec3, vec2 and vec2 of base_color, emissive, normal, PBR etc, based on G-buffer layout
-	std::string output{"\nlayout (location = 0) out vec4 out_color;\n"};
-	result.append(output);
+	// layout (location = 0) out vec4 out_color; is defined in main.frag.glsl
 
 	return result;
 }
 
 template <typename _factor_type>
-std::string factor_vec4_cast(const std::string &)
-{}
-
-template <>
-std::string factor_vec4_cast<ror::Color4f>(const std::string &a_comp_name)
+constexpr const char *factor_cast()
 {
-	return "vec4(" + a_comp_name + ")";
+	return "";
 }
 
 template <>
-std::string factor_vec4_cast<ror::Color3f>(const std::string &a_comp_name)
+constexpr const char *factor_cast<ror::Color4f>()
 {
-	return "vec4(" + a_comp_name + ", 1.0)";
+	return "vec4";
 }
 
 template <>
-std::string factor_vec4_cast<ror::Color2f>(const std::string &a_comp_name)
+constexpr const char *factor_cast<ror::Color3f>()
 {
-	return "vec4(" + a_comp_name + ", 1.0, 1.0)";        // TODO: Confirm what the factors should be here
+	return "vec3";
 }
 
 template <>
-std::string factor_vec4_cast<float32_t>(const std::string &a_comp_name)
+constexpr const char *factor_cast<ror::Color2f>()
 {
-	return "vec4(" + a_comp_name + ", " + a_comp_name + ", " + a_comp_name + ", " + a_comp_name + ")";
+	return "vec2";
+}
+
+template <>
+constexpr const char *factor_cast<float32_t>()
+{
+	return "float";
 }
 
 /*
 The following will make something like
 
-void get_base_color()
+vec2 get_base_color_uvs()
 {
-	vec3 base_color_uv = vec3(in_vertex_texture_coord_1, 1.0);
-	base_color_uv = base_color_uv_transform * base_color_uv;
+	return in_vertex_texture_coord_0;
+}
+
+vec4 get_base_color()
+{
+	vec2 base_color_uv = get_base_color_uvs();
+	base_color_uv = (base_color_uv_transform * base_color_uv).xy;
 	base_color = texture(base_color_sampler, base_color_uv.xy) * vec4(base_color_factor, 1.0);
 }
 
 if called like texture_lookup(mat_comp, "base_color");
 */
 
-// This will always create a void get_{a_comp_name}() function because a factor is always there
+// This will always create a vec2/3/4/float get_{a_comp_name}() function for valid component because at least a factor is always there
 template <typename _factor_type>
-std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_comp, const std::string &a_comp_name)
+std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_comp, const std::string &a_comp_name, const std::string &a_retrun_type = "vec4", const std::string &a_swizzle = "")
 {
 	if (a_mat_comp.m_type != ror::Material::ComponentType::none)
 	{
-		std::string output{"\nvec4 get_" + a_comp_name + "()\n{\n\t"};
-		std::string factor_cast{factor_vec4_cast<decltype(a_mat_comp.m_factor)>({"in_factors." + a_comp_name + "_factor"})};
+		std::string factor_type{factor_cast<decltype(a_mat_comp.m_factor)>()};
+		std::string output_coords{};
+		std::string output_lookup{"\n" + a_retrun_type + " get_" + a_comp_name + "()\n{\n\t"};
+		std::string factor_cast_str{factor_type + "(in_factors." + a_comp_name + "_factor)"};
 
 		if (a_mat_comp.m_type == ror::Material::ComponentType::factor)
-			output.append("return " + factor_cast);
-		else
+			output_lookup.append("return " + factor_cast_str);
+		else        // So we are either factor_texture or texture
 		{
-			output.append({"vec3 " + a_comp_name + "_uv = vec3(" +
-						   (a_mat_comp.m_uv_map == 0 ? "in_vertex_texture_coord_0" : (a_mat_comp.m_uv_map == 1 ? "in_vertex_texture_coord_1" : "in_vertex_texture_coord_2")) +
-						   ", 1.0);\n\t"});
+			output_coords.append({"\nvec2 get_" + a_comp_name + "_uvs()\n{\n\t"});
+			assert((a_mat_comp.m_uv_map == 0 || a_mat_comp.m_uv_map == 1 || a_mat_comp.m_uv_map == 2) && "Unsupported uv map");
+			std::string coords({"in_vertex_texture_coord_" + std::to_string(a_mat_comp.m_uv_map)});
 
 			// Second work out if it has uv transform or not
 			if (a_mat_comp.m_has_transform)
 			{
+				output_coords.append({"vec2 " + a_comp_name + "_uv = " + coords + ";\n\t"});
 				// Encode the matrix into the shader
-				output.append("const mat3 " + a_comp_name + "_uv_transform  = mat3(");
+				// TODO: Fix this if the matrix is animated in some way
+				output_coords.append("const mat3 " + a_comp_name + "_uv_transform  = mat3(");
 
 				for (uint32_t i = 0; i < 8; ++i)
-					output.append(std::to_string(a_mat_comp.m_transform.m_values[i]) + ",");
+					output_coords.append(std::to_string(a_mat_comp.m_transform.m_values[i]) + ",");
 
-				output.append(std::to_string(a_mat_comp.m_transform.m_values[8]) + ");\n\t");
+				output_coords.append(std::to_string(a_mat_comp.m_transform.m_values[8]) + ");\n\t");
 
-				output.append(a_comp_name + "_uv = " + a_comp_name + "_uv_transform * " + a_comp_name + "_uv;\n\t");
+				output_coords.append(a_comp_name + "_uv = (" + a_comp_name + "_uv_transform * vec3(" + a_comp_name + "_uv, 1.0)).xy;\n\t");
+				output_coords.append("return " + a_comp_name + "_uv;\n}\n");
 			}
+			else
+				output_coords.append("return " + coords + ";\n}\n");
 
-			// TODO: Fix a_comp_name type here, it might not be vec4 always, it could be a roughness in R only
+			output_lookup.append({"vec2 " + a_comp_name + "_uv = get_" + a_comp_name + "_uvs();\n\t"});
+
 			// Third check if we need to apply _factor and what's the type
-			output.append("return texture(" + a_comp_name + "_sampler, " + a_comp_name + "_uv.xy)");
+			if (a_comp_name == "normal" || a_comp_name == "bent_normal")
+				output_lookup.append("return (normalize(texture(" + a_comp_name + "_sampler, " + a_comp_name + "_uv)" + a_swizzle + ") * 2.0 - 1.0)");
+			else
+				output_lookup.append("return texture(" + a_comp_name + "_sampler, " + a_comp_name + "_uv)" + a_swizzle);
 
 			if (a_mat_comp.m_type == ror::Material::ComponentType::factor_texture)
 			{
-				output.append(" * ");
-				output.append(factor_cast);
+				output_lookup.append(" * ");
+				if (a_comp_name == "normal" || a_comp_name == "bent_normal")
+				{
+					auto tmp{"in_factors." + a_comp_name + "_factor"};
+					output_lookup.append("vec3(" + tmp + ", " + tmp + ", 1.0)");
+				}
+				else
+					output_lookup.append(factor_cast_str);
 			}
 		}
 
-		output.append(";\n}\n");
-		return output;
+		output_lookup.append(";\n}\n");
+
+		return output_coords + output_lookup;
 	}
 
 	return "";
@@ -930,52 +1036,38 @@ std::string texture_lookups(const ror::Material &a_material)
 	output.append(texture_lookup(a_material.m_specular_glossyness, "specular_glossyness"));
 	output.append(texture_lookup(a_material.m_emissive, "emissive"));
 	output.append(texture_lookup(a_material.m_anisotropy, "anisotrophy"));
-	output.append(texture_lookup(a_material.m_transmission, "transmission"));
-	output.append(texture_lookup(a_material.m_sheen_color, "sheen_color"));
+	output.append(texture_lookup(a_material.m_transmission, "transmission", "vec2"));
+	output.append(texture_lookup(a_material.m_sheen_color, "sheen_color", "vec3"));
 	output.append(texture_lookup(a_material.m_sheen_roughness, "sheen_roughness"));
 	output.append(texture_lookup(a_material.m_clearcoat_normal, "clearcoat_normal"));
 	output.append(texture_lookup(a_material.m_clearcoat, "clearcoat"));
 	output.append(texture_lookup(a_material.m_clearcoat_roughness, "clearcoat_roughness"));
-	output.append(texture_lookup(a_material.m_metallic, "metallic"));
-	output.append(texture_lookup(a_material.m_roughness, "roughness"));
-	output.append(texture_lookup(a_material.m_occlusion, "occlusion"));
-	output.append(texture_lookup(a_material.m_normal, "normal"));
-	output.append(texture_lookup(a_material.m_bent_normal, "bent_normal"));
-	output.append(texture_lookup(a_material.m_height, "height"));
-	output.append(texture_lookup(a_material.m_anisotropy, "anisotrophy"));
-	output.append(texture_lookup(a_material.m_opacity, "opacity"));
+	output.append(texture_lookup(a_material.m_metallic, "metallic", "float", ".x"));          // Red component of MRO[H] texture
+	output.append(texture_lookup(a_material.m_roughness, "roughness", "float", ".y"));        // Green component of MRO[H] texture
+	output.append(texture_lookup(a_material.m_occlusion, "occlusion", "float", ".z"));        // Blue component of MRO[H] texture
+	output.append(texture_lookup(a_material.m_normal, "normal", "vec3", ".xyz"));
+	// output.append(texture_lookup(a_material.m_tangent, "tangent", "vec3", ".xyz"));
+	output.append(texture_lookup(a_material.m_bent_normal, "bent_normal", "vec3", ".xyz"));
+	output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));        // Alpha component of MRO[H] texture
+	output.append(texture_lookup(a_material.m_anisotropy, "anisotrophy", "vec4"));
+	output.append(texture_lookup(a_material.m_opacity, "opacity", "float", ".x"));
 
-	return output;
-}
+	// If we have a normal map, lets add code to generate tangent frame in the shader
+	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
+		a_material.m_normal.m_type == ror::Material::ComponentType::texture)
+	{
+		// Read tbn.frag.glsl resource and create a string_view
+		auto            &tbn_resource = ror::load_resource("shaders/tbn.frag.glsl", ror::ResourceSemantic::shaders);
+		std::string_view tbn_code{reinterpret_cast<const char *>(tbn_resource.data().data()), tbn_resource.data().size()};
+		output.append(tbn_code);
+	}
+	else        // Otherwise add a simple normal map overloaded getter
+	{
+		output.append("vec3 get_normal(const in vec3 N, const in vec3 V)\n{\n\treturn N;\n}\n");
+	}
 
-// Populates all texture loading methods into setup_and_load_textures() which is called in main
-// Unused at the moment
-std::string setup_and_load_textures()
-{
-	std::string output{"void setup_and_load_textures()\n{\t"};
-
-	// This is not correct, need to consider factor only here as well
-	output.append("get_base_color();\n\t");
-	output.append("get_diffuse_color();\n\t");
-	output.append("get_specular_glossyness();\n\t");
-	output.append("get_emissive();\n\t");
-	output.append("get_anisotrophy_normal();\n\t");
-	output.append("get_transmission();\n\t");
-	output.append("get_sheen_color();\n\t");
-	output.append("get_sheen_roughness();\n\t");
-	output.append("get_clearcoat_normal();\n\t");
-	output.append("get_clearcoat();\n\t");
-	output.append("get_clearcoat_roughness();\n\t");
-	output.append("get_metallic();\n\t");
-	output.append("get_roughness();\n\t");
-	output.append("get_occlusion();\n\t");
-	output.append("get_normal();\n\t");
-	output.append("get_bent_normal();\n\t");
-	output.append("get_height();\n\t");
-	output.append("get_anisotrophy();\n\t");
-	output.append("get_opacity();\n");
-
-	output.append("}\n");
+	output.append("\nfloat get_reflectance()\n{\n\treturn in_factors.reflectance_factor;\n}\n");
+	output.append("\nvec3 get_sheen_color()\n{\n\treturn sqrt(get_base_color().rgb);\n}\n");
 
 	return output;
 }
@@ -1076,6 +1168,9 @@ std::string material_factors_ubo(const ror::Material &a_material)
 	if (a_material.m_opacity.m_type == ror::Material::ComponentType::factor || a_material.m_opacity.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float opacity_factor;\n");
 
+	// Unconditional factor of reflectance needs to be there
+	output.append("float reflectance_factor;\n");
+
 	// TODO: The following needs some condition, add that later for subsurface scattering support
 	// if (a_material.m_subsurface_color.m_type != ror::Material::MaterialComponentType::texture_only)
 	//	output.append("\tvec4  subsurface_color_factor;\n\t");
@@ -1083,8 +1178,6 @@ std::string material_factors_ubo(const ror::Material &a_material)
 	//	output.append("vec4  subsurface_radius_factor;\n\t");
 	// if (a_material.m_subsurface_scattering.m_type != ror::Material::MaterialComponentType::texture_only)
 	//	output.append("float subsurface_scattering_factor;\n\t");
-	// if (a_material.m_reflectance.m_type != ror::Material::MaterialComponentType::texture_only)
-	//	output.append("float reflectance_factor;\n");
 
 	if (output.empty())
 		return "";
@@ -1095,66 +1188,138 @@ std::string material_factors_ubo(const ror::Material &a_material)
 	return result;
 }
 
-// TODO: Make this more intellegent
+std::string get_material(const ror::Material &a_material)
+{
+#define stringify_helper(x) #x
+#define stringify(x) stringify_helper(x)
+
+#define get_material_component(name, default_value)                                     \
+	if (a_material.m_##name.m_type != ror::Material::ComponentType::none)               \
+		output.append("\tmaterial." stringify(name) " = get_" stringify(name) "();\n"); \
+	else                                                                                \
+		output.append("\tmaterial." stringify(name) " = " stringify(default_value) ";\n")
+
+	(void) a_material;
+	std::string output{"Material get_material()\n{\n\tMaterial material;\n\n"};
+
+	// Defaults values for Material copied from Filament's defaults
+	get_material_component(base_color, vec4(1.0));
+	get_material_component(emissive, vec4(0.0));
+	get_material_component(bent_normal, vec3(0.0, 0.0, 1.0));
+	get_material_component(roughness, 1.0);
+	get_material_component(metallic, 0.0);
+	get_material_component(occlusion, 1.0);
+	get_material_component(anisotropy, 0.0);
+	get_material_component(clearcoat, 1.0);
+	get_material_component(clearcoat_roughness, 0.0);
+	get_material_component(clearcoat_normal, vec3(0.0, 0.0, 1.0));
+	get_material_component(sheen_color, vec3(0.0));
+	get_material_component(sheen_roughness, 0.0);
+	get_material_component(subsurface_color, vec3(1.0));
+	// get_material_component(subsurface, 12.234);
+
+	// Some manual appends, not using the macro
+	// TODO: View doesn't fit in material, this belongs in fragment but its a hack for now
+	// This works around having to call get_normal() twice
+	output.append("\tmaterial.view = normalize(in_per_view_uniforms.camera_position - in_vertex_position.xyz);\n");
+
+	// If we have a normal map use the overloaded get_normal(N, V)
+	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
+		a_material.m_normal.m_type == ror::Material::ComponentType::texture)
+		output.append("\tmaterial.normal = get_normal(in_vertex_normal, material.view);\n");
+	else        // otherwise use the standard get_normal()
+		get_material_component(normal, vec3(0.0, 0.0, 1.0));
+
+	// Can't use the following because reflectance is not a Component
+	if (a_material.m_metallic.m_type != ror::Material::ComponentType::none)
+		output.append("\tmaterial.reflectance = get_reflectance();\n");
+	else
+		output.append("\tmaterial.reflectance = 0.5;\n");
+
+	if (a_material.m_specular_glossyness.m_type != ror::Material::ComponentType::none)
+	{
+		output.append("\tmaterial.specular_color = get_specular().xyz;\n");
+		output.append("\tmaterial.glossyness = get_specular().w;\n");
+	}
+	else
+	{
+		output.append("\tmaterial.specular_color = vec3(1.0);\n");
+		output.append("\tmaterial.glossyness = 1.0;\n");
+	}
+
+	if (a_material.m_anisotropy.m_type != ror::Material::ComponentType::none)
+	{
+		output.append("\tmaterial.anisotropy_direction = get_anisotropy().xyz;\n");
+		output.append("\tmaterial.anisotropy = get_anisotropy().w;\n");
+	}
+	else
+	{
+		output.append("\tmaterial.anisotropy_direction = vec3(1.0, 0.0, 0.0);\n");
+		output.append("\tmaterial.anisotropy = 0.0;\n");
+	}
+
+	output.append("\tmaterial.height = 0.0;\n");
+	output.append("\tmaterial.opacity = 1.0;\n");
+
+	output.append("\n\treturn material;\n}\n");
+
+	return output;
+}
+
 std::string fs_set_output(const ror::Material &a_material)
 {
-	std::string result{"\tout_color = "};
-	std::string output{};
+	std::string result{};
 
-	if (a_material.m_base_color.m_type != ror::Material::ComponentType::none)
-		output.append("get_base_color() * ");
-	if (a_material.m_diffuse_color.m_type != ror::Material::ComponentType::none)
-		output.append("get_diffuse_color() * ");
-	if (a_material.m_specular_glossyness.m_type != ror::Material::ComponentType::none)
-		output.append("get_specular_glossyness() * ");
-	if (a_material.m_emissive.m_type != ror::Material::ComponentType::none)
-		output.append("get_emissive() * ");
-	if (a_material.m_anisotropy.m_type != ror::Material::ComponentType::none)
-		output.append("get_anisotrophy() * ");
-	if (a_material.m_transmission.m_type != ror::Material::ComponentType::none)
-		output.append("get_transmission() * ");
-	if (a_material.m_sheen_color.m_type != ror::Material::ComponentType::none)
-		output.append("get_sheen_color() * ");
-	if (a_material.m_sheen_roughness.m_type != ror::Material::ComponentType::none)
-		output.append("get_sheen_roughness() * ");
-	if (a_material.m_clearcoat_normal.m_type != ror::Material::ComponentType::none)
-		output.append("get_clearcoat_normal() * ");
-	if (a_material.m_clearcoat.m_type != ror::Material::ComponentType::none)
-		output.append("get_clearcoat() * ");
-	if (a_material.m_clearcoat_roughness.m_type != ror::Material::ComponentType::none)
-		output.append("get_clearcoat_roughness() * ");
-	if (a_material.m_metallic.m_type != ror::Material::ComponentType::none)
-		output.append("get_metallic() * ");
-	if (a_material.m_roughness.m_type != ror::Material::ComponentType::none)
-		output.append("get_roughness() * ");
-	if (a_material.m_occlusion.m_type != ror::Material::ComponentType::none)
-		output.append("get_occlusion() * ");
-	if (a_material.m_normal.m_type != ror::Material::ComponentType::none)
-		output.append("get_normal() * ");
-	if (a_material.m_bent_normal.m_type != ror::Material::ComponentType::none)
-		output.append("get_bent_normal() * ");
-	if (a_material.m_height.m_type != ror::Material::ComponentType::none)
-		output.append("get_height() * ");
-	if (a_material.m_anisotropy.m_type != ror::Material::ComponentType::none)
-		output.append("get_anisotrophy() * ");
-	if (a_material.m_opacity.m_type != ror::Material::ComponentType::none)
-		output.append("get_opacity();\n");
+	// Read getters.frag.glsl resource and create a string_view
+	auto            &getters_resource = ror::load_resource("shaders/getters.frag.glsl", ror::ResourceSemantic::shaders);
+	std::string_view getters_code{reinterpret_cast<const char *>(getters_resource.data().data()), getters_resource.data().size()};
 
-	if (output.empty())
-		result.append(" vec4(1.0);");
-	else
-		result.append(output);
+	result.append(get_material(a_material));
+	result.append("\n");
+	result.append(getters_code);
+	result.append("\n");
 
 	return result;
 }
 
 std::string fs_set_main(const ror::Material &a_material)
 {
-	std::string output{"\nvoid main()\n{\n"};
+	// Read all the shader snippets
+	// Read brdf.frag.glsl resource and create a string_view
+	auto            &brdf_resource = ror::load_resource("shaders/brdf.frag.glsl", ror::ResourceSemantic::shaders);
+	std::string_view brdf_code{reinterpret_cast<const char *>(brdf_resource.data().data()), brdf_resource.data().size()};
 
+	// Read temporary_structs.frag.glsl resource and create a string_view
+	auto            &temporary_structs_resource = ror::load_resource("shaders/temporary_structs.frag.glsl", ror::ResourceSemantic::shaders);
+	std::string_view temporary_structs_code{reinterpret_cast<const char *>(temporary_structs_resource.data().data()), temporary_structs_resource.data().size()};
+
+	// Read shading_standard.frag.glsl resource and create a string_view
+	auto            &shading_standard_resource = ror::load_resource("shaders/shading_standard.frag.glsl", ror::ResourceSemantic::shaders);
+	std::string_view shading_standard_code{reinterpret_cast<const char *>(shading_standard_resource.data().data()), shading_standard_resource.data().size()};
+
+	// Read lighting.frag.glsl resource and create a string_view
+	auto            &lighting_resource = ror::load_resource("shaders/lighting.frag.glsl", ror::ResourceSemantic::shaders);
+	std::string_view lighting_code{reinterpret_cast<const char *>(lighting_resource.data().data()), lighting_resource.data().size()};
+
+	// Read main.frag.glsl resource and create a string_view
+	auto            &main_resource = ror::load_resource("shaders/main.frag.glsl", ror::ResourceSemantic::shaders);
+	std::string_view main_code{reinterpret_cast<const char *>(main_resource.data().data()), main_resource.data().size()};
+
+	std::string output{};
+
+	output.append("\n");
+	output.append(brdf_code);
+	output.append("\n");
+	output.append(temporary_structs_code);
+	output.append("\n");
 	output.append(fs_set_output(a_material));
+	output.append("\n");
+	output.append(shading_standard_code);
+	output.append("\n");
+	output.append(lighting_code);
+	output.append("\n");
+	output.append(main_code);
 
-	output.append("}\n");
 	return output;
 }
 
@@ -1170,55 +1335,15 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const st
 
 	// write out inputs from vertex shader
 	output.append(rhi::fragment_shader_input_output(vertex_descriptor));
+	output.append(per_view_common(0, 0));
+	output.append(per_frame_common(0, 1));
 	output.append(material_samplers(material));
 	output.append(material_factors_ubo(material));
+	output.append(fs_light_common(1, 2, 0, fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count, set and bindings
+	output.append(fs_light_common(1, 2, 1, fs_point_light_common_str));              // TODO: Make conditional, and abstract out lights_count, set and bindings
+	output.append(fs_light_common(1, 2, 2, fs_spot_light_common_str));               // TODO: Make conditional, and abstract out lights_count, set and bindings
 	output.append(texture_lookups(material));
 	output.append(fs_set_main(material));
-
-	// std::cout << "\nAn example texture_lookup\n";
-
-	// {
-	//	ror::Material::MaterialComponent<ror::Color4f> mc;
-	//	mc.m_has_transform = true;
-	//	mc.m_uv_map        = 1;
-	//	mc.m_type          = ror::Material::MaterialComponentType::both;
-	//	std::cout << texture_lookup(mc, "base_color") << std::endl;
-	// }
-	// {
-	//	ror::Material::MaterialComponent<float32_t> mc;
-	//	mc.m_has_transform = false;
-	//	mc.m_uv_map        = 0;
-	//	mc.m_type          = ror::Material::MaterialComponentType::both;
-	//	std::cout << texture_lookup(mc, "base_color") << std::endl;
-	// }
-	// {
-	//	ror::Material::MaterialComponent<float32_t> mc;
-	//	mc.m_has_transform = true;
-	//	mc.m_uv_map        = 0;
-	//	mc.m_type          = ror::Material::MaterialComponentType::both;
-	//	std::cout << texture_lookup(mc, "base_color") << std::endl;
-	// }
-	// {
-	//	ror::Material::MaterialComponent<ror::Color2f> mc;
-	//	mc.m_has_transform = false;
-	//	mc.m_uv_map        = 0;
-	//	mc.m_type          = ror::Material::MaterialComponentType::both;
-	//	std::cout << texture_lookup(mc, "base_color") << std::endl;
-	// }
-	// {
-	//	ror::Material::MaterialComponent<ror::Color3f> mc;
-	//	mc.m_has_transform = true;
-	//	mc.m_uv_map        = 2;
-	//	mc.m_type          = ror::Material::MaterialComponentType::texture_only;
-	//	std::cout << texture_lookup(mc, "roughness_color") << std::endl;
-	// }
-	// {
-	//	ror::Material::MaterialComponent<ror::Color3f> mc;
-	//	mc.m_has_transform = true;
-	//	mc.m_uv_map        = 2;
-	//	mc.m_type          = ror::Material::MaterialComponentType::factor_only;
-	//	std::cout << texture_lookup(mc, "normal_color") << std::endl;
-	// }
 
 	return output;
 }

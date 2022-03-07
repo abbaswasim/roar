@@ -33,9 +33,9 @@
 
 void setup_project_root()
 {
-	const auto copy_options = std::filesystem::copy_options::update_existing |
-							  std::filesystem::copy_options::recursive |
-							  std::filesystem::copy_options::copy_symlinks;
+	// const auto copy_options = std::filesystem::copy_options::update_existing |
+	//						  std::filesystem::copy_options::recursive |
+	//						  std::filesystem::copy_options::copy_symlinks;
 
 	std::filesystem::path root_dir_path{tests_root_dir};
 	std::filesystem::path destination{ror::get_project_root("roar_test_project").path() / "assets"};
@@ -43,6 +43,10 @@ void setup_project_root()
 	auto assets = root_dir_path / "assets";
 
 	// get_default_project_root returns absolute path to "roar_project"
-	ror::log_info("Copying assets folder from {} to {}", assets.c_str(), destination.c_str());
-	std::filesystem::copy(assets, destination, copy_options);
+	ror::log_info("Creating symlink to assets folder from {} to {}", assets.c_str(), destination.c_str());
+	// std::filesystem::copy(assets, destination, copy_options);
+	// std::filesystem::create_symlink(assets, destination, copy_options);
+	// Lets create a symlink to the tests/assets folder
+	if (!std::filesystem::exists(destination))
+		fs::create_directory_symlink(assets, destination);
 }

@@ -99,7 +99,7 @@ class ROAR_ENGINE_ITEM Material final
 	Component<float32_t>    m_metallic{};                                     //! Dielectric or conductor(metallic)
 	Component<float32_t>    m_roughness{};                                    //! Surface roughness, as compared to internal roughness unlike m_transmission_roughness
 	Component<float32_t>    m_occlusion{};                                    //! Occlusion map factor is the strength
-	Component<float32_t>    m_normal{};                                       //! Normal map, Used for normal mapping and bump mapping, factor id the normal scale
+	Component<float32_t>    m_normal{};                                       //! Normal map, Used for normal mapping and bump mapping, factor is the normal scale
 	Component<float32_t>    m_bent_normal{};                                  //! Map of median rays of un-occluded normal of a hemisphere around a texel, can be used for AO etc
 	Component<float32_t>    m_height{};                                       //! Height map that ca be used for bump mapping, factor is the scale
 	Component<float32_t>    m_opacity{};                                      //! Map to create cutouts, or a constant factor as alpha_cutoff_threshold of {0.5} default, also called Mask texture
