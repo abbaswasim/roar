@@ -40,8 +40,7 @@ namespace rhi
 enum class Layout : uint32_t
 {
 	std140,
-	std430,
-	scalar
+	std430
 };
 
 /**
