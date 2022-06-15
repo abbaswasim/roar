@@ -156,6 +156,18 @@ enum class VertexFormat : uint32_t
 	float64_3,
 	float64_4,
 
+	float64_2x2,
+	float64_2x3,
+	float64_2x4,
+
+	float64_3x2,
+	float64_3x3,
+	float64_3x4,
+
+	float64_4x2,
+	float64_4x3,
+	float64_4x4,
+
 	uint8_1,
 	uint8_2,
 	uint8_3,

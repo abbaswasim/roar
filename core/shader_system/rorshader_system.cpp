@@ -100,6 +100,15 @@ std::string format_to_glsl_type(VertexFormat a_format)
 		case VertexFormat::float32_4x2:			return " mat4x2";
 		case VertexFormat::float32_4x3:			return " mat4x3";
 		case VertexFormat::float32_4x4:			return " mat4x4";
+		case VertexFormat::float64_2x2:			return " dmat2x2";
+		case VertexFormat::float64_2x3:			return " dmat2x3";
+		case VertexFormat::float64_2x4:			return " dmat2x4";
+		case VertexFormat::float64_3x2:			return " dmat3x2";
+		case VertexFormat::float64_3x3:			return " dmat3x3";
+		case VertexFormat::float64_3x4:			return " dmat3x4";
+		case VertexFormat::float64_4x2:			return " dmat4x2";
+		case VertexFormat::float64_4x3:			return " dmat4x3";
+		case VertexFormat::float64_4x4:			return " dmat4x4";
 		case VertexFormat::float64_1:			return " double";
 		case VertexFormat::float64_2:			return " dvec2";
 		case VertexFormat::float64_3:			return " dvec3";
@@ -246,6 +255,15 @@ std::string attribute_format(VertexFormat a_format)
 		case VertexFormat::float32_4x2:
 		case VertexFormat::float32_4x3:
 		case VertexFormat::float32_4x4:
+		case VertexFormat::float64_2x2:
+		case VertexFormat::float64_2x3:
+		case VertexFormat::float64_2x4:
+		case VertexFormat::float64_3x2:
+		case VertexFormat::float64_3x3:
+		case VertexFormat::float64_3x4:
+		case VertexFormat::float64_4x2:
+		case VertexFormat::float64_4x3:
+		case VertexFormat::float64_4x4:
 		case VertexFormat::float64_1:
 		case VertexFormat::float64_2:
 		case VertexFormat::float64_3:

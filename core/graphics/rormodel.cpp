@@ -425,6 +425,15 @@ rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
 		case rhi::VertexFormat::float32_4x2:
 		case rhi::VertexFormat::float32_4x3:
 		case rhi::VertexFormat::float32_4x4:
+		case rhi::VertexFormat::float64_2x2:
+		case rhi::VertexFormat::float64_2x3:
+		case rhi::VertexFormat::float64_2x4:
+		case rhi::VertexFormat::float64_3x2:
+		case rhi::VertexFormat::float64_3x3:
+		case rhi::VertexFormat::float64_3x4:
+		case rhi::VertexFormat::float64_4x2:
+		case rhi::VertexFormat::float64_4x3:
+		case rhi::VertexFormat::float64_4x4:
 		case rhi::VertexFormat::float64_1:
 		case rhi::VertexFormat::float64_2:
 		case rhi::VertexFormat::float64_3:

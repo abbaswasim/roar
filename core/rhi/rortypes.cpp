@@ -186,14 +186,26 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 		case VertexFormat::uint64_4:
 		case VertexFormat::float32_2x4:
 		case VertexFormat::float32_4x2:
+		case VertexFormat::float64_2x2:
 			return 32;
 		case VertexFormat::float32_3x3:
 			return 36;
 		case VertexFormat::float32_3x4:
 		case VertexFormat::float32_4x3:
+		case VertexFormat::float64_2x3:
+		case VertexFormat::float64_3x2:
 			return 48;
 		case VertexFormat::float32_4x4:
+		case VertexFormat::float64_2x4:
+		case VertexFormat::float64_4x2:
 			return 64;
+		case VertexFormat::float64_3x3:
+			return 72;
+		case VertexFormat::float64_3x4:
+		case VertexFormat::float64_4x3:
+			return 96;
+		case VertexFormat::float64_4x4:
+			return 128;
 	}
 
 	return 0;
@@ -285,6 +297,16 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 		case VertexFormat::float32_4x3:
 		case VertexFormat::float32_4x4:
 			return 4;        // TODO: This is a guess, confirm
+		case VertexFormat::float64_2x2:
+		case VertexFormat::float64_2x3:
+		case VertexFormat::float64_3x2:
+		case VertexFormat::float64_2x4:
+		case VertexFormat::float64_4x2:
+		case VertexFormat::float64_3x3:
+		case VertexFormat::float64_3x4:
+		case VertexFormat::float64_4x3:
+		case VertexFormat::float64_4x4:
+			return 8;        // TODO: This is a guess, confirm
 	}
 
 	return 0;

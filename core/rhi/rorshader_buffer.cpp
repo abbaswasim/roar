@@ -109,7 +109,16 @@ constexpr uint32_t format_base_alignment_count(Format a_format)
 		case Format::float32_4x4:
 		case Format::float64_2:
 		case Format::uint64_2:
+		case Format::float64_2x2:
+		case Format::float64_3x2:
+		case Format::float64_4x2:
 			return 4;
+		case Format::float64_2x3:
+		case Format::float64_2x4:
+		case Format::float64_3x3:
+		case Format::float64_3x4:
+		case Format::float64_4x3:
+		case Format::float64_4x4:
 		case Format::float64_3:
 		case Format::uint64_3:
 		case Format::float64_4:
