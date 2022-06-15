@@ -31,6 +31,7 @@
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortypes.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include <cstddef>
@@ -64,6 +65,11 @@ std::string format_to_glsl_type(VertexFormat a_format)
 	// clang-format off
 	switch (a_format)
 	{
+		case VertexFormat::struct_1:			return " ";
+		case VertexFormat::bool32_1:			return " bool";
+		case VertexFormat::bool32_2:			return " bvec2";
+		case VertexFormat::bool32_3:			return " bvec3";
+		case VertexFormat::bool32_4:			return " bvec4";
 		case VertexFormat::int8_1:				return " int";
 		case VertexFormat::int8_2:				return " ivec2";
 		case VertexFormat::int8_3:				return " ivec3";
@@ -86,8 +92,13 @@ std::string format_to_glsl_type(VertexFormat a_format)
 		case VertexFormat::float32_3:			return " vec3";
 		case VertexFormat::float32_4:			return " vec4";
 		case VertexFormat::float32_2x2:			return " mat2x2";
+		case VertexFormat::float32_2x3:			return " mat2x3";
+		case VertexFormat::float32_2x4:			return " mat2x4";
+		case VertexFormat::float32_3x2:			return " mat3x2";
 		case VertexFormat::float32_3x3:			return " mat3x3";
 		case VertexFormat::float32_3x4:			return " mat3x4";
+		case VertexFormat::float32_4x2:			return " mat4x2";
+		case VertexFormat::float32_4x3:			return " mat4x3";
 		case VertexFormat::float32_4x4:			return " mat4x4";
 		case VertexFormat::float64_1:			return " double";
 		case VertexFormat::float64_2:			return " dvec2";
@@ -165,6 +176,11 @@ std::string attribute_format(VertexFormat a_format)
 	// clang-format off
 	switch (a_format)
 	{
+		case VertexFormat::struct_1:			return " ";
+		case VertexFormat::bool32_1:			return " bool";
+		case VertexFormat::bool32_2:			return " bvec2";
+		case VertexFormat::bool32_3:			return " bvec3";
+		case VertexFormat::bool32_4:			return " bvec4";
 		case VertexFormat::int8_1:				return " int";
 		case VertexFormat::int8_2:				return " ivec2";
 		case VertexFormat::int8_3:				return " ivec3";
@@ -222,8 +238,13 @@ std::string attribute_format(VertexFormat a_format)
 		case VertexFormat::float32_custom:		return " float";
 
 		case VertexFormat::float32_2x2:
+		case VertexFormat::float32_2x3:
+		case VertexFormat::float32_2x4:
+		case VertexFormat::float32_3x2:
 		case VertexFormat::float32_3x3:
 		case VertexFormat::float32_3x4:
+		case VertexFormat::float32_4x2:
+		case VertexFormat::float32_4x3:
 		case VertexFormat::float32_4x4:
 		case VertexFormat::float64_1:
 		case VertexFormat::float64_2:
@@ -817,6 +838,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 // TODO: Work out the vec3 padding issues in this UBO
 const std::string fs_directional_light_common_str = R"com(
 const uint directional_lights_count = @;
+
 struct DirectionalLight
 {
 	vec3  color;
@@ -832,6 +854,7 @@ layout(std140, set = @, binding = @) uniform directional_light_uniform
 
 const std::string fs_point_light_common_str = R"com(
 const uint point_lights_count = @;
+
 struct PointLight
 {
 	vec3  color;
@@ -847,6 +870,7 @@ layout(std140, set = @, binding = @) uniform point_light_uniform
 
 const std::string fs_spot_light_common_str = R"com(
 const uint spot_lights_count = @;
+
 struct SpotLight
 {
 	vec3  color;
@@ -1166,7 +1190,7 @@ std::string material_factors_ubo(const ror::Material &a_material)
 	if (a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor || a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
 		output.append("float anisotrophy_factor;\n\t");
 	if (a_material.m_opacity.m_type == ror::Material::ComponentType::factor || a_material.m_opacity.m_type == ror::Material::ComponentType::factor_texture)
-		output.append("float opacity_factor;\n");
+		output.append("float opacity_factor;\n\t");
 
 	// Unconditional factor of reflectance needs to be there
 	output.append("float reflectance_factor;\n");

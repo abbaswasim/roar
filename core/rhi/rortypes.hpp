@@ -109,6 +109,11 @@ enum class PixelFormat
 
 enum class VertexFormat : uint32_t
 {
+	bool32_1,
+	bool32_2,
+	bool32_3,
+	bool32_4,
+
 	int8_1,
 	int8_2,
 	int8_3,
@@ -133,9 +138,17 @@ enum class VertexFormat : uint32_t
 	float32_2,
 	float32_3,
 	float32_4,
+
 	float32_2x2,
+	float32_2x3,
+	float32_2x4,
+
+	float32_3x2,
 	float32_3x3,
 	float32_3x4,
+
+	float32_4x2,
+	float32_4x3,
 	float32_4x4,
 
 	float64_1,
@@ -192,7 +205,9 @@ enum class VertexFormat : uint32_t
 	uint8_custom,
 	uint16_custom,
 	uint32_custom,
-	float32_custom
+	float32_custom,
+
+	struct_1
 };
 
 // Generic name when semantics are not clear

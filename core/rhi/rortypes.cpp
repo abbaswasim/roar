@@ -101,6 +101,8 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 {
 	switch (a_vertex_format)
 	{
+		case VertexFormat::struct_1:
+			return 0;
 		case VertexFormat::int8_1:
 		case VertexFormat::int8_1_norm:
 		case VertexFormat::uint8_1:
@@ -123,6 +125,7 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 		case VertexFormat::uint8_3:
 		case VertexFormat::uint8_3_norm:
 			return 3;
+		case VertexFormat::bool32_1:
 		case VertexFormat::int8_4:
 		case VertexFormat::int8_4_norm:
 		case VertexFormat::uint8_4:
@@ -153,6 +156,7 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 		case VertexFormat::int16_4_norm:
 		case VertexFormat::uint16_4:
 		case VertexFormat::uint16_4_norm:
+		case VertexFormat::bool32_2:
 		case VertexFormat::int32_2:
 		case VertexFormat::uint32_2:
 		case VertexFormat::uint64_1:
@@ -160,10 +164,12 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 		case VertexFormat::float32_2:
 		case VertexFormat::float64_1:
 			return 8;
+		case VertexFormat::bool32_3:
 		case VertexFormat::int32_3:
 		case VertexFormat::uint32_3:
 		case VertexFormat::float32_3:
 			return 12;
+		case VertexFormat::bool32_4:
 		case VertexFormat::int32_4:
 		case VertexFormat::uint32_4:
 		case VertexFormat::uint64_2:
@@ -173,13 +179,18 @@ uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 			return 16;
 		case VertexFormat::float64_3:
 		case VertexFormat::uint64_3:
+		case VertexFormat::float32_2x3:
+		case VertexFormat::float32_3x2:
 			return 24;
 		case VertexFormat::float64_4:
 		case VertexFormat::uint64_4:
+		case VertexFormat::float32_2x4:
+		case VertexFormat::float32_4x2:
 			return 32;
 		case VertexFormat::float32_3x3:
 			return 36;
 		case VertexFormat::float32_3x4:
+		case VertexFormat::float32_4x3:
 			return 48;
 		case VertexFormat::float32_4x4:
 			return 64;
@@ -192,6 +203,11 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 {
 	switch (a_vertex_format)
 	{
+		case VertexFormat::struct_1:
+		case VertexFormat::bool32_1:
+		case VertexFormat::bool32_2:
+		case VertexFormat::bool32_3:
+		case VertexFormat::bool32_4:
 		case VertexFormat::int8_1:
 		case VertexFormat::int8_2:
 		case VertexFormat::int8_3:
@@ -260,10 +276,13 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 		case VertexFormat::float64_4:
 		case VertexFormat::float32_2x2:
 			return 1;        // TODO: This is only true if vertex attribute is used in Vulkan Vertex shader
+		case VertexFormat::float32_2x3:
+		case VertexFormat::float32_2x4:
+		case VertexFormat::float32_3x2:
 		case VertexFormat::float32_3x3:
-			return 3;        // TODO: This is a guess, confirm
 		case VertexFormat::float32_3x4:
-			return 4;        // TODO: This is a guess, confirm
+		case VertexFormat::float32_4x2:
+		case VertexFormat::float32_4x3:
 		case VertexFormat::float32_4x4:
 			return 4;        // TODO: This is a guess, confirm
 	}
@@ -274,38 +293,35 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 // clang-format off
 BufferSemantic get_format_semantic(const std::string &a_format)
 {
-
 #define item(_string){#_string, BufferSemantic::_string}
 #define item_value(_enum)
 
-static std::unordered_map<std::string, BufferSemantic> string_to_shader_semantic
-{
-	describe_buffer_semantics(item)
-};
+	static std::unordered_map<std::string, BufferSemantic> string_to_shader_semantic
+	{
+		describe_buffer_semantics(item)
+	};
 
 #undef item
 #undef item_value
-	// clang-format on
 
 	return string_to_shader_semantic[a_format];
 }
 
 std::string get_format_semantic(const BufferSemantic &a_semantic)
 {
-
 #define item(_string){BufferSemantic::_string, #_string}
 #define item_value(_enum)
 
-static std::unordered_map<BufferSemantic, std::string> semantic_to_string
-{
-	describe_buffer_semantics(item)
-};
+	static std::unordered_map<BufferSemantic, std::string> semantic_to_string
+	{
+		describe_buffer_semantics(item)
+	};
 
 #undef item
 #undef item_value
-	// clang-format on
 
 	return semantic_to_string[a_semantic];
 }
 
+// clang-format on
 }        // namespace rhi

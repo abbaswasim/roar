@@ -111,4 +111,9 @@ void log_set_level(LogLevel a_level)
 	get_logger().set_level(a_level);
 }
 
+/*
+  Remember to print pointers in spd_log do the following
+  log->info("hello from {:p}", (void*)this);
+*/
+
 }        // namespace ror

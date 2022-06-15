@@ -295,6 +295,12 @@ constexpr FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
  * Only valid for positive _type(s) so the compiler will complain otherwise
  * returns _alignment aligned value/pointer given of the input value/pointer
  */
+template <class _type>
+constexpr FORCE_INLINE _type align(_type a_input, uint32_t _alignment)
+{
+	return static_cast<_type>(static_cast<uint64_t>(a_input + _alignment - 1) & ~uint64_t(_alignment - 1));
+}
+
 template <class _type,
 		  size_t _alignment>
 constexpr FORCE_INLINE _type align(_type a_input)
@@ -322,6 +328,12 @@ constexpr FORCE_INLINE _type align8(_type a_input)
 }
 
 template <class _type>
+constexpr FORCE_INLINE _type align16(_type a_input)
+{
+	return align<_type, 16>(a_input);
+}
+
+template <class _type>
 constexpr FORCE_INLINE _type *align4(_type *a_input)
 {
 	return align<_type, 4>(a_input);
@@ -331,6 +343,12 @@ template <class _type>
 constexpr FORCE_INLINE _type *align8(_type *a_input)
 {
 	return align<_type, 8>(a_input);
+}
+
+template <class _type>
+constexpr FORCE_INLINE _type *align16(_type *a_input)
+{
+	return align<_type, 16>(a_input);
 }
 
 template <bool>

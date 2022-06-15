@@ -367,6 +367,7 @@ rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
 {
 	switch (a_input)
 	{
+		case rhi::VertexFormat::bool32_1:
 		case rhi::VertexFormat::int8_1:
 		case rhi::VertexFormat::int16_1:
 		case rhi::VertexFormat::int32_1:
@@ -377,6 +378,7 @@ rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
 		case rhi::VertexFormat::uint32_1:
 			return rhi::VertexFormat::uint32_1;
 
+		case rhi::VertexFormat::bool32_2:
 		case rhi::VertexFormat::int8_2:
 		case rhi::VertexFormat::int16_2:
 		case rhi::VertexFormat::int32_2:
@@ -387,6 +389,7 @@ rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
 		case rhi::VertexFormat::uint32_2:
 			return rhi::VertexFormat::uint32_2;
 
+		case rhi::VertexFormat::bool32_3:
 		case rhi::VertexFormat::int8_3:
 		case rhi::VertexFormat::int16_3:
 		case rhi::VertexFormat::int32_3:
@@ -397,6 +400,7 @@ rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
 		case rhi::VertexFormat::uint32_3:
 			return rhi::VertexFormat::uint32_3;
 
+		case rhi::VertexFormat::bool32_4:
 		case rhi::VertexFormat::int8_4:
 		case rhi::VertexFormat::int16_4:
 		case rhi::VertexFormat::int32_4:
@@ -407,13 +411,19 @@ rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
 		case rhi::VertexFormat::uint32_4:
 			return rhi::VertexFormat::uint32_4;
 
+		case rhi::VertexFormat::struct_1:
 		case rhi::VertexFormat::float32_1:
 		case rhi::VertexFormat::float32_2:
 		case rhi::VertexFormat::float32_3:
 		case rhi::VertexFormat::float32_4:
 		case rhi::VertexFormat::float32_2x2:
+		case rhi::VertexFormat::float32_2x3:
+		case rhi::VertexFormat::float32_2x4:
+		case rhi::VertexFormat::float32_3x2:
 		case rhi::VertexFormat::float32_3x3:
 		case rhi::VertexFormat::float32_3x4:
+		case rhi::VertexFormat::float32_4x2:
+		case rhi::VertexFormat::float32_4x3:
 		case rhi::VertexFormat::float32_4x4:
 		case rhi::VertexFormat::float64_1:
 		case rhi::VertexFormat::float64_2:
