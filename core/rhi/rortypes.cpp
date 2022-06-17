@@ -277,26 +277,27 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 		case VertexFormat::uint16_custom:         // To be handled differently
 		case VertexFormat::uint32_custom:         // To be handled differently
 		case VertexFormat::float32_custom:        // To be handled differently
-			return 1;
 		case VertexFormat::uint64_1:
 		case VertexFormat::uint64_2:
 		case VertexFormat::float64_1:
 		case VertexFormat::float64_2:
+			return 1;        // TODO: This is only true if vertex attribute is used in Vulkan Vertex shader
 		case VertexFormat::uint64_3:
 		case VertexFormat::uint64_4:
 		case VertexFormat::float64_3:
 		case VertexFormat::float64_4:
 		case VertexFormat::float32_2x2:
-			return 1;        // TODO: This is only true if vertex attribute is used in Vulkan Vertex shader
 		case VertexFormat::float32_2x3:
 		case VertexFormat::float32_2x4:
-		case VertexFormat::float32_3x2:
+			return 2;
 		case VertexFormat::float32_3x3:
+		case VertexFormat::float32_3x2:
 		case VertexFormat::float32_3x4:
+			return 3;
 		case VertexFormat::float32_4x2:
 		case VertexFormat::float32_4x3:
 		case VertexFormat::float32_4x4:
-			return 4;        // TODO: This is a guess, confirm
+			return 4;
 		case VertexFormat::float64_2x2:
 		case VertexFormat::float64_2x3:
 		case VertexFormat::float64_3x2:

@@ -164,9 +164,13 @@ constexpr uint32_t glsl_size(Format a_type)
 		return size + 8;
 	else if (a_type == Format::float32_3x3)
 		return size + 28;
-	else if (a_type == Format::float32_3x4)
-		return size + 16;
 	else if (a_type == Format::float32_4x3)
+		return size + 16;
+	else if (a_type == Format::float64_2x3)
+		return size + 16;
+	else if (a_type == Format::float64_3x3)
+		return size + 24;
+	else if (a_type == Format::float64_4x3)
 		return size + 16;
 	else
 		return size;
@@ -193,7 +197,7 @@ ShaderBuffer::Struct::Struct(std::string a_name, uint32_t a_count) :
 void ShaderBuffer::Struct::add_entry(std::string a_name, Format a_type, Layout a_layout, uint32_t a_count)
 {
 	const uint32_t base_alignment = format_base_alignment(a_type);
-	const uint32_t aligned_offset = ror::align(this->m_offset, (a_count > 1 ? (a_layout == Layout::std140 ? 16 : base_alignment) : base_alignment));
+	const uint32_t aligned_offset = ror::align(this->m_offset, (a_count > 1 && a_layout == Layout::std140 ? 16 : base_alignment));
 	const uint32_t size           = glsl_size(a_type);
 	const uint32_t size_in_array  = glsl_size_vec3_correction(a_type, size);
 	const uint32_t stride         = (a_count > 1 ? (a_layout == Layout::std140 ? std::max(16u, size_in_array) : size_in_array) : size);
@@ -213,8 +217,8 @@ void ShaderBuffer::Struct::add_entry(std::string a_name, Format a_type, Layout a
 
 void ShaderBuffer::Struct::add_struct(Struct a_struct)
 {
-	// Lets make sure our input index is aligned as std140 requires it to be 16-bytes // TODO: Abstract out std140
-	auto struct_offset = ror::align16(this->m_offset);
+	// Lets make sure our input index is aligned to the struct alignment
+	auto struct_offset = ror::align(this->m_offset, this->m_alignment);
 	this->m_offset     = struct_offset;
 
 	// Lets update the new struct offsets

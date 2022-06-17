@@ -179,7 +179,7 @@ void test_one_vertex_description(const rhi::VertexDescriptor &vd,
 
 	// Uncomment to find out the error line
 	(void) line;
-	// std::string line_header{"Looking at like = "};
+	// std::string line_header{"Looking at line = "};
 	// line_header += std::to_string(line);
 	// print_with_gtest_header(line_header.c_str(), green);
 
