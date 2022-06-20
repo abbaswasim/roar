@@ -1,0 +1,82 @@
+{
+	"nodes": [
+		{
+			"children": [
+				1,
+				2
+			],
+			"name": "BabaYagas",
+			"translation" : [0.0, 0.0, 0.0],
+			"rotation" : [0.0, 0.0, 0.0],
+			"scale" : [1.0, 1.0, 1.0],
+			"path" : "assets/models/baba_yagas_hut/scene.gltf",
+			"program" : 0,
+			"bvh" : true
+		},
+		{
+			"name": "sun",
+			"translation" : [0.0, 0.0, 0.0],
+			"rotation" : [0.0, 0.0, 0.0],
+			"scale" : [1.0, 1.0, 1.0],
+			"light" : 0
+		},
+		{
+			"name": "maya_camera",
+			"translation" : [0.0, 0.0, 0.0],
+			"rotation" : [0.0, 0.0, 0.0],
+			"scale" : [1.0, 1.0, 1.0],
+			"camera" : 0
+		}
+		{
+			"name": "fire",
+			"translation" : [10.0, 10.0, 0.0],
+			"particle_emitter" : 0
+		}
+	],
+	"lights": [
+		{
+			"color": [1.0, 1.0, 1.0],
+			"type": "directional",
+			"intensity": 1.0
+		}
+	],
+	"cameras" : [
+		{
+			"type": "perspective",
+			"perspective":
+			{
+				"aspectRatio": 1.0,
+				"yfov": 0.7,
+				"zfar": 100,
+				"znear": 0.01
+			}
+		},
+		{
+			"type": "orthographic",
+			"orthographic":
+			{
+				"xmag": 1.0,
+				"ymag": 1.0,
+				"zfar": 100,
+				"znear": 0.01
+			}
+		}
+	],
+	"gui" : "assets/gui/gui.gui",
+	"particle_emitters" : [
+		"assets/particles/fire_particles.ptl"
+	],
+	"shader_programs" :
+	{
+		"shaders" : [
+			"assets/shaders/default_pbr.vert",
+			"assets/shaders/default_pbr.frag"
+		],
+		"programs" : [
+			{
+				"vertex" : 0,
+				"fragment" : 1
+			}
+		]
+	}
+}
