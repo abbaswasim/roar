@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2008-2019
+// Copyright (c) 2021
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -23,32 +23,14 @@
 //
 // Version: 1.0.0
 
-#pragma once
-
-#include "memory_manager/rormemory_check.h"
+#include "graphics/rormaterial.hpp"
+#include "rhi/rorshader_buffer.hpp"
 
 namespace ror
 {
-template <class _type>
-class ROAR_ENGINE_ITEM Queue
+rhi::ShaderBuffer *create_shader_buffer(const rhi::MaterialModel& a_material)
 {
-  public:
-	FORCE_INLINE Queue(void);
-	FORCE_INLINE ~Queue(void);
-	// Pushes an Element on the queue
-	FORCE_INLINE void enque(_type a_value);
-	// Warning: Slow Version Uses A copy constructor
-	// Returns and Erases the Front Element
-	FORCE_INLINE _type deque(void);
-	// Just returns the Front Element doesn't erase it from the top
-	FORCE_INLINE _type front(void);
-	// Check for Empty Queue
-	FORCE_INLINE bool empty(void);
-
-  private:
-	// Data Needed for Queue
-	std::deque<_type> *m_queue;        // Container to keep data for Queue
-};
+	(void) a_material;
+	return nullptr;
+}
 }        // namespace ror
-
-#include "rorqueue.hh"
