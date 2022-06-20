@@ -26,9 +26,24 @@
 #pragma once
 
 #include "graphics/rormodel.hpp"
+#include "graphics/rornode.hpp"
+#include "math/rormatrix4.hpp"
+#include "platform/rorapplication.hpp"
 
 namespace ror
 {
+// TODO: Define properly somewhere
+class ROAR_ENGINE_ITEM RenderDevice
+{};
+class ROAR_ENGINE_ITEM Camera
+{};
+class ROAR_ENGINE_ITEM ParticleSystem
+{};
+class ROAR_ENGINE_ITEM Shader
+{};
+class ROAR_ENGINE_ITEM Light
+{};
+
 class ROAR_ENGINE_ITEM Scene
 {
   public:
@@ -39,15 +54,35 @@ class ROAR_ENGINE_ITEM Scene
 	FORCE_INLINE Scene &operator=(Scene &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Scene() noexcept                          = default;        //! Destructor
 
-	std::vector<Model> &models()
-	{
-		return this->m_models;
-	}
+	FORCE_INLINE Node *get_entity() const;
+	FORCE_INLINE Node *get_root() const;
+	FORCE_INLINE void  set_root(ror::Node *a_root);
+	FORCE_INLINE void  next_camera(ror::Camera **a_active_camera);
+	FORCE_INLINE void  save_render_state();
+	FORCE_INLINE void  restore_render_state();
+
+	void render(const RenderDevice *a_rendering_device);
+	void update(double64_t a_milli_seconds);
+	void load(std::filesystem::path a_level = "");
+	void unload();
+
+	// clang-format off
+	FORCE_INLINE const auto &models()           const    {  return this->m_models;          }
+	FORCE_INLINE const auto &textures()         const    {  return this->m_textures;        }
+	FORCE_INLINE const auto &nodes()            const    {  return this->m_nodes;           }
+	FORCE_INLINE const auto &nodes_side_data()  const    {  return this->m_nodes_side_data; }
+	// clang-format on
 
   private:
-	std::vector<Model> m_models{};
+	// All of these can be buffer allocated but for now leave them as is
+	std::vector<ror::Model>          m_models{};                 //! All the assets loaded as 3D models
+	std::vector<rhi::Texture>        m_textures{};               //! All textures by handles
+	std::vector<ror::Node>           m_nodes{};                  //! All the nodes in this assets
+	std::vector<ror::NodeData>       m_nodes_side_data{};        //! All the nodes parallel data that needs to be maintained
+	std::vector<ror::ParticleSystem> m_particles;                //! All the particle emittors
+	std::vector<ror::Shader>         m_shaders;                  //! All the global shaders
+	std::vector<ror::Camera>         m_cameras;                  //! All the cameras in the scene
+	std::vector<ror::Light>          m_lights;                   //! All the lights in the scene
 };
-
-// static_assert(std::is_trivially_copyable_v<Scene>, " Scene is not trivially copyable");
 
 }        // namespace ror

@@ -107,6 +107,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
   ${ROAR_SOURCE_DIR}/bounds/rorbounding.cpp
+  ${ROAR_SOURCE_DIR}/graphics/rormaterial.cpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.cpp

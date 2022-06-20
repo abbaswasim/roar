@@ -42,6 +42,7 @@ option(BUILD_GMOCK "Builds the googlemock subproject" OFF)
 add_subdirectory(${ROAR_ROOT_DIR}/tests)
 add_subdirectory(${ROAR_ROOT_DIR}/thirdparty)
 add_subdirectory(${ROAR_SOURCE_DIR})
+add_subdirectory(${ROAR_ROOT_DIR}/editor)
 
 # add_custom_command(
   # TARGET ${ROAR_NAME} POST_BUILD

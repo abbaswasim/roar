@@ -64,7 +64,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	using BoundingBoxAllocator = rhi::BufferAllocator<ror::BoundingBoxf>;
 
 	// NOTE: m_parts, m_primitive_types and m_has_indices_states are not BufferAllocated,
-	// because they will not be sent into the GPU, so don't need them int a big buffer
+	// because they will not be sent into the GPU, so don't need them in a big buffer
 	// TODO: Although to save on its allocation costs, one can BufferAllocate those as well
 
 	std::vector<rhi::VertexDescriptor>                      m_attribute_vertex_descriptors{};            //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts)

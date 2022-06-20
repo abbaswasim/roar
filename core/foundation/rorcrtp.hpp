@@ -34,7 +34,7 @@ namespace ror
  * A crtp class has two main functionalities, adding functionality and static interfaces
  * Borrowed from https://www.fluentcpp.com/2017/05/19/crtp-helper/
  */
-	template <typename _type, template <typename> class _derived_type>
+template <typename _type, template <typename> class _derived_type>
 class ROAR_ENGINE_ITEM Crtp
 {
   public:

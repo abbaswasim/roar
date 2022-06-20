@@ -89,3 +89,6 @@ target_include_directories(ctpl INTERFACE ${CTPL_INCLUDE_DIR})
 # target_include_directories(vulkan INTERFACE ${VULKAN_INCLUDE_DIR})
 
 # target_compile_definitions(vulkan INTERFACE VK_NO_PROTOTYPES)
+
+# Add glfw for windowing
+add_subdirectory(glfw)

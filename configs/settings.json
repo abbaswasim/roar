@@ -13,6 +13,7 @@
 	"buffer_increment": 10000000,
 	"background" : [0.14, 0.14, 0.14, 1.0],
 	"fullscreen" : "false",
+	"resizable" : "false",
 	"ambient_light_color" : [0.2, 0.2, 0.2, 1.0],
 	"working_dir" : "./working_dir",
 	"fog" :
