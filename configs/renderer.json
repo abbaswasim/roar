@@ -7,7 +7,7 @@
 			"assets/shaders/depth.vert",
 			"assets/shaders/depth.frag",
 			"assets/shaders/blur.kern",
-			"assets/shaders/explode.geom",
+			"assets/shaders/explode.geom"
 		],
 		"programs" : [
 			{
