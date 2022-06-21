@@ -343,7 +343,7 @@ std::string vs_morph_common(size_t a_weights_count, uint32_t a_morph_set, uint32
 const std::string vs_morph_stuff_header_str{"\nvoid morph_@(inout @ @)\n{\n"};
 const std::string vs_morph_stuff_line_str{"\t@ += in_morph_weights.morph_weights[@] * in_target_@@;\n"};
 
-std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_name, std::string a_type)
+std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_name, const std::string &a_type)
 {
 	auto str{vs_morph_stuff_header_str};
 
