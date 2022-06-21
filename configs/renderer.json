@@ -44,7 +44,7 @@
 			"bpp" : 8,
 			"layout" :
 			{
-				"r" : 8,
+				"r" : 8
 			},
 			"type" : "2D",
 			"buffers_in_flight" : 1
