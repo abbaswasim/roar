@@ -117,7 +117,7 @@ struct Event
 
 	FORCE_INLINE Event()
 	{}
-	explicit FORCE_INLINE Event(EventHandle a_event_handle, bool a_live = true, std::any a_payload = 0) :
+	FORCE_INLINE Event(EventHandle a_event_handle, bool a_live, std::any a_payload = 0) :
 		m_handle(a_event_handle), m_live(a_live), m_payload(a_payload)
 	{}
 
