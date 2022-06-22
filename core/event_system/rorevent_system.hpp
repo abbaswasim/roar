@@ -55,10 +55,12 @@ enum class EventType : uint32_t
 	keyboard,
 	gamepad,
 	window,
+	error,
 	max
 };
 
 // clang-format off
+// TODO: Clean the left_control etc
 enum class EventCode : uint32_t
 {
 	none = 0,
@@ -67,6 +69,13 @@ enum class EventCode : uint32_t
 	a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z,
 	f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19,
 	tab, space, back_space, caps_lock, page, enter, del, arrow, home, end, insert, esc, fn,
+	decimal, divide, multiply, subtract, add, equal,
+	apostrophe, comma, minus, period, slash,
+	semicolon,
+	left_bracket, backslash, right_bracket, grave_accent,
+	world_1, world_2,
+	right, left, down, up, page_up, page_down, scroll_lock, num_lock, print_screen, pause,
+	left_shift, left_control, left_alt, left_super, right_shift, right_control, right_alt, right_super, menu,
 	max
 };
 // clang-format on

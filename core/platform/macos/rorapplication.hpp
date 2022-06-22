@@ -27,58 +27,8 @@
 
 #include "platform/rorapplication.hpp"
 
-#define GLFW_INCLUDE_NONE
-#include "GLFW/glfw3.h"
-#define GLFW_EXPOSE_NATIVE_COCOA
-#include <GLFW/glfw3native.h>
-
 namespace ror
 {
-static void key(GLFWwindow *window, int k, int s, int action, int mods)
-{
-	(void) s;
-	(void) mods;
-
-	switch (k)
-	{
-		case GLFW_KEY_ESCAPE:
-			glfwSetWindowShouldClose(window, GLFW_TRUE);
-			break;
-		case GLFW_KEY_SPACE:
-			break;
-		case GLFW_KEY_G:
-			break;
-		case GLFW_KEY_W:
-			break;
-		case GLFW_KEY_S:
-			break;
-		case GLFW_KEY_C:
-			if (action == GLFW_PRESS)
-			{}
-			break;
-		case GLFW_KEY_R:
-			break;
-		case GLFW_KEY_F:
-			break;
-		case GLFW_KEY_I:
-			if (action == GLFW_PRESS)
-			{}
-			break;
-		case GLFW_KEY_O:
-			if (action == GLFW_PRESS)
-			{}
-			break;
-		default:
-			return;
-	}
-}
-
-static void error_callback(int error, const char *description)
-{
-	(void) error;
-
-	fputs(description, stderr);
-}
 
 class ROAR_ENGINE_ITEM MacOSApp final : public Application<MacOSApp>
 {
@@ -115,10 +65,10 @@ class ROAR_ENGINE_ITEM MacOSApp final : public Application<MacOSApp>
 			exit(EXIT_FAILURE);
 		}
 
-		glfwSetErrorCallback(error_callback);
+		glfwSetErrorCallback(glfw_error_callback);
 
-		glfwSetKeyCallback(this->m_window, key);
-		glfwSetWindowSizeCallback(this->m_window, resize);
+		glfwSetKeyCallback(this->m_window, glfw_key);
+		glfwSetWindowSizeCallback(this->m_window, glfw_resize);
 
 		// Lets use this as a user pointer in glfw
 		glfwSetWindowUserPointer(this->m_window, this);
@@ -146,9 +96,14 @@ class ROAR_ENGINE_ITEM MacOSApp final : public Application<MacOSApp>
 	void animate()
 	{}
 
+	void resize(int a_width, int a_height)
+	{
+		(void) a_width;
+		(void) a_height;
+	}
+
 	void shutdown()
 	{
-		// delete this->m_context;
 		glfwDestroyWindow(this->m_window);
 		glfwTerminate();
 	}
@@ -180,15 +135,6 @@ class ROAR_ENGINE_ITEM MacOSApp final : public Application<MacOSApp>
 		this->old_time = new_time;
 
 		return std::make_pair(current_keyframe, delta);
-	}
-
-	static void resize(GLFWwindow *window, int width, int height)
-	{
-		(void) window;
-		if (width == 0 || height == 0)
-			return;
-
-		// auto *app = static_cast<MetalApplication *>(glfwGetWindowUserPointer(window));
 	}
 
   protected:

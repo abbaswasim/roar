@@ -216,11 +216,11 @@ TEST(EventSystemTest, create_many_events)
 	EXPECT_EQ(count.m_value, 75);
 
 	event_system.subscribe(keyboard_a_click, count_inc);
-	event_system.notify(ror::Event{keyboard_a_click});
+	event_system.notify(ror::Event{keyboard_a_click, true});
 	EXPECT_EQ(count.m_value, 78);
 
 	{
-		std::vector<ror::Event> events{{mouse_left_mouse_click}, {mouse_left_mouse_click}, {mouse_left_mouse_click}, {keyboard_a_click}, {keyboard_a_up}};
+		std::vector<ror::Event> events{{mouse_left_mouse_click, true}, {mouse_left_mouse_click, true}, {mouse_left_mouse_click, true}, {keyboard_a_click, true}, {keyboard_a_up, true}};
 		event_system.notify(events);
 	}
 

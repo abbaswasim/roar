@@ -65,6 +65,7 @@ set(ROAR_TEST_SOURCES
   ${ROAR_TEST_SOURCE_DIR}/log.cpp
   ${ROAR_TEST_SOURCE_DIR}/watchcat.cpp
   ${ROAR_TEST_SOURCE_DIR}/jobsystem.cpp
+  ${ROAR_TEST_SOURCE_DIR}/eventsystem.cpp
   ${ROAR_TEST_SOURCE_DIR}/configuration/configuration.cpp
   ${ROAR_TEST_SOURCE_DIR}/rhi/shader_buffer.cpp
   ${ROAR_TEST_SOURCE_DIR}/vertex_description/vertex_description.cpp

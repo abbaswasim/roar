@@ -50,6 +50,11 @@ class ROAR_ENGINE_ITEM RoarHandle final
 		m_handle(a_handle)
 	{}
 
+	bool operator==(const RoarHandle &a_other) const
+	{
+		return this->m_handle == a_other.m_handle;
+	}
+
 	_type m_handle;
 
   protected:
@@ -61,7 +66,7 @@ class ROAR_ENGINE_ITEM RoarHandle final
 
 #define create_handle(handle, _type)                                                                \
 	struct type_##handle {};                                                                        \
-	using handle = RoarHandle<type_##handle, _type>;                                                \
+	using handle = rhi::RoarHandle<type_##handle, _type>;				\
 	static_assert(std::is_trivially_copyable_v<handle>,  srfy(handle is not trivially copyable));   \
 	static_assert(std::is_standard_layout_v<handle>,     srfy(handle is not standard layout))
 // clang-format on

@@ -25,17 +25,19 @@
 
 #pragma once
 
+#include "event_system/rorevent_system.hpp"
 #include "foundation/rorcrtp.hpp"
 #include "foundation/rormacros.hpp"
+#include <memory>
+
+class GLFWwindow;
 
 namespace ror
 {
-
 template <class _type>
 class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 {
   public:
-	FORCE_INLINE              Application()                               = default;        //! Default constructor
 	FORCE_INLINE              Application(const Application &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE              Application(Application &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE Application &operator=(const Application &a_other) = default;              //! Copy assignment operator
@@ -43,20 +45,27 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	FORCE_INLINE virtual ~Application() noexcept override               = default;          //! Destructor
 
 	// clang-format off
-	// void init()          {    this->underlying().init();       }
-	// void loop()          {    this->underlying().loop();       }
-	// void update()        {    this->underlying().update();     }
-	// void animate()       {    this->underlying().animate();    }
-	// void shutdown()      {    this->underlying().shutdown();   }
+	FORCE_INLINE void run()                                      {     this->underlying().run();                         }
+	FORCE_INLINE void resize(int a_width, int a_height)          {     this->underlying().resize(a_width, a_height);     }
 	// clang-format on
 
-	void run()
-	{
-		this->underlying().run();
-	}
+	explicit FORCE_INLINE Application(EventSystem &a_event_system) :
+		m_event_system(&a_event_system)
+	{}
+
+	static void glfw_resize(GLFWwindow *a_window, int a_width, int a_height);
+	static void glfw_key(GLFWwindow *a_window, int a_key, int s, int a_action, int a_mode);
+
+	EventSystem *event_system();
 
   protected:
+	FORCE_INLINE Application() = default;        //! Default constructor
   private:
+	EventSystem *m_event_system;        //! Non-owning pointer to an event system that the application can use,
 };
 
+void glfw_error_callback(int error, const char *description);
+
 }        // namespace ror
+
+#include "platform/rorapplication.hh"

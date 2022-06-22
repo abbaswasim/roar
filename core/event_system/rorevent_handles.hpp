@@ -6732,4 +6732,7 @@ static const auto window_move                              = create_event_handle
 static const auto window_drag                              = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::drag);
 static const auto window_resize                            = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::resize);
 static const auto window_focus                             = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::focus);
+
+// These were are hand added not generated via the script so don't delete those
+static const auto error_event                             = create_event_handle(EventType::error, EventCode::none, EventModifier::none, EventState::click);
 }        // namespace ror
