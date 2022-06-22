@@ -113,20 +113,20 @@ void EventSystem::init()
 															static_cast<EventState>(l))] = {};
 }
 
-void EventSystem::notify(Event a_event)
+void EventSystem::notify(Event a_event) const
 {
 	if (a_event.m_live)
 	{
-		for (auto &subs : this->m_subscribers[a_event.m_handle])
+		for (auto &sub : this->m_subscribers.at(a_event.m_handle))
 		{
-			subs(a_event);
+			sub(a_event);
 			if (!a_event.m_live)        // Some subscribers might consume the event
 				break;
 		}
 	}
 }
 
-void EventSystem::notify(std::vector<Event> a_events)
+void EventSystem::notify(std::vector<Event> a_events) const
 {
 	for (auto event : a_events)
 	{

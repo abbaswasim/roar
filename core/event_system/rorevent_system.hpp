@@ -174,14 +174,15 @@ class ROAR_ENGINE_ITEM EventSystem final
 	 */
 	void unsubscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function);
 	void subscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function);
-	void notify(Event a_event);
-	void notify(std::vector<Event> a_events);
+	void notify(Event a_event) const;
+	void notify(std::vector<Event> a_events) const;
 
   protected:
   private:
 	void init();
 
 	// TODO: Add some buffering system at some point
+	// TODO: Make this thread safe
 
 	std::unordered_map<EventHandle, std::vector<std::function<void(Event &)>>, EventHandleHash> m_subscribers;        //! All the functions that needs to be called for this Event Handle
 };
