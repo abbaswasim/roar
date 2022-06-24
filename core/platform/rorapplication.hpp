@@ -44,28 +44,22 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	FORCE_INLINE Application &operator=(Application &&a_other) noexcept = default;          //! Move assignment operator
 	FORCE_INLINE virtual ~Application() noexcept override               = default;          //! Destructor
 
+	using value_type = _type;
+
 	// clang-format off
-	FORCE_INLINE void run()                                      {     this->underlying().run();                         }
-	FORCE_INLINE void resize(int a_width, int a_height)          {     this->underlying().resize(a_width, a_height);     }
+	FORCE_INLINE void         run()                                      {     this->underlying().run();                         }
+	FORCE_INLINE void         resize(int a_width, int a_height)          {     this->underlying().resize(a_width, a_height);     }
+	FORCE_INLINE EventSystem &event_system()                             {     return this->m_event_system;                      }
 	// clang-format on
 
 	explicit FORCE_INLINE Application(EventSystem &a_event_system) :
-		m_event_system(&a_event_system)
+		m_event_system(a_event_system)
 	{}
 
-	static void glfw_resize(GLFWwindow *a_window, int a_width, int a_height);
-	static void glfw_key(GLFWwindow *a_window, int a_key, int s, int a_action, int a_mode);
-
-	EventSystem *event_system();
-
   protected:
-	FORCE_INLINE Application() = default;        //! Default constructor
+	FORCE_INLINE Application() = delete;        //! Default constructor
   private:
-	EventSystem *m_event_system;        //! Non-owning pointer to an event system that the application can use,
+	EventSystem &m_event_system;        //! Non-owning pointer to an event system that the application can use,
 };
 
-void glfw_error_callback(int error, const char *description);
-
 }        // namespace ror
-
-#include "platform/rorapplication.hh"

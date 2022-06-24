@@ -91,4 +91,7 @@ target_include_directories(ctpl INTERFACE ${CTPL_INCLUDE_DIR})
 # target_compile_definitions(vulkan INTERFACE VK_NO_PROTOTYPES)
 
 # Add glfw for windowing
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(glfw)

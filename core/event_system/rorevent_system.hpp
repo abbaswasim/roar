@@ -55,6 +55,7 @@ enum class EventType : uint32_t
 	keyboard,
 	gamepad,
 	window,
+	buffer,
 	error,
 	max
 };
@@ -67,15 +68,10 @@ enum class EventCode : uint32_t
 	n0, n1, n2, n3, n4, n5, n6, n7, n8, n9,
 	num0, num1, num2, num3, num4, num5, num6, num7, num8, num9,
 	a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z,
-	f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19,
-	tab, space, back_space, caps_lock, page, enter, del, arrow, home, end, insert, esc, fn,
-	decimal, divide, multiply, subtract, add, equal,
-	apostrophe, comma, minus, period, slash,
-	semicolon,
-	left_bracket, backslash, right_bracket, grave_accent,
-	world_1, world_2,
-	right, left, down, up, page_up, page_down, scroll_lock, num_lock, print_screen, pause,
-	left_shift, left_control, left_alt, left_super, right_shift, right_control, right_alt, right_super, menu,
+	f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, f21, f22, f23, f24, f25,
+	tab, space, back_space, caps_lock, page, enter, del, home, end, insert, esc, fn,
+	decimal, divide, multiply, subtract, add, equal, apostrophe, comma, minus, period, slash, semicolon, left_bracket, backslash, right_bracket, grave_accent,
+	right, left, down, up, page_up, page_down, scroll_lock, num_lock, print_screen, pause, left_shift, left_control, left_alt, left_super, right_shift, right_control, right_alt, right_super, menu,
 	max
 };
 // clang-format on
@@ -83,14 +79,12 @@ enum class EventCode : uint32_t
 enum class EventModifier : uint32_t
 {
 	none = 0,
-	left_shift,
-	left_control,
-	left_command,
-	left_option,
-	right_shift,
-	right_control,
-	right_command,
-	right_option,
+	shift,
+	control,
+	command,
+	option,
+	caps_lock,
+	num_lock,
 	left_mouse,
 	middle_mouse,
 	right_mouse,
@@ -100,9 +94,10 @@ enum class EventModifier : uint32_t
 enum class EventState : uint32_t
 {
 	click = 0,
-	up,
+	repeat,
 	down,
 	move,
+	scroll,
 	drag,
 	resize,
 	focus,

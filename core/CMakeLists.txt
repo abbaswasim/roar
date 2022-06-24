@@ -112,6 +112,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.cpp
+  ${ROAR_SOURCE_DIR}/platform/rorglfw_wrapper.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortexture.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.cpp
@@ -169,6 +170,7 @@ set(ROAR_REQUIRED_PUBLIC_LIBRARIES
   stb
   basisu
   spdlog
+  glfw
   nlohmann_json
   xxhash)
 

@@ -18,6 +18,7 @@
 #include <gtest/gtest-death-test.h>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>

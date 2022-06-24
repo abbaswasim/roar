@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "event_system/rorevent_system.hpp"
 #include "platform/rorapplication.hpp"
 #include "roreditor.hpp"
 #include <iostream>
@@ -38,11 +39,13 @@ int main(int argc, char *argv[])
 	(void) argc;
 	(void) argv;
 
+	ror::EventSystem event_system;
+
 	// TODO: Make sure this is platform agnostic
 	// Need to create different type of apps and then
 	// dispatch those to different threads if want to run at the same time
 	// Otherwise just run one or the other
-	ror::MacOSApp app1;
+	ror::MacOSApp app1(event_system);
 	// ror::MacOSApp app2;
 
 	try

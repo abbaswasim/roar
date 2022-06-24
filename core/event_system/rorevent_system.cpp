@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
 
 namespace ror

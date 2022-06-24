@@ -189,21 +189,21 @@ TEST(EventSystemTest, create_many_events)
 	event_system.notify({keyboard_a_click, true, 0});
 	EXPECT_EQ(count.m_value, 23);
 
-	event_system.notify({keyboard_a_up, true, 0});
+	event_system.notify({keyboard_a_repeat, true, 0});
 	EXPECT_EQ(count.m_value, 23);
 
 	event_system.notify({mouse_left_mouse_click, true, 0});
 	EXPECT_EQ(count.m_value, 23);
 
 	{
-		std::vector<ror::Event> events{{mouse_left_mouse_click, true, 0}, {mouse_left_mouse_click, true, 0}, {mouse_left_mouse_click, true, 0}, {keyboard_a_click, true, 0}, {keyboard_a_up, true, 0}};
+		std::vector<ror::Event> events{{mouse_left_mouse_click, true, 0}, {mouse_left_mouse_click, true, 0}, {mouse_left_mouse_click, true, 0}, {keyboard_a_click, true, 0}, {keyboard_a_repeat, true, 0}};
 		event_system.notify(events);
 	}
 
 	EXPECT_EQ(count.m_value, 25);
 
 	{
-		std::vector<ror::Event> events{{mouse_left_mouse_click, true, 0}, {mouse_left_mouse_click, true, 0}, {mouse_left_mouse_click, true, 0}, {keyboard_a_click, false, 0}, {keyboard_a_up, true, 0}};
+		std::vector<ror::Event> events{{mouse_left_mouse_click, true, 0}, {mouse_left_mouse_click, true, 0}, {mouse_left_mouse_click, true, 0}, {keyboard_a_click, false, 0}, {keyboard_a_repeat, true, 0}};
 		event_system.notify(events);
 	}
 
@@ -220,7 +220,7 @@ TEST(EventSystemTest, create_many_events)
 	EXPECT_EQ(count.m_value, 78);
 
 	{
-		std::vector<ror::Event> events{{mouse_left_mouse_click, true}, {mouse_left_mouse_click, true}, {mouse_left_mouse_click, true}, {keyboard_a_click, true}, {keyboard_a_up, true}};
+		std::vector<ror::Event> events{{mouse_left_mouse_click, true}, {mouse_left_mouse_click, true}, {mouse_left_mouse_click, true}, {keyboard_a_click, true}, {keyboard_a_repeat, true}};
 		event_system.notify(events);
 	}
 
