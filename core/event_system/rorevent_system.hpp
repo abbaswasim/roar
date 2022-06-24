@@ -57,6 +57,7 @@ enum class EventType : uint32_t
 	window,
 	buffer,
 	error,
+	file,
 	max
 };
 
@@ -99,6 +100,7 @@ enum class EventState : uint32_t
 	move,
 	scroll,
 	drag,
+	drop,
 	resize,
 	focus,
 	max

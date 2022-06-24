@@ -62,6 +62,8 @@ template <class _type>
 void glfw_mouse_scroll_callback(GLFWwindow *a_window, double a_x_offset, double a_y_offset);
 template <class _type>
 void glfw_gamepad_callback(GLFWwindow *a_window, int a_key, int a_scancode, int a_action, int a_mode);
+template <class _type>
+void glfw_file_drop_callback(GLFWwindow* a_window, int a_count, const char** a_paths);
 
 template <class _type>
 void glfw_register_for_global_events(GLFWwindow *a_window);

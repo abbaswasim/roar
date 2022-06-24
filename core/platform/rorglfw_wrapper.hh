@@ -29,6 +29,9 @@
 #include "event_system/rorevent_system.hpp"
 #include "math/rorvector2.hpp"
 #include "platform/rorglfw_wrapper.hpp"
+#include <cstddef>
+#include <string>
+#include <vector>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -72,6 +75,7 @@ GLFWwindow *glfw_create_window(int a_width, int a_height)
 	glfwSetCursorPosCallback(window, glfw_mouse_move_callback<_type>);
 	glfwSetMouseButtonCallback(window, glfw_mouse_button_callback<_type>);
 	glfwSetScrollCallback(window, glfw_mouse_scroll_callback<_type>);
+	glfwSetDropCallback(window, glfw_file_drop_callback<_type>);
 
 	int width, height;
 
@@ -230,6 +234,22 @@ void glfw_mouse_scroll_callback(GLFWwindow *a_window, double a_x_offset, double 
 	auto  event_handle = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::scroll);
 	auto &event_system = glfw_event_system<_type>(a_window);
 	event_system.notify({event_handle, true, ror::Vector2d{a_x_offset, a_y_offset}});
+}
+
+template <class _type>
+void glfw_file_drop_callback(GLFWwindow* a_window, int a_count, const char** a_paths)
+{
+	(void) a_window;
+
+	std::vector<std::string> paths;
+	paths.reserve(static_cast<size_t>(a_count));
+
+	for (int i = 0;  i < a_count;  i++)
+		paths.emplace_back(a_paths[i]);
+
+	auto  event_handle = create_event_handle(EventType::file, EventCode::none, EventModifier::none, EventState::drop);
+	auto &event_system = glfw_event_system<_type>(a_window);
+	event_system.notify({event_handle, true, paths});
 }
 
 }        // namespace ror

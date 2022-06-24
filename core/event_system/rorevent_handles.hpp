@@ -4447,4 +4447,5 @@ static const auto window_focus                            = create_event_handle(
 
 // These were are hand added not generated via the script so don't delete those
 static const auto error_event                             = create_event_handle(EventType::error, EventCode::none, EventModifier::none, EventState::click);
+static const auto file_drop                               = create_event_handle(EventType::file, EventCode::none, EventModifier::none, EventState::drop);
 }        // namespace ror
