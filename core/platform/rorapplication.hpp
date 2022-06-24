@@ -44,8 +44,6 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	FORCE_INLINE Application &operator=(Application &&a_other) noexcept = default;          //! Move assignment operator
 	FORCE_INLINE virtual ~Application() noexcept override               = default;          //! Destructor
 
-	using value_type = _type;
-
 	// clang-format off
 	FORCE_INLINE void         run()                                      {     this->underlying().run();                         }
 	FORCE_INLINE void         resize(int a_width, int a_height)          {     this->underlying().resize(a_width, a_height);     }
