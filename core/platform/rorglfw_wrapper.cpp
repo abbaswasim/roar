@@ -194,14 +194,11 @@ EventState glfw_action_to_event_state(int a_action)
 EventModifier glfw_button_to_event_modifier(int a_mode)
 {
 	// clang-format off
-	// Currently adjusted for apple magic mouse
-	// TODO: Confirm why apple magic mouse is returning 2 which is middle instead of 3,5 which are right
 	switch (a_mode)
 	{
-		case GLFW_MOUSE_BUTTON_1:	return EventModifier::left_mouse;
-		case GLFW_MOUSE_BUTTON_2:	return EventModifier::right_mouse;
-		case GLFW_MOUSE_BUTTON_3:
-		case GLFW_MOUSE_BUTTON_5:	return EventModifier::middle_mouse;
+		case GLFW_MOUSE_BUTTON_LEFT:	return EventModifier::left_mouse;
+		case GLFW_MOUSE_BUTTON_RIGHT:	return EventModifier::right_mouse;
+		case GLFW_MOUSE_BUTTON_MIDDLE:  return EventModifier::middle_mouse;
 	}
 	// clang-format on
 	return {};

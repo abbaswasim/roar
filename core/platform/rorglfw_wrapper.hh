@@ -137,12 +137,12 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 
 	// One can use the following type of functions to implement mouse move, left click, scroll etc
 	/*
-	auto mouse_scroll = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::scroll);
-	event_system.subscribe(mouse_move, [](Event &a_event) { (void) a_event; std::cout << "moving" << std::endl; });
+	event_system.subscribe(mouse_move, [](Event &a_event) { (void) a_event; auto v = a_event.get_payload<ror::Vector2d>(); std::cout << "moving (" << v.x << "," << v.y << ")" << std::endl;});
 	event_system.subscribe(mouse_left_mouse_click, [](Event &a_event) { (void) a_event; std::cout << "left clicking" << std::endl; });
 	event_system.subscribe(mouse_right_mouse_click, [](Event &a_event) { (void) a_event; std::cout << "right clicking" << std::endl; });
-	event_system.subscribe(mouse_scroll, [](Event &a_event) { (void) a_event; std::cout << "scrolling" << std::endl; });
 	event_system.subscribe(mouse_left_mouse_drag, [](Event &a_event) { (void) a_event; std::cout << "draging" << std::endl; });
+	auto mouse_scroll = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::scroll);
+	event_system.subscribe(mouse_scroll, [](Event &a_event) { (void) a_event; std::cout << "scrolling" << std::endl; });
 	*/
 
 	std::shared_ptr<bool> draging = std::make_shared<bool>(false);        //! Using a pointer here because it needs to be captured by reference in the lambdas below
