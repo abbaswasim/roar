@@ -118,35 +118,41 @@ TEST(RoarGeneral, DISABLED_RoarGeneral_hash_performance_string)
 	std::string str{"atomic intptr_t is not lock_free"};
 
 	{
-		auto s = map_hasher(str);
-		auto t = timer("loop test: ");
-
+		auto   s   = map_hasher(str);
 		size_t sum = s;
-		for (size_t i = 0; i < count; ++i)
 		{
-			sum += map_hasher(str);
+			auto t = timer("loop test: ");
+
+			for (size_t i = 0; i < count; ++i)
+			{
+				sum += map_hasher(str);
+			}
 		}
 		std::cout << "sum = " << sum << std::endl;
 	}
 	{
-		auto s = ror::hash_64(str.c_str(), str.size());
-		auto t = timer("loop test: ");
-
+		auto   s   = ror::hash_64(str.c_str(), str.size());
 		size_t sum = s;
-		for (size_t i = 0; i < count; ++i)
 		{
-			sum += ror::hash_64(str.c_str(), str.size());
+			auto t = timer("loop test: ");
+
+			for (size_t i = 0; i < count; ++i)
+			{
+				sum += ror::hash_64(str.c_str(), str.size());
+			}
 		}
 		std::cout << "sum = " << sum << std::endl;
 	}
 	{
-		auto s = ror::hash_32(str.c_str(), str.size());
-		auto t = timer("loop test: ");
-
+		auto   s   = ror::hash_32(str.c_str(), str.size());
 		size_t sum = s;
-		for (size_t i = 0; i < count; ++i)
 		{
-			sum += ror::hash_32(str.c_str(), str.size());
+			auto t = timer("loop test: ");
+
+			for (size_t i = 0; i < count; ++i)
+			{
+				sum += ror::hash_32(str.c_str(), str.size());
+			}
 		}
 		std::cout << "sum = " << sum << std::endl;
 	}
@@ -165,24 +171,28 @@ TEST(RoarGeneral, DISABLED_RoarGeneral_hash_performance_size_t)
 	std::size_t str_size{sizeof(str)};
 
 	{
-		auto s = map_hasher(str);
-		auto t = timer("loop test: ");
-
+		auto   s   = map_hasher(str);
 		size_t sum = s;
-		for (size_t i = 0; i < count; ++i)
 		{
-			sum += map_hasher(str);
+			auto t = timer("loop test: ");
+
+			for (size_t i = 0; i < count; ++i)
+			{
+				sum += map_hasher(str);
+			}
 		}
 		std::cout << "sum = " << sum << std::endl;
 	}
 	{
-		auto s = ror::hash_64(&str, str_size);
-		auto t = timer("loop test: ");
-
+		auto   s   = ror::hash_64(&str, str_size);
 		size_t sum = s;
-		for (size_t i = 0; i < count; ++i)
 		{
-			sum += ror::hash_64(&str, str_size);
+			auto t = timer("loop test: ");
+
+			for (size_t i = 0; i < count; ++i)
+			{
+				sum += ror::hash_64(&str, str_size);
+			}
 		}
 		std::cout << "sum = " << sum << std::endl;
 	}
