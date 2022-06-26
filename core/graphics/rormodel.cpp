@@ -879,6 +879,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					ror::log_critical("Don't support ior extension at the moment");
 				}
 
+				// Lets generate a GLSL ShaderBuffer for this material // TODO: This shouldn't be GLSL specific
+				material.generate_hash();
+
 				this->m_materials.emplace_back(std::move(material));
 
 				material_to_index.emplace(&mat, i);

@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rorhash.hpp"
 #include "foundation/rortypes.hpp"
 #include "math/rormatrix3.hpp"
 #include "math/rorvector2.hpp"
@@ -81,8 +82,19 @@ class ROAR_ENGINE_ITEM Material final
 		uint32_t           m_uv_map{0};                        //! Which UV map set should be used, 0 is default but some things like light maps usually use uv set 1
 		ComponentType      m_type{ComponentType::none};        //! Whether it has factor or texture only or both or none
 		bool               m_has_transform{false};             //! Whether the UVs has a texture transform or not
-		ror::Matrix3f      m_transform{};                      //! The UV transform available for this map
-		std::bitset<4>     m_channels{0};                      //! RGBA and all combinations of it, where R=bit1, B=bit2, G=bit3, A=bit4, TODO: Fix and use this
+		ror::Matrix3f      m_transform{};                      //! The UV transform available for this map, at the moment its constant for this material and in its shader
+		// std::bitset<4>     m_channels{0};                      //! RGBA and all combinations of it, where R=bit1, B=bit2, G=bit3, A=bit4, TODO: Fix and use this, make sure to use bit-field not bitset, uint32_t m_channels{0} : 4;
+
+		hash_64_t hash()
+		{
+			// Note m_factor and m_texture are not used in hash calculation because factor is constant as far as Material is concerned and texture will always be different
+			hash_64_t hash_value = hash_64(&this->m_uv_map, sizeof(this->m_uv_map));
+			hash_combine_64(hash_value, hash_64(&this->m_type, sizeof(this->m_type)));
+			hash_combine_64(hash_value, hash_64(&this->m_has_transform, sizeof(this->m_has_transform)));
+			hash_combine_64(hash_value, hash_64(&this->m_transform, sizeof(this->m_transform)));
+
+			return hash_value;
+		}
 	};
 
 	// TODO: Check and verify how this can be packed better
@@ -115,6 +127,9 @@ class ROAR_ENGINE_ITEM Material final
 	float32_t               m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, we use only F0 from F0=((ior − 1) / (ior + 1))²
 																			  //! Note we don't need F90 coz Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
 	rhi::ShaderBuffer *m_shader_buffer{nullptr};                              //! Non-owning pointer to ShaderBuffer which describes its shader's UBO/SSBO view
+	hash_64_t          m_hash;                                                //! Material hash to make sure we don't create duplicate shaders
+
+	void generate_hash();
 };
 
 void material_to_shader_buffer(const ror::Material &a_material, rhi::ShaderBuffer &a_shader_buffer);

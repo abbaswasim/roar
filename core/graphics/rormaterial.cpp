@@ -23,11 +23,49 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorhash.hpp"
+#include "foundation/rortypes.hpp"
 #include "graphics/rormaterial.hpp"
 #include "rhi/rorshader_buffer.hpp"
 
 namespace ror
 {
+
+void Material::generate_hash()
+{
+	this->m_hash = this->m_base_color.hash();
+
+	hash_combine_64(this->m_hash, this->m_diffuse_color.hash());
+	hash_combine_64(this->m_hash, this->m_specular_glossyness.hash());
+	hash_combine_64(this->m_hash, this->m_emissive.hash());
+	hash_combine_64(this->m_hash, this->m_anisotropy.hash());
+	hash_combine_64(this->m_hash, this->m_transmission.hash());
+	hash_combine_64(this->m_hash, this->m_sheen_color.hash());
+	hash_combine_64(this->m_hash, this->m_sheen_roughness.hash());
+	hash_combine_64(this->m_hash, this->m_clearcoat_normal.hash());
+	hash_combine_64(this->m_hash, this->m_clearcoat.hash());
+	hash_combine_64(this->m_hash, this->m_clearcoat_roughness.hash());
+	hash_combine_64(this->m_hash, this->m_metallic.hash());
+	hash_combine_64(this->m_hash, this->m_roughness.hash());
+	hash_combine_64(this->m_hash, this->m_occlusion.hash());
+	hash_combine_64(this->m_hash, this->m_normal.hash());
+	hash_combine_64(this->m_hash, this->m_bent_normal.hash());
+	hash_combine_64(this->m_hash, this->m_height.hash());
+	hash_combine_64(this->m_hash, this->m_opacity.hash());
+	hash_combine_64(this->m_hash, this->m_subsurface_color.hash());
+
+	// TODO: The following needs some condition, add that later for subsurface scattering support
+	// hash_combine_64(this->m_hash, hash_64(&this->m_subsurface, sizeof(this->m_subsurface)));
+
+	hash_combine_64(this->m_hash, hash_64(&this->m_material_model, sizeof(this->m_material_model)));
+	hash_combine_64(this->m_hash, hash_64(&this->m_blend_mode, sizeof(this->m_blend_mode)));
+	hash_combine_64(this->m_hash, hash_64(&this->m_type, sizeof(this->m_type)));
+	hash_combine_64(this->m_hash, hash_64(&this->m_double_sided, sizeof(this->m_double_sided)));
+	hash_combine_64(this->m_hash, hash_64(&this->m_layered, sizeof(this->m_layered)));
+
+	// Not using material_name and reflectance because there are not part of shader generated for this material
+}
+
 void material_to_shader_buffer(const ror::Material &a_material, rhi::ShaderBuffer &shader_buffer)
 {
 	if (a_material.m_base_color.m_type == ror::Material::ComponentType::factor || a_material.m_base_color.m_type == ror::Material::ComponentType::factor_texture)
