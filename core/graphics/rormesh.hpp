@@ -26,6 +26,7 @@
 #pragma once
 
 #include "bounds/rorbounding.hpp"
+#include "foundation/rorhash.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
@@ -53,12 +54,16 @@ enum AttributeIndices
 class ROAR_ENGINE_ITEM Mesh final
 {
   public:
-	FORCE_INLINE       Mesh()                        = default;             //! Default constructor
-	FORCE_INLINE       Mesh(const Mesh &a_other)     = default;             //! Copy constructor
-	FORCE_INLINE       Mesh(Mesh &&a_other) noexcept = default;             //! Move constructor
-	FORCE_INLINE Mesh &operator=(const Mesh &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE       Mesh()                             = default;        //! Default constructor
+	FORCE_INLINE       Mesh(const Mesh &a_other)          = default;        //! Copy constructor
+	FORCE_INLINE       Mesh(Mesh &&a_other) noexcept      = default;        //! Move constructor
+	FORCE_INLINE Mesh &operator=(const Mesh &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Mesh &operator=(Mesh &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Mesh() noexcept                         = default;        //! Destructor
+
+	// Provides has for a specific part of the mesh
+	hash_64_t hash(size_t a_primitive_index) const;
+	void      generate_hash();
 
 	// TODO: Flatten this into 'Mesh' into 'Models' etc to see if I get cache locallity
 	using BoundingBoxAllocator = rhi::BufferAllocator<ror::BoundingBoxf>;
@@ -67,6 +72,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	// because they will not be sent into the GPU, so don't need them in a big buffer
 	// TODO: Although to save on its allocation costs, one can BufferAllocate those as well
 
+	std::vector<hash_64_t>                                  m_primitive_hashes{};                        //! All the parts has a specific hash of its VertexDescriptors etc
 	std::vector<rhi::VertexDescriptor>                      m_attribute_vertex_descriptors{};            //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts)
 	std::vector<std::vector<rhi::VertexDescriptor>>         m_morph_targets_vertex_descriptors{};        //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts) for morph targets
 	std::vector<rhi::PrimitiveTopology>                     m_primitive_types{};                         //! Should be init with rhi::PrimitiveTopology::triangle
@@ -75,6 +81,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>    m_bounding_boxes{};                          //! This is per part
 	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Should be init with -1
 	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1
+	uint64_t                                                m_hash{0};                                   //! Hash of this mesh depending on most of its properties
 };
 
 }        // namespace ror

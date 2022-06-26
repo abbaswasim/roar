@@ -111,6 +111,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/graphics/rormaterial.cpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
+  ${ROAR_SOURCE_DIR}/graphics/rormesh.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.cpp
   ${ROAR_SOURCE_DIR}/platform/rorglfw_wrapper.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp

@@ -47,10 +47,10 @@ class ROAR_ENGINE_ITEM Light
 class ROAR_ENGINE_ITEM Scene
 {
   public:
-	FORCE_INLINE        Scene()                         = default;            //! Default constructor
-	FORCE_INLINE        Scene(const Scene &a_other)     = default;            //! Copy constructor
-	FORCE_INLINE        Scene(Scene &&a_other) noexcept = default;            //! Move constructor
-	FORCE_INLINE Scene &operator=(const Scene &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE        Scene()                             = default;        //! Default constructor
+	FORCE_INLINE        Scene(const Scene &a_other)         = default;        //! Copy constructor
+	FORCE_INLINE        Scene(Scene &&a_other) noexcept     = default;        //! Move constructor
+	FORCE_INLINE Scene &operator=(const Scene &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Scene &operator=(Scene &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Scene() noexcept                          = default;        //! Destructor
 
@@ -77,12 +77,12 @@ class ROAR_ENGINE_ITEM Scene
 	// All of these can be buffer allocated but for now leave them as is
 	std::vector<ror::Model>          m_models{};                 //! All the assets loaded as 3D models
 	std::vector<rhi::Texture>        m_textures{};               //! All textures by handles
-	std::vector<ror::Node>           m_nodes{};                  //! All the nodes in this assets
+	std::vector<ror::Node>           m_nodes{};                  //! All the nodes in this scene
 	std::vector<ror::NodeData>       m_nodes_side_data{};        //! All the nodes parallel data that needs to be maintained
-	std::vector<ror::ParticleSystem> m_particles;                //! All the particle emittors
-	std::vector<ror::Shader>         m_shaders;                  //! All the global shaders
-	std::vector<ror::Camera>         m_cameras;                  //! All the cameras in the scene
-	std::vector<ror::Light>          m_lights;                   //! All the lights in the scene
+	std::vector<ror::ParticleSystem> m_particles{};              //! All the particle emittors
+	std::vector<ror::Shader>         m_shaders{};                //! All the global shaders
+	std::vector<ror::Camera>         m_cameras{};                //! All the cameras in the scene
+	std::vector<ror::Light>          m_lights{};                 //! All the lights in the scene
 };
 
 }        // namespace ror

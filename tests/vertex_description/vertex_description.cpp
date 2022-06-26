@@ -473,22 +473,30 @@ TEST(VertexDescriptionTest, attributes_descriptor_hasher)
 		const auto attribs = vd.attributes();
 		const auto type    = vd.type();
 
-		ror::hash_stream_64(nullptr, -1);                                                    // Init streamer
-		ror::hash_stream_64(reinterpret_cast<const void *>(&type), sizeof(uint64_t));        // Lets start with the type
+		auto hash = ror::hash_64(&type, sizeof(type));
 
 		for (auto &attrib : attribs)
 		{
-			const auto format = attrib.format();
-			ror::hash_stream_64(reinterpret_cast<const void *>(&format), sizeof(uint32_t));        // Now lets add all the formats
+			const auto location  = attrib.location();
+			const auto offset    = attrib.offset();
+			const auto semantics = attrib.semantics();
+			const auto format    = attrib.format();
+
+			ror::hash_combine_64(hash, ror::hash_64(&location, sizeof(location)));          // Now lets add all the locations
+			ror::hash_combine_64(hash, ror::hash_64(&offset, sizeof(offset)));              // Now lets add all the offests
+			ror::hash_combine_64(hash, ror::hash_64(&semantics, sizeof(semantics)));        // Now lets add all the semantics
+			ror::hash_combine_64(hash, ror::hash_64(&format, sizeof(format)));              // Now lets add all the formats
 		}
 
-		auto temp_hash = ror::hash_stream_64(nullptr, 0);
+		auto temp_hash = hash;
 
 		hash0       = vd.hash_64();
 		auto hash00 = vd.hash_64();
 
 		EXPECT_EQ(temp_hash, temp_hash);
 		EXPECT_EQ(hash0, hash00);
+
+		EXPECT_EQ(temp_hash, hash00);
 	}
 
 	{

@@ -81,8 +81,8 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	FORCE_INLINE ptrdiff_t           buffer_offset()    const { return this->m_buffer_offset;    }
 	FORCE_INLINE uint32_t            binding()          const { return this->m_binding;          }
 	FORCE_INLINE uint32_t            buffer_index()     const { return this->m_buffer_index;     }
-	FORCE_INLINE rhi::VertexFormat   format()           const { return this->m_format;           }
 	FORCE_INLINE rhi::BufferSemantic semantics()        const { return this->m_semantics;        }
+	FORCE_INLINE rhi::VertexFormat   format()           const { return this->m_format;           }
 
 
 	FORCE_INLINE void   location(uint32_t a_location)              noexcept { this->m_location         = a_location;     }
@@ -90,8 +90,8 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	FORCE_INLINE void   buffer_offset(ptrdiff_t a_offset)          noexcept { this->m_buffer_offset    = a_offset;       }
 	FORCE_INLINE void   binding(uint32_t a_binding)                noexcept { this->m_binding          = a_binding;      }
 	FORCE_INLINE void   buffer_index(uint32_t a_index)             noexcept { this->m_buffer_index     = a_index;        }
-	FORCE_INLINE void   format(rhi::VertexFormat a_format)         noexcept { this->m_format           = a_format;       }
 	FORCE_INLINE void   semantics(rhi::BufferSemantic a_semantics) noexcept { this->m_semantics        = a_semantics;    }
+	FORCE_INLINE void   format(rhi::VertexFormat a_format)         noexcept { this->m_format           = a_format;       }
 	// clang-format on
 
   private:

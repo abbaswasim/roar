@@ -713,10 +713,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 			// Read all the samplers
 			this->m_samplers.reserve(data->samplers_count + 1);
-
 			// Lets have a default sampler at index 0
 			this->m_samplers.emplace_back();
-
 			for (size_t i = 0; i < data->samplers_count; ++i)
 			{
 				this->m_samplers.emplace_back(cgltf_sampler_to_sampler(&data->samplers[i]));
@@ -725,7 +723,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 			// Read all the textures
 			this->m_textures.reserve(data->textures_count);
-
 			for (size_t i = 0; i < data->textures_count; ++i)
 			{
 				cgltf_image *image = data->textures[i].image;
@@ -757,7 +754,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 			// Read all the materials
 			this->m_materials.reserve(data->materials_count);
-
 			for (size_t i = 0; i < data->materials_count; ++i)
 			{
 				// Using calculations from https://google.github.io/filament/Filament.html#toc4.8.3.2 to calculate f0 from ior
@@ -898,6 +894,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				mesh.m_morph_targets_vertex_descriptors.resize(cmesh.primitives_count);
 				mesh.m_primitive_types.resize(cmesh.primitives_count);
 				mesh.m_has_indices_states.resize(cmesh.primitives_count);
+				mesh.m_primitive_hashes.resize(cmesh.primitives_count);
 				// The last 2 are important and definitely needs reserving because these are BufferAllocated
 				mesh.m_bounding_boxes.resize(cmesh.primitives_count);
 				mesh.m_material_indices.resize(cmesh.primitives_count);
@@ -1398,6 +1395,50 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					animation.m_channels.emplace_back(std::move(animation_channel));
 				}
 			}
+
+			// Update mesh hashes after everything is loaded
+			for (size_t i = 0; i < data->meshes_count; ++i)
+			{
+				Mesh             &mesh  = this->m_meshes[i];
+				const cgltf_mesh &cmesh = data->meshes[i];
+
+				for (size_t j = 0; j < cmesh.primitives_count; ++j)
+				{
+					auto &vertex_attribute_descriptor              = mesh.m_attribute_vertex_descriptors[j];
+					auto &morph_target_vertex_attribute_descriptor = mesh.m_morph_targets_vertex_descriptors[j];
+					auto &hash                                     = mesh.m_primitive_hashes[j];
+
+					hash = vertex_attribute_descriptor.hash_64();
+
+					for (auto &attrib : morph_target_vertex_attribute_descriptor)
+						hash_combine_64(hash, attrib.hash_64());
+
+					// Only check if we weights
+					auto weights_size = mesh.m_morph_weights.size();
+
+					if (weights_size > 0)
+						hash_combine_64(hash, hash_64(&weights_size, sizeof(weights_size)));
+
+					// Adding material index here because if material is the same for specific vertex attributes then we use the same shader
+					auto material_index = mesh.m_material_indices[j];
+					if (material_index != -1)
+					{
+						auto &material = this->m_materials[ror::static_cast_safe<size_t>(material_index)];
+						hash_combine_64(hash, material.m_hash);
+					}
+
+					auto skin_index = mesh.m_skin_index;
+					if (skin_index != -1)
+					{
+						auto &skin = this->m_skins[ror::static_cast_safe<size_t>(skin_index)];
+						hash_combine_64(hash, skin.m_joints.size());
+					}
+				}
+
+				// Lets update the mesh hash
+				mesh.generate_hash();
+			}
+
 			return true;
 		};
 

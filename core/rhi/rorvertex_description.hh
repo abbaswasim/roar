@@ -191,20 +191,26 @@ void VertexDescriptor::parse_attributes_and_layouts(_types &...a_attributes)
 }
 
 // TODO: cache the result if this turns out to be expensive
-FORCE_INLINE auto VertexDescriptor::hash_64()
+FORCE_INLINE auto VertexDescriptor::hash_64() const
 {
 	const auto type = this->type();
 
-	ror::hash_stream_64(nullptr, -1);                                                    // Init streamer
-	ror::hash_stream_64(reinterpret_cast<const void *>(&type), sizeof(uint64_t));        // Lets start with the type
+	auto hash = ror::hash_64(&type, sizeof(type));
 
 	for (auto &attrib : this->m_attributes)
 	{
-		const auto format = attrib.format();
-		ror::hash_stream_64(reinterpret_cast<const void *>(&format), sizeof(uint32_t));        // Now lets add all the formats
+		const auto location  = attrib.location();
+		const auto offset    = attrib.offset();
+		const auto semantics = attrib.semantics();
+		const auto format    = attrib.format();
+
+		ror::hash_combine_64(hash, ror::hash_64(&location, sizeof(location)));          // Now lets add all the locations
+		ror::hash_combine_64(hash, ror::hash_64(&offset, sizeof(offset)));              // Now lets add all the offests
+		ror::hash_combine_64(hash, ror::hash_64(&semantics, sizeof(semantics)));        // Now lets add all the semantics
+		ror::hash_combine_64(hash, ror::hash_64(&format, sizeof(format)));              // Now lets add all the formats
 	}
 
-	return ror::hash_stream_64(nullptr, 0);
+	return hash;
 }
 
 }        // namespace rhi
