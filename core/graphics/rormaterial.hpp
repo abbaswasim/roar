@@ -51,10 +51,10 @@ namespace ror
 class ROAR_ENGINE_ITEM Material final
 {
   public:
-	FORCE_INLINE           Material()                            = default;         //! Default constructor
-	FORCE_INLINE           Material(const Material &a_other)     = default;         //! Copy constructor
-	FORCE_INLINE           Material(Material &&a_other) noexcept = default;         //! Move constructor
-	FORCE_INLINE Material &operator=(const Material &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE           Material()                             = default;        //! Default constructor
+	FORCE_INLINE           Material(const Material &a_other)      = default;        //! Copy constructor
+	FORCE_INLINE           Material(Material &&a_other) noexcept  = default;        //! Move constructor
+	FORCE_INLINE Material &operator=(const Material &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Material &operator=(Material &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Material() noexcept                             = default;        //! Destructor
 
@@ -76,7 +76,6 @@ class ROAR_ENGINE_ITEM Material final
 	template <typename _factor_type>
 	struct Component
 	{
-		// Perhaps use something like m_factor : 2;            //!< m_factor only takes 2-bits and pack it in the struct
 		_factor_type       m_factor{1.0f};                     //! TODO: Should be set differently for different textures
 		rhi::TextureHandle m_texture{-1};                      //! Texture ID of a Texture within a textures array (contains texture image id and texture sampler id)
 		uint32_t           m_uv_map{0};                        //! Which UV map set should be used, 0 is default but some things like light maps usually use uv set 1
@@ -118,7 +117,7 @@ class ROAR_ENGINE_ITEM Material final
 	rhi::ShaderBuffer *m_shader_buffer{nullptr};                              //! Non-owning pointer to ShaderBuffer which describes its shader's UBO/SSBO view
 };
 
-rhi::ShaderBuffer *create_shader_buffer(const rhi::MaterialModel& a_material);
+void material_to_shader_buffer(const ror::Material &a_material, rhi::ShaderBuffer &a_shader_buffer);
 
 static_assert(std::is_trivially_copyable_v<Material>, "Material is not trivially copyable");
 static_assert(std::is_standard_layout_v<Material>, "Material is not standard layout");
