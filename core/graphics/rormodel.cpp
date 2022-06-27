@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorhash.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
@@ -894,7 +895,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				mesh.m_morph_targets_vertex_descriptors.resize(cmesh.primitives_count);
 				mesh.m_primitive_types.resize(cmesh.primitives_count);
 				mesh.m_has_indices_states.resize(cmesh.primitives_count);
-				mesh.m_primitive_hashes.resize(cmesh.primitives_count);
+				mesh.m_primitive_vertex_hashes.resize(cmesh.primitives_count);
+				mesh.m_primitive_fragment_hashes.resize(cmesh.primitives_count);
+				mesh.m_primitive_program_hashes.resize(cmesh.primitives_count);
 				// The last 2 are important and definitely needs reserving because these are BufferAllocated
 				mesh.m_bounding_boxes.resize(cmesh.primitives_count);
 				mesh.m_material_indices.resize(cmesh.primitives_count);
@@ -1406,33 +1409,42 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				{
 					auto &vertex_attribute_descriptor              = mesh.m_attribute_vertex_descriptors[j];
 					auto &morph_target_vertex_attribute_descriptor = mesh.m_morph_targets_vertex_descriptors[j];
-					auto &hash                                     = mesh.m_primitive_hashes[j];
+					auto &vertex_hash                              = mesh.m_primitive_vertex_hashes[j];
+					auto &fragment_hash                            = mesh.m_primitive_fragment_hashes[j];
+					auto &program_hash                             = mesh.m_primitive_program_hashes[j];
 
-					hash = vertex_attribute_descriptor.hash_64();
+					// Setup vertex hash
+					vertex_hash = vertex_attribute_descriptor.hash_64();
 
 					for (auto &attrib : morph_target_vertex_attribute_descriptor)
-						hash_combine_64(hash, attrib.hash_64());
+						hash_combine_64(vertex_hash, attrib.hash_64());
 
-					// Only check if we weights
-					auto weights_size = mesh.m_morph_weights.size();
+					// Only check if we have weights
+					auto weights_count = mesh.m_morph_weights.size();
 
-					if (weights_size > 0)
-						hash_combine_64(hash, hash_64(&weights_size, sizeof(weights_size)));
-
-					// Adding material index here because if material is the same for specific vertex attributes then we use the same shader
-					auto material_index = mesh.m_material_indices[j];
-					if (material_index != -1)
-					{
-						auto &material = this->m_materials[ror::static_cast_safe<size_t>(material_index)];
-						hash_combine_64(hash, material.m_hash);
-					}
+					if (weights_count > 0)
+						hash_combine_64(vertex_hash, hash_64(&weights_count, sizeof(weights_count)));
 
 					auto skin_index = mesh.m_skin_index;
 					if (skin_index != -1)
 					{
 						auto &skin = this->m_skins[ror::static_cast_safe<size_t>(skin_index)];
-						hash_combine_64(hash, skin.m_joints.size());
+						hash_combine_64(vertex_hash, skin.m_joints.size());
 					}
+
+					// Setup material hash
+					// Adding material index here because if material is the same for specific vertex attributes then we use the same shader
+					auto material_index = mesh.m_material_indices[j];
+					fragment_hash  = vertex_hash;
+					if (material_index != -1)
+					{
+						auto &material = this->m_materials[ror::static_cast_safe<size_t>(material_index)];
+						hash_combine_64(fragment_hash, material.m_hash);
+					}
+
+					// Setup program hash
+					program_hash = vertex_hash;
+					hash_combine_64(program_hash, fragment_hash);
 				}
 
 				// Lets update the mesh hash

@@ -346,5 +346,10 @@ std::string get_format_semantic(const BufferSemantic &a_semantic)
 	return semantic_to_string[a_semantic];
 }
 
+constexpr bool has_semantic(uint64_t a_type, BufferSemantic a_semantic)
+{
+	return ((a_type & ror::enum_to_type_cast(a_semantic)) == ror::enum_to_type_cast(a_semantic));
+}
+
 // clang-format on
 }        // namespace rhi

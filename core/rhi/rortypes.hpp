@@ -408,6 +408,7 @@ uint32_t       vertex_format_to_bytes(VertexFormat a_vertex_format);
 uint32_t       vertex_format_to_location(VertexFormat a_vertex_format);
 BufferSemantic get_format_semantic(const std::string &a_format);
 std::string    get_format_semantic(const BufferSemantic &a_semantic);
+constexpr bool has_semantic(uint64_t a_type, BufferSemantic a_semantic);
 
 const auto format_to_bytes = vertex_format_to_bytes;
 

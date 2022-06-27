@@ -36,14 +36,9 @@
 #include "rhi/rorvertex_attribute.hpp"
 #include "rhi/rorvertex_layout.hpp"
 #include <algorithm>
-#include <cassert>
-#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <memory>
-#include <stdexcept>
-#include <stdint.h>
-#include <sys/wait.h>
 #include <tuple>
 #include <unordered_map>
 #include <utility>

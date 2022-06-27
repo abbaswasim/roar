@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2021-2022
+// Copyright (c) 2022
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -23,41 +23,26 @@
 //
 // Version: 1.0.0
 
-#include "graphics/rormaterial.hpp"
-#include "graphics/rormesh.hpp"
+#include "graphics/rorscene.hpp"
 
 namespace ror
 {
-hash_64_t Mesh::hash() const
+void Scene::render(const RenderDevice *a_rendering_device)
 {
-	return this->m_hash;
+	(void) a_rendering_device;
 }
 
-hash_64_t Mesh::vertex_hash(size_t a_primitive_index) const
+void Scene::update(double64_t a_milli_seconds)
 {
-	return this->m_primitive_vertex_hashes[a_primitive_index];
+	(void) a_milli_seconds;
 }
 
-hash_64_t Mesh::fragment_hash(size_t a_primitive_index) const
+void Scene::load(std::filesystem::path a_level)
 {
-	return this->m_primitive_fragment_hashes[a_primitive_index];
+	(void) a_level;
 }
 
-hash_64_t Mesh::program_hash(size_t a_primitive_index) const
-{
-	return this->m_primitive_program_hashes[a_primitive_index];
-}
-
-void Mesh::generate_hash()
-{
-	for (size_t i = 0; i < this->m_primitive_vertex_hashes.size(); ++i)
-		hash_combine_64(this->m_hash, this->vertex_hash(i));
-
-	for (size_t i = 0; i < this->m_primitive_fragment_hashes.size(); ++i)
-		hash_combine_64(this->m_hash, this->fragment_hash(i));
-
-	for (size_t i = 0; i < this->m_primitive_program_hashes.size(); ++i)
-		hash_combine_64(this->m_hash, this->program_hash(i));
-}
+void Scene::unload()
+{}
 
 }        // namespace ror

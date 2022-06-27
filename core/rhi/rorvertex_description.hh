@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorhash.hpp"
 #include "foundation/rormacros.hpp"
 #include "rhi/rorvertex_description.hpp"
 

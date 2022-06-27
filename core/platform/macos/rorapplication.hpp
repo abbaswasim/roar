@@ -51,7 +51,8 @@ class ROAR_ENGINE_ITEM MacOSApp final : public Application<MacOSApp>
 	{}
 
 	FORCE_INLINE void init()
-	{}
+	{
+	}
 
 	FORCE_INLINE void loop()
 	{

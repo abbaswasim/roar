@@ -62,7 +62,10 @@ class ROAR_ENGINE_ITEM Mesh final
 	FORCE_INLINE ~Mesh() noexcept                         = default;        //! Destructor
 
 	// Provides has for a specific part of the mesh
-	hash_64_t hash(size_t a_primitive_index) const;
+	hash_64_t hash() const;
+	hash_64_t vertex_hash(size_t a_primitive_index) const;
+	hash_64_t fragment_hash(size_t a_primitive_index) const;
+	hash_64_t program_hash(size_t a_primitive_index) const;
 	void      generate_hash();
 
 	// TODO: Flatten this into 'Mesh' into 'Models' etc to see if I get cache locallity
@@ -72,7 +75,9 @@ class ROAR_ENGINE_ITEM Mesh final
 	// because they will not be sent into the GPU, so don't need them in a big buffer
 	// TODO: Although to save on its allocation costs, one can BufferAllocate those as well
 
-	std::vector<hash_64_t>                                  m_primitive_hashes{};                        //! All the parts has a specific hash of its VertexDescriptors etc
+	std::vector<hash_64_t>                                  m_primitive_vertex_hashes{};                 //! All the parts has a specific hash of its vertex shaders due to its VertexDescriptors etc
+	std::vector<hash_64_t>                                  m_primitive_fragment_hashes{};               //! All the parts has a specific hash of its fragment shaders due to its VertexDescriptors + Material etc
+	std::vector<hash_64_t>                                  m_primitive_program_hashes{};                //! All the parts has a specific hash of its program due to a combination of vertex and fragment hashes
 	std::vector<rhi::VertexDescriptor>                      m_attribute_vertex_descriptors{};            //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts)
 	std::vector<std::vector<rhi::VertexDescriptor>>         m_morph_targets_vertex_descriptors{};        //! All the parts that makes up the mesh, each part requires a VertexDescription(attributes and layouts) for morph targets
 	std::vector<rhi::PrimitiveTopology>                     m_primitive_types{};                         //! Should be init with rhi::PrimitiveTopology::triangle
