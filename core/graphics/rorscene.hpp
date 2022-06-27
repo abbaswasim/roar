@@ -63,7 +63,7 @@ class ROAR_ENGINE_ITEM Scene
 
 	void render(const RenderDevice *a_rendering_device);
 	void update(double64_t a_milli_seconds);
-	void load(std::filesystem::path a_level = "");
+	void load(std::filesystem::path a_level = "default_scene.json");
 	void unload();
 
 	// clang-format off

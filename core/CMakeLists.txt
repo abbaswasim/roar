@@ -113,6 +113,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormesh.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.cpp
+  ${ROAR_SOURCE_DIR}/graphics/rorscene.cpp
   ${ROAR_SOURCE_DIR}/platform/rorglfw_wrapper.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortexture.cpp
@@ -140,7 +141,12 @@ generate_export_header(${ROAR_NAME}
   EXPORT_MACRO_NAME ROAR_ENGINE_ITEM
   NO_EXPORT_MACRO_NAME ROAR_ENGINE_PRIVATE)
 
-# If using roar as library, make sure you define ROAR_AS_SYSTEM if you don't want warnings from roar polluting your build logs
+# Configure project_setup.hpp.in into project_setup.hpp which provides setup_project_root()
+message(STATUS "Now generating project_setup.hpp file")
+set(roar_engine_dir ${ROAR_ROOT_DIR})
+configure_file(${ROAR_SOURCE_DIR}/project_setup.hpp.in project_setup.hpp) # Creates the header in current binary dir
+
+# If using roar as library, make sure you define ROAR_AS_LIBRARY if you don't want warnings from roar polluting your build logs
 if (ROAR_AS_LIBRARY)
   # Using target_include_directories_system so that clients don't have issues with warnings in roar
   target_include_directories_system(${ROAR_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")

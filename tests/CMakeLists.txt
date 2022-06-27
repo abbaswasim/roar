@@ -71,11 +71,6 @@ set(ROAR_TEST_SOURCES
   ${ROAR_TEST_SOURCE_DIR}/vertex_description/vertex_description.cpp
   ${ROAR_TEST_SOURCE_DIR}/carray_vs_stdarray.cpp)
 
-# Lets configure the project_root.hpp header for the current path
-set(tests_root_dir ${ROAR_TEST_SOURCE_DIR})
-configure_file(${ROAR_TEST_SOURCE_DIR}/project_setup.hpp.in project_setup.hpp) # Creates the header in current binary dir
-include_directories(${CMAKE_CURRENT_BINARY_DIR}) # Lets add that as include as well now
-
 add_executable(${ROAR_TEST_NAME} ${ROAR_TEST_HEADERS} ${ROAR_TEST_SOURCES})
 
 target_include_directories(${ROAR_TEST_NAME} PRIVATE

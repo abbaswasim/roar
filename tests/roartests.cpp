@@ -25,6 +25,7 @@
 
 #include "geometry/geometry.hpp"
 #include "math/math_tests.hpp"
+#include "profiling/rorlog.hpp"
 #include "random.hpp"
 #include "utilities.hpp"
 #include "project_setup.hpp"
@@ -35,7 +36,7 @@
 int main(int argc, char **argv)
 {
 	// Copy assets/configs required for tests
-	setup_project_root();
+	ror::setup_project_root("test_roar_project", "tests");
 
 	testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();

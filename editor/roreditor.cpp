@@ -23,8 +23,10 @@
 //
 // Version: 1.0.0
 
+#include "configuration/rorsettings_configuration.hpp"
 #include "event_system/rorevent_system.hpp"
 #include "platform/rorapplication.hpp"
+#include "resources/rorprojectroot.hpp"
 #include "roreditor.hpp"
 #include <iostream>
 
