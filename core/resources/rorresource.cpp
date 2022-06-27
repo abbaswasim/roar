@@ -265,8 +265,10 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 		return temp;
 	}
 
+	std::string file_with_timestamp{resource_semantic_path.replace_filename(std::string(gen_filename) + "_" + resource_semantic_path.filename().string())};
+
 	// If std::strftime returned successfully use the generated filename
-	return project_root_path / semantic_path / gen_filename;
+	return project_root_path / file_with_timestamp;
 }
 
 static Resource &cache_resource(const std::filesystem::path &a_absolute_path)
