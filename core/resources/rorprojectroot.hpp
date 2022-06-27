@@ -58,8 +58,8 @@ class ROAR_ENGINE_ITEM ProjectRoot final
 
   protected:
   private:
-	std::filesystem::path m_project_root{};                    // Root folder copy
-	hash_64_t             m_project_root_hash{};               // Root folder hash used for seeding ror_hash
+	std::filesystem::path m_project_root{};                    //! Root folder copy
+	hash_64_t             m_project_root_hash{};               //! Root folder hash used for seeding ror_hash
 };
 
 /**

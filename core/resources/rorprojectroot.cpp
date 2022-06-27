@@ -26,22 +26,24 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "profiling/rorlog.hpp"
 #include "rorprojectroot.hpp"
+#include <filesystem>
 #include <string>
 
 namespace ror
 {
+
 ProjectRoot::ProjectRoot()
 {
 	// Convenience name for default initialized projects
-	const std::string project_path{"roar_project"};        // Remember this can't be put in "settings.json" because then you are recursively calling get_settings()
-	this->m_project_root      = std::filesystem::absolute(project_path);
-	this->m_project_root_hash = std::hash<std::string>{}(project_path);
+	const std::string project_path{"roar_project"};                             // Remember this can't be put in "settings.json" because then you are recursively calling get_settings()
+	this->m_project_root      = std::filesystem::absolute(project_path);        // This will make it absolute according to current_path, which is where you run the exe from
+	this->m_project_root_hash = std::hash<std::string>{}(this->m_project_root);
 	std::filesystem::create_directory(this->m_project_root);        // its ok if already exists
 }
 
 ProjectRoot::ProjectRoot(std::filesystem::path a_project_path) :
 	m_project_root(std::filesystem::absolute(a_project_path)),
-	m_project_root_hash(std::hash<std::string>{}(a_project_path))
+	m_project_root_hash(std::hash<std::string>{}(m_project_root))
 {
 	if (a_project_path.empty())
 		ror::log_error("ProjectRoot is initilaized with empty path.");
@@ -52,8 +54,8 @@ ProjectRoot::ProjectRoot(std::filesystem::path a_project_path) :
 
 void ProjectRoot::change_project(std::string a_root_path)
 {
-	this->m_project_root = std::filesystem::absolute(a_root_path);
-	std::filesystem::create_directory(this->m_project_root);        // its ok if already exists
+	this->m_project_root = std::filesystem::absolute(a_root_path);        // This will make it absolute according to current_path, which is where you run the exe from
+	std::filesystem::create_directory(this->m_project_root);              // its ok if already exists
 
 	// Update the hash
 	this->m_project_root_hash = std::hash<std::string>{}(this->m_project_root);
