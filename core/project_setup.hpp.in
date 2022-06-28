@@ -46,7 +46,7 @@ void create_content_symlink(std::filesystem::path a_target, std::filesystem::pat
 }
 
 // Call with the a project name where your project is, and a prefix to append to the current path "tests", "editor" etc
-void setup_project_root(std::filesystem::path a_project_name = "roar_project", std::filesystem::path a_prefix = "editor")
+void setup_project_root(std::filesystem::path a_project_name, std::filesystem::path a_prefix = "")
 {
 	std::filesystem::path root_dir_path{roar_dir};
 

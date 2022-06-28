@@ -40,7 +40,7 @@ namespace ror
 {
 FORCE_INLINE hash_32_t hash_32(const void *a_input, size_t a_size)
 {
-	static const uint32_t seed = static_cast<uint32_t>(get_default_project_root().hash());        // Truncation from uint64_t to uint32_t is ok here
+	static const uint32_t seed = static_cast<uint32_t>(get_project_root().hash());        // Truncation from uint64_t to uint32_t is ok here
 	return XXH32(a_input, a_size, seed);
 }
 
@@ -51,7 +51,7 @@ FORCE_INLINE hash_32_t hash_32(const std::string& a_input)
 
 FORCE_INLINE hash_64_t hash_64(const void *a_input, size_t a_size)
 {
-	static const uint64_t seed = get_default_project_root().hash();
+	static const uint64_t seed = get_project_root().hash();
 	return XXH64(a_input, a_size, seed);
 }
 
@@ -109,7 +109,7 @@ FORCE_INLINE hash_32_t hash_stream_32(const void *a_input, int32_t a_size)
 {
 	static XXH32_state_t *const state = XXH32_createState();
 	assert(state && "xxHash state can't be initialized can't continue");
-	static const uint32_t seed = static_cast<uint32_t>(get_default_project_root().hash());        // Truncation from uint64_t to uint32_t is ok here
+	static const uint32_t seed = static_cast<uint32_t>(get_project_root().hash());        // Truncation from uint64_t to uint32_t is ok here
 
 	if (a_size > 0)
 	{
@@ -152,7 +152,7 @@ FORCE_INLINE hash_64_t hash_stream_64(const void *a_input, int32_t a_size)
 {
 	static XXH64_state_t *const state = XXH64_createState();
 	assert(state && "xxHash state can't be initialized can't continue");
-	static const uint64_t seed = get_default_project_root().hash();        // Truncation from uint64_t to uint32_t is ok here
+	static const uint64_t seed = get_project_root().hash();        // Truncation from uint64_t to uint32_t is ok here
 
 	// log_critical("seed = {}",seed);
 	if (a_size > 0)

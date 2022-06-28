@@ -32,15 +32,6 @@
 namespace ror
 {
 
-ProjectRoot::ProjectRoot()
-{
-	// Convenience name for default initialized projects
-	const std::string project_path{"roar_project"};                             // Remember this can't be put in "settings.json" because then you are recursively calling get_settings()
-	this->m_project_root      = std::filesystem::absolute(project_path);        // This will make it absolute according to current_path, which is where you run the exe from
-	this->m_project_root_hash = std::hash<std::string>{}(this->m_project_root);
-	std::filesystem::create_directory(this->m_project_root);        // its ok if already exists
-}
-
 ProjectRoot::ProjectRoot(std::filesystem::path a_project_path) :
 	m_project_root(std::filesystem::absolute(a_project_path)),
 	m_project_root_hash(std::hash<std::string>{}(m_project_root))
@@ -77,12 +68,6 @@ const ProjectRoot &get_project_root(std::filesystem::path a_path)
 	static ProjectRoot pr{a_path};
 	assert(a_path != pr.path() && "Trying to re-initialize project root");
 	assert(pr.path() != "" && "Project root can't be empty");
-	return pr;
-}
-
-const ProjectRoot &get_default_project_root()
-{
-	static const ProjectRoot pr{};
 	return pr;
 }
 

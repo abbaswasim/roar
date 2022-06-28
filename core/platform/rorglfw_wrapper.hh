@@ -43,7 +43,7 @@ namespace ror
 {
 
 template <class _type>
-GLFWwindow *glfw_create_window(int a_width, int a_height)
+GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_height)
 {
 	if (!glfwInit())
 	{
@@ -59,7 +59,7 @@ GLFWwindow *glfw_create_window(int a_width, int a_height)
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 	// TODO: Get title etc from settings
-	auto window = glfwCreateWindow(a_width, a_height, "Roar Editor...", nullptr, nullptr);
+	auto window = glfwCreateWindow(a_width, a_height, a_window_title.c_str(), nullptr, nullptr);
 
 	if (!window)
 	{
@@ -90,7 +90,7 @@ template <class _type>
 GLFWwindowWrapper<_type>::GLFWwindowWrapper(void *a_pointer)
 {
 	// TODO: Read size from settings
-	this->m_window = glfw_create_window<_type>(1024, 768);
+	this->m_window = glfw_create_window<_type>("Roar Editor...", 1024, 768);
 	glfwSetWindowUserPointer(this->m_window, a_pointer);
 	glfw_register_for_global_events<_type>(this->m_window);
 }
@@ -128,6 +128,40 @@ FORCE_INLINE EventSystem &glfw_event_system(GLFWwindow *a_window)
 	return app->event_system();
 }
 
+template <class _type>
+void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button)
+{
+	auto                 &event_system = glfw_event_system<_type>(a_window);
+	std::shared_ptr<bool> draging      = std::make_shared<bool>(false);        //! Using a pointer here because it needs to be captured by reference in the lambdas below
+
+	auto drag_set = [draging](Event &a_event) {
+		(void) a_event;
+		*draging = true;
+	};
+
+	auto drag_reset = [draging](Event &a_event) {
+		(void) a_event;
+		*draging = false;
+	};
+
+	auto drag_test = [draging, event_system, a_mouse_button](Event &a_event) {
+		(void) a_event;
+
+		if (*draging)
+		{
+			auto event_handle = create_event_handle(EventType::mouse, EventCode::none, a_mouse_button, EventState::drag);
+			event_system.notify({event_handle, true});
+		}
+	};
+
+	auto mouse_down_handle  = create_event_handle(EventType::mouse, EventCode::none, a_mouse_button, EventState::down);
+	auto mouse_click_handle = create_event_handle(EventType::mouse, EventCode::none, a_mouse_button, EventState::click);
+
+	event_system.subscribe(mouse_down_handle, drag_set);
+	event_system.subscribe(mouse_click_handle, drag_reset);
+	event_system.subscribe(mouse_move, drag_test);
+}
+
 // Some global glfw events registeration
 template <class _type>
 void glfw_register_for_global_events(GLFWwindow *a_window)
@@ -140,36 +174,16 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 	event_system.subscribe(mouse_move, [](Event &a_event) { (void) a_event; auto v = a_event.get_payload<ror::Vector2d>(); std::cout << "moving (" << v.x << "," << v.y << ")" << std::endl;});
 	event_system.subscribe(mouse_left_mouse_click, [](Event &a_event) { (void) a_event; std::cout << "left clicking" << std::endl; });
 	event_system.subscribe(mouse_right_mouse_click, [](Event &a_event) { (void) a_event; std::cout << "right clicking" << std::endl; });
-	event_system.subscribe(mouse_left_mouse_drag, [](Event &a_event) { (void) a_event; std::cout << "draging" << std::endl; });
 	auto mouse_scroll = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::scroll);
 	event_system.subscribe(mouse_scroll, [](Event &a_event) { (void) a_event; std::cout << "scrolling" << std::endl; });
+	event_system.subscribe(mouse_left_mouse_drag, [](Event &a_event) { (void) a_event; std::cout << "left draging" << std::endl; });
+	event_system.subscribe(mouse_right_mouse_drag, [](Event &a_event) { (void) a_event; std::cout << "right draging" << std::endl; });
+	event_system.subscribe(mouse_middle_mouse_drag, [](Event &a_event) { (void) a_event; std::cout << "middle draging" << std::endl; });
 	*/
 
-	std::shared_ptr<bool> draging = std::make_shared<bool>(false);        //! Using a pointer here because it needs to be captured by reference in the lambdas below
-
-	auto drag_set = [draging](Event &a_event) {
-		(void) a_event;
-		*draging = true;
-	};
-
-	auto drag_reset = [draging](Event &a_event) {
-		(void) a_event;
-		*draging = false;
-	};
-
-	auto drag_test = [draging, event_system](Event &a_event) {
-		(void) a_event;
-
-		if (*draging)
-		{
-			auto event_handle = create_event_handle(EventType::mouse, EventCode::none, EventModifier::left_mouse, EventState::drag);
-			event_system.notify({event_handle, true});
-		}
-	};
-
-	event_system.subscribe(mouse_left_mouse_down, drag_set);
-	event_system.subscribe(mouse_left_mouse_click, drag_reset);
-	event_system.subscribe(mouse_move, drag_test);
+	glfw_register_drag_event<_type>(a_window, EventModifier::left_mouse);
+	glfw_register_drag_event<_type>(a_window, EventModifier::right_mouse);
+	glfw_register_drag_event<_type>(a_window, EventModifier::middle_mouse);
 }
 
 template <class _type>
@@ -237,14 +251,14 @@ void glfw_mouse_scroll_callback(GLFWwindow *a_window, double a_x_offset, double 
 }
 
 template <class _type>
-void glfw_file_drop_callback(GLFWwindow* a_window, int a_count, const char** a_paths)
+void glfw_file_drop_callback(GLFWwindow *a_window, int a_count, const char **a_paths)
 {
 	(void) a_window;
 
 	std::vector<std::string> paths;
 	paths.reserve(static_cast<size_t>(a_count));
 
-	for (int i = 0;  i < a_count;  i++)
+	for (int i = 0; i < a_count; i++)
 		paths.emplace_back(a_paths[i]);
 
 	auto  event_handle = create_event_handle(EventType::file, EventCode::none, EventModifier::none, EventState::drop);

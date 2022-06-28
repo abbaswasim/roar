@@ -42,12 +42,6 @@ class ROAR_ENGINE_ITEM ProjectRoot final
 	FORCE_INLINE ~ProjectRoot() noexcept                                = default;        //! Destructor
 
 	/**
-	 * Creates a project with the hardcoded project name "roar_project"
-	 * in some directory depending on the OS provided working dir
-	 */
-	ProjectRoot();
-
-	/**
 	 * Creates a project with the provided root dir
 	 */
 	ProjectRoot(std::filesystem::path a_project_path);
@@ -58,6 +52,8 @@ class ROAR_ENGINE_ITEM ProjectRoot final
 
   protected:
   private:
+	FORCE_INLINE ProjectRoot()     = default;                   //! Default constructor
+
 	std::filesystem::path m_project_root{};                    //! Root folder copy
 	hash_64_t             m_project_root_hash{};               //! Root folder hash used for seeding ror_hash
 };

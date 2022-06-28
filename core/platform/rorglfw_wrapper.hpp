@@ -31,7 +31,10 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#ifdef _DARWIN_
 #define GLFW_EXPOSE_NATIVE_COCOA
+#endif
+
 #include <GLFW/glfw3native.h>
 
 namespace ror
@@ -65,6 +68,8 @@ void glfw_gamepad_callback(GLFWwindow *a_window, int a_key, int a_scancode, int 
 template <class _type>
 void glfw_file_drop_callback(GLFWwindow* a_window, int a_count, const char** a_paths);
 
+template <class _type>
+void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button);
 template <class _type>
 void glfw_register_for_global_events(GLFWwindow *a_window);
 
