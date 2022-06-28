@@ -38,12 +38,6 @@ namespace ror
 // TODO: Define properly somewhere
 class ROAR_ENGINE_ITEM RenderDevice
 {};
-enum class CameraType
-{
-	perspective,
-	orthographics
-};
-
 class ROAR_ENGINE_ITEM Camera
 {
   public:
@@ -108,7 +102,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE Scene &operator=(Scene &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Scene() noexcept override                 = default;        //! Destructor
 
-	Scene(std::filesystem::path a_level);
+	explicit Scene(std::filesystem::path a_level);
 
 	FORCE_INLINE Node *get_entity() const;
 	FORCE_INLINE Node *get_root() const;
