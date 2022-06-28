@@ -38,13 +38,13 @@ void OrbitCamera::look_at()
 	this->m_to   = this->m_minimum + ((this->m_maximum - this->m_minimum) / 2.0f);
 	this->m_from = this->m_to;
 
-	this->m_camera_depth = this->m_to.z - (this->m_bounding_sphere_radius / sin(ror::to_radians(this->m_fov / 2)));
+	this->m_camera_depth = this->m_to.z - (this->m_bounding_sphere_radius / sin(ror::to_radians(this->m_y_fov / 2)));
 
 	this->m_from.z = static_cast<float32_t>(-(this->m_camera_depth + this->m_zooming_depth));        // Truncation happening here, make sure it doesn't matter
 
 	this->m_view = ror::make_look_at(this->m_from, this->m_to, this->m_up);
 
-	this->m_projection = ror::make_perspective(ror::to_radians(this->m_fov), static_cast<float>(this->m_width) / static_cast<float>(this->m_height), 0.1f, 1000.0f);
+	this->m_projection = ror::make_perspective(ror::to_radians(this->m_y_fov), static_cast<float>(this->m_width) / static_cast<float>(this->m_height), this->m_z_near, this->m_z_far);
 	// this->m_projection.perspective(this->m_fov, 1.0f, 0.1f, 1000.0f);
 
 	// Make infinite projections matrix

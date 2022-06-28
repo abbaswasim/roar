@@ -92,7 +92,9 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t                    m_z_rotation{0.0f};                       //! Euler angle of rotation around z-axis
 	float32_t                    m_x_translation{0.0f};                    //! Translation in x-coordinates
 	float32_t                    m_y_translation{0.0f};                    //! Translation in y-coordinates
-	float32_t                    m_fov{60.0f};                             //! FOV of the camera
+	float32_t                    m_y_fov{60.0f};                           //! Y-FOV of the camera
+	float32_t                    m_z_near{0.1f};                          //! z-near of the camera
+	float32_t                    m_z_far{1000.0f};                          //! z-far of the camera
 	int32_t                      m_width{800};                             //! Width of the rectangle it needs to fill
 	int32_t                      m_height{600};                            //! Height of the rectangle it needs to fill
 	EventSystem                 *m_event_system;                           //! A non-owning alias of the event system to not have to keep moving this around
