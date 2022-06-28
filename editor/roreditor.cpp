@@ -23,11 +23,15 @@
 //
 // Version: 1.0.0
 
+#include "command_line/rorcommand_line.hpp"
 #include "configuration/rorsettings_configuration.hpp"
+#include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
 #include "platform/rorapplication.hpp"
+#include "project_setup.hpp"
 #include "resources/rorprojectroot.hpp"
 #include "roreditor.hpp"
+#include <any>
 #include <iostream>
 
 template <typename _type>
@@ -38,8 +42,18 @@ void app_run(ror::Application<_type> &a_application)
 
 int main(int argc, char *argv[])
 {
-	(void) argc;
-	(void) argv;
+	std::string editor_default_project{"editor_default_project"};
+
+	ror::CommandLineParser cli{std::vector<std::string>{argv, argv + argc}};
+
+	cli.add("--default-project", "-dp", "Default project name for the editor", ror::CommandLineParser::OptionType::type_string, true,
+			[&editor_default_project](std::any a_project_name){ editor_default_project = std::any_cast<std::string>(a_project_name);});
+
+	// if (!cli.execute())
+		// return 1;
+	cli.execute();
+
+	ror::setup_project_root(editor_default_project, "editor");
 
 	ror::EventSystem event_system;
 
