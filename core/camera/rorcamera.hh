@@ -26,6 +26,7 @@
 #include "camera/rorcamera.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "math/rormatrix4_functions.hpp"
 
 namespace ror
 {
@@ -44,15 +45,19 @@ void OrbitCamera::look_at()
 
 	this->m_view = ror::make_look_at(this->m_from, this->m_to, this->m_up);
 
-	this->m_projection = ror::make_perspective(ror::to_radians(this->m_y_fov), static_cast<float>(this->m_width) / static_cast<float>(this->m_height), this->m_z_near, this->m_z_far);
-	// this->m_projection.perspective(this->m_fov, 1.0f, 0.1f, 1000.0f);
+	if (this->m_type == CameraType::perspective)
+	{
+		this->m_projection = ror::make_perspective(ror::to_radians(this->m_y_fov), static_cast<float>(this->m_width) / static_cast<float>(this->m_height), this->m_z_near, this->m_z_far);
 
-	// Make infinite projections matrix
-	float a_z_near = 0.1f;
-	float epsilon  = 0.00000024f;
+		// Make infinite projections matrix
+		float a_z_near = 0.1f;
+		float epsilon  = 0.00000024f;
 
-	this->m_projection.m_values[10] = epsilon - 1.0f;
-	this->m_projection.m_values[14] = (epsilon - 2.0f) * a_z_near;
+		this->m_projection.m_values[10] = epsilon - 1.0f;
+		this->m_projection.m_values[14] = (epsilon - 2.0f) * a_z_near;
+	}
+	else
+		this->m_projection = ror::make_ortho(0.0f, static_cast<float>(this->m_width), 0.0f, static_cast<float>(this->m_height), this->m_z_near, this->m_z_far);
 
 	// Apply mouse movement transformation on top
 	Matrix4f transformation = identity_matrix4f;
