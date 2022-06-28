@@ -52,6 +52,7 @@ enum class ResourceSemantic
 	objects,
 	configs,
 	models,        // Also a mesh
+	scenes,        // Also a mesh
 	caches,
 	audio,
 	cubemap,

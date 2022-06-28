@@ -27,6 +27,7 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
+#include "graphics/rorscene.hpp"
 #include "platform/rorapplication.hpp"
 #include "project_setup.hpp"
 #include "resources/rorprojectroot.hpp"
@@ -55,7 +56,11 @@ int main(int argc, char *argv[])
 	if (!cli.execute())
 		return 1;
 
+
 	ror::setup_project_root(editor_default_project, "editor");
+	auto &bp = rhi::get_buffers_pack();
+
+	ror::Scene scene{editor_default_scene};
 
 	ror::EventSystem event_system;
 
@@ -65,6 +70,7 @@ int main(int argc, char *argv[])
 	// Otherwise just run one or the other
 	ror::MacOSApp app1(event_system);
 	// ror::MacOSApp app2;
+
 
 	try
 	{
@@ -76,6 +82,8 @@ int main(int argc, char *argv[])
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
+
+	bp.free();
 
 	return 0;
 }

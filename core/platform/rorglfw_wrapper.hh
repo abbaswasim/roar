@@ -189,14 +189,16 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 template <class _type>
 void glfw_window_resize_callback(GLFWwindow *a_window, int a_width, int a_height)
 {
-	(void) a_window;
-
 	if (a_width == 0 || a_height == 0)
 		return;
 
-	auto *app = glfw_user_pointer<_type>(a_window);
+	// auto *app = glfw_user_pointer<_type>(a_window);
 
-	app->resize(a_width, a_height);
+	// app->resize(a_width, a_height);
+
+	auto  event_handle = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::resize);
+	auto &event_system = glfw_event_system<_type>(a_window);
+	event_system.notify({event_handle, true, ror::Vector2i{a_width, a_height}});
 }
 
 template <class _type>

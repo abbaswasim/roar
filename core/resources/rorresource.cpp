@@ -66,6 +66,8 @@ std::string get_resource_semantic_string(ResourceSemantic a_semantic)
 			return "configs";
 		case ResourceSemantic::models:
 			return "models";
+		case ResourceSemantic::scenes:
+			return "scenes";
 		case ResourceSemantic::caches:
 			return "caches";
 		case ResourceSemantic::audio:
@@ -231,6 +233,7 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 												  ResourceSemantic::objects,
 												  ResourceSemantic::configs,
 												  ResourceSemantic::models,
+												  ResourceSemantic::scenes,
 												  ResourceSemantic::misc})        // Different way of dealing with caches and logs
 								{
 									auto items_path = get_resource_semantic_string(item);

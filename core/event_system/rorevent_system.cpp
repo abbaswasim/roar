@@ -49,30 +49,6 @@ EventHandle create_event_handle(EventType     a_event_type,
 	return event_handle;
 }
 
-constexpr EventType event_type(EventHandle a_handle)
-{
-	uint32_t mask = 0x000000FF;
-	return static_cast<EventType>(a_handle.m_handle & mask);
-}
-
-constexpr EventCode event_code(EventHandle a_handle)
-{
-	uint32_t mask = 0x0000FF00;
-	return static_cast<EventCode>(a_handle.m_handle & mask);
-}
-
-constexpr EventModifier event_modifier(EventHandle a_handle)
-{
-	uint32_t mask = 0x00FF0000;
-	return static_cast<EventModifier>(a_handle.m_handle & mask);
-}
-
-constexpr EventState event_state(EventHandle a_handle)
-{
-	uint32_t mask = 0xFF000000;
-	return static_cast<EventState>(a_handle.m_handle & mask);
-}
-
 EventSystem::EventSystem()
 {
 	this->init();

@@ -46,9 +46,9 @@ class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 	FORCE_INLINE Configuration &operator=(Configuration &&a_other) noexcept = default;            //! Move assignment operator
 	FORCE_INLINE virtual ~Configuration() noexcept override                 = default;            //! Destructor
 
-	void load(std::filesystem::path a_config_path)
+	void load(std::filesystem::path a_config_path, ResourceSemantic a_semantic = ResourceSemantic::configs)
 	{
-		const auto& resource    = load_resource(a_config_path, ResourceSemantic::configs);
+		const auto& resource    = load_resource(a_config_path, a_semantic);
 		this->m_json_file = json::parse(resource.data());
 
 		this->underlying().load_specific();
