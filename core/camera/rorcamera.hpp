@@ -76,10 +76,10 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 
 	Matrix4f                     m_view{};
 	Matrix4f                     m_projection{};
-	Matrix4f                     m_model_view_projection{};                //<! Model view projection matrix
-	Matrix4f                     m_view_projection{};                      //<! View projection matrix
-	Matrix4f                     m_model{};                                //<! Model matrix
-	Matrix4f                     m_normal{};                               //<! Normal matrix
+	Matrix4f                     m_model_view_projection{};                //! Model view projection matrix
+	Matrix4f                     m_view_projection{};                      //! View projection matrix
+	Matrix4f                     m_model{};                                //! Model matrix
+	Matrix4f                     m_normal{};                               //! Normal matrix
 	Vector3f                     m_to{0.0f, 0.0f, 0.0f};                   //! Looking to direction
 	Vector3f                     m_from{0.0f, 0.0f, -10.0f};               //! From position
 	Vector3f                     m_up{0.0f, 1.0f, 0.0f};                   //! Up vector to orient itself
