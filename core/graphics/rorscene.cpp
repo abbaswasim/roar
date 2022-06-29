@@ -33,10 +33,12 @@
 #include "math/rorvector3.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rorhandles.hpp"
 #include <array>
 #include <ostream>
 #include <sys/_types/_int32_t.h>
 #include <type_traits>
+#include <vector>
 
 namespace ror
 {

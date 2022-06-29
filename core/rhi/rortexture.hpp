@@ -61,9 +61,9 @@ class ROAR_ENGINE_ITEM TextureImage final
 	FORCE_INLINE               TextureImage()                                = default;        //! Default constructor
 	FORCE_INLINE               TextureImage(const TextureImage &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE               TextureImage(TextureImage &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE TextureImage &operator=(const TextureImage &a_other) = delete;                //! Copy assignment operator
-	FORCE_INLINE TextureImage &operator=(TextureImage &&a_other) noexcept = default;           //! Move assignment operator
-	FORCE_INLINE ~TextureImage() noexcept                                 = default;           //! Destructor
+	FORCE_INLINE TextureImage &operator=(const TextureImage &a_other)        = delete;         //! Copy assignment operator
+	FORCE_INLINE TextureImage &operator=(TextureImage &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE ~TextureImage() noexcept                                    = default;        //! Destructor
 
 	struct Mipmap
 	{
@@ -112,9 +112,9 @@ class ROAR_ENGINE_ITEM TextureSampler final
 	FORCE_INLINE                 TextureSampler()                                  = default;        //! Default constructor
 	FORCE_INLINE                 TextureSampler(const TextureSampler &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                 TextureSampler(TextureSampler &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE TextureSampler &operator=(const TextureSampler &a_other) = default;                 //! Copy assignment operator
-	FORCE_INLINE TextureSampler &operator=(TextureSampler &&a_other) noexcept = default;             //! Move assignment operator
-	FORCE_INLINE ~TextureSampler() noexcept                                   = default;             //! Destructor
+	FORCE_INLINE TextureSampler &operator=(const TextureSampler &a_other)          = default;        //! Copy assignment operator
+	FORCE_INLINE TextureSampler &operator=(TextureSampler &&a_other) noexcept      = default;        //! Move assignment operator
+	FORCE_INLINE ~TextureSampler() noexcept                                        = default;        //! Destructor
 
 	TextureFilter      m_mag_filter{TextureFilter::linear};         // Magnification filter
 	TextureFilter      m_min_filter{TextureFilter::linear};         // Minification filter
@@ -130,10 +130,10 @@ static_assert(std::is_standard_layout_v<TextureSampler>, "TextureSampler is not 
 class ROAR_ENGINE_ITEM Texture final
 {
   public:
-	FORCE_INLINE          Texture()                           = default;          //! Default constructor
-	FORCE_INLINE          Texture(const Texture &a_other)     = default;          //! Copy constructor
-	FORCE_INLINE          Texture(Texture &&a_other) noexcept = default;          //! Move constructor
-	FORCE_INLINE Texture &operator=(const Texture &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE          Texture()                             = default;        //! Default constructor
+	FORCE_INLINE          Texture(const Texture &a_other)       = default;        //! Copy constructor
+	FORCE_INLINE          Texture(Texture &&a_other) noexcept   = default;        //! Move constructor
+	FORCE_INLINE Texture &operator=(const Texture &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Texture &operator=(Texture &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Texture() noexcept                            = default;        //! Destructor
 
@@ -160,7 +160,7 @@ define_type_to_shader_semantics(Texture)
 	return BufferSemantic::texture_data;
 }
 
-void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, TextureImage &a_texture);
+void              read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, TextureImage &a_texture);
 FORCE_INLINE void read_texture_from_resource(ror::Resource &a_texture_resource, TextureImage &a_texture);
 
 /**

@@ -1123,43 +1123,43 @@ std::string material_samplers(const ror::Material &a_material)
 
 #define output_append(x) output.append(set_binding + std::to_string(binding++) + type_precision + x)
 
-	if (a_material.m_base_color.m_texture.m_handle != -1)
+	if (a_material.m_base_color.m_texture != -1)
 		output_append("base_color_sampler;\n");
-	if (a_material.m_diffuse_color.m_texture.m_handle != -1)
+	if (a_material.m_diffuse_color.m_texture != -1)
 		output_append("diffuse_color_sampler;\n");
-	if (a_material.m_specular_glossyness.m_texture.m_handle != -1)
+	if (a_material.m_specular_glossyness.m_texture != -1)
 		output_append("specular_glossyness_sampler;\n");
-	if (a_material.m_emissive.m_texture.m_handle != -1)
+	if (a_material.m_emissive.m_texture != -1)
 		output_append("emissive_sampler;\n");
-	if (a_material.m_anisotropy.m_texture.m_handle != -1)
+	if (a_material.m_anisotropy.m_texture != -1)
 		output_append("anisotrophy_sampler;\n");
-	if (a_material.m_transmission.m_texture.m_handle != -1)
+	if (a_material.m_transmission.m_texture != -1)
 		output_append("transmission_sampler;\n");
-	if (a_material.m_sheen_color.m_texture.m_handle != -1)
+	if (a_material.m_sheen_color.m_texture != -1)
 		output_append("sheen_color_sampler;\n");
-	if (a_material.m_sheen_roughness.m_texture.m_handle != -1)
+	if (a_material.m_sheen_roughness.m_texture != -1)
 		output_append("sheen_roughness_sampler;\n");
-	if (a_material.m_clearcoat_normal.m_texture.m_handle != -1)
+	if (a_material.m_clearcoat_normal.m_texture != -1)
 		output_append("clearcoat_normal_sampler;\n");
-	if (a_material.m_clearcoat.m_texture.m_handle != -1)
+	if (a_material.m_clearcoat.m_texture != -1)
 		output_append("clearcoat_sampler;\n");
-	if (a_material.m_clearcoat_roughness.m_texture.m_handle != -1)
+	if (a_material.m_clearcoat_roughness.m_texture != -1)
 		output_append("clearcoat_roughness_sampler;\n");
-	if (a_material.m_metallic.m_texture.m_handle != -1)
+	if (a_material.m_metallic.m_texture != -1)
 		output_append("metallic_sampler;\n");
-	if (a_material.m_roughness.m_texture.m_handle != -1)
+	if (a_material.m_roughness.m_texture != -1)
 		output_append("roughness_sampler;\n");
-	if (a_material.m_occlusion.m_texture.m_handle != -1)
+	if (a_material.m_occlusion.m_texture != -1)
 		output_append("occlusion_sampler;\n");
-	if (a_material.m_normal.m_texture.m_handle != -1)
+	if (a_material.m_normal.m_texture != -1)
 		output_append("normal_sampler;\n");
-	if (a_material.m_bent_normal.m_texture.m_handle != -1)
+	if (a_material.m_bent_normal.m_texture != -1)
 		output_append("bent_normal_sampler;\n");
-	if (a_material.m_height.m_texture.m_handle != -1)
+	if (a_material.m_height.m_texture != -1)
 		output_append("height_sampler;\n");
-	if (a_material.m_anisotropy.m_texture.m_handle != -1)
+	if (a_material.m_anisotropy.m_texture != -1)
 		output_append("anisotrophy_sampler;\n");
-	if (a_material.m_opacity.m_texture.m_handle != -1)
+	if (a_material.m_opacity.m_texture != -1)
 		output_append("opacity_sampler;\n");
 
 	return output;

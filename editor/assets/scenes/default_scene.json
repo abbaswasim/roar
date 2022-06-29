@@ -104,6 +104,7 @@
 	  {
 		  "type": "point",
 		  "intensity":1.0,
+		  "range":20.0,
 		  "color": [
 			  1.0,
 			  0.0,

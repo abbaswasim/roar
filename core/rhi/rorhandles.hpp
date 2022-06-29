@@ -42,11 +42,11 @@ class ROAR_ENGINE_ITEM RoarHandle final
 	FORCE_INLINE             RoarHandle()                              = default;        //! Default constructor
 	FORCE_INLINE             RoarHandle(const RoarHandle &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE             RoarHandle(RoarHandle &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE RoarHandle &operator=(const RoarHandle &a_other) = default;             //! Copy assignment operator
-	FORCE_INLINE RoarHandle &operator=(RoarHandle &&a_other) noexcept = default;         //! Move assignment operator
-	FORCE_INLINE ~RoarHandle() noexcept                               = default;         //! Destructor
+	FORCE_INLINE RoarHandle &operator=(const RoarHandle &a_other)      = default;        //! Copy assignment operator
+	FORCE_INLINE RoarHandle &operator=(RoarHandle &&a_other) noexcept  = default;        //! Move assignment operator
+	FORCE_INLINE ~RoarHandle() noexcept                                = default;        //! Destructor
 
-	FORCE_INLINE RoarHandle(_type a_handle) :
+	FORCE_INLINE explicit RoarHandle(_type a_handle) :
 		m_handle(a_handle)
 	{}
 
@@ -55,10 +55,29 @@ class ROAR_ENGINE_ITEM RoarHandle final
 		return this->m_handle == a_other.m_handle;
 	}
 
-	_type m_handle;
+	bool operator==(const _type &a_other) const
+	{
+		return this->m_handle == a_other;
+	}
+
+	bool operator!=(const RoarHandle &a_other) const
+	{
+		return this->m_handle != a_other.m_handle;
+	}
+
+	bool operator!=(const _type a_other) const
+	{
+		return this->m_handle != a_other;
+	}
+
+	constexpr operator _type() const
+	{
+		return this->m_handle;
+	}
 
   protected:
   private:
+	_type m_handle;
 };
 
 // clang-format off
@@ -66,7 +85,7 @@ class ROAR_ENGINE_ITEM RoarHandle final
 
 #define create_handle(handle, _type)                                                                \
 	struct type_##handle {};                                                                        \
-	using handle = rhi::RoarHandle<type_##handle, _type>;				\
+	using handle = rhi::RoarHandle<type_##handle, _type>;											\
 	static_assert(std::is_trivially_copyable_v<handle>,  srfy(handle is not trivially copyable));   \
 	static_assert(std::is_standard_layout_v<handle>,     srfy(handle is not standard layout))
 // clang-format on

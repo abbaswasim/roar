@@ -57,23 +57,10 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 		m_event_system(a_event_system), m_scene(a_scene)
 	{}
 
-	FORCE_INLINE void init()
-	{
-		// Should only be called once per execution, TODO: check if this could be used in MT environment
-		basist::basisu_transcoder_init();
-
-		// Ping the buffering system so it initalises as well as we get a reference to it so we can free it later
-		this->m_buffer_pack = &rhi::get_buffers_pack();
-	}
-
+	// This is called from underlying loop
 	FORCE_INLINE void update()
 	{
 		(void) this->m_scene;
-	}
-
-	FORCE_INLINE void shutdown()
-	{
-		this->m_buffer_pack->free();
 	}
 
 	FORCE_INLINE void run()
@@ -83,15 +70,29 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 		this->shutdown();
 	}
 
+  protected:
+  private:
+	FORCE_INLINE Application() = default;        //! Default constructor
+
+	FORCE_INLINE void init()
+	{
+		// Should only be called once per execution, TODO: check if this could be used in MT environment
+		basist::basisu_transcoder_init();
+
+		// Ping the buffering system so it initalises as well as we get a reference to it so we can free it later
+		this->m_buffer_pack = &rhi::get_buffers_pack();
+	}
+
 	FORCE_INLINE void animate()
 	{}
 
 	FORCE_INLINE void render()
 	{}
 
-  protected:
-  private:
-	FORCE_INLINE Application() = default;        //! Default constructor
+	FORCE_INLINE void shutdown()
+	{
+		this->m_buffer_pack->free();
+	}
 
 	EventSystem      &m_event_system;        //! Non-owning pointer to an event system that the application can use,
 	Scene            &m_scene;               //! A reference to the scene we want to render

@@ -31,7 +31,7 @@ namespace ror
 
 size_t EventHandleHash::operator()(const EventHandle &a_event_handle) const
 {
-	return std::hash<uint32_t>()(a_event_handle.m_handle);
+	return std::hash<uint32_t>()(a_event_handle);
 }
 
 EventHandle create_event_handle(EventType     a_event_type,
@@ -41,10 +41,10 @@ EventHandle create_event_handle(EventType     a_event_type,
 {
 	EventHandle event_handle;
 
-	event_handle.m_handle = enum_to_type_cast(a_event_type) |
-							enum_to_type_cast(a_event_code) << 8 |
-							enum_to_type_cast(a_event_modifier) << 16 |
-							enum_to_type_cast(event_state) << 24;
+	event_handle = EventHandle(enum_to_type_cast(a_event_type) |
+							   enum_to_type_cast(a_event_code) << 8 |
+							   enum_to_type_cast(a_event_modifier) << 16 |
+							   enum_to_type_cast(event_state) << 24);
 
 	return event_handle;
 }

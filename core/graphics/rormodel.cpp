@@ -38,6 +38,7 @@
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffer_view.hpp"
 #include "rhi/rorbuffers_pack.hpp"
+#include "rhi/rorhandles.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
@@ -560,7 +561,7 @@ void read_material_component(ror::Material::Component<_factor_type>             
 	};
 
 	read_material_factor(a_component.m_factor, a_factor);
-	a_component.m_texture       = find_safe_index(a_texture_to_index, a_texture_view.texture);
+	a_component.m_texture       = rhi::TextureHandle(find_safe_index(a_texture_to_index, a_texture_view.texture));
 	a_component.m_uv_map        = static_cast<uint32_t>(a_texture_view.texcoord);
 	a_component.m_has_transform = a_texture_view.has_transform;
 
@@ -571,7 +572,7 @@ void read_material_component(ror::Material::Component<_factor_type>             
 			a_component.m_uv_map = static_cast<uint32_t>(a_texture_view.transform.texcoord);
 	}
 
-	if (a_component.m_texture.m_handle != -1)
+	if (a_component.m_texture != -1)
 		a_component.m_type = Material::ComponentType::factor_texture;
 	else
 		a_component.m_type = Material::ComponentType::factor;
@@ -735,8 +736,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					ror::log_critical("Texture must have an image, neither standard image nor basis ktx2 texture found");
 
 				rhi::Texture texture;
-				texture.m_texture_image = find_safe_index(image_to_index, image);
-				assert(texture.m_texture_image.m_handle != -1 && "Couldn't find the image loaded for the texture");
+				texture.m_texture_image = rhi::TextureImageHandle(find_safe_index(image_to_index, image));
+				assert(texture.m_texture_image != -1 && "Couldn't find the image loaded for the texture");
 
 				auto texture_sampler = -1;
 
@@ -747,7 +748,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				if (texture_sampler == -1)
 					texture_sampler = 0;
 
-				texture.m_texture_sampler = static_cast_safe<uint32_t>(texture_sampler);
+				texture.m_texture_sampler = rhi::TextureSamplerHandle(static_cast_safe<uint32_t>(texture_sampler));
 
 				this->m_textures.emplace_back(std::move(texture));
 				texture_to_index.emplace(&data->textures[i], i);
@@ -1435,7 +1436,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					// Setup material hash
 					// Adding material index here because if material is the same for specific vertex attributes then we use the same shader
 					auto material_index = mesh.m_material_indices[j];
-					fragment_hash  = vertex_hash;
+					fragment_hash       = vertex_hash;
 					if (material_index != -1)
 					{
 						auto &material = this->m_materials[ror::static_cast_safe<size_t>(material_index)];
