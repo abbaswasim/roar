@@ -167,4 +167,34 @@ void OrbitCamera::set_visual_volume(Vector3f a_minimum, Vector3f a_maximum)
 
 	this->look_at();
 }
+
+void OrbitCamera::type(CameraType a_type)
+{
+	this->m_type = a_type;
+}
+
+CameraType OrbitCamera::type()
+{
+	return this->m_type;
+}
+
+void OrbitCamera::z_near(float32_t a_near)
+{
+	this->m_z_near = a_near;
+}
+
+float32_t OrbitCamera::z_near()
+{
+	return this->m_z_near;
+}
+
+void OrbitCamera::z_far(float32_t a_far)
+{
+	this->m_z_far = a_far;
+}
+
+float32_t OrbitCamera::z_far()
+{
+	return this->m_z_far;
+}
 }        // namespace ror
