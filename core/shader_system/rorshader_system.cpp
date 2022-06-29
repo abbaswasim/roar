@@ -1176,6 +1176,7 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 		a_shader_buffer.add_entry(name, format, count); \
 	}
 
+	// clang-format off
 	if (a_material.m_base_color.m_type == ror::Material::ComponentType::factor || a_material.m_base_color.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("base_color_factor", rhi::Format::float32_4, 1, "vec4  base_color_factor;\n\t")
 	if (a_material.m_diffuse_color.m_type == ror::Material::ComponentType::factor || a_material.m_diffuse_color.m_type == ror::Material::ComponentType::factor_texture)
@@ -1225,6 +1226,8 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 	//	output.append("vec4  subsurface_radius_factor;\n\t");
 	// if (a_material.m_subsurface_scattering.m_type != ror::Material::MaterialComponentType::texture_only)
 	//	output.append("float subsurface_scattering_factor;\n\t");
+
+	// clang-format on
 
 	if (output.empty())
 		return "";
@@ -1380,7 +1383,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const st
 
 	std::string output{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 
-	rhi::ShaderBuffer sb{"factors", rhi::Layout::std140}; // TODO: Move this out
+	rhi::ShaderBuffer sb{"factors", rhi::Layout::std140};        // TODO: Move this out
 
 	// write out inputs from fragment shader
 	output.append(rhi::fragment_shader_input_output(vertex_descriptor));
