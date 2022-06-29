@@ -47,7 +47,7 @@ class ROAR_ENGINE_ITEM ParticleSystem
 class ROAR_ENGINE_ITEM Shader
 {
   public:
-	FORCE_INLINE Shader(std::filesystem::path a_shader) :
+	FORCE_INLINE explicit Shader(std::filesystem::path a_shader) :
 		m_shader_path(a_shader)
 	{}
 

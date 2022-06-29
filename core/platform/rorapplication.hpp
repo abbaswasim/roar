@@ -54,7 +54,7 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	// clang-format on
 
 	explicit FORCE_INLINE Application(EventSystem &a_event_system, Scene &a_scene) :
-		m_event_system(a_event_system), m_scene(a_scene)
+		m_event_system(a_event_system), m_scene(a_scene), m_buffer_pack(&rhi::get_buffers_pack())
 	{}
 
 	// This is called from underlying loop
@@ -78,9 +78,6 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	{
 		// Should only be called once per execution, TODO: check if this could be used in MT environment
 		basist::basisu_transcoder_init();
-
-		// Ping the buffering system so it initalises as well as we get a reference to it so we can free it later
-		this->m_buffer_pack = &rhi::get_buffers_pack();
 	}
 
 	FORCE_INLINE void animate()
