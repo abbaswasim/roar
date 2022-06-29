@@ -33,7 +33,6 @@
 #include "resources/rorprojectroot.hpp"
 #include "roreditor.hpp"
 #include <any>
-#include <iostream>
 
 template <typename _type>
 void app_run(ror::Application<_type> &a_application)
@@ -56,26 +55,15 @@ int main(int argc, char *argv[])
 	if (!cli.execute())
 		return 1;
 
-
 	ror::setup_project_root(editor_default_project, "editor");
-	auto &bp = rhi::get_buffers_pack();
 
-	ror::Scene scene{editor_default_scene};
-
+	ror::Scene       scene{editor_default_scene};
 	ror::EventSystem event_system;
-
-	// TODO: Make sure this is platform agnostic
-	// Need to create different type of apps and then
-	// dispatch those to different threads if want to run at the same time
-	// Otherwise just run one or the other
-	ror::MacOSApp app1(event_system);
-	// ror::MacOSApp app2;
-
+	ror::UnixApp     app1(event_system, scene);
 
 	try
 	{
 		app_run(app1);
-		// app_run(app2);
 	}
 	catch (const std::exception &e)
 	{
@@ -83,7 +71,6 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	bp.free();
 
 	return 0;
 }

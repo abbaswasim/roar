@@ -32,7 +32,7 @@
 #include <GLFW/glfw3.h>
 
 #ifdef _DARWIN_
-#define GLFW_EXPOSE_NATIVE_COCOA
+#	define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 
 #include <GLFW/glfw3native.h>
@@ -66,7 +66,7 @@ void glfw_mouse_scroll_callback(GLFWwindow *a_window, double a_x_offset, double 
 template <class _type>
 void glfw_gamepad_callback(GLFWwindow *a_window, int a_key, int a_scancode, int a_action, int a_mode);
 template <class _type>
-void glfw_file_drop_callback(GLFWwindow* a_window, int a_count, const char** a_paths);
+void glfw_file_drop_callback(GLFWwindow *a_window, int a_count, const char **a_paths);
 
 template <class _type>
 void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button);
@@ -80,8 +80,8 @@ class ROAR_ENGINE_ITEM GLFWwindowWrapper final
 	FORCE_INLINE                    GLFWwindowWrapper()                                     = delete;         //! Copy constructor
 	FORCE_INLINE                    GLFWwindowWrapper(const GLFWwindowWrapper &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                    GLFWwindowWrapper(GLFWwindowWrapper &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE GLFWwindowWrapper &operator=(const GLFWwindowWrapper &a_other) = default;                    //! Copy assignment operator
-	FORCE_INLINE GLFWwindowWrapper &operator=(GLFWwindowWrapper &&a_other) noexcept = default;                //! Move assignment operator
+	FORCE_INLINE GLFWwindowWrapper &operator=(const GLFWwindowWrapper &a_other)             = default;        //! Copy assignment operator
+	FORCE_INLINE GLFWwindowWrapper &operator=(GLFWwindowWrapper &&a_other) noexcept         = default;        //! Move assignment operator
 
 	FORCE_INLINE GLFWwindowWrapper(void *a_pointer);
 	FORCE_INLINE ~GLFWwindowWrapper() noexcept;

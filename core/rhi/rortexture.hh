@@ -170,9 +170,6 @@ static PixelFormat basis_to_format(basist::transcoder_texture_format a_fmt)
 
 static void read_texture_basis_universal(ror::Resource &a_texture_resource, TextureImage &a_texture)
 {
-	// FIXME: Should only be called once per execution, check if this could be used in MT environment
-	basist::basisu_transcoder_init();
-
 	const std::vector<uint8_t> &ktx2_file_data = a_texture_resource.data();
 
 	// Should be done for each transcode

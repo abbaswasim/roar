@@ -197,4 +197,45 @@ float32_t OrbitCamera::z_far()
 {
 	return this->m_z_far;
 }
+
+void OrbitCamera::y_fov(float32_t a_y_fov)
+{
+	this->m_y_fov = a_y_fov;
+}
+
+float32_t OrbitCamera::y_fov()
+{
+	return this->m_y_fov;
+}
+
+void OrbitCamera::aspect_ratio(float32_t a_aspect_ratio)
+{
+	this->m_aspect_ratio = a_aspect_ratio;
+}
+
+float32_t OrbitCamera::aspect_ratio()
+{
+	return this->m_aspect_ratio;
+}
+
+void OrbitCamera::width(int32_t a_width)
+{
+	this->m_width = a_width;
+}
+
+int32_t OrbitCamera::width()
+{
+	return this->m_width;
+}
+
+void OrbitCamera::height(int32_t a_height)
+{
+	this->m_height = a_height;
+}
+
+int32_t OrbitCamera::height()
+{
+	return this->m_height;
+}
+
 }        // namespace ror

@@ -75,6 +75,14 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE float32_t  z_near();
 	FORCE_INLINE void       z_far(float32_t a_far);
 	FORCE_INLINE float32_t  z_far();
+	FORCE_INLINE void       y_fov(float32_t a_far);
+	FORCE_INLINE float32_t  y_fov();
+	FORCE_INLINE void       aspect_ratio(float32_t a_far);
+	FORCE_INLINE float32_t  aspect_ratio();
+	FORCE_INLINE void       width(int32_t a_far);
+	FORCE_INLINE int32_t    width();
+	FORCE_INLINE void       height(int32_t a_far);
+	FORCE_INLINE int32_t    height();
 	void                    init(EventSystem &a_event_system);
 	void                    enable();
 	void                    disable();
@@ -107,6 +115,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t                    m_y_fov{60.0f};                           //! Y-FOV of the camera
 	float32_t                    m_z_near{0.1f};                           //! z-near of the camera
 	float32_t                    m_z_far{1000.0f};                         //! z-far of the camera
+	float32_t                    m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
 	int32_t                      m_width{800};                             //! Width of the rectangle it needs to fill
 	int32_t                      m_height{600};                            //! Height of the rectangle it needs to fill
 	CameraType                   m_type{CameraType::perspective};          //! Default perspective camera

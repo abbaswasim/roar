@@ -39,10 +39,17 @@ include(${ROAR_ROOT_DIR}/build.cmake)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 option(BUILD_GMOCK "Builds the googlemock subproject" OFF)
-add_subdirectory(${ROAR_ROOT_DIR}/tests)
+
+if (ROAR_BUILD_TESTS)
+  add_subdirectory(${ROAR_ROOT_DIR}/tests)
+endif()
+
 add_subdirectory(${ROAR_ROOT_DIR}/thirdparty)
 add_subdirectory(${ROAR_SOURCE_DIR})
-add_subdirectory(${ROAR_ROOT_DIR}/editor)
+
+if (ROAR_BUILD_EDITOR)
+  add_subdirectory(${ROAR_ROOT_DIR}/editor)
+endif()
 
 # add_custom_command(
   # TARGET ${ROAR_NAME} POST_BUILD

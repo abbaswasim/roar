@@ -77,12 +77,6 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 	glfwSetScrollCallback(window, glfw_mouse_scroll_callback<_type>);
 	glfwSetDropCallback(window, glfw_file_drop_callback<_type>);
 
-	int width, height;
-
-	glfwGetFramebufferSize(window, &width, &height);
-
-	// TODO: Use the width and height
-
 	return window;
 }
 
@@ -103,21 +97,23 @@ GLFWwindowWrapper<_type>::~GLFWwindowWrapper() noexcept
 }
 
 template <class _type>
-void GLFWwindowWrapper<_type>::loop()
-{
-	while (!glfwWindowShouldClose(this->m_window))
-	{
-		glfwPollEvents();
-	}
-}
-
-template <class _type>
 FORCE_INLINE _type *glfw_user_pointer(GLFWwindow *a_window)
 {
 	auto *app = static_cast<_type *>(glfwGetWindowUserPointer(a_window));
 	assert(app && "User pointer is null");
 
 	return app;
+}
+
+template <class _type>
+void GLFWwindowWrapper<_type>::loop()
+{
+	auto *app = glfw_user_pointer<_type>(this->m_window);
+	while (!glfwWindowShouldClose(this->m_window))
+	{
+		glfwPollEvents();
+		app->update();
+	}
 }
 
 template <class _type>
@@ -162,7 +158,7 @@ void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button
 	event_system.subscribe(mouse_move, drag_test);
 }
 
-// Some global glfw events registeration
+// Some global glfw events registration
 template <class _type>
 void glfw_register_for_global_events(GLFWwindow *a_window)
 {
@@ -192,10 +188,6 @@ void glfw_window_resize_callback(GLFWwindow *a_window, int a_width, int a_height
 	if (a_width == 0 || a_height == 0)
 		return;
 
-	// auto *app = glfw_user_pointer<_type>(a_window);
-
-	// app->resize(a_width, a_height);
-
 	auto  event_handle = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::resize);
 	auto &event_system = glfw_event_system<_type>(a_window);
 	event_system.notify({event_handle, true, ror::Vector2i{a_width, a_height}});
@@ -218,6 +210,9 @@ void glfw_key_callback(GLFWwindow *a_window, int a_key, int a_scancode, int a_ac
 template <class _type>
 void glfw_buffer_resize_callback(GLFWwindow *a_window, int a_width, int a_height)
 {
+	if (a_width == 0 || a_height == 0)
+		return;
+
 	auto  event_handle = create_event_handle(EventType::buffer, EventCode::none, EventModifier::none, EventState::resize);
 	auto &event_system = glfw_event_system<_type>(a_window);
 	event_system.notify({event_handle, true, ror::Vector2i{a_width, a_height}});

@@ -104,12 +104,12 @@ class ROAR_ENGINE_ITEM Buffer final
 	// uint32_t                    m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
 	// uint8_t                    *m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
 	// bool                        m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
-	ptrdiff_t                   m_filled_size{0};                  //! How much of the buffer is filled, this should be aligned, also this needs synchronising
-	ptrdiff_t                   m_size_in_bytes{0};                //! This is the total size in bytes
-	BufferSemanticPairVec       m_semantics{};                     //! Pair of semantic and size required
-	bool                        m_interleaved_local{false};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT
-	std::vector<uint8_t>        m_data{};                          //! Data block of the buffer
-	std::shared_ptr<std::mutex> m_mutex{};                         //! Mutex to lock _offset() calls with, its shared_ptr and not unique_ptr or std::mutex because I need the ctors
+	ptrdiff_t                   m_filled_size{0};                 //! How much of the buffer is filled, this should be aligned, also this needs synchronising
+	ptrdiff_t                   m_size_in_bytes{0};               //! This is the total size in bytes
+	BufferSemanticPairVec       m_semantics{};                    //! Pair of semantic and size required
+	bool                        m_interleaved_local{true};        //! Interleaved local means PNTPNTPNT, and otherwise its PPPNNNTTT
+	std::vector<uint8_t>        m_data{};                         //! Data block of the buffer
+	std::shared_ptr<std::mutex> m_mutex{};                        //! Mutex to lock _offset() calls with, its shared_ptr and not unique_ptr or std::mutex because I need the ctors
 };
 
 // Template deduction guide CATD for Buffer static
