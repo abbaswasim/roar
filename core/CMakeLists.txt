@@ -95,8 +95,8 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/rhi/rorhandles.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorshader_buffer.hpp
-  ${ROAR_SOURCE_DIR}/rhi/rorbuffer.hpp
-  ${ROAR_SOURCE_DIR}/rhi/rorbuffer.hh
+  ${ROAR_SOURCE_DIR}/graphics/rorbuffer.hpp
+  ${ROAR_SOURCE_DIR}/graphics/rorbuffer.hh
   ${ROAR_SOURCE_DIR}/rhi/rorvertex_attribute.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorvertex_description.hpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.hpp)
@@ -116,9 +116,9 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/graphics/rormesh.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.cpp
   ${ROAR_SOURCE_DIR}/graphics/rorscene.cpp
+  ${ROAR_SOURCE_DIR}/graphics/rortexture.cpp
   ${ROAR_SOURCE_DIR}/platform/rorglfw_wrapper.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp
-  ${ROAR_SOURCE_DIR}/rhi/rortexture.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorvertex_description.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorshader_buffer.cpp

@@ -35,7 +35,7 @@
 #include <mutex>
 #include <vector>
 
-namespace rhi
+namespace ror
 {
 
 template <bool>
@@ -66,7 +66,7 @@ class ROAR_ENGINE_ITEM Buffer final
 	FORCE_INLINE ~Buffer() noexcept                           = default;        //! Destructor
 
 	// TODO: Remove the following, no need for individual semantic size, turn semantic into uint64_t value instead of vector
-	using BufferSemanticPair    = std::pair<BufferSemantic, uint64_t>;
+	using BufferSemanticPair    = std::pair<rhi::BufferSemantic, uint64_t>;
 	using BufferSemanticPairVec = std::vector<BufferSemanticPair>;
 
 	/**
@@ -116,6 +116,6 @@ class ROAR_ENGINE_ITEM Buffer final
 template <class _type>
 Buffer(_type) -> Buffer<Static>;
 
-}        // namespace rhi
+}        // namespace ror
 
 #include "rorbuffer.hh"

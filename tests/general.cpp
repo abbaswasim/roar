@@ -24,10 +24,11 @@
 #include <vector>
 
 #include "fox.h"
+#include "graphics/rorbuffer.hpp"
 #include "graphics/rormodel.hpp"
-#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rorvertex_description.hpp"
 #include "shader_system/rorshader_system.hpp"
 
 namespace ror_test

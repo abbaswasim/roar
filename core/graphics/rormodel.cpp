@@ -32,6 +32,7 @@
 #include "graphics/rormesh.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
+#include "graphics/rortexture.hpp"
 #include "math/rormatrix.hpp"
 #include "math/rorvector.hpp"
 #include "profiling/rorlog.hpp"
@@ -39,7 +40,6 @@
 #include "rhi/rorbuffer_view.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorhandles.hpp"
-#include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
 #include <cassert>
@@ -97,7 +97,7 @@ size_t base64_decoded_size(const char *a_base64)
 	return ((data_length / 4) * 3) - padded_size;        // Size calculated from the fact that base64 each 3 bytes turns into 4 bytes
 }
 
-rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options, const char *a_uri, const char *a_mimetype)
+ror::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options, const char *a_uri, const char *a_mimetype)
 {
 	const char *data_start = strchr(a_uri, ',');
 	assert(data_start && "Can't find start of base64 image data");
@@ -121,7 +121,7 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 
 	assert(extension != ResourceExtension::unknown && "Couldn't find extension from mimetype");
 
-	rhi::TextureImage ti;
+	ror::TextureImage ti;
 
 	size_t   data_size = base64_decoded_size(data_start);
 	uint8_t *data      = new uint8_t[data_size];        // Data that needs to be allocated for decoding
@@ -130,7 +130,7 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 	assert(res == cgltf_result_success && "Base64 decoding failed for image");
 	(void) res;
 
-	rhi::read_texture_from_memory(data, data_size, ti);
+	ror::read_texture_from_memory(data, data_size, ti);
 
 	// Delete data pointer
 	delete[] data;
@@ -138,7 +138,7 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 	return ti;
 }
 
-rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a_buffer_view, const char *a_mimetype)
+ror::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a_buffer_view, const char *a_mimetype)
 {
 	// unsigned char *data = static_cast<unsigned char *>(a_buffer_view->data);
 	const uint8_t *data = cgltf_buffer_view_data(a_buffer_view);
@@ -150,7 +150,7 @@ rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a
 	assert(extension == ResourceExtension::texture_png || extension == ResourceExtension::texture_jpeg && "Unsupported extension in buffer view");
 	(void) extension;
 
-	rhi::TextureImage ti;
+	ror::TextureImage ti;
 
 	// TODO: Abstract this out into rortexture.cpp
 	cgltf_size data_size{a_buffer_view->size};
@@ -475,7 +475,7 @@ rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
 	return rhi::VertexFormat::int32_1;
 }
 
-rhi::TextureSampler cgltf_sampler_to_sampler(const cgltf_sampler *a_sampler)
+ror::TextureSampler cgltf_sampler_to_sampler(const cgltf_sampler *a_sampler)
 {
 	// gltf Spec values for reference
 	// "enum" :           [ 9728,      9729,     9984,                     9985,                    9986,                    9987],
@@ -484,15 +484,15 @@ rhi::TextureSampler cgltf_sampler_to_sampler(const cgltf_sampler *a_sampler)
 	// "enum" : [33071, 33648, 10497],
 	// "gltf_enumNames" : ["CLAMP_TO_EDGE", "MIRRORED_REPEAT", "REPEAT"],
 
-	rhi::TextureSampler sampler;
+	ror::TextureSampler sampler;
 
-	sampler.m_mag_filter = static_cast<rhi::TextureFilter>(a_sampler->mag_filter - 9728);                                  // 9728 is NEAREST GLTF GL value for Mag filter (can only be NEAREST and LINEAR)
-	sampler.m_min_filter = a_sampler->min_filter % 2 ? rhi::TextureFilter::linear : rhi::TextureFilter::nearest;           // All NEAREST min filters are even, it can be all of the above
-	sampler.m_mip_mode   = a_sampler->min_filter > 9985 ? rhi::TextureFilter::linear : rhi::TextureFilter::nearest;        // Only values above 9985 are mipmapped linear
+	sampler.mag_filter(static_cast<rhi::TextureFilter>(a_sampler->mag_filter - 9728));                                // 9728 is NEAREST GLTF GL value for Mag filter (can only be NEAREST and LINEAR)
+	sampler.min_filter(a_sampler->min_filter % 2 ? rhi::TextureFilter::linear : rhi::TextureFilter::nearest);         // All NEAREST min filters are even, it can be all of the above
+	sampler.mip_mode(a_sampler->min_filter > 9985 ? rhi::TextureFilter::linear : rhi::TextureFilter::nearest);        // Only values above 9985 are mipmapped linear
 	if (a_sampler->wrap_s != 10497)
-		sampler.m_wrap_s = a_sampler->wrap_s == 33648 ? rhi::TextureAddressMode::mirrored_repeat : rhi::TextureAddressMode::clamp_to_edge;        // Else leave the default repeat
+		sampler.wrap_s(a_sampler->wrap_s == 33648 ? rhi::TextureAddressMode::mirrored_repeat : rhi::TextureAddressMode::clamp_to_edge);        // Else leave the default repeat
 	if (a_sampler->wrap_t != 10497)
-		sampler.m_wrap_t = a_sampler->wrap_t == 33648 ? rhi::TextureAddressMode::mirrored_repeat : rhi::TextureAddressMode::clamp_to_edge;        // Else leave the default repeat
+		sampler.wrap_t(a_sampler->wrap_t == 33648 ? rhi::TextureAddressMode::mirrored_repeat : rhi::TextureAddressMode::clamp_to_edge);        // Else leave the default repeat
 
 	return sampler;
 }
@@ -642,20 +642,20 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 #else
 		buffers_load_lambda();
 #endif
-		auto from_file_lambda = [](std::filesystem::path a_texture_path) -> rhi::TextureImage {
-			return rhi::read_texture_2d_from_file(a_texture_path);
+		auto from_file_lambda = [](std::filesystem::path a_texture_path) -> ror::TextureImage {
+			return ror::read_texture_2d_from_file(a_texture_path);
 		};
 
-		auto from_base64_lambda = [&options](const char *a_uri, const char *a_mimetype) -> rhi::TextureImage {
+		auto from_base64_lambda = [&options](const char *a_uri, const char *a_mimetype) -> ror::TextureImage {
 			return ror::read_texture_from_cgltf_base64(&options, a_uri, a_mimetype);
 		};
 
-		auto from_buffer_view_lambda = [](const cgltf_buffer_view *a_buffer_view, const char *a_mimetype) -> rhi::TextureImage {
+		auto from_buffer_view_lambda = [](const cgltf_buffer_view *a_buffer_view, const char *a_mimetype) -> ror::TextureImage {
 			return ror::read_texture_from_cgltf_buffer_view(a_buffer_view, a_mimetype);
 		};
 
 #if defined(USE_JS)
-		std::vector<JobHandle<rhi::TextureImage>> future_texures{};
+		std::vector<JobHandle<ror::TextureImage>> future_texures{};
 		future_texures.reserve(data->images_count);
 #endif
 		// Create jobs for all the images
@@ -735,9 +735,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				if (!image)
 					ror::log_critical("Texture must have an image, neither standard image nor basis ktx2 texture found");
 
-				rhi::Texture texture;
-				texture.m_texture_image = rhi::TextureImageHandle(find_safe_index(image_to_index, image));
-				assert(texture.m_texture_image != -1 && "Couldn't find the image loaded for the texture");
+				ror::Texture texture;
+				texture.texture_image(rhi::TextureImageHandle(find_safe_index(image_to_index, image)));
+				assert(texture.texture_image() != -1 && "Couldn't find the image loaded for the texture");
 
 				auto texture_sampler = -1;
 
@@ -748,7 +748,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				if (texture_sampler == -1)
 					texture_sampler = 0;
 
-				texture.m_texture_sampler = rhi::TextureSamplerHandle(static_cast_safe<uint32_t>(texture_sampler));
+				texture.texture_sampler(rhi::TextureSamplerHandle(static_cast_safe<uint32_t>(texture_sampler)));
 
 				this->m_textures.emplace_back(std::move(texture));
 				texture_to_index.emplace(&data->textures[i], i);

@@ -80,11 +80,11 @@ void WatchCat::stop()
 
 // Defer platform specific code to the bellow
 
-#if defined(OS_TYPE_MAC)
+#if defined(ROR_OS_TYPE_MAC)
 #	include "platform/macos/rorwatchcat.inc"
-#elif defined(OS_TYPE_LINUX)
+#elif defined(ROR_OS_TYPE_LINUX)
 #	include "platform/linux/rorwatchcat.inc"
-#elif defined(OS_TYPE_WINDOWS)
+#elif defined(ROR_OS_TYPE_WINDOWS)
 #	include "platform/windows/rorwatchcat.inc"
 #else
 #	error "Platform not implemented"

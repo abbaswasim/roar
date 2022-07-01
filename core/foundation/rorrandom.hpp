@@ -56,15 +56,15 @@ class ROAR_ENGINE_ITEM Random final : public std::conditional<std::is_integral<_
 															  RandomType<_type, false>>::type
 {
   public:
-	FORCE_INLINE Random(_type a_min = std::numeric_limits<_type>::min(),
-						_type a_max = std::numeric_limits<_type>::max());        //! Default constructor
-	FORCE_INLINE Random(const Random &a_other)     = delete;                     //! Copy constructor
-	FORCE_INLINE Random(Random &&a_other) noexcept = delete;                     //! Move constructor
-	FORCE_INLINE Random &operator=(const Random &a_other) = delete;              //! Copy assignment operator
-	FORCE_INLINE Random &operator=(Random &&a_other) noexcept = delete;          //! Move assignment operator
-	FORCE_INLINE ~Random() noexcept                           = default;         //! Destructor
+	FORCE_INLINE         Random(_type a_min = std::numeric_limits<_type>::min(),
+								_type a_max = std::numeric_limits<_type>::max());        //! Default constructor
+	FORCE_INLINE         Random(const Random &a_other)        = delete;                  //! Copy constructor
+	FORCE_INLINE         Random(Random &&a_other) noexcept    = delete;                  //! Move constructor
+	FORCE_INLINE Random &operator=(const Random &a_other)     = delete;                  //! Copy assignment operator
+	FORCE_INLINE Random &operator=(Random &&a_other) noexcept = delete;                  //! Move assignment operator
+	FORCE_INLINE ~Random() noexcept                           = default;                 //! Destructor
 
-	FORCE_INLINE void reset(_type a_min = std::numeric_limits<_type>::min(), _type a_max = std::numeric_limits<_type>::max());
+	FORCE_INLINE void  reset(_type a_min = std::numeric_limits<_type>::min(), _type a_max = std::numeric_limits<_type>::max());
 	FORCE_INLINE _type next() const;
 
   protected:

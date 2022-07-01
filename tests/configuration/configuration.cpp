@@ -1,11 +1,11 @@
 #include "common.hpp"
-#include "core/rhi/rorbuffer.hpp"
-#include "core/rhi/rorbuffers_format.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
+#include "graphics/rorbuffer.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorprojectroot.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rorbuffers_format.hpp"
 #include "rhi/rortypes.hpp"
 #include <cstddef>
 #include <filesystem>
@@ -32,7 +32,7 @@ TEST(ConfigurationTest, BufferFormat)
 	EXPECT_EQ(bf.m_unit, 1024);
 	EXPECT_EQ(bf.m_current_format, 0);
 
-	const rhi::Buffer<rhi::Static> &b1 = bfp.m_buffers[0];
+	const ror::Buffer<ror::Static> &b1 = bfp.m_buffers[0];
 
 	EXPECT_EQ(b1.size(), 1024 * 150);
 	EXPECT_EQ(b1.interleaved(), true);
@@ -69,7 +69,7 @@ TEST(ConfigurationTest, BufferFormat)
 	EXPECT_EQ(b1.semantic(static_cast<size_t>(wi)).second, 25);
 	EXPECT_EQ(b1.semantic(static_cast<size_t>(ji)).second, 25);
 
-	const rhi::Buffer<rhi::Static> &b2 = bfp.m_buffers[1];
+	const ror::Buffer<ror::Static> &b2 = bfp.m_buffers[1];
 
 	EXPECT_EQ(b2.size(), 1024 * 200);
 	EXPECT_EQ(b2.interleaved(), false);
@@ -108,7 +108,7 @@ TEST(ConfigurationTest, BufferFormat)
 
 TEST(ResourcesTest, resouce_load_upload_write)
 {
-	auto             &parent      = ror::create_resource("my_assets", ror::ResourceSemantic::shaders);
+	auto             &parent    = ror::create_resource("my_assets", ror::ResourceSemantic::shaders);
 	auto             &temp      = ror::create_resource("my_assets/my_shader.v", ror::ResourceSemantic::shaders);
 	auto              file_name = temp.absolute_path().string() + "s";
 	std::string       data{"void main{ gl_position = vec4(1.0);}"};
@@ -170,11 +170,11 @@ TEST(ResourcesTest, resouce_load_upload_write)
 	{
 		auto &loaded_shader = ror::load_resource("my_assets/my_shader.vs", ror::ResourceSemantic::shaders);
 		EXPECT_EQ(loaded_shader.data(), bytes);
-		loaded_shader.update({data.begin(), data.end()}, true); // Append data
+		loaded_shader.update({data.begin(), data.end()}, true);        // Append data
 		loaded_shader.flush();
 	}
 	{
-		auto &loaded_shader = ror::load_resource("my_assets/my_shader.vs", ror::ResourceSemantic::shaders);
+		auto             &loaded_shader = ror::load_resource("my_assets/my_shader.vs", ror::ResourceSemantic::shaders);
 		ror::bytes_vector bytes_local;
 		bytes_local.resize(data.size() * 2);
 

@@ -27,11 +27,11 @@
 
 #include "foundation/rorhash.hpp"
 #include "foundation/rortypes.hpp"
+#include "graphics/rorbuffer.hpp"
 #include "math/rormatrix3.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
-#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rorshader_buffer.hpp"

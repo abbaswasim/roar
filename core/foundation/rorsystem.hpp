@@ -28,16 +28,16 @@
 #if defined(__APPLE__) && defined(__MACH__)
 #	include <TargetConditionals.h>
 #	if TARGET_IPHONE_SIMULATOR == 1
-#		define OS_TYPE_IOS_SIMULATOR
+#		define ROR_OS_TYPE_IOS_SIMULATOR
 #	elif TARGET_OS_IPHONE == 1
-#		define OS_TYPE_IOS
+#		define ROR_OS_TYPE_IOS
 #	elif TARGET_OS_MAC == 1
-#		define OS_TYPE_MAC
+#		define ROR_OS_TYPE_MAC
 #	endif
 #elif defined(__ANDROID__) || defined(ANDROID)
-#	define OS_TYPE_ANDROID
+#	define ROR_OS_TYPE_ANDROID
 #elif defined(__linux__)
-#	define OS_TYPE_LINUX
+#	define ROR_OS_TYPE_LINUX
 #elif defined(_WIN32)
 #	ifndef WIN32_LEAN_AND_MEAN
 #		define WIN32_LEAN_AND_MEAN        // This trims down the windows libraries.
@@ -46,37 +46,37 @@
 #		define WIN32_EXTRA_LEAN        // This Trims it even farther.
 #	endif
 #	include <windows.h>
-#	define OS_TYPE_WINDOWS
+#	define ROR_OS_TYPE_WINDOWS
 #else
 #	error "OS not supported"
 #endif
 
 #if defined(__i386__)
-#	define ARCH_TYPE_X86
+#	define ROR_ARCH_TYPE_X86
 #elif defined(__x86_64__)
-#	define ARCH_TYPE_X86_64
+#	define ROR_ARCH_TYPE_X86_64
 #elif defined(__arm__)
-#	define ARCH_TYPE_ARM
+#	define ROR_ARCH_TYPE_ARM
 #elif defined(__aarch64__)
-#	define ARCH_TYPE_ARM64
+#	define ROR_ARCH_TYPE_ARM64
 #else
 #	error "Architecture not supported"
 #endif
 
 #if defined(__clang__)
-#	define COMPILER_TYPE_CLANG
+#	define ROR_COMPILER_TYPE_CLANG
 #elif defined(__GNUC__) || defined(__GNUG__)
-#	define COMPILER_TYPE_GCC
+#	define ROR_COMPILER_TYPE_GCC
 #elif defined(_MSVC)
-#	define COMPILER_TYPE_MSVC
+#	define ROR_COMPILER_TYPE_MSVC
 #else
 #	error "Compiler not supported"
 #endif
 
 #if defined(RORDEBUG)
-#	define BUILD_TYPE_DEBUG
+#	define ROR_BUILD_TYPE_DEBUG
 #else
-#	define BUILD_TYPE_RELEASE
+#	define ROR_BUILD_TYPE_RELEASE
 #endif
 
 namespace ror
@@ -112,21 +112,29 @@ enum class BuildType
 	build_debug
 };
 
+enum class RenderType
+{
+	vulkan,
+	metal,
+	direct_x_12,
+	open_gl_es_3
+};
+
 constexpr OsType get_os()
 {
 	OsType os_type = OsType::os_mac;
 
-#ifdef OS_TYPE_MAC
+#ifdef ROR_OS_TYPE_MAC
 	os_type = OsType::os_mac;
-#elif defined OS_TYPE_ANDROID
-	os_type = OsType::os_android;
-#elif defined OS_TYPE_IOS
-	os_type = OsType::os_ios;
-#elif defined OS_TYPE_IOS_SIMULATOR
-	os_type = OsType::os_ios_simulator;
-#elif defined OS_TYPE_LINUX        // Linux means Linux desktop not Android linux
+#elif defined ROR_OS_TYPE_ANDROID
+	os_type       = OsType::os_android;
+#elif defined ROR_OS_TYPE_IOS
+	os_type       = OsType::os_ios;
+#elif defined ROR_OS_TYPE_IOS_SIMULATOR
+	os_type   = OsType::os_ios_simulator;
+#elif defined ROR_OS_TYPE_LINUX        // Linux means Linux desktop not Android linux
 	os_type = OsType::os_linux;
-#elif defined OS_TYPE_WINDOWS
+#elif defined ROR_OS_TYPE_WINDOWS
 	os_type = OsType::os_windows;
 #endif
 
@@ -137,13 +145,13 @@ constexpr ArchType get_arch()
 {
 	ArchType arch_type = ArchType::arch_x86_64;
 
-#ifdef ARCH_TYPE_ARM
+#ifdef ROR_ARCH_TYPE_ARM
 	arch_type = ArchType::arch_arm;
-#elif defined ARCH_TYPE_ARM64
-	arch_type = ArchType::arch_arm64;
-#elif defined ARCH_TYPE_X86
-	arch_type = ArchType::arch_x86;
-#elif defined ARCH_TYPE_X86_64
+#elif defined ROR_ARCH_TYPE_ARM64
+	arch_type     = ArchType::arch_arm64;
+#elif defined ROR_ARCH_TYPE_X86
+	arch_type     = ArchType::arch_x86;
+#elif defined ROR_ARCH_TYPE_X86_64
 	arch_type = ArchType::arch_x86_64;
 #endif
 
@@ -154,11 +162,11 @@ constexpr CompilerType get_compiler()
 {
 	CompilerType compiler_type = CompilerType::comp_clang;
 
-#ifdef COMPILER_TYPE_GCC
+#ifdef ROR_COMPILER_TYPE_GCC
 	compiler_type = CompilerType::comp_gcc;
-#elif defined COMPILER_TYPE_CLANG
+#elif defined ROR_COMPILER_TYPE_CLANG
 	compiler_type = CompilerType::comp_clang;
-#elif defined COMPILER_TYPE_MSVC
+#elif defined ROR_COMPILER_TYPE_MSVC
 	compiler_type = CompilerType::comp_msvc;
 #endif
 
@@ -169,13 +177,41 @@ constexpr BuildType get_build()
 {
 	BuildType build_type = BuildType::build_debug;
 
-#ifdef BUILD_TYPE_RELEASE
+#ifdef ROR_BUILD_TYPE_RELEASE
 	build_type = BuildType::build_release;
-#elif defined BUILD_TYPE_DEBUG
-	build_type = BuildType::build_debug;
+#elif defined ROR_BUILD_TYPE_DEBUG
+	build_type    = BuildType::build_debug;
 #endif
 
 	return build_type;
 }
 
+constexpr RenderType get_render_api()
+{
+	RenderType type = RenderType::vulkan;
+
+#ifdef ROR_RENDER_TYPE_VULKAN
+
+	type = RenderType::vulkan;
+
+#elif defined ROR_RENDER_TYPE_METAL
+#	if defined(ROR_OS_TYPE_MAC) || defined(ROR_OS_TYPE_IOS) || defined(ROR_OS_TYPE_IOS_SIMULATOR)
+
+	type = RenderType::metal;
+
+#	else
+#		error "Requesting metal on unsupported OS, can't use metal on this OS"
+#	endif
+#elif defined ROR_RENDER_TYPE_DX12
+
+	type = RenderType::direct_x_12;
+
+#elif defined ROR_RENDER_TYPE_GLES3
+
+	type = RenderType::opengl_es_3;
+
+#endif
+
+	return type;
+}
 }        // namespace ror

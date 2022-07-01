@@ -41,10 +41,10 @@ template <class _key, class _type, class _hasher = std::hash<_key>>
 class ROAR_ENGINE_ITEM Cache final
 {
   public:
-	FORCE_INLINE        Cache()                         = default;            //! Default constructor
-	FORCE_INLINE        Cache(const Cache &a_other)     = default;            //! Copy constructor
-	FORCE_INLINE        Cache(Cache &&a_other) noexcept = default;            //! Move constructor
-	FORCE_INLINE Cache &operator=(const Cache &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE        Cache()                             = default;        //! Default constructor
+	FORCE_INLINE        Cache(const Cache &a_other)         = default;        //! Copy constructor
+	FORCE_INLINE        Cache(Cache &&a_other) noexcept     = default;        //! Move constructor
+	FORCE_INLINE Cache &operator=(const Cache &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Cache &operator=(Cache &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Cache() noexcept                          = default;        //! Destructor
 

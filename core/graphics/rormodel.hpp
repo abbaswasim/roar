@@ -26,14 +26,14 @@
 #pragma once
 
 #include "graphics/roranimation.hpp"
+#include "graphics/rorbuffer.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
 #include "graphics/rornode.hpp"
 #include "graphics/rorskin.hpp"
+#include "graphics/rortexture.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
-#include "rhi/rortexture.hpp"
 #include <vector>
 
 namespace ror
@@ -50,10 +50,10 @@ using BinBuffer_Vector_Vector = std::vector<BinBuffer_Vector, rhi::BufferAllocat
 class ROAR_ENGINE_ITEM Model
 {
   public:
-	FORCE_INLINE        Model()                         = default;            //! Default constructor
-	FORCE_INLINE        Model(const Model &a_other)     = default;            //! Copy constructor
-	FORCE_INLINE        Model(Model &&a_other) noexcept = default;            //! Move constructor
-	FORCE_INLINE Model &operator=(const Model &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE        Model()                             = default;        //! Default constructor
+	FORCE_INLINE        Model(const Model &a_other)         = default;        //! Copy constructor
+	FORCE_INLINE        Model(Model &&a_other) noexcept     = default;        //! Move constructor
+	FORCE_INLINE Model &operator=(const Model &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Model &operator=(Model &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Model() noexcept                          = default;        //! Destructor
 
@@ -78,9 +78,9 @@ class ROAR_ENGINE_ITEM Model
 	// This works for 1 model at the moment. Next append to these when a second asset is loaded
 	// This would require going through all the models that needs loading and getting max bounds of each and then adjusting indices
 
-	std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     m_images{};                 //! All images, by handles
-	std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> m_samplers{};               //! All samplers, by handles
-	std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               m_textures{};               //! All textures by handles
+	std::vector<ror::TextureImage, rhi::BufferAllocator<ror::TextureImage>>     m_images{};                 //! All images, by handles
+	std::vector<ror::TextureSampler, rhi::BufferAllocator<ror::TextureSampler>> m_samplers{};               //! All samplers, by handles
+	std::vector<ror::Texture, rhi::BufferAllocator<ror::Texture>>               m_textures{};               //! All textures by handles
 	std::vector<ror::Material, rhi::BufferAllocator<ror::Material>>             m_materials{};              //! All the materials in this asset
 	std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>>                     m_meshes{};                 //! All the meshes in this asset
 	std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>>                     m_skins{};                  //! All the skins we have

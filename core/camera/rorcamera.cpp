@@ -66,7 +66,7 @@ void OrbitCamera::init(EventSystem &a_event_system)
 	this->m_resize_callback = [this](ror::Event &e) {
 		if (e.is_compatible<ror::Vector2i>())
 		{
-			auto vec2     = std::any_cast<ror::Vector2i>(e.m_payload);
+			auto vec2 = std::any_cast<ror::Vector2i>(e.m_payload);
 			this->set_bounds(vec2.x, vec2.y);
 
 			// Now update the MVP and the likes
@@ -77,7 +77,7 @@ void OrbitCamera::init(EventSystem &a_event_system)
 	this->m_zoom_callback = [this](ror::Event &e) {
 		if (e.is_compatible<ror::Vector2d>())
 		{
-			auto vec2     = std::any_cast<ror::Vector2d>(e.m_payload);
+			auto vec2 = std::any_cast<ror::Vector2d>(e.m_payload);
 			this->zoom_by(-vec2.y);
 
 			// Now update the MVP and the likes

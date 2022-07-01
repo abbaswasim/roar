@@ -40,11 +40,11 @@
 #	define LESSCONSERVATIVEOPTIMIZATION
 #endif
 
-#if defined(COMPILER_TYPE_GCC) || defined(COMPILER_TYPE_CLANG)
+#if defined(ROR_COMPILER_TYPE_GCC) || defined(ROR_COMPILER_TYPE_CLANG)
 #	define ROAR_HELPER_INLINE __inline__
 #	define ROAR_HELPER_FORCE_INLINE __attribute__((__always_inline__)) __inline__
 #	define ROAR_HELPER_NEVER_INLINE __attribute__((__noinline__))
-#elif defined(COMPILER_TYPE_MSVC)
+#elif defined(ROR_COMPILER_TYPE_MSVC)
 #	define ROAR_HELPER_INLINE __inline
 #	define ROAR_HELPER_FORCE_INLINE __forceinline
 #	define ROAR_HELPER_NEVER_INLINE __declspec(noinline)

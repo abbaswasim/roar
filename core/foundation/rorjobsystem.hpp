@@ -66,10 +66,10 @@ FORCE_INLINE uint32_t get_hardware_threads()
 class ROAR_ENGINE_ITEM Job
 {
   public:
-	FORCE_INLINE      Job()                       = default;              //! Default constructor
-	FORCE_INLINE      Job(const Job &a_other)     = delete;               //! Copy constructor
-	FORCE_INLINE      Job(Job &&a_other) noexcept = delete;               //! Move constructor
-	FORCE_INLINE Job &operator=(const Job &a_other) = delete;             //! Copy assignment operator
+	FORCE_INLINE      Job()                             = default;        //! Default constructor
+	FORCE_INLINE      Job(const Job &a_other)           = delete;         //! Copy constructor
+	FORCE_INLINE      Job(Job &&a_other) noexcept       = delete;         //! Move constructor
+	FORCE_INLINE Job &operator=(const Job &a_other)     = delete;         //! Copy assignment operator
 	FORCE_INLINE Job &operator=(Job &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE virtual ~Job() noexcept                = default;        //! Destructor
 
@@ -119,7 +119,7 @@ class ROAR_ENGINE_ITEM JobDepend final : public Job
 	FORCE_INLINE            JobDepend()                             = default;        //! Default constructor
 	FORCE_INLINE            JobDepend(const JobDepend &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE            JobDepend(JobDepend &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE JobDepend &operator=(const JobDepend &a_other) = delete;             //! Copy assignment operator
+	FORCE_INLINE JobDepend &operator=(const JobDepend &a_other)     = delete;         //! Copy assignment operator
 	FORCE_INLINE JobDepend &operator=(JobDepend &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~JobDepend() noexcept override                     = default;        //! Destructor
 
@@ -156,9 +156,9 @@ class ROAR_ENGINE_ITEM JobDepend1 final : public Job
 	FORCE_INLINE             JobDepend1()                              = default;        //! Default constructor
 	FORCE_INLINE             JobDepend1(const JobDepend1 &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE             JobDepend1(JobDepend1 &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE JobDepend1 &operator=(const JobDepend1 &a_other) = delete;              //! Copy assignment operator
-	FORCE_INLINE JobDepend1 &operator=(JobDepend1 &&a_other) noexcept = delete;          //! Move assignment operator
-	FORCE_INLINE ~JobDepend1() noexcept override                      = default;         //! Destructor
+	FORCE_INLINE JobDepend1 &operator=(const JobDepend1 &a_other)      = delete;         //! Copy assignment operator
+	FORCE_INLINE JobDepend1 &operator=(JobDepend1 &&a_other) noexcept  = delete;         //! Move assignment operator
+	FORCE_INLINE ~JobDepend1() noexcept override                       = default;        //! Destructor
 
 	FORCE_INLINE JobDepend1(std::function<void(void)> a_function, std::shared_ptr<Job> a_dependency) :
 		Job(a_function), m_dependency(a_dependency)
@@ -193,7 +193,7 @@ class ROAR_ENGINE_ITEM JobHandle final
   public:
 	FORCE_INLINE            JobHandle(const JobHandle &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE            JobHandle(JobHandle &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE JobHandle &operator=(const JobHandle &a_other) = delete;             //! Copy assignment operator
+	FORCE_INLINE JobHandle &operator=(const JobHandle &a_other)     = delete;         //! Copy assignment operator
 	FORCE_INLINE JobHandle &operator=(JobHandle &&a_other) noexcept = delete;         //! Move assignment operator PATL: Don't enable this segfaulting with this
 	FORCE_INLINE ~JobHandle() noexcept                              = default;        //! Destructor
 
@@ -239,7 +239,7 @@ class ROAR_ENGINE_ITEM JobSystem final
   public:
 	FORCE_INLINE            JobSystem(const JobSystem &a_other)     = delete;        //! Copy constructor
 	FORCE_INLINE            JobSystem(JobSystem &&a_other) noexcept = delete;        //! Move constructor
-	FORCE_INLINE JobSystem &operator=(const JobSystem &a_other) = delete;            //! Copy assignment operator
+	FORCE_INLINE JobSystem &operator=(const JobSystem &a_other)     = delete;        //! Copy assignment operator
 	FORCE_INLINE JobSystem &operator=(JobSystem &&a_other) noexcept = delete;        //! Move assignment operator
 	FORCE_INLINE ~JobSystem() noexcept                                               //! Destructor
 	{
@@ -253,9 +253,9 @@ class ROAR_ENGINE_ITEM JobSystem final
 		FORCE_INLINE              WorkerQueue()                               = default;        //! Default constructor
 		FORCE_INLINE              WorkerQueue(const WorkerQueue &a_other)     = delete;         //! Copy constructor
 		FORCE_INLINE              WorkerQueue(WorkerQueue &&a_other) noexcept = delete;         //! Move constructor
-		FORCE_INLINE WorkerQueue &operator=(const WorkerQueue &a_other) = delete;               //! Copy assignment operator
-		FORCE_INLINE WorkerQueue &operator=(WorkerQueue &&a_other) noexcept = delete;           //! Move assignment operator
-		FORCE_INLINE ~WorkerQueue() noexcept                                = default;          //! Destructor
+		FORCE_INLINE WorkerQueue &operator=(const WorkerQueue &a_other)       = delete;         //! Copy assignment operator
+		FORCE_INLINE WorkerQueue &operator=(WorkerQueue &&a_other) noexcept   = delete;         //! Move assignment operator
+		FORCE_INLINE ~WorkerQueue() noexcept                                  = default;        //! Destructor
 
 		FORCE_INLINE void push(std::shared_ptr<Job> a_job)
 		{

@@ -31,13 +31,13 @@ namespace ror
 {
 void fsevents_callback(
 	ConstFSEventStreamRef /*streamRef*/,
-	void *                        clientCallBackInfo,
+	void                         *clientCallBackInfo,
 	size_t                        numEvents,
-	void *                        eventPaths,
+	void                         *eventPaths,
 	const FSEventStreamEventFlags eventFlags[],
 	const FSEventStreamEventId[] /*eventIds[]*/)
 {
-	char **   paths = static_cast<char **>(eventPaths);
+	char    **paths = static_cast<char **>(eventPaths);
 	WatchCat *wc    = static_cast<WatchCat *>(clientCallBackInfo);
 
 	assert(wc != nullptr);
@@ -54,9 +54,9 @@ void fsevents_callback(
 			events.emplace_back(WatchCatEventType::remove, paths[i]);
 		if ((eventFlags[i] & kFSEventStreamEventFlagItemModified) == kFSEventStreamEventFlagItemModified)
 			events.emplace_back(WatchCatEventType::change, paths[i]);
-		//if ((eventFlags[i] & kFSEventStreamEventFlagItemInodeMetaMod) == kFSEventStreamEventFlagItemInodeMetaMod)
+		// if ((eventFlags[i] & kFSEventStreamEventFlagItemInodeMetaMod) == kFSEventStreamEventFlagItemInodeMetaMod)
 		//	events.emplace_back(WatchCatEventType::touch, paths[i]); // No handling of touch events for now
-		// Don't register event otherwise
+		//  Don't register event otherwise
 	}
 
 	wc->notify(events);
@@ -65,9 +65,9 @@ void fsevents_callback(
 class PlatformData final
 {
   public:
-	PlatformData(const PlatformData &a_other)     = delete;                   //! Copy constructor
-	PlatformData(PlatformData &&a_other) noexcept = delete;                   //! Move constructor
-	PlatformData &operator=(const PlatformData &a_other) = delete;            //! Copy assignment operator
+	PlatformData(const PlatformData &a_other)                = delete;        //! Copy constructor
+	PlatformData(PlatformData &&a_other) noexcept            = delete;        //! Move constructor
+	PlatformData &operator=(const PlatformData &a_other)     = delete;        //! Copy assignment operator
 	PlatformData &operator=(PlatformData &&a_other) noexcept = delete;        //! Move assignment operator
 	~PlatformData() noexcept                                                  //! Destructor
 	{
@@ -123,7 +123,7 @@ class PlatformData final
 
 void WatchCat::rerun(std::filesystem::path a_path)
 {
-	(void) a_path; // Don't need path in mac os case
+	(void) a_path;        // Don't need path in mac os case
 
 	this->run();
 }

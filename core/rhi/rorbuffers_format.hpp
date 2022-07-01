@@ -29,7 +29,7 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
-#include "rhi/rorbuffer.hpp"
+#include "graphics/rorbuffer.hpp"
 #include <memory>
 #include <stdint.h>
 #include <vector>
@@ -40,7 +40,7 @@ namespace ror
 struct BufferPack
 {
 	std::string                           m_name{};
-	std::vector<rhi::Buffer<rhi::Static>> m_buffers{};
+	std::vector<ror::Buffer<ror::Static>> m_buffers{};
 };
 
 struct BuffersFormat
@@ -62,9 +62,9 @@ class ROAR_ENGINE_ITEM BuffersFormatConfig : public Configuration<BuffersFormatC
 	FORCE_INLINE                      BuffersFormatConfig()                                       = default;        //! Default constructor
 	FORCE_INLINE                      BuffersFormatConfig(const BuffersFormatConfig &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                      BuffersFormatConfig(BuffersFormatConfig &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE BuffersFormatConfig &operator=(const BuffersFormatConfig &a_other) = default;                      //! Copy assignment operator
-	FORCE_INLINE BuffersFormatConfig &operator=(BuffersFormatConfig &&a_other) noexcept = default;                  //! Move assignment operator
-	FORCE_INLINE virtual ~BuffersFormatConfig() noexcept override                       = default;                  //! Destructor
+	FORCE_INLINE BuffersFormatConfig &operator=(const BuffersFormatConfig &a_other)               = default;        //! Copy assignment operator
+	FORCE_INLINE BuffersFormatConfig &operator=(BuffersFormatConfig &&a_other) noexcept           = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~BuffersFormatConfig() noexcept override                                 = default;        //! Destructor
 
 	FORCE_INLINE explicit BuffersFormatConfig(const std::filesystem::path &a_config_path);        //! Single argument constructor
 	BuffersFormat &&move_buffers_format() &&noexcept;

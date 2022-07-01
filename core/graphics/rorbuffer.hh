@@ -24,9 +24,9 @@
 // Version: 1.0.0
 
 #include "profiling/rorlog.hpp"
-#include "rhi/rorbuffer.hpp"
+#include "graphics/rorbuffer.hpp"
 
-namespace rhi
+namespace ror
 {
 template <typename _type>
 Buffer<_type>::Buffer()
@@ -158,13 +158,13 @@ bool Buffer<_type>::interleaved() const noexcept
 }
 
 template <typename _type>
-void Buffer<_type>::emplace_semantic(std::pair<BufferSemantic, uint64_t> &&a_pair)
+void Buffer<_type>::emplace_semantic(std::pair<rhi::BufferSemantic, uint64_t> &&a_pair)
 {
 	this->m_semantics.emplace_back(std::move(a_pair));
 }
 
 template <typename _type>
-std::pair<BufferSemantic, uint64_t> Buffer<_type>::semantic(size_t a_index) const noexcept
+std::pair<rhi::BufferSemantic, uint64_t> Buffer<_type>::semantic(size_t a_index) const noexcept
 {
 	assert(a_index < this->m_semantics.size());
 
@@ -172,7 +172,7 @@ std::pair<BufferSemantic, uint64_t> Buffer<_type>::semantic(size_t a_index) cons
 }
 
 template <typename _type>
-const std::vector<std::pair<BufferSemantic, uint64_t>> &Buffer<_type>::semantics() const noexcept
+const std::vector<std::pair<rhi::BufferSemantic, uint64_t>> &Buffer<_type>::semantics() const noexcept
 {
 	return this->m_semantics;
 }

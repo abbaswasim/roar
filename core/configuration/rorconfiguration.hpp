@@ -39,34 +39,22 @@ template <typename _type>
 class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 {
   public:
-	FORCE_INLINE                Configuration()                                 = default;        //! Default constructor
 	FORCE_INLINE                Configuration(const Configuration &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                Configuration(Configuration &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE Configuration &operator=(const Configuration &a_other) = default;                //! Copy assignment operator
-	FORCE_INLINE Configuration &operator=(Configuration &&a_other) noexcept = default;            //! Move assignment operator
-	FORCE_INLINE virtual ~Configuration() noexcept override                 = default;            //! Destructor
+	FORCE_INLINE Configuration &operator=(const Configuration &a_other)         = default;        //! Copy assignment operator
+	FORCE_INLINE Configuration &operator=(Configuration &&a_other) noexcept     = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~Configuration() noexcept override                     = default;        //! Destructor
 
 	void load(std::filesystem::path a_config_path, ResourceSemantic a_semantic = ResourceSemantic::configs)
 	{
-		const auto& resource    = load_resource(a_config_path, a_semantic);
-		this->m_json_file = json::parse(resource.data());
+		const auto &resource = load_resource(a_config_path, a_semantic);
+		this->m_json_file    = json::parse(resource.data());
 
 		this->underlying().load_specific();
 	}
 
-	// template<typename _type_inner>
-	// bool contains(_type_inner &&a_key) const
-	// {
-	//	return this->m_json_file.contains(std::forward(a_key));
-	// }
-
-	// template <typename _type_inner>
-	// auto integer(_type_inner &&a_key) const
-	// {
-	//	return this->m_json_file.integer(std::forward(a_key));
-	// }
-
   protected:
+	FORCE_INLINE Configuration() = default;        //! Default constructor
   private:
 	json m_json_file{};
 	friend _type;        //! Any type derived from Configuration will have access to constructor and private members

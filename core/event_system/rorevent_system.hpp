@@ -35,9 +35,9 @@
 #include <functional>
 #include <list>
 #include <queue>
+#include <typeinfo>
 #include <unordered_map>
 #include <vector>
-#include <typeinfo>
 
 namespace ror
 {
@@ -150,7 +150,6 @@ struct Event
 
 		return _type();
 	}
-
 };
 
 static_assert(sizeof(Event) == 40, "Size of Event is too big");
@@ -161,9 +160,9 @@ class ROAR_ENGINE_ITEM EventSystem final
 	EventSystem();                                                                          //! Default constructor
 	FORCE_INLINE              EventSystem(const EventSystem &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE              EventSystem(EventSystem &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE EventSystem &operator=(const EventSystem &a_other) = default;              //! Copy assignment operator
-	FORCE_INLINE EventSystem &operator=(EventSystem &&a_other) noexcept = default;          //! Move assignment operator
-	FORCE_INLINE ~EventSystem() noexcept                                = default;          //! Destructor
+	FORCE_INLINE EventSystem &operator=(const EventSystem &a_other)       = default;        //! Copy assignment operator
+	FORCE_INLINE EventSystem &operator=(EventSystem &&a_other) noexcept   = default;        //! Move assignment operator
+	FORCE_INLINE ~EventSystem() noexcept                                  = default;        //! Destructor
 
 	/**
 	 * When using this function make sure you use the same lambda that was used to subscribe

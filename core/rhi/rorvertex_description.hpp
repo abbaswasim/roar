@@ -29,8 +29,8 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
+#include "graphics/rorbuffer.hpp"
 #include "profiling/rorlog.hpp"
-#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
@@ -74,9 +74,9 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	FORCE_INLINE                   VertexDescriptor()                                    = default;        //! Default constructor
 	FORCE_INLINE                   VertexDescriptor(const VertexDescriptor &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                   VertexDescriptor(VertexDescriptor &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE VertexDescriptor &operator=(const VertexDescriptor &a_other) = default;                   //! Copy assignment operator
-	FORCE_INLINE VertexDescriptor &operator=(VertexDescriptor &&a_other) noexcept = default;               //! Move assignment operator
-	FORCE_INLINE ~VertexDescriptor() noexcept                                     = default;               //! Destructor
+	FORCE_INLINE VertexDescriptor &operator=(const VertexDescriptor &a_other)            = default;        //! Copy assignment operator
+	FORCE_INLINE VertexDescriptor &operator=(VertexDescriptor &&a_other) noexcept        = default;        //! Move assignment operator
+	FORCE_INLINE ~VertexDescriptor() noexcept                                            = default;        //! Destructor
 
 	/**
 	 * Use this constructor to create mapping of attributes to layouts that you think works.

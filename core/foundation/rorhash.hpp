@@ -44,7 +44,7 @@ FORCE_INLINE hash_32_t hash_32(const void *a_input, size_t a_size)
 	return XXH32(a_input, a_size, seed);
 }
 
-FORCE_INLINE hash_32_t hash_32(const std::string& a_input)
+FORCE_INLINE hash_32_t hash_32(const std::string &a_input)
 {
 	return hash_32(a_input.c_str(), a_input.size());
 }
@@ -55,7 +55,7 @@ FORCE_INLINE hash_64_t hash_64(const void *a_input, size_t a_size)
 	return XXH64(a_input, a_size, seed);
 }
 
-FORCE_INLINE hash_64_t hash_64(const std::string& a_input)
+FORCE_INLINE hash_64_t hash_64(const std::string &a_input)
 {
 	return hash_64(a_input.c_str(), a_input.size());
 }
@@ -66,7 +66,7 @@ FORCE_INLINE hash_128_t hash_128(const void *a_input, size_t a_size)
 	return {hs.low64, hs.high64};
 }
 
-FORCE_INLINE hash_128_t hash_128(const std::string& a_input)
+FORCE_INLINE hash_128_t hash_128(const std::string &a_input)
 {
 	return hash_128(a_input.c_str(), a_input.size());
 }

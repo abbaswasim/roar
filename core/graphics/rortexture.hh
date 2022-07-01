@@ -26,17 +26,17 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
+#include "graphics/rortexture.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <memory>
 
-namespace rhi
+namespace ror
 {
-FORCE_INLINE TextureAPIHandle TextureImage::handle() const noexcept
-{
-	return this->m_handle;
-}
+// FORCE_INLINE TextureAPIHandle TextureImage::handle() const noexcept
+// {
+//	return this->m_handle;
+// }
 
 FORCE_INLINE uint32_t TextureImage::width() const noexcept
 {
@@ -53,7 +53,7 @@ FORCE_INLINE uint32_t TextureImage::depth() const noexcept
 	return this->m_mips[0].m_depth;
 }
 
-FORCE_INLINE PixelFormat TextureImage::format() const noexcept
+FORCE_INLINE rhi::PixelFormat TextureImage::format() const noexcept
 {
 	return this->m_format;
 }
@@ -67,10 +67,10 @@ FORCE_INLINE TextureTarget TextureImage::target() const noexcept
 	return this->m_target;
 }
 
-FORCE_INLINE void TextureImage::handle(TextureHandle a_handle) noexcept
-{
-	this->m_handle = a_handle.m_handle;
-}
+// FORCE_INLINE void TextureImage::handle(TextureHandle a_handle) noexcept
+// {
+//	this->m_handle = a_handle.m_handle;
+// }
 
 FORCE_INLINE void TextureImage::width(uint32_t a_width) noexcept
 {
@@ -87,7 +87,7 @@ FORCE_INLINE void TextureImage::depth(uint32_t a_depth) noexcept
 	this->m_mips[0].m_depth = a_depth;
 }
 
-FORCE_INLINE void TextureImage::format(PixelFormat a_format) noexcept
+FORCE_INLINE void TextureImage::format(rhi::PixelFormat a_format) noexcept
 {
 	this->m_format = a_format;
 }
@@ -131,16 +131,16 @@ FORCE_INLINE void read_texture_from_resource(ror::Resource &a_texture_resource, 
 	read_texture_from_memory(resource_data.data(), resource_data.size(), a_texture);
 }
 
-static PixelFormat basis_to_format(basist::transcoder_texture_format a_fmt)
+static rhi::PixelFormat basis_to_format(basist::transcoder_texture_format a_fmt)
 {
 	switch (a_fmt)
 	{
 		case basist::transcoder_texture_format::cTFASTC_4x4:
-			return PixelFormat::astc_4x4_srgb_block;
+			return rhi::PixelFormat::astc_4x4_srgb_block;
 		case basist::transcoder_texture_format::cTFBC7_RGBA:
-			return PixelFormat::bc7_srgb_block;
+			return rhi::PixelFormat::bc7_srgb_block;
 		case basist::transcoder_texture_format::cTFRGBA32:
-			return PixelFormat::r8g8b8a8_uint32_norm_srgb;
+			return rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb;
 		case basist::transcoder_texture_format::cTFETC1_RGB:
 		case basist::transcoder_texture_format::cTFETC2_RGBA:
 		case basist::transcoder_texture_format::cTFBC1_RGB:
@@ -162,10 +162,10 @@ static PixelFormat basis_to_format(basist::transcoder_texture_format a_fmt)
 		case basist::transcoder_texture_format::cTFBC7_ALT:
 		case basist::transcoder_texture_format::cTFTotalTextureFormats:
 			ror::log_critical("Format not supported yet!, add support before continuing.");
-			return PixelFormat::r8g8b8a8_uint32_norm_srgb;
+			return rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb;
 	}
 
-	return PixelFormat::r8g8b8a8_uint32_norm_srgb;
+	return rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb;
 }
 
 static void read_texture_basis_universal(ror::Resource &a_texture_resource, TextureImage &a_texture)
@@ -379,4 +379,4 @@ FORCE_INLINE TextureImage read_texture_cube_from_file(const std::filesystem::pat
 	return read_texture_from_file<TextureTarget::texture_cube>(a_absolute_file_name, a_separate_channels);
 }
 
-}        // namespace rhi
+}        // namespace ror

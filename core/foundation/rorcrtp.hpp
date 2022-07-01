@@ -38,9 +38,9 @@ template <typename _type, template <typename> class _derived_type>
 class ROAR_ENGINE_ITEM Crtp
 {
   public:
-	FORCE_INLINE       Crtp(const Crtp &a_other)     = default;             //! Copy constructor
-	FORCE_INLINE       Crtp(Crtp &&a_other) noexcept = default;             //! Move constructor
-	FORCE_INLINE Crtp &operator=(const Crtp &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE       Crtp(const Crtp &a_other)          = default;        //! Copy constructor
+	FORCE_INLINE       Crtp(Crtp &&a_other) noexcept      = default;        //! Move constructor
+	FORCE_INLINE Crtp &operator=(const Crtp &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Crtp &operator=(Crtp &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Crtp() noexcept                 = default;        //! Destructor
 
@@ -66,9 +66,9 @@ class ROAR_ENGINE_ITEM CrtpClient : public Crtp<_type, CrtpClient>
 	FORCE_INLINE             CrtpClient()                              = default;        //! Default constructor
 	FORCE_INLINE             CrtpClient(const CrtpClient &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE             CrtpClient(CrtpClient &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE CrtpClient &operator=(const CrtpClient &a_other) = default;             //! Copy assignment operator
-	FORCE_INLINE CrtpClient &operator=(CrtpClient &&a_other) noexcept = default;         //! Move assignment operator
-	FORCE_INLINE virtual ~CrtpClient() noexcept override              = default;         //! Destructor
+	FORCE_INLINE CrtpClient &operator=(const CrtpClient &a_other)      = default;        //! Copy assignment operator
+	FORCE_INLINE CrtpClient &operator=(CrtpClient &&a_other) noexcept  = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~CrtpClient() noexcept override               = default;        //! Destructor
 
 	void common_func()
 	{
@@ -88,9 +88,9 @@ class ROAR_ENGINE_ITEM CrtpClientImpl : public CrtpClient<CrtpClientImpl>       
 	FORCE_INLINE                 CrtpClientImpl()                                  = default;        //! Default constructor
 	FORCE_INLINE                 CrtpClientImpl(const CrtpClientImpl &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                 CrtpClientImpl(CrtpClientImpl &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE CrtpClientImpl &operator=(const CrtpClientImpl &a_other) = default;                 //! Copy assignment operator
-	FORCE_INLINE CrtpClientImpl &operator=(CrtpClientImpl &&a_other) noexcept = default;             //! Move assignment operator
-	FORCE_INLINE virtual ~CrtpClientImpl() noexcept override                  = default;             //! Destructor
+	FORCE_INLINE CrtpClientImpl &operator=(const CrtpClientImpl &a_other)          = default;        //! Copy assignment operator
+	FORCE_INLINE CrtpClientImpl &operator=(CrtpClientImpl &&a_other) noexcept      = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~CrtpClientImpl() noexcept override                       = default;        //! Destructor
 
 	void common_func_provider()
 	{}
