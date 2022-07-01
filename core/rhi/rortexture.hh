@@ -26,12 +26,12 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "graphics/rortexture.hpp"
+#include "rhi/rortexture.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rortypes.hpp"
 #include <memory>
 
-namespace ror
+namespace rhi
 {
 // FORCE_INLINE TextureAPIHandle TextureImage::handle() const noexcept
 // {

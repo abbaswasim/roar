@@ -28,7 +28,7 @@
 #include "foundation/rorcrtp.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
-#include "graphics/rortexture.hpp"
+#include "rhi/rortexture.hpp"
 #include "rhi/rorhandles.hpp"
 #include <ostream>
 #include <string>

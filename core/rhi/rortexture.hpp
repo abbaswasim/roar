@@ -39,7 +39,7 @@
 // Global function to create rhi::TextureImage
 #include "transcoder/basisu_transcoder.h"
 
-namespace ror
+namespace rhi
 {
 
 enum class TextureTarget
@@ -182,27 +182,22 @@ FORCE_INLINE TextureImage read_texture_2d_from_file(const std::filesystem::path 
 FORCE_INLINE TextureImage read_texture_3d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
 FORCE_INLINE TextureImage read_texture_cube_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
 
-}        // namespace ror
-
-namespace rhi
-{
-
 // Define type to semantic for buffers allocator
-define_type_to_shader_semantics(ror::TextureImage)
+define_type_to_shader_semantics(TextureImage)
 {
 	return rhi::BufferSemantic::texture_image_data;
 }
 
-define_type_to_shader_semantics(ror::TextureSampler)
+define_type_to_shader_semantics(TextureSampler)
 {
 	return rhi::BufferSemantic::texture_sampler_data;
 }
 
-define_type_to_shader_semantics(ror::Texture)
+define_type_to_shader_semantics(Texture)
 {
 	return rhi::BufferSemantic::texture_data;
 }
 
-}        // namespace rhi
+}        // namespace ror
 
 #include "rortexture.hh"

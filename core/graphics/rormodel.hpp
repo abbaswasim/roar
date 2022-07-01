@@ -31,7 +31,7 @@
 #include "graphics/rormesh.hpp"
 #include "graphics/rornode.hpp"
 #include "graphics/rorskin.hpp"
-#include "graphics/rortexture.hpp"
+#include "rhi/rortexture.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include <vector>
@@ -78,9 +78,9 @@ class ROAR_ENGINE_ITEM Model
 	// This works for 1 model at the moment. Next append to these when a second asset is loaded
 	// This would require going through all the models that needs loading and getting max bounds of each and then adjusting indices
 
-	std::vector<ror::TextureImage, rhi::BufferAllocator<ror::TextureImage>>     m_images{};                 //! All images, by handles
-	std::vector<ror::TextureSampler, rhi::BufferAllocator<ror::TextureSampler>> m_samplers{};               //! All samplers, by handles
-	std::vector<ror::Texture, rhi::BufferAllocator<ror::Texture>>               m_textures{};               //! All textures by handles
+	std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     m_images{};                 //! All images, by handles
+	std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> m_samplers{};               //! All samplers, by handles
+	std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               m_textures{};               //! All textures by handles
 	std::vector<ror::Material, rhi::BufferAllocator<ror::Material>>             m_materials{};              //! All the materials in this asset
 	std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>>                     m_meshes{};                 //! All the meshes in this asset
 	std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>>                     m_skins{};                  //! All the skins we have

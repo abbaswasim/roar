@@ -23,13 +23,13 @@
 //
 // Version: 1.0.0
 
-#include "graphics/rortexture.hpp"
+#include "rhi/rortexture.hpp"
 
 #define STBI_NO_FAILURE_STRINGS
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-namespace ror
+namespace rhi
 {
 
 rhi::TextureFilter TextureSampler::mag_filter()
@@ -99,7 +99,7 @@ void Texture::texture_sampler(rhi::TextureSamplerHandle a_handle)
 	this->m_texture_sampler = a_handle;
 }
 
-void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, ror::TextureImage &a_texture)
+void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::TextureImage &a_texture)
 {
 	int32_t w = 0, h = 0, bpp = 0;
 	auto   *new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp

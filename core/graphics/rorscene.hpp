@@ -172,7 +172,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	// All of these can be buffer allocated but for now leave them as is
 	std::vector<ror::Model>          m_models{};            //! All the assets loaded as 3D models
-	std::vector<ror::Texture>        m_textures{};          //! All textures by handles
+	std::vector<rhi::Texture>        m_textures{};          //! All textures by handles
 	std::vector<ror::SceneNode>      m_nodes{};             //! All the nodes in this scene
 	std::vector<ror::SceneNodeData>  m_nodes_data{};        //! All the nodes parallel data that needs to be maintained
 	std::vector<ror::ParticleSystem> m_particles{};         //! All the particle emittors
