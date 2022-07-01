@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "fox.h"
-#include "graphics/rorbuffer.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "graphics/rormodel.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"

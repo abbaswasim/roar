@@ -35,7 +35,7 @@
 #include <mutex>
 #include <vector>
 
-namespace ror
+namespace rhi
 {
 
 template <bool>

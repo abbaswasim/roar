@@ -133,12 +133,12 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	/**
 	 * Returns a buffer by semantic
 	 */
-	FORCE_INLINE ror::Buffer<ror::Static> &buffer(BufferSemantic a_semantic)
+	FORCE_INLINE rhi::Buffer<rhi::Static> &buffer(BufferSemantic a_semantic)
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
 		return this->m_buffers[index];
 	}
-	FORCE_INLINE const ror::Buffer<ror::Static> &buffer(BufferSemantic a_semantic) const
+	FORCE_INLINE const rhi::Buffer<rhi::Static> &buffer(BufferSemantic a_semantic) const
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
 		return this->m_buffers[index];
@@ -147,11 +147,11 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	/**
 	 * Returns a buffer by index, shouldn't be used if semantics are a better choice
 	 */
-	FORCE_INLINE ror::Buffer<ror::Static> &buffer(size_t a_index)
+	FORCE_INLINE rhi::Buffer<rhi::Static> &buffer(size_t a_index)
 	{
 		return this->m_buffers[a_index];
 	}
-	FORCE_INLINE const ror::Buffer<ror::Static> &buffer(size_t a_index) const
+	FORCE_INLINE const rhi::Buffer<rhi::Static> &buffer(size_t a_index) const
 	{
 		return this->m_buffers[a_index];
 	}
@@ -171,7 +171,7 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	}
 
   private:
-	std::vector<ror::Buffer<ror::Static>>        m_buffers{};                   //! All buffers created for different type data
+	std::vector<rhi::Buffer<rhi::Static>>        m_buffers{};                   //! All buffers created for different type data
 	std::unordered_map<BufferSemantic, uint32_t> m_attribute_indices{};         //! All indices for any of the ShaderSemantic type, Position and its buffer index, Normal and its buffer index etc
 	bool                                         m_ready_to_free{false};        //! True when we can deallocate all buffers safely, doesn't have to be atomic, because this is end of everything
 };

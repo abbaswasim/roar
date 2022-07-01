@@ -29,7 +29,7 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "graphics/rorbuffer.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"

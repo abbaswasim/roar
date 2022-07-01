@@ -26,7 +26,7 @@
 #pragma once
 
 #include "graphics/roranimation.hpp"
-#include "graphics/rorbuffer.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
 #include "graphics/rornode.hpp"

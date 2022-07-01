@@ -27,7 +27,7 @@
 
 #include "foundation/rorhash.hpp"
 #include "foundation/rortypes.hpp"
-#include "graphics/rorbuffer.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "math/rormatrix3.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"

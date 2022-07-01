@@ -29,7 +29,7 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
-#include "graphics/rorbuffer.hpp"
+#include "rhi/rorbuffer.hpp"
 #include <memory>
 #include <stdint.h>
 #include <vector>
@@ -40,7 +40,7 @@ namespace ror
 struct BufferPack
 {
 	std::string                           m_name{};
-	std::vector<ror::Buffer<ror::Static>> m_buffers{};
+	std::vector<rhi::Buffer<rhi::Static>> m_buffers{};
 };
 
 struct BuffersFormat

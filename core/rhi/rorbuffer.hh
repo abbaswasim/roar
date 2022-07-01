@@ -24,9 +24,9 @@
 // Version: 1.0.0
 
 #include "profiling/rorlog.hpp"
-#include "graphics/rorbuffer.hpp"
+#include "rhi/rorbuffer.hpp"
 
-namespace ror
+namespace rhi
 {
 template <typename _type>
 Buffer<_type>::Buffer()
