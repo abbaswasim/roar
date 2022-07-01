@@ -1,7 +1,7 @@
 #include "common.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
-#include "graphics/rorbuffer.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorprojectroot.hpp"
 #include "resources/rorresource.hpp"

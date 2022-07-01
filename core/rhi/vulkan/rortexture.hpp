@@ -26,7 +26,7 @@
 #pragma once
 
 #include "rhi/crtp_interfaces/rortexture.hpp"
-#include "rhi/rorrender_types.hpp"
+#include "rhi/rorrhi_macros.hpp"
 
 namespace rhi
 {
@@ -46,13 +46,13 @@ class ROAR_ENGINE_ITEM TextureVulkan final : public TextureCrtp<TextureVulkan>
 	declare_translation_unit_vtable();
 };
 
+// The following will create something like
+// using Texture = TextureVulkan
+// So the rest of the system can use the CRTP implementation directly as "Texture"
+
 declare_rhi_render_type(TextureImage);
 declare_rhi_render_type(TextureSampler);
 declare_rhi_render_type(Texture);
-// declare_rhi_render_type(Buffer);
-// declare_rhi_render_type(GraphicsPipeline);
-// declare_rhi_render_type(ComputePipeline);
-// declare_rhi_render_type(MeshPipeline);
 
 // Define type to semantic for buffers allocator
 define_type_to_shader_semantics(TextureImageVulkan)

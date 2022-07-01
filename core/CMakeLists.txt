@@ -126,6 +126,20 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/configuration/rorsettings_configuration.cpp
   ${ROAR_SOURCE_DIR}/resources/rorprojectroot.cpp)
 
+if (${ROR_RENDER_TYPE_VULKAN})
+  list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/vulkan/rortexture.hpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rortexture.cpp)
+elseif (${ROR_RENDER_TYPE_METAL})
+  list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.hpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.cpp)
+elseif (${ROR_RENDER_TYPE_DX12})
+  list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/dx12/rortexture.hpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/dx12/rortexture.cpp)
+elseif (${ROR_RENDER_TYPE_GLES3})
+  list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/gles3/rortexture.hpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/gles3/rortexture.cpp)
+endif()
+
 add_library(${ROAR_NAME} SHARED ${ROAR_SOURCES} ${ROAR_HEADERS})
 set_target_properties(${ROAR_NAME} PROPERTIES VERSION 1.0.0.0 SOVERSION 1)          # TODO: Fix the hardcoded version
 set_target_properties(${ROAR_NAME} PROPERTIES CMAKE_VISIBILITY_INLINES_HIDDEN true) # Don't export all of those C++ template generated symbols

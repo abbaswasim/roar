@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2021
+// Copyright (c) 2022
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -23,26 +23,27 @@
 //
 // Version: 1.0.0
 
-#include "rhi/rortexture.hpp"
-
-#define STBI_NO_FAILURE_STRINGS
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
+#pragma once
 
 namespace rhi
 {
 
-void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::TextureImage &a_texture)
-{
-	int32_t w = 0, h = 0, bpp = 0;
-	auto   *new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
+#if defined(ROR_RENDER_TYPE_VULKAN)
+#	define declare_rhi_render_type(name) \
+		class name##Vulkan;               \
+		using name = name##Vulkan;
+#elif defined(ROR_RENDER_TYPE_METAL)
+#	define declare_rhi_render_type(name) \
+		class name##Metal;                \
+		using name = name##Metal;
+#elif defined(ROR_RENDER_TYPE_DX12)
+#	define declare_rhi_render_type(name) \
+		class name##DirectX12;            \
+		using name = name##DirectX12;
+#elif defined(ROR_RENDER_TYPE_GLES3)
+#	define declare_rhi_render_type(name) \
+		class name##GLES3;                \
+		using name = name##GLES3;
+#endif
 
-	a_texture.push_empty_mip();
-	a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);        // TODO: How do I read this via STB or gltf?
-	a_texture.reset(new_data, static_cast<uint64_t>(w * h * bpp));        // a_texture now owns the new_data pointer returned by stbi
-	a_texture.width(static_cast<uint32_t>(w));
-	a_texture.height(static_cast<uint32_t>(h));
-	a_texture.depth(static_cast<uint32_t>(bpp));
-}
-
-}        // namespace ror
+}        // namespace rhi
