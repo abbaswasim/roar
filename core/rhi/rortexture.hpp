@@ -29,9 +29,13 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
-// This will include api specific header that has the actual Texture implementation
-// Like in this case it will have rhi/vulkan/rortexture.hpp
-#include "rorrhi_platform_includes.hpp"
+#if defined(ROR_RENDER_TYPE_VULKAN)
+#	include "rhi/vulkan/rortexture.hpp"
+#elif defined(ROR_RENDER_TYPE_METAL)
+#	include "rhi/metal/rortexture.hpp"
+#else
+#	error "Unsupported buffer platform"
+#endif
 
 namespace rhi
 {

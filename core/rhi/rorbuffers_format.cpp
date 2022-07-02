@@ -58,7 +58,7 @@ void BuffersFormatConfig::load_specific()
 		buffer_pack.m_buffers.reserve(buffers.size());
 		for (auto &b : buffers)
 		{
-			rhi::Buffer buffer;        // Only valid for static buffers
+			rhi::Buffer<rhi::Static> buffer;        // Only valid for static buffers
 			assert(b.contains("size") && "Each buffer should specifiy a size");
 			ptrdiff_t size = b["size"];
 			size *= this->m_buffers_format.m_unit;

@@ -25,19 +25,29 @@
 
 #pragma once
 
-// This will include api specific header that has the actual Texture implementation
-// Like in this case it will have rhi/vulkan/rortexture.hpp
-#if defined(ROR_RENDER_TYPE_VULKAN)
-#	include "rhi/vulkan/rorbuffer.hpp"
-#elif defined(ROR_RENDER_TYPE_METAL)
-#	include "rhi/metal/rorbuffer.hpp"
-#else
-#	error "Unsupported buffer platform"
-#endif
+#include "rhi/crtp_interfaces/rorbuffer.hpp"
+#include "rhi/rorrhi_macros.hpp"
 
 namespace rhi
 {
+template <typename _type = Static>
+class ROAR_ENGINE_ITEM BufferVulkan : public BufferCrtp<BufferVulkan<_type>, _type>
+{
+  public:
+	FORCE_INLINE               BufferVulkan()                                = default;        //! Default constructor
+	FORCE_INLINE               BufferVulkan(const BufferVulkan &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE               BufferVulkan(BufferVulkan &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE BufferVulkan &operator=(const BufferVulkan &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE BufferVulkan &operator=(BufferVulkan &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~BufferVulkan() noexcept override                   = default;        //! Destructor
 
-}        // namespace ror
+	declare_translation_unit_vtable();
+};
+
+// I am doing this so the rest of the system can use the CRTP implementation directly as "Buffer"
+template <typename _type>
+using Buffer = BufferVulkan<_type>;
+
+}        // namespace rhi
 
 #include "rorbuffer.hh"

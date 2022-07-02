@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2008-2021
+// Copyright (c) 2022
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -25,19 +25,20 @@
 
 #pragma once
 
-// This will include api specific header that has the actual Texture implementation
-// Like in this case it will have rhi/vulkan/rortexture.hpp
+#error "Don't include me directly, just for reference on how to include api specific files"
+
 #if defined(ROR_RENDER_TYPE_VULKAN)
-#	include "rhi/vulkan/rorbuffer.hpp"
+#	include "rhi/vulkan/rorrhisome_header.hpp"
 #elif defined(ROR_RENDER_TYPE_METAL)
-#	include "rhi/metal/rorbuffer.hpp"
-#else
-#	error "Unsupported buffer platform"
+#	include "rhi/metal/rorrhisome_header.hpp"
+#elif defined(ROR_RENDER_TYPE_DX12)
+#	include "rhi/dx12/rorrhisome_header.hpp"
+#elif defined(ROR_RENDER_TYPE_GLES3)
+#	include "rhi/gles3/rorrhisome_header.hpp"
 #endif
 
-namespace rhi
-{
-
-}        // namespace ror
-
-#include "rorbuffer.hh"
+#if defined(ROR_RENDER_TYPE_VULKAN)
+#elif defined(ROR_RENDER_TYPE_METAL)
+#elif defined(ROR_RENDER_TYPE_DX12)
+#elif defined(ROR_RENDER_TYPE_GLES3)
+#endif

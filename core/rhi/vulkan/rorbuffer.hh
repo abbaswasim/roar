@@ -23,21 +23,12 @@
 //
 // Version: 1.0.0
 
-#pragma once
-
-// This will include api specific header that has the actual Texture implementation
-// Like in this case it will have rhi/vulkan/rortexture.hpp
-#if defined(ROR_RENDER_TYPE_VULKAN)
-#	include "rhi/vulkan/rorbuffer.hpp"
-#elif defined(ROR_RENDER_TYPE_METAL)
-#	include "rhi/metal/rorbuffer.hpp"
-#else
-#	error "Unsupported buffer platform"
-#endif
+#include "rhi/vulkan/rorbuffer.hpp"
 
 namespace rhi
 {
+template <typename _type>
+void BufferVulkan<_type>::_temp_virtual()
+{}
 
-}        // namespace ror
-
-#include "rorbuffer.hh"
+}        // namespace rhi
