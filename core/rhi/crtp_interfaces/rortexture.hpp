@@ -60,7 +60,6 @@ template <class _type>
 class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCrtp>
 {
   public:
-	FORCE_INLINE                   TextureImageCrtp()                                    = default;        //! Default constructor
 	FORCE_INLINE                   TextureImageCrtp(const TextureImageCrtp &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE                   TextureImageCrtp(TextureImageCrtp &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE TextureImageCrtp &operator=(const TextureImageCrtp &a_other)            = delete;         //! Copy assignment operator
@@ -96,6 +95,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE void allocate(uint64_t a_size);
 
   protected:
+	FORCE_INLINE TextureImageCrtp() = default;        //! Default constructor
   private:
 	// TextureAPIHandle           m_handle{-1};                                            // Texture id used by the Renderer APIs
 	uint64_t                   m_size{0};                                                    // Size of all mipmaps combined in bytes
@@ -112,7 +112,6 @@ template <class _type>
 class ROAR_ENGINE_ITEM TextureSamplerCrtp : public ror::Crtp<_type, TextureSamplerCrtp>
 {
   public:
-	FORCE_INLINE                     TextureSamplerCrtp()                                      = default;        //! Default constructor
 	FORCE_INLINE                     TextureSamplerCrtp(const TextureSamplerCrtp &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                     TextureSamplerCrtp(TextureSamplerCrtp &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE TextureSamplerCrtp &operator=(const TextureSamplerCrtp &a_other)              = default;        //! Copy assignment operator
@@ -132,6 +131,8 @@ class ROAR_ENGINE_ITEM TextureSamplerCrtp : public ror::Crtp<_type, TextureSampl
 	void                    wrap_t(rhi::TextureAddressMode a_wrap);
 	void                    wrap_u(rhi::TextureAddressMode a_wrap);
 
+  protected:
+	FORCE_INLINE TextureSamplerCrtp() = default;        //! Default constructor
   private:
 	rhi::TextureFilter      m_mag_filter{rhi::TextureFilter::linear};         // Magnification filter
 	rhi::TextureFilter      m_min_filter{rhi::TextureFilter::linear};         // Minification filter
@@ -148,7 +149,6 @@ template <class _type>
 class ROAR_ENGINE_ITEM TextureCrtp : public ror::Crtp<_type, TextureCrtp>
 {
   public:
-	FORCE_INLINE              TextureCrtp()                               = default;        //! Default constructor
 	FORCE_INLINE              TextureCrtp(const TextureCrtp &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE              TextureCrtp(TextureCrtp &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE TextureCrtp &operator=(const TextureCrtp &a_other)       = default;        //! Copy assignment operator
@@ -160,6 +160,8 @@ class ROAR_ENGINE_ITEM TextureCrtp : public ror::Crtp<_type, TextureCrtp>
 	void                      texture_image(rhi::TextureImageHandle a_handle);
 	void                      texture_sampler(rhi::TextureSamplerHandle a_handle);
 
+  protected:
+	FORCE_INLINE TextureCrtp() = default;        //! Default constructor
   private:
 	rhi::TextureImageHandle   m_texture_image{-1};         // TextureImage handle, -1 means invalid handle which is possible
 	rhi::TextureSamplerHandle m_texture_sampler{0};        // TextureSampler handle, 0 means default sampler

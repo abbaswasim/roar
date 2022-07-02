@@ -95,10 +95,10 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	template <typename U = _type, std::enable_if_t<std::is_same<U, Static>::value, bool> = true>
 	uint8_t *request(ptrdiff_t a_bytes);
 
+  protected:
+	BufferCrtp();        //! Default constructor
   private:
-	BufferCrtp();                                                       //! Default constructor
 	FORCE_INLINE BufferCrtp(const BufferCrtp &a_other) = delete;        //! Copy constructor
-	friend _derived;                                                    //! Any type derived from BufferCrtp will have access to constructor
 
 	void _upload();                                                      // TODO: To be implemented in renderer or via CRTP
 	void _partial_upload(ptrdiff_t a_offset, ptrdiff_t a_length);        // TODO: To be implemented in renderer or via CRTP
