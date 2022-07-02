@@ -36,8 +36,4 @@
 #endif
 
 namespace rhi
-{
-
-}        // namespace ror
-
-#include "rorbuffer.hh"
+{}        // namespace ror
