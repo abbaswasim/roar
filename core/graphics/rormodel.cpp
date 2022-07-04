@@ -1484,4 +1484,10 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 	}
 }
 
+void Model::upload()
+{
+	ror::log_critical("Uploading a model");
+
+}
+
 }        // namespace ror

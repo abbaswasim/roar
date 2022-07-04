@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "camera/rorcamera.hpp"
+#include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
@@ -36,7 +37,6 @@
 #include "rhi/rorhandles.hpp"
 #include <array>
 #include <ostream>
-#include <sys/_types/_int32_t.h>
 #include <type_traits>
 #include <vector>
 
@@ -61,13 +61,50 @@ void Scene::update(double64_t a_milli_seconds)
 	(void) a_milli_seconds;
 }
 
-void Scene::load_models()
+void Scene::load_models(ror::JobSystem &a_job_system)
 {
+	auto model_nodes{0u};
 	for (auto &node : this->m_nodes_data)
+		if (node.m_model_path != "")
+			model_nodes++;
+
+	if (model_nodes > 0)
 	{
-		Model model;
-		model.load_from_gltf_file(node.m_model_path);
-		this->m_models.emplace_back(std::move(model));
+		this->m_models.resize(model_nodes);        // NOTE: I am resizing the models vector because I don't want many threads to emplace to it at the same time
+		std::vector<ror::JobHandle<bool>> job_handles;
+		job_handles.reserve(model_nodes * 2);        // Multiplied by 2 because I am creating two jobs, load and upload per model
+
+		auto model_load_job = [this](SceneNodeData & node, size_t a_index) -> auto
+		{
+			Model &model = this->m_models[a_index];
+			model.load_from_gltf_file(node.m_model_path);
+			return true;
+		};
+
+		auto model_upload_job = [this](size_t a_index) -> auto
+		{
+			Model &model = this->m_models[a_index];
+			model.upload();
+			return true;
+		};
+
+		auto model_index{0u};
+		for (auto &node : this->m_nodes_data)
+		{
+			if (node.m_model_path != "")
+			{
+				auto load_job_handle   = a_job_system.push_job(model_load_job, node, model_index);
+				auto upload_job_handle = a_job_system.push_job(model_upload_job, load_job_handle.job(), model_index);
+				job_handles.emplace_back(std::move(load_job_handle));
+				job_handles.emplace_back(std::move(upload_job_handle));
+				model_index++;
+			}
+		}
+
+		// Wait for all jobs to finish
+		for (auto &jh : job_handles)
+			if (!jh.data())
+				ror::log_error("Can't load models specified in the scene.");
 	}
 }
 

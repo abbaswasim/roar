@@ -31,6 +31,18 @@
 		 "bvh":true
 	  },
 	  {
+		 "name":"boy",
+		 "path":"astro_boy_gltf/astro_boy.gltf"
+	  },
+	  {
+		 "name":"fox",
+		 "path":"Fox/Fox.gltf"
+	  },
+	  {
+		 "name":"Brainstem",
+		 "path":"brainstem/BrainStem.gltf"
+	  },
+	  {
 		 "name":"sun",
 		 "translation":[
 			0.0,
