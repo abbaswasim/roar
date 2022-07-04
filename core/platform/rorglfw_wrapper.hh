@@ -81,7 +81,7 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 }
 
 template <class _type>
-GLFWwindowWrapper<_type>::GLFWwindowWrapper(void *a_pointer)
+GLFWwindowWrapper<_type>::GLFWwindowWrapper(_type *a_pointer)
 {
 	// TODO: Read size from settings
 	this->m_window = glfw_create_window<_type>("Roar Editor...", 1024, 768);
