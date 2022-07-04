@@ -101,6 +101,8 @@ void Scene::load_models(ror::JobSystem &a_job_system)
 			}
 		}
 
+		assert(model_index == model_nodes && "Models count vs how many are loaded doesn't match");
+
 		// Wait for all jobs to finish
 		for (auto &jh : job_handles)
 			if (!jh.data())
