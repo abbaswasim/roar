@@ -32,6 +32,7 @@
 #include "project_setup.hpp"
 #include "resources/rorprojectroot.hpp"
 #include "roreditor.hpp"
+#include "settings/rorsettings.hpp"
 #include <any>
 
 template <typename _type>
@@ -55,11 +56,14 @@ int main(int argc, char *argv[])
 	if (!cli.execute())
 		return 1;
 
+	// This is required before anything else so we load settings.json, buffers_format.json etc from the right path
 	ror::setup_project_root(editor_default_project, "editor");
 
-	ror::Scene       scene{editor_default_scene};
-	ror::EventSystem event_system;
-	ror::UnixApp     app1(event_system, scene);
+	// Command line argument has preference over settings in this case
+	if (ror::settings().m_default_scene != editor_default_scene)
+		ror::settings().m_default_scene = editor_default_scene;
+
+	ror::UnixApp app1{};
 
 	try
 	{
@@ -70,7 +74,6 @@ int main(int argc, char *argv[])
 		std::cerr << e.what() << std::endl;
 		return EXIT_FAILURE;
 	}
-
 
 	return 0;
 }

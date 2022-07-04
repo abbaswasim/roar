@@ -128,6 +128,7 @@ set(ROAR_SOURCES
 if (${ROR_RENDER_TYPE_VULKAN})
   list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/vulkan/rortexture.hpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rortexture.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorvulkan_common.cpp)
 elseif (${ROR_RENDER_TYPE_METAL})
   list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.hpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.cpp)
@@ -195,6 +196,14 @@ set(ROAR_REQUIRED_PUBLIC_LIBRARIES
   glfw
   nlohmann_json
   xxhash)
+
+if (${ROR_RENDER_TYPE_VULKAN})
+  find_package(Vulkan) # Has to be Vulkan not vulkan (CMAKE seems to case sensitive for this on Linux)
+  list(APPEND ROAR_REQUIRED_PUBLIC_LIBRARIES vulkan_headers Vulkan::Vulkan)
+elseif (${ROR_RENDER_TYPE_METAL})
+elseif (${ROR_RENDER_TYPE_DX12})
+elseif (${ROR_RENDER_TYPE_GLES3})
+endif()
 
 target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PLATFORM_LIBRARIES})
 target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES})

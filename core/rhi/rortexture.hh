@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "configuration/rorsettings_configuration.hpp"
+#include "settings/rorsettings.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
 #include "rhi/rortexture.hpp"
@@ -216,7 +217,7 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 
 				if (ror::get_build() == ror::BuildType::build_debug)
 				{
-					if (ror::get_settings().get<bool>("visualise_mipmaps"))
+					if (ror::settings().m_visualise_mipmaps)
 					{
 						const std::vector<ror::Vector3f> colors{{1.0f, 0.0f, 0.0f},
 																{0.0f, 1.0f, 0.0f},

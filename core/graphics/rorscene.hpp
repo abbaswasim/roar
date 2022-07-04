@@ -149,6 +149,8 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	void render(const RenderDevice *a_rendering_device);
 	void update(double64_t a_milli_seconds);
+	void load_models();
+	void upload_models();
 	void unload();
 	void load_specific();
 

@@ -130,6 +130,12 @@ FORCE_INLINE std::vector<typename TextureImageCrtp<_type>::Mipmap> &TextureImage
 }
 
 template<class _type>
+FORCE_INLINE uint64_t TextureImageCrtp<_type>::size() const noexcept
+{
+	return this->m_size;
+}
+
+template<class _type>
 // Now TextureImageCrtp own the a_data pointer
 FORCE_INLINE void TextureImageCrtp<_type>::reset(uint8_t *a_data, uint64_t a_size) noexcept
 {

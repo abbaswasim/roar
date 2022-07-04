@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "configuration/rorsettings_configuration.hpp"
+#include <vector>
 
 namespace ror
 {
@@ -42,6 +43,21 @@ generic_config get_generic_config_value(json::iterator a_it)
 		c = static_cast<bool>(a_it.value());
 	if (a_it->is_number_float())
 		c = static_cast<float32_t>(a_it.value());
+	if (a_it->is_array())
+	{
+		if (a_it->begin()->is_number())
+		{
+			c = static_cast<std::vector<uint32_t>>(a_it.value());
+		}
+		if (a_it->begin()->is_string())
+		{
+			c = static_cast<std::vector<std::string>>(a_it.value());
+		}
+		if (a_it->begin()->is_number_float())
+		{
+			c = static_cast<std::vector<float32_t>>(a_it.value());
+		}
+	}
 
 	return c;
 }

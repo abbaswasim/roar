@@ -37,4 +37,4 @@ define_translation_unit_vtable(TextureSamplerVulkan)
 define_translation_unit_vtable(TextureVulkan)
 {}
 
-}        // namespace ror
+}        // namespace rhi

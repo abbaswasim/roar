@@ -34,10 +34,14 @@ namespace ror
 
 #define USE_GLFW
 
+/**
+ * An implementation of Application
+ * By default it uses GLFW on MacOs, Linux and Windows
+ */
 class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 {
   public:
-	FORCE_INLINE          UnixApp()                             = delete;         //! Default constructor
+	// FORCE_INLINE          UnixApp()                             = delete;         //! Default constructor
 	FORCE_INLINE          UnixApp(const UnixApp &a_other)       = default;        //! Copy constructor
 	FORCE_INLINE          UnixApp(UnixApp &&a_other) noexcept   = default;        //! Move constructor
 	FORCE_INLINE UnixApp &operator=(const UnixApp &a_other)     = delete;         //! Copy assignment operator
@@ -46,8 +50,8 @@ class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 
 	declare_translation_unit_vtable();
 
-	FORCE_INLINE UnixApp(EventSystem &a_event_system, Scene &a_scene) :
-		Application(a_event_system, a_scene), m_glfw_window(this)
+	FORCE_INLINE UnixApp() :
+		m_glfw_window(this)
 	{}
 
 	FORCE_INLINE void loop()

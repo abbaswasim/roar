@@ -288,6 +288,13 @@ enum class TextureAddressMode
 	repeat
 };
 
+enum class TextureBorder
+{
+	transparent,
+	opaque,
+	white
+};
+
 enum class BlendMode
 {
 	opaque,

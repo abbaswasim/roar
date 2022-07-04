@@ -31,11 +31,12 @@
 #include <string>
 #include <unordered_map>
 #include <variant>
+#include <vector>
 
 namespace ror
 {
 
-using generic_config = std::variant<bool, uint32_t, std::string, float32_t>;
+using generic_config = std::variant<bool, uint32_t, std::string, float32_t, std::vector<uint32_t>, std::vector<float32_t>, std::vector<std::string>>;
 
 class ROAR_ENGINE_ITEM SettingsConfig : public Configuration<SettingsConfig>
 {
@@ -43,9 +44,9 @@ class ROAR_ENGINE_ITEM SettingsConfig : public Configuration<SettingsConfig>
 	FORCE_INLINE                 SettingsConfig()                                  = default;        //! Default constructor
 	FORCE_INLINE                 SettingsConfig(const SettingsConfig &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                 SettingsConfig(SettingsConfig &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE SettingsConfig &operator=(const SettingsConfig &a_other) = default;                 //! Copy assignment operator
-	FORCE_INLINE SettingsConfig &operator=(SettingsConfig &&a_other) noexcept = default;             //! Move assignment operator
-	FORCE_INLINE virtual ~SettingsConfig() noexcept override                  = default;             //! Destructor
+	FORCE_INLINE SettingsConfig &operator=(const SettingsConfig &a_other)          = default;        //! Copy assignment operator
+	FORCE_INLINE SettingsConfig &operator=(SettingsConfig &&a_other) noexcept      = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~SettingsConfig() noexcept override                       = default;        //! Destructor
 
 	declare_translation_unit_vtable();
 

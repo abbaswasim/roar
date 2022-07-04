@@ -180,7 +180,7 @@ FORCE_INLINE BuffersPack &get_buffers_pack()
 {
 	// Everything in bfp constructor are r-values because I don't want to keep a copy of BuffersFormat around its a big store of Buffers
 	// The following loads the format via BuffersFormatConfig's one argument ctor from buffers_format setting and then moves it into bfp
-	static BuffersPack bfp{ror::BuffersFormatConfig{ror::get_settings().get<std::string>("buffers_format")}.move_buffers_format()};        // The buffers_format config file name is provided in settings.json
+	static BuffersPack bfp{ror::BuffersFormatConfig{ror::settings().m_buffers_format}.move_buffers_format()};        // The buffers_format config file name is provided in settings.json
 	return bfp;
 }
 

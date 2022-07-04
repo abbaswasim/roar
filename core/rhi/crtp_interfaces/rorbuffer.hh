@@ -66,7 +66,7 @@ ptrdiff_t BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 
 	if (this->m_filled_size + a_bytes >= this->m_size_in_bytes)
 	{
-		const size_t buffer_increment = ror::get_settings().get<uint32_t>("buffer_increment");
+		const size_t buffer_increment = ror::settings().m_buffer_increment;
 		assert(buffer_increment > 0 && "Setting doesn't contain valid buffer_increment");
 		this->m_data.resize(this->m_data.size() + buffer_increment);
 		this->m_size_in_bytes = ror::static_cast_safe<ptrdiff_t>(this->m_data.size());

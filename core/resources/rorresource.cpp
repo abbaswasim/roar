@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "configuration/rorsettings_configuration.hpp"
+#include "settings/rorsettings.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rorrandom.hpp"
@@ -538,7 +539,7 @@ std::filesystem::path get_cache_path()
 {
 	auto &project_root_path = get_project_root().path();        // Calling get_project_root without any arguments relies on clients who must call to initalized project_root
 
-	return project_root_path / get_settings().get<std::string>("roar_cache");
+	return project_root_path / ror::settings().m_roar_cache;
 }
 
 }        // namespace ror

@@ -31,6 +31,7 @@
 #include "graphics/rorscene.hpp"
 #include "rhi/rorbuffers_format.hpp"
 #include "rhi/rorbuffers_pack.hpp"
+#include "settings/rorsettings.hpp"
 #include <memory>
 
 class GLFWwindow;
@@ -53,8 +54,9 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	FORCE_INLINE EventSystem &event_system()                             {     return this->m_event_system;                      }
 	// clang-format on
 
-	explicit FORCE_INLINE Application(EventSystem &a_event_system, Scene &a_scene) :
-		m_event_system(a_event_system), m_scene(a_scene), m_buffer_pack(&rhi::get_buffers_pack())
+	FORCE_INLINE Application() :
+		m_scene(ror::settings().m_default_scene),
+		m_buffer_pack(&rhi::get_buffers_pack())
 	{}
 
 	// This is called from underlying loop
@@ -72,8 +74,6 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 
   protected:
   private:
-	FORCE_INLINE Application() = default;        //! Default constructor
-
 	FORCE_INLINE void init()
 	{
 		// Should only be called once per execution, TODO: check if this could be used in MT environment
@@ -91,8 +91,8 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 		this->m_buffer_pack->free();
 	}
 
-	EventSystem      &m_event_system;        //! Non-owning pointer to an event system that the application can use,
-	Scene            &m_scene;               //! A reference to the scene we want to render
+	EventSystem       m_event_system;        //! An event system that the application can use,
+	Scene             m_scene;               //! A reference to the scene we want to render
 	rhi::BuffersPack *m_buffer_pack;         //! A non-owning alias reference to the global buffers pack
 };
 

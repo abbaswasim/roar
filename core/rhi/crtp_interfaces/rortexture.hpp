@@ -83,6 +83,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE TextureTarget    target() const noexcept;
 	FORCE_INLINE uint8_t         *data() const noexcept;
 	FORCE_INLINE std::vector<Mipmap> &mips() noexcept;
+	FORCE_INLINE uint64_t             size() const noexcept;
 
 	FORCE_INLINE void handle(rhi::TextureHandle) noexcept;
 	FORCE_INLINE void width(uint32_t) noexcept;

@@ -54,6 +54,12 @@ add_library(stb INTERFACE)
 target_sources(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h)
 target_include_directories(stb INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 
+# Add vulkan
+add_library(vulkan_headers INTERFACE)
+set(VULKAN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vulkan/include)
+target_sources(vulkan_headers INTERFACE ${VULKAN_INCLUDE_DIR}/vulkan/vulkan.h)
+target_include_directories(vulkan_headers INTERFACE ${VULKAN_INCLUDE_DIR})
+
 # Add basis
 set(BASIS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/basis_universal)
 set(BASIS_SOURCE_FILES

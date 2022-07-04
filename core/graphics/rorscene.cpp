@@ -61,6 +61,16 @@ void Scene::update(double64_t a_milli_seconds)
 	(void) a_milli_seconds;
 }
 
+void Scene::load_models()
+{
+	for (auto &node : this->m_nodes_data)
+	{
+		Model model;
+		model.load_from_gltf_file(node.m_model_path);
+		this->m_models.emplace_back(std::move(model));
+	}
+}
+
 void Scene::read_nodes()
 {
 	assert(this->m_json_file.contains("nodes") && "Provided scene file is not a roar scene.");
@@ -96,12 +106,7 @@ void Scene::read_nodes()
 		}
 
 		if (node.contains("path"))
-		{
 			nod_data.m_model_path = node["path"];
-			Model model;
-			model.load_from_gltf_file(nod_data.m_model_path);
-			this->m_models.emplace_back(std::move(model));
-		}
 
 		if (node.contains("shader"))
 			nod_data.m_program_id = node["shader"];
