@@ -34,3 +34,6 @@
 [submodule "thirdparty/glfw"]
 	path = thirdparty/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "thirdparty/vulkan"]
+	path = thirdparty/vulkan
+	url = https://github.com/KhronosGroup/Vulkan-Headers
