@@ -26,6 +26,7 @@
 #pragma once
 
 #include "event_system/rorevent_system.hpp"
+#include "foundation/rormacros.hpp"
 #include "profiling/rorlog.hpp"
 
 #define GLFW_INCLUDE_NONE
@@ -86,7 +87,8 @@ class ROAR_ENGINE_ITEM GLFWwindowWrapper final
 	FORCE_INLINE GLFWwindowWrapper(_type *a_pointer);
 	FORCE_INLINE ~GLFWwindowWrapper() noexcept;
 
-	FORCE_INLINE void loop();
+	FORCE_INLINE void        loop();
+	FORCE_INLINE GLFWwindow *window();
 
   protected:
   private:

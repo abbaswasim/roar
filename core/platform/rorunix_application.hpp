@@ -61,6 +61,13 @@ class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 #endif
 	}
 
+#if defined USE_GLFW
+	FORCE_INLINE GLFWwindow *window()
+	{
+		return this->m_glfw_window.window();
+	}
+#endif
+
   protected:
   private:
 #if defined USE_GLFW

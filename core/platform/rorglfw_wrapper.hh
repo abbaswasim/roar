@@ -29,6 +29,7 @@
 #include "event_system/rorevent_system.hpp"
 #include "math/rorvector2.hpp"
 #include "platform/rorglfw_wrapper.hpp"
+#include "settings/rorsettings.hpp"
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -83,8 +84,8 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 template <class _type>
 GLFWwindowWrapper<_type>::GLFWwindowWrapper(_type *a_pointer)
 {
-	// TODO: Read size from settings
-	this->m_window = glfw_create_window<_type>("Roar Editor...", 1024, 768);
+	auto &settings = ror::settings();
+	this->m_window = glfw_create_window<_type>(settings.m_roar_title, static_cast<int32_t>(settings.m_window_dimensions.z), static_cast<int32_t>(settings.m_window_dimensions.w));
 	glfwSetWindowUserPointer(this->m_window, a_pointer);
 	glfw_register_for_global_events<_type>(this->m_window);
 }
@@ -106,7 +107,7 @@ FORCE_INLINE _type *glfw_user_pointer(GLFWwindow *a_window)
 }
 
 template <class _type>
-void GLFWwindowWrapper<_type>::loop()
+FORCE_INLINE void GLFWwindowWrapper<_type>::loop()
 {
 	auto *app = glfw_user_pointer<_type>(this->m_window);
 	while (!glfwWindowShouldClose(this->m_window))
@@ -114,6 +115,12 @@ void GLFWwindowWrapper<_type>::loop()
 		glfwPollEvents();
 		app->update();
 	}
+}
+
+template <class _type>
+FORCE_INLINE GLFWwindow *GLFWwindowWrapper<_type>::window()
+{
+	return this->m_window;
 }
 
 template <class _type>

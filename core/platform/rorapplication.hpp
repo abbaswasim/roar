@@ -32,6 +32,7 @@
 #include "graphics/rorscene.hpp"
 #include "rhi/rorbuffers_format.hpp"
 #include "rhi/rorbuffers_pack.hpp"
+#include "rhi/rorcontext.hpp"
 #include "settings/rorsettings.hpp"
 #include <memory>
 
@@ -52,19 +53,16 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	// clang-format off
 	FORCE_INLINE void         loop()                                     {     this->underlying().loop();                        }
 	FORCE_INLINE void         resize(int a_width, int a_height)          {     this->underlying().resize(a_width, a_height);     }
-	FORCE_INLINE EventSystem &event_system()                             {     return this->m_event_system;                      }
+	FORCE_INLINE std::any     window()                                   {     return this->underlying().window();               }
+	FORCE_INLINE EventSystem &event_system()                             {     return this->m_context.event_system();            }
 	// clang-format on
-
-	FORCE_INLINE Application() :
-		m_job_system(ror::get_job_system()),
-		m_scene(ror::settings().m_default_scene),
-		m_buffer_pack(&rhi::get_buffers_pack())
-	{}
 
 	// This is called from underlying loop
 	FORCE_INLINE void update()
 	{
-		(void) this->m_scene;
+		this->m_context.pre_tick();
+		this->m_context.tick();
+		this->m_context.post_tick();
 	}
 
 	FORCE_INLINE void run()
@@ -75,32 +73,24 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	}
 
   protected:
+	// This is protected so that no one can create pointers to base Application
+	FORCE_INLINE Application() :
+		m_context(this->window())
+	{}
+
   private:
 	FORCE_INLINE void init()
 	{
-		// Should only be called once per execution, TODO: check if this could be used in MT environment
-		basist::basisu_transcoder_init();
-
-		// Load all the models now in a deferred way
-		this->m_scene.load_models(this->m_job_system);
+		this->m_context.init();
+		this->m_context.post_init();
 	}
-
-	FORCE_INLINE void animate()
-	{}
-
-	FORCE_INLINE void render()
-	{}
 
 	FORCE_INLINE void shutdown()
 	{
-		this->m_buffer_pack->free();
-		this->m_job_system.stop();
+		this->m_context.shutdown();
 	}
 
-	ror::JobSystem   &m_job_system;          //! Job system alias that will be used by the whole application
-	EventSystem       m_event_system;        //! An event system that the application can use,
-	Scene             m_scene;               //! A reference to the scene we want to render
-	rhi::BuffersPack *m_buffer_pack;         //! A non-owning alias reference to the global buffers pack
+	rhi::Context m_context;
 };
 
 }        // namespace ror
