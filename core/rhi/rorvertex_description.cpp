@@ -136,9 +136,9 @@ void VertexDescriptor::create_mapping()
 		assert(found != this->m_layouts.end() && "No vertex layout available for this attribute!, invalid layout attributes combination provided");
 
 		this->m_mapping.emplace(attribute.semantics(),
-								std::make_pair(
-									std::ref(attribute),
-									std::ref(*found)));
+		                        std::make_pair(
+		                            std::ref(attribute),
+		                            std::ref(*found)));
 	}
 }
 
@@ -182,8 +182,8 @@ void VertexDescriptor::create_attributes_and_layouts(const tuple_type_vector &a_
 		uint32_t vert_format_to_bytes = vertex_format_to_bytes(format);
 
 		if (semantic == rhi::BufferSemantic::custom &&
-			(format == rhi::VertexFormat::uint8_custom || format == rhi::VertexFormat::uint16_custom || format == rhi::VertexFormat::float32_custom) &&
-			(rate >> 16))
+		    (format == rhi::VertexFormat::uint8_custom || format == rhi::VertexFormat::uint16_custom || format == rhi::VertexFormat::float32_custom) &&
+		    (rate >> 16))
 			vert_format_to_bytes *= (rate >> 16);        // Use the format multiplier from upper 16bits of rate
 
 		auto [buffer, success] = strides.insert({buffer_index, vert_format_to_bytes});

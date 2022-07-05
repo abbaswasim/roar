@@ -39,9 +39,9 @@ class ROAR_ENGINE_ITEM BufferView
 	FORCE_INLINE             BufferView()                              = default;        //! Constructor
 	FORCE_INLINE             BufferView(const BufferView &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE             BufferView(BufferView &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE BufferView &operator=(const BufferView &a_other) = default;             //! Copy assignment operator
-	FORCE_INLINE BufferView &operator=(BufferView &&a_other) noexcept = default;         //! Move assignment operator
-	FORCE_INLINE ~BufferView() noexcept                               = default;         //! Destructor
+	FORCE_INLINE BufferView &operator=(const BufferView &a_other)      = default;        //! Copy assignment operator
+	FORCE_INLINE BufferView &operator=(BufferView &&a_other) noexcept  = default;        //! Move assignment operator
+	FORCE_INLINE ~BufferView() noexcept                                = default;        //! Destructor
 
 	FORCE_INLINE uint32_t       index() noexcept;
 	FORCE_INLINE decltype(auto) element(size_t a_index) noexcept;

@@ -48,8 +48,8 @@ FORCE_INLINE auto angle(const _type &a_first, const _type &a_second) -> scalar_p
 	using precision = scalar_precision<_type>;
 
 	precision angl = std::acos(static_cast<precision>(std::clamp(static_cast<precision>(a_first.dot_product(a_second) / (a_first.length() * a_second.length())),
-																 static_cast<precision>(-1),
-																 static_cast<precision>(1))));
+	                                                             static_cast<precision>(-1),
+	                                                             static_cast<precision>(1))));
 	if (std::isnan(angl))
 		return static_cast<precision>(0);
 
@@ -139,9 +139,9 @@ FORCE_INLINE _type vector_clamp(const _type &a_vector, const _type &a_first, con
 	if constexpr (std::is_same<_type, Vector4<typename _type::value_type>>::value)
 	{
 		assert(a_first.x <= a_second.x &&
-			   a_first.y <= a_second.y &&
-			   a_first.z <= a_second.z &&
-			   a_first.w <= a_second.w && "vector_clamp requires values less to high, use vector_clamp_safe instead");
+		       a_first.y <= a_second.y &&
+		       a_first.z <= a_second.z &&
+		       a_first.w <= a_second.w && "vector_clamp requires values less to high, use vector_clamp_safe instead");
 
 		return _type(std::clamp(a_vector.x, a_first.x, a_second.x), std::clamp(a_vector.y, a_first.y, a_second.y), std::clamp(a_vector.z, a_first.z, a_second.z), std::clamp(a_vector.w, a_first.w, a_second.w));
 	}
@@ -149,15 +149,15 @@ FORCE_INLINE _type vector_clamp(const _type &a_vector, const _type &a_first, con
 	if constexpr (std::is_same<_type, Vector3<typename _type::value_type>>::value)
 	{
 		assert(a_first.x <= a_second.x &&
-			   a_first.y <= a_second.y &&
-			   a_first.z <= a_second.z && "vector_clamp requires values less to high, use vector_clamp_safe instead");
+		       a_first.y <= a_second.y &&
+		       a_first.z <= a_second.z && "vector_clamp requires values less to high, use vector_clamp_safe instead");
 		return _type(std::clamp(a_vector.x, a_first.x, a_second.x), std::clamp(a_vector.y, a_first.y, a_second.y), std::clamp(a_vector.z, a_first.z, a_second.z));
 	}
 
 	if constexpr (std::is_same<_type, Vector2<typename _type::value_type>>::value)
 	{
 		assert(a_first.x <= a_second.x &&
-			   a_first.y <= a_second.y && "vector_clamp requires values less to high, use vector_clamp_safe instead");
+		       a_first.y <= a_second.y && "vector_clamp requires values less to high, use vector_clamp_safe instead");
 		return _type(std::clamp(a_vector.x, a_first.x, a_second.x), std::clamp(a_vector.y, a_first.y, a_second.y));
 	}
 
@@ -170,22 +170,22 @@ FORCE_INLINE _type vector_clamp_safe(const _type &a_vector, const _type &a_first
 	if constexpr (std::is_same<_type, Vector4<typename _type::value_type>>::value)
 	{
 		return _type((a_first.x <= a_second.x) ? std::clamp(a_vector.x, a_first.x, a_second.x) : std::clamp(a_vector.x, a_second.x, a_first.x),
-					 (a_first.y <= a_second.y) ? std::clamp(a_vector.y, a_first.y, a_second.y) : std::clamp(a_vector.y, a_second.y, a_first.y),
-					 (a_first.z <= a_second.z) ? std::clamp(a_vector.z, a_first.z, a_second.z) : std::clamp(a_vector.z, a_second.z, a_first.z),
-					 (a_first.w <= a_second.w) ? std::clamp(a_vector.w, a_first.w, a_second.w) : std::clamp(a_vector.w, a_second.w, a_first.w));
+		             (a_first.y <= a_second.y) ? std::clamp(a_vector.y, a_first.y, a_second.y) : std::clamp(a_vector.y, a_second.y, a_first.y),
+		             (a_first.z <= a_second.z) ? std::clamp(a_vector.z, a_first.z, a_second.z) : std::clamp(a_vector.z, a_second.z, a_first.z),
+		             (a_first.w <= a_second.w) ? std::clamp(a_vector.w, a_first.w, a_second.w) : std::clamp(a_vector.w, a_second.w, a_first.w));
 	}
 
 	if constexpr (std::is_same<_type, Vector3<typename _type::value_type>>::value)
 	{
 		return _type((a_first.x <= a_second.x) ? std::clamp(a_vector.x, a_first.x, a_second.x) : std::clamp(a_vector.x, a_second.x, a_first.x),
-					 (a_first.y <= a_second.y) ? std::clamp(a_vector.y, a_first.y, a_second.y) : std::clamp(a_vector.y, a_second.y, a_first.y),
-					 (a_first.z <= a_second.z) ? std::clamp(a_vector.z, a_first.z, a_second.z) : std::clamp(a_vector.z, a_second.z, a_first.z));
+		             (a_first.y <= a_second.y) ? std::clamp(a_vector.y, a_first.y, a_second.y) : std::clamp(a_vector.y, a_second.y, a_first.y),
+		             (a_first.z <= a_second.z) ? std::clamp(a_vector.z, a_first.z, a_second.z) : std::clamp(a_vector.z, a_second.z, a_first.z));
 	}
 
 	if constexpr (std::is_same<_type, Vector2<typename _type::value_type>>::value)
 	{
 		return _type((a_first.x <= a_second.x) ? std::clamp(a_vector.x, a_first.x, a_second.x) : std::clamp(a_vector.x, a_second.x, a_first.x),
-					 (a_first.y <= a_second.y) ? std::clamp(a_vector.y, a_first.y, a_second.y) : std::clamp(a_vector.y, a_second.y, a_first.y));
+		             (a_first.y <= a_second.y) ? std::clamp(a_vector.y, a_first.y, a_second.y) : std::clamp(a_vector.y, a_second.y, a_first.y));
 	}
 
 	return _type();
@@ -197,22 +197,22 @@ FORCE_INLINE _type vector_select(const vector_type<_type, uint32_t> &a_vector, c
 	if constexpr (std::is_same<_type, Vector4<typename _type::value_type>>::value)
 	{
 		return _type((a_vector.x != 0 ? a_first.x : a_second.x),
-					 (a_vector.y != 0 ? a_first.y : a_second.y),
-					 (a_vector.z != 0 ? a_first.z : a_second.z),
-					 (a_vector.w != 0 ? a_first.w : a_second.w));
+		             (a_vector.y != 0 ? a_first.y : a_second.y),
+		             (a_vector.z != 0 ? a_first.z : a_second.z),
+		             (a_vector.w != 0 ? a_first.w : a_second.w));
 	}
 
 	if constexpr (std::is_same<_type, Vector3<typename _type::value_type>>::value)
 	{
 		return _type((a_vector.x != 0 ? a_first.x : a_second.x),
-					 (a_vector.y != 0 ? a_first.y : a_second.y),
-					 (a_vector.z != 0 ? a_first.z : a_second.z));
+		             (a_vector.y != 0 ? a_first.y : a_second.y),
+		             (a_vector.z != 0 ? a_first.z : a_second.z));
 	}
 
 	if constexpr (std::is_same<_type, Vector2<typename _type::value_type>>::value)
 	{
 		return _type((a_vector.x != 0 ? a_first.x : a_second.x),
-					 (a_vector.y != 0 ? a_first.y : a_second.y));
+		             (a_vector.y != 0 ? a_first.y : a_second.y));
 	}
 }
 

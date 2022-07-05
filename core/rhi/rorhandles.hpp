@@ -47,7 +47,7 @@ class ROAR_ENGINE_ITEM RoarHandle final
 	FORCE_INLINE ~RoarHandle() noexcept                                = default;        //! Destructor
 
 	FORCE_INLINE explicit RoarHandle(_type a_handle) :
-		m_handle(a_handle)
+	    m_handle(a_handle)
 	{}
 
 	bool operator==(const RoarHandle &a_other) const

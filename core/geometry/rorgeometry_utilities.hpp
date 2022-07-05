@@ -82,8 +82,8 @@ FORCE_INLINE std::vector<_type> make_box_triangles(float32_t a_size);
  */
 template <class _type, class _index_type = uint32_t>
 FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a_origin,
-											 std::vector<_type> &                    a_vertex_buffer,
-											 std::vector<ror::Vector3<_index_type>> &a_index_buffer);
+                                             std::vector<_type>                     &a_vertex_buffer,
+                                             std::vector<ror::Vector3<_index_type>> &a_index_buffer);
 
 /**
  * @brief      Creates a Box with unit size 3 or 2 dimensions at the origin
@@ -96,7 +96,7 @@ FORCE_INLINE void make_box_triangles_indexed(std::vector<_type> &a_vertex_buffer
 // TODO: Provide option for inward or outward normals
 
 /**
-	Same set of functions for creating a box but this time return only lines
+    Same set of functions for creating a box but this time return only lines
  */
 template <class _type>
 FORCE_INLINE void make_box_lines(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum);
@@ -110,8 +110,8 @@ template <class _type>
 FORCE_INLINE std::vector<_type> make_box_lines(float32_t a_size);
 template <class _type, class _index_type = uint32_t>
 FORCE_INLINE void make_box_lines_indexed(const _type &a_size, const _type &a_origin,
-										 std::vector<_type> &                    a_vertex_buffer,
-										 std::vector<ror::Vector2<_index_type>> &a_index_buffer);
+                                         std::vector<_type>                     &a_vertex_buffer,
+                                         std::vector<ror::Vector2<_index_type>> &a_index_buffer);
 template <class _type, class _index_type = uint32_t>
 FORCE_INLINE void make_box_lines_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector2<_index_type>> &a_index_buffer);
 
@@ -122,9 +122,9 @@ FORCE_INLINE void make_box_lines_indexed(std::vector<_type> &a_vertex_buffer, st
  * @param      a_index_buffer A 3D index buffer with given type for all the indices
  */
 template <class _type = float32_t, class _index_type = uint32_t>
-void make_sphere_triangles(std::vector<ror::Vector3<_type>> &      a_vertex_buffer,
-						   std::vector<ror::Vector3<_index_type>> &a_index_buffer,
-						   uint32_t                                a_samples = 50);
+void make_sphere_triangles(std::vector<ror::Vector3<_type>>       &a_vertex_buffer,
+                           std::vector<ror::Vector3<_index_type>> &a_index_buffer,
+                           uint32_t                                a_samples = 50);
 
 /**
  * @brief      Creates a sphere with samples number of points in all 3 or 2 dimensions at origin
@@ -143,8 +143,8 @@ FORCE_INLINE void make_sphere_triangles(uint32_t a_samples, const _type &a_origi
  */
 template <class _type>
 FORCE_INLINE void add_normals(const std::vector<_type> &a_vertex_buffer,
-							  uint32_t a_size, std::vector<_type> &a_output,
-							  const std::vector<_type> *a_index_buffer = nullptr);
+                              uint32_t a_size, std::vector<_type> &a_output,
+                              const std::vector<_type> *a_index_buffer = nullptr);
 
 /**
  * @brief      Creates colors for triangles
@@ -155,8 +155,8 @@ FORCE_INLINE void add_normals(const std::vector<_type> &a_vertex_buffer,
  */
 template <class _type>
 FORCE_INLINE void add_colors(const std::vector<_type> &a_vertex_buffer,
-							 uint32_t a_size, std::vector<_type> &a_output,
-							 const std::vector<_type> *a_index_buffer = nullptr);
+                             uint32_t a_size, std::vector<_type> &a_output,
+                             const std::vector<_type> *a_index_buffer = nullptr);
 
 }        // namespace ror
 

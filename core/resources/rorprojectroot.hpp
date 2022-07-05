@@ -35,11 +35,11 @@ namespace ror
 class ROAR_ENGINE_ITEM ProjectRoot final
 {
   public:
-	FORCE_INLINE ProjectRoot(const ProjectRoot &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE ProjectRoot(ProjectRoot &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE ProjectRoot &operator=(const ProjectRoot &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE ProjectRoot &operator=(ProjectRoot &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~ProjectRoot() noexcept                                = default;        //! Destructor
+	FORCE_INLINE              ProjectRoot(const ProjectRoot &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE              ProjectRoot(ProjectRoot &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE ProjectRoot &operator=(const ProjectRoot &a_other)       = default;        //! Copy assignment operator
+	FORCE_INLINE ProjectRoot &operator=(ProjectRoot &&a_other) noexcept   = default;        //! Move assignment operator
+	FORCE_INLINE ~ProjectRoot() noexcept                                  = default;        //! Destructor
 
 	/**
 	 * Creates a project with the provided root dir
@@ -52,22 +52,22 @@ class ROAR_ENGINE_ITEM ProjectRoot final
 
   protected:
   private:
-	FORCE_INLINE ProjectRoot()     = default;                   //! Default constructor
+	FORCE_INLINE ProjectRoot() = default;        //! Default constructor
 
-	std::filesystem::path m_project_root{};                    //! Root folder copy
-	hash_64_t             m_project_root_hash{};               //! Root folder hash used for seeding ror_hash
+	std::filesystem::path m_project_root{};             //! Root folder copy
+	hash_64_t             m_project_root_hash{};        //! Root folder hash used for seeding ror_hash
 };
 
 /**
-* One shot project root creation utility, can be used later to query global root project multiple times
-* Calling get_project_root with a different path will have no effect
-* If not called with a valid path the first time, ProjectRoot constructor will report error,
-* any preceding calls can be with empty path
-*/
+ * One shot project root creation utility, can be used later to query global root project multiple times
+ * Calling get_project_root with a different path will have no effect
+ * If not called with a valid path the first time, ProjectRoot constructor will report error,
+ * any preceding calls can be with empty path
+ */
 const ProjectRoot &get_project_root(std::filesystem::path a_path = "");
 
 /**
-* Default project root creation utility
-*/
+ * Default project root creation utility
+ */
 const ProjectRoot &get_default_project_root();
 }        // namespace ror

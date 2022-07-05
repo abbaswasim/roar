@@ -34,10 +34,10 @@ namespace ror
 class ROAR_ENGINE_ITEM Skin
 {
   public:
-	FORCE_INLINE       Skin()                        = default;             //! Default constructor
-	FORCE_INLINE       Skin(const Skin &a_other)     = default;             //! Copy constructor
-	FORCE_INLINE       Skin(Skin &&a_other) noexcept = default;             //! Move constructor
-	FORCE_INLINE Skin &operator=(const Skin &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE       Skin()                             = default;        //! Default constructor
+	FORCE_INLINE       Skin(const Skin &a_other)          = default;        //! Copy constructor
+	FORCE_INLINE       Skin(Skin &&a_other) noexcept      = default;        //! Move constructor
+	FORCE_INLINE Skin &operator=(const Skin &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Skin &operator=(Skin &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Skin() noexcept                         = default;        //! Destructor
 

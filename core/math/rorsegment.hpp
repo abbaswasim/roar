@@ -62,10 +62,10 @@ class ROAR_ENGINE_ITEM Segment
   public:
 	_type m_points[_degree + 1U];        //!< All points in the line or bezier curve, 3D or 2D quadratic or cubic curve points
 
-	FORCE_INLINE Segment()                           = default;                   //! Default constructor
-	FORCE_INLINE Segment(const Segment &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Segment(Segment &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Segment &operator=(const Segment &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE          Segment()                             = default;        //! Default constructor
+	FORCE_INLINE          Segment(const Segment &a_other)       = default;        //! Copy constructor
+	FORCE_INLINE          Segment(Segment &&a_other) noexcept   = default;        //! Move constructor
+	FORCE_INLINE Segment &operator=(const Segment &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Segment &operator=(Segment &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Segment() noexcept                    = default;        //! Destructor
 };
@@ -80,10 +80,10 @@ class ROAR_ENGINE_ITEM Line<_type, 1U, vector2_typename<_type>> final : public S
   public:
 	const SegmentType m_type = SegmentType::line_2d;
 
-	FORCE_INLINE Line()                        = default;                   //! Default constructor
-	FORCE_INLINE Line(const Line &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Line(Line &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Line &operator=(const Line &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE       Line()                             = default;        //! Default constructor
+	FORCE_INLINE       Line(const Line &a_other)          = default;        //! Copy constructor
+	FORCE_INLINE       Line(Line &&a_other) noexcept      = default;        //! Move constructor
+	FORCE_INLINE Line &operator=(const Line &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Line &operator=(Line &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Line() noexcept override                = default;        //! Destructor
 
@@ -99,10 +99,10 @@ class ROAR_ENGINE_ITEM Line<_type, 1U, vector3_typename<_type>> final : public S
   public:
 	const SegmentType m_type = SegmentType::line_3d;
 
-	FORCE_INLINE Line()                        = default;                   //! Default constructor
-	FORCE_INLINE Line(const Line &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Line(Line &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Line &operator=(const Line &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE       Line()                             = default;        //! Default constructor
+	FORCE_INLINE       Line(const Line &a_other)          = default;        //! Copy constructor
+	FORCE_INLINE       Line(Line &&a_other) noexcept      = default;        //! Move constructor
+	FORCE_INLINE Line &operator=(const Line &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Line &operator=(Line &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Line() noexcept override                = default;        //! Destructor
 
@@ -122,10 +122,10 @@ class ROAR_ENGINE_ITEM Triangle<_type, 2U, vector2_typename<_type>> final : publ
   public:
 	const SegmentType m_type = SegmentType::triangle_2d;
 
-	FORCE_INLINE Triangle()                            = default;                   //! Default constructor
-	FORCE_INLINE Triangle(const Triangle &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Triangle(Triangle &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Triangle &operator=(const Triangle &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE           Triangle()                             = default;        //! Default constructor
+	FORCE_INLINE           Triangle(const Triangle &a_other)      = default;        //! Copy constructor
+	FORCE_INLINE           Triangle(Triangle &&a_other) noexcept  = default;        //! Move constructor
+	FORCE_INLINE Triangle &operator=(const Triangle &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Triangle &operator=(Triangle &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Triangle() noexcept override                    = default;        //! Destructor
 
@@ -140,10 +140,10 @@ class ROAR_ENGINE_ITEM Triangle<_type, 2U, vector3_typename<_type>> final : publ
   public:
 	const SegmentType m_type = SegmentType::triangle_3d;
 
-	FORCE_INLINE Triangle()                            = default;                   //! Default constructor
-	FORCE_INLINE Triangle(const Triangle &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Triangle(Triangle &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Triangle &operator=(const Triangle &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE           Triangle()                             = default;        //! Default constructor
+	FORCE_INLINE           Triangle(const Triangle &a_other)      = default;        //! Copy constructor
+	FORCE_INLINE           Triangle(Triangle &&a_other) noexcept  = default;        //! Move constructor
+	FORCE_INLINE Triangle &operator=(const Triangle &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Triangle &operator=(Triangle &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Triangle() noexcept override                    = default;        //! Destructor
 
@@ -162,10 +162,10 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2U, vector2_typename<_type>> final : public
   public:
 	SegmentType m_type = SegmentType::quadratic_2d_outer;
 
-	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
-	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Bezier(Bezier &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Bezier &operator=(const Bezier &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE         Bezier()                             = default;        //! Default constructor
+	FORCE_INLINE         Bezier(const Bezier &a_other)        = default;        //! Copy constructor
+	FORCE_INLINE         Bezier(Bezier &&a_other) noexcept    = default;        //! Move constructor
+	FORCE_INLINE Bezier &operator=(const Bezier &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Bezier &operator=(Bezier &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Bezier() noexcept override                  = default;        //! Destructor
 
@@ -191,10 +191,10 @@ class ROAR_ENGINE_ITEM Bezier<_type, 3U, vector2_typename<_type>> final : public
   public:
 	const SegmentType m_type = SegmentType::cubic_2d;
 
-	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
-	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Bezier(Bezier &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Bezier &operator=(const Bezier &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE         Bezier()                             = default;        //! Default constructor
+	FORCE_INLINE         Bezier(const Bezier &a_other)        = default;        //! Copy constructor
+	FORCE_INLINE         Bezier(Bezier &&a_other) noexcept    = default;        //! Move constructor
+	FORCE_INLINE Bezier &operator=(const Bezier &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Bezier &operator=(Bezier &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Bezier() noexcept override                  = default;        //! Destructor
 
@@ -208,10 +208,10 @@ class ROAR_ENGINE_ITEM Bezier<_type, 2U, vector3_typename<_type>> final : public
   public:
 	SegmentType m_type = SegmentType::quadratic_3d_outer;
 
-	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
-	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Bezier(Bezier &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Bezier &operator=(const Bezier &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE         Bezier()                             = default;        //! Default constructor
+	FORCE_INLINE         Bezier(const Bezier &a_other)        = default;        //! Copy constructor
+	FORCE_INLINE         Bezier(Bezier &&a_other) noexcept    = default;        //! Move constructor
+	FORCE_INLINE Bezier &operator=(const Bezier &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Bezier &operator=(Bezier &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Bezier() noexcept override                  = default;        //! Destructor
 
@@ -231,10 +231,10 @@ class ROAR_ENGINE_ITEM Bezier<_type, 3U, vector3_typename<_type>> final : public
   public:
 	const SegmentType m_type = SegmentType::cubic_3d;
 
-	FORCE_INLINE Bezier()                          = default;                   //! Default constructor
-	FORCE_INLINE Bezier(const Bezier &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Bezier(Bezier &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Bezier &operator=(const Bezier &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE         Bezier()                             = default;        //! Default constructor
+	FORCE_INLINE         Bezier(const Bezier &a_other)        = default;        //! Copy constructor
+	FORCE_INLINE         Bezier(Bezier &&a_other) noexcept    = default;        //! Move constructor
+	FORCE_INLINE Bezier &operator=(const Bezier &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Bezier &operator=(Bezier &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Bezier() noexcept override                  = default;        //! Destructor
 

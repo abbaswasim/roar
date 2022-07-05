@@ -44,9 +44,9 @@ template <typename _type, typename _map_key, typename _map_value>
 class ROAR_ENGINE_ITEM Manager
 {
   public:
-	FORCE_INLINE          Manager(const Manager &a_other)     = default;          //! Copy constructor
-	FORCE_INLINE          Manager(Manager &&a_other) noexcept = default;          //! Move constructor
-	FORCE_INLINE Manager &operator=(const Manager &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE          Manager(const Manager &a_other)       = default;        //! Copy constructor
+	FORCE_INLINE          Manager(Manager &&a_other) noexcept   = default;        //! Move constructor
+	FORCE_INLINE Manager &operator=(const Manager &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Manager &operator=(Manager &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Manager() noexcept                    = default;        //! Destructor
 
@@ -101,9 +101,9 @@ class ROAR_ENGINE_ITEM TextureImageManager final : public Manager<TextureImageMa
 	FORCE_INLINE                      TextureImageManager()                                       = default;        //! Default constructor
 	FORCE_INLINE                      TextureImageManager(const TextureImageManager &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE                      TextureImageManager(TextureImageManager &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE TextureImageManager &operator=(const TextureImageManager &a_other) = delete;                       //! Copy assignment operator
-	FORCE_INLINE TextureImageManager &operator=(TextureImageManager &&a_other) noexcept = delete;                   //! Move assignment operator
-	FORCE_INLINE ~TextureImageManager() noexcept override                               = default;                  //! Destructor
+	FORCE_INLINE TextureImageManager &operator=(const TextureImageManager &a_other)               = delete;         //! Copy assignment operator
+	FORCE_INLINE TextureImageManager &operator=(TextureImageManager &&a_other) noexcept           = delete;         //! Move assignment operator
+	FORCE_INLINE ~TextureImageManager() noexcept override                                         = default;        //! Destructor
 
 	declare_translation_unit_vtable();
 
@@ -136,9 +136,9 @@ class ROAR_ENGINE_ITEM TextureSamplerManager final : public Manager<TextureSampl
 	FORCE_INLINE                        TextureSamplerManager()                                         = default;        //! Default constructor
 	FORCE_INLINE                        TextureSamplerManager(const TextureSamplerManager &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE                        TextureSamplerManager(TextureSamplerManager &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE TextureSamplerManager &operator=(const TextureSamplerManager &a_other) = delete;                         //! Copy assignment operator
-	FORCE_INLINE TextureSamplerManager &operator=(TextureSamplerManager &&a_other) noexcept = delete;                     //! Move assignment operator
-	FORCE_INLINE ~TextureSamplerManager() noexcept override                                 = default;                    //! Destructor
+	FORCE_INLINE TextureSamplerManager &operator=(const TextureSamplerManager &a_other)                 = delete;         //! Copy assignment operator
+	FORCE_INLINE TextureSamplerManager &operator=(TextureSamplerManager &&a_other) noexcept             = delete;         //! Move assignment operator
+	FORCE_INLINE ~TextureSamplerManager() noexcept override                                             = default;        //! Destructor
 
 	declare_translation_unit_vtable();
 
@@ -171,9 +171,9 @@ class ROAR_ENGINE_ITEM TextureManager final : public Manager<TextureManager, std
 	FORCE_INLINE                 TextureManager()                                  = default;        //! Default constructor
 	FORCE_INLINE                 TextureManager(const TextureManager &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE                 TextureManager(TextureManager &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE TextureManager &operator=(const TextureManager &a_other) = delete;                  //! Copy assignment operator
-	FORCE_INLINE TextureManager &operator=(TextureManager &&a_other) noexcept = delete;              //! Move assignment operator
-	FORCE_INLINE ~TextureManager() noexcept override                          = default;             //! Destructor
+	FORCE_INLINE TextureManager &operator=(const TextureManager &a_other)          = delete;         //! Copy assignment operator
+	FORCE_INLINE TextureManager &operator=(TextureManager &&a_other) noexcept      = delete;         //! Move assignment operator
+	FORCE_INLINE ~TextureManager() noexcept override                               = default;        //! Destructor
 
 	declare_translation_unit_vtable();
 

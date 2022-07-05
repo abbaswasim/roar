@@ -41,17 +41,17 @@ void GraphNode::add_parent(VertexId a_parent)
 void GraphNode::remove_child(VertexId a_child)
 {
 	this->m_children.erase(
-		std::remove_if(this->m_children.begin(), this->m_children.end(),
-					   [&](const VertexId &n) { return (n == a_child); }),
-		this->m_children.end());
+	    std::remove_if(this->m_children.begin(), this->m_children.end(),
+	                   [&](const VertexId &n) { return (n == a_child); }),
+	    this->m_children.end());
 }
 
 void GraphNode::remove_parent(VertexId a_parent)
 {
 	this->m_parents.erase(
-		std::remove_if(this->m_parents.begin(), this->m_parents.end(),
-					   [&](const VertexId &n) { return (n == a_parent); }),
-		this->m_parents.end());
+	    std::remove_if(this->m_parents.begin(), this->m_parents.end(),
+	                   [&](const VertexId &n) { return (n == a_parent); }),
+	    this->m_parents.end());
 }
 
 void GraphNode::clear_children()

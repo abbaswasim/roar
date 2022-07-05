@@ -109,8 +109,8 @@ template <class _type>
 FORCE_INLINE bool Triangle<_type, 2, vector2_typename<_type>>::is_point_inside_my_2d_triangle(const _type &a_point)
 {
 	if (a_point == this->m_points[0] ||
-		a_point == this->m_points[1] ||
-		a_point == this->m_points[2])
+	    a_point == this->m_points[1] ||
+	    a_point == this->m_points[2])
 	{
 		return false;
 	}
@@ -142,8 +142,8 @@ template <class _type>
 FORCE_INLINE bool Triangle<_type, 2, vector3_typename<_type>>::is_point_inside_my_2d_triangle(const _type &a_point)
 {
 	if (a_point == this->m_points[0] ||
-		a_point == this->m_points[1] ||
-		a_point == this->m_points[2])
+	    a_point == this->m_points[1] ||
+	    a_point == this->m_points[2])
 	{
 		return false;
 	}
@@ -193,8 +193,8 @@ template <class _type>
 FORCE_INLINE bool Bezier<_type, 2, vector2_typename<_type>>::is_point_inside_my_2d_triangle(const _type &a_point)
 {
 	if (a_point == this->m_points[0] ||
-		a_point == this->m_points[1] ||
-		a_point == this->m_points[2])
+	    a_point == this->m_points[1] ||
+	    a_point == this->m_points[2])
 	{
 		return false;
 	}
@@ -283,8 +283,8 @@ template <class _type>
 FORCE_INLINE bool Bezier<_type, 2, vector3_typename<_type>>::is_point_inside_my_2d_triangle(const _type &a_point)
 {
 	if (a_point == this->m_points[0] ||
-		a_point == this->m_points[1] ||
-		a_point == this->m_points[2])
+	    a_point == this->m_points[1] ||
+	    a_point == this->m_points[2])
 	{
 		return false;
 	}

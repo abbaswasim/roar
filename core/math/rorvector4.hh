@@ -29,26 +29,26 @@ namespace ror
 {
 template <class _type>
 FORCE_INLINE Vector4<_type>::Vector4(_type a_x, _type a_y, _type a_z, _type a_w) :
-	x(a_x),
-	y(a_y),
-	z(a_z),
-	w(a_w)
+    x(a_x),
+    y(a_y),
+    z(a_z),
+    w(a_w)
 {}
 
 template <class _type>
 FORCE_INLINE Vector4<_type>::Vector4(_type a_xyzw) :
-	x(a_xyzw),
-	y(a_xyzw),
-	z(a_xyzw),
-	w(a_xyzw)
+    x(a_xyzw),
+    y(a_xyzw),
+    z(a_xyzw),
+    w(a_xyzw)
 {}
 
 template <class _type>
 FORCE_INLINE Vector4<_type>::Vector4(const Vector3<_type> &a_source, const _type a_w) :
-	x(a_source.x),
-	y(a_source.y),
-	z(a_source.z),
-	w(a_w)
+    x(a_source.x),
+    y(a_source.y),
+    z(a_source.z),
+    w(a_w)
 {}
 
 template <class _type>
@@ -106,9 +106,9 @@ template <class _type>
 FORCE_INLINE Vector4<_type> Vector4<_type>::operator/(const Vector4<_type> &a_right) const noexcept
 {
 	return Vector4<_type>((a_right.x < 0 || a_right.x > 0) ? x / a_right.x : 0,
-						  (a_right.y < 0 || a_right.y > 0) ? y / a_right.y : 0,
-						  (a_right.z < 0 || a_right.z > 0) ? z / a_right.z : 0,
-						  (a_right.w < 0 || a_right.w > 0) ? w / a_right.w : 0);
+	                      (a_right.y < 0 || a_right.y > 0) ? y / a_right.y : 0,
+	                      (a_right.z < 0 || a_right.z > 0) ? z / a_right.z : 0,
+	                      (a_right.w < 0 || a_right.w > 0) ? w / a_right.w : 0);
 }
 
 template <class _type>
@@ -301,10 +301,14 @@ FORCE_INLINE void Vector4<_type>::zero() noexcept
 template <class _type>
 FORCE_INLINE void Vector4<_type>::clamp(_type a_minimum, _type a_maximum) noexcept
 {
-	x = x > a_maximum ? a_maximum : x < a_minimum ? a_minimum : x;
-	y = y > a_maximum ? a_maximum : y < a_minimum ? a_minimum : y;
-	z = z > a_maximum ? a_maximum : z < a_minimum ? a_minimum : z;
-	w = w > a_maximum ? a_maximum : w < a_minimum ? a_minimum : w;
+	x = x > a_maximum ? a_maximum : x < a_minimum ? a_minimum :
+	                                                x;
+	y = y > a_maximum ? a_maximum : y < a_minimum ? a_minimum :
+	                                                y;
+	z = z > a_maximum ? a_maximum : z < a_minimum ? a_minimum :
+	                                                z;
+	w = w > a_maximum ? a_maximum : w < a_minimum ? a_minimum :
+	                                                w;
 }
 
 template <class _type>
@@ -370,27 +374,27 @@ template <class _type>
 FORCE_INLINE Vector4<_type> Vector4<_type>::inversed() const
 {
 	return Vector4((((x < 0) || (x > 0)) ? 1 / x : 0),
-				   (((y < 0) || (y > 0)) ? 1 / y : 0),
-				   (((z < 0) || (z > 0)) ? 1 / z : 0),
-				   (((w < 0) || (w > 0)) ? 1 / w : 0));
+	               (((y < 0) || (y > 0)) ? 1 / y : 0),
+	               (((z < 0) || (z > 0)) ? 1 / z : 0),
+	               (((w < 0) || (w > 0)) ? 1 / w : 0));
 }
 
 template <class _type>
 FORCE_INLINE Vector4<_type> Vector4<_type>::abs() const
 {
 	return Vector4(std::abs(x),
-				   std::abs(y),
-				   std::abs(z),
-				   std::abs(w));
+	               std::abs(y),
+	               std::abs(z),
+	               std::abs(w));
 }
 
 template <class _type>
 FORCE_INLINE Vector4<_type> Vector4<_type>::cross_product(const Vector4<_type> &a_other) const
 {
 	return Vector4(y * a_other.z - z * a_other.y,
-				   a_other.x * z - a_other.z * x,
-				   x * a_other.y - y * a_other.x,
-				   1.0);
+	               a_other.x * z - a_other.z * x,
+	               x * a_other.y - y * a_other.x,
+	               1.0);
 }
 
 template <class _type>

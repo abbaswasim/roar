@@ -36,4 +36,4 @@
 #endif
 
 namespace rhi
-{}        // namespace ror
+{}        // namespace rhi

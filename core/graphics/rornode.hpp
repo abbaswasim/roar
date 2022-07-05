@@ -36,10 +36,10 @@ namespace ror
 class ROAR_ENGINE_ITEM Node
 {
   public:
-	FORCE_INLINE       Node()                        = default;             //! Default constructors
-	FORCE_INLINE       Node(const Node &a_other)     = default;             //! Copy constructor
-	FORCE_INLINE       Node(Node &&a_other) noexcept = default;             //! Move constructor
-	FORCE_INLINE Node &operator=(const Node &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE       Node()                             = default;        //! Default constructors
+	FORCE_INLINE       Node(const Node &a_other)          = default;        //! Copy constructor
+	FORCE_INLINE       Node(Node &&a_other) noexcept      = default;        //! Move constructor
+	FORCE_INLINE Node &operator=(const Node &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Node &operator=(Node &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Node() noexcept                         = default;        //! Destructor
 
@@ -58,10 +58,10 @@ class ROAR_ENGINE_ITEM Node
 class ROAR_ENGINE_ITEM NodeData
 {
   public:
-	FORCE_INLINE           NodeData()                            = default;         //! Default constructors
-	FORCE_INLINE           NodeData(const NodeData &a_other)     = default;         //! Copy constructor
-	FORCE_INLINE           NodeData(NodeData &&a_other) noexcept = default;         //! Move constructor
-	FORCE_INLINE NodeData &operator=(const NodeData &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE           NodeData()                             = default;        //! Default constructors
+	FORCE_INLINE           NodeData(const NodeData &a_other)      = default;        //! Copy constructor
+	FORCE_INLINE           NodeData(NodeData &&a_other) noexcept  = default;        //! Move constructor
+	FORCE_INLINE NodeData &operator=(const NodeData &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE NodeData &operator=(NodeData &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~NodeData() noexcept                             = default;        //! Destructor
 

@@ -40,7 +40,7 @@ namespace ror
 {
 
 CommandLineParser::CommandLineParser(std::vector<std::string> a_arguments) :
-	m_arguments(a_arguments)
+    m_arguments(a_arguments)
 {
 	assert(this->m_arguments.size() > 0);
 }

@@ -65,20 +65,23 @@ void Log::critical(const char *a_format, const Args &...a_args)
 }
 
 // Have a global instance of the logger for easy access, its still thread safe if sync_logger is defined, defined by default
-Log &       get_logger();
+Log        &get_logger();
 std::mutex &get_logger_lock();
-void log_set_level(LogLevel a_level);
+void        log_set_level(LogLevel a_level);
 
 #ifndef sync_logger
 #	define sync_logger
 #endif
 
 #ifdef sync_logger
-#	define add_sync() std::lock_guard<std::mutex> lock{get_logger_lock()}
+#	define add_sync()                   \
+		std::lock_guard<std::mutex> lock \
+		{                                \
+			get_logger_lock()            \
+		}
 #else
 #	define add_sync()
 #endif
-
 
 template <typename... Args>
 void log_trace(const char *a_format, const Args &...a_args)

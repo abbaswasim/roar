@@ -36,10 +36,10 @@ class ROAR_ENGINE_ITEM AxisAngle final
 	Vector3<_type> m_axis          = Vector3<_type>(0, 0, 0);        //!< Normalized axis
 	_type          m_angle_radians = 0;                              //!< Angle in radians
 
-	FORCE_INLINE AxisAngle()                             = default;                   //! Default constructor
-	FORCE_INLINE AxisAngle(const AxisAngle &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE AxisAngle(AxisAngle &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE AxisAngle &operator=(const AxisAngle &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE            AxisAngle()                             = default;        //! Default constructor
+	FORCE_INLINE            AxisAngle(const AxisAngle &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE            AxisAngle(AxisAngle &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE AxisAngle &operator=(const AxisAngle &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE AxisAngle &operator=(AxisAngle &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~AxisAngle() noexcept                              = default;        //! Destructor
 
@@ -52,9 +52,9 @@ class ROAR_ENGINE_ITEM AxisAngle final
 	FORCE_INLINE bool operator!=(const AxisAngle &a_other) const noexcept;
 
 	FORCE_INLINE Vector3<_type> axis() const noexcept;
-	FORCE_INLINE _type angle() const noexcept;
-	FORCE_INLINE void  set_axis(const Vector3<_type> &a_axis) noexcept;
-	FORCE_INLINE void  set_angle(_type a_radians) noexcept;
+	FORCE_INLINE _type          angle() const noexcept;
+	FORCE_INLINE void           set_axis(const Vector3<_type> &a_axis) noexcept;
+	FORCE_INLINE void           set_angle(_type a_radians) noexcept;
 
   protected:
   private:

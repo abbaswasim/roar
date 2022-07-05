@@ -28,8 +28,8 @@
 #include "foundation/rorcrtp.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
-#include "rhi/rortexture.hpp"
 #include "rhi/rorhandles.hpp"
+#include "rhi/rortexture.hpp"
 #include <ostream>
 #include <string>
 #include <vector>

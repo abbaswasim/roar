@@ -26,8 +26,8 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
-#include "rhi/rorrhi_macros.hpp"
 #include "rhi/crtp_interfaces/rorcontext.hpp"
+#include "rhi/rorrhi_macros.hpp"
 
 namespace rhi
 {
@@ -35,6 +35,7 @@ namespace rhi
 class ContextVulkan : public ContextCrtp<ContextVulkan>
 {
   public:
+	FORCE_INLINE                ContextVulkan()                                 = delete;         //! Default constructor
 	FORCE_INLINE                ContextVulkan(const ContextVulkan &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                ContextVulkan(ContextVulkan &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ContextVulkan &operator=(const ContextVulkan &a_other)         = default;        //! Copy assignment operator
@@ -43,8 +44,9 @@ class ContextVulkan : public ContextCrtp<ContextVulkan>
 
 	declare_translation_unit_vtable();
 
-	FORCE_INLINE ContextVulkan() = default;        //! Default constructor
-
+	explicit FORCE_INLINE ContextVulkan(std::any a_window) :
+		ContextCrtp<ContextVulkan>(a_window)
+	{}
 
 	// clang-format off
 	FORCE_INLINE void         init_derived()                                     {}
@@ -57,15 +59,14 @@ class ContextVulkan : public ContextCrtp<ContextVulkan>
   protected:
 	// FORCE_INLINE ContextVulkan(std::any *a_window)
 	// {
-		// this->m_current_instance = std::make_shared<Instance>();
-		// this->m_current_gpu      = std::make_shared<Device>(this->m_current_instance->get_handle(), a_window);
+	// this->m_current_instance = std::make_shared<Instance>();
+	// this->m_current_gpu      = std::make_shared<Device>(this->m_current_instance->get_handle(), a_window);
 
-		// this->m_instances.emplace_back(this->m_current_instance);
-		// this->m_gpus.emplace_back(this->m_current_gpu);
+	// this->m_instances.emplace_back(this->m_current_instance);
+	// this->m_gpus.emplace_back(this->m_current_gpu);
 	// }
 
   private:
-
 	// std::vector<std::shared_ptr<Instance>> m_instances;
 	// std::vector<std::shared_ptr<Device>>   m_gpus;
 	// std::shared_ptr<Device>                m_current_gpu{nullptr};

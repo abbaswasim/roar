@@ -53,7 +53,7 @@ struct WatchCatEvent
 	uint32_t              m_pad{0};
 
 	WatchCatEvent(WatchCatEventType a_event_type, std::filesystem::path a_path) :
-		m_path(a_path), m_type(a_event_type)
+	    m_path(a_path), m_type(a_event_type)
 	{}
 };
 
@@ -62,23 +62,23 @@ class PlatformData;
 using watchcat_callback = std::function<void(std::vector<WatchCatEvent>)>;
 
 /**
-* Creates a watcher responsible for reporting filesystem events in specific paths
-* You can watch a single file or a folder or a collection of either in any combination
-* You will receive WatchCatEventType events for files in your specified locations
-* Prefer to create few or even one instance of WatchCat because it creates a thread
-* Many WatchCat objects means many threads which will result in contention for system resources
-* WatchCat needs to be externally synchronised if used from multiple threads
-*/
+ * Creates a watcher responsible for reporting filesystem events in specific paths
+ * You can watch a single file or a folder or a collection of either in any combination
+ * You will receive WatchCatEventType events for files in your specified locations
+ * Prefer to create few or even one instance of WatchCat because it creates a thread
+ * Many WatchCat objects means many threads which will result in contention for system resources
+ * WatchCat needs to be externally synchronised if used from multiple threads
+ */
 
 class ROAR_ENGINE_ITEM WatchCat final
 {
   public:
 	WatchCat(std::vector<std::filesystem::path> a_paths,
-			 watchcat_callback                  a_callback,
-			 float32_t                          a_latency = 1.0f);                             // Watches all the paths, and calls a_callback at a_latency frequency
-	WatchCat(const WatchCat &a_other)     = delete;                   //! Copy constructor
-	WatchCat(WatchCat &&a_other) noexcept = delete;                   //! Move constructor
-	WatchCat &operator=(const WatchCat &a_other) = delete;            //! Copy assignment operator
+	         watchcat_callback                  a_callback,
+	         float32_t                          a_latency = 1.0f);                             // Watches all the paths, and calls a_callback at a_latency frequency
+	WatchCat(const WatchCat &a_other)                = delete;        //! Copy constructor
+	WatchCat(WatchCat &&a_other) noexcept            = delete;        //! Move constructor
+	WatchCat &operator=(const WatchCat &a_other)     = delete;        //! Copy assignment operator
 	WatchCat &operator=(WatchCat &&a_other) noexcept = delete;        //! Move assignment operator
 	~WatchCat() noexcept;                                             //! Destructor defined
 
@@ -100,8 +100,8 @@ class ROAR_ENGINE_ITEM WatchCat final
 	std::vector<std::filesystem::path> m_paths;                         // Copy of all files/directories to watch
 	float32_t                          m_latency{1.0f};                 // Poll each second by default, but can be changed by user
 	std::atomic<bool>                  m_run{true};                     // Should the loop be running capturing events or should it stop
-public:
-	uchar8_t                           m_pad[3];
+  public:
+	uchar8_t m_pad[3];
 };
 
 }        // namespace ror

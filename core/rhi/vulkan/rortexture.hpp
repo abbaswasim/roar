@@ -31,9 +31,12 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
+namespace cfg
+{
+}
+
 namespace rhi
 {
-
 class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImageVulkan>
 {
 	declare_translation_unit_vtable();
@@ -74,3 +77,5 @@ define_type_to_shader_semantics(TextureVulkan)
 }
 
 }        // namespace rhi
+
+#include "rortexture.hh"

@@ -52,7 +52,7 @@ using scalar_precision = typename std::conditional<std::is_same<typename _type::
  */
 template <class _type, class _new_type>
 using vector_type = typename std::conditional<std::is_same<_type, Vector4<typename _type::value_type>>::value, Vector4<_new_type>,
-											  typename std::conditional<std::is_same<_type, Vector3<typename _type::value_type>>::value, Vector3<_new_type>, Vector2<_new_type>>::type>::type;
+                                              typename std::conditional<std::is_same<_type, Vector3<typename _type::value_type>>::value, Vector3<_new_type>, Vector2<_new_type>>::type>::type;
 
 /**
  * @brief      Calculates distance

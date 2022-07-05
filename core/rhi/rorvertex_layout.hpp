@@ -35,9 +35,9 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	FORCE_INLINE               VertexLayout()                                = default;        //! Default constructor
 	FORCE_INLINE               VertexLayout(const VertexLayout &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE               VertexLayout(VertexLayout &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE VertexLayout &operator=(const VertexLayout &a_other) = default;               //! Copy assignment operator
-	FORCE_INLINE VertexLayout &operator=(VertexLayout &&a_other) noexcept = default;           //! Move assignment operator
-	FORCE_INLINE ~VertexLayout() noexcept                                 = default;           //! Destructor
+	FORCE_INLINE VertexLayout &operator=(const VertexLayout &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE VertexLayout &operator=(VertexLayout &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE ~VertexLayout() noexcept                                    = default;        //! Destructor
 
 	/**
 	 * Use this version of the constructor if you want VertexDescriptor to take care of
@@ -46,9 +46,9 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	 * This makes VertexLayout more aware and clever than dumb data blob
 	 */
 	FORCE_INLINE VertexLayout(uint32_t a_binding, uint32_t a_rate, rhi::StepFunction a_function) :
-		m_binding(a_binding),
-		m_rate(a_rate),
-		m_function(a_function)
+	    m_binding(a_binding),
+	    m_rate(a_rate),
+	    m_function(a_function)
 	{}
 
 	/**
@@ -56,11 +56,11 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	 * At the time of use layout will be considered complete and valid
 	 */
 	FORCE_INLINE VertexLayout(uint32_t a_binding, uint32_t a_stride, uint32_t a_rate = 1, uint32_t a_multiplier = 1, rhi::StepFunction a_function = rhi::StepFunction::vertex) :
-		m_binding(a_binding),
-		m_stride(a_stride),
-		m_rate(a_rate),
-		m_format_multiplier(a_multiplier),
-		m_function(a_function)
+	    m_binding(a_binding),
+	    m_stride(a_stride),
+	    m_rate(a_rate),
+	    m_format_multiplier(a_multiplier),
+	    m_function(a_function)
 	{}
 
 	// clang-format off

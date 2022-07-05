@@ -23,8 +23,7 @@
 //
 // Version: 1.0.0
 
-
 namespace ror
 {
 
-} // namespace ror
+}        // namespace ror

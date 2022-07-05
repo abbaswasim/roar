@@ -37,9 +37,9 @@ class ROAR_ENGINE_ITEM Timer
 {
   public:
 	FORCE_INLINE Timer();                                      //! Default constructor
-	Timer(const Timer &other)     = delete;                    //! Copy constructor
-	Timer(Timer &&other) noexcept = delete;                    //! Move constructor
-	Timer &operator=(const Timer &other) = delete;             //! Copy assignment operator
+	Timer(const Timer &other)                = delete;         //! Copy constructor
+	Timer(Timer &&other) noexcept            = delete;         //! Move constructor
+	Timer &operator=(const Timer &other)     = delete;         //! Copy assignment operator
 	Timer &operator=(Timer &&other) noexcept = delete;         //! Move assignment operator
 	~Timer() noexcept                        = default;        //! Destructor
 

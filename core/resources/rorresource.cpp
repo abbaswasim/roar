@@ -24,7 +24,6 @@
 // Version: 1.0.0
 
 #include "configuration/rorsettings_configuration.hpp"
-#include "settings/rorsettings.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rorrandom.hpp"
@@ -33,6 +32,7 @@
 #include "resources/rorprojectroot.hpp"
 #include "rhi/rortypes.hpp"
 #include "rorresource.hpp"
+#include "settings/rorsettings.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -228,19 +228,19 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 							{
 								// Now we are desperate, trying hard to find this resource
 								for (auto item : {ResourceSemantic::materials,
-												  ResourceSemantic::textures,
-												  ResourceSemantic::shaders,
-												  ResourceSemantic::scripts,
-												  ResourceSemantic::objects,
-												  ResourceSemantic::configs,
-												  ResourceSemantic::models,
-												  ResourceSemantic::scenes,
-												  ResourceSemantic::misc})        // Different way of dealing with caches and logs
+								                  ResourceSemantic::textures,
+								                  ResourceSemantic::shaders,
+								                  ResourceSemantic::scripts,
+								                  ResourceSemantic::objects,
+								                  ResourceSemantic::configs,
+								                  ResourceSemantic::models,
+								                  ResourceSemantic::scenes,
+								                  ResourceSemantic::misc})        // Different way of dealing with caches and logs
 								{
 									auto items_path = get_resource_semantic_string(item);
 
 									std::filesystem::path w{project_root_path /
-															semantic_path / parent_path / items_path / file_name};
+									                        semantic_path / parent_path / items_path / file_name};
 
 									if (std::filesystem::exists(w))
 									{
@@ -337,7 +337,7 @@ Resource::~Resource() noexcept
 }
 
 Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_read_only, bool a_mapped) :
-	m_absolute_path(a_absolute_path), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
+    m_absolute_path(a_absolute_path), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
 {
 	if (!this->m_absolute_path.is_absolute())
 	{

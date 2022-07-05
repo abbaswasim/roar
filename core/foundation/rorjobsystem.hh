@@ -28,4 +28,4 @@
 namespace ror
 {
 
-} // namespace ror
+}        // namespace ror

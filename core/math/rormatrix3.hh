@@ -29,30 +29,30 @@ namespace ror
 {
 template <class _type>
 FORCE_INLINE Matrix3<_type>::Matrix3(_type a_scale) :
-	m_values{a_scale, 0, 0,
-			 0, a_scale, 0,
-			 0, 0, a_scale}
+    m_values{a_scale, 0, 0,
+             0, a_scale, 0,
+             0, 0, a_scale}
 {}
 
 template <class _type>
 FORCE_INLINE Matrix3<_type>::Matrix3(const Matrix4<_type> &a_matrix) :
-	m_values{a_matrix.m_values[0], a_matrix.m_values[1], a_matrix.m_values[2],
-			 a_matrix.m_values[4], a_matrix.m_values[5], a_matrix.m_values[6],
-			 a_matrix.m_values[8], a_matrix.m_values[9], a_matrix.m_values[10]}
+    m_values{a_matrix.m_values[0], a_matrix.m_values[1], a_matrix.m_values[2],
+             a_matrix.m_values[4], a_matrix.m_values[5], a_matrix.m_values[6],
+             a_matrix.m_values[8], a_matrix.m_values[9], a_matrix.m_values[10]}
 {}
 
 template <class _type>
 FORCE_INLINE Matrix3<_type>::Matrix3(const Matrix3x4<_type> &a_matrix) :
-	m_values{a_matrix.m_values[0], a_matrix.m_values[1], a_matrix.m_values[2],
-			 a_matrix.m_values[3], a_matrix.m_values[4], a_matrix.m_values[5],
-			 a_matrix.m_values[6], a_matrix.m_values[7], a_matrix.m_values[8]}
+    m_values{a_matrix.m_values[0], a_matrix.m_values[1], a_matrix.m_values[2],
+             a_matrix.m_values[3], a_matrix.m_values[4], a_matrix.m_values[5],
+             a_matrix.m_values[6], a_matrix.m_values[7], a_matrix.m_values[8]}
 {}
 
 template <class _type>
 FORCE_INLINE Matrix3<_type>::Matrix3(const _type *a_elements) :
-	m_values{a_elements[0], a_elements[1], a_elements[2],
-			 a_elements[3], a_elements[4], a_elements[5],
-			 a_elements[6], a_elements[7], a_elements[8]}
+    m_values{a_elements[0], a_elements[1], a_elements[2],
+             a_elements[3], a_elements[4], a_elements[5],
+             a_elements[6], a_elements[7], a_elements[8]}
 {}
 
 template <class _type>
@@ -63,11 +63,11 @@ FORCE_INLINE Matrix3<_type>::Matrix3(const Quaternion<_type> &a_quaternion)
 
 template <class _type>
 FORCE_INLINE Matrix3<_type>::Matrix3(_type a_0, _type a_1, _type a_2,
-									 _type a_3, _type a_4, _type a_5,
-									 _type a_6, _type a_7, _type a_8) :
-	m_values{a_0, a_1, a_2,
-			 a_3, a_4, a_5,
-			 a_6, a_7, a_8}
+                                     _type a_3, _type a_4, _type a_5,
+                                     _type a_6, _type a_7, _type a_8) :
+    m_values{a_0, a_1, a_2,
+             a_3, a_4, a_5,
+             a_6, a_7, a_8}
 {}
 
 template <class _type>
@@ -127,8 +127,8 @@ FORCE_INLINE void Matrix3<_type>::set(const Quaternion<_type> &a_quaternion)
 
 template <class _type>
 FORCE_INLINE void Matrix3<_type>::set(_type a_0, _type a_1, _type a_2,
-									  _type a_3, _type a_4, _type a_5,
-									  _type a_6, _type a_7, _type a_8) noexcept
+                                      _type a_3, _type a_4, _type a_5,
+                                      _type a_6, _type a_7, _type a_8) noexcept
 {
 	this->m_values[0] = a_0;
 	this->m_values[1] = a_1;
@@ -209,8 +209,8 @@ FORCE_INLINE Vector3<_type> Matrix3<_type>::column(uint32_t a_index) const
 	uint32_t axis_index = a_index * 3;
 
 	return Vector3<_type>(this->m_values[axis_index + 0],
-						  this->m_values[axis_index + 1],
-						  this->m_values[axis_index + 2]);
+	                      this->m_values[axis_index + 1],
+	                      this->m_values[axis_index + 2]);
 }
 
 template <class _type>
@@ -279,8 +279,8 @@ template <class _type>
 FORCE_INLINE Matrix3<_type> Matrix3<_type>::operator-() const
 {
 	return Matrix3<_type>(-this->m_values[0], -this->m_values[1], -this->m_values[2],
-						  -this->m_values[3], -this->m_values[4], -this->m_values[5],
-						  -this->m_values[6], -this->m_values[7], -this->m_values[8]);
+	                      -this->m_values[3], -this->m_values[4], -this->m_values[5],
+	                      -this->m_values[6], -this->m_values[7], -this->m_values[8]);
 }
 
 template <class _type>
@@ -301,8 +301,8 @@ template <class _type>
 FORCE_INLINE _type Matrix3<_type>::determinant() const noexcept
 {
 	return (this->m_values[0] * (this->m_values[4] * this->m_values[8] - this->m_values[5] * this->m_values[7]) -
-			this->m_values[3] * (this->m_values[1] * this->m_values[8] - this->m_values[2] * this->m_values[7]) +
-			this->m_values[6] * (this->m_values[1] * this->m_values[5] - this->m_values[2] * this->m_values[4]));
+	        this->m_values[3] * (this->m_values[1] * this->m_values[8] - this->m_values[2] * this->m_values[7]) +
+	        this->m_values[6] * (this->m_values[1] * this->m_values[5] - this->m_values[2] * this->m_values[4]));
 }
 
 // template <class _type>
@@ -325,7 +325,7 @@ FORCE_INLINE bool Matrix3<_type>::inverse(Matrix3 &a_output_matrix) const
 	_type det = this->determinant();
 
 	if (equal_zero(det))
-		return false;        //singular matrix, not invertible
+		return false;        // singular matrix, not invertible
 
 	// the matrix is invertible, proceed with cofactor expansion
 	a_output_matrix.m_values[0] = (this->m_values[4] * this->m_values[8] - this->m_values[5] * this->m_values[7]);
@@ -338,7 +338,7 @@ FORCE_INLINE bool Matrix3<_type>::inverse(Matrix3 &a_output_matrix) const
 	a_output_matrix.m_values[7] = -(this->m_values[0] * this->m_values[7] - this->m_values[1] * this->m_values[6]);
 	a_output_matrix.m_values[8] = (this->m_values[0] * this->m_values[4] - this->m_values[1] * this->m_values[3]);
 
-	//multiply with reciprocal to obtain inverted matrix
+	// multiply with reciprocal to obtain inverted matrix
 	_type det_multiplier = static_cast<_type>(1) / det;
 
 	for (int i = 0; i < 9; i++)
@@ -383,8 +383,8 @@ template <class _type>
 FORCE_INLINE Matrix3<_type> Matrix3<_type>::transposed() const
 {
 	return Matrix3<_type>(this->m_values[0], this->m_values[3], this->m_values[6],
-						  this->m_values[1], this->m_values[4], this->m_values[7],
-						  this->m_values[2], this->m_values[5], this->m_values[8]);
+	                      this->m_values[1], this->m_values[4], this->m_values[7],
+	                      this->m_values[2], this->m_values[5], this->m_values[8]);
 }
 
 template <class _type>
@@ -399,8 +399,8 @@ FORCE_INLINE void Matrix3<_type>::normalize()
 	zaxis.normalize();
 
 	this->set(xaxis.x, xaxis.y, xaxis.z,
-			  yaxis.x, yaxis.y, yaxis.z,
-			  zaxis.x, zaxis.y, zaxis.z);
+	          yaxis.x, yaxis.y, yaxis.z,
+	          zaxis.x, zaxis.y, zaxis.z);
 }
 
 template <class _type>
@@ -434,8 +434,8 @@ FORCE_INLINE bool Matrix3<_type>::is_orthogonal() const
 	_type angle3 = angle(forward, right);
 
 	if (std::abs(angle1 - ror_half_pi) < ror_epsilon_relaxed &&
-		std::abs(angle2 - ror_half_pi) < ror_epsilon_relaxed &&
-		std::abs(angle3 - ror_half_pi) < ror_epsilon_relaxed)
+	    std::abs(angle2 - ror_half_pi) < ror_epsilon_relaxed &&
+	    std::abs(angle3 - ror_half_pi) < ror_epsilon_relaxed)
 	{
 		return true;
 	}

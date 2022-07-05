@@ -74,7 +74,7 @@ class ROAR_ENGINE_ITEM Job
 	FORCE_INLINE virtual ~Job() noexcept                = default;        //! Destructor
 
 	FORCE_INLINE explicit Job(std::function<void(void)> a_function) :
-		m_payload(a_function)
+	    m_payload(a_function)
 	{}
 
 	declare_translation_unit_vtable();
@@ -124,7 +124,7 @@ class ROAR_ENGINE_ITEM JobDepend final : public Job
 	FORCE_INLINE ~JobDepend() noexcept override                     = default;        //! Destructor
 
 	FORCE_INLINE JobDepend(std::function<void(void)> a_function, std::vector<std::shared_ptr<Job>> a_dependencies) :
-		Job(a_function), m_dependencies(std::move(a_dependencies))
+	    Job(a_function), m_dependencies(std::move(a_dependencies))
 	{}
 
 	declare_translation_unit_vtable() override;
@@ -161,7 +161,7 @@ class ROAR_ENGINE_ITEM JobDepend1 final : public Job
 	FORCE_INLINE ~JobDepend1() noexcept override                       = default;        //! Destructor
 
 	FORCE_INLINE JobDepend1(std::function<void(void)> a_function, std::shared_ptr<Job> a_dependency) :
-		Job(a_function), m_dependency(a_dependency)
+	    Job(a_function), m_dependency(a_dependency)
 	{}
 
 	declare_translation_unit_vtable() override;
@@ -198,7 +198,7 @@ class ROAR_ENGINE_ITEM JobHandle final
 	FORCE_INLINE ~JobHandle() noexcept                              = default;        //! Destructor
 
 	FORCE_INLINE JobHandle(std::shared_ptr<Job> a_job, std::future<_future_type> &&a_future) :
-		m_job(a_job), m_future(std::move(a_future))
+	    m_job(a_job), m_future(std::move(a_future))
 	{}
 
 	FORCE_INLINE std::future<_future_type> &future()
@@ -423,7 +423,7 @@ class ROAR_ENGINE_ITEM JobSystem final
 	{
 		using return_type = decltype(a_function(a_arguments...));
 		return std::make_shared<std::packaged_task<return_type()>>(
-			std::bind(std::forward<_function>(a_function), std::forward<_arguments>(a_arguments)...));
+		    std::bind(std::forward<_function>(a_function), std::forward<_arguments>(a_arguments)...));
 	}
 
 #if defined(WORK_STEALING)

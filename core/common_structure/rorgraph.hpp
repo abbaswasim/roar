@@ -41,10 +41,10 @@ using VertexId = size_t;
 class ROAR_ENGINE_ITEM GraphNode final
 {
   public:
-	GraphNode()                             = default;                   //! Default constructor
-	GraphNode(const GraphNode &a_other)     = default;                   //! Copy constructor
-	GraphNode(GraphNode &&a_other) noexcept = default;                   //! Move constructor
-	GraphNode &operator=(const GraphNode &a_other) = default;            //! Copy assignment operator
+	GraphNode()                                        = default;        //! Default constructor
+	GraphNode(const GraphNode &a_other)                = default;        //! Copy constructor
+	GraphNode(GraphNode &&a_other) noexcept            = default;        //! Move constructor
+	GraphNode &operator=(const GraphNode &a_other)     = default;        //! Copy assignment operator
 	GraphNode &operator=(GraphNode &&a_other) noexcept = default;        //! Move assignment operator
 	~GraphNode() noexcept                              = default;        //! Destructor
 
@@ -87,10 +87,10 @@ class ROAR_ENGINE_ITEM Graph final
   public:
 	using Vertex = std::tuple<GraphNode, _type>;
 
-	Graph()                         = default;                   //! Default constructor
-	Graph(const Graph &a_other)     = default;                   //! Copy constructor
-	Graph(Graph &&a_other) noexcept = default;                   //! Move constructor
-	Graph &operator=(const Graph &a_other) = default;            //! Copy assignment operator
+	Graph()                                    = default;        //! Default constructor
+	Graph(const Graph &a_other)                = default;        //! Copy constructor
+	Graph(Graph &&a_other) noexcept            = default;        //! Move constructor
+	Graph &operator=(const Graph &a_other)     = default;        //! Copy assignment operator
 	Graph &operator=(Graph &&a_other) noexcept = default;        //! Move assignment operator
 	~Graph() noexcept                          = default;        //! Destructor
 

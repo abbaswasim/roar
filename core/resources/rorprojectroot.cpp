@@ -33,8 +33,8 @@ namespace ror
 {
 
 ProjectRoot::ProjectRoot(std::filesystem::path a_project_path) :
-	m_project_root(std::filesystem::absolute(a_project_path)),
-	m_project_root_hash(std::hash<std::string>{}(m_project_root))
+    m_project_root(std::filesystem::absolute(a_project_path)),
+    m_project_root_hash(std::hash<std::string>{}(m_project_root))
 {
 	if (a_project_path.empty())
 		ror::log_error("ProjectRoot is initilaized with empty path.");

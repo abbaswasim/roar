@@ -104,7 +104,7 @@ class ROAR_ENGINE_ITEM CrtpClientImpl : public CrtpClient<CrtpClientImpl>       
 template<typename _type>
 void print(CrtpClient<_type> const& clients)
 {
-	clients.common_func();
+    clients.common_func();
 }
 
 CrtpClientImpl1 impl1{};

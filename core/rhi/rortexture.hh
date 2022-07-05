@@ -24,12 +24,12 @@
 // Version: 1.0.0
 
 #include "configuration/rorsettings_configuration.hpp"
-#include "settings/rorsettings.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "rhi/rortexture.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
+#include "settings/rorsettings.hpp"
 #include <memory>
 
 namespace rhi
@@ -130,9 +130,9 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 	for (uint32_t i = 0; i < dec.get_levels(); i++)
 	{
 		ror::log_info("{}. Offset: {}, Length: {}, Uncompressed Length: {}",
-					  i, static_cast<long long unsigned int>(dec.get_level_index()[i].m_byte_offset),
-					  static_cast<long long unsigned int>(dec.get_level_index()[i].m_byte_length),
-					  static_cast<long long unsigned int>(dec.get_level_index()[i].m_uncompressed_byte_length));
+		              i, static_cast<long long unsigned int>(dec.get_level_index()[i].m_byte_offset),
+		              static_cast<long long unsigned int>(dec.get_level_index()[i].m_byte_length),
+		              static_cast<long long unsigned int>(dec.get_level_index()[i].m_uncompressed_byte_length));
 	}
 
 	// TODO: This needs abstracting out
@@ -220,15 +220,15 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 					if (ror::settings().m_visualise_mipmaps)
 					{
 						const std::vector<ror::Vector3f> colors{{1.0f, 0.0f, 0.0f},
-																{0.0f, 1.0f, 0.0f},
-																{0.0f, 0.0f, 1.0f},
-																{1.0f, 1.0f, 0.0f},
-																{1.0f, 0.0f, 1.0f},
-																{0.0f, 1.0f, 1.0f},
-																{0.0f, 0.0f, 0.0f},
-																{1.0f, 1.0f, 1.0f},
-																{1.0f, 0.0f, 0.0f},
-																{0.0f, 0.0f, 1.0f}};
+						                                        {0.0f, 1.0f, 0.0f},
+						                                        {0.0f, 0.0f, 1.0f},
+						                                        {1.0f, 1.0f, 0.0f},
+						                                        {1.0f, 0.0f, 1.0f},
+						                                        {0.0f, 1.0f, 1.0f},
+						                                        {0.0f, 0.0f, 0.0f},
+						                                        {1.0f, 1.0f, 1.0f},
+						                                        {1.0f, 0.0f, 0.0f},
+						                                        {0.0f, 0.0f, 1.0f}};
 
 						for (size_t i = 0; i < decode_size; i += 4)        // FIXME: Only works for RGBA
 						{
@@ -289,4 +289,4 @@ FORCE_INLINE TextureImage read_texture_cube_from_file(const std::filesystem::pat
 	return read_texture_from_file<TextureTarget::texture_cube>(a_absolute_file_name, a_separate_channels);
 }
 
-}        // namespace ror
+}        // namespace rhi

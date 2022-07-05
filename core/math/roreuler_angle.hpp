@@ -43,24 +43,24 @@ class ROAR_ENGINE_ITEM EulerAngle final
 	_type m_attitude = 0;        //!< Angle around Z-axis in radians
 	_type m_bank     = 0;        //!< Angle around X-axis in radians
 
-	FORCE_INLINE EulerAngle()                              = default;                   //! Default constructor
-	FORCE_INLINE EulerAngle(const EulerAngle &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE EulerAngle(EulerAngle &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE EulerAngle &operator=(const EulerAngle &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE EulerAngle &operator=(EulerAngle &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~EulerAngle() noexcept                               = default;        //! Destructor
+	FORCE_INLINE             EulerAngle()                              = default;        //! Default constructor
+	FORCE_INLINE             EulerAngle(const EulerAngle &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE             EulerAngle(EulerAngle &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE EulerAngle &operator=(const EulerAngle &a_other)      = default;        //! Copy assignment operator
+	FORCE_INLINE EulerAngle &operator=(EulerAngle &&a_other) noexcept  = default;        //! Move assignment operator
+	FORCE_INLINE ~EulerAngle() noexcept                                = default;        //! Destructor
 
 	FORCE_INLINE      EulerAngle(const Vector3<_type> &a_euler);
 	FORCE_INLINE      EulerAngle(_type a_heading, _type a_attitude, _type a_bank);
 	FORCE_INLINE void set(const Vector3<_type> &a_euler) noexcept;
 	FORCE_INLINE void set(_type a_heading, _type a_attitude, _type a_bank) noexcept;
 
-	FORCE_INLINE bool operator==(const EulerAngle &a_other) const noexcept;
-	FORCE_INLINE bool operator!=(const EulerAngle &a_other) const noexcept;
+	FORCE_INLINE bool        operator==(const EulerAngle &a_other) const noexcept;
+	FORCE_INLINE bool        operator!=(const EulerAngle &a_other) const noexcept;
 	FORCE_INLINE EulerAngle &operator+=(const EulerAngle &a_other) noexcept;
 	FORCE_INLINE EulerAngle &operator-=(const EulerAngle &a_other) noexcept;
-	FORCE_INLINE EulerAngle operator+(const EulerAngle &a_other) const noexcept;
-	FORCE_INLINE EulerAngle operator-(const EulerAngle &a_other) const noexcept;
+	FORCE_INLINE EulerAngle  operator+(const EulerAngle &a_other) const noexcept;
+	FORCE_INLINE EulerAngle  operator-(const EulerAngle &a_other) const noexcept;
 
 	FORCE_INLINE _type heading() const noexcept;
 	FORCE_INLINE _type attitude() const noexcept;

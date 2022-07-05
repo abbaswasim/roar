@@ -238,24 +238,24 @@ FORCE_INLINE Matrix4<_type> Plane<_type>::projection_matrix(const Vector3<_type>
 	_type cpn = a_point.dot_product(this->m_normal) - this->m_distance;
 
 	return Matrix4<_type>(this->m_normal.x * a_point.x - cpn,
-						  this->m_normal.x * a_point.y,
-						  this->m_normal.x * a_point.z,
-						  this->m_normal.x,
+	                      this->m_normal.x * a_point.y,
+	                      this->m_normal.x * a_point.z,
+	                      this->m_normal.x,
 
-						  this->m_normal.y * a_point.x,
-						  this->m_normal.y * a_point.y - cpn,
-						  this->m_normal.y * a_point.z,
-						  this->m_normal.y,
+	                      this->m_normal.y * a_point.x,
+	                      this->m_normal.y * a_point.y - cpn,
+	                      this->m_normal.y * a_point.z,
+	                      this->m_normal.y,
 
-						  this->m_normal.z * a_point.x,
-						  this->m_normal.z * a_point.y,
-						  this->m_normal.z * a_point.z - cpn,
-						  this->m_normal.z,
+	                      this->m_normal.z * a_point.x,
+	                      this->m_normal.z * a_point.y,
+	                      this->m_normal.z * a_point.z - cpn,
+	                      this->m_normal.z,
 
-						  -this->m_distance * a_point.x,
-						  -this->m_distance * a_point.y,
-						  -this->m_distance * a_point.z,
-						  -this->m_distance - cpn);
+	                      -this->m_distance * a_point.x,
+	                      -this->m_distance * a_point.y,
+	                      -this->m_distance * a_point.z,
+	                      -this->m_distance - cpn);
 }
 
 }        // namespace ror

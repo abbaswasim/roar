@@ -23,10 +23,9 @@
 //
 // Version: 1.0.0
 
-
 #include "rorconfiguration.hpp"
 
 namespace ror
 {
 
-} // namespace ror
+}        // namespace ror

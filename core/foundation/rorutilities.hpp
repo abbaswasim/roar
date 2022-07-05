@@ -218,9 +218,9 @@ FORCE_INLINE _type closest(_type a_value, _type a_first, _type a_second)
 {
 	// Converts to decimal from all types including unsigned values, in which case you might loose precision, truncation
 	return (std::abs(ror_precision_cast(a_value) - ror_precision_cast(a_first)) <
-					std::abs(ror_precision_cast(a_value) - ror_precision_cast(a_second)) ?
-				a_first :
-				a_second);
+	                std::abs(ror_precision_cast(a_value) - ror_precision_cast(a_second)) ?
+	            a_first :
+	            a_second);
 }
 
 FORCE_INLINE uint32_t power_of_two(uint32_t a_value)
@@ -280,8 +280,8 @@ FORCE_INLINE void vector_remove_duplicates(std::vector<_type> &a_vector, _predic
 
 // Not safe for unsigned to signed conversion but the compiler will complain about that
 template <class _type_to,
-		  class _type_from,
-		  class _type_big = typename std::conditional<std::is_integral<_type_from>::value, unsigned long long, long double>::type>
+          class _type_from,
+          class _type_big = typename std::conditional<std::is_integral<_type_from>::value, unsigned long long, long double>::type>
 constexpr FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
 {
 	if constexpr (get_build() == BuildType::build_debug)
@@ -302,14 +302,14 @@ constexpr FORCE_INLINE _type align(_type a_input, uint32_t _alignment)
 }
 
 template <class _type,
-		  size_t _alignment>
+          size_t _alignment>
 constexpr FORCE_INLINE _type align(_type a_input)
 {
 	return static_cast<_type>(static_cast<uint64_t>(a_input + _alignment - 1) & ~uint64_t(_alignment - 1));
 }
 
 template <class _type,
-		  size_t _alignment>
+          size_t _alignment>
 constexpr FORCE_INLINE _type *align(_type *a_input)
 {
 	return reinterpret_cast<_type *>(reinterpret_cast<uintptr_t>(a_input + _alignment - 1) & ~uintptr_t(_alignment - 1));

@@ -83,10 +83,10 @@ class ROAR_ENGINE_ITEM Matrix4 final
   public:
 	_type m_values[16];        //!< Matrix data in a C array Column-Major
 
-	FORCE_INLINE Matrix4(_type a_scale = 1);                                      //! Default constructor
-	FORCE_INLINE Matrix4(const Matrix4 &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Matrix4(Matrix4 &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Matrix4 &operator=(const Matrix4 &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE          Matrix4(_type a_scale = 1);                             //! Default constructor
+	FORCE_INLINE          Matrix4(const Matrix4 &a_other)       = default;        //! Copy constructor
+	FORCE_INLINE          Matrix4(Matrix4 &&a_other) noexcept   = default;        //! Move constructor
+	FORCE_INLINE Matrix4 &operator=(const Matrix4 &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Matrix4 &operator=(Matrix4 &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Matrix4() noexcept                            = default;        //! Destructor
 
@@ -95,17 +95,17 @@ class ROAR_ENGINE_ITEM Matrix4 final
 	FORCE_INLINE Matrix4(const Matrix3<_type> &a_other, const Vector3<_type> &a_origin);
 	FORCE_INLINE Matrix4(const _type *a_elements);
 	FORCE_INLINE Matrix4(_type a_0, _type a_1, _type a_2, _type a_3,          //!< Don't use in normal usage never provide a hand written matrix
-						 _type a_4, _type a_5, _type a_6, _type a_7,          //!< If ever used make sure rows and colums are correct
-						 _type a_8, _type a_9, _type a_10, _type a_11,        //!< a_0, a_1, a_2, a_3 is the first column not the first row
-						 _type a_12, _type a_13, _type a_14, _type a_15);
+	                     _type a_4, _type a_5, _type a_6, _type a_7,          //!< If ever used make sure rows and colums are correct
+	                     _type a_8, _type a_9, _type a_10, _type a_11,        //!< a_0, a_1, a_2, a_3 is the first column not the first row
+	                     _type a_12, _type a_13, _type a_14, _type a_15);
 
 	FORCE_INLINE _type &get(uint32_t a_row, uint32_t a_column) noexcept;
 	FORCE_INLINE void   set(const Matrix4 &a_matrix) noexcept;
 	FORCE_INLINE void   set(const _type *a_elements) noexcept;
 	FORCE_INLINE void   set(_type a_0, _type a_1, _type a_2, _type a_3,          //!< Don't use in normal usage never provide a hand written matrix
-							_type a_4, _type a_5, _type a_6, _type a_7,          //!< If ever used make sure rows and colums are correct
-							_type a_8, _type a_9, _type a_10, _type a_11,        //!< a_0, a_1, a_2, a_3 is the first column not the first row
-							_type a_12, _type a_13, _type a_14, _type a_15) noexcept;
+	                        _type a_4, _type a_5, _type a_6, _type a_7,          //!< If ever used make sure rows and colums are correct
+	                        _type a_8, _type a_9, _type a_10, _type a_11,        //!< a_0, a_1, a_2, a_3 is the first column not the first row
+	                        _type a_12, _type a_13, _type a_14, _type a_15) noexcept;
 
 	FORCE_INLINE void set_axis(uint32_t a_axis_index, const Vector4<_type> &a_axis) noexcept;
 	FORCE_INLINE void set_x_axis(const Vector3<_type> &a_axis) noexcept;
@@ -136,7 +136,7 @@ class ROAR_ENGINE_ITEM Matrix4 final
 
 	FORCE_INLINE void normalize();            //!< Normalizes the matrix x, y, z axis
 	FORCE_INLINE void orthogonalize();        //!< Orthogonalizes the basis axis using Gram–Schmidt process,
-											  //!< it can fail if the axis are co-linear. It doesn't normalize the basis
+	                                          //!< it can fail if the axis are co-linear. It doesn't normalize the basis
 	FORCE_INLINE bool is_orthogonal() const;
 
 	FORCE_INLINE Vector3<_type> perspective_transform(const Vector3<_type> &a_vector);        //!< Transforms a_vector perpective correct. Matrix has to be a perspective matrix
@@ -147,36 +147,36 @@ using Matrix4f = Matrix4<float32_t>;
 using Matrix4d = Matrix4<double64_t>;
 
 const Matrix4f identity_matrix4i(
-	1, 0, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 1, 0,
-	0, 0, 0, 1);
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1);
 
 const Matrix4f identity_matrix4f(
-	1.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 1.0f, 0.0f, 0.0f,
-	0.0f, 0.0f, 1.0f, 0.0f,
-	0.0f, 0.0f, 0.0f, 1.0f);
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f);
 
 const Matrix4f identity_matrix4d(
-	1.0, 0.0, 0.0, 0.0,
-	0.0, 1.0, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.0, 0.0, 0.0, 1.0);
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0);
 
 const Matrix4f zero_matrix4f(
-	0.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 0.0f, 0.0f, 0.0f);
+    0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f);
 
 // Pre-multiply your MVP with this matrix to correct it for vulkan
 // mvp = vcc * mvp;
 // TODO Check if this needs to be transposed before usage or use the second one
 const Matrix4f vulkan_clip_correction(1.0f, 0.0f, 0.0f, 0.0f,
-									  0.0f, -1.0f, 0.0f, 0.0f,
-									  0.0f, 0.0f, 0.5f, 0.0f,
-									  0.0f, 0.0f, 0.5f, 1.0f);
+                                      0.0f, -1.0f, 0.0f, 0.0f,
+                                      0.0f, 0.0f, 0.5f, 0.0f,
+                                      0.0f, 0.0f, 0.5f, 1.0f);
 
 // const Matrix4f vulkan_clip_correction(-1.0f, 0.0f, 0.0f, 0.0f,
 //									  0.0f, 1.0f, 0.0f, 0.0f,
@@ -184,9 +184,9 @@ const Matrix4f vulkan_clip_correction(1.0f, 0.0f, 0.0f, 0.0f,
 //									  0.0f, 0.0f, 0.5f, 1.0f);
 
 const Matrix4f birds_eye_view(1, 0, 0, 0,
-							  0, 0, -1, 0,
-							  0, 1, 0, 0,
-							  0, 0, 0, 1);
+                              0, 0, -1, 0,
+                              0, 1, 0, 0,
+                              0, 0, 0, 1);
 }        // namespace ror
 
 #include "rormatrix4.hh"

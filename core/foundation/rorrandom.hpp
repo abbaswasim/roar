@@ -52,12 +52,12 @@ class ROAR_ENGINE_ITEM RandomType<_type, false>
 
 template <class _type>
 class ROAR_ENGINE_ITEM Random final : public std::conditional<std::is_integral<_type>::value,
-															  RandomType<_type, true>,
-															  RandomType<_type, false>>::type
+                                                              RandomType<_type, true>,
+                                                              RandomType<_type, false>>::type
 {
   public:
 	FORCE_INLINE         Random(_type a_min = std::numeric_limits<_type>::min(),
-								_type a_max = std::numeric_limits<_type>::max());        //! Default constructor
+	                            _type a_max = std::numeric_limits<_type>::max());        //! Default constructor
 	FORCE_INLINE         Random(const Random &a_other)        = delete;                  //! Copy constructor
 	FORCE_INLINE         Random(Random &&a_other) noexcept    = delete;                  //! Move constructor
 	FORCE_INLINE Random &operator=(const Random &a_other)     = delete;                  //! Copy assignment operator

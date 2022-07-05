@@ -31,9 +31,9 @@ namespace ror
 {
 template <class _type>
 FORCE_INLINE Transform<_type>::Transform(const Quaternion<_type> &a_rotation, const Vector3<_type> &a_translation, const Vector3<_type> &a_scale) :
-	m_rotation(a_rotation),
-	m_translation(a_translation),
-	m_scale(a_scale)
+    m_rotation(a_rotation),
+    m_translation(a_translation),
+    m_scale(a_scale)
 {}
 
 template <class _type>

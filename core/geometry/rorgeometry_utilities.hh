@@ -190,8 +190,8 @@ FORCE_INLINE std::vector<_type> make_box_triangles(float32_t a_size)
 
 template <class _type, class _index_type>
 FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a_origin,
-											 std::vector<_type> &                    a_vertex_buffer,
-											 std::vector<ror::Vector3<_index_type>> &a_index_buffer)
+                                             std::vector<_type>                     &a_vertex_buffer,
+                                             std::vector<ror::Vector3<_index_type>> &a_index_buffer)
 {
 	uint32_t triangles = 12;
 	if constexpr (std::is_same<_type, Vector2<typename _type::value_type>>::value)
@@ -250,8 +250,8 @@ FORCE_INLINE std::vector<_type> make_box_lines(float32_t a_size)
 
 template <class _type, class _index_type>
 FORCE_INLINE void make_box_lines_indexed(const _type &a_size, const _type &a_origin,
-										 std::vector<_type> &                    a_vertex_buffer,
-										 std::vector<ror::Vector2<_index_type>> &a_index_buffer)
+                                         std::vector<_type>                     &a_vertex_buffer,
+                                         std::vector<ror::Vector2<_index_type>> &a_index_buffer)
 {
 	uint32_t lines = 12;
 	if constexpr (std::is_same<_type, Vector2<typename _type::value_type>>::value)
@@ -326,8 +326,8 @@ FORCE_INLINE void make_sphere_triangles(uint32_t a_samples)
 
 template <class _type>
 FORCE_INLINE void add_normals(const std::vector<_type> &a_vertex_buffer,
-							  uint32_t a_size, std::vector<_type> &a_output,
-							  const std::vector<_type> *a_index_buffer)
+                              uint32_t a_size, std::vector<_type> &a_output,
+                              const std::vector<_type> *a_index_buffer)
 {
 	(void) a_vertex_buffer;
 	(void) a_size;
@@ -337,8 +337,8 @@ FORCE_INLINE void add_normals(const std::vector<_type> &a_vertex_buffer,
 
 template <class _type>
 FORCE_INLINE void add_colors(const std::vector<_type> &a_vertex_buffer,
-							 uint32_t a_size, std::vector<_type> &a_output,
-							 const std::vector<_type> *a_index_buffer)
+                             uint32_t a_size, std::vector<_type> &a_output,
+                             const std::vector<_type> *a_index_buffer)
 {
 	(void) a_vertex_buffer;
 	(void) a_size;

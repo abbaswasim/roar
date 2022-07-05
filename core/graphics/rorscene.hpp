@@ -49,7 +49,7 @@ class ROAR_ENGINE_ITEM Shader
 {
   public:
 	FORCE_INLINE explicit Shader(std::filesystem::path a_shader) :
-		m_shader_path(a_shader)
+	    m_shader_path(a_shader)
 	{}
 
   private:
@@ -59,7 +59,7 @@ class ROAR_ENGINE_ITEM Program
 {
   public:
 	FORCE_INLINE Program(int32_t a_vert_id, int32_t a_frag_id) :
-		m_vertex_id(a_vert_id), m_fragment_id(a_frag_id)
+	    m_vertex_id(a_vert_id), m_fragment_id(a_frag_id)
 	{}
 
 	// private:

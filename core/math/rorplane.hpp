@@ -34,10 +34,10 @@ template <class _type>
 class ROAR_ENGINE_ITEM Plane final
 {
   public:
-	FORCE_INLINE Plane()                         = default;                   //! Default constructor
-	FORCE_INLINE Plane(const Plane &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Plane(Plane &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Plane &operator=(const Plane &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE        Plane()                             = default;        //! Default constructor
+	FORCE_INLINE        Plane(const Plane &a_other)         = default;        //! Copy constructor
+	FORCE_INLINE        Plane(Plane &&a_other) noexcept     = default;        //! Move constructor
+	FORCE_INLINE Plane &operator=(const Plane &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Plane &operator=(Plane &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Plane() noexcept                          = default;        //! Destructor
 
@@ -57,18 +57,18 @@ class ROAR_ENGINE_ITEM Plane final
 	FORCE_INLINE void set_distance(_type a_distance) noexcept;
 
 	FORCE_INLINE Vector3<_type> normal() const;
-	FORCE_INLINE _type distance() const;
-	FORCE_INLINE _type distance_to_point(const Vector3<_type> &a_point) const;
-	FORCE_INLINE bool  line_intersection(const Vector3<_type> &a_point1, const Vector3<_type> &a_point2, Vector3<_type> &a_out) const;        // TODO Change to line
-	FORCE_INLINE bool  segment_on_same_side(const Vector3<_type> &a_point1, const Vector3<_type> &a_point2) const;
-	FORCE_INLINE bool  in_front(const Vector3<_type> &a_point) const;
-	FORCE_INLINE void  normalize();        //!< Only call if you are sure the plane needs normalization
+	FORCE_INLINE _type          distance() const;
+	FORCE_INLINE _type          distance_to_point(const Vector3<_type> &a_point) const;
+	FORCE_INLINE bool           line_intersection(const Vector3<_type> &a_point1, const Vector3<_type> &a_point2, Vector3<_type> &a_out) const;        // TODO Change to line
+	FORCE_INLINE bool           segment_on_same_side(const Vector3<_type> &a_point1, const Vector3<_type> &a_point2) const;
+	FORCE_INLINE bool           in_front(const Vector3<_type> &a_point) const;
+	FORCE_INLINE void           normalize();        //!< Only call if you are sure the plane needs normalization
 	FORCE_INLINE Vector3<_type> point_on_plane() const;
 
 	FORCE_INLINE Vector3<_type> reflected_vector(const Vector3<_type> &a_p1, const Vector3<_type> &a_p2) const;
 	FORCE_INLINE Vector3<_type> reflected_at_intersection_vector(const Vector3<_type> &a_p1, const Vector3<_type> &a_p2) const;
 
-	FORCE_INLINE Matrix4<_type> reflection_matrix();                                           //!< Returns reflection matrix for this plane, this can be used to reflect points/vectors off of the plane
+	FORCE_INLINE Matrix4<_type> reflection_matrix();                                     //!< Returns reflection matrix for this plane, this can be used to reflect points/vectors off of the plane
 	FORCE_INLINE Matrix4<_type> projection_matrix(const Vector3<_type> &a_point);        //!< Returns projection matrix from a_point for this plane, this can be used to project points/vectors into the plane
 
   private:

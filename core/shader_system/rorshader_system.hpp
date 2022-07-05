@@ -41,9 +41,9 @@ class ROAR_ENGINE_ITEM ShaderSystem final
 	FORCE_INLINE               ShaderSystem()                                = default;        //! Default constructor
 	FORCE_INLINE               ShaderSystem(const ShaderSystem &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE               ShaderSystem(ShaderSystem &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE ShaderSystem &operator=(const ShaderSystem &a_other) = default;               //! Copy assignment operator
-	FORCE_INLINE ShaderSystem &operator=(ShaderSystem &&a_other) noexcept = default;           //! Move assignment operator
-	FORCE_INLINE ~ShaderSystem() noexcept                                 = default;           //! Destructor
+	FORCE_INLINE ShaderSystem &operator=(const ShaderSystem &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE ShaderSystem &operator=(ShaderSystem &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE ~ShaderSystem() noexcept                                    = default;        //! Destructor
 
   private:
 };

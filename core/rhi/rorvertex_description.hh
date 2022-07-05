@@ -31,8 +31,8 @@ namespace rhi
 {
 
 FORCE_INLINE VertexDescriptor::VertexDescriptor(std::vector<VertexAttribute> a_attributes, std::vector<VertexLayout> a_layouts) :
-	m_attributes(a_attributes),
-	m_layouts(a_layouts)
+    m_attributes(a_attributes),
+    m_layouts(a_layouts)
 {
 	this->create_mapping();
 }
@@ -154,32 +154,32 @@ void VertexDescriptor::parse_attributes_and_layouts(_types &...a_attributes)
 		{
 			// Instead of this the alternative is to do something like  "if (auto shader_semantic = std::get_if<rhi::ShaderSemantic>(&attb))" and build a chain
 			std::visit(
-				ror::Overload{
-					[&](rhi::BufferSemantic sm) {
-						if (started)        // If we have already started and we found another ShaderSemantic, we have completed one attribute at least
-						{
-							attributes_tuple_vector.push_back(temp_tuple);
-							// Also lets reset the temp_tuple
-							temp_tuple = default_tuple;
-						}
-						else
-							started = true;
+			    ror::Overload{
+			        [&](rhi::BufferSemantic sm) {
+				        if (started)        // If we have already started and we found another ShaderSemantic, we have completed one attribute at least
+				        {
+					        attributes_tuple_vector.push_back(temp_tuple);
+					        // Also lets reset the temp_tuple
+					        temp_tuple = default_tuple;
+				        }
+				        else
+					        started = true;
 
-						std::get<rhi::BufferSemantic>(temp_tuple) = sm;
-					},
-					[&](rhi::VertexFormat vf) {
-						std::get<rhi::VertexFormat>(temp_tuple) = vf;
-					},
-					[&](rhi::StepFunction sf) {
-						std::get<rhi::StepFunction>(temp_tuple) = sf;
-					},
-					[&](rhi::Rate rt) {
-						std::get<uint32_t>(temp_tuple) = rt.m_value;
-					},
-					[&](const rhi::BuffersPack *bp) {
-						any_buffers_pack = bp;
-					}},
-				attb);
+				        std::get<rhi::BufferSemantic>(temp_tuple) = sm;
+			        },
+			        [&](rhi::VertexFormat vf) {
+				        std::get<rhi::VertexFormat>(temp_tuple) = vf;
+			        },
+			        [&](rhi::StepFunction sf) {
+				        std::get<rhi::StepFunction>(temp_tuple) = sf;
+			        },
+			        [&](rhi::Rate rt) {
+				        std::get<uint32_t>(temp_tuple) = rt.m_value;
+			        },
+			        [&](const rhi::BuffersPack *bp) {
+				        any_buffers_pack = bp;
+			        }},
+			    attb);
 		}
 	}
 

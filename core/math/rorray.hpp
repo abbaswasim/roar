@@ -36,10 +36,10 @@ class ROAR_ENGINE_ITEM Ray final
 	_type m_origin;           //! Starting point of ray
 	_type m_direction;        //! Direction of the ray from m_origin. Always normalized (unit vector)
 
-	FORCE_INLINE Ray()                       = default;                   //! Default constructor
-	FORCE_INLINE Ray(const Ray &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Ray(Ray &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Ray &operator=(const Ray &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE      Ray()                             = default;        //! Default constructor
+	FORCE_INLINE      Ray(const Ray &a_other)           = default;        //! Copy constructor
+	FORCE_INLINE      Ray(Ray &&a_other) noexcept       = default;        //! Move constructor
+	FORCE_INLINE Ray &operator=(const Ray &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Ray &operator=(Ray &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Ray() noexcept                        = default;        //! Destructor
 

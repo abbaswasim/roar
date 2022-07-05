@@ -28,6 +28,6 @@
 
 namespace ror
 {
-	define_translation_unit_vtable(Bounding)
-	{}
-}
+define_translation_unit_vtable(Bounding)
+{}
+}        // namespace ror

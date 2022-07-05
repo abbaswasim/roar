@@ -29,16 +29,16 @@ namespace ror
 {
 template <class _type>
 FORCE_INLINE EulerAngle<_type>::EulerAngle(const Vector3<_type> &a_euler) :
-	m_heading(a_euler.y),
-	m_attitude(a_euler.z),
-	m_bank(a_euler.x)
+    m_heading(a_euler.y),
+    m_attitude(a_euler.z),
+    m_bank(a_euler.x)
 {}
 
 template <class _type>
 FORCE_INLINE EulerAngle<_type>::EulerAngle(_type a_heading, _type a_attitude, _type a_bank) :
-	m_heading(a_heading),
-	m_attitude(a_attitude),
-	m_bank(a_bank)
+    m_heading(a_heading),
+    m_attitude(a_attitude),
+    m_bank(a_bank)
 {}
 
 template <class _type>
@@ -61,8 +61,8 @@ template <class _type>
 FORCE_INLINE bool EulerAngle<_type>::operator==(const EulerAngle &a_other) const noexcept
 {
 	return (decimal_equal(this->m_heading, a_other.m_heading) &&
-			decimal_equal(this->m_attitude, a_other.m_attitude) &&
-			decimal_equal(this->m_bank, a_other.m_bank));
+	        decimal_equal(this->m_attitude, a_other.m_attitude) &&
+	        decimal_equal(this->m_bank, a_other.m_bank));
 }
 
 template <class _type>
@@ -95,16 +95,16 @@ template <class _type>
 FORCE_INLINE EulerAngle<_type> EulerAngle<_type>::operator+(const EulerAngle &a_other) const noexcept
 {
 	return EulerAngle<_type>(this->m_heading + a_other.m_heading,
-							 this->m_attitude + a_other.m_attitude,
-							 this->m_bank + a_other.m_bank);
+	                         this->m_attitude + a_other.m_attitude,
+	                         this->m_bank + a_other.m_bank);
 }
 
 template <class _type>
 FORCE_INLINE EulerAngle<_type> EulerAngle<_type>::operator-(const EulerAngle &a_other) const noexcept
 {
 	return EulerAngle<_type>(this->m_heading - a_other.m_heading,
-							 this->m_attitude - a_other.m_attitude,
-							 this->m_bank - a_other.m_bank);
+	                         this->m_attitude - a_other.m_attitude,
+	                         this->m_bank - a_other.m_bank);
 }
 
 template <class _type>

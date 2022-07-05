@@ -99,7 +99,7 @@ void BuffersFormatConfig::load_remaining_buffers()
 #define item(_enum) rhi::BufferSemantic::_enum
 #define item_value(_enum)
 
-		describe_buffer_semantics(item)
+	    describe_buffer_semantics(item)
 
 #undef item
 #undef item_value
@@ -132,9 +132,9 @@ void BuffersFormatConfig::load_remaining_buffers()
 
 		// In the empty buffer find place for the remaining semantics
 		auto result = std::accumulate(std::begin(remaining), std::end(remaining), 0LL,
-									  [](const size_t previous, const std::pair<rhi::BufferSemantic, bool> &p) {
-										  return previous + (p.second ? 0 : 1);
-									  });
+		                              [](const size_t previous, const std::pair<rhi::BufferSemantic, bool> &p) {
+			                              return previous + (p.second ? 0 : 1);
+		                              });
 
 		auto per_buffer_size = empty_buffer->size() / result;        // Roughly split the size of the empty buffer between the remaining semantics
 		for (auto &semantic : remaining)

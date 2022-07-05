@@ -46,9 +46,9 @@ class ROAR_ENGINE_ITEM Quaternion final
 	FORCE_INLINE             Quaternion(_type a_w = 1);                                  //! Default constructor
 	FORCE_INLINE             Quaternion(const Quaternion &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE             Quaternion(Quaternion &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE Quaternion &operator=(const Quaternion &a_other) = default;             //! Copy assignment operator
-	FORCE_INLINE Quaternion &operator=(Quaternion &&a_other) noexcept = default;         //! Move assignment operator
-	FORCE_INLINE ~Quaternion() noexcept                               = default;         //! Destructor
+	FORCE_INLINE Quaternion &operator=(const Quaternion &a_other)      = default;        //! Copy assignment operator
+	FORCE_INLINE Quaternion &operator=(Quaternion &&a_other) noexcept  = default;        //! Move assignment operator
+	FORCE_INLINE ~Quaternion() noexcept                                = default;        //! Destructor
 
 	FORCE_INLINE Quaternion(_type a_x, _type a_y, _type a_z, _type a_w);
 	FORCE_INLINE Quaternion(const Matrix3<_type> &a_matrix);

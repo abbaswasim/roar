@@ -44,7 +44,7 @@ class ROAR_ENGINE_ITEM Transform final
 	FORCE_INLINE            Transform()                             = default;        //! Default constructor
 	FORCE_INLINE            Transform(const Transform &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE            Transform(Transform &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE Transform &operator=(const Transform &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE Transform &operator=(const Transform &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Transform &operator=(Transform &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Transform() noexcept                              = default;        //! Destructor
 

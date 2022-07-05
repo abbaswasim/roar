@@ -175,7 +175,7 @@ FORCE_INLINE CollisionType BoundingSphere<_type>::collision(const BoundingCircle
 	{
 		return CollisionType::outside;
 	}
-	else if (center_to_center_distance + ror_precision_cast(a_bounding.m_radius) <=  ror_precision_cast(this->m_radius))
+	else if (center_to_center_distance + ror_precision_cast(a_bounding.m_radius) <= ror_precision_cast(this->m_radius))
 	{
 		return CollisionType::inside;
 	}
@@ -419,14 +419,14 @@ FORCE_INLINE void BoundingSphere<_type>::add_point(const _type &a_point)
 
 		// Could call normalized but length is already calculated so lets use it
 		Vector3<ror_precision<typename _type::value_type>> normalized_direction(ror_precision_cast(direction_to_point.x) / center_to_point_distance,
-																				ror_precision_cast(direction_to_point.y) / center_to_point_distance,
-																				ror_precision_cast(direction_to_point.z) / center_to_point_distance);
+		                                                                        ror_precision_cast(direction_to_point.y) / center_to_point_distance,
+		                                                                        ror_precision_cast(direction_to_point.z) / center_to_point_distance);
 
 		auto radius_diff = (new_radius - old_radius);
 
 		this->m_points[0] = this->m_points[0] + _type(static_cast<typename _type::value_type>(normalized_direction.x * radius_diff),
-													  static_cast<typename _type::value_type>(normalized_direction.y * radius_diff),
-													  static_cast<typename _type::value_type>(normalized_direction.z * radius_diff));
+		                                              static_cast<typename _type::value_type>(normalized_direction.y * radius_diff),
+		                                              static_cast<typename _type::value_type>(normalized_direction.z * radius_diff));
 
 		this->m_radius = static_cast<typename _type::value_type>(new_radius);
 	}
@@ -526,7 +526,7 @@ FORCE_INLINE CollisionType BoundingCircle<_type>::collision(const BoundingBox<Ve
 	if (dist < ror_precision_cast(this->m_radius) && ror::equal_zero(closest.z))
 	{
 		if (distance(circle_center, a_bounding.m_points[0]) < ror_precision_cast(this->m_radius) &&
-			distance(circle_center, a_bounding.m_points[1]) < ror_precision_cast(this->m_radius))
+		    distance(circle_center, a_bounding.m_points[1]) < ror_precision_cast(this->m_radius))
 		{
 			return CollisionType::inside;
 		}
@@ -793,12 +793,12 @@ FORCE_INLINE void BoundingCircle<_type>::add_point(const _type &a_point)
 
 		// Could call normalized but length is already calculated so lets use it
 		Vector2<ror_precision<typename _type::value_type>> normalized_direction(ror_precision_cast(direction_to_point.x) / center_to_point_distance,
-																				ror_precision_cast(direction_to_point.y) / center_to_point_distance);
+		                                                                        ror_precision_cast(direction_to_point.y) / center_to_point_distance);
 
 		auto radius_diff = (new_radius - old_radius);
 
 		this->m_points[0] = this->m_points[0] + _type(static_cast<typename _type::value_type>(normalized_direction.x * radius_diff),
-													  static_cast<typename _type::value_type>(normalized_direction.y * radius_diff));
+		                                              static_cast<typename _type::value_type>(normalized_direction.y * radius_diff));
 
 		this->m_radius = static_cast<typename _type::value_type>(new_radius);
 	}
@@ -888,9 +888,9 @@ FORCE_INLINE CollisionType BoundingRectangle<_type>::collision(const BoundingSph
 	{
 		// This check done in 2D
 		if (this->m_points[0].x <= a_bounding.m_points[0].x - a_bounding.m_radius &&
-			this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
-			this->m_points[0].y <= a_bounding.m_points[0].y - a_bounding.m_radius &&
-			this->m_points[1].y >= a_bounding.m_points[0].y + a_bounding.m_radius)
+		    this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
+		    this->m_points[0].y <= a_bounding.m_points[0].y - a_bounding.m_radius &&
+		    this->m_points[1].y >= a_bounding.m_points[0].y + a_bounding.m_radius)
 		{
 			return CollisionType::inside;
 		}
@@ -905,14 +905,14 @@ template <class _type>
 FORCE_INLINE CollisionType BoundingRectangle<_type>::collision(const BoundingBox<Vector3<typename _type::value_type>> &a_bounding) const noexcept
 {
 	if (a_bounding.m_points[0].x > this->m_points[1].x || this->m_points[0].x > a_bounding.m_points[1].x ||
-		a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
-		a_bounding.m_points[0].z > 0 || 0 > a_bounding.m_points[1].z)
+	    a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
+	    a_bounding.m_points[0].z > 0 || 0 > a_bounding.m_points[1].z)
 	{
 		return CollisionType::outside;
 	}
 	else if (this->m_points[0].x <= a_bounding.m_points[0].x && a_bounding.m_points[1].x <= this->m_points[1].x &&
-			 this->m_points[0].y <= a_bounding.m_points[0].y && a_bounding.m_points[1].y <= this->m_points[1].y &&
-			 0 > a_bounding.m_points[0].z && a_bounding.m_points[1].z > 0)
+	         this->m_points[0].y <= a_bounding.m_points[0].y && a_bounding.m_points[1].y <= this->m_points[1].y &&
+	         0 > a_bounding.m_points[0].z && a_bounding.m_points[1].z > 0)
 	{
 		return CollisionType::inside;
 	}
@@ -929,9 +929,9 @@ FORCE_INLINE CollisionType BoundingRectangle<_type>::collision(const BoundingCir
 	if (dist < ror_precision_cast(a_bounding.m_radius))
 	{
 		if (this->m_points[0].x <= a_bounding.m_points[0].x - a_bounding.m_radius &&
-			this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
-			this->m_points[0].y <= a_bounding.m_points[0].y - a_bounding.m_radius &&
-			this->m_points[1].y >= a_bounding.m_points[0].y + a_bounding.m_radius)
+		    this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
+		    this->m_points[0].y <= a_bounding.m_points[0].y - a_bounding.m_radius &&
+		    this->m_points[1].y >= a_bounding.m_points[0].y + a_bounding.m_radius)
 		{
 			return CollisionType::inside;
 		}
@@ -946,12 +946,12 @@ template <class _type>
 FORCE_INLINE CollisionType BoundingRectangle<_type>::collision(const BoundingRectangle<Vector2<typename _type::value_type>> &a_bounding) const noexcept
 {
 	if (a_bounding.m_points[0].x > this->m_points[1].x || this->m_points[0].x > a_bounding.m_points[1].x ||
-		a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y)
+	    a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y)
 	{
 		return CollisionType::outside;
 	}
 	else if (a_bounding.m_points[0].x >= this->m_points[0].x && this->m_points[1].x >= a_bounding.m_points[1].x &&
-			 a_bounding.m_points[0].y >= this->m_points[0].y && this->m_points[1].y >= a_bounding.m_points[1].y)
+	         a_bounding.m_points[0].y >= this->m_points[0].y && this->m_points[1].y >= a_bounding.m_points[1].y)
 	{
 		return CollisionType::inside;
 	}
@@ -979,8 +979,8 @@ template <class _type>
 FORCE_INLINE bool BoundingRectangle<_type>::intersects(const BoundingBox<Vector3<typename _type::value_type>> &a_bounding) const noexcept
 {
 	if (a_bounding.m_points[0].x > this->m_points[1].x || this->m_points[0].x > a_bounding.m_points[1].x ||
-		a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
-		a_bounding.m_points[0].z > 0 || 0 > a_bounding.m_points[1].z)
+	    a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
+	    a_bounding.m_points[0].z > 0 || 0 > a_bounding.m_points[1].z)
 	{
 		return false;
 	}
@@ -1007,7 +1007,7 @@ template <class _type>
 FORCE_INLINE bool BoundingRectangle<_type>::intersects(const BoundingRectangle<Vector2<typename _type::value_type>> &a_bounding) const noexcept
 {
 	if (a_bounding.m_points[0].x > this->m_points[1].x || this->m_points[0].x > a_bounding.m_points[1].x ||
-		a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y)
+	    a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y)
 	{
 		return false;
 	}
@@ -1155,7 +1155,7 @@ template <class _type>
 FORCE_INLINE bool BoundingRectangle<_type>::is_point_inside(const _type &a_point) const
 {
 	return !(a_point.x < this->m_points[0].x || a_point.x > this->m_points[1].x ||
-			 a_point.y < this->m_points[0].y || a_point.y > this->m_points[1].y);
+	         a_point.y < this->m_points[0].y || a_point.y > this->m_points[1].y);
 }
 
 template <class _type>
@@ -1228,11 +1228,11 @@ FORCE_INLINE CollisionType BoundingBox<_type>::collision(const BoundingSphere<Ve
 	if (dist < ror_precision_cast(a_bounding.m_radius))
 	{
 		if (this->m_points[0].x <= a_bounding.m_points[0].x - a_bounding.m_radius &&
-			this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
-			this->m_points[0].y <= a_bounding.m_points[0].y - a_bounding.m_radius &&
-			this->m_points[1].y >= a_bounding.m_points[0].y + a_bounding.m_radius &&
-			this->m_points[0].z <= a_bounding.m_points[0].z - a_bounding.m_radius &&
-			this->m_points[1].z >= a_bounding.m_points[0].z + a_bounding.m_radius)
+		    this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
+		    this->m_points[0].y <= a_bounding.m_points[0].y - a_bounding.m_radius &&
+		    this->m_points[1].y >= a_bounding.m_points[0].y + a_bounding.m_radius &&
+		    this->m_points[0].z <= a_bounding.m_points[0].z - a_bounding.m_radius &&
+		    this->m_points[1].z >= a_bounding.m_points[0].z + a_bounding.m_radius)
 		{
 			return CollisionType::inside;
 		}
@@ -1251,14 +1251,14 @@ template <class _type>
 FORCE_INLINE CollisionType BoundingBox<_type>::collision(const BoundingBox<Vector3<typename _type::value_type>> &a_bounding) const noexcept
 {
 	if (a_bounding.m_points[0].x > this->m_points[1].x || this->m_points[0].x > a_bounding.m_points[1].x ||
-		a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
-		a_bounding.m_points[0].z > this->m_points[1].z || this->m_points[0].z > a_bounding.m_points[1].z)
+	    a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
+	    a_bounding.m_points[0].z > this->m_points[1].z || this->m_points[0].z > a_bounding.m_points[1].z)
 	{
 		return CollisionType::outside;
 	}
 	else if (this->m_points[0].x <= a_bounding.m_points[0].x && a_bounding.m_points[1].x <= this->m_points[1].x &&
-			 this->m_points[0].y <= a_bounding.m_points[0].y && a_bounding.m_points[1].y <= this->m_points[1].y &&
-			 this->m_points[0].z <= a_bounding.m_points[0].z && a_bounding.m_points[1].z <= this->m_points[1].z)
+	         this->m_points[0].y <= a_bounding.m_points[0].y && a_bounding.m_points[1].y <= this->m_points[1].y &&
+	         this->m_points[0].z <= a_bounding.m_points[0].z && a_bounding.m_points[1].z <= this->m_points[1].z)
 	{
 		return CollisionType::inside;
 	}
@@ -1279,9 +1279,9 @@ FORCE_INLINE CollisionType BoundingBox<_type>::collision(const BoundingCircle<Ve
 	{
 		// This check is done in 2D
 		if (this->m_points[0].x <= a_bounding.m_points[0].x - a_bounding.m_radius &&
-			this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
-			this->m_points[0].y <= a_bounding.m_points[0].y - a_bounding.m_radius &&
-			this->m_points[1].y >= a_bounding.m_points[0].y + a_bounding.m_radius)
+		    this->m_points[1].x >= a_bounding.m_points[0].x + a_bounding.m_radius &&
+		    this->m_points[0].y <= a_bounding.m_points[0].y - a_bounding.m_radius &&
+		    this->m_points[1].y >= a_bounding.m_points[0].y + a_bounding.m_radius)
 		{
 			return CollisionType::inside;
 		}
@@ -1298,14 +1298,14 @@ template <class _type>
 FORCE_INLINE CollisionType BoundingBox<_type>::collision(const BoundingRectangle<Vector2<typename _type::value_type>> &a_bounding) const noexcept
 {
 	if (a_bounding.m_points[0].x > this->m_points[1].x || this->m_points[0].x > a_bounding.m_points[1].x ||
-		a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
-		0 > this->m_points[1].z || this->m_points[0].z > 0)
+	    a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
+	    0 > this->m_points[1].z || this->m_points[0].z > 0)
 	{
 		return CollisionType::outside;
 	}
 	else if (this->m_points[0].x <= a_bounding.m_points[0].x && a_bounding.m_points[1].x <= this->m_points[1].x &&
-			 this->m_points[0].y <= a_bounding.m_points[0].y && a_bounding.m_points[1].y <= this->m_points[1].y &&
-			 this->m_points[0].z <= 0 && 0 <= this->m_points[1].z)
+	         this->m_points[0].y <= a_bounding.m_points[0].y && a_bounding.m_points[1].y <= this->m_points[1].y &&
+	         this->m_points[0].z <= 0 && 0 <= this->m_points[1].z)
 	{
 		return CollisionType::inside;
 	}
@@ -1331,8 +1331,8 @@ template <class _type>
 FORCE_INLINE bool BoundingBox<_type>::intersects(const BoundingBox<Vector3<typename _type::value_type>> &a_bounding) const noexcept
 {
 	if (a_bounding.m_points[0].x > this->m_points[1].x || this->m_points[0].x > a_bounding.m_points[1].x ||
-		a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
-		a_bounding.m_points[0].z > this->m_points[1].z || this->m_points[0].z > a_bounding.m_points[1].z)
+	    a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
+	    a_bounding.m_points[0].z > this->m_points[1].z || this->m_points[0].z > a_bounding.m_points[1].z)
 	{
 		return false;
 	}
@@ -1361,8 +1361,8 @@ template <class _type>
 FORCE_INLINE bool BoundingBox<_type>::intersects(const BoundingRectangle<Vector2<typename _type::value_type>> &a_bounding) const noexcept
 {
 	if (a_bounding.m_points[0].x > this->m_points[1].x || this->m_points[0].x > a_bounding.m_points[1].x ||
-		a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
-		0 > this->m_points[1].z || this->m_points[0].z > 0)
+	    a_bounding.m_points[0].y > this->m_points[1].y || this->m_points[0].y > a_bounding.m_points[1].y ||
+	    0 > this->m_points[1].z || this->m_points[0].z > 0)
 	{
 		return false;
 	}
@@ -1526,8 +1526,8 @@ template <class _type>
 FORCE_INLINE bool BoundingBox<_type>::is_point_inside(const _type &a_point) const
 {
 	return !(a_point.x < this->m_points[0].x || a_point.x > this->m_points[1].x ||
-			 a_point.y < this->m_points[0].y || a_point.y > this->m_points[1].y ||
-			 a_point.z < this->m_points[0].z || a_point.z > this->m_points[1].z);
+	         a_point.y < this->m_points[0].y || a_point.y > this->m_points[1].y ||
+	         a_point.z < this->m_points[0].z || a_point.z > this->m_points[1].z);
 }
 
 template <class _type>

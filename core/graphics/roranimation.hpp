@@ -55,7 +55,7 @@ class ROAR_ENGINE_ITEM Animation
 	FORCE_INLINE            Animation()                             = default;        //! Default constructor
 	FORCE_INLINE            Animation(const Animation &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE            Animation(Animation &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE Animation &operator=(const Animation &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE Animation &operator=(const Animation &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Animation &operator=(Animation &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Animation() noexcept                              = default;        //! Destructor
 

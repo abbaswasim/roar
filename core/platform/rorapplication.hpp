@@ -75,7 +75,7 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
   protected:
 	// This is protected so that no one can create pointers to base Application
 	FORCE_INLINE Application() :
-		m_context(this->window())
+	    m_context(this->window())
 	{}
 
   private:

@@ -30,20 +30,20 @@ namespace ror
 {
 template <class _type>
 FORCE_INLINE Vector2<_type>::Vector2(_type a_x, _type a_y) :
-	x(a_x),
-	y(a_y)
+    x(a_x),
+    y(a_y)
 {}
 
 template <class _type>
 FORCE_INLINE Vector2<_type>::Vector2(_type a_xy) :
-	x(a_xy),
-	y(a_xy)
+    x(a_xy),
+    y(a_xy)
 {}
 
 template <class _type>
 FORCE_INLINE Vector2<_type>::Vector2(Vector3<_type> a_xyz) :
-	x(a_xyz.x),
-	y(a_xyz.y)
+    x(a_xyz.x),
+    y(a_xyz.y)
 {}
 
 template <class _type>
@@ -101,7 +101,7 @@ template <class _type>
 FORCE_INLINE Vector2<_type> Vector2<_type>::operator/(const Vector2<_type> &a_right) const noexcept
 {
 	return Vector2<_type>((a_right.x < 0 || a_right.x > 0) ? x / a_right.x : 0,
-						  (a_right.y < 0 || a_right.y > 0) ? y / a_right.y : 0);
+	                      (a_right.y < 0 || a_right.y > 0) ? y / a_right.y : 0);
 }
 
 template <class _type>
@@ -257,8 +257,10 @@ FORCE_INLINE void Vector2<_type>::zero() noexcept
 template <class _type>
 FORCE_INLINE void Vector2<_type>::clamp(_type a_minimum, _type a_maximum) noexcept
 {
-	x = x > a_maximum ? a_maximum : x < a_minimum ? a_minimum : x;
-	y = y > a_maximum ? a_maximum : y < a_minimum ? a_minimum : y;
+	x = x > a_maximum ? a_maximum : x < a_minimum ? a_minimum :
+	                                                x;
+	y = y > a_maximum ? a_maximum : y < a_minimum ? a_minimum :
+	                                                y;
 }
 
 template <class _type>
@@ -316,14 +318,14 @@ template <class _type>
 FORCE_INLINE Vector2<_type> Vector2<_type>::inversed() const
 {
 	return Vector2((((x < 0) || (x > 0)) ? 1 / x : 0),
-				   (((y < 0) || (y > 0)) ? 1 / y : 0));
+	               (((y < 0) || (y > 0)) ? 1 / y : 0));
 }
 
 template <class _type>
 FORCE_INLINE Vector2<_type> Vector2<_type>::abs() const
 {
 	return Vector2(std::abs(x),
-				   std::abs(y));
+	               std::abs(y));
 }
 
 template <class _type>

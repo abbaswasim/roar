@@ -35,15 +35,15 @@
 namespace ror
 {
 /**
-* Redirects cout stream to internal buffer
-*/
+ * Redirects cout stream to internal buffer
+ */
 class ROAR_ENGINE_ITEM StreamRedirect
 {
   public:
 	StreamRedirect();                                                             //! Default constructor
-	StreamRedirect(const StreamRedirect &a_other)     = delete;                   //! Copy constructor
-	StreamRedirect(StreamRedirect &&a_other) noexcept = delete;                   //! Move constructor
-	StreamRedirect &operator=(const StreamRedirect &a_other) = delete;            //! Copy assignment operator
+	StreamRedirect(const StreamRedirect &a_other)                = delete;        //! Copy constructor
+	StreamRedirect(StreamRedirect &&a_other) noexcept            = delete;        //! Move constructor
+	StreamRedirect &operator=(const StreamRedirect &a_other)     = delete;        //! Copy assignment operator
 	StreamRedirect &operator=(StreamRedirect &&a_other) noexcept = delete;        //! Move assignment operator
 	virtual ~StreamRedirect();                                                    //! Destructor
 
@@ -68,9 +68,9 @@ class ROAR_ENGINE_ITEM Log final
 {
   public:
 	Log(const std::string &a_log_file = "");                 //! Default constructor
-	Log(const Log &a_other)     = delete;                    //! Copy constructor
-	Log(Log &&a_other) noexcept = delete;                    //! Move constructor
-	Log &operator=(const Log &a_other) = delete;             //! Copy assignment operator
+	Log(const Log &a_other)                = delete;         //! Copy constructor
+	Log(Log &&a_other) noexcept            = delete;         //! Move constructor
+	Log &operator=(const Log &a_other)     = delete;         //! Copy assignment operator
 	Log &operator=(Log &&a_other) noexcept = delete;         //! Move assignment operator
 	~Log() noexcept                        = default;        //! Destructor
 

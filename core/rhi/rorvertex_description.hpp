@@ -29,8 +29,8 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "rhi/rorbuffer.hpp"
 #include "profiling/rorlog.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
@@ -52,7 +52,7 @@ struct Rate
 	Rate()
 	{}
 	Rate(uint32_t a_value) :
-		m_value(a_value)
+	    m_value(a_value)
 	{}
 	uint32_t m_value{};
 };

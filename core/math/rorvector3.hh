@@ -29,30 +29,30 @@ namespace ror
 {
 template <class _type>
 FORCE_INLINE Vector3<_type>::Vector3(_type a_x, _type a_y, _type a_z) :
-	x(a_x),
-	y(a_y),
-	z(a_z)
+    x(a_x),
+    y(a_y),
+    z(a_z)
 {}
 
 template <class _type>
 FORCE_INLINE Vector3<_type>::Vector3(_type a_xyz) :
-	x(a_xyz),
-	y(a_xyz),
-	z(a_xyz)
+    x(a_xyz),
+    y(a_xyz),
+    z(a_xyz)
 {}
 
 template <class _type>
 FORCE_INLINE Vector3<_type>::Vector3(Vector2<_type> a_xy, _type a_z) :
-	x(a_xy.x),
-	y(a_xy.y),
-	z(a_z)
+    x(a_xy.x),
+    y(a_xy.y),
+    z(a_z)
 {}
 
 template <class _type>
 FORCE_INLINE Vector3<_type>::Vector3(Vector4<_type> a_other) :
-	x(a_other.x),
-	y(a_other.y),
-	z(a_other.z)
+    x(a_other.x),
+    y(a_other.y),
+    z(a_other.z)
 {}
 
 template <class _type>
@@ -110,8 +110,8 @@ template <class _type>
 FORCE_INLINE Vector3<_type> Vector3<_type>::operator/(const Vector3<_type> &a_right) const noexcept
 {
 	return Vector3<_type>((a_right.x < 0 || a_right.x > 0) ? x / a_right.x : 0,
-						  (a_right.y < 0 || a_right.y > 0) ? y / a_right.y : 0,
-						  (a_right.z < 0 || a_right.z > 0) ? z / a_right.z : 0);
+	                      (a_right.y < 0 || a_right.y > 0) ? y / a_right.y : 0,
+	                      (a_right.z < 0 || a_right.z > 0) ? z / a_right.z : 0);
 }
 
 template <class _type>
@@ -281,9 +281,12 @@ FORCE_INLINE void Vector3<_type>::zero() noexcept
 template <class _type>
 FORCE_INLINE void Vector3<_type>::clamp(_type a_minimum, _type a_maximum) noexcept
 {
-	x = x > a_maximum ? a_maximum : x < a_minimum ? a_minimum : x;
-	y = y > a_maximum ? a_maximum : y < a_minimum ? a_minimum : y;
-	z = z > a_maximum ? a_maximum : z < a_minimum ? a_minimum : z;
+	x = x > a_maximum ? a_maximum : x < a_minimum ? a_minimum :
+	                                                x;
+	y = y > a_maximum ? a_maximum : y < a_minimum ? a_minimum :
+	                                                y;
+	z = z > a_maximum ? a_maximum : z < a_minimum ? a_minimum :
+	                                                z;
 }
 
 template <class _type>
@@ -346,24 +349,24 @@ template <class _type>
 FORCE_INLINE Vector3<_type> Vector3<_type>::inversed() const
 {
 	return Vector3((((x < 0) || (x > 0)) ? 1 / x : 0),
-				   (((y < 0) || (y > 0)) ? 1 / y : 0),
-				   (((z < 0) || (z > 0)) ? 1 / z : 0));
+	               (((y < 0) || (y > 0)) ? 1 / y : 0),
+	               (((z < 0) || (z > 0)) ? 1 / z : 0));
 }
 
 template <class _type>
 FORCE_INLINE Vector3<_type> Vector3<_type>::abs() const
 {
 	return Vector3(std::abs(x),
-				   std::abs(y),
-				   std::abs(z));
+	               std::abs(y),
+	               std::abs(z));
 }
 
 template <class _type>
 FORCE_INLINE Vector3<_type> Vector3<_type>::cross_product(const Vector3<_type> &a_other) const
 {
 	return Vector3(y * a_other.z - z * a_other.y,
-				   a_other.x * z - a_other.z * x,
-				   x * a_other.y - y * a_other.x);
+	               a_other.x * z - a_other.z * x,
+	               x * a_other.y - y * a_other.x);
 }
 
 template <class _type>

@@ -32,24 +32,24 @@ template <class _type>
 FORCE_INLINE Matrix2<_type> operator+(const Matrix2<_type> &a_lhs, const Matrix2<_type> &a_rhs)
 {
 	return Matrix2<_type>(a_lhs.m_values[0] + a_rhs.m_values[0], a_lhs.m_values[1] + a_rhs.m_values[1],
-						  a_lhs.m_values[2] + a_rhs.m_values[2], a_lhs.m_values[3] + a_rhs.m_values[3]);
+	                      a_lhs.m_values[2] + a_rhs.m_values[2], a_lhs.m_values[3] + a_rhs.m_values[3]);
 }
 
 template <class _type>
 FORCE_INLINE Matrix2<_type> operator-(const Matrix2<_type> &a_lhs, const Matrix2<_type> &a_rhs)
 {
 	return Matrix2<_type>(a_lhs.m_values[0] - a_rhs.m_values[0], a_lhs.m_values[1] - a_rhs.m_values[1],
-						  a_lhs.m_values[2] - a_rhs.m_values[2], a_lhs.m_values[3] - a_rhs.m_values[3]);
+	                      a_lhs.m_values[2] - a_rhs.m_values[2], a_lhs.m_values[3] - a_rhs.m_values[3]);
 }
 
 template <class _type>
 FORCE_INLINE Matrix2<_type> operator*(const Matrix2<_type> &a_lhs, const Matrix2<_type> &a_rhs)
 {
 	return Matrix2<_type>(a_lhs.m_values[0] * a_rhs.m_values[0] + a_lhs.m_values[2] * a_rhs.m_values[1],
-						  a_lhs.m_values[1] * a_rhs.m_values[0] + a_lhs.m_values[3] * a_rhs.m_values[1],
+	                      a_lhs.m_values[1] * a_rhs.m_values[0] + a_lhs.m_values[3] * a_rhs.m_values[1],
 
-						  a_lhs.m_values[0] * a_rhs.m_values[2] + a_lhs.m_values[2] * a_rhs.m_values[3],
-						  a_lhs.m_values[1] * a_rhs.m_values[2] + a_lhs.m_values[3] * a_rhs.m_values[3]);
+	                      a_lhs.m_values[0] * a_rhs.m_values[2] + a_lhs.m_values[2] * a_rhs.m_values[3],
+	                      a_lhs.m_values[1] * a_rhs.m_values[2] + a_lhs.m_values[3] * a_rhs.m_values[3]);
 }
 
 template <class _type>
@@ -78,7 +78,7 @@ template <class _type>
 FORCE_INLINE Vector2<_type> operator*(const Matrix2<_type> &a_matrix, const Vector2<_type> &a_vector)
 {
 	return Vector2<_type>(a_matrix.m_values[0] * a_vector.x + a_matrix.m_values[2] * a_vector.y,
-						  a_matrix.m_values[1] * a_vector.x + a_matrix.m_values[3] * a_vector.y);
+	                      a_matrix.m_values[1] * a_vector.x + a_matrix.m_values[3] * a_vector.y);
 }
 
 // Not the same as above M * v != v * M
@@ -86,35 +86,35 @@ template <class _type>
 FORCE_INLINE Vector2<_type> operator*(const Vector2<_type> &a_vector, const Matrix2<_type> &a_matrix)
 {
 	return Vector2<_type>(a_matrix.m_values[0] * a_vector.x + a_matrix.m_values[1] * a_vector.y,
-						  a_matrix.m_values[2] * a_vector.x + a_matrix.m_values[3] * a_vector.y);
+	                      a_matrix.m_values[2] * a_vector.x + a_matrix.m_values[3] * a_vector.y);
 }
 
 template <class _type>
 FORCE_INLINE Matrix2<_type> operator*(const Matrix2<_type> &a_matrix, _type a_value)
 {
 	return Matrix2<_type>(a_matrix.m_values[0] * a_value, a_matrix.m_values[1] * a_value,
-						  a_matrix.m_values[2] * a_value, a_matrix.m_values[3] * a_value);
+	                      a_matrix.m_values[2] * a_value, a_matrix.m_values[3] * a_value);
 }
 
 template <class _type>
 FORCE_INLINE Matrix2<_type> operator+(const Matrix2<_type> &a_matrix, _type a_value)
 {
 	return Matrix2<_type>(a_matrix.m_values[0] + a_value, a_matrix.m_values[1] + a_value,
-						  a_matrix.m_values[2] + a_value, a_matrix.m_values[3] + a_value);
+	                      a_matrix.m_values[2] + a_value, a_matrix.m_values[3] + a_value);
 }
 
 template <class _type>
 FORCE_INLINE Matrix2<_type> operator-(const Matrix2<_type> &a_matrix, _type a_value)
 {
 	return Matrix2<_type>(a_matrix.m_values[0] - a_value, a_matrix.m_values[1] - a_value,
-						  a_matrix.m_values[2] - a_value, a_matrix.m_values[3] - a_value);
+	                      a_matrix.m_values[2] - a_value, a_matrix.m_values[3] - a_value);
 }
 
 template <class _type>
 FORCE_INLINE Matrix2<_type> operator/(const Matrix2<_type> &a_matrix, _type a_value)
 {
 	return Matrix2<_type>(a_matrix.m_values[0] / a_value, a_matrix.m_values[1] / a_value,
-						  a_matrix.m_values[2] / a_value, a_matrix.m_values[3] / a_value);
+	                      a_matrix.m_values[2] / a_value, a_matrix.m_values[3] / a_value);
 }
 
 template <class _type>

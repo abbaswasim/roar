@@ -35,16 +35,16 @@ size_t EventHandleHash::operator()(const EventHandle &a_event_handle) const
 }
 
 EventHandle create_event_handle(EventType     a_event_type,
-								EventCode     a_event_code,
-								EventModifier a_event_modifier,
-								EventState    event_state)
+                                EventCode     a_event_code,
+                                EventModifier a_event_modifier,
+                                EventState    event_state)
 {
 	EventHandle event_handle;
 
 	event_handle = EventHandle(enum_to_type_cast(a_event_type) |
-							   enum_to_type_cast(a_event_code) << 8 |
-							   enum_to_type_cast(a_event_modifier) << 16 |
-							   enum_to_type_cast(event_state) << 24);
+	                           enum_to_type_cast(a_event_code) << 8 |
+	                           enum_to_type_cast(a_event_modifier) << 16 |
+	                           enum_to_type_cast(event_state) << 24);
 
 	return event_handle;
 }
@@ -85,9 +85,9 @@ void EventSystem::init()
 			for (size_t k = 0; k < event_modifier_max; ++k)
 				for (size_t l = 0; l < event_state_max; ++l)
 					this->m_subscribers[create_event_handle(static_cast<EventType>(i),
-															static_cast<EventCode>(j),
-															static_cast<EventModifier>(k),
-															static_cast<EventState>(l))] = {};
+					                                        static_cast<EventCode>(j),
+					                                        static_cast<EventModifier>(k),
+					                                        static_cast<EventState>(l))] = {};
 }
 
 void EventSystem::notify(Event a_event) const

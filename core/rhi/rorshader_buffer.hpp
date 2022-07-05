@@ -54,9 +54,9 @@ class ROAR_ENGINE_ITEM ShaderBuffer final
 	FORCE_INLINE               ShaderBuffer();                                                 //! Default constructor
 	FORCE_INLINE               ShaderBuffer(const ShaderBuffer &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE               ShaderBuffer(ShaderBuffer &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE ShaderBuffer &operator=(const ShaderBuffer &a_other) = default;               //! Copy assignment operator
-	FORCE_INLINE ShaderBuffer &operator=(ShaderBuffer &&a_other) noexcept = default;           //! Move assignment operator
-	FORCE_INLINE ~ShaderBuffer() noexcept                                 = default;           //! Destructor
+	FORCE_INLINE ShaderBuffer &operator=(const ShaderBuffer &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE ShaderBuffer &operator=(ShaderBuffer &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE ~ShaderBuffer() noexcept                                    = default;        //! Destructor
 
 	struct Entry
 	{
@@ -68,13 +68,13 @@ class ROAR_ENGINE_ITEM ShaderBuffer final
 		uint32_t    m_size{0};                        //! Whats the size of this entry in machine units
 
 		Entry(std::string a_name, Format a_type, uint32_t a_count, uint32_t a_stride, uint32_t a_offset, uint32_t a_size) :
-			m_name(a_name), m_type(a_type), m_count(a_count), m_stride(a_stride), m_offset(a_offset), m_size(a_size)
+		    m_name(a_name), m_type(a_type), m_count(a_count), m_stride(a_stride), m_offset(a_offset), m_size(a_size)
 		{}
 
-		Entry()                         = default;                   //! Default constructor
-		Entry(const Entry &a_other)     = default;                   //! Copy constructor
-		Entry(Entry &&a_other) noexcept = default;                   //! Move constructor
-		Entry &operator=(const Entry &a_other) = default;            //! Copy assignment operator
+		Entry()                                    = default;        //! Default constructor
+		Entry(const Entry &a_other)                = default;        //! Copy constructor
+		Entry(Entry &&a_other) noexcept            = default;        //! Move constructor
+		Entry &operator=(const Entry &a_other)     = default;        //! Copy assignment operator
 		Entry &operator=(Entry &&a_other) noexcept = default;        //! Move assignment operator
 		virtual ~Entry() noexcept                  = default;        //! Destructor
 
@@ -99,7 +99,7 @@ class ROAR_ENGINE_ITEM ShaderBuffer final
 	};
 
 	FORCE_INLINE ShaderBuffer(std::string a_name, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
-		m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_entries(a_name, 1)
+	    m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_entries(a_name, 1)
 	{}
 
 	FORCE_INLINE void add_entry(std::string a_name, Format a_type, uint32_t a_count = 1)

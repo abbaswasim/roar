@@ -309,7 +309,7 @@ void replace_all_ats(uint32_t a_ats_count, _type a_at_replace, std::string &a_re
 }
 
 void append_count_times(uint32_t a_count, uint32_t a_ats_count,
-						std::string &a_result, const std::string &a_body)
+                        std::string &a_result, const std::string &a_body)
 {
 	for (uint32_t i = 0; i < a_count; ++i)
 	{
@@ -654,14 +654,14 @@ std::string vs_set_main(bool a_has_normal, bool a_has_tangent, bool a_has_bent_n
 // This is to be used for calculating standard output formats for each attribute so I can remove lots of combinations and have a standard interface into fragment shaders
 // This is basically an override on whatever data is coming in
 static const std::unordered_map<rhi::BufferSemantic, rhi::VertexFormat> attrib_in_out_format{
-	{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_4},
-	{rhi::BufferSemantic::vertex_normal, rhi::VertexFormat::float32_3},
-	{rhi::BufferSemantic::vertex_tangent, rhi::VertexFormat::float32_4},
-	{rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2},
-	{rhi::BufferSemantic::vertex_texture_coord_1, rhi::VertexFormat::float32_2},
-	{rhi::BufferSemantic::vertex_texture_coord_2, rhi::VertexFormat::float32_2},
-	{rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4},
-	{rhi::BufferSemantic::vertex_color_1, rhi::VertexFormat::float32_4}};
+    {rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_4},
+    {rhi::BufferSemantic::vertex_normal, rhi::VertexFormat::float32_3},
+    {rhi::BufferSemantic::vertex_tangent, rhi::VertexFormat::float32_4},
+    {rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2},
+    {rhi::BufferSemantic::vertex_texture_coord_1, rhi::VertexFormat::float32_2},
+    {rhi::BufferSemantic::vertex_texture_coord_2, rhi::VertexFormat::float32_2},
+    {rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4},
+    {rhi::BufferSemantic::vertex_color_1, rhi::VertexFormat::float32_4}};
 
 std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset, uint32_t a_target_offset, const std::string &a_prefix, bool a_output)
 {
@@ -727,14 +727,14 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	auto        has_color_1              = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1);
 
 	std::unordered_map<rhi::BufferSemantic, std::pair<uint32_t, bool>> targets_count{
-		{rhi::BufferSemantic::vertex_position, {0, true}},
-		{rhi::BufferSemantic::vertex_normal, {0, has_normal}},
-		{rhi::BufferSemantic::vertex_tangent, {0, has_tangent}},
-		{rhi::BufferSemantic::vertex_texture_coord_0, {0, has_uv_0}},
-		{rhi::BufferSemantic::vertex_texture_coord_1, {0, has_uv_1}},
-		{rhi::BufferSemantic::vertex_texture_coord_2, {0, has_uv_2}},
-		{rhi::BufferSemantic::vertex_color_0, {0, has_color_0}},
-		{rhi::BufferSemantic::vertex_color_1, {0, has_color_1}}};
+	    {rhi::BufferSemantic::vertex_position, {0, true}},
+	    {rhi::BufferSemantic::vertex_normal, {0, has_normal}},
+	    {rhi::BufferSemantic::vertex_tangent, {0, has_tangent}},
+	    {rhi::BufferSemantic::vertex_texture_coord_0, {0, has_uv_0}},
+	    {rhi::BufferSemantic::vertex_texture_coord_1, {0, has_uv_1}},
+	    {rhi::BufferSemantic::vertex_texture_coord_2, {0, has_uv_2}},
+	    {rhi::BufferSemantic::vertex_color_0, {0, has_color_0}},
+	    {rhi::BufferSemantic::vertex_color_1, {0, has_color_1}}};
 
 	std::string result{"#version 450\n\nprecision highp float;\nprecision highp int;\n"};        // TODO: abstract out version
 
@@ -988,14 +988,14 @@ The following will make something like
 
 vec2 get_base_color_uvs()
 {
-	return in_vertex_texture_coord_0;
+    return in_vertex_texture_coord_0;
 }
 
 vec4 get_base_color()
 {
-	vec2 base_color_uv = get_base_color_uvs();
-	base_color_uv = (base_color_uv_transform * base_color_uv).xy;
-	base_color = texture(base_color_sampler, base_color_uv.xy) * vec4(base_color_factor, 1.0);
+    vec2 base_color_uv = get_base_color_uvs();
+    base_color_uv = (base_color_uv_transform * base_color_uv).xy;
+    base_color = texture(base_color_sampler, base_color_uv.xy) * vec4(base_color_factor, 1.0);
 }
 
 if called like texture_lookup(mat_comp, "base_color");
@@ -1096,7 +1096,7 @@ std::string texture_lookups(const ror::Material &a_material)
 
 	// If we have a normal map, lets add code to generate tangent frame in the shader
 	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
-		a_material.m_normal.m_type == ror::Material::ComponentType::texture)
+	    a_material.m_normal.m_type == ror::Material::ComponentType::texture)
 	{
 		// Read tbn.frag.glsl resource and create a string_view
 		auto            &tbn_resource = ror::load_resource("shaders/tbn.frag.glsl", ror::ResourceSemantic::shaders);
@@ -1227,10 +1227,9 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 	// if (a_material.m_subsurface_scattering.m_type != ror::Material::MaterialComponentType::texture_only)
 	//	output.append("float subsurface_scattering_factor;\n\t");
 
-	// clang-format on
+		    // clang-format on
 
-	if (output.empty())
-		return "";
+		    if (output.empty()) return "";
 
 	result.append(output);
 	result.append("} in_factors;\n");
@@ -1275,7 +1274,7 @@ std::string get_material(const ror::Material &a_material)
 
 	// If we have a normal map use the overloaded get_normal(N, V)
 	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
-		a_material.m_normal.m_type == ror::Material::ComponentType::texture)
+	    a_material.m_normal.m_type == ror::Material::ComponentType::texture)
 		output.append("\tmaterial.normal = get_normal(in_vertex_normal, material.view);\n");
 	else        // otherwise use the standard get_normal()
 		get_material_component(normal, vec3(0.0, 0.0, 1.0));

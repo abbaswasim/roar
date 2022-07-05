@@ -29,33 +29,33 @@ namespace ror
 {
 template <class _type>
 FORCE_INLINE Matrix2<_type>::Matrix2(_type a_scale) :
-	m_values{a_scale, 0,
-			 0, a_scale}
+    m_values{a_scale, 0,
+             0, a_scale}
 {}
 
 template <class _type>
 FORCE_INLINE Matrix2<_type>::Matrix2(const Matrix3<_type> &a_matrix) :
-	m_values{a_matrix.m_values[0], a_matrix.m_values[1],
-			 a_matrix.m_values[3], a_matrix.m_values[4]}
+    m_values{a_matrix.m_values[0], a_matrix.m_values[1],
+             a_matrix.m_values[3], a_matrix.m_values[4]}
 {}
 
 template <class _type>
 FORCE_INLINE Matrix2<_type>::Matrix2(const Matrix4<_type> &a_matrix) :
-	m_values{a_matrix.m_values[0], a_matrix.m_values[1],
-			 a_matrix.m_values[4], a_matrix.m_values[5]}
+    m_values{a_matrix.m_values[0], a_matrix.m_values[1],
+             a_matrix.m_values[4], a_matrix.m_values[5]}
 {}
 
 template <class _type>
 FORCE_INLINE Matrix2<_type>::Matrix2(const _type *a_elements) :
-	m_values{a_elements[0], a_elements[1],
-			 a_elements[2], a_elements[3]}
+    m_values{a_elements[0], a_elements[1],
+             a_elements[2], a_elements[3]}
 {}
 
 template <class _type>
 FORCE_INLINE Matrix2<_type>::Matrix2(_type a_0, _type a_1,
-									 _type a_2, _type a_3) :
-	m_values{a_0, a_1,
-			 a_2, a_3}
+                                     _type a_2, _type a_3) :
+    m_values{a_0, a_1,
+             a_2, a_3}
 {}
 
 template <class _type>
@@ -78,7 +78,7 @@ FORCE_INLINE void Matrix2<_type>::set(const _type *a_elements) noexcept
 
 template <class _type>
 FORCE_INLINE void Matrix2<_type>::set(_type a_0, _type a_1,
-									  _type a_2, _type a_3) noexcept
+                                      _type a_2, _type a_3) noexcept
 {
 	this->m_values[0] = a_0;
 	this->m_values[1] = a_1;
@@ -137,7 +137,7 @@ FORCE_INLINE Vector2<_type> Matrix2<_type>::column(uint32_t a_index) const
 	uint32_t axis_index = a_index * 2;
 
 	return Vector2<_type>(this->m_values[axis_index + 0],
-						  this->m_values[axis_index + 1]);
+	                      this->m_values[axis_index + 1]);
 }
 
 template <class _type>
@@ -191,7 +191,7 @@ template <class _type>
 FORCE_INLINE Matrix2<_type> Matrix2<_type>::operator-() const
 {
 	return Matrix2<_type>(-this->m_values[0], -this->m_values[1],
-						  -this->m_values[2], -this->m_values[3]);
+	                      -this->m_values[2], -this->m_values[3]);
 }
 
 template <class _type>
@@ -229,7 +229,7 @@ FORCE_INLINE bool Matrix2<_type>::inverse(Matrix2 &a_output_matrix) const
 	_type det = this->determinant();
 
 	if (equal_zero(det))
-		return false;        //singular matrix, not invertible
+		return false;        // singular matrix, not invertible
 
 	// the matrix is invertible, proceed with cofactor expansion
 	a_output_matrix.m_values[0] = this->m_values[3];
@@ -237,7 +237,7 @@ FORCE_INLINE bool Matrix2<_type>::inverse(Matrix2 &a_output_matrix) const
 	a_output_matrix.m_values[2] = -this->m_values[1];
 	a_output_matrix.m_values[3] = this->m_values[0];
 
-	//multiply with reciprocal to obtain inverted matrix
+	// multiply with reciprocal to obtain inverted matrix
 	_type det_multiplier = static_cast<_type>(1) / det;
 
 	for (int i = 0; i < 4; i++)
@@ -274,7 +274,7 @@ template <class _type>
 FORCE_INLINE Matrix2<_type> Matrix2<_type>::transposed() const
 {
 	return Matrix2<_type>(this->m_values[0], this->m_values[2],
-						  this->m_values[1], this->m_values[3]);
+	                      this->m_values[1], this->m_values[3]);
 }
 
 template <class _type>
@@ -287,7 +287,7 @@ FORCE_INLINE void Matrix2<_type>::normalize()
 	yaxis.normalize();
 
 	this->set(xaxis.x, xaxis.y,
-			  yaxis.x, yaxis.y);
+	          yaxis.x, yaxis.y);
 }
 
 template <class _type>

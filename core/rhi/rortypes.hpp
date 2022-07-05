@@ -434,7 +434,7 @@ constexpr rhi::BufferSemantic get_format_shader_semantic()
 // To use the above for an Animation type do
 define_type_to_shader_semantics(Animation)
 {
-	return BufferSemantic::animation_data;
+    return BufferSemantic::animation_data;
 }
 */
 }        // namespace rhi

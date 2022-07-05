@@ -32,32 +32,32 @@ template <class _type>
 FORCE_INLINE Matrix3<_type> operator+(const Matrix3<_type> &a_lhs, const Matrix3<_type> &a_rhs)
 {
 	return Matrix3<_type>(a_lhs.m_values[0] + a_rhs.m_values[0], a_lhs.m_values[1] + a_rhs.m_values[1], a_lhs.m_values[2] + a_rhs.m_values[2],
-						  a_lhs.m_values[3] + a_rhs.m_values[3], a_lhs.m_values[4] + a_rhs.m_values[4], a_lhs.m_values[5] + a_rhs.m_values[5],
-						  a_lhs.m_values[6] + a_rhs.m_values[6], a_lhs.m_values[7] + a_rhs.m_values[7], a_lhs.m_values[8] + a_rhs.m_values[8]);
+	                      a_lhs.m_values[3] + a_rhs.m_values[3], a_lhs.m_values[4] + a_rhs.m_values[4], a_lhs.m_values[5] + a_rhs.m_values[5],
+	                      a_lhs.m_values[6] + a_rhs.m_values[6], a_lhs.m_values[7] + a_rhs.m_values[7], a_lhs.m_values[8] + a_rhs.m_values[8]);
 }
 
 template <class _type>
 FORCE_INLINE Matrix3<_type> operator-(const Matrix3<_type> &a_lhs, const Matrix3<_type> &a_rhs)
 {
 	return Matrix3<_type>(a_lhs.m_values[0] - a_rhs.m_values[0], a_lhs.m_values[1] - a_rhs.m_values[1], a_lhs.m_values[2] - a_rhs.m_values[2],
-						  a_lhs.m_values[3] - a_rhs.m_values[3], a_lhs.m_values[4] - a_rhs.m_values[4], a_lhs.m_values[5] - a_rhs.m_values[5],
-						  a_lhs.m_values[6] - a_rhs.m_values[6], a_lhs.m_values[7] - a_rhs.m_values[7], a_lhs.m_values[8] - a_rhs.m_values[8]);
+	                      a_lhs.m_values[3] - a_rhs.m_values[3], a_lhs.m_values[4] - a_rhs.m_values[4], a_lhs.m_values[5] - a_rhs.m_values[5],
+	                      a_lhs.m_values[6] - a_rhs.m_values[6], a_lhs.m_values[7] - a_rhs.m_values[7], a_lhs.m_values[8] - a_rhs.m_values[8]);
 }
 
 template <class _type>
 FORCE_INLINE Matrix3<_type> operator*(const Matrix3<_type> &a_lhs, const Matrix3<_type> &a_rhs)
 {
 	return Matrix3<_type>(a_lhs.m_values[0] * a_rhs.m_values[0] + a_lhs.m_values[3] * a_rhs.m_values[1] + a_lhs.m_values[6] * a_rhs.m_values[2],
-						  a_lhs.m_values[1] * a_rhs.m_values[0] + a_lhs.m_values[4] * a_rhs.m_values[1] + a_lhs.m_values[7] * a_rhs.m_values[2],
-						  a_lhs.m_values[2] * a_rhs.m_values[0] + a_lhs.m_values[5] * a_rhs.m_values[1] + a_lhs.m_values[8] * a_rhs.m_values[2],
+	                      a_lhs.m_values[1] * a_rhs.m_values[0] + a_lhs.m_values[4] * a_rhs.m_values[1] + a_lhs.m_values[7] * a_rhs.m_values[2],
+	                      a_lhs.m_values[2] * a_rhs.m_values[0] + a_lhs.m_values[5] * a_rhs.m_values[1] + a_lhs.m_values[8] * a_rhs.m_values[2],
 
-						  a_lhs.m_values[0] * a_rhs.m_values[3] + a_lhs.m_values[3] * a_rhs.m_values[4] + a_lhs.m_values[6] * a_rhs.m_values[5],
-						  a_lhs.m_values[1] * a_rhs.m_values[3] + a_lhs.m_values[4] * a_rhs.m_values[4] + a_lhs.m_values[7] * a_rhs.m_values[5],
-						  a_lhs.m_values[2] * a_rhs.m_values[3] + a_lhs.m_values[5] * a_rhs.m_values[4] + a_lhs.m_values[8] * a_rhs.m_values[5],
+	                      a_lhs.m_values[0] * a_rhs.m_values[3] + a_lhs.m_values[3] * a_rhs.m_values[4] + a_lhs.m_values[6] * a_rhs.m_values[5],
+	                      a_lhs.m_values[1] * a_rhs.m_values[3] + a_lhs.m_values[4] * a_rhs.m_values[4] + a_lhs.m_values[7] * a_rhs.m_values[5],
+	                      a_lhs.m_values[2] * a_rhs.m_values[3] + a_lhs.m_values[5] * a_rhs.m_values[4] + a_lhs.m_values[8] * a_rhs.m_values[5],
 
-						  a_lhs.m_values[0] * a_rhs.m_values[6] + a_lhs.m_values[3] * a_rhs.m_values[7] + a_lhs.m_values[6] * a_rhs.m_values[8],
-						  a_lhs.m_values[1] * a_rhs.m_values[6] + a_lhs.m_values[4] * a_rhs.m_values[7] + a_lhs.m_values[7] * a_rhs.m_values[8],
-						  a_lhs.m_values[2] * a_rhs.m_values[6] + a_lhs.m_values[5] * a_rhs.m_values[7] + a_lhs.m_values[8] * a_rhs.m_values[8]);
+	                      a_lhs.m_values[0] * a_rhs.m_values[6] + a_lhs.m_values[3] * a_rhs.m_values[7] + a_lhs.m_values[6] * a_rhs.m_values[8],
+	                      a_lhs.m_values[1] * a_rhs.m_values[6] + a_lhs.m_values[4] * a_rhs.m_values[7] + a_lhs.m_values[7] * a_rhs.m_values[8],
+	                      a_lhs.m_values[2] * a_rhs.m_values[6] + a_lhs.m_values[5] * a_rhs.m_values[7] + a_lhs.m_values[8] * a_rhs.m_values[8]);
 }
 
 template <class _type>
@@ -86,8 +86,8 @@ template <class _type>
 FORCE_INLINE Vector3<_type> operator*(const Matrix3<_type> &a_matrix, const Vector3<_type> &a_vector)
 {
 	return Vector3<_type>(a_matrix.m_values[0] * a_vector.x + a_matrix.m_values[3] * a_vector.y + a_matrix.m_values[6] * a_vector.z,
-						  a_matrix.m_values[1] * a_vector.x + a_matrix.m_values[4] * a_vector.y + a_matrix.m_values[7] * a_vector.z,
-						  a_matrix.m_values[2] * a_vector.x + a_matrix.m_values[5] * a_vector.y + a_matrix.m_values[8] * a_vector.z);
+	                      a_matrix.m_values[1] * a_vector.x + a_matrix.m_values[4] * a_vector.y + a_matrix.m_values[7] * a_vector.z,
+	                      a_matrix.m_values[2] * a_vector.x + a_matrix.m_values[5] * a_vector.y + a_matrix.m_values[8] * a_vector.z);
 }
 
 // Not the same as above because M * v != v * M
@@ -95,40 +95,40 @@ template <class _type>
 FORCE_INLINE Vector3<_type> operator*(const Vector3<_type> &a_vector, const Matrix3<_type> &a_matrix)
 {
 	return Vector3<_type>(a_matrix.m_values[0] * a_vector.x + a_matrix.m_values[1] * a_vector.y + a_matrix.m_values[2] * a_vector.z,
-						  a_matrix.m_values[3] * a_vector.x + a_matrix.m_values[4] * a_vector.y + a_matrix.m_values[5] * a_vector.z,
-						  a_matrix.m_values[6] * a_vector.x + a_matrix.m_values[7] * a_vector.y + a_matrix.m_values[8] * a_vector.z);
+	                      a_matrix.m_values[3] * a_vector.x + a_matrix.m_values[4] * a_vector.y + a_matrix.m_values[5] * a_vector.z,
+	                      a_matrix.m_values[6] * a_vector.x + a_matrix.m_values[7] * a_vector.y + a_matrix.m_values[8] * a_vector.z);
 }
 
 template <class _type>
 FORCE_INLINE Matrix3<_type> operator*(const Matrix3<_type> &a_matrix, _type a_value)
 {
 	return Matrix3<_type>(a_matrix.m_values[0] * a_value, a_matrix.m_values[1] * a_value, a_matrix.m_values[2] * a_value,
-						  a_matrix.m_values[3] * a_value, a_matrix.m_values[4] * a_value, a_matrix.m_values[5] * a_value,
-						  a_matrix.m_values[6] * a_value, a_matrix.m_values[7] * a_value, a_matrix.m_values[8] * a_value);
+	                      a_matrix.m_values[3] * a_value, a_matrix.m_values[4] * a_value, a_matrix.m_values[5] * a_value,
+	                      a_matrix.m_values[6] * a_value, a_matrix.m_values[7] * a_value, a_matrix.m_values[8] * a_value);
 }
 
 template <class _type>
 FORCE_INLINE Matrix3<_type> operator+(const Matrix3<_type> &a_matrix, _type a_value)
 {
 	return Matrix3<_type>(a_matrix.m_values[0] + a_value, a_matrix.m_values[1] + a_value, a_matrix.m_values[2] + a_value,
-						  a_matrix.m_values[3] + a_value, a_matrix.m_values[4] + a_value, a_matrix.m_values[5] + a_value,
-						  a_matrix.m_values[6] + a_value, a_matrix.m_values[7] + a_value, a_matrix.m_values[8] + a_value);
+	                      a_matrix.m_values[3] + a_value, a_matrix.m_values[4] + a_value, a_matrix.m_values[5] + a_value,
+	                      a_matrix.m_values[6] + a_value, a_matrix.m_values[7] + a_value, a_matrix.m_values[8] + a_value);
 }
 
 template <class _type>
 FORCE_INLINE Matrix3<_type> operator-(const Matrix3<_type> &a_matrix, _type a_value)
 {
 	return Matrix3<_type>(a_matrix.m_values[0] - a_value, a_matrix.m_values[1] - a_value, a_matrix.m_values[2] - a_value,
-						  a_matrix.m_values[3] - a_value, a_matrix.m_values[4] - a_value, a_matrix.m_values[5] - a_value,
-						  a_matrix.m_values[6] - a_value, a_matrix.m_values[7] - a_value, a_matrix.m_values[8] - a_value);
+	                      a_matrix.m_values[3] - a_value, a_matrix.m_values[4] - a_value, a_matrix.m_values[5] - a_value,
+	                      a_matrix.m_values[6] - a_value, a_matrix.m_values[7] - a_value, a_matrix.m_values[8] - a_value);
 }
 
 template <class _type>
 FORCE_INLINE Matrix3<_type> operator/(const Matrix3<_type> &a_matrix, _type a_value)
 {
 	return Matrix3<_type>(a_matrix.m_values[0] / a_value, a_matrix.m_values[1] / a_value, a_matrix.m_values[2] / a_value,
-						  a_matrix.m_values[3] / a_value, a_matrix.m_values[4] / a_value, a_matrix.m_values[5] / a_value,
-						  a_matrix.m_values[6] / a_value, a_matrix.m_values[7] / a_value, a_matrix.m_values[8] / a_value);
+	                      a_matrix.m_values[3] / a_value, a_matrix.m_values[4] / a_value, a_matrix.m_values[5] / a_value,
+	                      a_matrix.m_values[6] / a_value, a_matrix.m_values[7] / a_value, a_matrix.m_values[8] / a_value);
 }
 
 template <class _type>
@@ -173,8 +173,8 @@ FORCE_INLINE Matrix3<_type> matrix3_rotation_around_z(_type a_angle_in_radians)
 template <class _type>
 FORCE_INLINE Matrix3<_type> matrix3_rotation(const AxisAngle<_type> &a_axis_angle)
 {
-	auto &axis = a_axis_angle.m_axis;
-	auto angle_in_radians = a_axis_angle.m_angle_radians;
+	auto &axis             = a_axis_angle.m_axis;
+	auto  angle_in_radians = a_axis_angle.m_angle_radians;
 
 	_type sin_of_angle = std::sin(angle_in_radians);
 	_type cos_of_angle = std::cos(angle_in_radians);
@@ -232,16 +232,16 @@ FORCE_INLINE Matrix3<_type> matrix3_rotation(const Quaternion<_type> &a_quaterni
 	_type zw = z * w;
 
 	return Matrix3<_type>(1 - 2 * (yy + zz), 2 * (xy + zw), 2 * (xz - yw),
-						  2 * (xy - zw), 1 - 2 * (xx + zz), 2 * (yz + xw),
-						  2 * (xz + yw), 2 * (yz - xw), 1 - 2 * (xx + yy));
+	                      2 * (xy - zw), 1 - 2 * (xx + zz), 2 * (yz + xw),
+	                      2 * (xz + yw), 2 * (yz - xw), 1 - 2 * (xx + yy));
 }
 
 /** this conversion uses NASA standard aeroplane conventions as described on page:
-*   https://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
-*   Coordinate System: right hand
-*   Positive angle: right hand
-*   Order of euler angles: heading first, then attitude, then bank
-*/
+ *   https://www.euclideanspace.com/maths/geometry/rotations/euler/index.htm
+ *   Coordinate System: right hand
+ *   Positive angle: right hand
+ *   Order of euler angles: heading first, then attitude, then bank
+ */
 template <class _type>
 FORCE_INLINE Matrix3<_type> matrix3_rotation(const EulerAngle<_type> &a_euler_angles)
 {
@@ -254,8 +254,8 @@ FORCE_INLINE Matrix3<_type> matrix3_rotation(const EulerAngle<_type> &a_euler_an
 	_type sb = std::sin(a_euler_angles.m_bank);
 
 	return Matrix3<_type>(ch * ca, sa, -sh * ca,
-						  sh * sb - ch * sa * cb, ca * cb, sh * sa * cb + ch * sb,
-						  ch * sa * sb + sh * cb, -ca * sb, -sh * sa * sb + ch * cb);
+	                      sh * sb - ch * sa * cb, ca * cb, sh * sa * cb + ch * sb,
+	                      ch * sa * sb + sh * cb, -ca * sb, -sh * sa * sb + ch * cb);
 }
 
 template <class _type>

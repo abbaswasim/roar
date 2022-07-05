@@ -26,8 +26,8 @@
 #if defined(RORDEBUG)
 #	if defined(USEROARMEMORYMANAGER)
 
-#include "memory_manager/rormemory_check.h"
-#include <mutex>
+#		include "memory_manager/rormemory_check.h"
+#		include <mutex>
 
 std::vector<Allocation *> allocation_list;
 std::mutex                allocation_mutex;
@@ -60,7 +60,7 @@ FORCE_INLINE void operator delete[](void *a_pointer_to_delete)
 
 FORCE_INLINE void record_allocation(void *a_address, size_t a_size, const char *a_file_name, size_t a_line_number)
 {
-	Allocation *                info = new Allocation{(size_t) a_address, a_size, a_file_name, a_line_number};
+	Allocation                 *info = new Allocation{(size_t) a_address, a_size, a_file_name, a_line_number};
 	std::lock_guard<std::mutex> lock(allocation_mutex);
 	allocation_list.push_back(info);
 }
@@ -69,8 +69,8 @@ FORCE_INLINE void delete_allocation(void *a_address)
 {
 	std::lock_guard<std::mutex> lock(allocation_mutex);
 	auto                        pointer = std::find_if(allocation_list.begin(), allocation_list.end(), [a_address](const Allocation *allocation) {
-		return allocation->m_address_of_allocation == (size_t) a_address;
-	});
+        return allocation->m_address_of_allocation == (size_t) a_address;
+    });
 
 	if (pointer != allocation_list.end())
 		allocation_list.erase(pointer);
@@ -83,7 +83,7 @@ FORCE_INLINE void dump_potential_leaks()
 	for (auto i = allocation_list.begin(); i != allocation_list.end(); i++)
 	{
 		std::cout << "There might be a leak at address 0x" << std::hex << (*i)->m_address_of_allocation << " at line " << std::dec << (*i)->m_line_number << " in file " << (*i)->m_file_name << " of size " << (*i)->m_allocation_size << std::endl
-				  << std::flush;
+		          << std::flush;
 	}
 }
 

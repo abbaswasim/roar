@@ -36,7 +36,7 @@ void WatchCat::notify(std::vector<WatchCatEvent> a_events)
 }
 
 WatchCat::WatchCat(std::vector<std::filesystem::path> a_paths, watchcat_callback a_callback, float32_t a_latency) :
-	m_callback(a_callback), m_paths(a_paths),m_latency(a_latency)
+    m_callback(a_callback), m_paths(a_paths), m_latency(a_latency)
 {
 	this->run();
 }
@@ -53,7 +53,7 @@ void WatchCat::add_path(std::filesystem::path a_path)
 	// removes duplicate paths
 	std::sort(this->m_paths.begin(), this->m_paths.end());
 	this->m_paths.erase(std::unique(this->m_paths.begin(), this->m_paths.end()),
-						this->m_paths.end());
+	                    this->m_paths.end());
 
 	this->rerun(a_path);
 }

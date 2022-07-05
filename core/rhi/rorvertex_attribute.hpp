@@ -39,9 +39,9 @@ class ROAR_ENGINE_ITEM VertexAttribute final
   public:
 	FORCE_INLINE                  VertexAttribute(const VertexAttribute &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                  VertexAttribute(VertexAttribute &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE VertexAttribute &operator=(const VertexAttribute &a_other) = default;                  //! Copy assignment operator
-	FORCE_INLINE VertexAttribute &operator=(VertexAttribute &&a_other) noexcept = default;              //! Move assignment operator
-	FORCE_INLINE ~VertexAttribute() noexcept                                    = default;              //! Destructor
+	FORCE_INLINE VertexAttribute &operator=(const VertexAttribute &a_other)           = default;        //! Copy assignment operator
+	FORCE_INLINE VertexAttribute &operator=(VertexAttribute &&a_other) noexcept       = default;        //! Move assignment operator
+	FORCE_INLINE ~VertexAttribute() noexcept                                          = default;        //! Destructor
 
 	/**
 	 * Use this version of the constructor if you want VertexDescriptor to take care of
@@ -50,9 +50,9 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	 * This makes VertexAttribute more aware and clever than dumb data blob
 	 */
 	FORCE_INLINE VertexAttribute(rhi::BufferSemantic a_semantics = rhi::BufferSemantic::vertex_position,
-								 rhi::VertexFormat   a_format    = rhi::VertexFormat::float32_3) :
-		m_semantics(a_semantics),
-		m_format(a_format)
+	                             rhi::VertexFormat   a_format    = rhi::VertexFormat::float32_3) :
+	    m_semantics(a_semantics),
+	    m_format(a_format)
 	{}        //! Default constructor as well
 
 	/**
@@ -60,19 +60,19 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	 * At the time of use make sure a_binding is valid
 	 */
 	FORCE_INLINE VertexAttribute(uint32_t            a_location,
-								 uint32_t            a_offset,
-								 ptrdiff_t           a_buffer_offset,
-								 uint32_t            a_binding,
-								 uint32_t            a_buffer_index,
-								 rhi::BufferSemantic a_semantics = rhi::BufferSemantic::vertex_position,
-								 rhi::VertexFormat   a_format    = rhi::VertexFormat::float32_3) :
-		m_location(a_location),
-		m_offset(a_offset),
-		m_buffer_offset(a_buffer_offset),
-		m_binding(a_binding),
-		m_buffer_index(a_buffer_index),
-		m_semantics(a_semantics),
-		m_format(a_format)
+	                             uint32_t            a_offset,
+	                             ptrdiff_t           a_buffer_offset,
+	                             uint32_t            a_binding,
+	                             uint32_t            a_buffer_index,
+	                             rhi::BufferSemantic a_semantics = rhi::BufferSemantic::vertex_position,
+	                             rhi::VertexFormat   a_format    = rhi::VertexFormat::float32_3) :
+	    m_location(a_location),
+	    m_offset(a_offset),
+	    m_buffer_offset(a_buffer_offset),
+	    m_binding(a_binding),
+	    m_buffer_index(a_buffer_index),
+	    m_semantics(a_semantics),
+	    m_format(a_format)
 	{}
 
 	// clang-format off

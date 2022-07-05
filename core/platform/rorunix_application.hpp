@@ -51,7 +51,7 @@ class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 	declare_translation_unit_vtable();
 
 	FORCE_INLINE UnixApp() :
-		m_glfw_window(this)
+	    m_glfw_window(this)
 	{}
 
 	FORCE_INLINE void loop()

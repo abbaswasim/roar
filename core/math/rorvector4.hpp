@@ -41,10 +41,10 @@ class ROAR_ENGINE_ITEM Vector4 final
 	_type z;
 	_type w;        // Points (w=1) and vectors (w=0)
 
-	FORCE_INLINE Vector4()                           = default;                   //! Default constructor
-	FORCE_INLINE Vector4(const Vector4 &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Vector4(Vector4 &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Vector4 &operator=(const Vector4 &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE          Vector4()                             = default;        //! Default constructor
+	FORCE_INLINE          Vector4(const Vector4 &a_other)       = default;        //! Copy constructor
+	FORCE_INLINE          Vector4(Vector4 &&a_other) noexcept   = default;        //! Move constructor
+	FORCE_INLINE Vector4 &operator=(const Vector4 &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Vector4 &operator=(Vector4 &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Vector4() noexcept                            = default;        //! Destructor
 
@@ -58,12 +58,12 @@ class ROAR_ENGINE_ITEM Vector4 final
 	FORCE_INLINE explicit    operator _type *();
 	FORCE_INLINE explicit    operator const _type *() const;
 	FORCE_INLINE const _type operator[](int32_t a_index) const noexcept;
-	FORCE_INLINE _type &operator[](int32_t a_index) noexcept;
+	FORCE_INLINE _type      &operator[](int32_t a_index) noexcept;
 
-	FORCE_INLINE Vector4 operator+(const Vector4 &a_right) const noexcept;
-	FORCE_INLINE Vector4 operator-(const Vector4 &a_right) const noexcept;
-	FORCE_INLINE Vector4 operator*(const Vector4 &a_right) const noexcept;
-	FORCE_INLINE Vector4 operator/(const Vector4 &a_right) const noexcept;
+	FORCE_INLINE Vector4  operator+(const Vector4 &a_right) const noexcept;
+	FORCE_INLINE Vector4  operator-(const Vector4 &a_right) const noexcept;
+	FORCE_INLINE Vector4  operator*(const Vector4 &a_right) const noexcept;
+	FORCE_INLINE Vector4  operator/(const Vector4 &a_right) const noexcept;
 	FORCE_INLINE Vector4 &operator+=(const Vector4 &a_right) noexcept;
 	FORCE_INLINE Vector4 &operator-=(const Vector4 &a_right) noexcept;
 	FORCE_INLINE Vector4 &operator*=(const Vector4 &a_right) noexcept;
@@ -72,11 +72,11 @@ class ROAR_ENGINE_ITEM Vector4 final
 	FORCE_INLINE bool operator==(const Vector4 &a_right) const noexcept;
 	FORCE_INLINE bool operator!=(const Vector4 &a_right) const noexcept;
 
-	FORCE_INLINE Vector4 operator-() const noexcept;
-	FORCE_INLINE Vector4 operator+(const _type a_scale) const noexcept;
-	FORCE_INLINE Vector4 operator-(const _type a_scale) const noexcept;
-	FORCE_INLINE Vector4 operator*(const _type a_scale) const noexcept;
-	FORCE_INLINE Vector4 operator/(const _type a_scale) const noexcept;
+	FORCE_INLINE Vector4  operator-() const noexcept;
+	FORCE_INLINE Vector4  operator+(const _type a_scale) const noexcept;
+	FORCE_INLINE Vector4  operator-(const _type a_scale) const noexcept;
+	FORCE_INLINE Vector4  operator*(const _type a_scale) const noexcept;
+	FORCE_INLINE Vector4  operator/(const _type a_scale) const noexcept;
 	FORCE_INLINE Vector4 &operator+=(const _type a_xyzw) noexcept;
 	FORCE_INLINE Vector4 &operator-=(const _type a_xyzw) noexcept;
 	FORCE_INLINE Vector4 &operator*=(const _type a_scale) noexcept;

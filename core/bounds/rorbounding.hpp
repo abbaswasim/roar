@@ -54,10 +54,10 @@ class ROAR_ENGINE_ITEM Bounding
   public:
 	BoundingType m_type{};        //!< Bounding type defined by BoundingType enum
 
-	FORCE_INLINE Bounding()                            = default;                   //! Default constructor
-	FORCE_INLINE Bounding(const Bounding &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE Bounding(Bounding &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE Bounding &operator=(const Bounding &a_other) = default;            //! Copy assignment operator
+	FORCE_INLINE           Bounding()                             = default;        //! Default constructor
+	FORCE_INLINE           Bounding(const Bounding &a_other)      = default;        //! Copy constructor
+	FORCE_INLINE           Bounding(Bounding &&a_other) noexcept  = default;        //! Move constructor
+	FORCE_INLINE Bounding &operator=(const Bounding &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Bounding &operator=(Bounding &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Bounding() noexcept                     = default;        //! Destructor
 
@@ -75,12 +75,12 @@ class ROAR_ENGINE_ITEM BoundingBase : public Bounding
   public:
 	_type m_points[_point_count];        //!< All points in the bounding
 
-	FORCE_INLINE BoundingBase()                                = default;                   //! Default constructor
-	FORCE_INLINE BoundingBase(const BoundingBase &a_other)     = default;                   //! Copy constructor
-	FORCE_INLINE BoundingBase(BoundingBase &&a_other) noexcept = default;                   //! Move constructor
-	FORCE_INLINE BoundingBase &operator=(const BoundingBase &a_other) = default;            //! Copy assignment operator
-	FORCE_INLINE BoundingBase &operator=(BoundingBase &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~BoundingBase() noexcept override                = default;        //! Destructor
+	FORCE_INLINE               BoundingBase()                                = default;        //! Default constructor
+	FORCE_INLINE               BoundingBase(const BoundingBase &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE               BoundingBase(BoundingBase &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE BoundingBase &operator=(const BoundingBase &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE BoundingBase &operator=(BoundingBase &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~BoundingBase() noexcept override                   = default;        //! Destructor
 
 	// These are defined here and not in Bounding because I can't templatize Bounding, Otherwise
 	// I can't cast from Bounding<Vector3> => Bounding<Vector2> etc if I want to create an array of Boundings
@@ -135,11 +135,11 @@ using BoundingRectangle = Box<_type, vector2_typename<_type>>;
 // TODO: Use squared radius instead
 #define ROUND_COMMON()                                                            \
 	typename _type::value_type m_radius{};                                        \
-																				  \
-	FORCE_INLINE Round();                                                         \
-	FORCE_INLINE Round(const Round &a_other)     = default;                       \
-	FORCE_INLINE Round(Round &&a_other) noexcept = default;                       \
-	FORCE_INLINE Round &operator=(const Round &a_other) = default;                \
+                                                                                  \
+	FORCE_INLINE        Round();                                                  \
+	FORCE_INLINE        Round(const Round &a_other)         = default;            \
+	FORCE_INLINE        Round(Round &&a_other) noexcept     = default;            \
+	FORCE_INLINE Round &operator=(const Round &a_other)     = default;            \
 	FORCE_INLINE Round &operator=(Round &&a_other) noexcept = default;            \
 	FORCE_INLINE ~Round() noexcept override                 = default;            \
 	FORCE_INLINE      Round(_type a_center, typename _type::value_type a_radius); \
@@ -166,10 +166,10 @@ class ROAR_ENGINE_ITEM Round<_type, vector3_typename<_type>> final : public Boun
 };
 
 #define BOX_COMMON()                                                               \
-	FORCE_INLINE Box();                                                            \
-	FORCE_INLINE Box(const Box &a_other)     = default;                            \
-	FORCE_INLINE Box(Box &&a_other) noexcept = default;                            \
-	FORCE_INLINE Box &operator=(const Box &a_other) = default;                     \
+	FORCE_INLINE      Box();                                                       \
+	FORCE_INLINE      Box(const Box &a_other)           = default;                 \
+	FORCE_INLINE      Box(Box &&a_other) noexcept       = default;                 \
+	FORCE_INLINE Box &operator=(const Box &a_other)     = default;                 \
 	FORCE_INLINE Box &operator=(Box &&a_other) noexcept = default;                 \
 	FORCE_INLINE ~Box() noexcept override               = default;                 \
 	FORCE_INLINE                            Box(_type a_minimum, _type a_maximum); \

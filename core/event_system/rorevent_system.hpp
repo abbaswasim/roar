@@ -107,9 +107,9 @@ enum class EventState : uint32_t
 };
 
 EventHandle             create_event_handle(EventType     a_event_type,
-											EventCode     a_event_code     = EventCode::none,
-											EventModifier a_event_modifier = EventModifier::none,
-											EventState    event_state      = EventState::click);
+                                            EventCode     a_event_code     = EventCode::none,
+                                            EventModifier a_event_modifier = EventModifier::none,
+                                            EventState    event_state      = EventState::click);
 constexpr EventType     event_type(EventHandle a_handle);
 constexpr EventCode     event_code(EventHandle a_handle);
 constexpr EventModifier event_modifier(EventHandle a_handle);
@@ -124,7 +124,7 @@ struct Event
 	FORCE_INLINE Event()
 	{}
 	FORCE_INLINE Event(EventHandle a_event_handle, bool a_live, std::any a_payload = 0) :
-		m_handle(a_event_handle), m_live(a_live), m_payload(a_payload)
+	    m_handle(a_event_handle), m_live(a_live), m_payload(a_payload)
 	{}
 
 	/**

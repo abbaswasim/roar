@@ -29,8 +29,8 @@ namespace ror
 {
 template <class _type>
 FORCE_INLINE Ray<_type>::Ray(_type a_origin, _type a_direction) :
-	m_origin(a_origin),
-	m_direction(a_direction)
+    m_origin(a_origin),
+    m_direction(a_direction)
 {
 	this->m_direction.normalize();
 }

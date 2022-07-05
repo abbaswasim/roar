@@ -25,11 +25,11 @@
 
 #pragma once
 
-#include "rorvector.hpp"
 #include "rormatrix.hpp"
+#include "rorvector.hpp"
 
-#include "rorplane.hpp"
-#include "rortransform.hpp"
 #include "roraxis_angle.hpp"
-#include "rorquaternion.hpp"
 #include "roreuler_angle.hpp"
+#include "rorplane.hpp"
+#include "rorquaternion.hpp"
+#include "rortransform.hpp"

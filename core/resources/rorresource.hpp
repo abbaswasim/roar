@@ -125,10 +125,10 @@ std::filesystem::path find_resource(const std::filesystem::path &, ResourceSeman
 class ROAR_ENGINE_ITEM Resource final
 {
   public:
-	FORCE_INLINE           Resource()                            = delete;         //! Constructor
-	FORCE_INLINE           Resource(const Resource &a_other)     = delete;         //! Copy constructor
-	FORCE_INLINE           Resource(Resource &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE Resource &operator=(const Resource &a_other) = delete;            //! Copy assignment operator
+	FORCE_INLINE           Resource()                             = delete;        //! Constructor
+	FORCE_INLINE           Resource(const Resource &a_other)      = delete;        //! Copy constructor
+	FORCE_INLINE           Resource(Resource &&a_other) noexcept  = delete;        //! Move constructor
+	FORCE_INLINE Resource &operator=(const Resource &a_other)     = delete;        //! Copy assignment operator
 	FORCE_INLINE Resource &operator=(Resource &&a_other) noexcept = delete;        //! Move assignment operator
 
 	~Resource() noexcept;        //! Destructor

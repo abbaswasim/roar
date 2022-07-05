@@ -45,4 +45,4 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 	a_texture.depth(static_cast<uint32_t>(bpp));
 }
 
-}        // namespace ror
+}        // namespace rhi

@@ -29,18 +29,18 @@ namespace ror
 {
 template <class _type>
 FORCE_INLINE Quaternion<_type>::Quaternion(_type a_w) :
-	x(0),
-	y(0),
-	z(0),
-	w(a_w)
+    x(0),
+    y(0),
+    z(0),
+    w(a_w)
 {}
 
 template <class _type>
 FORCE_INLINE Quaternion<_type>::Quaternion(_type a_x, _type a_y, _type a_z, _type a_w) :
-	x(a_x),
-	y(a_y),
-	z(a_z),
-	w(a_w)
+    x(a_x),
+    y(a_y),
+    z(a_z),
+    w(a_w)
 {}
 
 template <class _type>
@@ -301,36 +301,36 @@ template <class _type>
 FORCE_INLINE Quaternion<_type> Quaternion<_type>::operator+(const Quaternion<_type> &a_rhs) noexcept
 {
 	return Quaternion<_type>(this->x + a_rhs.x,
-							 this->y + a_rhs.y,
-							 this->z + a_rhs.z,
-							 this->w + a_rhs.w);
+	                         this->y + a_rhs.y,
+	                         this->z + a_rhs.z,
+	                         this->w + a_rhs.w);
 }
 
 template <class _type>
 FORCE_INLINE Quaternion<_type> Quaternion<_type>::operator-(const Quaternion<_type> &a_rhs) noexcept
 {
 	return Quaternion<_type>(this->x - a_rhs.x,
-							 this->y - a_rhs.y,
-							 this->z - a_rhs.z,
-							 this->w - a_rhs.w);
+	                         this->y - a_rhs.y,
+	                         this->z - a_rhs.z,
+	                         this->w - a_rhs.w);
 }
 
 template <class _type>
 FORCE_INLINE Quaternion<_type> Quaternion<_type>::operator+(_type a_scalar) noexcept
 {
 	return Quaternion<_type>(this->x + a_scalar,
-							 this->y + a_scalar,
-							 this->z + a_scalar,
-							 this->w + a_scalar);
+	                         this->y + a_scalar,
+	                         this->z + a_scalar,
+	                         this->w + a_scalar);
 }
 
 template <class _type>
 FORCE_INLINE Quaternion<_type> Quaternion<_type>::operator-(_type a_scalar) noexcept
 {
 	return Quaternion<_type>(this->x - a_scalar,
-							 this->y - a_scalar,
-							 this->z - a_scalar,
-							 this->w - a_scalar);
+	                         this->y - a_scalar,
+	                         this->z - a_scalar,
+	                         this->w - a_scalar);
 }
 
 template <class _type>
@@ -349,9 +349,9 @@ FORCE_INLINE Quaternion<_type> Quaternion<_type>::operator*(const Quaternion<_ty
 {
 	// q0q1 = (w0v1 + v0w1 + v0 X v1, w0w1 - v0 . v1)
 	return Quaternion<_type>(this->w * a_rhs.x + this->x * a_rhs.w + this->y * a_rhs.z - this->z * a_rhs.y,
-							 this->w * a_rhs.y + this->y * a_rhs.w + this->z * a_rhs.x - this->x * a_rhs.z,
-							 this->w * a_rhs.z + this->z * a_rhs.w + this->x * a_rhs.y - this->y * a_rhs.x,
-							 this->w * a_rhs.w - this->x * a_rhs.x - this->y * a_rhs.y - this->z * a_rhs.z);
+	                         this->w * a_rhs.y + this->y * a_rhs.w + this->z * a_rhs.x - this->x * a_rhs.z,
+	                         this->w * a_rhs.z + this->z * a_rhs.w + this->x * a_rhs.y - this->y * a_rhs.x,
+	                         this->w * a_rhs.w - this->x * a_rhs.x - this->y * a_rhs.y - this->z * a_rhs.z);
 }
 
 template <class _type>
@@ -381,8 +381,8 @@ FORCE_INLINE Vector3<_type> Quaternion<_type>::operator*(const Vector3<_type> &a
 	_type c = a_vector.z;
 
 	return Vector3<_type>(a * (xx - yy - zz + ww) + 2 * (b * (-zw + xy) + c * (xz + yw)),
-						  b * (-xx + yy - zz + ww) + 2 * (a * (xy + zw) + c * (yz - xw)),
-						  c * (-xx - yy + zz + ww) + 2 * (a * (xz - yw) + b * (yz + xw)));
+	                      b * (-xx + yy - zz + ww) + 2 * (a * (xy + zw) + c * (yz - xw)),
+	                      c * (-xx - yy + zz + ww) + 2 * (a * (xz - yw) + b * (yz + xw)));
 }
 
 template <class _type>
@@ -442,18 +442,18 @@ template <class _type>
 FORCE_INLINE _type Quaternion<_type>::magnitude() const
 {
 	return std::sqrt(this->x * this->x +
-					 this->y * this->y +
-					 this->z * this->z +
-					 this->w * this->w);
+	                 this->y * this->y +
+	                 this->z * this->z +
+	                 this->w * this->w);
 }
 
 template <class _type>
 FORCE_INLINE _type Quaternion<_type>::magnitude_squared() const
 {
 	return this->x * this->x +
-		   this->y * this->y +
-		   this->z * this->z +
-		   this->w * this->w;
+	       this->y * this->y +
+	       this->z * this->z +
+	       this->w * this->w;
 }
 
 template <class _type>
@@ -599,9 +599,9 @@ FORCE_INLINE Quaternion<_type> quaternion_slerp(const Quaternion<_type> &a_quate
 		_type scale1 = std::sin(angle * a_t) * one_over_sin * sign_multiplier;
 
 		Quaternion<_type> res(a_quaternion1.x * scale0 + a_quaternion2.x * scale1,
-							  a_quaternion1.y * scale0 + a_quaternion2.y * scale1,
-							  a_quaternion1.z * scale0 + a_quaternion2.z * scale1,
-							  a_quaternion1.w * scale0 + a_quaternion2.w * scale1);
+		                      a_quaternion1.y * scale0 + a_quaternion2.y * scale1,
+		                      a_quaternion1.z * scale0 + a_quaternion2.z * scale1,
+		                      a_quaternion1.w * scale0 + a_quaternion2.w * scale1);
 
 		res.normalize();
 
