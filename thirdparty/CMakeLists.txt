@@ -54,11 +54,21 @@ add_library(stb INTERFACE)
 target_sources(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h)
 target_include_directories(stb INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-# Add vulkan
-add_library(vulkan_headers INTERFACE)
-set(VULKAN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vulkan/include)
-target_sources(vulkan_headers INTERFACE ${VULKAN_INCLUDE_DIR}/vulkan/vulkan.h)
-target_include_directories(vulkan_headers INTERFACE ${VULKAN_INCLUDE_DIR})
+if (${ROR_RENDER_TYPE_VULKAN})
+  # Add vulkan
+  add_library(vulkan_headers INTERFACE)
+  set(VULKAN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vulkan/include)
+  target_sources(vulkan_headers INTERFACE ${VULKAN_INCLUDE_DIR}/vulkan/vulkan.h)
+  target_include_directories(vulkan_headers INTERFACE ${VULKAN_INCLUDE_DIR})
+elseif (${ROR_RENDER_TYPE_METAL})
+  # Add MetalCPP
+  add_library(metalcpp_headers INTERFACE)
+  set(METAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/metal-cpp)
+  target_sources(metalcpp_headers INTERFACE ${METAL_INCLUDE_DIR}/Metal/Metal.hpp)
+  target_include_directories(metalcpp_headers INTERFACE ${METAL_INCLUDE_DIR})
+elseif (${ROR_RENDER_TYPE_DX12})
+elseif (${ROR_RENDER_TYPE_GLES3})
+endif()
 
 # Add basis
 set(BASIS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/basis_universal)
