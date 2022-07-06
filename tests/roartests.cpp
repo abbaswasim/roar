@@ -26,12 +26,13 @@
 #include "geometry/geometry.hpp"
 #include "math/math_tests.hpp"
 #include "profiling/rorlog.hpp"
+#include "project_setup.hpp"
 #include "random.hpp"
 #include "utilities.hpp"
-#include "project_setup.hpp"
 
-#include <gtest/gtest.h>
+#include <basisu_transcoder.h>
 #include <filesystem>
+#include <gtest/gtest.h>
 
 int main(int argc, char **argv)
 {
@@ -39,5 +40,8 @@ int main(int argc, char **argv)
 	ror::setup_project_root("test_roar_project", "tests");
 
 	testing::InitGoogleTest(&argc, argv);
+
+	basist::basisu_transcoder_init();
+
 	return RUN_ALL_TESTS();
 }
