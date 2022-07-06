@@ -104,11 +104,11 @@ class ROAR_ENGINE_ITEM Material final
 	Component<ror::Color4f> m_emissive{};                                     //! Used for lit objects, a texture and emissive RGB color with emissive strength in A component of the factor
 	Component<ror::Color4f> m_anisotropy{};                                   //! xyz is directions of anisotophy, mutually exclusive with texture, w is factor [-1 1] defines if anisotrophy is along or perpendicular to direction
 	Component<ror::Color2f> m_transmission{};                                 //! 1.0 means stuff is fully transparent, Also called Opacity in UE4, factor is transmission factor and internal roughness, m_roughness is external surface roughness
-	Component<ror::Color3f> m_sheen_color{};                                  //! What should be the color of the sheen and its roughness. Roughness means either object color or light color
-	Component<float32_t>    m_sheen_roughness{};                              //! What should be the color of the sheen and its roughness. Roughness means either object color or light color
-	Component<ror::Color2f> m_clearcoat_normal{};                             //! For orange peel onto clearcoat, object normal usually has metallic flacks in it and its own normals, factor contains clear coat value and clear coat roughness
-	Component<float32_t>    m_clearcoat{};                                    //! Similar texture as clearcoat_normal provided by gltf
-	Component<float32_t>    m_clearcoat_roughness{};                          //! Similar texture as clearcoat_normal provided by gltf
+	Component<ror::Color3f> m_sheen_color{};                                  //! What should be the color of the sheen. Factor is the default color
+	Component<float32_t>    m_sheen_roughness{};                              //! What should be the roughness of the sheen . Roughness means either object color or light color
+	Component<ror::Color3f> m_clearcoat_normal{};                             //! For orange peel onto clearcoat, object normal usually has metallic flacks in it and its own normals
+	Component<float32_t>    m_clearcoat{};                                    //! Similar texture as clearcoat_normal provided by gltf, factor is the clearcoat value
+	Component<float32_t>    m_clearcoat_roughness{};                          //! Similar texture as clearcoat_normal provided by gltf, factor is the clearcoat roughness
 	Component<float32_t>    m_metallic{};                                     //! Dielectric or conductor(metallic)
 	Component<float32_t>    m_roughness{};                                    //! Surface roughness, as compared to internal roughness unlike m_transmission_roughness
 	Component<float32_t>    m_occlusion{};                                    //! Occlusion map factor is the strength
@@ -125,7 +125,7 @@ class ROAR_ENGINE_ITEM Material final
 	bool                    m_layered{false};                                 //! Is this material part of a layerd material chain
 	uint8_t                 m_material_name[30];                              //! Can't use string here otherwise not trivially_copyable
 	float32_t               m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, we use only F0 from F0=((ior − 1) / (ior + 1))²
-	                                                                          //! Note we don't need F90 coz Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
+																			  //! Note we don't need F90 coz Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
 	rhi::ShaderBuffer *m_shader_buffer{nullptr};                              //! Non-owning pointer to ShaderBuffer which describes its shader's UBO/SSBO view
 	hash_64_t          m_hash;                                                //! Material hash to make sure we don't create duplicate shaders
 

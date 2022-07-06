@@ -85,7 +85,7 @@ void material_to_shader_buffer(const ror::Material &a_material, rhi::ShaderBuffe
 	if (a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor_texture)
 		shader_buffer.add_entry("sheen_roughness_factor", rhi::Format::float32_1, 1);
 	if (a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor_texture)
-		shader_buffer.add_entry("clearcoat_normal_factor", rhi::Format::float32_2, 1);
+		shader_buffer.add_entry("clearcoat_normal_factor", rhi::Format::float32_3, 1);
 	if (a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor_texture)
 		shader_buffer.add_entry("clearcoat_factor", rhi::Format::float32_1, 1);
 	if (a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor_texture)
