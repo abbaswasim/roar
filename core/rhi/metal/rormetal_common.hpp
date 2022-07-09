@@ -26,9 +26,18 @@
 #pragma once
 
 // Metal C++ includes
+#include "foundation/rormacros.hpp"
+#include "rhi/rortypes.hpp"
+
 #include <Foundation/Foundation.hpp>
+#include <Metal/MTLPixelFormat.hpp>
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
 
 namespace mtl
-{}
+{
+FORCE_INLINE MTL::PixelFormat to_metal_pixelformat(rhi::PixelFormat a_pixelformat)
+{
+	return static_cast<MTL::PixelFormat>(a_pixelformat);
+}
+}        // namespace mtl

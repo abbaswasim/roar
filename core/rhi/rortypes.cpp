@@ -24,83 +24,192 @@
 // Version: 1.0.0
 
 #include "rhi/rortypes.hpp"
+#include <cassert>
 #include <unordered_map>
 
 namespace rhi
 {
-uint32_t pixel_format_to_bytes(PixelFormat a_pixel_format)
+uint32_t pixel_format_to_bits(PixelFormat a_pixel_format)
 {
 	switch (a_pixel_format)
 	{
-		case PixelFormat::r8_int8:
-		case PixelFormat::r8_uint8:
-		case PixelFormat::r8_int8_norm:
-		case PixelFormat::r8_uint8_norm:
+		case PixelFormat::invalid:
 		case PixelFormat::a8_uint8_norm:
+		case PixelFormat::r8_uint8_norm:
+		case PixelFormat::r8_uint8_norm_srgb:
+		case PixelFormat::r8_int8_norm:
+		case PixelFormat::r8_uint8:
+		case PixelFormat::r8_int8:
 		case PixelFormat::stencil8_int8:
 			return 8;
-		case PixelFormat::r16_int16:
-		case PixelFormat::r16_uint16:
-		case PixelFormat::r16_int16_norm:
-		case PixelFormat::r16_uint16_norm:
-		case PixelFormat::r16_float16:
-		case PixelFormat::r5g6b5_uint16_norm:
-		case PixelFormat::r5g5b5a1_uint16_norm:
-		case PixelFormat::r8g8_int16:
-		case PixelFormat::r8g8_uint16:
-		case PixelFormat::r8g8_int16_norm:
-		case PixelFormat::r8g8_uint16_norm:
 		case PixelFormat::depth16_uint16_norm:
+		case PixelFormat::r16_uint16_norm:
+		case PixelFormat::r16_int16_norm:
+		case PixelFormat::r16_uint16:
+		case PixelFormat::r16_int16:
+		case PixelFormat::r16_float16:
+		case PixelFormat::r8g8_uint16_norm:
+		case PixelFormat::r8g8_uint16_norm_srgb:
+		case PixelFormat::r8g8_int16_norm:
+		case PixelFormat::r8g8_uint16:
+		case PixelFormat::r8g8_int16:
+		case PixelFormat::b5g6r5_uint16_norm:
+		case PixelFormat::a1b5g5r5_uint16_norm:
+		case PixelFormat::a4b4g4r4_uint16_norm:
+		case PixelFormat::b5g5r5a1_uint16_norm:
 			return 16;
-		case PixelFormat::r32_int32:
+		case PixelFormat::x24_stencil8:
+		case PixelFormat::depth32_float32:
+		case PixelFormat::depth24_norm_stencil8_uint32:
 		case PixelFormat::r32_uint32:
+		case PixelFormat::r32_int32:
 		case PixelFormat::r32_float32:
-		case PixelFormat::r16g16_int32:
-		case PixelFormat::r16g16_uint32:
-		case PixelFormat::r16g16_int32_norm:
 		case PixelFormat::r16g16_uint32_norm:
+		case PixelFormat::r16g16_int32_norm:
+		case PixelFormat::r16g16_uint32:
+		case PixelFormat::r16g16_int32:
 		case PixelFormat::r16g16_float32:
-		case PixelFormat::r8g8b8a8_int32:
-		case PixelFormat::r8g8b8a8_uint32:
-		case PixelFormat::r8g8b8a8_int32_norm:
 		case PixelFormat::r8g8b8a8_uint32_norm:
 		case PixelFormat::r8g8b8a8_uint32_norm_srgb:
+		case PixelFormat::r8g8b8a8_int32_norm:
+		case PixelFormat::r8g8b8a8_uint32:
+		case PixelFormat::r8g8b8a8_int32:
 		case PixelFormat::b8g8r8a8_uint32_norm:
 		case PixelFormat::b8g8r8a8_uint32_norm_srgb:
-		case PixelFormat::r10g10b10a2_uint32:
 		case PixelFormat::r10g10b10a2_uint32_norm:
+		case PixelFormat::r10g10b10a2_uint32:
 		case PixelFormat::r11g11b10_float32:
 		case PixelFormat::r9g9b9e5_float32:
 		case PixelFormat::b10g10r10a2_uint32_norm:
-		case PixelFormat::depth24_stencil8_uint32_norm:
-		case PixelFormat::depth32_float32:
-		case PixelFormat::depth32_stencil8_float32:
 			return 32;
-		case PixelFormat::r32g32_int64:
 		case PixelFormat::r32g32_uint64:
+		case PixelFormat::r32g32_int64:
 		case PixelFormat::r32g32_float64:
-		case PixelFormat::r16g16b16a16_int64:
-		case PixelFormat::r16g16b16a16_uint64:
-		case PixelFormat::r16g16b16a16_int64_norm:
 		case PixelFormat::r16g16b16a16_uint64_norm:
+		case PixelFormat::r16g16b16a16_int64_norm:
+		case PixelFormat::r16g16b16a16_uint64:
+		case PixelFormat::r16g16b16a16_int64:
 		case PixelFormat::r16g16b16a16_float64:
 			return 64;
-		case PixelFormat::r32g32b32a32_int128:
 		case PixelFormat::r32g32b32a32_uint128:
+		case PixelFormat::r32g32b32a32_int128:
 		case PixelFormat::r32g32b32a32_float128:
 			return 128;
-		case PixelFormat::astc_4x4_srgb_block:
-		case PixelFormat::bc7_srgb_block:
-			return 16;
+		case PixelFormat::bc1_rgba:
+		case PixelFormat::bc1_rgba_srgb:
+		case PixelFormat::bc2_rgba:
+		case PixelFormat::bc2_rgba_srgb:
+		case PixelFormat::bc3_rgba:
+		case PixelFormat::bc3_rgba_srgb:
+		case PixelFormat::bc4_r_unsigned_norm:
+		case PixelFormat::bc4_r_norm:
+		case PixelFormat::bc5_rg_unsigned_norm:
+		case PixelFormat::bc5_rg_norm:
+		case PixelFormat::bc6h_rgb_float:
+		case PixelFormat::bc6h_rgbu_float:
+		case PixelFormat::bc7_rgba_unsigned_norm:
+		case PixelFormat::bc7_rgba_unsinged_norm_srgb:
+
+		case PixelFormat::pvrtc_rgb_2bpp:
+		case PixelFormat::pvrtc_rgb_2bpp_srgb:
+		case PixelFormat::pvrtc_rgb_4bpp:
+		case PixelFormat::pvrtc_rgb_4bpp_srgb:
+		case PixelFormat::pvrtc_rgba_2bpp:
+		case PixelFormat::pvrtc_rgba_2bpp_srgb:
+		case PixelFormat::pvrtc_rgba_4bpp:
+		case PixelFormat::pvrtc_rgba_4bpp_srgb:
+
+		case PixelFormat::eac_r11_unsigned_norm:
+		case PixelFormat::eac_r11_norm:
+		case PixelFormat::eac_r11g11_unsigned_norm:
+		case PixelFormat::eac_r11g11_norm:
+		case PixelFormat::eac_r8g8b8a8:
+		case PixelFormat::eac_r8g8b8a8_srgb:
+
+		case PixelFormat::etc2_r8g8b8:
+		case PixelFormat::etc2_r8g8b8_srgb:
+		case PixelFormat::etc2_r8g8b8a1:
+		case PixelFormat::etc2_r8g8b8a1_srgb:
+			assert(0);
+			return 128;
+		case PixelFormat::astc_4x4_srgb:
+		case PixelFormat::astc_5x4_srgb:
+		case PixelFormat::astc_5x5_srgb:
+		case PixelFormat::astc_6x5_srgb:
+		case PixelFormat::astc_6x6_srgb:
+		case PixelFormat::astc_8x5_srgb:
+		case PixelFormat::astc_8x6_srgb:
+		case PixelFormat::astc_8x8_srgb:
+		case PixelFormat::astc_10x5_srgb:
+		case PixelFormat::astc_10x6_srgb:
+		case PixelFormat::astc_10x8_srgb:
+		case PixelFormat::astc_10x10_srgb:
+		case PixelFormat::astc_12x10_srgb:
+		case PixelFormat::astc_12x12_srgb:
+		case PixelFormat::astc_4x4_ldr:
+		case PixelFormat::astc_5x4_ldr:
+		case PixelFormat::astc_5x5_ldr:
+		case PixelFormat::astc_6x5_ldr:
+		case PixelFormat::astc_6x6_ldr:
+		case PixelFormat::astc_8x5_ldr:
+		case PixelFormat::astc_8x6_ldr:
+		case PixelFormat::astc_8x8_ldr:
+		case PixelFormat::astc_10x5_ldr:
+		case PixelFormat::astc_10x6_ldr:
+		case PixelFormat::astc_10x8_ldr:
+		case PixelFormat::astc_10x10_ldr:
+		case PixelFormat::astc_12x10_ldr:
+		case PixelFormat::astc_12x12_ldr:
+		case PixelFormat::astc_4x4_hdr:
+		case PixelFormat::astc_5x4_hdr:
+		case PixelFormat::astc_5x5_hdr:
+		case PixelFormat::astc_6x5_hdr:
+		case PixelFormat::astc_6x6_hdr:
+		case PixelFormat::astc_8x5_hdr:
+		case PixelFormat::astc_8x6_hdr:
+		case PixelFormat::astc_8x8_hdr:
+		case PixelFormat::astc_10x5_hdr:
+		case PixelFormat::astc_10x6_hdr:
+		case PixelFormat::astc_10x8_hdr:
+		case PixelFormat::astc_10x10_hdr:
+		case PixelFormat::astc_12x10_hdr:
+		case PixelFormat::astc_12x12_hdr:
+			return 128;
+		case PixelFormat::gbgr422:
+		case PixelFormat::bgrg422:
+		case PixelFormat::b10g10r10a10_xr:
+		case PixelFormat::b10g10r10a10_xr_srgb:
+		case PixelFormat::b10g10r10_xr:
+		case PixelFormat::b10g10r10_xr_srgb:
+			assert(0);
+			return 128;
+		case PixelFormat::x32_stencil8:
+		case PixelFormat::depth32_float32_stencil8_int8:
+			return 40;
 	}
 
 	return 0;
 }
 
+/*
+Advice on how to make sure glsl and c++ play well along
+
+Follow these rules:
+  Stop using vec3. This includes 3-column matrices as well.
+  Only use mat4 matrices.
+  In C++, set the alignas of each vec2 type to 8 and each vec4 type to 16. Also, set mat4's alignment to 16.
+  In C++, for any struct you intend to use in a UBO/SSBO, alignas it to 16.
+  For std140 layouts, never use arrays of anything other than structs or vec4-equivalent types.
+  In C++, for any array member of a struct, alignas it to 16.
+
+*/
+
 uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 {
 	switch (a_vertex_format)
 	{
+		case VertexFormat::invalid:
+			return 0;
 		case VertexFormat::struct_1:
 			return 0;
 		case VertexFormat::int8_1:
@@ -215,6 +324,8 @@ uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 {
 	switch (a_vertex_format)
 	{
+		case VertexFormat::invalid:
+			return 0;
 		case VertexFormat::struct_1:
 		case VertexFormat::bool32_1:
 		case VertexFormat::bool32_2:

@@ -25,26 +25,37 @@
 
 #pragma once
 
+#include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rortexture.hpp"
-#include "rhi/rorrhi_macros.hpp"
 #include "rhi/metal/rormetal_common.hpp"
+#include "rhi/rorrhi_macros.hpp"
 
 namespace rhi
 {
 class ROAR_ENGINE_ITEM TextureImageMetal : public TextureImageCrtp<TextureImageMetal>
 {
+  public:
+	void upload();
+
+  protected:
+  private:
+	MTL::Texture *m_texture{nullptr};
 	declare_translation_unit_vtable();
 };
 
 class ROAR_ENGINE_ITEM TextureSamplerMetal : public TextureSamplerCrtp<TextureSamplerMetal>
 {
+  public:
+  protected:
+  private:
 	declare_translation_unit_vtable();
 };
 
 class ROAR_ENGINE_ITEM TextureMetal final : public TextureCrtp<TextureMetal>
 {
-	public:
-	MTL::Texture *m_texture{nullptr};
+  public:
+  protected:
+  private:
 	declare_translation_unit_vtable();
 };
 

@@ -35,4 +35,11 @@
 #include <QuartzCore/QuartzCore.hpp>
 
 namespace vk
-{}
+{
+#ifdef NS_PRIVATE_IMPLEMENTATION
+#endif
+#ifdef CA_PRIVATE_IMPLEMENTATION
+#endif
+#ifdef MTL_PRIVATE_IMPLEMENTATION
+#endif
+}

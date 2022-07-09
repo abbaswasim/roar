@@ -30,114 +30,241 @@
 #include "roar.hpp"
 #include <cassert>
 
+#if defined(ROR_RENDER_TYPE_VULKAN)
+#	include "rhi/vulkan/rortypes.hpp"
+#elif defined(ROR_RENDER_TYPE_METAL)
+#	include "rhi/metal/rortypes.hpp"
+#else
+#	error "Unsupported buffer platform"
+#endif
+
 namespace rhi
 {
-enum class PixelFormat
+enum class PixelFormat : uint32_t
 {
-	r8_int8,
-	r8_uint8,
-	r8_int8_norm,
-	r8_uint8_norm,
-	a8_uint8_norm,
-
-	r16_int16,
-	r16_uint16,
-	r16_int16_norm,
-	r16_uint16_norm,
-	r16_float16,
-
-	r5g6b5_uint16_norm,
-	r5g5b5a1_uint16_norm,
-
-	r8g8_int16,
-	r8g8_uint16,
-	r8g8_int16_norm,
-	r8g8_uint16_norm,
-
-	r32_int32,
-	r32_uint32,
-
-	r32_float32,
-
-	r16g16_int32,
-	r16g16_uint32,
-	r16g16_int32_norm,
-	r16g16_uint32_norm,
-
-	r16g16_float32,
-
-	r8g8b8a8_int32,
-	r8g8b8a8_uint32,
-	r8g8b8a8_int32_norm,
-	r8g8b8a8_uint32_norm,
-	r8g8b8a8_uint32_norm_srgb,
-
-	b8g8r8a8_uint32_norm,
-	b8g8r8a8_uint32_norm_srgb,
-
-	r10g10b10a2_uint32,
-	r10g10b10a2_uint32_norm,
-
-	r11g11b10_float32,
-	r9g9b9e5_float32,
-	b10g10r10a2_uint32_norm,
-
-	r32g32_int64,
-	r32g32_uint64,
-	r32g32_float64,
-
-	r16g16b16a16_int64,
-	r16g16b16a16_uint64,
-	r16g16b16a16_int64_norm,
-	r16g16b16a16_uint64_norm,
-	r16g16b16a16_float64,
-
-	r32g32b32a32_int128,
-	r32g32b32a32_uint128,
-	r32g32b32a32_float128,
-
-	stencil8_int8,
-	depth16_uint16_norm,
-	depth24_stencil8_uint32_norm,
-	depth32_float32,
-	depth32_stencil8_float32,        //! Not sure if this is supported anywhere?
-
-	// TODO: Add more astc and other compressed types
-	astc_4x4_srgb_block,
-	bc7_srgb_block
+	invalid                       = PlatformPixelFormatInvalid,
+	a8_uint8_norm                 = PlatformPixelFormatA8Unorm,
+	r8_uint8_norm                 = PlatformPixelFormatR8Unorm,
+	r8_uint8_norm_srgb            = PlatformPixelFormatR8Unorm_sRGB,
+	r8_int8_norm                  = PlatformPixelFormatR8Snorm,
+	r8_uint8                      = PlatformPixelFormatR8Uint,
+	r8_int8                       = PlatformPixelFormatR8Sint,
+	r16_uint16_norm               = PlatformPixelFormatR16Unorm,
+	r16_int16_norm                = PlatformPixelFormatR16Snorm,
+	r16_uint16                    = PlatformPixelFormatR16Uint,
+	r16_int16                     = PlatformPixelFormatR16Sint,
+	r16_float16                   = PlatformPixelFormatR16Float,
+	r8g8_uint16_norm              = PlatformPixelFormatRG8Unorm,
+	r8g8_uint16_norm_srgb         = PlatformPixelFormatRG8Unorm_sRGB,
+	r8g8_int16_norm               = PlatformPixelFormatRG8Snorm,
+	r8g8_uint16                   = PlatformPixelFormatRG8Uint,
+	r8g8_int16                    = PlatformPixelFormatRG8Sint,
+	b5g6r5_uint16_norm            = PlatformPixelFormatB5G6R5Unorm,
+	a1b5g5r5_uint16_norm          = PlatformPixelFormatA1BGR5Unorm,
+	a4b4g4r4_uint16_norm          = PlatformPixelFormatABGR4Unorm,
+	b5g5r5a1_uint16_norm          = PlatformPixelFormatBGR5A1Unorm,
+	r32_uint32                    = PlatformPixelFormatR32Uint,
+	r32_int32                     = PlatformPixelFormatR32Sint,
+	r32_float32                   = PlatformPixelFormatR32Float,
+	r16g16_uint32_norm            = PlatformPixelFormatRG16Unorm,
+	r16g16_int32_norm             = PlatformPixelFormatRG16Snorm,
+	r16g16_uint32                 = PlatformPixelFormatRG16Uint,
+	r16g16_int32                  = PlatformPixelFormatRG16Sint,
+	r16g16_float32                = PlatformPixelFormatRG16Float,
+	r8g8b8a8_uint32_norm          = PlatformPixelFormatRGBA8Unorm,
+	r8g8b8a8_uint32_norm_srgb     = PlatformPixelFormatRGBA8Unorm_sRGB,
+	r8g8b8a8_int32_norm           = PlatformPixelFormatRGBA8Snorm,
+	r8g8b8a8_uint32               = PlatformPixelFormatRGBA8Uint,
+	r8g8b8a8_int32                = PlatformPixelFormatRGBA8Sint,
+	b8g8r8a8_uint32_norm          = PlatformPixelFormatBGRA8Unorm,
+	b8g8r8a8_uint32_norm_srgb     = PlatformPixelFormatBGRA8Unorm_sRGB,
+	r10g10b10a2_uint32_norm       = PlatformPixelFormatRGB10A2Unorm,
+	r10g10b10a2_uint32            = PlatformPixelFormatRGB10A2Uint,
+	r11g11b10_float32             = PlatformPixelFormatRG11B10Float,
+	r9g9b9e5_float32              = PlatformPixelFormatRGB9E5Float,
+	b10g10r10a2_uint32_norm       = PlatformPixelFormatBGR10A2Unorm,
+	r32g32_uint64                 = PlatformPixelFormatRG32Uint,
+	r32g32_int64                  = PlatformPixelFormatRG32Sint,
+	r32g32_float64                = PlatformPixelFormatRG32Float,
+	r16g16b16a16_uint64_norm      = PlatformPixelFormatRGBA16Unorm,
+	r16g16b16a16_int64_norm       = PlatformPixelFormatRGBA16Snorm,
+	r16g16b16a16_uint64           = PlatformPixelFormatRGBA16Uint,
+	r16g16b16a16_int64            = PlatformPixelFormatRGBA16Sint,
+	r16g16b16a16_float64          = PlatformPixelFormatRGBA16Float,
+	r32g32b32a32_uint128          = PlatformPixelFormatRGBA32Uint,
+	r32g32b32a32_int128           = PlatformPixelFormatRGBA32Sint,
+	r32g32b32a32_float128         = PlatformPixelFormatRGBA32Float,
+	bc1_rgba                      = PlatformPixelFormatBC1_RGBA,
+	bc1_rgba_srgb                 = PlatformPixelFormatBC1_RGBA_sRGB,
+	bc2_rgba                      = PlatformPixelFormatBC2_RGBA,
+	bc2_rgba_srgb                 = PlatformPixelFormatBC2_RGBA_sRGB,
+	bc3_rgba                      = PlatformPixelFormatBC3_RGBA,
+	bc3_rgba_srgb                 = PlatformPixelFormatBC3_RGBA_sRGB,
+	bc4_r_unsigned_norm           = PlatformPixelFormatBC4_RUnorm,
+	bc4_r_norm                    = PlatformPixelFormatBC4_RSnorm,
+	bc5_rg_unsigned_norm          = PlatformPixelFormatBC5_RGUnorm,
+	bc5_rg_norm                   = PlatformPixelFormatBC5_RGSnorm,
+	bc6h_rgb_float                = PlatformPixelFormatBC6H_RGBFloat,
+	bc6h_rgbu_float               = PlatformPixelFormatBC6H_RGBUfloat,
+	bc7_rgba_unsigned_norm        = PlatformPixelFormatBC7_RGBAUnorm,
+	bc7_rgba_unsinged_norm_srgb   = PlatformPixelFormatBC7_RGBAUnorm_sRGB,
+	pvrtc_rgb_2bpp                = PlatformPixelFormatPVRTC_RGB_2BPP,
+	pvrtc_rgb_2bpp_srgb           = PlatformPixelFormatPVRTC_RGB_2BPP_sRGB,
+	pvrtc_rgb_4bpp                = PlatformPixelFormatPVRTC_RGB_4BPP,
+	pvrtc_rgb_4bpp_srgb           = PlatformPixelFormatPVRTC_RGB_4BPP_sRGB,
+	pvrtc_rgba_2bpp               = PlatformPixelFormatPVRTC_RGBA_2BPP,
+	pvrtc_rgba_2bpp_srgb          = PlatformPixelFormatPVRTC_RGBA_2BPP_sRGB,
+	pvrtc_rgba_4bpp               = PlatformPixelFormatPVRTC_RGBA_4BPP,
+	pvrtc_rgba_4bpp_srgb          = PlatformPixelFormatPVRTC_RGBA_4BPP_sRGB,
+	eac_r11_unsigned_norm         = PlatformPixelFormatEAC_R11Unorm,
+	eac_r11_norm                  = PlatformPixelFormatEAC_R11Snorm,
+	eac_r11g11_unsigned_norm      = PlatformPixelFormatEAC_RG11Unorm,
+	eac_r11g11_norm               = PlatformPixelFormatEAC_RG11Snorm,
+	eac_r8g8b8a8                  = PlatformPixelFormatEAC_RGBA8,
+	eac_r8g8b8a8_srgb             = PlatformPixelFormatEAC_RGBA8_sRGB,
+	etc2_r8g8b8                   = PlatformPixelFormatETC2_RGB8,
+	etc2_r8g8b8_srgb              = PlatformPixelFormatETC2_RGB8_sRGB,
+	etc2_r8g8b8a1                 = PlatformPixelFormatETC2_RGB8A1,
+	etc2_r8g8b8a1_srgb            = PlatformPixelFormatETC2_RGB8A1_sRGB,
+	astc_4x4_srgb                 = PlatformPixelFormatASTC_4x4_sRGB,
+	astc_5x4_srgb                 = PlatformPixelFormatASTC_5x4_sRGB,
+	astc_5x5_srgb                 = PlatformPixelFormatASTC_5x5_sRGB,
+	astc_6x5_srgb                 = PlatformPixelFormatASTC_6x5_sRGB,
+	astc_6x6_srgb                 = PlatformPixelFormatASTC_6x6_sRGB,
+	astc_8x5_srgb                 = PlatformPixelFormatASTC_8x5_sRGB,
+	astc_8x6_srgb                 = PlatformPixelFormatASTC_8x6_sRGB,
+	astc_8x8_srgb                 = PlatformPixelFormatASTC_8x8_sRGB,
+	astc_10x5_srgb                = PlatformPixelFormatASTC_10x5_sRGB,
+	astc_10x6_srgb                = PlatformPixelFormatASTC_10x6_sRGB,
+	astc_10x8_srgb                = PlatformPixelFormatASTC_10x8_sRGB,
+	astc_10x10_srgb               = PlatformPixelFormatASTC_10x10_sRGB,
+	astc_12x10_srgb               = PlatformPixelFormatASTC_12x10_sRGB,
+	astc_12x12_srgb               = PlatformPixelFormatASTC_12x12_sRGB,
+	astc_4x4_ldr                  = PlatformPixelFormatASTC_4x4_LDR,
+	astc_5x4_ldr                  = PlatformPixelFormatASTC_5x4_LDR,
+	astc_5x5_ldr                  = PlatformPixelFormatASTC_5x5_LDR,
+	astc_6x5_ldr                  = PlatformPixelFormatASTC_6x5_LDR,
+	astc_6x6_ldr                  = PlatformPixelFormatASTC_6x6_LDR,
+	astc_8x5_ldr                  = PlatformPixelFormatASTC_8x5_LDR,
+	astc_8x6_ldr                  = PlatformPixelFormatASTC_8x6_LDR,
+	astc_8x8_ldr                  = PlatformPixelFormatASTC_8x8_LDR,
+	astc_10x5_ldr                 = PlatformPixelFormatASTC_10x5_LDR,
+	astc_10x6_ldr                 = PlatformPixelFormatASTC_10x6_LDR,
+	astc_10x8_ldr                 = PlatformPixelFormatASTC_10x8_LDR,
+	astc_10x10_ldr                = PlatformPixelFormatASTC_10x10_LDR,
+	astc_12x10_ldr                = PlatformPixelFormatASTC_12x10_LDR,
+	astc_12x12_ldr                = PlatformPixelFormatASTC_12x12_LDR,
+	astc_4x4_hdr                  = PlatformPixelFormatASTC_4x4_HDR,
+	astc_5x4_hdr                  = PlatformPixelFormatASTC_5x4_HDR,
+	astc_5x5_hdr                  = PlatformPixelFormatASTC_5x5_HDR,
+	astc_6x5_hdr                  = PlatformPixelFormatASTC_6x5_HDR,
+	astc_6x6_hdr                  = PlatformPixelFormatASTC_6x6_HDR,
+	astc_8x5_hdr                  = PlatformPixelFormatASTC_8x5_HDR,
+	astc_8x6_hdr                  = PlatformPixelFormatASTC_8x6_HDR,
+	astc_8x8_hdr                  = PlatformPixelFormatASTC_8x8_HDR,
+	astc_10x5_hdr                 = PlatformPixelFormatASTC_10x5_HDR,
+	astc_10x6_hdr                 = PlatformPixelFormatASTC_10x6_HDR,
+	astc_10x8_hdr                 = PlatformPixelFormatASTC_10x8_HDR,
+	astc_10x10_hdr                = PlatformPixelFormatASTC_10x10_HDR,
+	astc_12x10_hdr                = PlatformPixelFormatASTC_12x10_HDR,
+	astc_12x12_hdr                = PlatformPixelFormatASTC_12x12_HDR,
+	gbgr422                       = PlatformPixelFormatGBGR422,
+	bgrg422                       = PlatformPixelFormatBGRG422,
+	depth16_uint16_norm           = PlatformPixelFormatDepth16Unorm,
+	depth32_float32               = PlatformPixelFormatDepth32Float,
+	stencil8_int8                 = PlatformPixelFormatStencil8,
+	depth24_norm_stencil8_uint32  = PlatformPixelFormatDepth24Unorm_Stencil8,
+	depth32_float32_stencil8_int8 = PlatformPixelFormatDepth32Float_Stencil8,
+	x32_stencil8                  = PlatformPixelFormatX32_Stencil8,
+	x24_stencil8                  = PlatformPixelFormatX24_Stencil8,
+	b10g10r10a10_xr               = PlatformPixelFormatBGRA10_XR,
+	b10g10r10a10_xr_srgb          = PlatformPixelFormatBGRA10_XR_sRGB,
+	b10g10r10_xr                  = PlatformPixelFormatBGR10_XR,
+	b10g10r10_xr_srgb             = PlatformPixelFormatBGR10_XR_sRGB
 };
 
 enum class VertexFormat : uint32_t
 {
-	bool32_1,
+	invalid = PlatformVertexFormatInvalid,
+
+	int8_1 = PlatformVertexFormatChar,
+	int8_2 = PlatformVertexFormatChar2,
+	int8_3 = PlatformVertexFormatChar3,
+	int8_4 = PlatformVertexFormatChar4,
+
+	int16_1 = PlatformVertexFormatShort,
+	int16_2 = PlatformVertexFormatShort2,
+	int16_3 = PlatformVertexFormatShort3,
+	int16_4 = PlatformVertexFormatShort4,
+
+	int32_1 = PlatformVertexFormatInt,
+	int32_2 = PlatformVertexFormatInt2,
+	int32_3 = PlatformVertexFormatInt3,
+	int32_4 = PlatformVertexFormatInt4,
+
+	half16_1 = PlatformVertexFormatHalf,
+	half16_2 = PlatformVertexFormatHalf2,
+	half16_3 = PlatformVertexFormatHalf3,
+	half16_4 = PlatformVertexFormatHalf4,
+
+	float32_1 = PlatformVertexFormatFloat,
+	float32_2 = PlatformVertexFormatFloat2,
+	float32_3 = PlatformVertexFormatFloat3,
+	float32_4 = PlatformVertexFormatFloat4,
+
+	uint8_1 = PlatformVertexFormatUChar,
+	uint8_2 = PlatformVertexFormatUChar2,
+	uint8_3 = PlatformVertexFormatUChar3,
+	uint8_4 = PlatformVertexFormatUChar4,
+
+	uint16_1 = PlatformVertexFormatUShort,
+	uint16_2 = PlatformVertexFormatUShort2,
+	uint16_3 = PlatformVertexFormatUShort3,
+	uint16_4 = PlatformVertexFormatUShort4,
+
+	uint32_1 = PlatformVertexFormatUInt,
+	uint32_2 = PlatformVertexFormatUInt2,
+	uint32_3 = PlatformVertexFormatUInt3,
+	uint32_4 = PlatformVertexFormatUInt4,
+
+	int8_1_norm = PlatformVertexFormatCharNormalized,
+	int8_2_norm = PlatformVertexFormatChar2Normalized,
+	int8_3_norm = PlatformVertexFormatChar3Normalized,
+	int8_4_norm = PlatformVertexFormatChar4Normalized,
+
+	int16_1_norm = PlatformVertexFormatShortNormalized,
+	int16_2_norm = PlatformVertexFormatShort2Normalized,
+	int16_3_norm = PlatformVertexFormatShort3Normalized,
+	int16_4_norm = PlatformVertexFormatShort4Normalized,
+
+	uint8_1_norm = PlatformVertexFormatUCharNormalized,
+	uint8_2_norm = PlatformVertexFormatUChar2Normalized,
+	uint8_3_norm = PlatformVertexFormatUChar3Normalized,
+	uint8_4_norm = PlatformVertexFormatUChar4Normalized,
+
+	uint16_1_norm = PlatformVertexFormatUShortNormalized,
+	uint16_2_norm = PlatformVertexFormatUShort2Normalized,
+	uint16_3_norm = PlatformVertexFormatUShort3Normalized,
+	uint16_4_norm = PlatformVertexFormatUShort4Normalized,
+
+	int1010102_norm   = PlatformVertexFormatInt1010102Normalized,
+	uint1010102_norm  = PlatformVertexFormatUInt1010102Normalized,
+	uint8_4_norm_bgra = PlatformVertexFormatUChar4Normalized_BGRA,
+
+	bool32_1 = PlatformVertexFormatHalf + 1,
 	bool32_2,
 	bool32_3,
 	bool32_4,
 
-	int8_1,
-	int8_2,
-	int8_3,
-	int8_4,
+	uint64_1,
+	uint64_2,
+	uint64_3,
+	uint64_4,
 
-	int16_1,
-	int16_2,
-	int16_3,
-	int16_4,
-
-	int32_1,
-	int32_2,
-	int32_3,
-	int32_4,
-
-	half16_1,
-	half16_2,
-	half16_3,
-	half16_4,
-
-	float32_1,
-	float32_2,
-	float32_3,
-	float32_4,
+	float64_1,
+	float64_2,
+	float64_3,
+	float64_4,
 
 	float32_2x2,
 	float32_2x3,
@@ -151,11 +278,6 @@ enum class VertexFormat : uint32_t
 	float32_4x3,
 	float32_4x4,
 
-	float64_1,
-	float64_2,
-	float64_3,
-	float64_4,
-
 	float64_2x2,
 	float64_2x3,
 	float64_2x4,
@@ -168,56 +290,13 @@ enum class VertexFormat : uint32_t
 	float64_4x3,
 	float64_4x4,
 
-	uint8_1,
-	uint8_2,
-	uint8_3,
-	uint8_4,
-
-	uint16_1,
-	uint16_2,
-	uint16_3,
-	uint16_4,
-
-	uint32_1,
-	uint32_2,
-	uint32_3,
-	uint32_4,
-
-	uint64_1,
-	uint64_2,
-	uint64_3,
-	uint64_4,
-
-	int8_1_norm,
-	int8_2_norm,
-	int8_3_norm,
-	int8_4_norm,
-
-	int16_1_norm,
-	int16_2_norm,
-	int16_3_norm,
-	int16_4_norm,
-
-	uint8_1_norm,
-	uint8_2_norm,
-	uint8_3_norm,
-	uint8_4_norm,
-
-	uint16_1_norm,
-	uint16_2_norm,
-	uint16_3_norm,
-	uint16_4_norm,
-
-	int1010102_norm,
-	uint1010102_norm,
-	int101111_norm,
-	uint101111_norm,
-	uint8_4_norm_bgra,
-
 	uint8_custom,
 	uint16_custom,
 	uint32_custom,
 	float32_custom,
+
+	int101111_norm,
+	uint101111_norm,
 
 	struct_1
 };
@@ -410,7 +489,7 @@ enum class AttributeIndex : uint32_t
 #undef item
 #undef item_value
 
-uint32_t       pixel_format_to_bytes(PixelFormat a_pixel_format);
+uint32_t       pixel_format_to_bits(PixelFormat a_pixel_format);
 uint32_t       vertex_format_to_bytes(VertexFormat a_vertex_format);
 uint32_t       vertex_format_to_location(VertexFormat a_vertex_format);
 BufferSemantic get_format_semantic(const std::string &a_format);
@@ -434,7 +513,7 @@ constexpr rhi::BufferSemantic get_format_shader_semantic()
 // To use the above for an Animation type do
 define_type_to_shader_semantics(Animation)
 {
-    return BufferSemantic::animation_data;
+	return BufferSemantic::animation_data;
 }
 */
 }        // namespace rhi
