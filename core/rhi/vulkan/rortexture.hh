@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2022
+// Copyright (c) 2021
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -23,38 +23,13 @@
 //
 // Version: 1.0.0
 
-#pragma once
-
-#include "rhi/crtp_interfaces/rordevice.hpp"
-#include "rhi/rorrhi_macros.hpp"
-#include "rhi/vulkan/rorvulkan_common.hpp"
-#include <vulkan/vulkan_core.h>
-
-namespace cfg
-{
-}
+#include "configuration/rorsettings_configuration.hpp"
+#include "foundation/rorsystem.hpp"
+#include "foundation/rorutilities.hpp"
+#include "rhi/vulkan/rortexture.hpp"
+#include "resources/rorresource.hpp"
+#include "rhi/rortypes.hpp"
+#include <memory>
 
 namespace rhi
-{
-class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
-{
-  public:
-	FORCE_INLINE               DeviceVulkan(const DeviceVulkan &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE               DeviceVulkan(DeviceVulkan &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE DeviceVulkan &operator=(const DeviceVulkan &a_other)        = default;        //! Copy assignment operator
-	FORCE_INLINE DeviceVulkan &operator=(DeviceVulkan &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~DeviceVulkan() noexcept override                   = default;        //! Destructor
-
-	declare_translation_unit_vtable();
-
-  protected:
-	FORCE_INLINE DeviceVulkan() = default;        //! Default constructor
-  private:
-	VkDevice m_device; //! Vulkan device
-};
-
-declare_rhi_render_type(Device);
-
-}        // namespace rhi
-
-#include "rhi/vulkan/rordevice.hh"
+{}        // namespace ror

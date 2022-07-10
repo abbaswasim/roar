@@ -26,9 +26,11 @@
 #pragma once
 
 #include <Metal/MTLPixelFormat.hpp>
+#include <Metal/MTLVertexDescriptor.hpp>
 
 namespace rhi
 {
+// Pixel formats
 constexpr auto PlatformPixelFormatInvalid               = MTL::PixelFormat::PixelFormatInvalid;
 constexpr auto PlatformPixelFormatA8Unorm               = MTL::PixelFormat::PixelFormatA8Unorm;
 constexpr auto PlatformPixelFormatR8Unorm               = MTL::PixelFormat::PixelFormatR8Unorm;
@@ -168,4 +170,59 @@ constexpr auto PlatformPixelFormatBGRA10_XR             = MTL::PixelFormat::Pixe
 constexpr auto PlatformPixelFormatBGRA10_XR_sRGB        = MTL::PixelFormat::PixelFormatBGRA10_XR_sRGB;
 constexpr auto PlatformPixelFormatBGR10_XR              = MTL::PixelFormat::PixelFormatBGR10_XR;
 constexpr auto PlatformPixelFormatBGR10_XR_sRGB         = MTL::PixelFormat::PixelFormatBGR10_XR_sRGB;
+
+// Vertex formats
+constexpr auto PlatformVertexFormatInvalid               = MTL::VertexFormat::VertexFormatInvalid;
+constexpr auto PlatformVertexFormatUChar2                = MTL::VertexFormat::VertexFormatUChar2;
+constexpr auto PlatformVertexFormatUChar3                = MTL::VertexFormat::VertexFormatUChar3;
+constexpr auto PlatformVertexFormatUChar4                = MTL::VertexFormat::VertexFormatUChar4;
+constexpr auto PlatformVertexFormatChar2                 = MTL::VertexFormat::VertexFormatChar2;
+constexpr auto PlatformVertexFormatChar3                 = MTL::VertexFormat::VertexFormatChar3;
+constexpr auto PlatformVertexFormatChar4                 = MTL::VertexFormat::VertexFormatChar4;
+constexpr auto PlatformVertexFormatUChar2Normalized      = MTL::VertexFormat::VertexFormatUChar2Normalized;
+constexpr auto PlatformVertexFormatUChar3Normalized      = MTL::VertexFormat::VertexFormatUChar3Normalized;
+constexpr auto PlatformVertexFormatUChar4Normalized      = MTL::VertexFormat::VertexFormatUChar4Normalized;
+constexpr auto PlatformVertexFormatChar2Normalized       = MTL::VertexFormat::VertexFormatChar2Normalized;
+constexpr auto PlatformVertexFormatChar3Normalized       = MTL::VertexFormat::VertexFormatChar3Normalized;
+constexpr auto PlatformVertexFormatChar4Normalized       = MTL::VertexFormat::VertexFormatChar4Normalized;
+constexpr auto PlatformVertexFormatUShort2               = MTL::VertexFormat::VertexFormatUShort2;
+constexpr auto PlatformVertexFormatUShort3               = MTL::VertexFormat::VertexFormatUShort3;
+constexpr auto PlatformVertexFormatUShort4               = MTL::VertexFormat::VertexFormatUShort4;
+constexpr auto PlatformVertexFormatShort2                = MTL::VertexFormat::VertexFormatShort2;
+constexpr auto PlatformVertexFormatShort3                = MTL::VertexFormat::VertexFormatShort3;
+constexpr auto PlatformVertexFormatShort4                = MTL::VertexFormat::VertexFormatShort4;
+constexpr auto PlatformVertexFormatUShort2Normalized     = MTL::VertexFormat::VertexFormatUShort2Normalized;
+constexpr auto PlatformVertexFormatUShort3Normalized     = MTL::VertexFormat::VertexFormatUShort3Normalized;
+constexpr auto PlatformVertexFormatUShort4Normalized     = MTL::VertexFormat::VertexFormatUShort4Normalized;
+constexpr auto PlatformVertexFormatShort2Normalized      = MTL::VertexFormat::VertexFormatShort2Normalized;
+constexpr auto PlatformVertexFormatShort3Normalized      = MTL::VertexFormat::VertexFormatShort3Normalized;
+constexpr auto PlatformVertexFormatShort4Normalized      = MTL::VertexFormat::VertexFormatShort4Normalized;
+constexpr auto PlatformVertexFormatHalf2                 = MTL::VertexFormat::VertexFormatHalf2;
+constexpr auto PlatformVertexFormatHalf3                 = MTL::VertexFormat::VertexFormatHalf3;
+constexpr auto PlatformVertexFormatHalf4                 = MTL::VertexFormat::VertexFormatHalf4;
+constexpr auto PlatformVertexFormatFloat                 = MTL::VertexFormat::VertexFormatFloat;
+constexpr auto PlatformVertexFormatFloat2                = MTL::VertexFormat::VertexFormatFloat2;
+constexpr auto PlatformVertexFormatFloat3                = MTL::VertexFormat::VertexFormatFloat3;
+constexpr auto PlatformVertexFormatFloat4                = MTL::VertexFormat::VertexFormatFloat4;
+constexpr auto PlatformVertexFormatInt                   = MTL::VertexFormat::VertexFormatInt;
+constexpr auto PlatformVertexFormatInt2                  = MTL::VertexFormat::VertexFormatInt2;
+constexpr auto PlatformVertexFormatInt3                  = MTL::VertexFormat::VertexFormatInt3;
+constexpr auto PlatformVertexFormatInt4                  = MTL::VertexFormat::VertexFormatInt4;
+constexpr auto PlatformVertexFormatUInt                  = MTL::VertexFormat::VertexFormatUInt;
+constexpr auto PlatformVertexFormatUInt2                 = MTL::VertexFormat::VertexFormatUInt2;
+constexpr auto PlatformVertexFormatUInt3                 = MTL::VertexFormat::VertexFormatUInt3;
+constexpr auto PlatformVertexFormatUInt4                 = MTL::VertexFormat::VertexFormatUInt4;
+constexpr auto PlatformVertexFormatInt1010102Normalized  = MTL::VertexFormat::VertexFormatInt1010102Normalized;
+constexpr auto PlatformVertexFormatUInt1010102Normalized = MTL::VertexFormat::VertexFormatUInt1010102Normalized;
+constexpr auto PlatformVertexFormatUChar4Normalized_BGRA = MTL::VertexFormat::VertexFormatUChar4Normalized_BGRA;
+constexpr auto PlatformVertexFormatUChar                 = MTL::VertexFormat::VertexFormatUChar;
+constexpr auto PlatformVertexFormatChar                  = MTL::VertexFormat::VertexFormatChar;
+constexpr auto PlatformVertexFormatUCharNormalized       = MTL::VertexFormat::VertexFormatUCharNormalized;
+constexpr auto PlatformVertexFormatCharNormalized        = MTL::VertexFormat::VertexFormatCharNormalized;
+constexpr auto PlatformVertexFormatUShort                = MTL::VertexFormat::VertexFormatUShort;
+constexpr auto PlatformVertexFormatShort                 = MTL::VertexFormat::VertexFormatShort;
+constexpr auto PlatformVertexFormatUShortNormalized      = MTL::VertexFormat::VertexFormatUShortNormalized;
+constexpr auto PlatformVertexFormatShortNormalized       = MTL::VertexFormat::VertexFormatShortNormalized;
+constexpr auto PlatformVertexFormatHalf                  = MTL::VertexFormat::VertexFormatHalf;
+
 }        // namespace rhi

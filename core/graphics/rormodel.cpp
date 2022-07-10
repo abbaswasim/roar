@@ -413,6 +413,7 @@ rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
 		case rhi::VertexFormat::uint32_4:
 			return rhi::VertexFormat::uint32_4;
 
+		case rhi::VertexFormat::invalid:
 		case rhi::VertexFormat::struct_1:
 		case rhi::VertexFormat::float32_1:
 		case rhi::VertexFormat::float32_2:
@@ -543,20 +544,20 @@ void read_material_factor(float32_t &a_factor, const float *a_input)
 
 template <typename _factor_type>
 void read_material_component(ror::Material::Component<_factor_type>                   &a_component,
-							 const std::unordered_map<const cgltf_texture *, int32_t> &a_texture_to_index,
-							 const cgltf_texture_view                                 &a_texture_view,
-							 const float                                              *a_factor)
+                             const std::unordered_map<const cgltf_texture *, int32_t> &a_texture_to_index,
+                             const cgltf_texture_view                                 &a_texture_view,
+                             const float                                              *a_factor)
 {
 	const auto convert_texture_transform_to_mat3 = [](const cgltf_texture_transform &a_transform) {
 		ror::Matrix3f translation = ror::Matrix3f(1.0f, 0.0f, 0.0f,
-												  0.0f, 1.0f, 0.0f,
-												  a_transform.offset[0], a_transform.offset[1], 1.0f);
+		                                          0.0f, 1.0f, 0.0f,
+		                                          a_transform.offset[0], a_transform.offset[1], 1.0f);
 		ror::Matrix3f rotation    = ror::Matrix3f(cos(a_transform.rotation), sin(a_transform.rotation), 0.0f,
-												  -sin(a_transform.rotation), cos(a_transform.rotation), 0.0f,
-												  0.0f, 0.0f, 1.0f);
+		                                          -sin(a_transform.rotation), cos(a_transform.rotation), 0.0f,
+		                                          0.0f, 0.0f, 1.0f);
 		ror::Matrix3f scale       = ror::Matrix3f(a_transform.scale[0], 0.0f, 0.0f,
-												  0.0f, a_transform.scale[1], 0.0f,
-												  0.0f, 0.0f, 1.0f);
+		                                          0.0f, a_transform.scale[1], 0.0f,
+		                                          0.0f, 0.0f, 1.0f);
 		return translation * rotation * scale;
 	};
 
@@ -940,41 +941,41 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 								current_index = rhi::BufferSemantic::vertex_position;
 								mesh.m_bounding_boxes[j].create_from_min_max({attrib.data->min[0], attrib.data->min[1], attrib.data->min[2]},
-																			 {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
+								                                             {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
 								break;
 							case cgltf_attribute_type_normal:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
-									   (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec2) && "Normal not in the right format, float3 required");
+								       (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec2) && "Normal not in the right format, float3 required");
 								assert(attrib.index == 0 && "Don't suport more than 1 normal");
 								current_index = rhi::BufferSemantic::vertex_normal;
 								break;
 							case cgltf_attribute_type_tangent:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
-									   (attrib.data->type == cgltf_type_vec4 || attrib.data->type == cgltf_type_vec3) && "Tangent not in the right format, float4 required");
+								       (attrib.data->type == cgltf_type_vec4 || attrib.data->type == cgltf_type_vec3) && "Tangent not in the right format, float4 required");
 								assert(attrib.index == 0 && "Don't suport more than 1 tangent");
 								current_index = rhi::BufferSemantic::vertex_tangent;
 								break;
 							case cgltf_attribute_type_texcoord:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_16u) &&
-									   (attrib.data->type == cgltf_type_vec2 || attrib.data->type == cgltf_type_vec3) && "Texture coordinate not in the right format, float2 required");
+								       (attrib.data->type == cgltf_type_vec2 || attrib.data->type == cgltf_type_vec3) && "Texture coordinate not in the right format, float2 required");
 								assert(attrib.index < 3 && "Don't support more than 3 texture coordinate sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) << static_cast<uint64_t>(attrib.index));
 								break;
 							case cgltf_attribute_type_color:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8u) &&
-									   (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec4) && "Color not in the right format, float3 required");
+								       (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec4) && "Color not in the right format, float3 required");
 								assert(attrib.index < 2 && "Don't support more than 2 color sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0) << static_cast<uint64_t>(attrib.index));
 								break;
 							case cgltf_attribute_type_joints:
 								assert((attrib.data->component_type == cgltf_component_type_r_32u || attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
-									   attrib.data->type == cgltf_type_vec4 && "Joints not in the right format, unsigned8/16_4 required");
+								       attrib.data->type == cgltf_type_vec4 && "Joints not in the right format, unsigned8/16_4 required");
 								assert(attrib.index < 2 && "Don't support more than 2 joint sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0) << static_cast<uint64_t>(attrib.index));
 								break;
 							case cgltf_attribute_type_weights:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
-									   attrib.data->type == cgltf_type_vec4 && "Weights not in the right format, unsigned_8/16/float_4 required");
+								       attrib.data->type == cgltf_type_vec4 && "Weights not in the right format, unsigned_8/16/float_4 required");
 								assert(attrib.index < 2 && "Don't support more than 2 weight sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0) << static_cast<uint64_t>(attrib.index));
 								break;
@@ -1009,7 +1010,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					{
 						assert(cprim.indices->type == cgltf_type_scalar && "Indices are not the right type, only SCALAR indices supported");
 						assert((cprim.indices->component_type == cgltf_component_type_r_32u || cprim.indices->component_type == cgltf_component_type_r_16u || cprim.indices->component_type == cgltf_component_type_r_8u) &&
-							   "Indices are not in the right component type , only uint8_t, uint16_t and uint32_t supported");
+						       "Indices are not in the right component type , only uint8_t, uint16_t and uint32_t supported");
 
 						assert(cprim.indices->buffer_view && "Indices doesn't have a valid buffer view");
 						// assert(cprim.indices->buffer_view->type == cgltf_buffer_view_type_indices && "Indices buffer view type is wrong"); type is always invalid, because no such thing in bufferView in glTF
@@ -1073,7 +1074,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 										ror::BoundingBoxf total_bbox;
 
 										total_bbox.create_from_min_max({attrib.data->min[0], attrib.data->min[1], attrib.data->min[2]},
-																	   {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
+										                               {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
 
 										// Not actually precise bounding box will do for now
 										mesh.m_bounding_boxes[j].add_bounding(total_bbox);
@@ -1081,12 +1082,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 									break;
 								case cgltf_attribute_type_normal:
 									assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
-										   (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec2) && "Normal not in the right format");
+									       (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec2) && "Normal not in the right format");
 									current_index = rhi::BufferSemantic::vertex_normal;
 									break;
 								case cgltf_attribute_type_tangent:
 									assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
-										   (attrib.data->type == cgltf_type_vec4 || attrib.data->type == cgltf_type_vec3) && "Tangent not in the right format");
+									       (attrib.data->type == cgltf_type_vec4 || attrib.data->type == cgltf_type_vec3) && "Tangent not in the right format");
 									current_index = rhi::BufferSemantic::vertex_tangent;
 									break;
 								case cgltf_attribute_type_texcoord:
@@ -1168,8 +1169,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 					skin.m_inverse_bind_matrices.resize(cskin.inverse_bind_matrices->count);
 					// TODO: Do this unpacking manually, there is a lot of overhead of doing it this way
 					cgltf_accessor_unpack_floats(inverse_bind_matrices_accessor,
-												 reinterpret_cast<cgltf_float *>(skin.m_inverse_bind_matrices.data()),
-												 skin.m_inverse_bind_matrices.size() * 16);
+					                             reinterpret_cast<cgltf_float *>(skin.m_inverse_bind_matrices.data()),
+					                             skin.m_inverse_bind_matrices.size() * 16);
 
 					auto attrib_byte_size = cgltf_calc_size(inverse_bind_matrices_accessor->type, inverse_bind_matrices_accessor->component_type);
 
@@ -1301,8 +1302,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 						animation_sampler.m_input.resize(anim_sampler_accessor->count);        // Don't need to multiply attrib_byte_size because m_input is float32_t
 						cgltf_accessor_unpack_floats(anim_sampler_accessor,
-													 reinterpret_cast<cgltf_float *>(animation_sampler.m_input.data()),
-													 animation_sampler.m_input.size());
+						                             reinterpret_cast<cgltf_float *>(animation_sampler.m_input.data()),
+						                             animation_sampler.m_input.size());
 					}
 
 					{
@@ -1337,8 +1338,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						{
 							animation_sampler.m_output_format = format;
 							cgltf_accessor_unpack_floats(anim_sampler_accessor,
-														 reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
-														 animation_sampler.m_output.size());
+							                             reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
+							                             animation_sampler.m_output.size());
 						}
 					}
 
@@ -1484,6 +1485,10 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 void Model::upload()
 {
+	for (auto &image : this->m_images)
+	{
+		image.upload();
+	}
 	ror::log_critical("Uploading a model");
 }
 

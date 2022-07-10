@@ -32,6 +32,8 @@ constexpr uint32_t format_base_alignment_count(Format a_format)
 {
 	switch (a_format)
 	{
+		case Format::invalid:
+			return 0;
 		case Format::int8_1:
 		case Format::int8_1_norm:
 		case Format::uint8_1:
@@ -141,14 +143,14 @@ uint32_t format_base_alignment(Format a_format)        //, Layout a_layout = Lay
 constexpr bool is_matrix_type(Format a_type)
 {
 	if (a_type == Format::float32_2x2 ||
-	    a_type == Format::float32_2x3 ||
-	    a_type == Format::float32_2x4 ||
-	    a_type == Format::float32_3x2 ||
-	    a_type == Format::float32_3x3 ||
-	    a_type == Format::float32_3x4 ||
-	    a_type == Format::float32_4x2 ||
-	    a_type == Format::float32_4x3 ||
-	    a_type == Format::float32_4x4)
+		a_type == Format::float32_2x3 ||
+		a_type == Format::float32_2x4 ||
+		a_type == Format::float32_3x2 ||
+		a_type == Format::float32_3x3 ||
+		a_type == Format::float32_3x4 ||
+		a_type == Format::float32_4x2 ||
+		a_type == Format::float32_4x3 ||
+		a_type == Format::float32_4x4)
 		return true;
 	else
 		return false;
@@ -180,16 +182,16 @@ constexpr uint32_t glsl_size(Format a_type)
 constexpr uint32_t glsl_size_vec3_correction(Format a_type, uint32_t a_size)
 {
 	if (a_type == Format::float32_3 ||
-	    a_type == Format::int32_3 ||
-	    a_type == Format::uint32_3 ||
-	    a_type == Format::bool32_3)
+		a_type == Format::int32_3 ||
+		a_type == Format::uint32_3 ||
+		a_type == Format::bool32_3)
 		return a_size += 4;
 
 	return a_size;
 }
 
 ShaderBuffer::Struct::Struct(std::string a_name, uint32_t a_count) :
-    Entry(a_name, Format::struct_1, a_count, 0, 0, 0)
+	Entry(a_name, Format::struct_1, a_count, 0, 0, 0)
 {
 	this->m_entries.reserve(10);
 }

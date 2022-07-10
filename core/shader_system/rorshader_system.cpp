@@ -65,6 +65,7 @@ std::string format_to_glsl_type(VertexFormat a_format)
 	// clang-format off
 	switch (a_format)
 	{
+		case VertexFormat::invalid:				return " ";
 		case VertexFormat::struct_1:			return " ";
 		case VertexFormat::bool32_1:			return " bool";
 		case VertexFormat::bool32_2:			return " bvec2";
@@ -246,6 +247,7 @@ std::string attribute_format(VertexFormat a_format)
 		case VertexFormat::uint32_custom:		return " uint";
 		case VertexFormat::float32_custom:		return " float";
 
+		case VertexFormat::invalid:
 		case VertexFormat::float32_2x2:
 		case VertexFormat::float32_2x3:
 		case VertexFormat::float32_2x4:

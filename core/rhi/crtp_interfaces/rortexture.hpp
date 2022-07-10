@@ -94,6 +94,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE void reset(uint8_t *, uint64_t) noexcept;
 	FORCE_INLINE void push_empty_mip() noexcept;
 	FORCE_INLINE void allocate(uint64_t a_size);
+	FORCE_INLINE void upload();
 
   protected:
 	FORCE_INLINE TextureImageCrtp() = default;        //! Default constructor

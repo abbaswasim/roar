@@ -23,10 +23,16 @@
 //
 // Version: 1.0.0
 
+#include "rhi/crtp_interfaces/rortexture.hpp"
 #include "rhi/vulkan/rortexture.hpp"
 
 namespace rhi
 {
+
+void TextureImageVulkan::upload()
+{
+	ror::log_critical("Uploading texture to Vulkan");
+}
 
 define_translation_unit_vtable(TextureImageVulkan)
 {}

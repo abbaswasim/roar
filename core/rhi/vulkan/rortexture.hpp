@@ -39,6 +39,11 @@ namespace rhi
 {
 class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImageVulkan>
 {
+  public:
+	void upload();
+
+  protected:
+  private:
 	declare_translation_unit_vtable();
 };
 

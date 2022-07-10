@@ -26,24 +26,23 @@
 #pragma once
 #include "core/foundation/rorcrtp.hpp"
 
-
 namespace rhi
 {
 template <class _type>
-class DeviceCrtp  : public ror::Crtp<_type, DeviceCrtp>
+class DeviceCrtp : public ror::Crtp<_type, DeviceCrtp>
 {
   public:
-	FORCE_INLINE                DeviceCrtp(const DeviceCrtp &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE                DeviceCrtp(DeviceCrtp &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE DeviceCrtp &operator=(const DeviceCrtp &a_other)         = default;        //! Copy assignment operator
-	FORCE_INLINE DeviceCrtp &operator=(DeviceCrtp &&a_other) noexcept     = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~DeviceCrtp() noexcept override                 = default;        //! Destructor
+	FORCE_INLINE             DeviceCrtp(const DeviceCrtp &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE             DeviceCrtp(DeviceCrtp &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE DeviceCrtp &operator=(const DeviceCrtp &a_other)      = default;        //! Copy assignment operator
+	FORCE_INLINE DeviceCrtp &operator=(DeviceCrtp &&a_other) noexcept  = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~DeviceCrtp() noexcept override               = default;        //! Destructor
 
   protected:
-	FORCE_INLINE                DeviceCrtp()                             = default;        //! Default constructor
+	FORCE_INLINE DeviceCrtp() = default;        //! Default constructor
   private:
 };
 
-} // namespace rhi
+}        // namespace rhi
 
 #include "rhi/crtp_interfaces/rordevice.hh"

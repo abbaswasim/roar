@@ -118,6 +118,12 @@ FORCE_INLINE void TextureImageCrtp<_type>::allocate(uint64_t a_size)
 }
 
 template<class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::upload()
+{
+	this->underlying().upload();
+}
+
+template<class _type>
 FORCE_INLINE uint8_t *TextureImageCrtp<_type>::data() const noexcept
 {
 	return this->m_data.get();
