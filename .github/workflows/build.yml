@@ -21,7 +21,7 @@ jobs:
         name: Install RandR headers
         run: |
           sudo apt-get update
-          sudo apt install xrandr-dev
+          sudo apt install xorg-dev libglu1-mesa-dev
       - if: ${{ matrix.platform == 'macos' }}
         name: CMake configure ${{ matrix.build_type }} on ${{ matrix.platform }}
         run: cmake -H"." -B"build/${{ matrix.platform }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="Metal" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
