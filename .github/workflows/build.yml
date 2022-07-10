@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    name: "${{ matrix.build_type }} on ${{ matrix.platform }}"
+    name: "Build ${{ matrix.build_type }} of ${{ matrix.renderer }} backend on ${{ matrix.platform }}"
     strategy:
       fail-fast: false
       matrix:
