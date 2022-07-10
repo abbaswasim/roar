@@ -30,7 +30,6 @@
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "math/rorvector4.hpp"
-#include <_types/_uint32_t.h>
 #include <string>
 
 namespace ror

@@ -119,7 +119,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	int32_t                      m_width{800};                             //! Width of the rectangle it needs to fill
 	int32_t                      m_height{600};                            //! Height of the rectangle it needs to fill
 	CameraType                   m_type{CameraType::perspective};          //! Default perspective camera
-	EventSystem                 *m_event_system;                           //! A non-owning alias of the event system to not have to keep moving this around
+	EventSystem                 *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around
 	std::function<void(Event &)> m_drag_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
 	std::function<void(Event &)> m_resize_callback{};                      //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	std::function<void(Event &)> m_zoom_callback{};                        //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system

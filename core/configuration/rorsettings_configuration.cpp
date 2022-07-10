@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "configuration/rorsettings_configuration.hpp"
+#include <stack>
 #include <vector>
 
 namespace ror

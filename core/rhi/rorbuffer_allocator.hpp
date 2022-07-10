@@ -44,19 +44,19 @@ namespace rhi
  */
 #if defined(WITHOUT_BUFFER_ALLOCATOR)
 template <class _type>
-class ROAR_ENGINE_ITEM BufferAllocator final : public std::allocator<_type>
+class ROAR_ENGINE_ITEM BufferAllocator : public std::allocator<_type>
 {};
 #else
 template <class _type>
-class ROAR_ENGINE_ITEM BufferAllocator final
+class ROAR_ENGINE_ITEM BufferAllocator
 {
   public:
 	FORCE_INLINE                  BufferAllocator()                                   = default;        //! Default constructor
 	FORCE_INLINE                  BufferAllocator(const BufferAllocator &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                  BufferAllocator(BufferAllocator &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE BufferAllocator &operator=(const BufferAllocator &a_other)           = default;        //! Copy assignment operator
-	FORCE_INLINE BufferAllocator &operator=(BufferAllocator &&a_other) noexcept       = default;        //! Move assignment operator
-	FORCE_INLINE ~BufferAllocator() noexcept                                          = default;        //! Destructor
+	FORCE_INLINE BufferAllocator &operator=(const BufferAllocator &a_other) = default;                  //! Copy assignment operator
+	FORCE_INLINE BufferAllocator &operator=(BufferAllocator &&a_other) noexcept = default;              //! Move assignment operator
+	FORCE_INLINE virtual ~BufferAllocator() noexcept                            = default;              //! Destructor
 
 	typedef _type value_type;
 

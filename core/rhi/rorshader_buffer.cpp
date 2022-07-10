@@ -280,7 +280,7 @@ std::vector<const ShaderBuffer::Entry *> ShaderBuffer::entries_structs()
 			}
 
 			// Also return the struct itself as an entry, discards the struct bits but returns the entry bits
-			es.push_back(reinterpret_cast<const Entry *const>(&s));
+			es.push_back(reinterpret_cast<const Entry *>(&s));
 		}
 	}
 

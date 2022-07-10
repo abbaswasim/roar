@@ -147,7 +147,7 @@ rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a
 
 	ResourceExtension extension{extension_from_mimetype(a_mimetype)};
 	assert(extension != ResourceExtension::unknown && "Couldn't find extension from mimetype");
-	assert(extension == ResourceExtension::texture_png || extension == ResourceExtension::texture_jpeg && "Unsupported extension in buffer view");
+	assert((extension == ResourceExtension::texture_png || extension == ResourceExtension::texture_jpeg) && "Unsupported extension in buffer view");
 	(void) extension;
 
 	rhi::TextureImage ti;
@@ -1240,7 +1240,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 					if (cnode->has_matrix)
 					{
-						if (cnode->has_scale == cnode->has_rotation == cnode->has_translation == 0)
+						if (cnode->has_scale == 0 && cnode->has_rotation == 0 && cnode->has_translation == 0)
 						{
 							Matrix4f transformation{};        //! Transformation in the form of a matrix for the node
 							cgltf_node_transform_local(cnode, transformation.m_values);

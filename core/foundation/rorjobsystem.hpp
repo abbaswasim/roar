@@ -86,12 +86,14 @@ class ROAR_ENGINE_ITEM Job
 
 	FORCE_INLINE void finish() noexcept
 	{
-		this->m_done.test_and_set();
+		// this->m_done.test_and_set();
+		this->m_done.store(true);
 	}
 
 	[[nodiscard]] FORCE_INLINE bool finished() noexcept
 	{
-		return this->m_done.test();
+		// return this->m_done.test();
+		return this->m_done.load();
 	}
 
 	FORCE_INLINE virtual bool ready() noexcept
@@ -105,7 +107,7 @@ class ROAR_ENGINE_ITEM Job
   protected:
   private:
 	std::function<void(void)> m_payload{};          // Function the job runs along side its arguments
-	std::atomic_flag          m_done{false};        // Cleared by default initializer to false
+	std::atomic_bool          m_done{false};        // Cleared by default initializer to false
 };
 
 /**
@@ -404,7 +406,7 @@ class ROAR_ENGINE_ITEM JobSystem final
 	{
 		{
 			std::lock_guard<std::mutex> lock{this->m_lock};
-			this->m_stop.test_and_set();
+			this->m_stop.store(true);
 		}
 
 		this->m_condition_variable.notify_all();
@@ -491,10 +493,10 @@ class ROAR_ENGINE_ITEM JobSystem final
 					// Sleep to be awaken later
 					std::unique_lock<std::mutex> lock{this->m_lock};        // Using unique_lock instead of lock_guard because it needs to be relocked in the wait next
 					this->m_condition_variable.wait(lock, [this]() {
-						return !this->m_worker_queue.empty() || this->m_stop.test();
+						return !this->m_worker_queue.empty() || this->m_stop.load();
 					});
 
-					if (this->m_stop.test())
+					if (this->m_stop.load())
 						return;
 				}
 			}
@@ -543,10 +545,10 @@ class ROAR_ENGINE_ITEM JobSystem final
 							std::unique_lock<std::mutex> lock{this->m_lock};        // Using unique_lock instead of lock_guard because it needs to be relocked in the wait next
 							this->m_condition_variable.wait(lock, [this, &a_thread_id]() {
 								// return !this->m_worker_queue.empty() || this->m_stop.test();
-								return !this->m_worker_queues[a_thread_id]->empty() || !this->all_empty() || this->m_stop.test();
+								return !this->m_worker_queues[a_thread_id]->empty() || !this->all_empty() || this->m_stop.load();
 							});
 
-							if (this->m_stop.test())
+							if (this->m_stop.load())
 								return;
 						}
 					}
@@ -570,11 +572,14 @@ class ROAR_ENGINE_ITEM JobSystem final
 #else
 	std::vector<std::unique_ptr<WorkerQueue>> m_worker_queues{};        // list of worker queues containing all the jobs for that worker
 #endif
-	ror::Random<uint32_t>                     m_random_index{};              // Random index generator from 0 - workers_count - 1
-	std::condition_variable                   m_condition_variable{};        // Used to signal workers to start working
-	std::mutex                                m_lock{};                      // Used to lock shared variables in job system
-	std::atomic_flag                          m_stop{false};                 // Used to check if should stop execution
-	std::vector<std::unique_ptr<std::thread>> m_workers{};                   // list of workers running jobs that needs running
+	ror::Random<uint32_t>   m_random_index{};              // Random index generator from 0 - workers_count - 1
+	std::condition_variable m_condition_variable{};        // Used to signal workers to start working
+	std::mutex              m_lock{};                      // Used to lock shared variables in job system
+	std::atomic_bool        m_stop{false};                 // Used to check if should stop execution
+
+	// Could only really be used in this context with the .test() method, which is only available in c++20
+	// std::atomic_flag                          m_stop{false};                 // Used to check if should stop execution
+	std::vector<std::unique_ptr<std::thread>> m_workers{};        // list of workers running jobs that needs running
 };
 
 /**

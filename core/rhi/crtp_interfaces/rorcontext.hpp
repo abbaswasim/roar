@@ -122,13 +122,13 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	}
 
   private:
-	ror::JobSystem   *m_job_system;          //! Non-owning job system alias that will be used by the whole application
-	ror::EventSystem  m_event_system;        //! An event system that the application can use,
-	ror::Scene        m_scene;               //! A scene we want to render
-	rhi::BuffersPack *m_buffer_pack;         //! A non-owning alias to the global buffers pack
+	ror::JobSystem   *m_job_system{nullptr};          //! Non-owning job system alias that will be used by the whole application
+	ror::EventSystem  m_event_system{};               //! An event system that the application can use,
+	ror::Scene        m_scene{};               //! A scene we want to render
+	rhi::BuffersPack *m_buffer_pack{nullptr};         //! A non-owning alias to the global buffers pack
 
-	std::vector<std::shared_ptr<Instance>> m_instances;
-	std::vector<std::shared_ptr<Device>>   m_devices;
+	std::vector<std::shared_ptr<Instance>> m_instances{};
+	std::vector<std::shared_ptr<Device>>   m_devices{};
 	std::shared_ptr<Device>                m_current_device{nullptr};
 	std::shared_ptr<Instance>              m_current_instance{nullptr};
 };

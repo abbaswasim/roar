@@ -103,7 +103,7 @@ class Counter
 		this->m_value++;
 
 		if (e.m_payload.has_value())
-			this->m_value += std::any_cast<int32_t>(e.m_payload);
+			this->m_value += static_cast<uint32_t>(std::any_cast<int32_t>(e.m_payload));
 	}
 
 	void add_vector2(ror::Event e)
@@ -132,12 +132,12 @@ class Counter
 		this->m_value += static_cast<uint32_t>(vec3.x + vec3.y + vec3.z);
 	}
 
-	int32_t val()
+	uint32_t val()
 	{
 		return m_value;
 	}
 
-	int32_t m_value{0};
+	uint32_t m_value{0};
 };
 
 TEST(EventSystemTest, create_many_events)

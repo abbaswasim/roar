@@ -489,9 +489,228 @@ enum class AttributeIndex : uint32_t
 #undef item
 #undef item_value
 
-uint32_t       pixel_format_to_bits(PixelFormat a_pixel_format);
-uint32_t       vertex_format_to_bytes(VertexFormat a_vertex_format);
-uint32_t       vertex_format_to_location(VertexFormat a_vertex_format);
+constexpr uint32_t pixel_format_to_bits(PixelFormat a_pixel_format);
+
+constexpr uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
+{
+	switch (a_vertex_format)
+	{
+		case VertexFormat::invalid:
+			return 0;
+		case VertexFormat::struct_1:
+			return 0;
+		case VertexFormat::int8_1:
+		case VertexFormat::int8_1_norm:
+		case VertexFormat::uint8_1:
+		case VertexFormat::uint8_1_norm:
+		case VertexFormat::uint8_custom:
+			return 1;
+		case VertexFormat::int8_2:
+		case VertexFormat::int8_2_norm:
+		case VertexFormat::uint8_2:
+		case VertexFormat::uint8_2_norm:
+		case VertexFormat::int16_1:
+		case VertexFormat::int16_1_norm:
+		case VertexFormat::uint16_1:
+		case VertexFormat::uint16_1_norm:
+		case VertexFormat::half16_1:
+		case VertexFormat::uint16_custom:
+			return 2;
+		case VertexFormat::int8_3:
+		case VertexFormat::int8_3_norm:
+		case VertexFormat::uint8_3:
+		case VertexFormat::uint8_3_norm:
+			return 3;
+		case VertexFormat::bool32_1:
+		case VertexFormat::int8_4:
+		case VertexFormat::int8_4_norm:
+		case VertexFormat::uint8_4:
+		case VertexFormat::uint8_4_norm:
+		case VertexFormat::int16_2:
+		case VertexFormat::int16_2_norm:
+		case VertexFormat::uint16_2:
+		case VertexFormat::uint16_2_norm:
+		case VertexFormat::int32_1:
+		case VertexFormat::uint32_1:
+		case VertexFormat::half16_2:
+		case VertexFormat::float32_1:
+		case VertexFormat::int1010102_norm:
+		case VertexFormat::uint1010102_norm:
+		case VertexFormat::int101111_norm:
+		case VertexFormat::uint101111_norm:
+		case VertexFormat::uint8_4_norm_bgra:
+		case VertexFormat::uint32_custom:
+		case VertexFormat::float32_custom:
+			return 4;
+		case VertexFormat::int16_3:
+		case VertexFormat::int16_3_norm:
+		case VertexFormat::uint16_3:
+		case VertexFormat::uint16_3_norm:
+		case VertexFormat::half16_3:
+			return 6;
+		case VertexFormat::int16_4:
+		case VertexFormat::int16_4_norm:
+		case VertexFormat::uint16_4:
+		case VertexFormat::uint16_4_norm:
+		case VertexFormat::bool32_2:
+		case VertexFormat::int32_2:
+		case VertexFormat::uint32_2:
+		case VertexFormat::uint64_1:
+		case VertexFormat::half16_4:
+		case VertexFormat::float32_2:
+		case VertexFormat::float64_1:
+			return 8;
+		case VertexFormat::bool32_3:
+		case VertexFormat::int32_3:
+		case VertexFormat::uint32_3:
+		case VertexFormat::float32_3:
+			return 12;
+		case VertexFormat::bool32_4:
+		case VertexFormat::int32_4:
+		case VertexFormat::uint32_4:
+		case VertexFormat::uint64_2:
+		case VertexFormat::float32_4:
+		case VertexFormat::float64_2:
+		case VertexFormat::float32_2x2:
+			return 16;
+		case VertexFormat::float64_3:
+		case VertexFormat::uint64_3:
+		case VertexFormat::float32_2x3:
+		case VertexFormat::float32_3x2:
+			return 24;
+		case VertexFormat::float64_4:
+		case VertexFormat::uint64_4:
+		case VertexFormat::float32_2x4:
+		case VertexFormat::float32_4x2:
+		case VertexFormat::float64_2x2:
+			return 32;
+		case VertexFormat::float32_3x3:
+			return 36;
+		case VertexFormat::float32_3x4:
+		case VertexFormat::float32_4x3:
+		case VertexFormat::float64_2x3:
+		case VertexFormat::float64_3x2:
+			return 48;
+		case VertexFormat::float32_4x4:
+		case VertexFormat::float64_2x4:
+		case VertexFormat::float64_4x2:
+			return 64;
+		case VertexFormat::float64_3x3:
+			return 72;
+		case VertexFormat::float64_3x4:
+		case VertexFormat::float64_4x3:
+			return 96;
+		case VertexFormat::float64_4x4:
+			return 128;
+	}
+
+	return 0;
+}
+
+constexpr uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
+{
+	switch (a_vertex_format)
+	{
+		case VertexFormat::invalid:
+			return 0;
+		case VertexFormat::struct_1:
+		case VertexFormat::bool32_1:
+		case VertexFormat::bool32_2:
+		case VertexFormat::bool32_3:
+		case VertexFormat::bool32_4:
+		case VertexFormat::int8_1:
+		case VertexFormat::int8_2:
+		case VertexFormat::int8_3:
+		case VertexFormat::int8_4:
+		case VertexFormat::int16_1:
+		case VertexFormat::int16_2:
+		case VertexFormat::int16_3:
+		case VertexFormat::int16_4:
+		case VertexFormat::int32_1:
+		case VertexFormat::int32_2:
+		case VertexFormat::int32_3:
+		case VertexFormat::int32_4:
+		case VertexFormat::half16_1:
+		case VertexFormat::half16_2:
+		case VertexFormat::half16_3:
+		case VertexFormat::half16_4:
+		case VertexFormat::float32_1:
+		case VertexFormat::float32_2:
+		case VertexFormat::float32_3:
+		case VertexFormat::float32_4:
+		case VertexFormat::uint8_1:
+		case VertexFormat::uint8_2:
+		case VertexFormat::uint8_3:
+		case VertexFormat::uint8_4:
+		case VertexFormat::uint16_1:
+		case VertexFormat::uint16_2:
+		case VertexFormat::uint16_3:
+		case VertexFormat::uint16_4:
+		case VertexFormat::uint32_1:
+		case VertexFormat::uint32_2:
+		case VertexFormat::uint32_3:
+		case VertexFormat::uint32_4:
+		case VertexFormat::int8_1_norm:
+		case VertexFormat::int8_2_norm:
+		case VertexFormat::int8_3_norm:
+		case VertexFormat::int8_4_norm:
+		case VertexFormat::int16_1_norm:
+		case VertexFormat::int16_2_norm:
+		case VertexFormat::int16_3_norm:
+		case VertexFormat::int16_4_norm:
+		case VertexFormat::uint8_1_norm:
+		case VertexFormat::uint8_2_norm:
+		case VertexFormat::uint8_3_norm:
+		case VertexFormat::uint8_4_norm:
+		case VertexFormat::uint16_1_norm:
+		case VertexFormat::uint16_2_norm:
+		case VertexFormat::uint16_3_norm:
+		case VertexFormat::uint16_4_norm:
+		case VertexFormat::int1010102_norm:
+		case VertexFormat::uint1010102_norm:
+		case VertexFormat::int101111_norm:
+		case VertexFormat::uint101111_norm:
+		case VertexFormat::uint8_4_norm_bgra:
+		case VertexFormat::uint8_custom:          // To be handled differently
+		case VertexFormat::uint16_custom:         // To be handled differently
+		case VertexFormat::uint32_custom:         // To be handled differently
+		case VertexFormat::float32_custom:        // To be handled differently
+		case VertexFormat::uint64_1:
+		case VertexFormat::uint64_2:
+		case VertexFormat::float64_1:
+		case VertexFormat::float64_2:
+			return 1;        // TODO: This is only true if vertex attribute is used in Vulkan Vertex shader
+		case VertexFormat::uint64_3:
+		case VertexFormat::uint64_4:
+		case VertexFormat::float64_3:
+		case VertexFormat::float64_4:
+		case VertexFormat::float32_2x2:
+		case VertexFormat::float32_2x3:
+		case VertexFormat::float32_2x4:
+			return 2;
+		case VertexFormat::float32_3x3:
+		case VertexFormat::float32_3x2:
+		case VertexFormat::float32_3x4:
+			return 3;
+		case VertexFormat::float32_4x2:
+		case VertexFormat::float32_4x3:
+		case VertexFormat::float32_4x4:
+			return 4;
+		case VertexFormat::float64_2x2:
+		case VertexFormat::float64_2x3:
+		case VertexFormat::float64_3x2:
+		case VertexFormat::float64_2x4:
+		case VertexFormat::float64_4x2:
+		case VertexFormat::float64_3x3:
+		case VertexFormat::float64_3x4:
+		case VertexFormat::float64_4x3:
+		case VertexFormat::float64_4x4:
+			return 8;        // TODO: This is a guess, confirm
+	}
+
+	return 0;
+}
+
 BufferSemantic get_format_semantic(const std::string &a_format);
 std::string    get_format_semantic(const BufferSemantic &a_semantic);
 constexpr bool has_semantic(uint64_t a_type, BufferSemantic a_semantic);
@@ -513,7 +732,7 @@ constexpr rhi::BufferSemantic get_format_shader_semantic()
 // To use the above for an Animation type do
 define_type_to_shader_semantics(Animation)
 {
-	return BufferSemantic::animation_data;
+    return BufferSemantic::animation_data;
 }
 */
 }        // namespace rhi

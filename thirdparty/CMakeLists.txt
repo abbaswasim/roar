@@ -81,6 +81,7 @@ add_library(basisu STATIC ${BASIS_SOURCE_FILES})
 target_include_directories(basisu PUBLIC ${BASIS_DIR})
 target_include_directories(basisu PUBLIC ${BASIS_DIR}/transcoder)
 target_compile_options(basisu PUBLIC "-fno-strict-aliasing")
+set_property(TARGET basisu PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 # Add cgltf
 add_library(cgltf INTERFACE)

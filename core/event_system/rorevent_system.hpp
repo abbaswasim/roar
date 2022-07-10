@@ -152,7 +152,7 @@ struct Event
 	}
 };
 
-static_assert(sizeof(Event) == 40, "Size of Event is too big");
+static_assert(sizeof(Event) == 24, "Size of Event is too big");
 
 class ROAR_ENGINE_ITEM EventSystem final
 {
@@ -189,7 +189,7 @@ class ROAR_ENGINE_ITEM EventSystem final
 	// TODO: Add some buffering system at some point
 	// TODO: Make this thread safe
 
-	std::unordered_map<EventHandle, std::vector<std::function<void(Event &)>>, EventHandleHash> m_subscribers;        //! All the functions that needs to be called for this Event Handle
+	std::unordered_map<EventHandle, std::vector<std::function<void(Event &)>>, EventHandleHash> m_subscribers{};        //! All the functions that needs to be called for this Event Handle
 };
 
 constexpr EventType event_type(EventHandle a_handle)

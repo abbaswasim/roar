@@ -127,7 +127,7 @@ class ROAR_ENGINE_ITEM Material final
 	float32_t               m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, we use only F0 from F0=((ior − 1) / (ior + 1))²
 																			  //! Note we don't need F90 coz Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
 	rhi::ShaderBuffer *m_shader_buffer{nullptr};                              //! Non-owning pointer to ShaderBuffer which describes its shader's UBO/SSBO view
-	hash_64_t          m_hash;                                                //! Material hash to make sure we don't create duplicate shaders
+	hash_64_t          m_hash{};                                              //! Material hash to make sure we don't create duplicate shaders
 
 	void generate_hash();
 };

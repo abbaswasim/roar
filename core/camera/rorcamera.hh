@@ -126,7 +126,7 @@ void OrbitCamera::zoom_by(double64_t a_zoom_delta)
 {
 	this->m_zooming_depth += a_zoom_delta;
 
-	auto abs_camera_depth = abs(this->m_camera_depth);
+	auto abs_camera_depth = fabs(this->m_camera_depth);
 	abs_camera_depth      = abs_camera_depth - fmax(1.0f, abs_camera_depth * 0.1f);
 
 	if (this->m_zooming_depth > abs_camera_depth)
@@ -153,7 +153,7 @@ void OrbitCamera::right_key_function(double64_t &a_x_delta, double64_t &a_y_delt
 	(void) a_y_delta;
 	this->m_zooming_depth += static_cast<float32_t>(0.05f * static_cast<float32_t>(a_x_delta));
 
-	auto abs_camera_depth = abs(this->m_camera_depth);
+	auto abs_camera_depth = fabs(this->m_camera_depth);
 	abs_camera_depth      = abs_camera_depth - fmax(1.0f, abs_camera_depth * 0.1f);
 
 	if (this->m_zooming_depth > abs_camera_depth)

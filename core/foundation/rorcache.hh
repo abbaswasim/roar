@@ -64,7 +64,7 @@ std::pair<_type, bool> Cache<_key, _type, _hasher>::find(_key a_key)
 
 	return iter != this->m_cache.end() ?
 	           std::make_pair(iter->second, true) :
-	           std::make_pair(_type{}, false);
+               std::make_pair(_type{}, false);
 }
 
 }        // namespace ror

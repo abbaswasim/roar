@@ -35,7 +35,6 @@
 #include "math/rormatrix4.hpp"
 #include <filesystem>
 #include <limits>
-#include <sys/_types/_int32_t.h>
 
 namespace ror
 {

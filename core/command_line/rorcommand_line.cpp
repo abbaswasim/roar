@@ -32,7 +32,6 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
-#include <sys/_types/_int32_t.h>
 #include <unordered_map>
 #include <vector>
 
@@ -209,6 +208,7 @@ std::any CommandLineParser::option_type_cast(OptionType a_type, const std::strin
 			case OptionType::none: return {};
 		}
 	// clang-format on
+	return {};
 }
 
 std::string CommandLineParser::option_to_string(OptionType a_type)
@@ -222,6 +222,7 @@ std::string CommandLineParser::option_to_string(OptionType a_type)
 			case OptionType::none: return "none";
 		}
 	// clang-format on
+	return "none";
 }
 
 }        // namespace ror
