@@ -1,12 +1,24 @@
 name: Build Roar
+
 on: [push]
+
 jobs:
-  check-bats-version:
-    runs-on: ubuntu-latest
+  build:
+    name: "${{ matrix.build_type }} on ${{ matrix.platform }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos, ubuntu]
+        build_type: [Debug, Release, RelWithDebInfo]
+        renderer: [Metal, Vulkan]
+    env:
+      NUMCPUS: -j4
+    runs-on: "${{ matrix.platform }}-latest"
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
         with:
-          node-version: '14'
-      - run: npm install -g bats
-      - run: bats -v
+          submodules: "recursive"
+      - name: CMake configure ${{ matrix.build_type }} on ${{ matrix.platform }}
+        run: cmake -H"." -B"build/${{ matrix.platform }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="${{ matrix.renderer }}" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
+      - name: "CMake build ${{ matrix.build_type }} on ${{ matrix.platform }}"
+        run: VERBOSE=1 cmake --build "build/${{ matrix.platform }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
