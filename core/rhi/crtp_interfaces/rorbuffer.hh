@@ -100,7 +100,7 @@ uint8_t *BufferCrtp<_type, _derived>::request(ptrdiff_t a_bytes)
 template <typename _type, typename _derived>
 void BufferCrtp<_type, _derived>::upload(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset)
 {
-	assert(a_size <= std::numeric_limits<ptrdiff_t>::max() && "Buffer data too big for diff calculations");
+	assert(a_size <= std::numeric_limits<size_t>::max() && "Buffer data too big for diff calculations");
 
 	std::copy(a_data, a_data + a_size, this->m_data.data() + a_offset);
 }
@@ -109,7 +109,7 @@ template <typename _type, typename _derived>
 void BufferCrtp<_type, _derived>::upload(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
 {
 	// Do the allocation
-	assert(a_data.size() <= std::numeric_limits<ptrdiff_t>::max() && "Buffer data too big for diff calculations");
+	assert(a_data.size() <= std::numeric_limits<size_t>::max() && "Buffer data too big for diff calculations");
 
 	std::copy(a_data.begin(), a_data.end(), this->m_data.begin() + a_offset);
 }

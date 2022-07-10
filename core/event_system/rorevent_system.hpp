@@ -152,7 +152,7 @@ struct Event
 	}
 };
 
-static_assert(sizeof(Event) == 24, "Size of Event is too big");
+static_assert(sizeof(Event) <= 40, "Size of Event is too big");
 
 class ROAR_ENGINE_ITEM EventSystem final
 {

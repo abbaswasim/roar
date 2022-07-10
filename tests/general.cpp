@@ -42,6 +42,7 @@ TEST(RoarGeneral, RoarGeneral_standard_types_atomic_is_lock_free)
 	std::cout << ror::get_build_string() << std::endl;
 	std::cout << ror::get_compiler_string() << std::endl;
 
+	std::atomic<bool>        bool_t_type;
 	std::atomic<char16_t>    char16_t_type;
 	std::atomic<char32_t>    char32_t_type;
 	std::atomic<uchar8_t>    uchar8_t_type;
@@ -63,6 +64,8 @@ TEST(RoarGeneral, RoarGeneral_standard_types_atomic_is_lock_free)
 	std::atomic<char8_t>     char8_t_type;
 	std::atomic<ptrdiff_t>   ptrdiff_t_type;
 	// std::atomic<hash_128_t>  hash128_t_type;
+
+	EXPECT_TRUE(std::atomic_is_lock_free<bool>(&bool_t_type)) << "atomic bool_t is not lock_free";
 
 	EXPECT_TRUE(std::atomic_is_lock_free<char8_t>(&char8_t_type)) << "atomic char8_t is not lock_free";
 	EXPECT_TRUE(std::atomic_is_lock_free<char16_t>(&char16_t_type)) << "atomic char16_t is not lock_free";
