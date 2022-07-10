@@ -25,9 +25,10 @@ jobs:
       - if: ${{ matrix.platform == 'macos' }}
         name: CMake configure ${{ matrix.build_type }} on ${{ matrix.platform }}
         run: cmake -H"." -B"build/${{ matrix.platform }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="Metal" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
+      - if: ${{ matrix.platform == 'macos' }}
         name: "CMake build ${{ matrix.build_type }} on ${{ matrix.platform }}"
         run: VERBOSE=1 cmake --build "build/${{ matrix.platform }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
-      name: CMake configure ${{ matrix.build_type }} on ${{ matrix.platform }}
-      run: cmake -H"." -B"build/${{ matrix.platform }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="Vulkan" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
-      name: "CMake build ${{ matrix.build_type }} on ${{ matrix.platform }}"
-      run: VERBOSE=1 cmake --build "build/${{ matrix.platform }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
+      - name: CMake configure ${{ matrix.build_type }} on ${{ matrix.platform }}
+        run: cmake -H"." -B"build/${{ matrix.platform }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="Vulkan" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
+      - name: "CMake build ${{ matrix.build_type }} on ${{ matrix.platform }}"
+        run: VERBOSE=1 cmake --build "build/${{ matrix.platform }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
