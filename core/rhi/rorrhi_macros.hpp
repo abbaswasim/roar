@@ -31,11 +31,11 @@ namespace rhi
 #if defined(ROR_RENDER_TYPE_VULKAN)
 #	define declare_rhi_render_type(name) \
 		class name##Vulkan;               \
-		using name = name##Vulkan;
+		using name = name##Vulkan
 #elif defined(ROR_RENDER_TYPE_METAL)
 #	define declare_rhi_render_type(name) \
 		class name##Metal;                \
-		using name = name##Metal;
+		using name = name##Metal
 #elif defined(ROR_RENDER_TYPE_DX12)
 #	define declare_rhi_render_type(name) \
 		class name##DirectX12;            \
@@ -43,7 +43,7 @@ namespace rhi
 #elif defined(ROR_RENDER_TYPE_GLES3)
 #	define declare_rhi_render_type(name) \
 		class name##GLES3;                \
-		using name = name##GLES3;
+		using name = name##GLES3
 #endif
 
 }        // namespace rhi
