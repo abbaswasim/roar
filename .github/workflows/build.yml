@@ -3,40 +3,52 @@ name: Build Roar
 on: [push]
 
 jobs:
-  build:
-    name: "${{ matrix.build_type }} build using ${{ matrix.compiler.compiler }} on ${{ matrix.platform }}"
+  build-macos:
+    name: "${{ matrix.build_type }} build MacOS"
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos, ubuntu]
         build_type: [Debug, Release]
         compiler:
-          - { compiler: GNU,  CC_LINUX: gcc-10.3,   CXX_LINUX: g++-10.3,  CC_MACOS: gcc-11,   CXX_MACOS: g++-11 }
-          - { compiler: LLVM, CC_LINUX: clang-12, CXX_LINUX: clang++-12, CC_MACOS: clang-13, CXX_MACOS: clang++-13 }
+          - { compiler: GNU,  CC: gcc-11, CXX: g++-11}
+          - { compiler: LLVM, CC: clang-13, CXX: clang++-13}
     env:
       NUMCPUS: -j4
-      CC: ${{ matrix.compiler.CC_MACOS }}
-      CXX: ${{ matrix.compiler.CXX_MACOS }}
-    runs-on: "${{ matrix.platform }}-latest"
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+    runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: "recursive"
-      - if: ${{ matrix.platform == 'ubuntu' }}
-        name: Install RandR headers
-        env:
-          CC: ${{ matrix.compiler.CC_LINUX }}
-          CXX: ${{ matrix.compiler.CXX_LINUX }}
-        run: |
-          sudo apt-get update
-          sudo apt install xorg-dev libglu1-mesa-dev
-      - if: ${{ matrix.platform == 'macos' }}
-        name: CMake configure Metal ${{ matrix.build_type }} on ${{ matrix.platform }}
-        run: cmake -H"." -B"build/${{ matrix.platform }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="Metal" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
-      - if: ${{ matrix.platform == 'macos' }}
-        name: "CMake build Metal ${{ matrix.build_type }} on ${{ matrix.platform }}"
-        run: VERBOSE=1 cmake --build "build/${{ matrix.platform }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
-      - name: CMake configure Vulkan ${{ matrix.build_type }} on ${{ matrix.platform }}
-        run: cmake -H"." -B"build/${{ matrix.platform }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="Vulkan" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
-      - name: "CMake build Vulkan ${{ matrix.build_type }} on ${{ matrix.platform }}"
-        run: VERBOSE=1 cmake --build "build/${{ matrix.platform }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
+      name: Investigate runner MacOS ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
+      run: |
+        which clang
+        which clang++
+        which gcc
+        which g++
+        ls -als /usr/bin/clang*
+        ls -als /usr/bin/gcc*
+        ls -als /usr/bin/g++*
+
+  build-linux:
+      name: Investigate runner Linux ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Debug, Release]
+        compiler:
+          - { compiler: GNU,  CC: gcc-10.3, CXX: g++-10.3}
+          - { compiler: LLVM, CC: clang-12, CXX: clang++-12}
+    env:
+      NUMCPUS: -j4
+      CC: ${{ matrix.compiler.CC }}
+      CXX: ${{ matrix.compiler.CXX }}
+    runs-on: ubuntu-latest
+    steps:
+      name: Investigate runner
+      run: |
+        which clang
+        which clang++
+        which gcc
+        which g++
+        ls -als /usr/bin/clang*
+        ls -als /usr/bin/gcc*
+        ls -als /usr/bin/g++*
