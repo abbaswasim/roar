@@ -37,6 +37,7 @@ TEST(ArrayTest, DISABLED_ArrayTest_carray_vs_stdarray)
 			}
 		}
 
+		(void) total;
 		carray_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 	{
@@ -58,6 +59,7 @@ TEST(ArrayTest, DISABLED_ArrayTest_carray_vs_stdarray)
 			}
 		}
 
+		(void) total;
 		stdarray_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 
@@ -99,6 +101,7 @@ TEST(SDTClamp, DISABLED_STDClamp_vs_manual)
 			}
 		}
 
+		(void) total;
 		std_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 	{
@@ -114,6 +117,7 @@ TEST(SDTClamp, DISABLED_STDClamp_vs_manual)
 			}
 		}
 
+		(void) total;
 		my_time = static_cast<double64_t>(t.tick()) / 1000000.0;
 	}
 

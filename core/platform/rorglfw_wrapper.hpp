@@ -84,7 +84,7 @@ class ROAR_ENGINE_ITEM GLFWwindowWrapper final
 	FORCE_INLINE GLFWwindowWrapper &operator=(const GLFWwindowWrapper &a_other)             = default;        //! Copy assignment operator
 	FORCE_INLINE GLFWwindowWrapper &operator=(GLFWwindowWrapper &&a_other) noexcept         = default;        //! Move assignment operator
 
-	FORCE_INLINE GLFWwindowWrapper(_type *a_pointer);
+	FORCE_INLINE GLFWwindowWrapper(_type *a_pointer) noexcept;
 	FORCE_INLINE ~GLFWwindowWrapper() noexcept;
 
 	FORCE_INLINE void        loop();

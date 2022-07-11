@@ -23,7 +23,7 @@ jobs:
       - name: CMake configure ${{ matrix.renderer }} ${{ matrix.build_type }} on MacOs
         run: CC=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CC }} CXX=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CXX }} cmake -H"." -B"build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="${{ matrix.renderer }}" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
       - name: CMake build ${{ matrix.renderer }} ${{ matrix.build_type }} on MacOs
-        run: VERBOSE=1 cmake --build "build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
+        run: cmake --build "build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
 
   build_linux:
     name: "${{ matrix.build_type }} ${{ matrix.renderer }} build Ubuntu using ${{ matrix.compiler.compiler }}"
@@ -51,4 +51,4 @@ jobs:
       - name: CMake configure ${{ matrix.renderer }} ${{ matrix.build_type }} on Ubuntu
         run: cmake -H"." -B"build/ubuntu/${{ matrix.renderer }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="${{ matrix.renderer }}" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
       - name: CMake build ${{ matrix.renderer }} ${{ matrix.build_type }} on Ubuntu
-        run: VERBOSE=1 cmake --build "build/ubuntu/${{ matrix.renderer }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
+        run: cmake --build "build/ubuntu/${{ matrix.renderer }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}

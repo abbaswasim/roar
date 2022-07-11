@@ -82,7 +82,7 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 }
 
 template <class _type>
-GLFWwindowWrapper<_type>::GLFWwindowWrapper(_type *a_pointer)
+GLFWwindowWrapper<_type>::GLFWwindowWrapper(_type *a_pointer) noexcept
 {
 	auto &settings = ror::settings();
 	this->m_window = glfw_create_window<_type>(settings.m_roar_title, static_cast<int32_t>(settings.m_window_dimensions.z), static_cast<int32_t>(settings.m_window_dimensions.w));

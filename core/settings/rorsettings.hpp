@@ -157,7 +157,7 @@ class ROAR_ENGINE_ITEM Settings final
   private:
 };
 
-FORCE_INLINE Settings &settings()
+FORCE_INLINE Settings &settings() noexcept
 {
 	static Settings sc{};        // Global settings container
 	return sc;
