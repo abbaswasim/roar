@@ -20,9 +20,9 @@ constexpr size_t inotify_events_counts{1024};
 class PlatformData final
 {
   public:
-	PlatformData(const PlatformData &a_other)     = delete;                   //! Copy constructor
-	PlatformData(PlatformData &&a_other) noexcept = delete;                   //! Move constructor
-	PlatformData &operator=(const PlatformData &a_other) = delete;            //! Copy assignment operator
+	PlatformData(const PlatformData &a_other)                = delete;        //! Copy constructor
+	PlatformData(PlatformData &&a_other) noexcept            = delete;        //! Move constructor
+	PlatformData &operator=(const PlatformData &a_other)     = delete;        //! Copy assignment operator
 	PlatformData &operator=(PlatformData &&a_other) noexcept = delete;        //! Move assignment operator
 	~PlatformData() noexcept                                                  //! Destructor
 	{
@@ -103,7 +103,7 @@ class PlatformData final
 
 		while (i < a_length)
 		{
-			struct inotify_event *event = static_cast<struct inotify_event *> (&this->m_notify_events_buffer[i]);
+			struct inotify_event *event = static_cast<struct inotify_event *>(&this->m_notify_events_buffer[i]);
 			if (!(event->mask & IN_ISDIR) && event->len)        // this means its a file instead of a directory
 			{
 				if (event->mask & IN_CREATE)
@@ -127,6 +127,20 @@ class PlatformData final
 
 	void read_events()
 	{
+		// The following is to workaround bug in select.h by using __i and __arr variable names
+		typedef fd_fd_mask fd_mask;
+#define __FD_ZERO_LOCAL(s)                                                 \
+	do                                                                     \
+	{                                                                      \
+		unsigned int fd_i;                                                 \
+		fd_set      *fd_arr = (s);                                         \
+		for (fd_i = 0; fd_i < sizeof(fd_set) / sizeof(fd_fd_mask); ++fd_i) \
+			__FDS_BITS(fd_arr)                                             \
+			[fd_i] = 0;                                                    \
+	} while (0)
+
+#define FD_ZERO_LOCAL(fdsetp) __FD_ZERO_LOCAL(fdsetp)
+
 		fd_set  rfds;
 		timeval timeout;
 
@@ -134,7 +148,7 @@ class PlatformData final
 		timeout.tv_sec  = 0;
 		timeout.tv_usec = 10;
 
-		FD_ZERO(&rfds);
+		FD_ZERO_LOCAL(&rfds);
 		FD_SET(this->m_inotify_instance, &rfds);
 
 		// TODO: check whether epoll is better choice compared to select, this is use  before calling potentiall blocking read
@@ -161,7 +175,7 @@ class PlatformData final
   protected:
   private:
 	PlatformData() = default;                                               //! Default constructor
-	WatchCat *                               m_watchcat{nullptr};           // Alias to the watchcat, non-owning
+	WatchCat                                *m_watchcat{nullptr};           // Alias to the watchcat, non-owning
 	int32_t                                  m_inotify_instance{-1};        //! inotify file descriptor
 	std::unordered_map<int32_t, std::string> m_watched_descriptors{};
 	std::unordered_map<std::string, int32_t> m_watched_paths{};
