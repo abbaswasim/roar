@@ -3,7 +3,7 @@ name: Build Roar
 on: [push]
 
 jobs:
-  build:
+  build_macos:
     name: "${{ matrix.build_type }} build MacOS"
     strategy:
       fail-fast: false
@@ -29,7 +29,7 @@ jobs:
         ls -als /usr/bin/g++*
 
   build_linux:
-      name: Investigate runner Linux ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
+    name: Investigate runner Linux ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
     strategy:
       fail-fast: false
       matrix:
