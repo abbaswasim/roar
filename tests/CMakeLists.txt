@@ -81,6 +81,10 @@ target_include_directories(${ROAR_TEST_NAME} PRIVATE
   ${ROAR_ROOT_DIR}/tests)
 
 # target_include_directories_system(${ROAR_TEST_NAME} PUBLIC ${ROAR_ROOT_DIR}/thirdparty/gtest/googletest/include/)
+# Hacking how Clang on Linux can't build without -latomic
+target_link_options(${ROAR_TEST_NAME}
+  PRIVATE
+  $<$<PLATFORM_ID:Linux>:$<$<CXX_COMPILER_ID:Clang>:-latomic>>)
 
 add_subdirectory(${ROAR_ROOT_DIR}/thirdparty/gtest ${CMAKE_CURRENT_BINARY_DIR}/gtest_binaries)
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/gtest_binaries)
