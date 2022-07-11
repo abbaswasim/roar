@@ -33,13 +33,13 @@ jobs:
         build_type: [Debug, Release]
         renderer: [Vulkan]
         compiler:
-          - { compiler: GNU,  CC: gcc-10, CXX: g++-10}
-          - { compiler: LLVM, CC: clang-12, CXX: clang++-12}
+          - { compiler: GNU,  CC: gcc-11, CXX: g++-11}
+          - { compiler: LLVM, CC: clang-13, CXX: clang++-13}
     env:
       NUMCPUS: -j4
       CC: ${{ matrix.compiler.CC }}
       CXX: ${{ matrix.compiler.CXX }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
