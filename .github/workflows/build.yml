@@ -4,14 +4,14 @@ on: [push]
 
 jobs:
   build_macos:
-    name: "${{ matrix.build_type }} build MacOS"
+    name: "${{ matrix.build_type }} build MacOS using ${{ matrix.compiler.compiler }}"
     strategy:
       fail-fast: false
       matrix:
         build_type: [Debug, Release]
         compiler:
-          - { compiler: GNU,  CC: gcc-11, CXX: g++-11}
-          - { compiler: LLVM, CC: clang-13, CXX: clang++-13}
+          - { compiler: GNU,  CC: gcc, CXX: g++}
+          - { compiler: LLVM, CC: clang, CXX: clang++}
     env:
       NUMCPUS: -j4
       CC: ${{ matrix.compiler.CC }}
@@ -21,22 +21,16 @@ jobs:
       - uses: actions/checkout@v3
       - name: Investigate runner MacOS ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
         run: |
-          which clang
-          which clang++
-          which gcc
-          which g++
-          ls -als /usr/bin/clang*
-          ls -als /usr/bin/gcc*
-          ls -als /usr/bin/g++*
+          cd tests/cmake_tests && cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} && VERBOSE=1 cmake --build build --config ${{ matrix.build_type }} -- -j1
 
   build_linux:
-    name: Investigate runner Linux ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
+    name: "${{ matrix.build_type }} build MacOS using ${{ matrix.compiler.compiler }}"
     strategy:
       fail-fast: false
       matrix:
         build_type: [Debug, Release]
         compiler:
-          - { compiler: GNU,  CC: gcc-10.3, CXX: g++-10.3}
+          - { compiler: GNU,  CC: gcc-10, CXX: g++-10}
           - { compiler: LLVM, CC: clang-12, CXX: clang++-12}
     env:
       NUMCPUS: -j4
@@ -47,10 +41,4 @@ jobs:
       - uses: actions/checkout@v3
       - name: Investigate runner MacOS ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
         run: |
-          which clang
-          which clang++
-          which gcc
-          which g++
-          ls -als /usr/bin/clang*
-          ls -als /usr/bin/gcc*
-          ls -als /usr/bin/g++*
+          cd tests/cmake_tests && cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} && VERBOSE=1 cmake --build build --config ${{ matrix.build_type }} -- -j1
