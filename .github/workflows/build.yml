@@ -3,7 +3,7 @@ name: Build Roar
 on: [push]
 
 jobs:
-  build_macos:
+  build:
     name: "${{ matrix.build_type }} build MacOS"
     strategy:
       fail-fast: false
