@@ -4,14 +4,19 @@ on: [push]
 
 jobs:
   build:
-    name: "${{ matrix.build_type }} build ${{ matrix.platform }}"
+    name: "${{ matrix.build_type }} build using ${{ matrix.compiler.compiler }} on ${{ matrix.platform }}"
     strategy:
       fail-fast: false
       matrix:
         platform: [macos, ubuntu]
         build_type: [Debug, Release]
+        compiler:
+          - { compiler: GNU,  CC_LINUX: gcc-10.3,   CXX_LINUX: g++-10.3,  CC_MACOS: gcc-11,   CXX_MACOS: g++-11 }
+          - { compiler: LLVM, CC_LINUX: clang-12, CXX_LINUX: clang++-12, CC_MACOS: clang-13, CXX_MACOS: clang++-13 }
     env:
       NUMCPUS: -j4
+      CC: ${{ matrix.compiler.CC_MACOS }}
+      CXX: ${{ matrix.compiler.CXX_MACOS }}
     runs-on: "${{ matrix.platform }}-latest"
     steps:
       - uses: actions/checkout@v3
@@ -19,6 +24,8 @@ jobs:
           submodules: "recursive"
       - if: ${{ matrix.platform == 'ubuntu' }}
         name: Install RandR headers
+        CC: ${{ matrix.compiler.CC_LINUX }}
+        CXX: ${{ matrix.compiler.CXX_LINUX }}
         run: |
           sudo apt-get update
           sudo apt install xorg-dev libglu1-mesa-dev
