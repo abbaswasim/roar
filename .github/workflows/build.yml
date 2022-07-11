@@ -24,8 +24,9 @@ jobs:
           submodules: "recursive"
       - if: ${{ matrix.platform == 'ubuntu' }}
         name: Install RandR headers
-        CC: ${{ matrix.compiler.CC_LINUX }}
-        CXX: ${{ matrix.compiler.CXX_LINUX }}
+        env:
+          CC: ${{ matrix.compiler.CC_LINUX }}
+          CXX: ${{ matrix.compiler.CXX_LINUX }}
         run: |
           sudo apt-get update
           sudo apt install xorg-dev libglu1-mesa-dev
