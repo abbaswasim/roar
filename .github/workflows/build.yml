@@ -18,15 +18,16 @@ jobs:
       CXX: ${{ matrix.compiler.CXX }}
     runs-on: macos-latest
     steps:
-      name: Investigate runner MacOS ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
-      run: |
-        which clang
-        which clang++
-        which gcc
-        which g++
-        ls -als /usr/bin/clang*
-        ls -als /usr/bin/gcc*
-        ls -als /usr/bin/g++*
+      - uses: actions/checkout@v3
+      - name: Investigate runner MacOS ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
+        run: |
+          which clang
+          which clang++
+          which gcc
+          which g++
+          ls -als /usr/bin/clang*
+          ls -als /usr/bin/gcc*
+          ls -als /usr/bin/g++*
 
   build_linux:
     name: Investigate runner Linux ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
@@ -43,12 +44,13 @@ jobs:
       CXX: ${{ matrix.compiler.CXX }}
     runs-on: ubuntu-latest
     steps:
-      name: Investigate runner
-      run: |
-        which clang
-        which clang++
-        which gcc
-        which g++
-        ls -als /usr/bin/clang*
-        ls -als /usr/bin/gcc*
-        ls -als /usr/bin/g++*
+      - uses: actions/checkout@v3
+      - name: Investigate runner MacOS ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
+        run: |
+          which clang
+          which clang++
+          which gcc
+          which g++
+          ls -als /usr/bin/clang*
+          ls -als /usr/bin/gcc*
+          ls -als /usr/bin/g++*
