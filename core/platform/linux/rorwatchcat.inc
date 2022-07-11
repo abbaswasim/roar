@@ -128,18 +128,17 @@ class PlatformData final
 	void read_events()
 	{
 		// The following is to workaround bug in select.h by using __i and __arr variable names
-		typedef fd_fd_mask fd_mask;
-#define __FD_ZERO_LOCAL(s)                                                 \
+#define FD_ZERO_LOCAL_MAIN(s)                                              \
 	do                                                                     \
 	{                                                                      \
 		unsigned int fd_i;                                                 \
 		fd_set      *fd_arr = (s);                                         \
-		for (fd_i = 0; fd_i < sizeof(fd_set) / sizeof(fd_fd_mask); ++fd_i) \
+		for (fd_i = 0; fd_i < sizeof(fd_set) / sizeof(__fd_mask); ++fd_i)  \
 			__FDS_BITS(fd_arr)                                             \
 			[fd_i] = 0;                                                    \
 	} while (0)
 
-#define FD_ZERO_LOCAL(fdsetp) __FD_ZERO_LOCAL(fdsetp)
+#define FD_ZERO_LOCAL(fdsetp) FD_ZERO_LOCAL_MAIN(fdsetp)
 
 		fd_set  rfds;
 		timeval timeout;
