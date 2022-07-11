@@ -119,6 +119,7 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 		extension = extension_from_mimetype(mimetype.c_str());
 	}
 
+	(void) extension;
 	assert(extension != ResourceExtension::unknown && "Couldn't find extension from mimetype");
 
 	rhi::TextureImage ti;
