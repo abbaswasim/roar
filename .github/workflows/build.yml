@@ -9,19 +9,21 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Debug, Release]
+        renderer: [Metal, Vulkan]
         compiler:
           - { compiler: GNU,  version: gcc@11, CC: gcc-11, CXX: g++-11}
           - { compiler: LLVM, version: llvm@13, CC: clang, CXX: clang++}
     env:
       NUMCPUS: -j4
-      CC: ${{ matrix.compiler.CC }}
-      CXX: ${{ matrix.compiler.CXX }}
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Investigate runner MacOS ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
-        run: |
-          cd tests/cmake_tests && CC=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CC }} CXX=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CXX }} cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} && VERBOSE=1 cmake --build build --config ${{ matrix.build_type }} -- -j1
+        with:
+          submodules: "recursive"
+      - name: CMake configure ${{ matrix.renderer }} ${{ matrix.build_type }} on MacOs
+        run: CC=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CC }} CXX=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CXX }} cmake -H"." -B"build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="${{ matrix.renderer }}" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
+      - name: CMake build Metal ${{ matrix.build_type }} on MacOs
+        run: VERBOSE=1 cmake --build "build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
 
   build_linux:
     name: "${{ matrix.build_type }} build MacOS using ${{ matrix.compiler.compiler }}"
@@ -29,6 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         build_type: [Debug, Release]
+        renderer: [Vulkan]
         compiler:
           - { compiler: GNU,  CC: gcc-10, CXX: g++-10}
           - { compiler: LLVM, CC: clang-12, CXX: clang++-12}
@@ -39,6 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Investigate runner MacOS ${{ matrix.build_type }} for ${{ matrix.compiler.compiler }}
+        with:
+          submodules: "recursive"
+      - name: Install RandR headers
         run: |
-          cd tests/cmake_tests && cmake -H. -Bbuild -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} && VERBOSE=1 cmake --build build --config ${{ matrix.build_type }} -- -j1
+          sudo apt-get update
+          sudo apt install xorg-dev libglu1-mesa-dev
+      - name: CMake configure ${{ matrix.renderer }} ${{ matrix.build_type }} on MacOs
+        run: CC=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CC }} CXX=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CXX }} cmake -H"." -B"build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="${{ matrix.renderer }}" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
+      - name: CMake build Metal ${{ matrix.build_type }} on MacOs
+        run: VERBOSE=1 cmake --build "build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
