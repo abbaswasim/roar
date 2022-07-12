@@ -6,7 +6,7 @@
 			"name": "optimal",
 			"buffers":[
 				{
-					"size":150,
+					"size":1,
 					"semantic":[
 						{
 							"vertex_position":100,
@@ -16,7 +16,7 @@
 					]
 				},
 				{
-					"size":200,
+					"size":1,
 					"semantic":[
 						{
 							"vertex_texture_coord_0":100,
@@ -26,7 +26,7 @@
 					]
 				},
 				{
-					"size":100,
+					"size":1,
 					"semantic":[
 						{
 							"vertex_index":100
@@ -34,7 +34,7 @@
 					]
 				},
 				{
-					"size":100,
+					"size":1,
 					"semantic":[
 						{
 							"instance_translation":80,
@@ -44,7 +44,7 @@
 					]
 				},
 				{
-					"size":200,
+					"size":1,
 					"interleaved":"global",
 					"semantic":[
 
@@ -56,7 +56,7 @@
 			"name" : "interleaved_packed",
 			"buffers":[
 				{
-					"size":400,
+					"size":1,
 					"interleaved":"local",
 					"semantic":[
 
@@ -68,7 +68,7 @@
 			"name" : "interleaved_separate",
 			"buffers":[
 				{
-					"size":400,
+					"size":1,
 					"interleaved":"global",
 					"semantic":[
 
@@ -80,7 +80,7 @@
 			"name" : "some_interleaved",
 			"buffers":[
 				{
-					"size":100,
+					"size":1,
 					"interleaved":"local",
 					"semantic":[
 						{
@@ -93,7 +93,7 @@
 					]
 				},
 				{
-					"size":200,
+					"size":1,
 					"interleaved":"global",
 					"semantic":[
 
@@ -105,7 +105,7 @@
 			"name" : "separate",
 			"buffers":[
 				{
-					"size":20,
+					"size":1,
 					"interleaved":"local",
 					"semantic":[
 						{
@@ -114,7 +114,7 @@
 					]
 				},
 				{
-					"size":10,
+					"size":1,
 					"semantic":[
 						{
 							"vertex_texture_coord_0":20,
@@ -124,7 +124,7 @@
 					]
 				},
 				{
-					"size":10,
+					"size":1,
 					"semantic":[
 						{
 							"vertex_normal":10
@@ -132,7 +132,7 @@
 					]
 				},
 				{
-					"size":10,
+					"size":1,
 					"semantic":[
 						{
 							"vertex_tangent":10
@@ -140,7 +140,7 @@
 					]
 				},
 				{
-					"size":10,
+					"size":1,
 					"semantic":[
 						{
 							"vertex_bone_id":10
@@ -148,7 +148,7 @@
 					]
 				},
 				{
-					"size":10,
+					"size":1,
 					"semantic":[
 						{
 							"vertex_weight":10
@@ -156,7 +156,7 @@
 					]
 				},
 				{
-					"size":10,
+					"size":1,
 					"semantic":[
 						{
 							"vertex_index":10
@@ -164,7 +164,7 @@
 					]
 				},
 				{
-					"size":10,
+					"size":1,
 					"semantic":[
 						{
 							"instance_translation":10
@@ -172,7 +172,7 @@
 					]
 				},
 				{
-					"size":10,
+					"size":1,
 					"interleaved":"global",
 					"semantic":[
 

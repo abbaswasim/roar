@@ -20,15 +20,17 @@
 #include <gtest/gtest-death-test.h>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <ostream>
 #include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "fox.h"
-#include "rhi/rorbuffer.hpp"
 #include "graphics/rormodel.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
+#include "rhi/rorrender_data.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
 #include "shader_system/rorshader_system.hpp"
@@ -102,7 +104,7 @@ struct timer
 	std::chrono::high_resolution_clock::time_point start;
 
 	timer(const std::string &name) :
-		m_name(name), start(std::chrono::high_resolution_clock::now())
+	    m_name(name), start(std::chrono::high_resolution_clock::now())
 	{}
 
 	~timer()
@@ -230,196 +232,6 @@ TEST(RoarGeneral, settings_test)
 	EXPECT_EQ(config.get<std::string>("roar_args:roar_args2:arg21"), "arg2uno");
 	EXPECT_EQ(config.get<uint32_t>("roar_args:roar_args2:arg22"), 22);
 	EXPECT_EQ(config.get<std::string>("roar_args:roar_args2:arg23"), "23");
-}
-
-TEST(ModelTest, gltf_loader_test)
-{
-	ror::Model model;
-	model.load_from_gltf_file("Fox/Fox.gltf");
-
-	EXPECT_EQ(model.meshes().size(), 1);
-	auto &m = model.meshes()[0];
-	EXPECT_EQ(m.m_attribute_vertex_descriptors.size(), 1);
-	EXPECT_EQ(m.m_morph_targets_vertex_descriptors.size(), 1);
-	EXPECT_EQ(m.m_has_indices_states[0], false);
-	EXPECT_EQ(m.m_primitive_types[0], rhi::PrimitiveTopology::triangles);
-
-	auto &vd = m.m_attribute_vertex_descriptors[0];
-
-	auto semantics = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) |
-					 ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0);
-
-	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_position, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4 + sizeof(uint16_t) * 4, 1, 1, semantics, __LINE__);
-	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_texture_coord_0, 1, 0, 0, 1, 1, rhi::VertexFormat::float32_2, rhi::StepFunction::vertex, sizeof(float32_t) * 2, 1, 1, semantics, __LINE__);
-	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_bone_id_0, 2, sizeof(float32_t) * 3, 0, 2, 0, rhi::VertexFormat::uint16_4, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4 + sizeof(uint16_t) * 4, 1, 1, semantics, __LINE__);
-	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight_0, 3, sizeof(float32_t) * 3 + sizeof(uint16_t) * 4, 0, 3, 0, rhi::VertexFormat::float32_4, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4 + sizeof(uint16_t) * 4, 1, 1, semantics, __LINE__);
-
-	{
-		auto &attrib_pos = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_position);
-		EXPECT_EQ(attrib_pos.location(), 0);
-		EXPECT_EQ(attrib_pos.offset(), 0);
-		EXPECT_EQ(attrib_pos.buffer_offset(), 0);
-		EXPECT_EQ(attrib_pos.binding(), 0);
-		EXPECT_EQ(attrib_pos.buffer_index(), 0);
-		EXPECT_EQ(attrib_pos.semantics(), rhi::BufferSemantic::vertex_position);
-		EXPECT_EQ(attrib_pos.format(), rhi::VertexFormat::float32_3);
-	}
-	{
-		auto &attrib_uv = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_texture_coord_0);
-		EXPECT_EQ(attrib_uv.location(), 1);
-		EXPECT_EQ(attrib_uv.offset(), 0);
-		EXPECT_EQ(attrib_uv.buffer_offset(), 0);
-		EXPECT_EQ(attrib_uv.binding(), 1);
-		EXPECT_EQ(attrib_uv.buffer_index(), 1);
-		EXPECT_EQ(attrib_uv.semantics(), rhi::BufferSemantic::vertex_texture_coord_0);
-		EXPECT_EQ(attrib_uv.format(), rhi::VertexFormat::float32_2);
-	}
-	{
-		auto &attrib_bone = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_bone_id_0);
-		EXPECT_EQ(attrib_bone.location(), 2);
-		EXPECT_EQ(attrib_bone.offset(), sizeof(float32_t) * 3);
-		EXPECT_EQ(attrib_bone.buffer_offset(), 0);
-		EXPECT_EQ(attrib_bone.binding(), 2);
-		EXPECT_EQ(attrib_bone.buffer_index(), 0);
-		EXPECT_EQ(attrib_bone.semantics(), rhi::BufferSemantic::vertex_bone_id_0);
-		EXPECT_EQ(attrib_bone.format(), rhi::VertexFormat::uint16_4);
-	}
-	{
-		auto &attrib_weight = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_weight_0);
-		EXPECT_EQ(attrib_weight.location(), 3);
-		EXPECT_EQ(attrib_weight.offset(), sizeof(float32_t) * 3 + sizeof(uint16_t) * 4);
-		EXPECT_EQ(attrib_weight.buffer_offset(), 0);
-		EXPECT_EQ(attrib_weight.binding(), 3);
-		EXPECT_EQ(attrib_weight.buffer_index(), 0);
-		EXPECT_EQ(attrib_weight.semantics(), rhi::BufferSemantic::vertex_weight_0);
-		EXPECT_EQ(attrib_weight.format(), rhi::VertexFormat::float32_4);
-	}
-
-	// Now lets see if the attributes data is copied correctly or not
-	auto &bp = rhi::get_buffers_pack();
-
-	const uint8_t *pos_buff    = bp.buffer(rhi::BufferSemantic::vertex_position).data().data();
-	const uint8_t *uv_buff     = bp.buffer(rhi::BufferSemantic::vertex_texture_coord_0).data().data();
-	const uint8_t *bone_buff   = bp.buffer(rhi::BufferSemantic::vertex_bone_id_0).data().data();
-	const uint8_t *weight_buff = bp.buffer(rhi::BufferSemantic::vertex_weight_0).data().data();
-
-	const float epsilon = 0.000001f;
-	{
-		auto  semantic = rhi::BufferSemantic::vertex_position;
-		auto &attrib   = m.m_attribute_vertex_descriptors[0].attribute(semantic);
-		auto &layout   = m.m_attribute_vertex_descriptors[0].layout(semantic);
-
-		uint32_t comp_count = 3;
-		uint8_t *ptr        = const_cast<uint8_t *>(pos_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
-		for (size_t i = 0; i < fox_attrib_count; ++i)
-		{
-			for (size_t j = 0; j < comp_count; ++j)
-			{
-				EXPECT_NEAR(fox_positions[i * comp_count + j], reinterpret_cast<float32_t *>(ptr)[j], epsilon);
-			}
-
-			ptr += layout.stride();
-		}
-	}
-	{
-		auto     semantic   = rhi::BufferSemantic::vertex_texture_coord_0;
-		auto    &attrib     = m.m_attribute_vertex_descriptors[0].attribute(semantic);
-		auto    &layout     = m.m_attribute_vertex_descriptors[0].layout(semantic);
-		uint32_t comp_count = 2;
-		uint8_t *ptr        = const_cast<uint8_t *>(uv_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
-		for (size_t i = 0; i < fox_attrib_count; ++i)
-		{
-			for (size_t j = 0; j < comp_count; ++j)
-			{
-				EXPECT_NEAR(fox_uvs[i * comp_count + j], reinterpret_cast<float32_t *>(ptr)[j], epsilon);
-			}
-
-			ptr += layout.stride();
-		}
-	}
-	{
-		auto     semantic   = rhi::BufferSemantic::vertex_bone_id_0;
-		auto    &attrib     = m.m_attribute_vertex_descriptors[0].attribute(semantic);
-		auto    &layout     = m.m_attribute_vertex_descriptors[0].layout(semantic);
-		uint32_t comp_count = 4;
-		uint8_t *ptr        = const_cast<uint8_t *>(bone_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
-		for (size_t i = 0; i < fox_attrib_count; ++i)
-		{
-			for (size_t j = 0; j < comp_count; ++j)
-			{
-				EXPECT_EQ(fox_joint_ids[i * comp_count + j], reinterpret_cast<uint16_t *>(ptr)[j]);
-			}
-
-			ptr += layout.stride();
-		}
-	}
-	{
-		auto     semantic   = rhi::BufferSemantic::vertex_weight_0;
-		auto    &attrib     = m.m_attribute_vertex_descriptors[0].attribute(semantic);
-		auto    &layout     = m.m_attribute_vertex_descriptors[0].layout(semantic);
-		uint32_t comp_count = 4;
-		uint8_t *ptr        = const_cast<uint8_t *>(weight_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
-		for (size_t i = 0; i < fox_attrib_count; ++i)
-		{
-			for (size_t j = 0; j < comp_count; ++j)
-			{
-				EXPECT_NEAR(fox_weights[i * comp_count + j], reinterpret_cast<float32_t *>(ptr)[j], epsilon);
-			}
-
-			ptr += layout.stride();
-		}
-	}
-	{
-		EXPECT_EQ(model.skins().size(), 1);
-		auto &s = model.skins()[0];
-		EXPECT_EQ(s.m_inverse_bind_matrices.size(), fox_inverse_bind_matrices_count);
-		EXPECT_EQ(s.m_joints.size(), fox_inverse_bind_matrices_count);
-
-		for (size_t i = 0; i < s.m_inverse_bind_matrices.size(); ++i)
-			for (size_t j = 0; j < 16; ++j)
-				EXPECT_NEAR(s.m_inverse_bind_matrices[i].m_values[j], fox_inverse_bind_matrices[i * 16 + j], epsilon);
-
-		for (size_t i = 0; i < s.m_joints.size(); ++i)
-			EXPECT_EQ(s.m_joints[i], fox_joints[i]);
-
-		EXPECT_EQ(s.m_root, 2);
-		EXPECT_EQ(s.m_node_index, 1);
-	}
-	{
-		EXPECT_EQ(model.animations().size(), 3);
-		auto &a = model.animations()[0];
-
-		EXPECT_EQ(a.m_samplers.size(), 21);
-		EXPECT_EQ(a.m_channels.size(), 21);
-
-		auto &s = a.m_samplers[0];
-		auto &i = s.m_input;
-		auto *o = reinterpret_cast<const float32_t *>(s.m_output.data());
-
-		EXPECT_EQ(i.size(), fox_sampler0_count);
-		EXPECT_EQ(s.m_output.size(), fox_sampler0_count * 4 * 4);
-
-		for (size_t j = 0; j < i.size(); ++j)
-		{
-			EXPECT_NEAR(i[j].m_value, fox_sampler0_input[j], epsilon);
-
-			EXPECT_NEAR(o[j * 4 + 0], fox_sampler0_output[j * 4 + 0], epsilon);
-			EXPECT_NEAR(o[j * 4 + 1], fox_sampler0_output[j * 4 + 1], epsilon);
-			EXPECT_NEAR(o[j * 4 + 2], fox_sampler0_output[j * 4 + 2], epsilon);
-			EXPECT_NEAR(o[j * 4 + 3], fox_sampler0_output[j * 4 + 3], epsilon);
-		}
-	}
-
-	// The following doesn't belong in this test but I can only call "free()" once on buffer_pack otherwise it asserts (a good thing) hence its all here
-	std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>> alloc_buffer;
-	alloc_buffer.reserve(2);        // This shouldn't assert
-	ror::Mesh m1;
-	ror::Mesh m2;
-	alloc_buffer.push_back(m1);
-	alloc_buffer.push_back(m2);
-
-	// Signal free to BufferPack so allocator can free stuff
-	bp.free();
 }
 
 }        // namespace ror_test

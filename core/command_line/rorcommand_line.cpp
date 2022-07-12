@@ -42,6 +42,9 @@ CommandLineParser::CommandLineParser(std::vector<std::string> a_arguments) :
     m_arguments(a_arguments)
 {
 	assert(this->m_arguments.size() > 0);
+
+	add("--help", "-h", "Command line arguments help", ror::CommandLineParser::OptionType::none, false,
+	    [this](std::any) { print_help("Help", false); });
 }
 
 void CommandLineParser::add(std::string a_long_option, std::string a_short_option, std::string a_documentation, OptionType a_option_type, bool a_required, std::function<void(std::any)> a_callback)
@@ -64,7 +67,7 @@ void CommandLineParser::add(std::string a_long_option, std::string a_short_optio
 	if (a_short_option != "")
 		this->m_short_to_long.emplace(a_short_option, a_long_option);
 
-	this->m_max_argument_size      = std::max(this->m_max_argument_size, a_long_option.length());
+	this->m_max_argument_size      = std::max(this->m_max_argument_size, (a_long_option.length() + a_short_option.length() + 4));
 	this->m_max_documentation_size = std::max(this->m_max_documentation_size, a_documentation.length());
 }
 
@@ -84,7 +87,7 @@ bool CommandLineParser::execute()
 	for (auto &req_opt : this->m_required_options)
 		required_options.emplace(req_opt.first, false);
 
-	for (size_t i = 0; i < this->m_arguments.size(); ++i)
+	for (size_t i = 1; i < this->m_arguments.size(); ++i)
 	{
 		auto arg          = this->m_arguments[i];
 		auto short_option = this->m_short_to_long.find(arg);
@@ -124,6 +127,11 @@ bool CommandLineParser::execute()
 
 			opt.m_callback(callback_args);
 		}
+		else
+		{
+			this->print_help("Unknown option: " + arg + " provided");
+			return false;
+		}
 	}
 
 	std::string required_options_names{};
@@ -143,9 +151,12 @@ bool CommandLineParser::execute()
 	return true;
 }
 
-void CommandLineParser::print_help(std::string a_error)
+	void CommandLineParser::print_help(std::string a_error_string, bool a_error)
 {
-	log_error("Command line parsing returned with error \"{}\"\n", a_error.c_str());
+	if (a_error)
+		log_error("Command line parsing returned with error \"{}\"\n", a_error_string.c_str());
+	else
+		log_info("Command line parsing \"{}\"\n", a_error_string.c_str());
 
 	std::string arguments;
 	auto        max_size    = this->m_max_argument_size + this->m_max_documentation_size + this->m_max_type_size + 10;
@@ -175,7 +186,8 @@ void CommandLineParser::print_help(std::string a_error)
 			arguments.append(opt.second.m_short_name);
 			name_space = 0;
 		}
-		arguments.append(this->m_max_argument_size - (opt.first.length() + opt.second.m_short_name.length()) + name_space, ' ');
+		auto tspace = this->m_max_argument_size - (opt.first.length() + opt.second.m_short_name.length()) + name_space;
+		arguments.append(tspace, ' ');
 
 		auto opt_string = this->option_to_string(opt.second.m_type);
 		arguments.append(opt_string);

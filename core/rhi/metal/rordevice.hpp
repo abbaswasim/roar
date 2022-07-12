@@ -25,23 +25,41 @@
 
 #pragma once
 
+#include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rordevice.hpp"
+#include "rhi/rorrhi_macros.hpp"
+
+#include <Metal/MTLDevice.hpp>
 
 namespace rhi
 {
+/*
+  Metal multi-threaded command buffer filling advice
+In a multithreaded app, it’s advisable to break your overall task into subtasks that can be encoded separately.
+Create a command buffer for each chunk of work, then call the enqueue method on these command buffer objects to establish the order of execution.
+Fill each buffer object (using multiple threads) and commit them.
+The command queue automatically schedules and executes these command buffers as they become available.
+ */
 class DeviceMetal : public DeviceCrtp<DeviceMetal>
 {
   public:
+	FORCE_INLINE              DeviceMetal();                                                //! Default constructor
 	FORCE_INLINE              DeviceMetal(const DeviceMetal &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE              DeviceMetal(DeviceMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE DeviceMetal &operator=(const DeviceMetal &a_other)       = default;        //! Copy assignment operator
 	FORCE_INLINE DeviceMetal &operator=(DeviceMetal &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~DeviceMetal() noexcept override                 = default;        //! Destructor
 
+	FORCE_INLINE MTL::Device *platform_device();
+
   protected:
-	FORCE_INLINE DeviceMetal() = default;        //! Default constructor
   private:
+	MTL::Device *m_device;        //! Metal device pointer for MacOS metal targets
+
+	declare_translation_unit_vtable();
 };
+
+declare_rhi_render_type(Device);
 
 }        // namespace rhi
 

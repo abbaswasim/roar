@@ -30,13 +30,11 @@
 #include "foundation/rorjobsystem.hpp"
 #include "graphics/rorscene.hpp"
 #include "rhi/rorbuffers_pack.hpp"
+#include "rhi/rordevice.hpp"
 #include <any>
 
 namespace rhi
 {
-
-class Instance;
-class Device;
 
 template <class _type>
 class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
@@ -109,28 +107,23 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
   protected:
 	FORCE_INLINE ContextCrtp() = delete;
 	FORCE_INLINE ContextCrtp(std::any a_window) :
-		m_job_system(&ror::get_job_system()),
-		m_scene(ror::settings().m_default_scene),
-		m_buffer_pack(&rhi::get_buffers_pack())
+	    m_job_system(&ror::get_job_system()),
+	    m_scene(ror::settings().m_default_scene),
+	    m_buffer_pack(&rhi::get_buffers_pack())
 	{
 		(void) a_window;
-		// this->m_current_instance = std::make_shared<Instance>();
-		// this->m_current_device      = std::make_shared<Device>(this->m_current_instance, a_window);
 
-		// this->m_instances.emplace_back(this->m_current_instance);
-		// this->m_devices.emplace_back(this->m_current_device);
+		this->m_current_device      = std::make_shared<Device>();
+		this->m_devices.emplace_back(this->m_current_device);
 	}
 
   private:
-	ror::JobSystem   *m_job_system{nullptr};          //! Non-owning job system alias that will be used by the whole application
-	ror::EventSystem  m_event_system{};               //! An event system that the application can use,
-	ror::Scene        m_scene{};               //! A scene we want to render
-	rhi::BuffersPack *m_buffer_pack{nullptr};         //! A non-owning alias to the global buffers pack
-
-	std::vector<std::shared_ptr<Instance>> m_instances{};
-	std::vector<std::shared_ptr<Device>>   m_devices{};
-	std::shared_ptr<Device>                m_current_device{nullptr};
-	std::shared_ptr<Instance>              m_current_instance{nullptr};
+	ror::JobSystem                      *m_job_system{nullptr};            //! Non-owning job system alias that will be used by the whole application
+	ror::EventSystem                     m_event_system{};                 //! An event system that the application can use,
+	ror::Scene                           m_scene{};                        //! A scene we want to render
+	rhi::BuffersPack                    *m_buffer_pack{nullptr};           //! A non-owning alias to the global buffers pack
+	std::vector<std::shared_ptr<Device>> m_devices{};                      //! List of devices in the system
+	std::shared_ptr<Device>              m_current_device{nullptr};        //! Current device we are using, only one device possible at a time
 };
 
 }        // namespace rhi

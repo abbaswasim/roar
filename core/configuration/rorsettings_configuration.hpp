@@ -65,6 +65,12 @@ class ROAR_ENGINE_ITEM SettingsConfig : public Configuration<SettingsConfig>
 		return _type{};
 	}
 
+	template <typename _type>
+	void add(std::string a_key, _type a_value)
+	{
+		this->m_generic_configs[a_key] = a_value;        // replaces it if it already exists
+	}
+
   protected:
   private:
 	std::unordered_map<std::string, generic_config> m_generic_configs{};

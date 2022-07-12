@@ -71,7 +71,7 @@ class ROAR_ENGINE_ITEM CommandLineParser final
 	void add(std::string a_long_option, std::function<void(std::any)> a_callback);
 	void add(std::string a_long_option, std::string a_documentation, std::function<void(std::any)> a_callback);
 	bool execute();
-	void print_help(std::string a_error);
+	void print_help(std::string a_error_message, bool a_error = true);
 
   protected:
   private:
@@ -83,7 +83,7 @@ class ROAR_ENGINE_ITEM CommandLineParser final
 	size_t                                          m_max_argument_size{30};             //! For alignment purposes what is the argument size
 	size_t                                          m_max_documentation_size{50};        //! For alignment purposes what is the argument documentation size
 	size_t                                          m_max_type_size{15};                 //! Needs to be changed of OptionType changes
-	std::vector<std::string>                        m_arguments{};                       //! All the functions that needs to be called for this Event Handle
+	std::vector<std::string>                        m_arguments{};                       //! All the arguements that are provided by the caller
 	std::unordered_map<std::string, Option>         m_options{};                         //! All the options that this parser knows about
 	std::unordered_map<std::string, std::string>    m_short_to_long{};                   //! All the short options to big options mapping
 	std::unordered_map<std::string, const Option &> m_required_options{};                //! All the options that this parser knows about and are required, non-owning aliases

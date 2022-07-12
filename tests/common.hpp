@@ -248,4 +248,5 @@ void test_one_vertex_description(const rhi::VertexDescriptor &vd,
 */
 std::pair<std::string, int32_t> execute_command(const char *cmd);
 
+extern ror::SettingsConfig settings_configs_copy;
 }        // namespace ror_test

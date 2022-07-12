@@ -27,8 +27,9 @@
 
 #include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rortexture.hpp"
-#include "rhi/metal/rormetal_common.hpp"
 #include "rhi/rorrhi_macros.hpp"
+
+#include <Metal/MTLTexture.hpp>
 
 namespace rhi
 {

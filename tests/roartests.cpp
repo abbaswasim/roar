@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "command_line/rorcommand_line.hpp"
+#include "common.hpp"
 #include "geometry/geometry.hpp"
 #include "math/math_tests.hpp"
 #include "profiling/rorlog.hpp"
@@ -34,12 +36,45 @@
 #include <filesystem>
 #include <gtest/gtest.h>
 
+ror::SettingsConfig ror_test::settings_configs_copy;
+
 int main(int argc, char **argv)
 {
-	// Copy assets/configs required for tests
-	ror::setup_project_root("test_roar_project", "tests");
-
 	testing::InitGoogleTest(&argc, argv);
+
+	std::string test_default_project{"test_roar_project"};
+	std::string gltf_test_file{""};
+	bool        gltf_print_shader{false};
+	bool        gltf_all{false};
+	bool        gltf_write_shaders{false};
+
+	ror::CommandLineParser cli{std::vector<std::string>{argv, argv + argc}};
+
+	cli.add("--default-project", "-dp", "Default project name for the tests [default \"test_roar_project\"]", ror::CommandLineParser::OptionType::type_string, false,
+	        [&test_default_project](std::any a_argument_value) { test_default_project = std::any_cast<std::string>(a_argument_value); });
+	cli.add("--gltf-test", "-gt", "Can be used to test a single gltf file", ror::CommandLineParser::OptionType::type_string, false,
+	        [&gltf_test_file](std::any a_argument_value) { gltf_test_file = std::any_cast<std::string>(a_argument_value); });
+	cli.add("--gltf-print-compile-shader", "-gtp", "Should compile and print generated shaders for the gltf file provided", ror::CommandLineParser::OptionType::none, false,
+	        [&gltf_print_shader](std::any) { gltf_print_shader = true; });
+	cli.add("--gltf-samples", "-gs", "Should test all the glTF 2.0 samples from khronos", ror::CommandLineParser::OptionType::none, false,
+	        [&gltf_all](std::any) { gltf_all = true; });
+	cli.add("--gltf-write-shaders", "-gws", "Can write generated shaders to a temporary folder", ror::CommandLineParser::OptionType::none, false,
+	        [&gltf_write_shaders](std::any) { gltf_write_shaders = true; });
+
+	if (!cli.execute())
+		return 1;
+
+	// Copy assets/configs required for tests
+	ror::setup_project_root(test_default_project, "tests");
+
+	ror_test::settings_configs_copy = ror::get_settings();
+
+	if (gltf_test_file != "")
+		ror_test::settings_configs_copy.add("gltf_input", gltf_test_file);
+
+	ror_test::settings_configs_copy.add("gltf_compile_print_shader", gltf_print_shader);
+	ror_test::settings_configs_copy.add("gltf_all", gltf_all);
+	ror_test::settings_configs_copy.add("gltf_write_shaders", gltf_write_shaders);
 
 	basist::basisu_transcoder_init();
 

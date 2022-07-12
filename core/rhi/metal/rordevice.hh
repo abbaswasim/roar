@@ -23,9 +23,29 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rormacros.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/metal/rordevice.hpp"
 
 namespace rhi
 {
 
+FORCE_INLINE DeviceMetal::DeviceMetal()
+{
+	this->m_device = MTL::CreateSystemDefaultDevice();
+	if (!this->m_device)
+	{
+		ror::log_critical("Can't create metal device");
+		exit(1);
+	}
+}
+
+FORCE_INLINE MTL::Device *DeviceMetal::platform_device()
+{
+	assert(this->m_device && "Metal device requested is null");
+	return this->m_device;
+}
+
+define_translation_unit_vtable(DeviceMetal)
+{}
 }        // namespace rhi

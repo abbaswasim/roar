@@ -61,6 +61,7 @@ set(ROAR_TEST_SOURCES
   ${ROAR_TEST_SOURCE_DIR}/roartests.cpp
   ${ROAR_TEST_SOURCE_DIR}/common.cpp
   ${ROAR_TEST_SOURCE_DIR}/general.cpp
+  ${ROAR_TEST_SOURCE_DIR}/gltf.cpp
   ${ROAR_TEST_SOURCE_DIR}/graph.cpp
   ${ROAR_TEST_SOURCE_DIR}/log.cpp
   ${ROAR_TEST_SOURCE_DIR}/watchcat.cpp

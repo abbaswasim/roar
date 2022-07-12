@@ -25,14 +25,13 @@
 
 #pragma once
 
-// Metal C++ includes
 #include "foundation/rormacros.hpp"
 #include "rhi/rortypes.hpp"
 
-#include <Foundation/Foundation.hpp>
-#include <Metal/MTLPixelFormat.hpp>
-#include <Metal/Metal.hpp>
-#include <QuartzCore/QuartzCore.hpp>
+// NOTE: Don't include any Metal headers here like <Metal/MTLDevice.hpp> etc
+// All metal headers needs to be included in the rormetal_common.cpp file so we
+// Generate implementations only once. If these are included here they gets compiled
+// without implementation of the functions and then we get linker errors
 
 namespace mtl
 {
