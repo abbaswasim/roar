@@ -18,7 +18,7 @@ jobs:
         with:
           submodules: "recursive"
       - name: CMake configure ${{ matrix.renderer }} ${{ matrix.build_type }} on MacOs
-        run: CC=`brew --prefix llvm@13`/bin/clang CXX=`brew --prefix llvm@13`/bin/clang++ cmake -H"." -B"build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="${{ matrix.renderer }}" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
+        run: cmake -H"." -B"build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="${{ matrix.renderer }}" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
       - name: CMake build ${{ matrix.renderer }} ${{ matrix.build_type }} on MacOs
         run: cmake --build "build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
 
