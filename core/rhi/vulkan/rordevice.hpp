@@ -52,7 +52,7 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 
   protected:
   private:
-	VkDevice m_device;        //! Vulkan device
+	VkDevice m_device{};        //! Vulkan device
 };
 
 declare_rhi_render_type(Device);
