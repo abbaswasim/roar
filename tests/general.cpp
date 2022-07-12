@@ -26,7 +26,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "fox.h"
 #include "graphics/rormodel.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"

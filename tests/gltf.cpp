@@ -53,6 +53,18 @@ void GLTFTest::TearDown()
 
 TEST_F(GLTFTest, gltf_loader_test)
 {
+	(void) fox_attrib_count;
+	(void) fox_positions;
+	(void) fox_uvs;
+	(void) fox_joint_ids;
+	(void) fox_weights;
+	(void) fox_inverse_bind_matrices_count;
+	(void) fox_inverse_bind_matrices;
+	(void) fox_joints;
+	(void) fox_sampler0_count;
+	(void) fox_sampler0_input;
+	(void) fox_sampler0_output;
+
 	this->fox_model->load_from_gltf_file("Fox/Fox.gltf");
 
 	EXPECT_EQ(this->fox_model->meshes().size(), 1);
