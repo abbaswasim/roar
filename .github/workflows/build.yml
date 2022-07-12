@@ -4,14 +4,12 @@ on: [push]
 
 jobs:
   build_macos:
-    name: "${{ matrix.build_type }} ${{ matrix.renderer }} build MacOS using ${{ matrix.compiler.compiler }}"
+    name: "${{ matrix.build_type }} ${{ matrix.renderer }} build MacOS using LLVM"
     strategy:
       fail-fast: false
       matrix:
         build_type: [Debug, Release]
         renderer: [Metal, Vulkan]
-        compiler:
-          - { compiler: LLVM, version: llvm@13, CC: clang, CXX: clang++}
     env:
       NUMCPUS: -j4
     runs-on: macos-latest
@@ -20,7 +18,7 @@ jobs:
         with:
           submodules: "recursive"
       - name: CMake configure ${{ matrix.renderer }} ${{ matrix.build_type }} on MacOs
-        run: CC=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CC }} CXX=`brew --prefix ${{ matrix.compiler.version }}`/bin/${{ matrix.compiler.CXX }} cmake -H"." -B"build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="${{ matrix.renderer }}" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
+        run: CC=`brew --prefix llvm@13`/bin/clang CXX=`brew --prefix llvm@13`/bin/clang++ cmake -H"." -B"build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" -DCMAKE_BUILD_TYPE="${{ matrix.build_type }}" -DROAR_RENDER_TYPE="${{ matrix.renderer }}" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
       - name: CMake build ${{ matrix.renderer }} ${{ matrix.build_type }} on MacOs
         run: cmake --build "build/macos/${{ matrix.renderer }}/${{ matrix.build_type }}" --config ${{ matrix.build_type }} -- ${{ env.NUMCPUS }}
 
