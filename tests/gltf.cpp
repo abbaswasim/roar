@@ -458,30 +458,37 @@ TEST_F(GLTFTest, gltf_single_commandline_test)
 
 TEST_F(GLTFTest, gltf_load_all_test)
 {
-	auto enable_test   = settings_configs_copy.get<bool>("gltf_all");
-	auto write_shaders = settings_configs_copy.get<bool>("gltf_write_shaders");
+	auto                enable_test   = settings_configs_copy.get<bool>("gltf_all");
+	auto                write_shaders = settings_configs_copy.get<bool>("gltf_write_shaders");
+	auto                root_folder   = settings_configs_copy.get<std::string>("gltf_samples_root");
 	ror::SettingsConfig gltf_tests{"gltf_tests.json"};
 
 	if (enable_test)
 	{
-		std::string tests{"gltf_tests:t"};
-
-		for (size_t ti = 0; ti < 202; ++ti)
+		if (root_folder == "")
+			ror::log_critical("No root folder provided for the samples");
+		else
 		{
-			auto key{tests + std::to_string(ti)};
-			auto test = gltf_tests.get<std::string>(key);
+			std::string tests{"gltf_tests:t"};
 
-			ror::log_warn("Loading glTF {}", test.c_str());
-			if (test != "")
+			for (size_t ti = 0; ti < 202; ++ti)
 			{
-				this->load_model(test);
+				auto key{tests + std::to_string(ti)};
+				auto test = gltf_tests.get<std::string>(key);
+
+				if (test != "")
+				{
+					auto file_path{root_folder + "/" + test};
+					ror::log_warn("Loading glTF {}", file_path.c_str());
+					this->load_model(file_path);
+				}
 			}
+
+			this->print_hashes();
+
+			if (write_shaders)
+				this->write_shaders();
 		}
-
-		this->print_hashes();
-
-		if (write_shaders)
-			this->write_shaders();
 	}
 }
 

@@ -71,14 +71,12 @@ class GLTFTest : public testing::Test
   protected:
 	static void SetUpTestSuite()
 	{
-		ror::log_critical("Calling constructor of the thing");
 		bp        = &rhi::get_buffers_pack();
 		fox_model = std::make_shared<ror::Model>();
 	}
 
 	static void TearDownTestSuite()
 	{
-		ror::log_critical("Calling destructor of the thing");
 		bp->free();
 	}
 

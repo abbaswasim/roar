@@ -23,10 +23,18 @@
 //
 // Version: 1.0.0
 
-
+#include "foundation/rormacros.hpp"
 #include "rhi/vulkan/rordevice.hpp"
 
 namespace rhi
 {
 
-} // namespace rhi
+FORCE_INLINE VkDevice DeviceVulkan::platform_device()
+{
+	return this->m_device;
+}
+
+define_translation_unit_vtable(DeviceVulkan)
+{}
+
+}        // namespace rhi

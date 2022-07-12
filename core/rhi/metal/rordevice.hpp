@@ -54,7 +54,8 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 
   protected:
   private:
-	MTL::Device *m_device;        //! Metal device pointer for MacOS metal targets
+	MTL::Device *m_device{nullptr};             //! Metal device pointer for MacOS metal targets
+	// void        *m_metal_layer{nullptr};        // Actually CAMetalLayer*
 
 	declare_translation_unit_vtable();
 };

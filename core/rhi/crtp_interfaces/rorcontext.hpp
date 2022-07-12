@@ -113,7 +113,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	{
 		(void) a_window;
 
-		this->m_current_device      = std::make_shared<Device>();
+		this->m_current_device = std::make_shared<Device>();
 		this->m_devices.emplace_back(this->m_current_device);
 	}
 

@@ -44,6 +44,7 @@ int main(int argc, char **argv)
 
 	std::string test_default_project{"test_roar_project"};
 	std::string gltf_test_file{""};
+	std::string gltf_tests_root{""};
 	bool        gltf_print_shader{false};
 	bool        gltf_all{false};
 	bool        gltf_write_shaders{false};
@@ -58,6 +59,8 @@ int main(int argc, char **argv)
 	        [&gltf_print_shader](std::any) { gltf_print_shader = true; });
 	cli.add("--gltf-samples", "-gs", "Should test all the glTF 2.0 samples from khronos", ror::CommandLineParser::OptionType::none, false,
 	        [&gltf_all](std::any) { gltf_all = true; });
+	cli.add("--gltf-samples-root", "-gr", "Root folder where the glTF 2.0 samples are cloned", ror::CommandLineParser::OptionType::type_string, false,
+	        [&gltf_tests_root](std::any a_argument_value) { gltf_tests_root = std::any_cast<std::string>(a_argument_value); });
 	cli.add("--gltf-write-shaders", "-gws", "Can write generated shaders to a temporary folder", ror::CommandLineParser::OptionType::none, false,
 	        [&gltf_write_shaders](std::any) { gltf_write_shaders = true; });
 
@@ -75,6 +78,7 @@ int main(int argc, char **argv)
 	ror_test::settings_configs_copy.add("gltf_compile_print_shader", gltf_print_shader);
 	ror_test::settings_configs_copy.add("gltf_all", gltf_all);
 	ror_test::settings_configs_copy.add("gltf_write_shaders", gltf_write_shaders);
+	ror_test::settings_configs_copy.add("gltf_samples_root", gltf_tests_root);
 
 	basist::basisu_transcoder_init();
 

@@ -39,6 +39,7 @@ namespace rhi
 class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 {
   public:
+	FORCE_INLINE               DeviceVulkan()                                = default;        //! Default constructor
 	FORCE_INLINE               DeviceVulkan(const DeviceVulkan &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE               DeviceVulkan(DeviceVulkan &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE DeviceVulkan &operator=(const DeviceVulkan &a_other)        = default;        //! Copy assignment operator
@@ -47,10 +48,11 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 
 	declare_translation_unit_vtable();
 
+	FORCE_INLINE VkDevice platform_device();
+
   protected:
-	FORCE_INLINE DeviceVulkan() = default;        //! Default constructor
   private:
-	VkDevice m_device; //! Vulkan device
+	VkDevice m_device;        //! Vulkan device
 };
 
 declare_rhi_render_type(Device);
