@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/abbaswasim/roar.svg?branch=master)](https://travis-ci.com/abbaswasim/roar)
+![Build Status](https://github.com/abbaswasim/roar/actions/workflows/build.yml/badge.svg)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/95539c02467442fcb9ebc97c50a1a853)](https://www.codacy.com/manual/abbaswasim/roar?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=abbaswasim/roar&amp;utm_campaign=Badge_Grade)
 
 # Roar
