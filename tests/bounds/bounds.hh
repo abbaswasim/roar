@@ -2271,7 +2271,14 @@ TYPED_TEST(BoundingTest, BoundingRectangle_system_test)
 TYPED_TEST(BoundingTest, boundings_mix_collision)
 {
 	// Collision with other type
+#if defined (ROR_COMPILER_TYPE_GCC) && defined (ROR_OS_TYPE_LINUX)
+		// Some weird GCC 11 issue only shows up when built in release  like
+		// rorvector3.hh:100:76: error: array subscript ‘const ror::Vector3<float>[15]’ is partly outside array bounds of ‘ror::Round<ror::Vector3<float> > [6]’ [-Werror=array-bounds]
+		// This check protects against that error but don't want to mask an actual issue on other compilers
+	ror::Round<ror::Vector3<TypeParam>> bounding_sphere[20];
+#else
 	ror::Round<ror::Vector3<TypeParam>> bounding_sphere[6];
+#endif
 	ror::Round<ror::Vector2<TypeParam>> bounding_circle[4];
 	ror::Box<ror::Vector3<TypeParam>>   bounding_box[6];
 	ror::Box<ror::Vector2<TypeParam>>   bounding_rectangle[4];
