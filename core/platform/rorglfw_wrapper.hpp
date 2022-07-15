@@ -32,7 +32,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#ifdef _DARWIN_
+#if defined (ROR_OS_TYPE_ANY_APPLE)
 #	define GLFW_EXPOSE_NATIVE_COCOA
 #endif
 

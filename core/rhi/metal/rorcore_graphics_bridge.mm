@@ -23,30 +23,41 @@
 //
 // Version: 1.0.0
 
-#pragma once
-#include "core/foundation/rorcrtp.hpp"
+
+#import <Cocoa/Cocoa.h>
+#import <Metal/Metal.h>
+#import <QuartzCore/QuartzCore.h>
 
 namespace rhi
 {
-template <class _type>
-class DeviceCrtp : public ror::Crtp<_type, DeviceCrtp>
+// From https://github.com/spnda/metal-cpp-bug/blob/main/glfw_bridge.mm
+void *get_metal_layer(void *a_window,                  // NSWindow 
+					  double a_width,                  // Width of the layer
+					  double a_height,                 // Height of the layer
+					  void *a_device,                  // MTLDevice pointer
+					  unsigned int a_pixel_format)     // MTLPixelFormat, usually RGBA8Unorm
 {
-  public:
-	FORCE_INLINE             DeviceCrtp(const DeviceCrtp &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE             DeviceCrtp(DeviceCrtp &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE DeviceCrtp &operator=(const DeviceCrtp &a_other)      = default;        //! Copy assignment operator
-	FORCE_INLINE DeviceCrtp &operator=(DeviceCrtp &&a_other) noexcept  = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~DeviceCrtp() noexcept override               = default;        //! Destructor
+	(void) a_pixel_format;
+	CGSize size = {};
+	size.height = a_height;
+	size.width  = a_width;
 
-	// clang-format off
-	FORCE_INLINE void         init(void* a_window)                   {     this->underlying().init(a_window);        }
-	// clang-format on
+	CAMetalLayer *layer = [CAMetalLayer layer];
+	layer.device        = (__bridge static_cast<id<MTLDevice>>(a_device));
+	layer.pixelFormat   = static_cast<MTLPixelFormat>(a_pixel_format); // TODO: Find out why Metal only supports BGRA and not RGBA
+	layer.drawableSize  = size;
 
-  protected:
-	FORCE_INLINE DeviceCrtp() = default;        //! Default constructor
-  private:
-};
+	NSWindow *nswindow              = (__bridge static_cast<NSWindow*>(a_window));
+	nswindow.contentView.layer      = layer;
+	nswindow.contentView.wantsLayer = YES;
 
-}        // namespace rhi
+	return layer;
+}
 
-#include "rhi/crtp_interfaces/rordevice.hh"
+void *next_drawable(void *a_layer)
+{
+	CAMetalLayer *metalLayer = (__bridge static_cast<CAMetalLayer *>(a_layer));
+	return [metalLayer nextDrawable];
+}
+
+}

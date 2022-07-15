@@ -36,7 +36,7 @@
 namespace ror
 {
 
-using generic_config = std::variant<bool, uint32_t, std::string, float32_t, std::vector<uint32_t>, std::vector<float32_t>, std::vector<std::string>>;
+using generic_config = std::variant<bool, int32_t, uint32_t, std::string, float32_t, std::vector<int32_t>, std::vector<uint32_t>, std::vector<float32_t>, std::vector<std::string>>;
 
 class ROAR_ENGINE_ITEM SettingsConfig : public Configuration<SettingsConfig>
 {

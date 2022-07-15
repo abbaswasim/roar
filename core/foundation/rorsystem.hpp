@@ -34,6 +34,9 @@
 #	elif TARGET_OS_MAC == 1
 #		define ROR_OS_TYPE_MAC
 #	endif
+#	if defined(ROR_OS_TYPE_MAC) || defined(ROR_OS_TYPE_IOS) || defined(ROR_OS_TYPE_IOS_SIMULATOR)
+#		define ROR_OS_TYPE_ANY_APPLE
+#	endif
 #elif defined(__ANDROID__) || defined(ANDROID)
 #	define ROR_OS_TYPE_ANDROID
 #elif defined(__linux__)

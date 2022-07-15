@@ -24,13 +24,19 @@
 // Version: 1.0.0
 
 #include "foundation/rormacros.hpp"
+#include "foundation/rortypes.hpp"
+#include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/metal/rordevice.hpp"
+#include "rhi/metal/rormetal_common.hpp"
+#include "settings/rorsettings.hpp"
+#include <Metal/MTLPixelFormat.hpp>
 
 namespace rhi
 {
 
-FORCE_INLINE DeviceMetal::DeviceMetal()
+// This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
+FORCE_INLINE void DeviceMetal::init(void *a_window)
 {
 	this->m_device = MTL::CreateSystemDefaultDevice();
 	if (!this->m_device)
@@ -38,6 +44,16 @@ FORCE_INLINE DeviceMetal::DeviceMetal()
 		ror::log_critical("Can't create metal device");
 		exit(1);
 	}
+
+	auto    &settings     = ror::settings();
+	uint32_t pixel_format = ror::static_cast_safe<uint32_t>(mtl::to_metal_pixelformat(settings.m_pixel_format));
+
+	this->m_window         = a_window;
+	this->m_ca_metal_layer = get_metal_layer(a_window,
+	                                         static_cast<float32_t>(settings.m_window_dimensions.z),
+	                                         static_cast<float32_t>(settings.m_window_dimensions.w),
+	                                         this->m_device,
+	                                         pixel_format);
 }
 
 FORCE_INLINE MTL::Device *DeviceMetal::platform_device()

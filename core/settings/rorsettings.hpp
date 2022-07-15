@@ -30,10 +30,23 @@
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "math/rorvector4.hpp"
+#include "rhi/rortypes.hpp"
 #include <string>
+#include <sys/_types/_int32_t.h>
 
 namespace ror
 {
+
+static rhi::PixelFormat rgba_sizes_to_pixel_format(Vector4ui a_rgba, bool a_srgb, bool a_unorm)
+{
+	if (a_rgba.x == 8 && a_rgba.y == 8 && a_rgba.z == 8 && a_rgba.w == 8 && a_srgb && a_unorm)
+		return rhi::PixelFormat::b8g8r8a8_uint32_norm_srgb;
+
+	else
+		assert(0 && "Implement more formats");
+
+	return rhi::PixelFormat::r8g8b8a8_uint32_norm;
+}
 
 class ROAR_ENGINE_ITEM Settings final
 {
@@ -93,7 +106,7 @@ class ROAR_ENGINE_ITEM Settings final
 			auto h = setting.get<uint32_t>("window:height");
 
 			if (x > 0 && y > 0 && w > 0 && h > 0)
-				this->m_window_dimensions = ror::Vector4ui(x, y, w, h);
+				this->m_window_dimensions = ror::Vector4i(static_cast<int32_t>(x), static_cast<int32_t>(y), static_cast<int32_t>(w), static_cast<int32_t>(h));
 		}
 
 		auto r = setting.get<uint32_t>("window:layout:r");
@@ -106,17 +119,22 @@ class ROAR_ENGINE_ITEM Settings final
 		if (r > 0 && g > 0 && b > 0 && a > 0)
 			this->m_window_rgba_sizes = ror::Vector4ui(r, g, b, a);
 
+		auto srgb  = setting.get<bool>("window:layout:srgb");
+		auto unorm = setting.get<bool>("window:layout:unorm");
+
+		this->m_pixel_format = rgba_sizes_to_pixel_format(this->m_window_rgba_sizes, srgb, unorm);
+
 		if (d > 0 && s > 0)
 			this->m_window_depth_stencil_sizes = ror::Vector2ui(d, s);
 
 		{
 			auto x = setting.get<uint32_t>("viewport:x");
-			auto y = setting.get<uint32_t>("viewport:y");        // Y can be negative
+			auto y = setting.get<uint32_t>("viewport:y");
 			auto w = setting.get<uint32_t>("viewport:width");
-			auto h = setting.get<uint32_t>("viewport:height");
+			auto h = setting.get<uint32_t>("viewport:height");        // Height can be negative
 
 			if (x > 0 && w > 0 && h > 0)
-				this->m_window_dimensions = ror::Vector4ui(x, y, w, h);
+				this->m_viewport = ror::Vector4i(static_cast<int32_t>(x), static_cast<int32_t>(y), static_cast<int32_t>(w), static_cast<int32_t>(h));
 		}
 	}
 
@@ -148,10 +166,12 @@ class ROAR_ENGINE_ITEM Settings final
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
 	ror::Vector4f m_fog_color{0.5f, 0.5f, 0.5f, 1.0f};
 
-	ror::Vector4ui m_window_dimensions{0, 0, 1024, 768};
 	ror::Vector4ui m_window_rgba_sizes{8, 8, 8, 8};
-	ror::Vector4ui m_viewpoert{0, 0, 1024, 768};
 	ror::Vector2ui m_window_depth_stencil_sizes{24, 8};
+	ror::Vector4i  m_window_dimensions{0, 0, 1024, 768};
+	ror::Vector4i  m_viewport{0, 0, 1024, 768};
+
+	rhi::PixelFormat m_pixel_format{rhi::PixelFormat::r8g8b8a8_uint32_norm};
 
   protected:
   private:

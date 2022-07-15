@@ -54,6 +54,7 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	FORCE_INLINE void         loop()                                     {     this->underlying().loop();                        }
 	FORCE_INLINE void         resize(int a_width, int a_height)          {     this->underlying().resize(a_width, a_height);     }
 	FORCE_INLINE std::any     window()                                   {     return this->underlying().window();               }
+	FORCE_INLINE void*        platform_window()                          {     return this->underlying().platform_window();      }
 	FORCE_INLINE EventSystem &event_system()                             {     return this->m_context.event_system();            }
 	// clang-format on
 
@@ -74,14 +75,12 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 
   protected:
 	// This is protected so that no one can create pointers to base Application
-	FORCE_INLINE Application() :
-	    m_context(this->window())
-	{}
+	FORCE_INLINE Application() = default;        //! Default constructor
 
   private:
 	FORCE_INLINE void init()
 	{
-		this->m_context.init();
+		this->m_context.init(this->platform_window());
 		this->m_context.post_init();
 	}
 

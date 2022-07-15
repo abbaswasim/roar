@@ -37,7 +37,12 @@ generic_config get_generic_config_value(json::iterator a_it)
 	generic_config c;
 
 	if (a_it->is_number())
-		c = static_cast<uint32_t>(a_it.value());
+	{
+		if (a_it->is_number_unsigned())
+			c = static_cast<uint32_t>(a_it.value());
+		else if (a_it->is_number_integer())
+			c = static_cast<int32_t>(a_it.value());
+	}
 	if (a_it->is_string())
 		c = static_cast<std::string>(a_it.value());
 	if (a_it->is_boolean())
@@ -48,7 +53,10 @@ generic_config get_generic_config_value(json::iterator a_it)
 	{
 		if (a_it->begin()->is_number())
 		{
-			c = static_cast<std::vector<uint32_t>>(a_it.value());
+			if (a_it->begin()->is_number_unsigned())
+				c = static_cast<std::vector<uint32_t>>(a_it.value());
+			else if (a_it->begin()->is_number_integer())
+				c = static_cast<std::vector<int32_t>>(a_it.value());
 		}
 		if (a_it->begin()->is_string())
 		{

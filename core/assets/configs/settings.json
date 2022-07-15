@@ -38,7 +38,9 @@
 			"b" : 8,
 			"a" : 8,
 			"d" : 24,
-			"s" : 8
+			"s" : 8,
+			"srgb" : true,
+			"unorm" : true
 		}
 	},
 	"viewport" :

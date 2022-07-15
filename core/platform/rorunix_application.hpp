@@ -66,6 +66,10 @@ class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 	{
 		return this->m_glfw_window.window();
 	}
+	FORCE_INLINE /*NSWindow*/ void *platform_window()
+	{
+		return glfwGetCocoaWindow(this->m_glfw_window.window());
+	}
 #endif
 
   protected:

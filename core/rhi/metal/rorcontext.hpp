@@ -35,7 +35,7 @@ namespace rhi
 class ContextMetal : public ContextCrtp<ContextMetal>
 {
   public:
-	FORCE_INLINE               ContextMetal()                                = delete;         //! Default constructor
+	FORCE_INLINE               ContextMetal()                                = default;         //! Default constructor
 	FORCE_INLINE               ContextMetal(const ContextMetal &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE               ContextMetal(ContextMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ContextMetal &operator=(const ContextMetal &a_other)        = default;        //! Copy assignment operator
@@ -43,10 +43,6 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 	FORCE_INLINE virtual ~ContextMetal() noexcept override                   = default;        //! Destructor
 
 	declare_translation_unit_vtable();
-
-	explicit FORCE_INLINE ContextMetal(std::any a_window) :
-		ContextCrtp<ContextMetal>(a_window)
-	{}
 
 	// clang-format off
 	FORCE_INLINE void         init_derived()                                     {}

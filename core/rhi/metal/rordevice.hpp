@@ -30,20 +30,31 @@
 #include "rhi/rorrhi_macros.hpp"
 
 #include <Metal/MTLDevice.hpp>
+#include <any>
 
 namespace rhi
 {
+
+// Utility function to get CAMetalLayer from Objective-C code
+void *get_metal_layer(void        *a_window,               // NSWindow
+                      double       a_width,                // Width of the layer
+                      double       a_height,               // Height of the layer
+                      void        *a_device,               // MTLDevice pointer
+                      unsigned int a_pixel_format);        // MTLPixelFormat, usually BGRA8Unorm
+// Utility function to get next drawable from Objective-C code
+void *next_drawable(void *layer);
+
 /*
   Metal multi-threaded command buffer filling advice
-In a multithreaded app, it’s advisable to break your overall task into subtasks that can be encoded separately.
-Create a command buffer for each chunk of work, then call the enqueue method on these command buffer objects to establish the order of execution.
-Fill each buffer object (using multiple threads) and commit them.
-The command queue automatically schedules and executes these command buffers as they become available.
- */
+  In a multithreaded app, it’s advisable to break your overall task into subtasks that can be encoded separately.
+  Create a command buffer for each chunk of work, then call the enqueue method on these command buffer objects to establish the order of execution.
+  Fill each buffer object (using multiple threads) and commit them.
+  The command queue automatically schedules and executes these command buffers as they become available.
+*/
 class DeviceMetal : public DeviceCrtp<DeviceMetal>
 {
   public:
-	FORCE_INLINE              DeviceMetal();                                                //! Default constructor
+	FORCE_INLINE              DeviceMetal()                               = default;        //! Default constructor
 	FORCE_INLINE              DeviceMetal(const DeviceMetal &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE              DeviceMetal(DeviceMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE DeviceMetal &operator=(const DeviceMetal &a_other)       = default;        //! Copy assignment operator
@@ -52,10 +63,14 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 
 	FORCE_INLINE MTL::Device *platform_device();
 
+	FORCE_INLINE void init(void* a_window);
+
   protected:
   private:
-	MTL::Device *m_device{nullptr};             //! Metal device pointer for MacOS metal targets
-	// void        *m_metal_layer{nullptr};        // Actually CAMetalLayer*
+	MTL::Device *m_device{nullptr};                //! Metal device pointer for MacOS metal targets
+	std::any     m_window{};                       //! A copy of GLFWwindow if using GLFW or any other window
+	std::any     m_platform_window{};              //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
+	void        *m_ca_metal_layer{nullptr};        //! Actually CAMetalLayer*
 
 	declare_translation_unit_vtable();
 };
