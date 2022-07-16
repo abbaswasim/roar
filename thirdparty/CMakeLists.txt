@@ -62,10 +62,18 @@ if (${ROR_RENDER_TYPE_VULKAN})
   target_include_directories(vulkan_headers INTERFACE ${VULKAN_INCLUDE_DIR})
 elseif (${ROR_RENDER_TYPE_METAL})
   # Add MetalCPP
-  add_library(metalcpp_headers INTERFACE)
   set(METAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/metal-cpp)
-  target_sources(metalcpp_headers INTERFACE ${METAL_INCLUDE_DIR}/Metal/Metal.hpp)
-  target_include_directories(metalcpp_headers INTERFACE ${METAL_INCLUDE_DIR})
+
+  find_library(MTL_FOUNDATION_LIBRARY Foundation)
+  find_library(MTL_METAL_LIBRARY Metal)
+  find_library(MTL_QUARTZCORE_LIBRARY QuartzCore)
+
+  add_library(metalcpp ${CMAKE_CURRENT_SOURCE_DIR}/rormetal_common.cpp
+	${METAL_INCLUDE_DIR}/Foundation/Foundation.hpp
+	${METAL_INCLUDE_DIR}/Metal/Metal.hpp
+	${METAL_INCLUDE_DIR}/QuartzCore/QuartzCore.hpp)
+  target_link_libraries(metalcpp PUBLIC ${MTL_FOUNDATION_LIBRARY} ${MTL_METAL_LIBRARY} ${MTL_QUARTZCORE_LIBRARY})
+  target_include_directories(metalcpp PUBLIC ${METAL_INCLUDE_DIR})
 elseif (${ROR_RENDER_TYPE_DX12})
 elseif (${ROR_RENDER_TYPE_GLES3})
 endif()

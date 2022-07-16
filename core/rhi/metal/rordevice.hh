@@ -30,7 +30,6 @@
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/metal/rormetal_common.hpp"
 #include "settings/rorsettings.hpp"
-#include <Metal/MTLPixelFormat.hpp>
 
 namespace rhi
 {
@@ -58,6 +57,14 @@ FORCE_INLINE void DeviceMetal::init(void *a_window)
 	if (!this->m_ca_metal_layer)
 	{
 		ror::log_critical("Can't acquire CA Metal layer");
+		exit(1);
+	}
+
+	this->m_command_queue = this->m_device->newCommandQueue();
+
+	if (!this->m_command_queue)
+	{
+		ror::log_critical("Can't create Metal command queue");
 		exit(1);
 	}
 }

@@ -28,7 +28,7 @@
 #include "rhi/crtp_interfaces/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
-#include <vulkan/vulkan_core.h>
+// #include <vulkan/include/vulkan/vulkan_core.h>
 
 namespace cfg
 {
@@ -49,6 +49,7 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	declare_translation_unit_vtable();
 
 	FORCE_INLINE VkDevice platform_device();
+	void                  init(void *a_window);
 
   protected:
   private:

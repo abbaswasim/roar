@@ -29,8 +29,7 @@
 #include "rhi/crtp_interfaces/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
-#include <Metal/MTLDevice.hpp>
-#include <any>
+#include <Metal/Metal.hpp>
 
 namespace rhi
 {
@@ -62,15 +61,14 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 	FORCE_INLINE virtual ~DeviceMetal() noexcept override                 = default;        //! Destructor
 
 	FORCE_INLINE MTL::Device *platform_device();
-
-	FORCE_INLINE void init(void* a_window);
+	FORCE_INLINE void         init(void *a_window);
 
   protected:
   private:
-	MTL::Device *m_device{nullptr};                //! Metal device pointer for MacOS metal targets
-	std::any     m_window{};                       //! A copy of GLFWwindow if using GLFW or any other window
-	std::any     m_platform_window{};              //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
-	void        *m_ca_metal_layer{nullptr};        //! Actually CAMetalLayer*
+	MTL::Device       *m_device{nullptr};                //! Metal device pointer for MacOS metal targets
+	MTL::CommandQueue *m_command_queue;                  //! MTLCommandQueue where all the commands will be submitted, I think I only need one
+	void              *m_window{};                       //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
+	void              *m_ca_metal_layer{nullptr};        //! Actually CAMetalLayer*
 
 	declare_translation_unit_vtable();
 };

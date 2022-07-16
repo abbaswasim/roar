@@ -35,7 +35,7 @@ namespace rhi
 class ContextVulkan : public ContextCrtp<ContextVulkan>
 {
   public:
-	FORCE_INLINE                ContextVulkan()                                 = delete;         //! Default constructor
+	FORCE_INLINE                ContextVulkan()                                 = default;         //! Default constructor
 	FORCE_INLINE                ContextVulkan(const ContextVulkan &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                ContextVulkan(ContextVulkan &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ContextVulkan &operator=(const ContextVulkan &a_other)         = default;        //! Copy assignment operator
@@ -43,10 +43,6 @@ class ContextVulkan : public ContextCrtp<ContextVulkan>
 	FORCE_INLINE virtual ~ContextVulkan() noexcept override                     = default;        //! Destructor
 
 	declare_translation_unit_vtable();
-
-	explicit FORCE_INLINE ContextVulkan(std::any a_window) :
-		ContextCrtp<ContextVulkan>(a_window)
-	{}
 
 	// clang-format off
 	FORCE_INLINE void         init_derived()                                     {}
