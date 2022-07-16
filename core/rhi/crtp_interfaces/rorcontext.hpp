@@ -46,7 +46,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE ContextCrtp &operator=(ContextCrtp &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ContextCrtp() noexcept override                 = default;        //! Destructor
 
-	FORCE_INLINE void init(void* a_window)
+	FORCE_INLINE void init(void *a_window)
 	{
 		this->m_current_device->init(a_window);
 		// Should only be called once per execution, TODO: check if this could be used in MT environment

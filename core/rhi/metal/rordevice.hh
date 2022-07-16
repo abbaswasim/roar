@@ -54,6 +54,12 @@ FORCE_INLINE void DeviceMetal::init(void *a_window)
 	                                         static_cast<float32_t>(settings.m_window_dimensions.w),
 	                                         this->m_device,
 	                                         pixel_format);
+
+	if (!this->m_ca_metal_layer)
+	{
+		ror::log_critical("Can't acquire CA Metal layer");
+		exit(1);
+	}
 }
 
 FORCE_INLINE MTL::Device *DeviceMetal::platform_device()
