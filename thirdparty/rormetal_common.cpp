@@ -23,8 +23,6 @@
 //
 // Version: 1.0.0
 
-// #include "rhi/metal/rormetal_common.hpp"
-
 // Metal C++ includes
 #define NS_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION

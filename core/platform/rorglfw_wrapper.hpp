@@ -34,6 +34,8 @@
 
 #if defined (ROR_OS_TYPE_ANY_APPLE)
 #	define GLFW_EXPOSE_NATIVE_COCOA
+#elif defined (ROR_OS_TYPE_LINUX)
+#	define GLFW_EXPOSE_NATIVE_X11
 #endif
 
 #include <GLFW/glfw3native.h>

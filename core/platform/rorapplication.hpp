@@ -89,7 +89,7 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 		this->m_context.shutdown();
 	}
 
-	rhi::Context m_context;
+	rhi::Context m_context{};        //! Context that contains most of the state of the engine
 };
 
 }        // namespace ror
