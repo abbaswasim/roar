@@ -61,7 +61,7 @@ class ROAR_ENGINE_ITEM Settings final
 	{
 		auto setting = ror::get_settings();        // This is config settings that will load settings.json, then we cache it in Settings object
 
-		this->m_roar_cache     = setting.get<std::string>("title");
+		this->m_roar_title     = setting.get<std::string>("title");
 		this->m_roar_cache     = setting.get<std::string>("roar_cache");
 		this->m_default_scene  = setting.get<std::string>("default_scene");
 		this->m_buffers_format = setting.get<std::string>("buffers_format");
