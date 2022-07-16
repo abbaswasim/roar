@@ -32,7 +32,6 @@
 #include "math/rorvector4.hpp"
 #include "rhi/rortypes.hpp"
 #include <string>
-#include <sys/_types/_int32_t.h>
 
 namespace ror
 {
