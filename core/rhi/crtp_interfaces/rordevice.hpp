@@ -25,6 +25,7 @@
 
 #pragma once
 #include "core/foundation/rorcrtp.hpp"
+#include <any>
 
 namespace rhi
 {
@@ -39,7 +40,7 @@ class DeviceCrtp : public ror::Crtp<_type, DeviceCrtp>
 	FORCE_INLINE virtual ~DeviceCrtp() noexcept override               = default;        //! Destructor
 
 	// clang-format off
-	FORCE_INLINE void         init(void* a_window)                   {     this->underlying().init(a_window);        }
+	FORCE_INLINE void         init(std::any a_window)                   {     this->underlying().init(a_window);        }
 	// clang-format on
 
   protected:

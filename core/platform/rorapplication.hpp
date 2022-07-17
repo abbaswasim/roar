@@ -34,6 +34,7 @@
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorcontext.hpp"
 #include "settings/rorsettings.hpp"
+#include <any>
 #include <memory>
 
 class GLFWwindow;
@@ -54,7 +55,7 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	FORCE_INLINE void         loop()                                     {     this->underlying().loop();                        }
 	FORCE_INLINE void         resize(int a_width, int a_height)          {     this->underlying().resize(a_width, a_height);     }
 	FORCE_INLINE std::any     window()                                   {     return this->underlying().window();               }
-	FORCE_INLINE void*        platform_window()                          {     return this->underlying().platform_window();      }
+	FORCE_INLINE std::any     platform_window()                          {     return this->underlying().platform_window();      }
 	FORCE_INLINE EventSystem &event_system()                             {     return this->m_context.event_system();            }
 	// clang-format on
 

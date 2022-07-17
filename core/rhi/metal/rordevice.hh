@@ -30,12 +30,13 @@
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/metal/rormetal_common.hpp"
 #include "settings/rorsettings.hpp"
+#include <any>
 
 namespace rhi
 {
 
 // This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
-FORCE_INLINE void DeviceMetal::init(void *a_window)
+FORCE_INLINE void DeviceMetal::init(std::any a_window)
 {
 	this->m_device = MTL::CreateSystemDefaultDevice();
 	if (!this->m_device)

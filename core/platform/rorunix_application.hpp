@@ -66,12 +66,12 @@ class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 	{
 		return this->m_glfw_window.window();
 	}
-	FORCE_INLINE void *platform_window()
+	FORCE_INLINE std::any platform_window()
 	{
 #	if defined(ROR_OS_TYPE_ANY_APPLE)
 		return /*NSWindow*/ glfwGetCocoaWindow(this->m_glfw_window.window());
 #	elif defined(ROR_OS_TYPE_LINUX)
-		return /*GLXWindow*/ glfwGetGLXWindow(this->m_glfw_window.window());
+		return /*GLXWindow*/ glfwGetX11Window(this->m_glfw_window.window());
 #	endif
 	}
 #endif

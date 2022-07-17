@@ -28,6 +28,7 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include <any>
 
 #include <Metal/Metal.hpp>
 
@@ -35,7 +36,7 @@ namespace rhi
 {
 
 // Utility function to get CAMetalLayer from Objective-C code
-void *get_metal_layer(void        *a_window,               // NSWindow
+void *get_metal_layer(std::any     a_window,               // NSWindow
                       double       a_width,                // Width of the layer
                       double       a_height,               // Height of the layer
                       void        *a_device,               // MTLDevice pointer
@@ -61,13 +62,13 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 	FORCE_INLINE virtual ~DeviceMetal() noexcept override                 = default;        //! Destructor
 
 	FORCE_INLINE MTL::Device *platform_device();
-	FORCE_INLINE void         init(void *a_window);
+	FORCE_INLINE void         init(std::any a_window);
 
   protected:
   private:
 	MTL::Device       *m_device{nullptr};                //! Metal device pointer for MacOS metal targets
 	MTL::CommandQueue *m_command_queue;                  //! MTLCommandQueue where all the commands will be submitted, I think I only need one
-	void              *m_window{};                       //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
+	std::any           m_window{};                       //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
 	void              *m_ca_metal_layer{nullptr};        //! Actually CAMetalLayer*
 
 	declare_translation_unit_vtable();
