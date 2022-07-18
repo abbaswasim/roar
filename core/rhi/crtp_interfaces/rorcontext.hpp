@@ -49,11 +49,12 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE void init(std::any a_window)
 	{
 		this->m_current_device->init(a_window);
+
 		// Should only be called once per execution, TODO: check if this could be used in MT environment
 		basist::basisu_transcoder_init();
 
 		// Load all the models now in a deferred way
-		this->m_scene.load_models(*this->m_job_system);
+		this->m_scene.load_models(*this->m_job_system, this->m_current_device);
 
 		this->underlying().init_derived();
 	}

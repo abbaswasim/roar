@@ -29,6 +29,7 @@
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include <vector>
+#include <any>
 #include <vulkan/vulkan_core.h>
 
 namespace cfg
@@ -40,7 +41,7 @@ namespace rhi
 class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImageVulkan>
 {
   public:
-	void upload();
+	void upload(std::any a_device);
 
   protected:
   private:

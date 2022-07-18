@@ -30,6 +30,7 @@
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/metal/rormetal_common.hpp"
 #include "settings/rorsettings.hpp"
+#include <Metal/MTLCommandQueue.hpp>
 #include <any>
 
 namespace rhi
@@ -76,6 +77,9 @@ FORCE_INLINE MTL::Device *DeviceMetal::platform_device()
 	return this->m_device;
 }
 
-define_translation_unit_vtable(DeviceMetal)
-{}
+FORCE_INLINE MTL::CommandQueue *DeviceMetal::platform_queue()
+{
+	assert(this->m_command_queue && "Metal device requested is null");
+	return this->m_command_queue;
+}
 }        // namespace rhi

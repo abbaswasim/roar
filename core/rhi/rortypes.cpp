@@ -29,6 +29,7 @@
 
 namespace rhi
 {
+/*
 constexpr uint32_t pixel_format_to_bits(PixelFormat a_pixel_format)
 {
 	switch (a_pixel_format)
@@ -190,6 +191,7 @@ constexpr uint32_t pixel_format_to_bits(PixelFormat a_pixel_format)
 
 	return 0;
 }
+*/
 
 /*
 Advice on how to make sure glsl and c++ play well along

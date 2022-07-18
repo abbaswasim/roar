@@ -25,68 +25,78 @@
 
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rortexture.hpp"
+#include "rhi/metal/rordevice.hpp"
+#include "rhi/metal/rormetal_common.hpp"
 #include "rhi/metal/rortexture.hpp"
+#include "rhi/rortypes.hpp"
+
+#include <Metal/MTLBlitCommandEncoder.hpp>
+#include <Metal/MTLBuffer.hpp>
+#include <Metal/MTLCommandBuffer.hpp>
+#include <Metal/MTLCommandEncoder.hpp>
+#include <Metal/MTLCommandQueue.hpp>
+#include <Metal/MTLDevice.hpp>
+#include <Metal/MTLResource.hpp>
+#include <Metal/MTLTexture.hpp>
+#include <Metal/MTLTypes.hpp>
 
 namespace rhi
 {
 
-void TextureImageMetal::upload()
+void TextureImageMetal::upload(std::any a_device)
 {
-	(void) this->m_texture;
-	ror::log_critical("Uploading texture to Metal");
+	std::shared_ptr<rhi::Device> rhi_device         = std::any_cast<std::shared_ptr<rhi::Device>>(a_device);
+	MTL::Device                 *device             = rhi_device->platform_device();
+	MTL::CommandQueue           *queue              = rhi_device->platform_queue();
+	MTL::TextureDescriptor      *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
+	auto                         tex_bpp            = this->bytes_per_pixel();
+	uint32_t                     bytes_per_row      = tex_bpp * this->width();
+	MTL::Origin                  texture_origin{0, 0, 0};
+	MTL::Size                    size{this->width(), this->height(), this->depth()};
 
-	// // Create texture
-	// // read_texture_from_file("./assets/astroboy/astro_boy.jpg", &data, tex_width, tex_height, tex_bpp);
+	assert(device);
+	assert(queue);
 
-	// this->format();
+	texture_descriptor->setWidth(this->width());
+	texture_descriptor->setHeight(this->height());
+	texture_descriptor->setPixelFormat(mtl::to_metal_pixelformat(this->format()));
+	texture_descriptor->setTextureType(mtl::to_metal_texture_target(this->target()));
+	texture_descriptor->setUsage(MTL::ResourceUsageRead);
+	texture_descriptor->setMipmapLevelCount(this->mips().size());
 
-	// MTL::TextureDescriptor *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
-	// texture_descriptor->setWidth(this->width());
-	// texture_descriptor->setHeight(this->height());
-	// texture_descriptor->setPixelFormat(MTL::PixelFormatRGBA8Unorm);
-	// texture_descriptor->setTextureType(MTL::TextureType2D);
-	// texture_descriptor->setStorageMode(MTL::StorageModeManaged);
-	// texture_descriptor->setUsage(MTL::ResourceUsageSample | MTL::ResourceUsageRead);
+	this->m_texture = device->newTexture(texture_descriptor);
 
-// texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-//																								 width:textureSize.width
-//																								height:textureSize.height
-//	[                                                                                         mipmapped:NO]
+#if 1
+	// Enable the managed route for now because of bug in BigSur
+	texture_descriptor->setStorageMode(MTL::StorageModeManaged);
 
-//	textureDescriptor.storageMode = MTLStorageModeShared;
-//	textureDescriptor.storageMode = MTLStorageModeShared;
+	MTL::Region region{0, 0, 0, this->width(), this->height(), 1};
+	this->m_texture->replaceRegion(region, 0, this->data(), bytes_per_row);
+#else
 
+	texture_descriptor->setStorageMode(MTL::StorageModePrivate);
 
-//	// Read https://developer.apple.com/documentation/metal/resource_fundamentals/copying_data_to_a_private_resource?language=objc
-//	// for details of how to copy texture to private space in the GPU for fast access
+	assert(this->data());
+	assert(this->size() == this->width() * this->height() * this->bytes_per_pixel());
 
-//	// Unsigned normalized value (i.e. 0 maps to 0.0 and 255 maps to 1.0)
-//	// Set the pixel dimensions of the texture
-//	texture_descriptor->setWidth(this->width());
-//	texture_descriptor->setHeight(this->height());
-//	texture_descriptor->setPixelFormat();        // MTL::PixelFormatRGBA8Unorm);
-//	texture_descriptor->setTextureType(MTL::TextureType2D);
-//	texture_descriptor->setStorageMode(MTL::StorageModeManaged);
-//	texture_descriptor->setUsage(MTL::ResourceUsageSample | MTL::ResourceUsageRead);
+	MTL::Buffer *source_buffer = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);
+	(void) source_buffer;
 
-//	// Create the texture from the device by using the descriptor
-//	this->m_texture = device->newTexture(texture_descriptor);
+	MTL::CommandBuffer *command_buffer = queue->commandBuffer();
 
-//	// // Copy data
-//	// MTLRegion region = {
-//	//     {0, 0, 0},                        // MTLOrigin
-//	//     {tex_width, tex_height, 1}        // MTLSize
-//	// };
+	MTL::BlitCommandEncoder *blit_command_encoder = command_buffer->blitCommandEncoder();
 
-//	uint32_t bytesPerRow = tex_bpp * tex_width;
-//	texture->replaceRegion(MTL::Region(0, 0, 0, tex_width, tex_height, 1), 0, data, bytesPerRow);
+	// copyFromBuffer is hanging the whole System and rebooting the machine
+	// This is a bug in BigSur it works fine on Monterey M1
+	blit_command_encoder->copyFromBuffer(source_buffer, 0, bytes_per_row, this->width() * this->height() * this->bytes_per_pixel(), size, this->m_texture, 0, 0, texture_origin);
+	blit_command_encoder->endEncoding();
 
-//	texture_descriptor->release();
+	command_buffer->addCompletedHandler([this](MTL::CommandBuffer *) { this->ready(true); });
+	command_buffer->commit();
 
-	// If you have uploaded it to a new private space then release the texture like
-	// this->m_texture->release();
+#endif
 
-	// delete[] data;
+	texture_descriptor->release();
 }
 
 define_translation_unit_vtable(TextureImageMetal)

@@ -36,7 +36,7 @@ namespace rhi
 class ROAR_ENGINE_ITEM TextureImageMetal : public TextureImageCrtp<TextureImageMetal>
 {
   public:
-	void upload();
+	void upload(std::any a_device);
 
   protected:
   private:

@@ -163,7 +163,8 @@ rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a
 	ti.reset(new_data, static_cast<uint64_t>(w * h * bpp));        // ti now owns the new_data pointer returned by stbi
 	ti.width(static_cast<uint32_t>(w));
 	ti.height(static_cast<uint32_t>(h));
-	ti.depth(static_cast<uint32_t>(bpp));
+	ti.depth(1u);
+	ti.bytes_per_pixel(static_cast<uint32_t>(bpp));
 
 	return ti;
 }
@@ -1484,13 +1485,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 	}
 }
 
-void Model::upload()
+void Model::upload(std::any a_device)
 {
 	for (auto &image : this->m_images)
 	{
-		image.upload();
+		image.upload(a_device);
 	}
-	ror::log_critical("Uploading a model");
 }
 
 }        // namespace ror

@@ -28,4 +28,7 @@
 namespace rhi
 {
 
+define_translation_unit_vtable(DeviceMetal)
+{}
+
 }        // namespace rhi

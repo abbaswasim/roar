@@ -45,11 +45,33 @@ void *get_metal_layer(std::any     a_window,               // NSWindow
 void *next_drawable(void *layer);
 
 /*
-  Metal multi-threaded command buffer filling advice
-  In a multithreaded app, it’s advisable to break your overall task into subtasks that can be encoded separately.
-  Create a command buffer for each chunk of work, then call the enqueue method on these command buffer objects to establish the order of execution.
-  Fill each buffer object (using multiple threads) and commit them.
-  The command queue automatically schedules and executes these command buffers as they become available.
+  There are two ways of multi-threading your work in Metal
+  1) At the command buffer level
+      Create different Command Buffers for each thread
+      Call enqueue on each to establish the execution order
+      Fill each from different threads and commit, no synchronisation required
+      They will be executed in the enqueue order when become available
+  In a typical app, an entire frame of rendering is encoded into a single command buffer, even if rendering that frame involves multiple rendering passes, compute processing functions, or blit operations.
+
+  2) At the Command Encoder level
+      Create MTLParallelRenderCommandEncoder for a command buffer
+      Create MTLRenderCommandEncoder from MTLParallelRenderCommandEncoder for each thread
+      call EndEncoding on all MTLRenderCommandEncoder and then MTLParallelRenderCommandEncoder
+      The rendering commands are executed in the order that the subordinate encoders were created.
+
+  Command buffer and command encoder objects are transient and designed for a single use. They are very inexpensive to allocate and deallocate, so their creation methods return autoreleased objects.
+
+  The following objects are not transient. Reuse these objects in performance sensitive code, and avoid creating them repeatedly.
+
+  Command queues
+  Data buffers
+  Textures
+  Sampler states
+  Libraries
+  Compute states
+  Render pipeline states
+  Depth/stencil states
+
 */
 class DeviceMetal : public DeviceCrtp<DeviceMetal>
 {
@@ -61,8 +83,9 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 	FORCE_INLINE DeviceMetal &operator=(DeviceMetal &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~DeviceMetal() noexcept override                 = default;        //! Destructor
 
+	FORCE_INLINE void init(std::any a_window);
 	FORCE_INLINE MTL::Device *platform_device();
-	FORCE_INLINE void         init(std::any a_window);
+	FORCE_INLINE MTL::CommandQueue *platform_queue();
 
   protected:
   private:

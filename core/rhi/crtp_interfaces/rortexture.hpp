@@ -31,6 +31,7 @@
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rortypes.hpp"
+#include <any>
 #include <atomic>
 #include <filesystem>
 #include <memory>
@@ -78,28 +79,34 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE uint32_t              width() const noexcept;
 	FORCE_INLINE uint32_t              height() const noexcept;
 	FORCE_INLINE uint32_t              depth() const noexcept;
+	FORCE_INLINE uint32_t              bytes_per_pixel() const noexcept;
 	FORCE_INLINE rhi::PixelFormat format() const noexcept;
 	FORCE_INLINE uint32_t         levels() const noexcept;
 	FORCE_INLINE TextureTarget    target() const noexcept;
 	FORCE_INLINE uint8_t         *data() const noexcept;
 	FORCE_INLINE std::vector<Mipmap> &mips() noexcept;
 	FORCE_INLINE uint64_t             size() const noexcept;
+	FORCE_INLINE bool                 ready() const noexcept;
 
 	FORCE_INLINE void handle(rhi::TextureHandle) noexcept;
 	FORCE_INLINE void width(uint32_t) noexcept;
 	FORCE_INLINE void height(uint32_t) noexcept;
 	FORCE_INLINE void depth(uint32_t) noexcept;
+	FORCE_INLINE void bytes_per_pixel(uint32_t) noexcept;
 	FORCE_INLINE void format(rhi::PixelFormat) noexcept;
 	FORCE_INLINE void target(TextureTarget) noexcept;
 	FORCE_INLINE void reset(uint8_t *, uint64_t) noexcept;
 	FORCE_INLINE void push_empty_mip() noexcept;
 	FORCE_INLINE void allocate(uint64_t a_size);
-	FORCE_INLINE void upload();
+	FORCE_INLINE void upload(std::any a_device);
+	FORCE_INLINE void ready(bool) noexcept;
 
   protected:
 	FORCE_INLINE TextureImageCrtp() = default;        //! Default constructor
   private:
 	// TextureAPIHandle           m_handle{-1};                                            // Texture id used by the Renderer APIs
+	bool                       m_ready{false};                                               //! True when the texture is uploaded to the GPU and ready to be used
+	uint32_t                   m_bytes_per_pixel{4};                                         // Bytes per pixel
 	uint64_t                   m_size{0};                                                    // Size of all mipmaps combined in bytes
 	TextureTarget              m_target{TextureTarget::texture_2D};                          // Can be 1D, 2D or 3D etc texture
 	rhi::PixelFormat           m_format{rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb};        // Pixel format of the texture

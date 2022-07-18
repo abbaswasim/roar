@@ -26,8 +26,8 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "rhi/crtp_interfaces/rortexture.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/crtp_interfaces/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <memory>
 
@@ -38,37 +38,43 @@ namespace rhi
 //	return this->m_handle;
 // }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE uint32_t TextureImageCrtp<_type>::width() const noexcept
 {
 	return this->m_mips[0].m_width;
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE uint32_t TextureImageCrtp<_type>::height() const noexcept
 {
 	return this->m_mips[0].m_height;
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE uint32_t TextureImageCrtp<_type>::depth() const noexcept
 {
 	return this->m_mips[0].m_depth;
 }
 
-template<class _type>
+template <class _type>
+FORCE_INLINE uint32_t TextureImageCrtp<_type>::bytes_per_pixel() const noexcept
+{
+	return this->m_bytes_per_pixel;
+}
+
+template <class _type>
 FORCE_INLINE rhi::PixelFormat TextureImageCrtp<_type>::format() const noexcept
 {
 	return this->m_format;
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE uint32_t TextureImageCrtp<_type>::levels() const noexcept
 {
 	return ror::static_cast_safe<uint32_t>(this->m_mips.size());
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE TextureTarget TextureImageCrtp<_type>::target() const noexcept
 {
 	return this->m_target;
@@ -79,37 +85,43 @@ FORCE_INLINE TextureTarget TextureImageCrtp<_type>::target() const noexcept
 //	this->m_handle = a_handle.m_handle;
 // }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::width(uint32_t a_width) noexcept
 {
 	this->m_mips[0].m_width = a_width;
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::height(uint32_t a_height) noexcept
 {
 	this->m_mips[0].m_height = a_height;
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::depth(uint32_t a_depth) noexcept
 {
 	this->m_mips[0].m_depth = a_depth;
 }
 
-template<class _type>
+template <class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::bytes_per_pixel(uint32_t a_bytes_per_pixel) noexcept
+{
+	this->m_bytes_per_pixel = a_bytes_per_pixel;
+}
+
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::format(rhi::PixelFormat a_format) noexcept
 {
 	this->m_format = a_format;
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::target(TextureTarget a_target) noexcept
 {
 	this->m_target = a_target;
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::allocate(uint64_t a_size)
 {
 	this->m_size = a_size;
@@ -117,31 +129,43 @@ FORCE_INLINE void TextureImageCrtp<_type>::allocate(uint64_t a_size)
 	this->m_data.reset(ptr);
 }
 
-template<class _type>
-FORCE_INLINE void TextureImageCrtp<_type>::upload()
+template <class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::upload(std::any a_device)
 {
-	this->underlying().upload();
+	this->underlying().upload(a_device);
 }
 
-template<class _type>
+template <class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::ready(bool a_ready) noexcept
+{
+	this->m_ready = a_ready;
+}
+
+template <class _type>
+FORCE_INLINE bool TextureImageCrtp<_type>::ready() const noexcept
+{
+	return this->m_ready;
+}
+
+template <class _type>
 FORCE_INLINE uint8_t *TextureImageCrtp<_type>::data() const noexcept
 {
 	return this->m_data.get();
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE std::vector<typename TextureImageCrtp<_type>::Mipmap> &TextureImageCrtp<_type>::mips() noexcept
 {
 	return this->m_mips;
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE uint64_t TextureImageCrtp<_type>::size() const noexcept
 {
 	return this->m_size;
 }
 
-template<class _type>
+template <class _type>
 // Now TextureImageCrtp own the a_data pointer
 FORCE_INLINE void TextureImageCrtp<_type>::reset(uint8_t *a_data, uint64_t a_size) noexcept
 {
@@ -149,69 +173,69 @@ FORCE_INLINE void TextureImageCrtp<_type>::reset(uint8_t *a_data, uint64_t a_siz
 	this->m_data.reset(a_data);
 }
 
-template<class _type>
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::push_empty_mip() noexcept
 {
 	this->m_mips.emplace_back();
 }
 
-template<class _type>
+template <class _type>
 rhi::TextureFilter TextureSamplerCrtp<_type>::mag_filter()
 {
 	return this->m_mag_filter;
 }
-template<class _type>
+template <class _type>
 rhi::TextureFilter TextureSamplerCrtp<_type>::min_filter()
 {
 	return this->m_min_filter;
 }
-template<class _type>
+template <class _type>
 rhi::TextureFilter TextureSamplerCrtp<_type>::mip_mode()
 {
 	return this->m_mip_mode;
 }
-template<class _type>
+template <class _type>
 rhi::TextureAddressMode TextureSamplerCrtp<_type>::wrap_s()
 {
 	return this->m_wrap_s;
 }
-template<class _type>
+template <class _type>
 rhi::TextureAddressMode TextureSamplerCrtp<_type>::wrap_t()
 {
 	return this->m_wrap_t;
 }
-template<class _type>
+template <class _type>
 rhi::TextureAddressMode TextureSamplerCrtp<_type>::wrap_u()
 {
 	return this->m_wrap_u;
 }
 
-template<class _type>
+template <class _type>
 void TextureSamplerCrtp<_type>::mag_filter(rhi::TextureFilter a_filter)
 {
 	this->m_mag_filter = a_filter;
 }
-template<class _type>
+template <class _type>
 void TextureSamplerCrtp<_type>::min_filter(rhi::TextureFilter a_filter)
 {
 	this->m_min_filter = a_filter;
 }
-template<class _type>
+template <class _type>
 void TextureSamplerCrtp<_type>::mip_mode(rhi::TextureFilter a_mode)
 {
 	this->m_mip_mode = a_mode;
 }
-template<class _type>
+template <class _type>
 void TextureSamplerCrtp<_type>::wrap_s(rhi::TextureAddressMode a_wrap)
 {
 	this->m_wrap_s = a_wrap;
 }
-template<class _type>
+template <class _type>
 void TextureSamplerCrtp<_type>::wrap_t(rhi::TextureAddressMode a_wrap)
 {
 	this->m_wrap_t = a_wrap;
 }
-template<class _type>
+template <class _type>
 void TextureSamplerCrtp<_type>::wrap_u(rhi::TextureAddressMode a_wrap)
 {
 	this->m_wrap_u = a_wrap;
@@ -238,4 +262,4 @@ void TextureCrtp<_type>::texture_sampler(rhi::TextureSamplerHandle a_handle)
 	this->m_texture_sampler = a_handle;
 }
 
-}        // namespace ror
+}        // namespace rhi
