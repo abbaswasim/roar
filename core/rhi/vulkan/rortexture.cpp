@@ -29,8 +29,9 @@
 namespace rhi
 {
 
-void TextureImageVulkan::upload()
+void TextureImageVulkan::upload(std::any a_device)
 {
+	(void) a_device;
 	ror::log_critical("Uploading texture to Vulkan");
 }
 

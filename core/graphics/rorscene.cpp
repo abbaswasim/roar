@@ -61,7 +61,7 @@ void Scene::update(double64_t a_milli_seconds)
 	(void) a_milli_seconds;
 }
 
-void Scene::load_models(ror::JobSystem &a_job_system)
+void Scene::load_models(ror::JobSystem &a_job_system, std::any a_device)
 {
 	auto model_nodes{0u};
 	for (auto &node : this->m_nodes_data)
@@ -81,10 +81,10 @@ void Scene::load_models(ror::JobSystem &a_job_system)
 			return true;
 		};
 
-		auto model_upload_job = [this](size_t a_index) -> auto
+		auto model_upload_job = [this, a_device](size_t a_index) -> auto
 		{
 			Model &model = this->m_models[a_index];
-			model.upload();
+			model.upload(a_device);
 			return true;
 		};
 
