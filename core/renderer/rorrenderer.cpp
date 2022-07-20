@@ -43,7 +43,7 @@ namespace ror
 define_translation_unit_vtable(Renderer)
 {}
 
-rhi::TextureTarget string_to_texture_target(std::string a_target)
+rhi::TextureTarget string_to_texture_target(const std::string& a_target)
 {
 	if (a_target == "2D")
 		return rhi::TextureTarget::texture_2D;
@@ -149,7 +149,7 @@ void Renderer::load_render_buffers()
 	}
 }
 
-rhi::RenderpassType string_to_renderpass_type(std::string a_type)
+rhi::RenderpassType string_to_renderpass_type(const std::string& a_type)
 {
 	// clang-format off
 	if      (a_type == "lut")                return rhi::RenderpassType::lut;

@@ -50,6 +50,9 @@ class Attachment final
   private:
 };
 
+using InputAttachment  = Attachment<LoadAction>;
+using OutputAttachment = Attachment<StoreAction>;
+
 template <class _type>
 class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 {
@@ -73,15 +76,15 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE auto program_id()            { return this->m_program_id;         }
 	FORCE_INLINE auto debug_output()          { return this->m_debug_output;       }
 
-	FORCE_INLINE void name(std::string a_name)                                                        { this->m_name = a_name;                             }
+	FORCE_INLINE void name(const std::string& a_name)                                                 { this->m_name = a_name;                             }
 	FORCE_INLINE void technique(rhi::RenderpassTechnique a_technique)                                 { this->m_technique = a_technique;                   }
 	FORCE_INLINE void type(rhi::RenderpassType a_type)                                                { this->m_type = a_type;                             }
 	FORCE_INLINE void state(rhi::RenderpassState a_state)                                             { this->m_state = a_state;                           }
-	FORCE_INLINE void input_attachments(std::vector<Attachment<LoadAction>> a_input_attachments)      { this->m_input_attachments = a_input_attachments;   }
-	FORCE_INLINE void output_attachments(std::vector<Attachment<StoreAction>> a_output_attachments)   { this->m_output_attachments = a_output_attachments; }
+	FORCE_INLINE void input_attachments(const std::vector<InputAttachment> &a_input_attachments)      { this->m_input_attachments = a_input_attachments;   }
+	FORCE_INLINE void output_attachments(const std::vector<OutputAttachment> &a_output_attachments)   { this->m_output_attachments = a_output_attachments; }
 	FORCE_INLINE void dimensions(ror::Vector2ui a_dimensions)                                         { this->m_dimensions = a_dimensions;                 }
 	FORCE_INLINE void viewport(ror::Vector4i a_viewport)                                              { this->m_viewport = a_viewport;                     }
-	FORCE_INLINE void parents(std::vector<uint32_t> a_parents)                                        { this->m_parents = a_parents;                       }
+	FORCE_INLINE void parents(const std::vector<uint32_t>& a_parents)                                 { this->m_parents = a_parents;                       }
 	FORCE_INLINE void program_id(int32_t a_program_id)                                                { this->m_program_id = a_program_id;                 }
 	FORCE_INLINE void debug_output(bool a_debug_output)                                               { this->m_debug_output = a_debug_output;             }
 	// clang-format on
@@ -89,17 +92,17 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
   protected:
 	FORCE_INLINE RenderpassCrtp() = default;        //! Default constructor
   private:
-	std::string                          m_name{};                                               //! Debug name of this render pass
-	rhi::RenderpassTechnique             m_technique{rhi::RenderpassTechnique::fragment};        //! Will this render pass be excuted in fragment or compute
-	rhi::RenderpassType                  m_type{rhi::RenderpassType::main};                      //! Is it a shadow, reflection etc or main pass etc
-	rhi::RenderpassState                 m_state{rhi::RenderpassState::transient};               //! Do I need to pre-run this once or required every frame
-	std::vector<Attachment<LoadAction>>  m_input_attachments{};                                  //! Input attachments
-	std::vector<Attachment<StoreAction>> m_output_attachments{};                                 //! Output attachments
-	ror::Vector2ui                       m_dimensions{};                                         //! Dimensions for this renderpass if provided will override frame graph dimensions
-	ror::Vector4i                        m_viewport{};                                           //! Viewport for this renderpass if provided will override frame graph viewport
-	std::vector<uint32_t>                m_parents{};                                            //! All passes that need to complete before this can run
-	int32_t                              m_program_id{};                                         //! A program id that could be used to execute this pass or will use the content PSOs
-	bool                                 m_debug_output{false};                                  //! Whether debug output is required
+	std::string                   m_name{};                                               //! Debug name of this render pass
+	rhi::RenderpassTechnique      m_technique{rhi::RenderpassTechnique::fragment};        //! Will this render pass be excuted in fragment or compute
+	rhi::RenderpassType           m_type{rhi::RenderpassType::main};                      //! Is it a shadow, reflection etc or main pass etc
+	rhi::RenderpassState          m_state{rhi::RenderpassState::transient};               //! Do I need to pre-run this once or required every frame
+	std::vector<InputAttachment>  m_input_attachments{};                                  //! Input attachments
+	std::vector<OutputAttachment> m_output_attachments{};                                 //! Output attachments
+	ror::Vector2ui                m_dimensions{};                                         //! Dimensions for this renderpass if provided will override frame graph dimensions
+	ror::Vector4i                 m_viewport{};                                           //! Viewport for this renderpass if provided will override frame graph viewport
+	std::vector<uint32_t>         m_parents{};                                            //! All passes that need to complete before this can run
+	int32_t                       m_program_id{};                                         //! A program id that could be used to execute this pass or will use the content PSOs
+	bool                          m_debug_output{false};                                  //! Whether debug output is required
 };
 
 }        // namespace rhi

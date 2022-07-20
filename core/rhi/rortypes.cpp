@@ -466,7 +466,7 @@ constexpr bool has_semantic(uint64_t a_type, BufferSemantic a_semantic)
 	return ((a_type & ror::enum_to_type_cast(a_semantic)) == ror::enum_to_type_cast(a_semantic));
 }
 
-rhi::PixelFormat string_to_pixel_format(std::string a_format)
+rhi::PixelFormat string_to_pixel_format(const std::string& a_format)
 {
 	// clang-format off
 	if      (a_format == "a8_uint8_norm"                 ) return rhi::PixelFormat::a8_uint8_norm;
