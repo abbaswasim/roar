@@ -125,7 +125,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	rhi::BuffersPack                    *m_buffer_pack{nullptr};           //! A non-owning alias to the global buffers pack
 	std::vector<std::shared_ptr<Device>> m_devices{};                      //! List of devices in the system
 	std::shared_ptr<Device>              m_current_device{nullptr};        //! Current device we are using, only one device possible at a time
-	ror::Renderer                        m_renderer{};                       //! Renderer that will be used by the context to render stuff
+	ror::Renderer                        m_renderer{};                     //! Renderer that will be used by the context to render stuff
 };
 
 }        // namespace rhi

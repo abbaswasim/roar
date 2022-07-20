@@ -54,7 +54,6 @@ void TextureImageMetal::upload(std::any a_device)
 	MTL::Size                    size{this->width(), this->height(), this->depth()};
 
 	assert(device);
-	assert(queue);
 
 	texture_descriptor->setWidth(this->width());
 	texture_descriptor->setHeight(this->height());
@@ -73,7 +72,8 @@ void TextureImageMetal::upload(std::any a_device)
 	this->m_texture->replaceRegion(region, 0, this->data(), bytes_per_row);
 #else
 
-	MTL::CommandQueue           *queue              = rhi_device->platform_queue();
+	MTL::CommandQueue *queue = rhi_device->platform_queue();
+	assert(queue);
 	texture_descriptor->setStorageMode(MTL::StorageModePrivate);
 
 	assert(this->data());
