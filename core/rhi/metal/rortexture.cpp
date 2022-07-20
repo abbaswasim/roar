@@ -47,7 +47,6 @@ void TextureImageMetal::upload(std::any a_device)
 {
 	std::shared_ptr<rhi::Device> rhi_device         = std::any_cast<std::shared_ptr<rhi::Device>>(a_device);
 	MTL::Device                 *device             = rhi_device->platform_device();
-	MTL::CommandQueue           *queue              = rhi_device->platform_queue();
 	MTL::TextureDescriptor      *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
 	auto                         tex_bpp            = this->bytes_per_pixel();
 	uint32_t                     bytes_per_row      = tex_bpp * this->width();
@@ -67,7 +66,6 @@ void TextureImageMetal::upload(std::any a_device)
 	this->m_texture = device->newTexture(texture_descriptor);
 
 #if 1
-	(void) queue;
 	// Enable the managed route for now because of bug in BigSur
 	texture_descriptor->setStorageMode(MTL::StorageModeManaged);
 
@@ -75,6 +73,7 @@ void TextureImageMetal::upload(std::any a_device)
 	this->m_texture->replaceRegion(region, 0, this->data(), bytes_per_row);
 #else
 
+	MTL::CommandQueue           *queue              = rhi_device->platform_queue();
 	texture_descriptor->setStorageMode(MTL::StorageModePrivate);
 
 	assert(this->data());
