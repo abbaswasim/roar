@@ -67,6 +67,7 @@ void TextureImageMetal::upload(std::any a_device)
 	this->m_texture = device->newTexture(texture_descriptor);
 
 #if 1
+	(void) queue;
 	// Enable the managed route for now because of bug in BigSur
 	texture_descriptor->setStorageMode(MTL::StorageModeManaged);
 
