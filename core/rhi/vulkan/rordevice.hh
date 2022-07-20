@@ -34,10 +34,9 @@ FORCE_INLINE VkDevice DeviceVulkan::platform_device()
 	return this->m_device;
 }
 
-
 FORCE_INLINE void DeviceVulkan::init(std::any a_window)
 {
-	(void) a_window;	
+	(void) a_window;
 }
 
 define_translation_unit_vtable(DeviceVulkan)

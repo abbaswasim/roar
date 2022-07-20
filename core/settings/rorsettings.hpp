@@ -31,21 +31,11 @@
 #include "foundation/rortypes.hpp"
 #include "math/rorvector4.hpp"
 #include "rhi/rortypes.hpp"
+#include <_types/_uint32_t.h>
 #include <string>
 
 namespace ror
 {
-
-static rhi::PixelFormat rgba_sizes_to_pixel_format(Vector4ui a_rgba, bool a_srgb, bool a_unorm)
-{
-	if (a_rgba.x == 8 && a_rgba.y == 8 && a_rgba.z == 8 && a_rgba.w == 8 && a_srgb && a_unorm)
-		return rhi::PixelFormat::b8g8r8a8_uint32_norm_srgb;
-
-	else
-		assert(0 && "Implement more formats");
-
-	return rhi::PixelFormat::r8g8b8a8_uint32_norm;
-}
 
 class ROAR_ENGINE_ITEM Settings final
 {
@@ -60,18 +50,18 @@ class ROAR_ENGINE_ITEM Settings final
 	{
 		auto setting = ror::get_settings();        // This is config settings that will load settings.json, then we cache it in Settings object
 
-		this->m_roar_title     = setting.get<std::string>("title");
-		this->m_roar_cache     = setting.get<std::string>("roar_cache");
-		this->m_default_scene  = setting.get<std::string>("default_scene");
-		this->m_buffers_format = setting.get<std::string>("buffers_format");
-		this->m_working_dir    = setting.get<std::string>("working_dir");
+		this->m_roar_title      = setting.get<std::string>("title");
+		this->m_roar_cache      = setting.get<std::string>("roar_cache");
+		this->m_default_scene   = setting.get<std::string>("default_scene");
+		this->m_buffers_format  = setting.get<std::string>("buffers_format");
+		this->m_working_dir     = setting.get<std::string>("working_dir");
+		this->m_renderer_config = setting.get<std::string>("renderer_config");
 
 		this->m_zoom_speed = setting.get<float32_t>("zoom_speed");
 
 		this->m_unit              = setting.get<uint32_t>("unit");
 		this->m_buffer_increment  = setting.get<uint32_t>("buffer_increment");
 		this->m_multisample_count = setting.get<uint32_t>("multisample_count");
-		this->m_window_bpp        = setting.get<uint32_t>("window:bpp");
 
 		this->m_visualise_mipmaps    = setting.get<bool>("visualise_mipmaps");
 		this->m_vertical_sync        = setting.get<bool>("vsync");
@@ -108,23 +98,18 @@ class ROAR_ENGINE_ITEM Settings final
 				this->m_window_dimensions = ror::Vector4i(static_cast<int32_t>(x), static_cast<int32_t>(y), static_cast<int32_t>(w), static_cast<int32_t>(h));
 		}
 
-		auto r = setting.get<uint32_t>("window:layout:r");
-		auto g = setting.get<uint32_t>("window:layout:g");
-		auto b = setting.get<uint32_t>("window:layout:b");
-		auto a = setting.get<uint32_t>("window:layout:a");
-		auto d = setting.get<uint32_t>("window:layout:d");
-		auto s = setting.get<uint32_t>("window:layout:s");
+		this->m_viewport = this->m_window_dimensions;
 
-		if (r > 0 && g > 0 && b > 0 && a > 0)
-			this->m_window_rgba_sizes = ror::Vector4ui(r, g, b, a);
+		auto color_format         = setting.get<std::string>("window:color_format");
+		auto depth_stencil_format = setting.get<std::string>("window:depth_stencil_format");
 
-		auto srgb  = setting.get<bool>("window:layout:srgb");
-		auto unorm = setting.get<bool>("window:layout:unorm");
+		if (color_format != "")
+			this->m_pixel_format = rhi::string_to_pixel_format(color_format);
 
-		this->m_pixel_format = rgba_sizes_to_pixel_format(this->m_window_rgba_sizes, srgb, unorm);
+		if (depth_stencil_format != "")
+			this->m_depth_stencil_format = rhi::string_to_pixel_format(depth_stencil_format);
 
-		if (d > 0 && s > 0)
-			this->m_window_depth_stencil_sizes = ror::Vector2ui(d, s);
+		this->m_window_buffer_count = setting.get<uint32_t>("window:buffer_count");
 
 		{
 			auto x = setting.get<uint32_t>("viewport:x");
@@ -142,6 +127,7 @@ class ROAR_ENGINE_ITEM Settings final
 	std::string m_default_scene{};
 	std::string m_buffers_format{};
 	std::string m_working_dir{};
+	std::string m_renderer_config{"renderer.json"};
 
 	float32_t m_zoom_speed{20.0f};
 	float32_t m_fog_start{0.0f};
@@ -150,7 +136,6 @@ class ROAR_ENGINE_ITEM Settings final
 	uint32_t m_unit{1};        //! 1 == meter, 1000 == km etc, to use the unit multiply it with your quantities
 	uint32_t m_buffer_increment{1};
 	uint32_t m_multisample_count{8};
-	uint32_t m_window_bpp{72};        //! R8G8B8A8 + D24 + S8
 
 	bool m_visualise_mipmaps{false};
 	bool m_vertical_sync{false};
@@ -165,12 +150,12 @@ class ROAR_ENGINE_ITEM Settings final
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
 	ror::Vector4f m_fog_color{0.5f, 0.5f, 0.5f, 1.0f};
 
-	ror::Vector4ui m_window_rgba_sizes{8, 8, 8, 8};
-	ror::Vector2ui m_window_depth_stencil_sizes{24, 8};
-	ror::Vector4i  m_window_dimensions{0, 0, 1024, 768};
-	ror::Vector4i  m_viewport{0, 0, 1024, 768};
+	ror::Vector4i m_window_dimensions{0, 0, 1024, 768};
+	ror::Vector4i m_viewport{0, 0, 1024, 768};
+	uint32_t      m_window_buffer_count{3};
 
 	rhi::PixelFormat m_pixel_format{rhi::PixelFormat::r8g8b8a8_uint32_norm};
+	rhi::PixelFormat m_depth_stencil_format{rhi::PixelFormat::depth24_norm_stencil8_uint32};
 
   protected:
   private:

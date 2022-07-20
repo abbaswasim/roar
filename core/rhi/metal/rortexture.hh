@@ -26,4 +26,4 @@
 #include "rhi/metal/rortexture.hpp"
 
 namespace rhi
-{}        // namespace ror
+{}        // namespace rhi

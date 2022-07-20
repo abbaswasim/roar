@@ -34,15 +34,19 @@ template <typename _type = Static>
 class ROAR_ENGINE_ITEM BufferMetal : public BufferCrtp<BufferMetal<_type>, _type>
 {
   public:
-	FORCE_INLINE               BufferMetal()                                = default;        //! Default constructor
-	FORCE_INLINE               BufferMetal(const BufferMetal &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE               BufferMetal(BufferMetal &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE BufferMetal &operator=(const BufferMetal &a_other)        = default;        //! Copy assignment operator
-	FORCE_INLINE BufferMetal &operator=(BufferMetal &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~BufferMetal() noexcept override                   = default;        //! Destructor
+	FORCE_INLINE              BufferMetal()                               = default;        //! Default constructor
+	FORCE_INLINE              BufferMetal(const BufferMetal &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE              BufferMetal(BufferMetal &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE BufferMetal &operator=(const BufferMetal &a_other)       = default;        //! Copy assignment operator
+	FORCE_INLINE BufferMetal &operator=(BufferMetal &&a_other) noexcept   = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~BufferMetal() noexcept override                 = default;        //! Destructor
 
 	declare_translation_unit_vtable();
 };
+
+// Template deduction guide CATD for Buffer static
+template <class _type>
+BufferMetal(_type) -> BufferMetal<Static>;
 
 // I am doing this so the rest of the system can use the CRTP implementation directly as "Buffer"
 template <typename _type>

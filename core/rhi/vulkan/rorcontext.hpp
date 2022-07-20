@@ -35,7 +35,7 @@ namespace rhi
 class ContextVulkan : public ContextCrtp<ContextVulkan>
 {
   public:
-	FORCE_INLINE                ContextVulkan()                                 = default;         //! Default constructor
+	FORCE_INLINE                ContextVulkan()                                 = default;        //! Default constructor
 	FORCE_INLINE                ContextVulkan(const ContextVulkan &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                ContextVulkan(ContextVulkan &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ContextVulkan &operator=(const ContextVulkan &a_other)         = default;        //! Copy assignment operator

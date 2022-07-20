@@ -26,10 +26,10 @@
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rorutilities.hpp"
-#include "rhi/vulkan/rortexture.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/vulkan/rortexture.hpp"
 #include <memory>
 
 namespace rhi
-{}        // namespace ror
+{}        // namespace rhi

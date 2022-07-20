@@ -75,18 +75,19 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 		uint64_t m_offset{0};        // Offset in the data array inside the TexturImage
 	};
 
-	FORCE_INLINE rhi::TextureAPIHandle handle() const noexcept;
-	FORCE_INLINE uint32_t              width() const noexcept;
-	FORCE_INLINE uint32_t              height() const noexcept;
-	FORCE_INLINE uint32_t              depth() const noexcept;
-	FORCE_INLINE uint32_t              bytes_per_pixel() const noexcept;
-	FORCE_INLINE rhi::PixelFormat format() const noexcept;
-	FORCE_INLINE uint32_t         levels() const noexcept;
-	FORCE_INLINE TextureTarget    target() const noexcept;
-	FORCE_INLINE uint8_t         *data() const noexcept;
-	FORCE_INLINE std::vector<Mipmap> &mips() noexcept;
-	FORCE_INLINE uint64_t             size() const noexcept;
-	FORCE_INLINE bool                 ready() const noexcept;
+	FORCE_INLINE auto  handle() const noexcept;
+	FORCE_INLINE auto  width() const noexcept;
+	FORCE_INLINE auto  height() const noexcept;
+	FORCE_INLINE auto  depth() const noexcept;
+	FORCE_INLINE auto  bytes_per_pixel() const noexcept;
+	FORCE_INLINE auto  format() const noexcept;
+	FORCE_INLINE auto  levels() const noexcept;
+	FORCE_INLINE auto  target() const noexcept;
+	FORCE_INLINE auto *data() const noexcept;
+	FORCE_INLINE auto &mips() noexcept;
+	FORCE_INLINE auto  size() const noexcept;
+	FORCE_INLINE auto  ready() const noexcept;
+	FORCE_INLINE auto  name() const noexcept;
 
 	FORCE_INLINE void handle(rhi::TextureHandle) noexcept;
 	FORCE_INLINE void width(uint32_t) noexcept;
@@ -100,6 +101,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE void allocate(uint64_t a_size);
 	FORCE_INLINE void upload(std::any a_device);
 	FORCE_INLINE void ready(bool) noexcept;
+	FORCE_INLINE void name(std::string) noexcept;
 
   protected:
 	FORCE_INLINE TextureImageCrtp() = default;        //! Default constructor
@@ -112,6 +114,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	rhi::PixelFormat           m_format{rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb};        // Pixel format of the texture
 	std::unique_ptr<uint8_t[]> m_data{};                                                     // All mipmaps data
 	std::vector<Mipmap>        m_mips{};                                                     // Will have at least one level, base texture width and height are mip[0] width/height, NOTE: This doesn't have to be BufferAllocated
+	std::string                m_name{};                                                     // Name of the texture, usually given for debugging purposes or the file name
 };
 
 // static_assert(std::is_trivially_copyable_v<TextureImage>, "TextureImage is not trivially copyable");

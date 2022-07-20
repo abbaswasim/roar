@@ -123,16 +123,23 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/rhi/rorshader_buffer.cpp
   ${ROAR_SOURCE_DIR}/shader_system/rorshader_system.cpp
   ${ROAR_SOURCE_DIR}/configuration/rorsettings_configuration.cpp
+  ${ROAR_SOURCE_DIR}/renderer/rorrenderer.cpp
   ${ROAR_SOURCE_DIR}/resources/rorprojectroot.cpp)
 
 if (${ROR_RENDER_TYPE_VULKAN})
   list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/vulkan/rortexture.hpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rortexture.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorvulkan_common.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorshader.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorprogram.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorrenderpass.cpp)
 elseif (${ROR_RENDER_TYPE_METAL})
   list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.hpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rordevice.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorshader.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorprogram.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorrenderpass.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorcore_graphics_bridge.mm)
 elseif (${ROR_RENDER_TYPE_DX12})
 elseif (${ROR_RENDER_TYPE_GLES3})

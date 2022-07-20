@@ -32,164 +32,164 @@ namespace rhi
 /*
 constexpr uint32_t pixel_format_to_bits(PixelFormat a_pixel_format)
 {
-	switch (a_pixel_format)
-	{
-		case PixelFormat::invalid:
-		case PixelFormat::a8_uint8_norm:
-		case PixelFormat::r8_uint8_norm:
-		case PixelFormat::r8_uint8_norm_srgb:
-		case PixelFormat::r8_int8_norm:
-		case PixelFormat::r8_uint8:
-		case PixelFormat::r8_int8:
-		case PixelFormat::stencil8_int8:
-			return 8;
-		case PixelFormat::depth16_uint16_norm:
-		case PixelFormat::r16_uint16_norm:
-		case PixelFormat::r16_int16_norm:
-		case PixelFormat::r16_uint16:
-		case PixelFormat::r16_int16:
-		case PixelFormat::r16_float16:
-		case PixelFormat::r8g8_uint16_norm:
-		case PixelFormat::r8g8_uint16_norm_srgb:
-		case PixelFormat::r8g8_int16_norm:
-		case PixelFormat::r8g8_uint16:
-		case PixelFormat::r8g8_int16:
-		case PixelFormat::b5g6r5_uint16_norm:
-		case PixelFormat::a1b5g5r5_uint16_norm:
-		case PixelFormat::a4b4g4r4_uint16_norm:
-		case PixelFormat::b5g5r5a1_uint16_norm:
-			return 16;
-		case PixelFormat::x24_stencil8:
-		case PixelFormat::depth32_float32:
-		case PixelFormat::depth24_norm_stencil8_uint32:
-		case PixelFormat::r32_uint32:
-		case PixelFormat::r32_int32:
-		case PixelFormat::r32_float32:
-		case PixelFormat::r16g16_uint32_norm:
-		case PixelFormat::r16g16_int32_norm:
-		case PixelFormat::r16g16_uint32:
-		case PixelFormat::r16g16_int32:
-		case PixelFormat::r16g16_float32:
-		case PixelFormat::r8g8b8a8_uint32_norm:
-		case PixelFormat::r8g8b8a8_uint32_norm_srgb:
-		case PixelFormat::r8g8b8a8_int32_norm:
-		case PixelFormat::r8g8b8a8_uint32:
-		case PixelFormat::r8g8b8a8_int32:
-		case PixelFormat::b8g8r8a8_uint32_norm:
-		case PixelFormat::b8g8r8a8_uint32_norm_srgb:
-		case PixelFormat::r10g10b10a2_uint32_norm:
-		case PixelFormat::r10g10b10a2_uint32:
-		case PixelFormat::r11g11b10_float32:
-		case PixelFormat::r9g9b9e5_float32:
-		case PixelFormat::b10g10r10a2_uint32_norm:
-			return 32;
-		case PixelFormat::r32g32_uint64:
-		case PixelFormat::r32g32_int64:
-		case PixelFormat::r32g32_float64:
-		case PixelFormat::r16g16b16a16_uint64_norm:
-		case PixelFormat::r16g16b16a16_int64_norm:
-		case PixelFormat::r16g16b16a16_uint64:
-		case PixelFormat::r16g16b16a16_int64:
-		case PixelFormat::r16g16b16a16_float64:
-			return 64;
-		case PixelFormat::r32g32b32a32_uint128:
-		case PixelFormat::r32g32b32a32_int128:
-		case PixelFormat::r32g32b32a32_float128:
-			return 128;
-		case PixelFormat::bc1_rgba:
-		case PixelFormat::bc1_rgba_srgb:
-		case PixelFormat::bc2_rgba:
-		case PixelFormat::bc2_rgba_srgb:
-		case PixelFormat::bc3_rgba:
-		case PixelFormat::bc3_rgba_srgb:
-		case PixelFormat::bc4_r_unsigned_norm:
-		case PixelFormat::bc4_r_norm:
-		case PixelFormat::bc5_rg_unsigned_norm:
-		case PixelFormat::bc5_rg_norm:
-		case PixelFormat::bc6h_rgb_float:
-		case PixelFormat::bc6h_rgbu_float:
-		case PixelFormat::bc7_rgba_unsigned_norm:
-		case PixelFormat::bc7_rgba_unsinged_norm_srgb:
+    switch (a_pixel_format)
+    {
+        case PixelFormat::invalid:
+        case PixelFormat::a8_uint8_norm:
+        case PixelFormat::r8_uint8_norm:
+        case PixelFormat::r8_uint8_norm_srgb:
+        case PixelFormat::r8_int8_norm:
+        case PixelFormat::r8_uint8:
+        case PixelFormat::r8_int8:
+        case PixelFormat::stencil8_int8:
+            return 8;
+        case PixelFormat::depth16_uint16_norm:
+        case PixelFormat::r16_uint16_norm:
+        case PixelFormat::r16_int16_norm:
+        case PixelFormat::r16_uint16:
+        case PixelFormat::r16_int16:
+        case PixelFormat::r16_float16:
+        case PixelFormat::r8g8_uint16_norm:
+        case PixelFormat::r8g8_uint16_norm_srgb:
+        case PixelFormat::r8g8_int16_norm:
+        case PixelFormat::r8g8_uint16:
+        case PixelFormat::r8g8_int16:
+        case PixelFormat::b5g6r5_uint16_norm:
+        case PixelFormat::a1b5g5r5_uint16_norm:
+        case PixelFormat::a4b4g4r4_uint16_norm:
+        case PixelFormat::b5g5r5a1_uint16_norm:
+            return 16;
+        case PixelFormat::x24_stencil8:
+        case PixelFormat::depth32_float32:
+        case PixelFormat::depth24_norm_stencil8_uint32:
+        case PixelFormat::r32_uint32:
+        case PixelFormat::r32_int32:
+        case PixelFormat::r32_float32:
+        case PixelFormat::r16g16_uint32_norm:
+        case PixelFormat::r16g16_int32_norm:
+        case PixelFormat::r16g16_uint32:
+        case PixelFormat::r16g16_int32:
+        case PixelFormat::r16g16_float32:
+        case PixelFormat::r8g8b8a8_uint32_norm:
+        case PixelFormat::r8g8b8a8_uint32_norm_srgb:
+        case PixelFormat::r8g8b8a8_int32_norm:
+        case PixelFormat::r8g8b8a8_uint32:
+        case PixelFormat::r8g8b8a8_int32:
+        case PixelFormat::b8g8r8a8_uint32_norm:
+        case PixelFormat::b8g8r8a8_uint32_norm_srgb:
+        case PixelFormat::r10g10b10a2_uint32_norm:
+        case PixelFormat::r10g10b10a2_uint32:
+        case PixelFormat::r11g11b10_float32:
+        case PixelFormat::r9g9b9e5_float32:
+        case PixelFormat::b10g10r10a2_uint32_norm:
+            return 32;
+        case PixelFormat::r32g32_uint64:
+        case PixelFormat::r32g32_int64:
+        case PixelFormat::r32g32_float64:
+        case PixelFormat::r16g16b16a16_uint64_norm:
+        case PixelFormat::r16g16b16a16_int64_norm:
+        case PixelFormat::r16g16b16a16_uint64:
+        case PixelFormat::r16g16b16a16_int64:
+        case PixelFormat::r16g16b16a16_float64:
+            return 64;
+        case PixelFormat::r32g32b32a32_uint128:
+        case PixelFormat::r32g32b32a32_int128:
+        case PixelFormat::r32g32b32a32_float128:
+            return 128;
+        case PixelFormat::bc1_rgba:
+        case PixelFormat::bc1_rgba_srgb:
+        case PixelFormat::bc2_rgba:
+        case PixelFormat::bc2_rgba_srgb:
+        case PixelFormat::bc3_rgba:
+        case PixelFormat::bc3_rgba_srgb:
+        case PixelFormat::bc4_r_unsigned_norm:
+        case PixelFormat::bc4_r_norm:
+        case PixelFormat::bc5_rg_unsigned_norm:
+        case PixelFormat::bc5_rg_norm:
+        case PixelFormat::bc6h_rgb_float:
+        case PixelFormat::bc6h_rgbu_float:
+        case PixelFormat::bc7_rgba_unsigned_norm:
+        case PixelFormat::bc7_rgba_unsinged_norm_srgb:
 
-		case PixelFormat::pvrtc_rgb_2bpp:
-		case PixelFormat::pvrtc_rgb_2bpp_srgb:
-		case PixelFormat::pvrtc_rgb_4bpp:
-		case PixelFormat::pvrtc_rgb_4bpp_srgb:
-		case PixelFormat::pvrtc_rgba_2bpp:
-		case PixelFormat::pvrtc_rgba_2bpp_srgb:
-		case PixelFormat::pvrtc_rgba_4bpp:
-		case PixelFormat::pvrtc_rgba_4bpp_srgb:
+        case PixelFormat::pvrtc_rgb_2bpp:
+        case PixelFormat::pvrtc_rgb_2bpp_srgb:
+        case PixelFormat::pvrtc_rgb_4bpp:
+        case PixelFormat::pvrtc_rgb_4bpp_srgb:
+        case PixelFormat::pvrtc_rgba_2bpp:
+        case PixelFormat::pvrtc_rgba_2bpp_srgb:
+        case PixelFormat::pvrtc_rgba_4bpp:
+        case PixelFormat::pvrtc_rgba_4bpp_srgb:
 
-		case PixelFormat::eac_r11_unsigned_norm:
-		case PixelFormat::eac_r11_norm:
-		case PixelFormat::eac_r11g11_unsigned_norm:
-		case PixelFormat::eac_r11g11_norm:
-		case PixelFormat::eac_r8g8b8a8:
-		case PixelFormat::eac_r8g8b8a8_srgb:
+        case PixelFormat::eac_r11_unsigned_norm:
+        case PixelFormat::eac_r11_norm:
+        case PixelFormat::eac_r11g11_unsigned_norm:
+        case PixelFormat::eac_r11g11_norm:
+        case PixelFormat::eac_r8g8b8a8:
+        case PixelFormat::eac_r8g8b8a8_srgb:
 
-		case PixelFormat::etc2_r8g8b8:
-		case PixelFormat::etc2_r8g8b8_srgb:
-		case PixelFormat::etc2_r8g8b8a1:
-		case PixelFormat::etc2_r8g8b8a1_srgb:
-			assert(0);
-			return 128;
-		case PixelFormat::astc_4x4_srgb:
-		case PixelFormat::astc_5x4_srgb:
-		case PixelFormat::astc_5x5_srgb:
-		case PixelFormat::astc_6x5_srgb:
-		case PixelFormat::astc_6x6_srgb:
-		case PixelFormat::astc_8x5_srgb:
-		case PixelFormat::astc_8x6_srgb:
-		case PixelFormat::astc_8x8_srgb:
-		case PixelFormat::astc_10x5_srgb:
-		case PixelFormat::astc_10x6_srgb:
-		case PixelFormat::astc_10x8_srgb:
-		case PixelFormat::astc_10x10_srgb:
-		case PixelFormat::astc_12x10_srgb:
-		case PixelFormat::astc_12x12_srgb:
-		case PixelFormat::astc_4x4_ldr:
-		case PixelFormat::astc_5x4_ldr:
-		case PixelFormat::astc_5x5_ldr:
-		case PixelFormat::astc_6x5_ldr:
-		case PixelFormat::astc_6x6_ldr:
-		case PixelFormat::astc_8x5_ldr:
-		case PixelFormat::astc_8x6_ldr:
-		case PixelFormat::astc_8x8_ldr:
-		case PixelFormat::astc_10x5_ldr:
-		case PixelFormat::astc_10x6_ldr:
-		case PixelFormat::astc_10x8_ldr:
-		case PixelFormat::astc_10x10_ldr:
-		case PixelFormat::astc_12x10_ldr:
-		case PixelFormat::astc_12x12_ldr:
-		case PixelFormat::astc_4x4_hdr:
-		case PixelFormat::astc_5x4_hdr:
-		case PixelFormat::astc_5x5_hdr:
-		case PixelFormat::astc_6x5_hdr:
-		case PixelFormat::astc_6x6_hdr:
-		case PixelFormat::astc_8x5_hdr:
-		case PixelFormat::astc_8x6_hdr:
-		case PixelFormat::astc_8x8_hdr:
-		case PixelFormat::astc_10x5_hdr:
-		case PixelFormat::astc_10x6_hdr:
-		case PixelFormat::astc_10x8_hdr:
-		case PixelFormat::astc_10x10_hdr:
-		case PixelFormat::astc_12x10_hdr:
-		case PixelFormat::astc_12x12_hdr:
-			return 128;
-		case PixelFormat::gbgr422:
-		case PixelFormat::bgrg422:
-		case PixelFormat::b10g10r10a10_xr:
-		case PixelFormat::b10g10r10a10_xr_srgb:
-		case PixelFormat::b10g10r10_xr:
-		case PixelFormat::b10g10r10_xr_srgb:
-			assert(0);
-			return 128;
-		case PixelFormat::x32_stencil8:
-		case PixelFormat::depth32_float32_stencil8_int8:
-			return 40;
-	}
+        case PixelFormat::etc2_r8g8b8:
+        case PixelFormat::etc2_r8g8b8_srgb:
+        case PixelFormat::etc2_r8g8b8a1:
+        case PixelFormat::etc2_r8g8b8a1_srgb:
+            assert(0);
+            return 128;
+        case PixelFormat::astc_4x4_srgb:
+        case PixelFormat::astc_5x4_srgb:
+        case PixelFormat::astc_5x5_srgb:
+        case PixelFormat::astc_6x5_srgb:
+        case PixelFormat::astc_6x6_srgb:
+        case PixelFormat::astc_8x5_srgb:
+        case PixelFormat::astc_8x6_srgb:
+        case PixelFormat::astc_8x8_srgb:
+        case PixelFormat::astc_10x5_srgb:
+        case PixelFormat::astc_10x6_srgb:
+        case PixelFormat::astc_10x8_srgb:
+        case PixelFormat::astc_10x10_srgb:
+        case PixelFormat::astc_12x10_srgb:
+        case PixelFormat::astc_12x12_srgb:
+        case PixelFormat::astc_4x4_ldr:
+        case PixelFormat::astc_5x4_ldr:
+        case PixelFormat::astc_5x5_ldr:
+        case PixelFormat::astc_6x5_ldr:
+        case PixelFormat::astc_6x6_ldr:
+        case PixelFormat::astc_8x5_ldr:
+        case PixelFormat::astc_8x6_ldr:
+        case PixelFormat::astc_8x8_ldr:
+        case PixelFormat::astc_10x5_ldr:
+        case PixelFormat::astc_10x6_ldr:
+        case PixelFormat::astc_10x8_ldr:
+        case PixelFormat::astc_10x10_ldr:
+        case PixelFormat::astc_12x10_ldr:
+        case PixelFormat::astc_12x12_ldr:
+        case PixelFormat::astc_4x4_hdr:
+        case PixelFormat::astc_5x4_hdr:
+        case PixelFormat::astc_5x5_hdr:
+        case PixelFormat::astc_6x5_hdr:
+        case PixelFormat::astc_6x6_hdr:
+        case PixelFormat::astc_8x5_hdr:
+        case PixelFormat::astc_8x6_hdr:
+        case PixelFormat::astc_8x8_hdr:
+        case PixelFormat::astc_10x5_hdr:
+        case PixelFormat::astc_10x6_hdr:
+        case PixelFormat::astc_10x8_hdr:
+        case PixelFormat::astc_10x10_hdr:
+        case PixelFormat::astc_12x10_hdr:
+        case PixelFormat::astc_12x12_hdr:
+            return 128;
+        case PixelFormat::gbgr422:
+        case PixelFormat::bgrg422:
+        case PixelFormat::b10g10r10a10_xr:
+        case PixelFormat::b10g10r10a10_xr_srgb:
+        case PixelFormat::b10g10r10_xr:
+        case PixelFormat::b10g10r10_xr_srgb:
+            assert(0);
+            return 128;
+        case PixelFormat::x32_stencil8:
+        case PixelFormat::depth32_float32_stencil8_int8:
+            return 40;
+    }
 
-	return 0;
+    return 0;
 }
 */
 
@@ -464,6 +464,153 @@ std::string get_format_semantic(const BufferSemantic &a_semantic)
 constexpr bool has_semantic(uint64_t a_type, BufferSemantic a_semantic)
 {
 	return ((a_type & ror::enum_to_type_cast(a_semantic)) == ror::enum_to_type_cast(a_semantic));
+}
+
+rhi::PixelFormat string_to_pixel_format(std::string a_format)
+{
+	// clang-format off
+	if      (a_format == "a8_uint8_norm"                 ) return rhi::PixelFormat::a8_uint8_norm;
+	else if (a_format == "r8_uint8_norm"                 ) return rhi::PixelFormat::r8_uint8_norm;
+	else if (a_format == "r8_uint8_norm_srgb"            ) return rhi::PixelFormat::r8_uint8_norm_srgb;
+	else if (a_format == "r8_int8_norm"                  ) return rhi::PixelFormat::r8_int8_norm;
+	else if (a_format == "r8_uint8"                      ) return rhi::PixelFormat::r8_uint8;
+	else if (a_format == "r8_int8"                       ) return rhi::PixelFormat::r8_int8;
+	else if (a_format == "r16_uint16_norm"               ) return rhi::PixelFormat::r16_uint16_norm;
+	else if (a_format == "r16_int16_norm"                ) return rhi::PixelFormat::r16_int16_norm;
+	else if (a_format == "r16_uint16"                    ) return rhi::PixelFormat::r16_uint16;
+	else if (a_format == "r16_int16"                     ) return rhi::PixelFormat::r16_int16;
+	else if (a_format == "r16_float16"                   ) return rhi::PixelFormat::r16_float16;
+	else if (a_format == "r8g8_uint16_norm"              ) return rhi::PixelFormat::r8g8_uint16_norm;
+	else if (a_format == "r8g8_uint16_norm_srgb"         ) return rhi::PixelFormat::r8g8_uint16_norm_srgb;
+	else if (a_format == "r8g8_int16_norm"               ) return rhi::PixelFormat::r8g8_int16_norm;
+	else if (a_format == "r8g8_uint16"                   ) return rhi::PixelFormat::r8g8_uint16;
+	else if (a_format == "r8g8_int16"                    ) return rhi::PixelFormat::r8g8_int16;
+	else if (a_format == "b5g6r5_uint16_norm"            ) return rhi::PixelFormat::b5g6r5_uint16_norm;
+	else if (a_format == "a1b5g5r5_uint16_norm"          ) return rhi::PixelFormat::a1b5g5r5_uint16_norm;
+	else if (a_format == "a4b4g4r4_uint16_norm"          ) return rhi::PixelFormat::a4b4g4r4_uint16_norm;
+	else if (a_format == "b5g5r5a1_uint16_norm"          ) return rhi::PixelFormat::b5g5r5a1_uint16_norm;
+	else if (a_format == "r32_uint32"                    ) return rhi::PixelFormat::r32_uint32;
+	else if (a_format == "r32_int32"                     ) return rhi::PixelFormat::r32_int32;
+	else if (a_format == "r32_float32"                   ) return rhi::PixelFormat::r32_float32;
+	else if (a_format == "r16g16_uint32_norm"            ) return rhi::PixelFormat::r16g16_uint32_norm;
+	else if (a_format == "r16g16_int32_norm"             ) return rhi::PixelFormat::r16g16_int32_norm;
+	else if (a_format == "r16g16_uint32"                 ) return rhi::PixelFormat::r16g16_uint32;
+	else if (a_format == "r16g16_int32"                  ) return rhi::PixelFormat::r16g16_int32;
+	else if (a_format == "r16g16_float32"                ) return rhi::PixelFormat::r16g16_float32;
+	else if (a_format == "r8g8b8a8_uint32_norm"          ) return rhi::PixelFormat::r8g8b8a8_uint32_norm;
+	else if (a_format == "r8g8b8a8_uint32_norm_srgb"     ) return rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb;
+	else if (a_format == "r8g8b8a8_int32_norm"           ) return rhi::PixelFormat::r8g8b8a8_int32_norm;
+	else if (a_format == "r8g8b8a8_uint32"               ) return rhi::PixelFormat::r8g8b8a8_uint32;
+	else if (a_format == "r8g8b8a8_int32"                ) return rhi::PixelFormat::r8g8b8a8_int32;
+	else if (a_format == "b8g8r8a8_uint32_norm"          ) return rhi::PixelFormat::b8g8r8a8_uint32_norm;
+	else if (a_format == "b8g8r8a8_uint32_norm_srgb"     ) return rhi::PixelFormat::b8g8r8a8_uint32_norm_srgb;
+	else if (a_format == "r10g10b10a2_uint32_norm"       ) return rhi::PixelFormat::r10g10b10a2_uint32_norm;
+	else if (a_format == "r10g10b10a2_uint32"            ) return rhi::PixelFormat::r10g10b10a2_uint32;
+	else if (a_format == "r11g11b10_float32"             ) return rhi::PixelFormat::r11g11b10_float32;
+	else if (a_format == "r9g9b9e5_float32"              ) return rhi::PixelFormat::r9g9b9e5_float32;
+	else if (a_format == "b10g10r10a2_uint32_norm"       ) return rhi::PixelFormat::b10g10r10a2_uint32_norm;
+	else if (a_format == "r32g32_uint64"                 ) return rhi::PixelFormat::r32g32_uint64;
+	else if (a_format == "r32g32_int64"                  ) return rhi::PixelFormat::r32g32_int64;
+	else if (a_format == "r32g32_float64"                ) return rhi::PixelFormat::r32g32_float64;
+	else if (a_format == "r16g16b16a16_uint64_norm"      ) return rhi::PixelFormat::r16g16b16a16_uint64_norm;
+	else if (a_format == "r16g16b16a16_int64_norm"       ) return rhi::PixelFormat::r16g16b16a16_int64_norm;
+	else if (a_format == "r16g16b16a16_uint64"           ) return rhi::PixelFormat::r16g16b16a16_uint64;
+	else if (a_format == "r16g16b16a16_int64"            ) return rhi::PixelFormat::r16g16b16a16_int64;
+	else if (a_format == "r16g16b16a16_float64"          ) return rhi::PixelFormat::r16g16b16a16_float64;
+	else if (a_format == "r32g32b32a32_uint128"          ) return rhi::PixelFormat::r32g32b32a32_uint128;
+	else if (a_format == "r32g32b32a32_int128"           ) return rhi::PixelFormat::r32g32b32a32_int128;
+	else if (a_format == "r32g32b32a32_float128"         ) return rhi::PixelFormat::r32g32b32a32_float128;
+	else if (a_format == "bc1_rgba"                      ) return rhi::PixelFormat::bc1_rgba;
+	else if (a_format == "bc1_rgba_srgb"                 ) return rhi::PixelFormat::bc1_rgba_srgb;
+	else if (a_format == "bc2_rgba"                      ) return rhi::PixelFormat::bc2_rgba;
+	else if (a_format == "bc2_rgba_srgb"                 ) return rhi::PixelFormat::bc2_rgba_srgb;
+	else if (a_format == "bc3_rgba"                      ) return rhi::PixelFormat::bc3_rgba;
+	else if (a_format == "bc3_rgba_srgb"                 ) return rhi::PixelFormat::bc3_rgba_srgb;
+	else if (a_format == "bc4_r_unsigned_norm"           ) return rhi::PixelFormat::bc4_r_unsigned_norm;
+	else if (a_format == "bc4_r_norm"                    ) return rhi::PixelFormat::bc4_r_norm;
+	else if (a_format == "bc5_rg_unsigned_norm"          ) return rhi::PixelFormat::bc5_rg_unsigned_norm;
+	else if (a_format == "bc5_rg_norm"                   ) return rhi::PixelFormat::bc5_rg_norm;
+	else if (a_format == "bc6h_rgb_float"                ) return rhi::PixelFormat::bc6h_rgb_float;
+	else if (a_format == "bc6h_rgbu_float"               ) return rhi::PixelFormat::bc6h_rgbu_float;
+	else if (a_format == "bc7_rgba_unsigned_norm"        ) return rhi::PixelFormat::bc7_rgba_unsigned_norm;
+	else if (a_format == "bc7_rgba_unsinged_norm_srgb"   ) return rhi::PixelFormat::bc7_rgba_unsinged_norm_srgb;
+	else if (a_format == "pvrtc_rgb_2bpp"                ) return rhi::PixelFormat::pvrtc_rgb_2bpp;
+	else if (a_format == "pvrtc_rgb_2bpp_srgb"           ) return rhi::PixelFormat::pvrtc_rgb_2bpp_srgb;
+	else if (a_format == "pvrtc_rgb_4bpp"                ) return rhi::PixelFormat::pvrtc_rgb_4bpp;
+	else if (a_format == "pvrtc_rgb_4bpp_srgb"           ) return rhi::PixelFormat::pvrtc_rgb_4bpp_srgb;
+	else if (a_format == "pvrtc_rgba_2bpp"               ) return rhi::PixelFormat::pvrtc_rgba_2bpp;
+	else if (a_format == "pvrtc_rgba_2bpp_srgb"          ) return rhi::PixelFormat::pvrtc_rgba_2bpp_srgb;
+	else if (a_format == "pvrtc_rgba_4bpp"               ) return rhi::PixelFormat::pvrtc_rgba_4bpp;
+	else if (a_format == "pvrtc_rgba_4bpp_srgb"          ) return rhi::PixelFormat::pvrtc_rgba_4bpp_srgb;
+	else if (a_format == "eac_r11_unsigned_norm"         ) return rhi::PixelFormat::eac_r11_unsigned_norm;
+	else if (a_format == "eac_r11_norm"                  ) return rhi::PixelFormat::eac_r11_norm;
+	else if (a_format == "eac_r11g11_unsigned_norm"      ) return rhi::PixelFormat::eac_r11g11_unsigned_norm;
+	else if (a_format == "eac_r11g11_norm"               ) return rhi::PixelFormat::eac_r11g11_norm;
+	else if (a_format == "eac_r8g8b8a8"                  ) return rhi::PixelFormat::eac_r8g8b8a8;
+	else if (a_format == "eac_r8g8b8a8_srgb"             ) return rhi::PixelFormat::eac_r8g8b8a8_srgb;
+	else if (a_format == "etc2_r8g8b8"                   ) return rhi::PixelFormat::etc2_r8g8b8;
+	else if (a_format == "etc2_r8g8b8_srgb"              ) return rhi::PixelFormat::etc2_r8g8b8_srgb;
+	else if (a_format == "etc2_r8g8b8a1"                 ) return rhi::PixelFormat::etc2_r8g8b8a1;
+	else if (a_format == "etc2_r8g8b8a1_srgb"            ) return rhi::PixelFormat::etc2_r8g8b8a1_srgb;
+	else if (a_format == "astc_4x4_srgb"                 ) return rhi::PixelFormat::astc_4x4_srgb;
+	else if (a_format == "astc_5x4_srgb"                 ) return rhi::PixelFormat::astc_5x4_srgb;
+	else if (a_format == "astc_5x5_srgb"                 ) return rhi::PixelFormat::astc_5x5_srgb;
+	else if (a_format == "astc_6x5_srgb"                 ) return rhi::PixelFormat::astc_6x5_srgb;
+	else if (a_format == "astc_6x6_srgb"                 ) return rhi::PixelFormat::astc_6x6_srgb;
+	else if (a_format == "astc_8x5_srgb"                 ) return rhi::PixelFormat::astc_8x5_srgb;
+	else if (a_format == "astc_8x6_srgb"                 ) return rhi::PixelFormat::astc_8x6_srgb;
+	else if (a_format == "astc_8x8_srgb"                 ) return rhi::PixelFormat::astc_8x8_srgb;
+	else if (a_format == "astc_10x5_srgb"                ) return rhi::PixelFormat::astc_10x5_srgb;
+	else if (a_format == "astc_10x6_srgb"                ) return rhi::PixelFormat::astc_10x6_srgb;
+	else if (a_format == "astc_10x8_srgb"                ) return rhi::PixelFormat::astc_10x8_srgb;
+	else if (a_format == "astc_10x10_srgb"               ) return rhi::PixelFormat::astc_10x10_srgb;
+	else if (a_format == "astc_12x10_srgb"               ) return rhi::PixelFormat::astc_12x10_srgb;
+	else if (a_format == "astc_12x12_srgb"               ) return rhi::PixelFormat::astc_12x12_srgb;
+	else if (a_format == "astc_4x4_ldr"                  ) return rhi::PixelFormat::astc_4x4_ldr;
+	else if (a_format == "astc_5x4_ldr"                  ) return rhi::PixelFormat::astc_5x4_ldr;
+	else if (a_format == "astc_5x5_ldr"                  ) return rhi::PixelFormat::astc_5x5_ldr;
+	else if (a_format == "astc_6x5_ldr"                  ) return rhi::PixelFormat::astc_6x5_ldr;
+	else if (a_format == "astc_6x6_ldr"                  ) return rhi::PixelFormat::astc_6x6_ldr;
+	else if (a_format == "astc_8x5_ldr"                  ) return rhi::PixelFormat::astc_8x5_ldr;
+	else if (a_format == "astc_8x6_ldr"                  ) return rhi::PixelFormat::astc_8x6_ldr;
+	else if (a_format == "astc_8x8_ldr"                  ) return rhi::PixelFormat::astc_8x8_ldr;
+	else if (a_format == "astc_10x5_ldr"                 ) return rhi::PixelFormat::astc_10x5_ldr;
+	else if (a_format == "astc_10x6_ldr"                 ) return rhi::PixelFormat::astc_10x6_ldr;
+	else if (a_format == "astc_10x8_ldr"                 ) return rhi::PixelFormat::astc_10x8_ldr;
+	else if (a_format == "astc_10x10_ldr"                ) return rhi::PixelFormat::astc_10x10_ldr;
+	else if (a_format == "astc_12x10_ldr"                ) return rhi::PixelFormat::astc_12x10_ldr;
+	else if (a_format == "astc_12x12_ldr"                ) return rhi::PixelFormat::astc_12x12_ldr;
+	else if (a_format == "astc_4x4_hdr"                  ) return rhi::PixelFormat::astc_4x4_hdr;
+	else if (a_format == "astc_5x4_hdr"                  ) return rhi::PixelFormat::astc_5x4_hdr;
+	else if (a_format == "astc_5x5_hdr"                  ) return rhi::PixelFormat::astc_5x5_hdr;
+	else if (a_format == "astc_6x5_hdr"                  ) return rhi::PixelFormat::astc_6x5_hdr;
+	else if (a_format == "astc_6x6_hdr"                  ) return rhi::PixelFormat::astc_6x6_hdr;
+	else if (a_format == "astc_8x5_hdr"                  ) return rhi::PixelFormat::astc_8x5_hdr;
+	else if (a_format == "astc_8x6_hdr"                  ) return rhi::PixelFormat::astc_8x6_hdr;
+	else if (a_format == "astc_8x8_hdr"                  ) return rhi::PixelFormat::astc_8x8_hdr;
+	else if (a_format == "astc_10x5_hdr"                 ) return rhi::PixelFormat::astc_10x5_hdr;
+	else if (a_format == "astc_10x6_hdr"                 ) return rhi::PixelFormat::astc_10x6_hdr;
+	else if (a_format == "astc_10x8_hdr"                 ) return rhi::PixelFormat::astc_10x8_hdr;
+	else if (a_format == "astc_10x10_hdr"                ) return rhi::PixelFormat::astc_10x10_hdr;
+	else if (a_format == "astc_12x10_hdr"                ) return rhi::PixelFormat::astc_12x10_hdr;
+	else if (a_format == "astc_12x12_hdr"                ) return rhi::PixelFormat::astc_12x12_hdr;
+	else if (a_format == "gbgr422"                       ) return rhi::PixelFormat::gbgr422;
+	else if (a_format == "bgrg422"                       ) return rhi::PixelFormat::bgrg422;
+	else if (a_format == "depth16_uint16_norm"           ) return rhi::PixelFormat::depth16_uint16_norm;
+	else if (a_format == "depth32_float32"               ) return rhi::PixelFormat::depth32_float32;
+	else if (a_format == "stencil8_int8"                 ) return rhi::PixelFormat::stencil8_int8;
+	else if (a_format == "depth24_norm_stencil8_uint32"  ) return rhi::PixelFormat::depth24_norm_stencil8_uint32;
+	else if (a_format == "depth32_float32_stencil8_int8" ) return rhi::PixelFormat::depth32_float32_stencil8_int8;
+	else if (a_format == "x32_stencil8"                  ) return rhi::PixelFormat::x32_stencil8;
+	else if (a_format == "x24_stencil8"                  ) return rhi::PixelFormat::x24_stencil8;
+	else if (a_format == "b10g10r10a10_xr"               ) return rhi::PixelFormat::b10g10r10a10_xr;
+	else if (a_format == "b10g10r10a10_xr_srgb"          ) return rhi::PixelFormat::b10g10r10a10_xr_srgb;
+	else if (a_format == "b10g10r10_xr"                  ) return rhi::PixelFormat::b10g10r10_xr;
+	else if (a_format == "b10g10r10_xr_srgb"             ) return rhi::PixelFormat::b10g10r10_xr_srgb;
+	// clang-format on
+
+	assert(0);        // Not a recongnised format
+	return rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb;
 }
 
 // clang-format on

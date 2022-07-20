@@ -26,4 +26,4 @@
 #include "rhi/crtp_interfaces/rortexture.hpp"
 
 namespace rhi
-{}        // namespace ror
+{}        // namespace rhi

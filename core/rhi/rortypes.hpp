@@ -351,13 +351,26 @@ enum class PrimitiveTopology
 	lines_strip,
 	triangles,
 	triangles_strip,
-	triangles_fan,
+	triangles_fan
 };
 
 enum class TextureFilter
 {
 	nearest,
+	linear
+};
+
+enum class TextureTransfer
+{
 	linear,
+	srgb
+};
+
+enum class FormatType
+{
+	format_unorm,
+	format_norm,
+	format_float
 };
 
 enum class TextureAddressMode
@@ -392,6 +405,78 @@ enum class MaterialModel
 	// twosided,           // This is handled in the material itself
 	clearcoat,
 	subsurface
+};
+
+enum class ShadingMode
+{
+	forward,                   // Classic forward (GeomLight)
+	deferred,                  // Classic deferred (Geom + Light)
+	deferred_tiled,            // Tiles contains depth bounded light lists (Geom + LightCull + Light) uses Tile shaders for persistent tile light lists
+	forward_tiled,             // Tiles contains depth bounded light lists (Depth + LightCull + GeomLight) uses Tile shaders for persistent tile light lists
+	forward_clustered,         // Tiles contains clustered bounded light lists (ClusterLightCull + Light)
+	deferred_clustered,        // Tiles contains clustered bounded light lists (Geom + ClusterLightCull + Light)
+	visibility_buffer,         // Save visibility data, prim_id + Barycentric (Geom + GeomReconstruct,MeterialShade,Light)
+	gpu_driven                 // Uses argument buffers and indirect command buffers, for sparse ICB use indirect range buffers
+};
+
+enum class RenderpassType
+{
+	lut,
+	main,
+	depth,
+	shadow,
+	light_bin,
+	reflection,
+	refraction,
+	tone_mapping,
+	forward_light,
+	post_process,
+	deferred_gbuffer,
+	reflection_probes,
+	image_based_light,
+	ambient_occlusion,
+	deferred_clustered
+};
+
+enum class RenderpassTechnique
+{
+	fragment,
+	compute
+};
+
+enum class RenderpassState
+{
+	transient,
+	presistent
+};
+
+enum class ShaderType
+{
+	none,
+	mesh,
+	tile,
+	vertex,
+	compute,
+	fragment,
+	ray_miss,
+	ray_any_hit,
+	ray_closest_hit,
+	ray_intersection,
+	ray_generation
+};
+
+enum class LoadAction
+{
+	load,
+	clear,
+	dont_care
+};
+
+enum class StoreAction
+{
+	store,
+	discard,
+	dont_care
 };
 
 // enum class ShaderSemantic : uint32_t
@@ -871,9 +956,10 @@ constexpr uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 	return 0;
 }
 
-BufferSemantic get_format_semantic(const std::string &a_format);
-std::string    get_format_semantic(const BufferSemantic &a_semantic);
-constexpr bool has_semantic(uint64_t a_type, BufferSemantic a_semantic);
+BufferSemantic   get_format_semantic(const std::string &a_format);
+std::string      get_format_semantic(const BufferSemantic &a_semantic);
+constexpr bool   has_semantic(uint64_t a_type, BufferSemantic a_semantic);
+rhi::PixelFormat string_to_pixel_format(std::string a_format);
 
 const auto format_to_bytes = vertex_format_to_bytes;
 

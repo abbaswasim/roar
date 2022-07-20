@@ -78,5 +78,25 @@
 				"fragment" : 1
 			}
 		]
-	}
+	},
+	"environment_probes":[
+		{
+			"translation":[
+				0.0,
+				0.0,
+				0.0
+			],
+			"rotation":[
+				0.0,
+                0.0,
+                0.0
+            ],
+            "scale":[
+                1.0,
+                1.0,
+                1.0
+            ],
+            "path":"assets/some_texture_somewhere"
+        }
+    ]
 }

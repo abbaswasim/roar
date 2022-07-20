@@ -32,9 +32,9 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#if defined (ROR_OS_TYPE_ANY_APPLE)
+#if defined(ROR_OS_TYPE_ANY_APPLE)
 #	define GLFW_EXPOSE_NATIVE_COCOA
-#elif defined (ROR_OS_TYPE_LINUX)
+#elif defined(ROR_OS_TYPE_LINUX)
 #	define GLFW_EXPOSE_NATIVE_X11
 #endif
 

@@ -35,7 +35,7 @@ namespace rhi
 class ContextMetal : public ContextCrtp<ContextMetal>
 {
   public:
-	FORCE_INLINE               ContextMetal()                                = default;         //! Default constructor
+	FORCE_INLINE               ContextMetal()                                = default;        //! Default constructor
 	FORCE_INLINE               ContextMetal(const ContextMetal &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE               ContextMetal(ContextMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ContextMetal &operator=(const ContextMetal &a_other)        = default;        //! Copy assignment operator

@@ -33,6 +33,9 @@
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
 #include "math/rormatrix4.hpp"
+#include "math/rortransform.hpp"
+#include "rhi/rorprogram.hpp"
+#include "rhi/rorshader.hpp"
 #include <any>
 #include <filesystem>
 #include <limits>
@@ -45,27 +48,7 @@ class ROAR_ENGINE_ITEM RenderDevice
 
 class ROAR_ENGINE_ITEM ParticleSystem
 {};
-class ROAR_ENGINE_ITEM Shader
-{
-  public:
-	FORCE_INLINE explicit Shader(std::filesystem::path a_shader) :
-	    m_shader_path(a_shader)
-	{}
 
-  private:
-	std::filesystem::path m_shader_path{};
-};
-class ROAR_ENGINE_ITEM Program
-{
-  public:
-	FORCE_INLINE Program(int32_t a_vert_id, int32_t a_frag_id) :
-	    m_vertex_id(a_vert_id), m_fragment_id(a_frag_id)
-	{}
-
-	// private:
-	int32_t m_vertex_id{-1};
-	int32_t m_fragment_id{-1};
-};
 class ROAR_ENGINE_ITEM Light
 {
   public:
@@ -90,6 +73,30 @@ class ROAR_ENGINE_ITEM Light
 	float32_t m_intensity{1.0f};                                     //! Light intensity
 	float32_t m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
 	Vector3f  m_color{};                                             //! Light color
+};
+
+class ROAR_ENGINE_ITEM EnvironmentProbe final
+{
+  public:
+	FORCE_INLINE                   EnvironmentProbe()                                    = default;        //! Default constructor
+	FORCE_INLINE                   EnvironmentProbe(const EnvironmentProbe &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                   EnvironmentProbe(EnvironmentProbe &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE EnvironmentProbe &operator=(const EnvironmentProbe &a_other)            = default;        //! Copy assignment operator
+	FORCE_INLINE EnvironmentProbe &operator=(EnvironmentProbe &&a_other) noexcept        = default;        //! Move assignment operator
+	FORCE_INLINE ~EnvironmentProbe() noexcept                                            = default;        //! Destructor
+
+	// clang-format off
+	FORCE_INLINE void transform(Transformf a_transform)      { this->m_transform = a_transform; }
+	FORCE_INLINE void path(std::filesystem::path a_path)     { this->m_path = a_path;           }
+
+	FORCE_INLINE auto transform()                            { return this->m_transform;        }
+	FORCE_INLINE auto path()                                 { return this->m_path;             }
+	// clang-format on
+
+  protected:
+  private:
+	ror::Transformf       m_transform{};
+	std::filesystem::path m_path{};
 };
 
 class ROAR_ENGINE_ITEM SceneNode
@@ -171,6 +178,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void read_lights();
 	void read_cameras();
 	void read_programs();
+	void read_probes();
 
 	// All of these can be buffer allocated but for now leave them as is
 	std::vector<ror::Model>          m_models{};            //! All the assets loaded as 3D models
@@ -178,10 +186,11 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	std::vector<ror::SceneNode>      m_nodes{};             //! All the nodes in this scene
 	std::vector<ror::SceneNodeData>  m_nodes_data{};        //! All the nodes parallel data that needs to be maintained
 	std::vector<ror::ParticleSystem> m_particles{};         //! All the particle emittors
-	std::vector<ror::Shader>         m_shaders{};           //! All the global shaders
-	std::vector<ror::Program>        m_programs{};          //! All the global shader programs
+	std::vector<rhi::Shader>         m_shaders{};           //! All the global shaders
+	std::vector<rhi::Program>        m_programs{};          //! All the global shader programs
 	std::vector<ror::OrbitCamera>    m_cameras{};           //! All the cameras in the scene
 	std::vector<ror::Light>          m_lights{};            //! All the lights in the scene
+	std::vector<EnvironmentProbe>    m_probes{};            //! All the environment probes
 };
 
 }        // namespace ror

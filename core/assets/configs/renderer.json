@@ -1,328 +1,477 @@
 {
-	"shader_programs" :
-	{
-		"shaders" : [
-			"assets/shaders/shadow.vert",
-			"assets/shaders/shadow.frag",
-			"assets/shaders/depth.vert",
-			"assets/shaders/depth.frag",
-			"assets/shaders/blur.kern",
-			"assets/shaders/explode.geom"
+	"shaders":[
+		"default_pbr.vert",
+		"default_pbr.frag",
+		"shadow.vert",
+		"shadow.frag",
+		"depth.vert",
+		"depth.frag",
+		"blur.kern",
+		"explode.geom"
+	],
+	"programs":[
+		{
+			"vertex":0,
+			"fragment":1
+		},
+		{
+			"vertex":2,
+			"fragment":3
+		},
+		{
+			"compute":7
+		}
+	],
+    "render_targets":[
+        {
+            "name":"swapchain",
+            "format":"b8g8r8a8_uint32_norm_srgb"
+        },
+        {
+            "name":"renderable",
+            "format":"r8g8b8a8_uint32_norm"
+        },
+        {
+            "name":"Shadow",
+            "format":"depth32_float32"
+        },
+        {
+            "name":"Texture1",
+            "format":"r8_uint8",
+            "target":"2D"
+        },
+        {
+            "name":"Texture2",
+            "format":"r8_uint8"
+        },
+        {
+            "name":"Depth_Stencil",
+            "format":"depth24_norm_stencil8_uint32"
+        },
+        {
+            "name":"Texture3",
+            "format":"b5g6r5_uint16_norm",
+            "target":"CUBE"
+        },
+        {
+            "name":"Texture4",
+            "format":"r8g8b8a8_uint32"
+        },
+        {
+            "name":"Texture6",
+            "format":"r8g8b8a8_uint32_norm_srgb"
+        },
+        {
+            "name":"Texture8",
+            "format":"r8g8b8a8_uint32"
+        },
+        {
+            "name":"Texture9",
+            "format":"r8g8b8a8_int32"
+        }
+	],
+    "render_buffers":[
+        {
+            "name":"compute_buffer0",
+            "format":"r8_uint8"
+        },
+        {
+            "name":"compute_buffer1",
+            "format":"r32_float32"
+        }
+    ],
+    "frame_graph":{
+		"width":1024,
+		"height":768,
+		"current" : "forward",
+		"viewport":{
+			"x":0,
+			"y":0,
+			"w":1024,
+			"h":768
+		},
+		"forward":[
+			{
+				"name":"shadowing",
+				"technique":"fragment",
+				"type":"shadow",
+				"state":"transient",
+				"debug_output":true,
+				"outputs":[
+					{
+						"index":2,
+						"action":"store"
+					}
+				],
+				"width":1024,
+				"height":768,
+				"viewport":{
+					"x":0,
+					"y":0,
+					"w":1024,
+					"h":768
+				},
+				"program":0
+			},
+			{
+				"name":"forward_lighting",
+				"type":"forward_light",
+				"state":"transient",
+				"debug_output":true,
+				"depends_on":[
+					0
+				],
+				"inputs":[
+					{
+						"index":2,
+						"action":"load"
+					}
+				],
+				"outputs":[
+					{
+						"index":1,
+						"action":"store"
+					},
+					{
+						"index":2,
+						"action":"dont_care"
+					}
+				],
+				"program":1
+			},
+			{
+				"name":"tonemap",
+				"type":"post_process",
+				"state":"transient",
+				"depends_on":[
+					1
+				],
+				"debug_output":true,
+				"inputs":[
+					{
+						"index":1,
+						"action":"load"
+					}
+				],
+				"outputs":[
+					{
+						"index":0,
+						"action":"store"
+					},
+					{
+						"index":2,
+						"action":"dont_care"
+					}
+				],
+				"program_id":0
+			}
 		],
-		"programs" : [
+		"deferred":[
 			{
-				"vertex" : 0,
-				"fragment" : 1
+				"name":"LUT",
+				"technique":"compute",
+				"type":"lut",
+				"state":"persistent",
+				"debug_output":true,
+				"inputs":[
+					{
+						"index":0,
+						"action":"clear"
+					},
+					{
+						"index":1,
+						"action":"clear"
+					}
+				],
+				"outputs":[
+					{
+						"index":2,
+						"action":"store"
+					},
+					{
+						"index":3,
+						"action":"dont_care"
+					},
+					{
+						"index":4,
+						"action":"discard"
+					}
+				],
+				"program":0
 			},
 			{
-				"vertex" : 2,
-				"fragment" : 3
+				"name":"Compute",
+				"state":"transient",
+				"technique":"compute",
+				"type":"reflection",
+				"program_id":3,
+				"outputs":[
+					{
+						"index":0,
+						"action":"store"
+					}
+				]
 			},
 			{
-				"compute" : 4,
-				"geometry" : 5
+				"name":"Light-bin",
+				"state":"transient",
+				"technique":"compute",
+				"type":"light_bin",
+				"outputs":[
+					{
+						"index":0,
+						"action":"store"
+					}
+				],
+				"program_id":3
 			},
 			{
-				"compute" : 4
+				"name":"main",
+				"state":"transient",
+				"type":"main",
+				"outputs":[
+					{
+						"index":0,
+						"action":"store"
+					}
+				],
+				"program_id":3
+			},
+			{
+				"name":"Shadowing",
+				"type":"shadow",
+				"state":"transient",
+				"debug_output":true,
+				"depends_on":[
+					1
+				],
+				"inputs":[
+					{
+						"index":0,
+						"action":"clear"
+					},
+					{
+						"index":1,
+						"action":"clear"
+					}
+				],
+				"outputs":[
+					{
+						"index":2,
+						"action":"store"
+					},
+					{
+						"index":3,
+						"action":"dont_care"
+					}
+				],
+				"viewport":{
+					"x":0,
+					"y":0,
+					"w":1024,
+					"h":768
+				},
+				"program":2
+			},
+			{
+				"name":"Depth Pre-pass",
+				"type":"depth",
+				"state":"transient",
+				"debug_output":true,
+				"depends_on":[
+					1
+				],
+				"inputs":[
+					{
+						"index":0,
+						"action":"clear"
+					},
+					{
+						"index":1,
+						"action":"clear"
+					}
+				],
+				"outputs":[
+					{
+						"index":2,
+						"action":"store"
+					},
+					{
+						"index":3,
+						"action":"dont_care"
+					}
+				],
+				"viewport":{
+					"x":0,
+					"y":0,
+					"w":1024,
+					"h":768
+				},
+				"program":1
+			},
+			{
+				"name":"G-Buffer",
+				"type":"deferred_gbuffer",
+				"state":"transient",
+				"debug_output":true,
+				"depends_on":[
+					2
+				],
+				"inputs":[
+					{
+						"index":0,
+						"action":"clear"
+					},
+					{
+						"index":1,
+						"action":"clear"
+					}
+				],
+				"outputs":[
+					{
+						"index":2,
+						"action":"store"
+					},
+					{
+						"index":3,
+						"action":"dont_care"
+					}
+				],
+				"viewport":{
+					"x":0,
+					"y":0,
+					"w":1024,
+					"h":768
+				},
+				"program":1
+			},
+			{
+				"name":"G-Buffer-Resolve-Lighting",
+				"type":"post_process",
+				"state":"transient",
+				"debug_output":true,
+				"depends_on":[
+					1
+				],
+				"inputs":[
+					{
+						"index":0,
+						"action":"clear"
+					},
+					{
+						"index":1,
+						"action":"clear"
+					}
+				],
+				"outputs":[
+					{
+						"index":2,
+						"action":"store"
+					},
+					{
+						"index":3,
+						"action":"dont_care"
+					}
+				],
+				"viewport":{
+					"x":0,
+					"y":0,
+					"w":1024,
+					"h":768
+				},
+				"program":1
+			},
+			{
+				"name":"Render",
+				"width":1024,
+				"height":768,
+				"type":"main",
+				"state":"transient",
+				"depends_on":[
+					0,
+					1
+				],
+				"debug_output":true,
+				"inputs":[
+					{
+						"index":0,
+						"action":"clear"
+					},
+					{
+						"index":1,
+						"action":"clear"
+					}
+				],
+				"outputs":[
+					{
+						"index":2,
+						"action":"store"
+					},
+					{
+						"index":3,
+						"action":"dont_care"
+					}
+				],
+				"program_id":0
+			},
+			{
+				"name":"Bloom",
+				"type":"post_process",
+				"state":"transient",
+				"depends_on":[
+					0
+				],
+				"inputs":[
+					{
+						"index":0,
+						"action":"clear"
+					},
+					{
+						"index":1,
+						"action":"clear"
+					}
+				],
+				"outputs":[
+					{
+						"index":2,
+						"action":"store"
+					},
+					{
+						"index":3,
+						"action":"dont_care"
+					}
+				],
+				"program":1
+			},
+			{
+				"name":"Tonemap",
+				"type":"post_process",
+				"state":"transient",
+				"depends_on":[
+					0
+				],
+				"inputs":[
+					{
+						"index":0,
+						"action":"clear"
+					},
+					{
+						"index":1,
+						"action":"clear"
+					}
+				],
+				"outputs":[
+					{
+						"index":2,
+						"action":"store"
+					},
+					{
+						"index":3,
+						"action":"dont_care"
+					}
+				],
+				"program":1
 			}
 		]
-	},
-	"environment_probes" : [
-		{
-			"translation" : [0.0, 0.0, 0.0],
-			"rotation" : [0.0, 0.0, 0.0],
-			"scale" : [1.0, 1.0, 1.0],
-			"path" : "assets/some_textures_somewhere"
-		}
-	],
-	"render_targets" : [
-		{
-			"name" : "Texture1",
-			"width" : 200,
-			"height" : 100,
-			"depth" : 50,
-			"bpp" : 8,
-			"layout" :
-			{
-				"r" : 8
-			},
-			"type" : "2D",
-			"buffers_in_flight" : 1
-		},
-		{
-			"name" : "Texture2",
-			"bpp" : 8,
-			"layout" :
-			{
-				"r" : 8,
-			},
-			"buffers_in_flight" : 1
-		},
-		{
-			"name" : "Texture_Shadow",
-			"type" : "shadowing",
-			"bpp" : 24,
-			"layout" :
-			{
-				"d_s" : 24
-			}
-		},
-		{
-			"name" : "Texture3",
-			"width" : 40,
-			"height" : 30,
-			"depth" : 30,
-			"bpp" : 16,
-			"layout" :
-			{
-				"r" : 5,
-				"g" : 6,
-				"b" : 5,
-			},
-			"type" : "CUBE",
-			"buffers_in_flight" : 1
-		},
-		{
-			"name" : "Texture4",
-			"bpp" : 16,
-			"layout" :
-			{
-				"r" : 8,
-				"g" : 8,
-				"b" : 8,
-				"a" : 8,
-			},
-			"type" : "2D",
-			"buffers_in_flight" : 6
-		},
-		{
-			"name" : "Texture4",
-			"bpp" : 64,
-			"layout" :
-			{
-				"cx" : 5,
-				"cy" : 6,
-				"cz" : 5,
-				"nx" : 8,
-				"ny" : 8,
-				"nz" : 8,
-				"tx" : 8,
-				"ty" : 8,
-				"tz" : 8,
-				"u" : 16,
-				"v" : 16,
-				"d" : 16,
-			},
-			"type" : "2D"
-		}
-	],
-	"frame_graph" : [
-		{
-			"width" : 1024,
-			"height" : 768,
-			"viewport" :
-			{
-				"x" : 0,
-				"y" : 0,
-				"w" : 1024,
-				"h" : 768,
-			},
-			"camera" : 0,
-			"buffers_in_flight" : 3,
-			"persistent_passes" : [
-				{
-					"name" : "LUT",
-					"type" : "compute",
-					"debug_output" : true,
-					"depends_on" : [-1],
-					"input_textures" : [0, 1],
-					"output_textures" : [2, 3],
-					"input_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "discard",
-						"color" : "discard"
-					},
-					"output_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "discard",
-						"color" : "save"
-					},
-					"programe_id" : 0,
-				},
-			],
-			"transient_passes" : [
-				{
-					"name" : "Compute",
-					"type" : "compute",
-					"program_id" : 3,
-				},
-				{
-					"name" : "Light-bin",
-					"program_id" : 3,
-				},
-				{
-					"name" : "Shadowing",
-					"type" : "shadowing",
-					"debug_output" : true,
-					"depends_on" : [-1],
-					"input_textures" : [0, 1],
-					"output_textures" : [2, 3],
-					"input_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "load",
-						"color" : "discard"
-					},
-					"output_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "discard",
-						"color" : "save"
-					},
-					"viewport" :
-					{
-						"x" : 0,
-						"y" : 0,
-						"w" : 1024,
-						"h" : 768,
-					},
-					"camera" : 1,
-					"programe_id" : 2,
-				},
-				{
-					"name" : "Depth Pre-pass",
-					"type" : "depth_pre_pass",
-					"debug_output" : true,
-					"depends_on" : [-1],
-					"input_textures" : [0, 1],
-					"output_textures" : [2, 3],
-					"input_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "load",
-						"color" : "discard"
-					},
-					"output_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "discard",
-						"color" : "save"
-					},
-					"viewport" :
-					{
-						"x" : 0,
-						"y" : 0,
-						"w" : 1024,
-						"h" : 768,
-					},
-					"camera" : 0,
-					"programe_id" : 1,
-				},
-				{
-					"name" : "G-Buffer",
-					"type" : "g_buffer_pass",
-					"debug_output" : true,
-					"depends_on" : [-1],
-					"input_textures" : [0, 1],
-					"output_textures" : [2, 3],
-					"input_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "load",
-						"color" : "discard"
-					},
-					"output_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "discard",
-						"color" : "save"
-					},
-					"viewport" :
-					{
-						"x" : 0,
-						"y" : 0,
-						"w" : 1024,
-						"h" : 768,
-					},
-					"camera" : 0,
-					"programe_id" : 1,
-				},
-				{
-					"name" : "G-Buffer-Resolve-Lighting",
-					"type" : "fullscreen",
-					"debug_output" : true,
-					"depends_on" : [1],
-					"input_textures" : [1],
-					"output_textures" : [3],
-					"input_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "load",
-						"color" : "discard"
-					},
-					"output_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "discard",
-						"color" : "save"
-					},
-					"viewport" :
-					{
-						"x" : 0,
-						"y" : 0,
-						"w" : 1024,
-						"h" : 768,
-					},
-					"camera" : 0,
-					"programe_id" : 1,
-				},
-				{
-					"name" : "Render",
-					"type" : "main_render",
-					"depends_on" : [0, 1],
-					"input_textures" : [0, 1],
-					"output_textures" : [3],
-					"program_id" : 0,
-					"input_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "load",
-						"color" : "discard"
-					},
-					"output_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "discard",
-						"color" : "save"
-					}
-				},
-				{
-					"name" : "Bloom",
-					"type" : "fullscreen",
-					"depends_on" : [0],
-					"input_textures" : [0, 1],
-					"output_textures" : [2, 3],
-					"input_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "load",
-						"color" : "discard"
-					},
-					"output_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "discard",
-						"color" : "save"
-					},
-					"programe_id" : 1,
-				},
-				{
-					"name" : "Tonemap",
-					"type" : "fullscreen",
-					"depends_on" : [0],
-					"input_textures" : [0, 1],
-					"output_textures" : [2, 3],
-					"input_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "load",
-						"color" : "discard"
-					},
-					"output_attachments_state" : {
-						"stencil" : "discard",
-						"depth" : "discard",
-						"color" : "save"
-					},
-					"programe_id" : 1,
-				}
-			]
-		}
-	]
+	}
 }

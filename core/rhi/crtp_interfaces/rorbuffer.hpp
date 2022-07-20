@@ -26,12 +26,12 @@
 #pragma once
 
 #include "configuration/rorsettings_configuration.hpp"
-#include "settings/rorsettings.hpp"
 #include "foundation/rorcrtp.hpp"
 #include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rortypes.hpp"
 #include "roar_export_import.hpp"
+#include "settings/rorsettings.hpp"
 #include <cassert>
 #include <memory>
 #include <mutex>

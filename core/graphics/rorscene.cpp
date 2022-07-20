@@ -31,6 +31,7 @@
 #include "graphics/rornode.hpp"
 #include "graphics/rorscene.hpp"
 #include "math/rorquaternion.hpp"
+#include "math/rortransform.hpp"
 #include "math/rorvector3.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
@@ -338,12 +339,48 @@ void Scene::read_programs()
 	}
 }
 
+void Scene::read_probes()
+{
+	if (this->m_json_file.contains("environment_probes"))
+	{
+		auto probes = this->m_json_file["environment_probes"];
+		for (auto &probe : probes)
+		{
+			EnvironmentProbe prob;
+			ror::Transformf xform;
+			if (probe.contains("translation"))
+			{
+				std::array<float32_t, 3> t = probe["translation"];
+				xform.translation({t[0], t[1], t[2]});
+			}
+			if (probe.contains("rotation"))
+			{
+				std::array<float32_t, 4> r = probe["rotation"];
+				xform.rotation({r[0], r[1], r[2], r[3]});
+			}
+			if (probe.contains("scale"))
+			{
+				std::array<float32_t, 3> s = probe["scale"];
+				xform.scale({s[0], s[1], s[2]});
+			}
+
+			prob.transform(xform);
+
+			if (probe.contains("path"))
+				prob.path(probe["path"]);
+
+			this->m_probes.emplace_back(std::move(prob));
+		}
+	}
+}
+
 void Scene::load_specific()
 {
 	this->read_nodes();
 	this->read_cameras();
 	this->read_lights();
 	this->read_programs();
+	this->read_probes();
 }
 
 void Scene::unload()

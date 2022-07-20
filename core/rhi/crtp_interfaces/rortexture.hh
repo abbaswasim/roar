@@ -39,43 +39,43 @@ namespace rhi
 // }
 
 template <class _type>
-FORCE_INLINE uint32_t TextureImageCrtp<_type>::width() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::width() const noexcept
 {
 	return this->m_mips[0].m_width;
 }
 
 template <class _type>
-FORCE_INLINE uint32_t TextureImageCrtp<_type>::height() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::height() const noexcept
 {
 	return this->m_mips[0].m_height;
 }
 
 template <class _type>
-FORCE_INLINE uint32_t TextureImageCrtp<_type>::depth() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::depth() const noexcept
 {
 	return this->m_mips[0].m_depth;
 }
 
 template <class _type>
-FORCE_INLINE uint32_t TextureImageCrtp<_type>::bytes_per_pixel() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::bytes_per_pixel() const noexcept
 {
 	return this->m_bytes_per_pixel;
 }
 
 template <class _type>
-FORCE_INLINE rhi::PixelFormat TextureImageCrtp<_type>::format() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::format() const noexcept
 {
 	return this->m_format;
 }
 
 template <class _type>
-FORCE_INLINE uint32_t TextureImageCrtp<_type>::levels() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::levels() const noexcept
 {
 	return ror::static_cast_safe<uint32_t>(this->m_mips.size());
 }
 
 template <class _type>
-FORCE_INLINE TextureTarget TextureImageCrtp<_type>::target() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::target() const noexcept
 {
 	return this->m_target;
 }
@@ -142,25 +142,37 @@ FORCE_INLINE void TextureImageCrtp<_type>::ready(bool a_ready) noexcept
 }
 
 template <class _type>
-FORCE_INLINE bool TextureImageCrtp<_type>::ready() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::ready() const noexcept
 {
 	return this->m_ready;
 }
 
 template <class _type>
-FORCE_INLINE uint8_t *TextureImageCrtp<_type>::data() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::name() const noexcept
+{
+	return this->m_name;
+}
+
+template <class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::name(std::string a_name) noexcept
+{
+	this->m_name = a_name;
+}
+
+template <class _type>
+FORCE_INLINE auto *TextureImageCrtp<_type>::data() const noexcept
 {
 	return this->m_data.get();
 }
 
 template <class _type>
-FORCE_INLINE std::vector<typename TextureImageCrtp<_type>::Mipmap> &TextureImageCrtp<_type>::mips() noexcept
+FORCE_INLINE auto &TextureImageCrtp<_type>::mips() noexcept
 {
 	return this->m_mips;
 }
 
 template <class _type>
-FORCE_INLINE uint64_t TextureImageCrtp<_type>::size() const noexcept
+FORCE_INLINE auto TextureImageCrtp<_type>::size() const noexcept
 {
 	return this->m_size;
 }

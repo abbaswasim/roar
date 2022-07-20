@@ -29,6 +29,7 @@
 #include "foundation/rorcrtp.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "graphics/rorscene.hpp"
+#include "renderer/rorrenderer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rordevice.hpp"
 #include <any>
@@ -124,6 +125,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	rhi::BuffersPack                    *m_buffer_pack{nullptr};           //! A non-owning alias to the global buffers pack
 	std::vector<std::shared_ptr<Device>> m_devices{};                      //! List of devices in the system
 	std::shared_ptr<Device>              m_current_device{nullptr};        //! Current device we are using, only one device possible at a time
+	ror::Renderer                        m_renderer{};                       //! Renderer that will be used by the context to render stuff
 };
 
 }        // namespace rhi

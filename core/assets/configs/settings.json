@@ -17,6 +17,7 @@
 	"resizable" : false,
 	"ambient_light_color" : [0.2, 0.2, 0.2, 1.0],
 	"working_dir" : "./working_dir",
+	"renderer_config" : "renderer.json",
 	"fog" :
 	{
 		"enabled" : true,
@@ -31,17 +32,9 @@
 		"width" : 1024,
 		"height" : 768,
 		"bpp" : 72,
-		"layout" :
-		{
-			"r" : 8,
-			"g" : 8,
-			"b" : 8,
-			"a" : 8,
-			"d" : 24,
-			"s" : 8,
-			"srgb" : true,
-			"unorm" : true
-		}
+		"color_format" : "b8g8r8a8_uint32_norm_srgb",
+		"depth_stencil_format" : "depth32_float32",
+		"buffer_count" : 3
 	},
 	"viewport" :
 	{

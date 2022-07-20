@@ -157,6 +157,27 @@
    "particle_emitters":[
 	  "particles/fire_particles.ptl"
    ],
+   "environment_probes":[
+	   {
+		   "translation":[
+			   0.0,
+			   0.0,
+			   0.0
+		   ],
+		   "rotation":[
+			   0.0,
+			   0.0,
+			   0.0,
+			   0.0
+		   ],
+		   "scale":[
+			   1.0,
+			   1.0,
+			   1.0
+		   ],
+		   "path":"assets/some_texture_somewhere"
+	   }
+   ],
    "shaders":[
 	   "default_pbr.vert",
 	   "default_pbr.frag"

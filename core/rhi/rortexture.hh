@@ -130,9 +130,9 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 	for (uint32_t i = 0; i < dec.get_levels(); i++)
 	{
 		ror::log_info("{}. Offset: {}, Length: {}, Uncompressed Length: {}",
-					  i, static_cast<long long unsigned int>(dec.get_level_index()[i].m_byte_offset),
-					  static_cast<long long unsigned int>(dec.get_level_index()[i].m_byte_length),
-					  static_cast<long long unsigned int>(dec.get_level_index()[i].m_uncompressed_byte_length));
+		              i, static_cast<long long unsigned int>(dec.get_level_index()[i].m_byte_offset),
+		              static_cast<long long unsigned int>(dec.get_level_index()[i].m_byte_length),
+		              static_cast<long long unsigned int>(dec.get_level_index()[i].m_uncompressed_byte_length));
 	}
 
 	// TODO: This needs abstracting out
@@ -220,15 +220,15 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 					if (ror::settings().m_visualise_mipmaps)
 					{
 						const std::vector<ror::Vector3f> colors{{1.0f, 0.0f, 0.0f},
-																{0.0f, 1.0f, 0.0f},
-																{0.0f, 0.0f, 1.0f},
-																{1.0f, 1.0f, 0.0f},
-																{1.0f, 0.0f, 1.0f},
-																{0.0f, 1.0f, 1.0f},
-																{0.0f, 0.0f, 0.0f},
-																{1.0f, 1.0f, 1.0f},
-																{1.0f, 0.0f, 0.0f},
-																{0.0f, 0.0f, 1.0f}};
+						                                        {0.0f, 1.0f, 0.0f},
+						                                        {0.0f, 0.0f, 1.0f},
+						                                        {1.0f, 1.0f, 0.0f},
+						                                        {1.0f, 0.0f, 1.0f},
+						                                        {0.0f, 1.0f, 1.0f},
+						                                        {0.0f, 0.0f, 0.0f},
+						                                        {1.0f, 1.0f, 1.0f},
+						                                        {1.0f, 0.0f, 0.0f},
+						                                        {0.0f, 0.0f, 1.0f}};
 
 						for (size_t i = 0; i < decode_size; i += 4)        // FIXME: Only works for RGBA
 						{

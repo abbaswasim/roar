@@ -151,7 +151,7 @@ bool CommandLineParser::execute()
 	return true;
 }
 
-	void CommandLineParser::print_help(std::string a_error_string, bool a_error)
+void CommandLineParser::print_help(std::string a_error_string, bool a_error)
 {
 	if (a_error)
 		log_error("Command line parsing returned with error \"{}\"\n", a_error_string.c_str());
