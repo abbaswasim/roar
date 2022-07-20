@@ -53,6 +53,8 @@ rhi::TextureTarget string_to_texture_target(std::string a_target)
 		return rhi::TextureTarget::texture_cube;
 	else
 		assert(0 && "Implement other texture targets support");
+
+	return rhi::TextureTarget::texture_2D;
 }
 
 void Renderer::load_programs()
