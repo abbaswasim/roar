@@ -77,20 +77,20 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	/**
 	 * Returns offset of the location available
 	 */
-	ptrdiff_t                    offset(ptrdiff_t a_bytes);                                               //! Returns offset of the location available
-	void                         upload(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset);        //! Also returns the offset where the data is uploaded
-	void                         upload(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset);          //! Also returns the offset where the data is uploaded
+	ptrdiff_t                    offset(ptrdiff_t a_bytes);                                             //! Returns offset of the location available
+	void                         copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset);        //! Also returns the offset where the data is copied
+	void                         copy(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset);          //! Also returns the offset where the data is copied
 	uint32_t                     handle() noexcept;
 	void                         map() noexcept;
 	void                         unmap() noexcept;
 	void                         size(ptrdiff_t a_size) noexcept;
 	ptrdiff_t                    size() const noexcept;
+	ptrdiff_t                    filled_size() const noexcept;
 	void                         interleaved(bool a_interleaved) noexcept;
 	bool                         interleaved() const noexcept;
 	void                         emplace_semantic(BufferSemanticPair &&a_pair);
 	BufferSemanticPair           semantic(size_t a_index) const noexcept;
 	const BufferSemanticPairVec &semantics() const noexcept;
-	void                         gpu_upload() noexcept;        //! Uploads the buffer to the GPU
 	const std::vector<uint8_t>  &data() const;                 //! Pointer to the data store, shouldn't be manipulated directly
 
 	template <typename U = _type, std::enable_if_t<std::is_same<U, Static>::value, bool> = true>
@@ -100,9 +100,6 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	BufferCrtp();        //! Default constructor
   private:
 	FORCE_INLINE BufferCrtp(const BufferCrtp &a_other) = delete;        //! Copy constructor
-
-	void _upload();                                                      // TODO: To be implemented in renderer or via CRTP
-	void _partial_upload(ptrdiff_t a_offset, ptrdiff_t a_length);        // TODO: To be implemented in renderer or via CRTP
 
 	template <typename U = _type, std::enable_if_t<std::is_same<U, Dynamic>::value, bool> = true>
 	ptrdiff_t _offset(ptrdiff_t a_bytes);        //! Returns offset of the location available

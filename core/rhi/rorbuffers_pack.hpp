@@ -27,6 +27,7 @@
 
 #include "foundation/rortypes.hpp"
 #include "profiling/rorlog.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_format.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
@@ -94,40 +95,40 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	 * Returns a pair with buffer index and the offsets in that buffer where the data is copied
 	 */
 	// This will be contentious amongst threads, Since Buffer is thread safe this works asynchronously
-	FORCE_INLINE void upload(BufferSemantic a_semantic, const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
+	FORCE_INLINE void copy(BufferSemantic a_semantic, const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
-		this->m_buffers[index].upload(a_data, a_offset);
+		this->m_buffers[index].copy(a_data, a_offset);
 	}
 
-	FORCE_INLINE void upload(size_t a_index, const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
+	FORCE_INLINE void copy(size_t a_index, const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
 	{
-		this->m_buffers[a_index].upload(a_data, a_offset);
+		this->m_buffers[a_index].copy(a_data, a_offset);
 	}
 
 	/**
 	 * Uploads all the data in all the buffers to the GPU
 	 */
-	FORCE_INLINE void upload()
+	FORCE_INLINE void upload(rhi::Device &a_device)
 	{
 		for (auto &buffer : this->m_buffers)
-			buffer.gpu_upload();
+			buffer.upload(a_device);
 	}
 
 	/**
 	 * Uploads the buffer for a specific semantic to the GPU
 	 */
-	FORCE_INLINE void upload(rhi::BufferSemantic a_semantic)
+	FORCE_INLINE void upload(rhi::Device &a_device, rhi::BufferSemantic a_semantic)
 	{
-		this->buffer(a_semantic).gpu_upload();
+		this->buffer(a_semantic).upload(a_device);
 	}
 
 	/**
 	 * Uploads the buffer for a specific index to the GPU
 	 */
-	FORCE_INLINE void upload(size_t a_index)
+	FORCE_INLINE void upload(rhi::Device &a_device, size_t a_index)
 	{
-		this->m_buffers[a_index].gpu_upload();
+		this->m_buffers[a_index].upload(a_device);
 	}
 
 	/**

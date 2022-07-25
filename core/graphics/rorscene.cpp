@@ -35,6 +35,7 @@
 #include "math/rorvector3.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorhandles.hpp"
 #include <array>
 #include <ostream>
@@ -109,6 +110,10 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device& a_device)
 			if (!jh.data())
 				ror::log_error("Can't load models specified in the scene.");
 	}
+
+	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
+	auto& bpack = rhi::get_buffers_pack();
+	bpack.upload(a_device);
 }
 
 void Scene::read_nodes()

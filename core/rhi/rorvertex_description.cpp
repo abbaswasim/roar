@@ -109,7 +109,7 @@ void VertexDescriptor::upload(const std::unordered_map<rhi::BufferSemantic, std:
 
 		if (stride == format_bytes && buffer_stride == format_bytes)        // Case 1: both source and destination strides are equal to format_bytes, everything is packed
 		{
-			buffer.upload(buffer_pointer, buffer_size, attrib_offset);        // Do a bulk upload
+			buffer.copy(buffer_pointer, buffer_size, attrib_offset);        // Do a bulk upload
 		}
 		else
 		{
@@ -119,7 +119,7 @@ void VertexDescriptor::upload(const std::unordered_map<rhi::BufferSemantic, std:
 			// Thats why lets do element by element upload
 			auto element_count = buffer_size / format_bytes;
 			for (size_t i = 0; i < element_count; ++i)
-				buffer.upload(buffer_pointer + i * buffer_stride, format_bytes, attrib_offset + stride * static_cast<ptrdiff_t>(i));
+				buffer.copy(buffer_pointer + i * buffer_stride, format_bytes, attrib_offset + stride * static_cast<ptrdiff_t>(i));
 		}
 	}
 }

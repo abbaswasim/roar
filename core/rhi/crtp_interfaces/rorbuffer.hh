@@ -98,7 +98,7 @@ uint8_t *BufferCrtp<_type, _derived>::request(ptrdiff_t a_bytes)
 
 // Assumes data space is already allocated in this buffer so do request()/offset() and then multiple uploads() or request_upload() for bulk allocation and upload
 template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::upload(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset)
+void BufferCrtp<_type, _derived>::copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset)
 {
 	assert(a_size <= std::numeric_limits<size_t>::max() && "Buffer data too big for diff calculations");
 
@@ -106,7 +106,7 @@ void BufferCrtp<_type, _derived>::upload(const uint8_t *a_data, size_t a_size, p
 }
 
 template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::upload(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
+void BufferCrtp<_type, _derived>::copy(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
 {
 	// Do the allocation
 	assert(a_data.size() <= std::numeric_limits<size_t>::max() && "Buffer data too big for diff calculations");
@@ -146,6 +146,12 @@ ptrdiff_t BufferCrtp<_type, _derived>::size() const noexcept
 }
 
 template <typename _type, typename _derived>
+ptrdiff_t BufferCrtp<_type, _derived>::filled_size() const noexcept
+{
+	return this->m_filled_size;
+}
+
+template <typename _type, typename _derived>
 void BufferCrtp<_type, _derived>::interleaved(bool a_interleaved) noexcept
 {
 	this->m_interleaved_local = a_interleaved;
@@ -175,27 +181,6 @@ template <typename _type, typename _derived>
 const std::vector<std::pair<rhi::BufferSemantic, uint64_t>> &BufferCrtp<_type, _derived>::semantics() const noexcept
 {
 	return this->m_semantics;
-}
-
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::_upload()        // TODO: To be implemented in renderer or via CRTP
-{
-	ror::log_critical("Implement me _upload");
-}
-
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::_partial_upload(ptrdiff_t a_offset, ptrdiff_t a_length)        // TODO: To be implemented in renderer or via CRTP
-{
-	(void) a_offset;
-	(void) a_length;
-
-	ror::log_critical("Implement me _partial_upload");
-}
-
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::gpu_upload() noexcept
-{
-	this->_upload();
 }
 
 template <typename _type, typename _derived>

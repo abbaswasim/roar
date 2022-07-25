@@ -23,7 +23,9 @@
 //
 // Version: 1.0.0
 
+#include "profiling/rorlog.hpp"
 #include "rhi/metal/rorbuffer.hpp"
+#include "rhi/metal/rordevice.hpp"
 
 namespace rhi
 {
@@ -31,4 +33,28 @@ template <typename _type>
 void BufferMetal<_type>::_temp_virtual()
 {}
 
+template <typename _type>
+void BufferMetal<_type>::upload(rhi::Device &a_device)
+{
+	/*
+	For buffers in the device address space, align the offset to the data type consumed by the vertex function (which is always less than or equal to 16 bytes).
+	For buffers in the constant address space, align the offset to 256 bytes in macOS. In iOS, align the offset to the maximum of either the data type consumed by the vertex function, or 4 bytes. A 16-byte alignment is safe in iOS if you don't need to consider the data type.
+	 */
+
+	ror::log_critical("Uploading buffer to metal of size {}", this->filled_size());
+
+	this->partial_upload(a_device, 0, static_cast<size_t>(this->filled_size()));
+}
+
+template <typename _type>
+void BufferMetal<_type>::partial_upload(rhi::Device &a_device, size_t a_offset, size_t a_length)
+{
+	MTL::Device *device = a_device.platform_device();
+	this->m_buffer      = device->newBuffer(a_length, MTL::ResourceStorageModeManaged);        // TODO: Add other modes
+
+	memcpy(this->m_buffer->contents(), this->data().data() + a_offset, a_length);
+
+	// Only need those for ResourceStorageModeManaged resources
+	this->m_buffer->didModifyRange(NS::Range::Make(0, this->m_buffer->length()));
+}
 }        // namespace rhi

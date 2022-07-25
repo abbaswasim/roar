@@ -27,9 +27,13 @@
 
 #include "rhi/crtp_interfaces/rorbuffer.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include <Metal/MTLBuffer.hpp>
 
 namespace rhi
 {
+class DeviceMetal;
+using Device = DeviceMetal;
+
 template <typename _type = Static>
 class ROAR_ENGINE_ITEM BufferMetal : public BufferCrtp<BufferMetal<_type>, _type>
 {
@@ -41,7 +45,14 @@ class ROAR_ENGINE_ITEM BufferMetal : public BufferCrtp<BufferMetal<_type>, _type
 	FORCE_INLINE BufferMetal &operator=(BufferMetal &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~BufferMetal() noexcept override                 = default;        //! Destructor
 
+	void upload(rhi::Device& a_device);
+	void partial_upload(rhi::Device& a_device, size_t a_offset, size_t a_length); 
+
+  protected:
+  private:
 	declare_translation_unit_vtable();
+
+	MTL::Buffer *m_buffer{nullptr};        //! API handle to buffer
 };
 
 // Template deduction guide CATD for Buffer static
