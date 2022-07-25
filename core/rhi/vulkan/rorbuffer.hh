@@ -31,4 +31,18 @@ template <typename _type>
 void BufferVulkan<_type>::_temp_virtual()
 {}
 
+template <typename _type>
+void BufferVulkan<_type>::upload(rhi::Device &a_device)
+{
+	(void) a_device;
+	this->partial_upload(a_device, 0, 0);
+}
+
+template <typename _type>
+void BufferVulkan<_type>::partial_upload(rhi::Device &a_device, size_t a_offset, size_t a_length)
+{
+	(void) a_device;
+	(void) a_offset;
+	(void) a_length;
+}
 }        // namespace rhi

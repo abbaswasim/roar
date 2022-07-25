@@ -30,6 +30,10 @@
 
 namespace rhi
 {
+
+class DeviceVulkan;
+using Device = DeviceVulkan;
+
 template <typename _type = Static>
 class ROAR_ENGINE_ITEM BufferVulkan : public BufferCrtp<BufferVulkan<_type>, _type>
 {
@@ -41,6 +45,11 @@ class ROAR_ENGINE_ITEM BufferVulkan : public BufferCrtp<BufferVulkan<_type>, _ty
 	FORCE_INLINE BufferVulkan &operator=(BufferVulkan &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~BufferVulkan() noexcept override                   = default;        //! Destructor
 
+	void upload(rhi::Device& a_device);
+	void partial_upload(rhi::Device& a_device, size_t a_offset, size_t a_length); 
+
+  protected:
+  private:
 	declare_translation_unit_vtable();
 };
 
