@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
@@ -47,6 +48,11 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 	FORCE_INLINE explicit ProgramVulkan(int32_t a_compute_id) :
 	    ProgramCrtp(a_compute_id)
 	{}
+
+	FORCE_INLINE void upload()
+	{
+		ror::log_critical("Uploading vulkan program");
+	}
 
   protected:
 	FORCE_INLINE ProgramVulkan() = default;        //! Default constructor

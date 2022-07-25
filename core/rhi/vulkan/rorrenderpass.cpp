@@ -33,4 +33,9 @@ namespace rhi
 define_translation_unit_vtable(RenderpassVulkan)
 {}
 
+void RenderpassVulkan::upload(rhi::Device &a_device)
+{
+	(void) a_device;
+}
+
 }        // namespace rhi

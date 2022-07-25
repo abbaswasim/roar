@@ -46,8 +46,8 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 	    ShaderCrtp(a_shader)
 	{}
 
-	void upload(){
-
+	void upload()
+	{
 		ror::log_critical("Uploading metal shader");
 	}
 

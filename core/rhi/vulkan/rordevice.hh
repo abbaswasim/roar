@@ -39,7 +39,4 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_window)
 	(void) a_window;
 }
 
-define_translation_unit_vtable(DeviceVulkan)
-{}
-
 }        // namespace rhi

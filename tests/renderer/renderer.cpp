@@ -3,11 +3,9 @@
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
-#include "rhi/crtp_interfaces/rorrenderpass.hpp"
-#include "rhi/crtp_interfaces/rortexture.hpp"
-#include "rhi/metal/rorrenderpass.hpp"
+#include "rhi/rortexture.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rortypes.hpp"
-#include <_types/_uint32_t.h>
 #include <gtest/gtest-typed-test.h>
 #include <gtest/gtest.h>
 #include <vector>

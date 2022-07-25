@@ -28,6 +28,7 @@
 
 #include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
+#include "rhi/vulkan/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
 namespace rhi
@@ -41,6 +42,8 @@ class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 	FORCE_INLINE RenderpassVulkan &operator=(const RenderpassVulkan &a_other)            = default;        //! Copy assignment operator
 	FORCE_INLINE RenderpassVulkan &operator=(RenderpassVulkan &&a_other) noexcept        = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~RenderpassVulkan() noexcept override                           = default;        //! Destructor
+
+	void upload(rhi::Device &a_device);
 
   protected:
   private:
