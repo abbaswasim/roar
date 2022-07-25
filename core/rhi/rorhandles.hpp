@@ -35,6 +35,9 @@ namespace rhi
  * there is a big chance of using a texture handle for a material handle etc
  * RoarHandle defines a public m_handle member variable which can be used directly
  */
+#define srfy(x) #x
+
+#if defined(ROR_BUILD_TYPE_DEBUG)
 template <class _handle, class _type>
 class ROAR_ENGINE_ITEM RoarHandle final
 {
@@ -80,15 +83,16 @@ class ROAR_ENGINE_ITEM RoarHandle final
 	_type m_handle;
 };
 
-// clang-format off
-#define srfy(x) #x
-
-#define create_handle(handle, _type)                                                                \
-	struct type_##handle {};                                                                        \
-	using handle = rhi::RoarHandle<type_##handle, _type>;											\
-	static_assert(std::is_trivially_copyable_v<handle>,  srfy(handle is not trivially copyable));   \
-	static_assert(std::is_standard_layout_v<handle>,     srfy(handle is not standard layout))
-// clang-format on
+#	define create_handle(handle, _type)                                                             \
+		struct type_##handle                                                                         \
+		{};                                                                                          \
+		using handle = rhi::RoarHandle<type_##handle, _type>;                                        \
+		static_assert(std::is_trivially_copyable_v<handle>, srfy(handle is not trivially copyable)); \
+		static_assert(std::is_standard_layout_v<handle>, srfy(handle is not standard layout))
+#else
+#	define create_handle(handle, _type) \
+		using handle = _type;
+#endif
 
 create_handle(TextureImageHandle, int32_t);
 create_handle(TextureSamplerHandle, uint32_t);
