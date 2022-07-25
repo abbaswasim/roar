@@ -27,6 +27,7 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorshader.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
@@ -44,6 +45,11 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 	FORCE_INLINE explicit ShaderMetal(std::filesystem::path a_shader) :
 	    ShaderCrtp(a_shader)
 	{}
+
+	void upload(){
+
+		ror::log_critical("Uploading metal shader");
+	}
 
   protected:
 	FORCE_INLINE ShaderMetal() = default;        //! Default constructor

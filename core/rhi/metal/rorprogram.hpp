@@ -27,6 +27,7 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
@@ -48,6 +49,11 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	FORCE_INLINE explicit ProgramMetal(int32_t a_compute_id) :
 	    ProgramCrtp(a_compute_id)
 	{}
+
+	FORCE_INLINE void upload()
+	{
+		ror::log_critical("Uploading metal program");
+	}
 
   protected:
 	FORCE_INLINE ProgramMetal() = default;        //! Default constructor

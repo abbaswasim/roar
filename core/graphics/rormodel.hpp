@@ -60,7 +60,7 @@ class ROAR_ENGINE_ITEM Model
 	// Populates data from a gltf file loaded as a resource.
 	// If this or any other load functions are called before, data needs to be appended
 	void load_from_gltf_file(std::filesystem::path a_filename);
-	void upload(std::any a_device);
+	void upload(rhi::Device& a_device);
 
 	// clang-format off
 	FORCE_INLINE const auto &images()           const    {  return this->m_images;          }

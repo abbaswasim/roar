@@ -47,6 +47,22 @@ class ProgramCrtp : public ror::Crtp<_type, ProgramCrtp>
 	    m_compute_id(a_compute_id)
 	{}
 
+	// clang-format off
+	FORCE_INLINE constexpr void vertex_id(int32_t        a_id)   { this->m_vertex_id = a_id;    }
+	FORCE_INLINE constexpr void fragment_id(int32_t      a_id)   { this->m_fragment_id = a_id;  }
+	FORCE_INLINE constexpr void compute_id(int32_t       a_id)   { this->m_compute_id = a_id;   }
+	FORCE_INLINE constexpr void tile_id(int32_t          a_id)   { this->m_tile_id = a_id;      }
+	FORCE_INLINE constexpr void mesh_id(int32_t          a_id)   { this->m_mesh_id = a_id;      }
+	FORCE_INLINE constexpr void upload()                         { this->underlying().upload(); }
+
+	FORCE_INLINE constexpr auto vertex_id()     const noexcept { return this->m_vertex_id;   }
+	FORCE_INLINE constexpr auto fragment_id()   const noexcept { return this->m_fragment_id; }
+	FORCE_INLINE constexpr auto compute_id()    const noexcept { return this->m_compute_id;  }
+	FORCE_INLINE constexpr auto tile_id()       const noexcept { return this->m_tile_id;     }
+	FORCE_INLINE constexpr auto mesh_id()       const noexcept { return this->m_mesh_id;     }
+
+	// clang-format on
+
   protected:
 	FORCE_INLINE ProgramCrtp() = default;        //! Default constructor
   private:

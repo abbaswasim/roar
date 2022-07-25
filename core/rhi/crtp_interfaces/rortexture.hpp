@@ -29,6 +29,7 @@
 #include "foundation/rormacros.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
+#include "rhi/rordevice.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rortypes.hpp"
 #include <any>
@@ -43,19 +44,6 @@
 
 namespace rhi
 {
-
-enum class TextureTarget
-{
-	texture_1D,
-	texture_2D,
-	texture_3D,
-	texture_cube,
-	texture_2D_MS,
-	texture_2D_MS_array,
-	texture_1D_array,
-	texture_2D_array,
-	texture_cube_array
-};
 
 template <class _type>
 class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCrtp>
@@ -81,6 +69,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE auto  depth() const noexcept;
 	FORCE_INLINE auto  bytes_per_pixel() const noexcept;
 	FORCE_INLINE auto  format() const noexcept;
+	FORCE_INLINE auto  usage() const noexcept;
 	FORCE_INLINE auto  levels() const noexcept;
 	FORCE_INLINE auto  target() const noexcept;
 	FORCE_INLINE auto *data() const noexcept;
@@ -95,11 +84,12 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE void depth(uint32_t) noexcept;
 	FORCE_INLINE void bytes_per_pixel(uint32_t) noexcept;
 	FORCE_INLINE void format(rhi::PixelFormat) noexcept;
+	FORCE_INLINE void usage(rhi::TextureUsage) noexcept;
 	FORCE_INLINE void target(TextureTarget) noexcept;
 	FORCE_INLINE void reset(uint8_t *, uint64_t) noexcept;
 	FORCE_INLINE void push_empty_mip() noexcept;
 	FORCE_INLINE void allocate(uint64_t a_size);
-	FORCE_INLINE void upload(std::any a_device);
+	FORCE_INLINE void upload(rhi::Device *a_device);
 	FORCE_INLINE void ready(bool) noexcept;
 	FORCE_INLINE void name(std::string) noexcept;
 
@@ -112,8 +102,9 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	uint64_t                   m_size{0};                                                    // Size of all mipmaps combined in bytes
 	TextureTarget              m_target{TextureTarget::texture_2D};                          // Can be 1D, 2D or 3D etc texture
 	rhi::PixelFormat           m_format{rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb};        // Pixel format of the texture
+	rhi::TextureUsage          m_usage{rhi::TextureUsage::shader_read};                      // What the texture is used for, by default just a read (sample) usage, can be ORed with other usage
 	std::unique_ptr<uint8_t[]> m_data{};                                                     // All mipmaps data
-	std::vector<Mipmap>        m_mips{};                                                     // Will have at least one level, base texture width and height are mip[0] width/height, NOTE: This doesn't have to be BufferAllocated
+	std::vector<Mipmap>        m_mips{};                                                     // Will have at least one level, base texture width and height are mip[0] width/height
 	std::string                m_name{};                                                     // Name of the texture, usually given for debugging purposes or the file name
 };
 

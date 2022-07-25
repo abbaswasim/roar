@@ -157,7 +157,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	void render(const RenderDevice *a_rendering_device);
 	void update(double64_t a_milli_seconds);
-	void load_models(ror::JobSystem &a_job_system, std::any a_device);
+	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device);
 	void unload();
 	void load_specific();
 

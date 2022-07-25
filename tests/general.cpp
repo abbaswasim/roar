@@ -220,6 +220,9 @@ TEST(RoarGeneral, settings_test)
 	EXPECT_EQ(config.get<bool>("window_premultiplied"), false);
 	EXPECT_EQ(config.get<bool>("window_prerotated"), false);
 	EXPECT_FLOAT_EQ(config.get<float32_t>("zoom_speed"), 3.1400001049041748f);
+	EXPECT_EQ(config.get<std::string>("buffers_format"), "buffers_format.json");
+	EXPECT_EQ(config.get<std::string>("roar_cache"), ".roar_cache");
+	EXPECT_EQ(config.get<std::string>("renderer_config"), "renderer.json");
 
 	// Nested roar_args
 	EXPECT_EQ(config.get<std::string>("roar_args:arg1"), "arguno");
@@ -231,6 +234,21 @@ TEST(RoarGeneral, settings_test)
 	EXPECT_EQ(config.get<std::string>("roar_args:roar_args2:arg21"), "arg2uno");
 	EXPECT_EQ(config.get<uint32_t>("roar_args:roar_args2:arg22"), 22);
 	EXPECT_EQ(config.get<std::string>("roar_args:roar_args2:arg23"), "23");
+
+	// Lets also test settings
+
+	auto &sett = ror::settings();
+	EXPECT_EQ(sett.m_unit, 1024);
+	EXPECT_EQ(sett.m_visualise_mipmaps, false);
+	EXPECT_EQ(sett.m_multisample_count, 8);
+	EXPECT_EQ(sett.m_vertical_sync, false);
+	EXPECT_EQ(sett.m_window_transparent, true);
+	EXPECT_EQ(sett.m_window_premultiplied, false);
+	EXPECT_EQ(sett.m_window_prerotated, false);
+	EXPECT_FLOAT_EQ(sett.m_zoom_speed, 3.1400001049041748f);
+	EXPECT_EQ(sett.m_buffers_format, "buffers_format.json");
+	EXPECT_EQ(sett.m_roar_cache, ".roar_cache");
+	EXPECT_EQ(sett.m_renderer_config, "renderer.json");
 }
 
 }        // namespace ror_test

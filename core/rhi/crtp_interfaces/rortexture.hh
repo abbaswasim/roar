@@ -69,6 +69,12 @@ FORCE_INLINE auto TextureImageCrtp<_type>::format() const noexcept
 }
 
 template <class _type>
+FORCE_INLINE auto TextureImageCrtp<_type>::usage() const noexcept
+{
+	return this->m_usage;
+}
+
+template <class _type>
 FORCE_INLINE auto TextureImageCrtp<_type>::levels() const noexcept
 {
 	return ror::static_cast_safe<uint32_t>(this->m_mips.size());
@@ -116,6 +122,12 @@ FORCE_INLINE void TextureImageCrtp<_type>::format(rhi::PixelFormat a_format) noe
 }
 
 template <class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::usage(rhi::TextureUsage a_usage) noexcept
+{
+	this->m_usage = a_usage;
+}
+
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::target(TextureTarget a_target) noexcept
 {
 	this->m_target = a_target;
@@ -130,7 +142,7 @@ FORCE_INLINE void TextureImageCrtp<_type>::allocate(uint64_t a_size)
 }
 
 template <class _type>
-FORCE_INLINE void TextureImageCrtp<_type>::upload(std::any a_device)
+FORCE_INLINE void TextureImageCrtp<_type>::upload(rhi::Device* a_device)
 {
 	this->underlying().upload(a_device);
 }

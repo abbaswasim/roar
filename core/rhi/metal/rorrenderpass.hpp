@@ -28,7 +28,10 @@
 
 #include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
+#include "rhi/metal/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+
+#include <Metal/MTLRenderPass.hpp>
 
 namespace rhi
 {
@@ -44,8 +47,11 @@ class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 
 	declare_translation_unit_vtable();
 
+	void upload(rhi::Device &a_device);
+
   protected:
   private:
+	MTL::RenderPassDescriptor *m_render_pass{nullptr};        //! Platform render pass descriptor
 };
 
 declare_rhi_render_type(Renderpass);

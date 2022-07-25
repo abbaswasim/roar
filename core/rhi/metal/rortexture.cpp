@@ -43,15 +43,14 @@
 namespace rhi
 {
 
-void TextureImageMetal::upload(std::any a_device)
+void TextureImageMetal::upload(rhi::Device &a_device)
 {
-	std::shared_ptr<rhi::Device> rhi_device         = std::any_cast<std::shared_ptr<rhi::Device>>(a_device);
-	MTL::Device                 *device             = rhi_device->platform_device();
-	MTL::TextureDescriptor      *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
-	auto                         tex_bpp            = this->bytes_per_pixel();
-	uint32_t                     bytes_per_row      = tex_bpp * this->width();
-	MTL::Origin                  texture_origin{0, 0, 0};
-	MTL::Size                    size{this->width(), this->height(), this->depth()};
+	MTL::Device            *device             = a_device.platform_device();
+	MTL::TextureDescriptor *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
+	auto                    tex_bpp            = this->bytes_per_pixel();
+	uint32_t                bytes_per_row      = tex_bpp * this->width();
+	MTL::Origin             texture_origin{0, 0, 0};
+	MTL::Size               size{this->width(), this->height(), this->depth()};
 
 	assert(device);
 

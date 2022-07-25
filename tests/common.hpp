@@ -26,12 +26,12 @@
 #pragma once
 
 #include "foundation/rortypes.hpp"
+#include "include/gtest/gtest.h"
 #include <filesystem>
 #include <fstream>
 #include <functional>
-#include <istream>
-#include "include/gtest/gtest.h"
 #include <iostream>
+#include <istream>
 
 #include "graphics/rormesh.hpp"
 #include "include/gtest/gtest.h"
@@ -59,7 +59,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 #define EXPECT_DOUBLE_NE(a, b)                                    \
 	{                                                             \
 		EXPECT_FALSE(std::abs(a - b) < ror::ror_epsilon_squared); \
-	} (void) 1
+	}                                                             \
+	(void) 1
 
 #define test_vector4_equal_seperate(v, _x, _y, _z, _w)                                            \
 	{                                                                                             \
@@ -77,7 +78,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 			EXPECT_DOUBLE_EQ(static_cast<double64_t>(v.z), static_cast<double64_t>(_z));          \
 			EXPECT_DOUBLE_EQ(static_cast<double64_t>(v.w), static_cast<double64_t>(_w));          \
 		}                                                                                         \
-	}(void) 1
+	}                                                                                             \
+	(void) 1
 
 #define test_vector4_equal(a, b)                                                                   \
 	{                                                                                              \
@@ -95,7 +97,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 			EXPECT_DOUBLE_EQ(static_cast<double64_t>(a.z), static_cast<double64_t>(b.z));          \
 			EXPECT_DOUBLE_EQ(static_cast<double64_t>(a.w), static_cast<double64_t>(b.w));          \
 		}                                                                                          \
-	}(void) 1
+	}                                                                                              \
+	(void) 1
 
 #define test_vector4_not_equal(a, b)                                     \
 	{                                                                    \
@@ -103,7 +106,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 		EXPECT_NE(static_cast<int32_t>(a.y), static_cast<int32_t>(b.y)); \
 		EXPECT_NE(static_cast<int32_t>(a.z), static_cast<int32_t>(b.z)); \
 		EXPECT_NE(static_cast<int32_t>(a.w), static_cast<int32_t>(b.w)); \
-	}(void) 1
+	}                                                                    \
+	(void) 1
 
 /**
  * All these Macros are gross but if I don't create
@@ -114,21 +118,24 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 		EXPECT_NEAR(static_cast<double64_t>(v.x), static_cast<double64_t>(_x), test_epsilon); \
 		EXPECT_NEAR(static_cast<double64_t>(v.y), static_cast<double64_t>(_y), test_epsilon); \
 		EXPECT_NEAR(static_cast<double64_t>(v.z), static_cast<double64_t>(_z), test_epsilon); \
-	}(void) 1
+	}                                                                                         \
+	(void) 1
 
 #define test_vector3_equal(a, b)                                                               \
 	{                                                                                          \
 		EXPECT_NEAR(static_cast<double64_t>(a.x), static_cast<double64_t>(b.x), test_epsilon); \
 		EXPECT_NEAR(static_cast<double64_t>(a.y), static_cast<double64_t>(b.y), test_epsilon); \
 		EXPECT_NEAR(static_cast<double64_t>(a.z), static_cast<double64_t>(b.z), test_epsilon); \
-	}(void) 1
+	}                                                                                          \
+	(void) 1
 
 #define test_vector3_not_equal(a, b)                                     \
 	{                                                                    \
 		EXPECT_NE(static_cast<int32_t>(a.x), static_cast<int32_t>(b.x)); \
 		EXPECT_NE(static_cast<int32_t>(a.y), static_cast<int32_t>(b.y)); \
 		EXPECT_NE(static_cast<int32_t>(a.z), static_cast<int32_t>(b.z)); \
-	}(void) 1
+	}                                                                    \
+	(void) 1
 
 #define test_vector2_equal_seperate(v, _x, _y)                                                    \
 	{                                                                                             \
@@ -142,7 +149,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 			EXPECT_DOUBLE_EQ(static_cast<double64_t>(v.x), static_cast<double64_t>(_x));          \
 			EXPECT_DOUBLE_EQ(static_cast<double64_t>(v.y), static_cast<double64_t>(_y));          \
 		}                                                                                         \
-	} (void) 1
+	}                                                                                             \
+	(void) 1
 
 #define test_vector2_equal(a, b)                                                                   \
 	{                                                                                              \
@@ -156,13 +164,15 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 			EXPECT_DOUBLE_EQ(static_cast<double64_t>(a.x), static_cast<double64_t>(b.x));          \
 			EXPECT_DOUBLE_EQ(static_cast<double64_t>(a.y), static_cast<double64_t>(b.y));          \
 		}                                                                                          \
-	}(void) 1
+	}                                                                                              \
+	(void) 1
 
 #define test_vector2_not_equal(a, b)                                     \
 	{                                                                    \
 		EXPECT_NE(static_cast<int32_t>(a.x), static_cast<int32_t>(b.x)); \
 		EXPECT_NE(static_cast<int32_t>(a.y), static_cast<int32_t>(b.y)); \
-	} (void) 1
+	}                                                                    \
+	(void) 1
 
 #define test_matrix2_equal(a, b)                                                                                               \
 	{                                                                                                                          \
@@ -171,7 +181,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 		{                                                                                                                      \
 			EXPECT_NEAR(static_cast<double64_t>(a.m_values[index]), static_cast<double64_t>(b.m_values[index]), test_epsilon); \
 		}                                                                                                                      \
-	}(void) 1
+	}                                                                                                                          \
+	(void) 1
 
 #define test_matrix3_equal(a, b)                                                                                               \
 	{                                                                                                                          \
@@ -180,7 +191,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 		{                                                                                                                      \
 			EXPECT_NEAR(static_cast<double64_t>(a.m_values[index]), static_cast<double64_t>(b.m_values[index]), test_epsilon); \
 		}                                                                                                                      \
-	}(void) 1
+	}                                                                                                                          \
+	(void) 1
 
 #define test_matrix4_equal(a, b)                                                                                               \
 	{                                                                                                                          \
@@ -189,7 +201,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 		{                                                                                                                      \
 			EXPECT_NEAR(static_cast<double64_t>(a.m_values[index]), static_cast<double64_t>(b.m_values[index]), test_epsilon); \
 		}                                                                                                                      \
-	}(void) 1
+	}                                                                                                                          \
+	(void) 1
 
 #define test_matrix3x4_equal(a, b)                                                                                             \
 	{                                                                                                                          \
@@ -198,7 +211,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 		{                                                                                                                      \
 			EXPECT_NEAR(static_cast<double64_t>(a.m_values[index]), static_cast<double64_t>(b.m_values[index]), test_epsilon); \
 		}                                                                                                                      \
-	}(void) 1
+	}                                                                                                                          \
+	(void) 1
 
 // a is 3x4 and b is 4x4
 #define test_matrix3x4_equal_matrix4(a, b)                                                                                                 \
@@ -208,7 +222,8 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 		{                                                                                                                                  \
 			EXPECT_NEAR(static_cast<double64_t>(a.m_values[index]), static_cast<double64_t>(b.m_values[index + index / 3]), test_epsilon); \
 		}                                                                                                                                  \
-	}(void) 1
+	}                                                                                                                                      \
+	(void) 1
 
 #define test_quaternion_equal(a, b)                                                            \
 	{                                                                                          \
@@ -216,7 +231,32 @@ using RoarTestTypes = testing::Types<float32_t, double64_t, int32_t, int16_t, in
 		EXPECT_NEAR(static_cast<double64_t>(a.y), static_cast<double64_t>(b.y), test_epsilon); \
 		EXPECT_NEAR(static_cast<double64_t>(a.z), static_cast<double64_t>(b.z), test_epsilon); \
 		EXPECT_NEAR(static_cast<double64_t>(a.w), static_cast<double64_t>(b.w), test_epsilon); \
-	}(void) 1
+	}                                                                                          \
+	(void) 1
+
+#define test_vector2f_equal(a, b)                                                  \
+	{                                                                              \
+		EXPECT_FLOAT_EQ(static_cast<float32_t>(a.x), static_cast<float32_t>(b.x)); \
+		EXPECT_FLOAT_EQ(static_cast<float32_t>(a.y), static_cast<float32_t>(b.y)); \
+	}                                                                              \
+	(void) 1
+
+#define test_vector3f_equal(a, b)                                                  \
+	{                                                                              \
+		EXPECT_FLOAT_EQ(static_cast<float32_t>(a.x), static_cast<float32_t>(b.x)); \
+		EXPECT_FLOAT_EQ(static_cast<float32_t>(a.y), static_cast<float32_t>(b.y)); \
+		EXPECT_FLOAT_EQ(static_cast<float32_t>(a.z), static_cast<float32_t>(b.z)); \
+	}                                                                              \
+	(void) 1
+
+#define test_vector4f_equal(a, b)                                                  \
+	{                                                                              \
+		EXPECT_FLOAT_EQ(static_cast<float32_t>(a.x), static_cast<float32_t>(b.x)); \
+		EXPECT_FLOAT_EQ(static_cast<float32_t>(a.y), static_cast<float32_t>(b.y)); \
+		EXPECT_FLOAT_EQ(static_cast<float32_t>(a.z), static_cast<float32_t>(b.z)); \
+		EXPECT_FLOAT_EQ(static_cast<float32_t>(a.w), static_cast<float32_t>(b.w)); \
+	}                                                                              \
+	(void) 1
 
 void write_file(fs::path, std::string data);
 
@@ -226,20 +266,20 @@ fs::path create_root_dir();
 void teardown_environment();
 
 void test_one_vertex_description(const rhi::VertexDescriptor &vd,
-								 rhi::BufferSemantic    semantic,
-								 uint32_t               location,
-								 uint32_t               offset,
-								 uint64_t               buffer_offset,
-								 uint32_t               binding,
-								 uint32_t               buffer_index,
-								 rhi::VertexFormat      format,
+                                 rhi::BufferSemantic          semantic,
+                                 uint32_t                     location,
+                                 uint32_t                     offset,
+                                 uint64_t                     buffer_offset,
+                                 uint32_t                     binding,
+                                 uint32_t                     buffer_index,
+                                 rhi::VertexFormat            format,
 
-								 rhi::StepFunction function,
-								 uint64_t          stride,
-								 rhi::Rate         rate,
-								 uint32_t          multiplier,
-								 uint64_t          semantic_type,
-								 uint32_t          line);
+                                 rhi::StepFunction function,
+                                 uint64_t          stride,
+                                 rhi::Rate         rate,
+                                 uint32_t          multiplier,
+                                 uint64_t          semantic_type,
+                                 uint32_t          line);
 
 // From https://stackoverflow.com/questions/52164723/how-to-execute-a-command-and-get-return-code-stdout-and-stderr-of-command-in-c
 /*

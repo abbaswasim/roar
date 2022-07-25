@@ -22,68 +22,68 @@
 			"compute":7
 		}
 	],
-    "render_targets":[
-        {
-            "name":"swapchain",
-            "format":"b8g8r8a8_uint32_norm_srgb"
-        },
-        {
-            "name":"renderable",
-            "format":"r8g8b8a8_uint32_norm"
-        },
-        {
-            "name":"Shadow",
-            "format":"depth32_float32"
-        },
-        {
-            "name":"Texture1",
-            "format":"r8_uint8",
-            "target":"2D"
-        },
-        {
-            "name":"Texture2",
-            "format":"r8_uint8"
-        },
-        {
-            "name":"Depth_Stencil",
-            "format":"depth24_norm_stencil8_uint32"
-        },
-        {
-            "name":"Texture3",
-            "format":"b5g6r5_uint16_norm",
-            "target":"CUBE"
-        },
-        {
-            "name":"Texture4",
-            "format":"r8g8b8a8_uint32"
-        },
-        {
-            "name":"Texture6",
-            "format":"r8g8b8a8_uint32_norm_srgb"
-        },
-        {
-            "name":"Texture8",
-            "format":"r8g8b8a8_uint32"
-        },
-        {
-            "name":"Texture9",
-            "format":"r8g8b8a8_int32"
-        }
+	"render_targets":[
+		{
+			"name":"swapchain",
+			"format":"b8g8r8a8_uint32_norm_srgb"
+		},
+		{
+			"name":"renderable",
+			"format":"r8g8b8a8_uint32_norm"
+		},
+		{
+			"name":"Shadow",
+			"format":"depth32_float32"
+		},
+		{
+			"name":"Texture1",
+			"format":"r8_uint8",
+			"target":"2D"
+		},
+		{
+			"name":"Texture2",
+			"format":"r8_uint8"
+		},
+		{
+			"name":"Depth_Stencil",
+			"format":"depth24_norm_stencil8_uint32"
+		},
+		{
+			"name":"Texture3",
+			"format":"b5g6r5_uint16_norm",
+			"target":"CUBE"
+		},
+		{
+			"name":"Texture4",
+			"format":"r8g8b8a8_uint32"
+		},
+		{
+			"name":"Texture6",
+			"format":"r8g8b8a8_uint32_norm_srgb"
+		},
+		{
+			"name":"Texture8",
+			"format":"r8g8b8a8_uint32"
+		},
+		{
+			"name":"Texture9",
+			"format":"r8g8b8a8_int32"
+		}
 	],
-    "render_buffers":[
-        {
-            "name":"compute_buffer0",
-            "format":"r8_uint8"
-        },
-        {
-            "name":"compute_buffer1",
-            "format":"r32_float32"
-        }
-    ],
-    "frame_graph":{
+	"render_buffers":[
+		{
+			"name":"compute_buffer0",
+			"format":"r8_uint8"
+		},
+		{
+			"name":"compute_buffer1",
+			"format":"r32_float32"
+		}
+	],
+	"frame_graph":{
 		"width":1024,
 		"height":768,
-		"current" : "forward",
+		"current":"forward",
 		"viewport":{
 			"x":0,
 			"y":0,
@@ -92,177 +92,184 @@
 		},
 		"forward":[
 			{
-				"name":"shadowing",
-				"technique":"fragment",
-				"type":"shadow",
-				"state":"transient",
-				"debug_output":true,
-				"outputs":[
+				"render_targets":[
 					{
 						"index":2,
-						"action":"store"
+						"load_action":"clear",
+						"store_action":"store"
 					}
 				],
-				"width":1024,
-				"height":768,
 				"viewport":{
 					"x":0,
 					"y":0,
 					"w":1024,
 					"h":768
 				},
-				"program":0
-			},
-			{
-				"name":"forward_lighting",
-				"type":"forward_light",
-				"state":"transient",
-				"debug_output":true,
-				"depends_on":[
-					0
-				],
-				"inputs":[
+				"subpasses":[
 					{
-						"index":2,
-						"action":"load"
-					}
-				],
-				"outputs":[
-					{
-						"index":1,
-						"action":"store"
-					},
-					{
-						"index":2,
-						"action":"dont_care"
-					}
-				],
-				"program":1
-			},
-			{
-				"name":"tonemap",
-				"type":"post_process",
-				"state":"transient",
-				"depends_on":[
-					1
-				],
-				"debug_output":true,
-				"inputs":[
-					{
-						"index":1,
-						"action":"load"
-					}
-				],
-				"outputs":[
-					{
-						"index":0,
-						"action":"store"
-					},
-					{
-						"index":2,
-						"action":"dont_care"
-					}
-				],
-				"program_id":0
-			}
-		],
-		"deferred":[
-			{
-				"name":"LUT",
-				"technique":"compute",
-				"type":"lut",
-				"state":"persistent",
-				"debug_output":true,
-				"inputs":[
-					{
-						"index":0,
-						"action":"clear"
-					},
-					{
-						"index":1,
-						"action":"clear"
-					}
-				],
-				"outputs":[
-					{
-						"index":2,
-						"action":"store"
-					},
-					{
-						"index":3,
-						"action":"dont_care"
-					},
-					{
-						"index":4,
-						"action":"discard"
-					}
-				],
-				"program":0
-			},
-			{
-				"name":"Compute",
-				"state":"transient",
-				"technique":"compute",
-				"type":"reflection",
-				"program_id":3,
-				"outputs":[
-					{
-						"index":0,
-						"action":"store"
+						"name":"shadowing",
+						"technique":"fragment",
+						"type":"shadow",
+						"state":"transient",
+						"debug_output":true,
+						"width":1024,
+						"height":768,
+						"program":0
 					}
 				]
 			},
 			{
-				"name":"Light-bin",
-				"state":"transient",
-				"technique":"compute",
-				"type":"light_bin",
-				"outputs":[
+				"render_targets":[
 					{
 						"index":0,
-						"action":"store"
+						"load_action":"clear",
+						"store_action":"store"
 					}
 				],
-				"program_id":3
+				"background":[
+					0.14,
+					0.14,
+					0.14,
+					1.0
+				],
+				"depends_on":[
+					0
+				],
+				"subpasses":[
+					{
+						"name":"forward_lighting",
+						"type":"forward_light",
+						"state":"transient",
+						"debug_output":true,
+						"rendered_inputs":[
+							2
+						],
+						"program":1
+					},
+					{
+						"name":"tonemap",
+						"type":"tone_mapping",
+						"state":"transient",
+						"debug_output":true,
+						"subpass_inputs":[
+							0
+						],
+						"program":0
+					}
+				]
+			}
+		],
+		"deferred":[
+			{
+				"render_targets":[
+					{
+						"index":3,
+						"load_action":"clear",
+						"store_action":"store"
+					}
+				],
+				"subpasses":[
+					{
+						"name":"lut",
+						"technique":"compute",
+						"type":"lut",
+						"state":"persistent",
+						"debug_output":true,
+						"program":0
+					}
+				]
 			},
 			{
-				"name":"main",
-				"state":"transient",
-				"type":"main",
-				"outputs":[
+				"render_targets":[
+					{
+						"index":4,
+						"load_action":"clear",
+						"store_action":"store"
+					}
+				],
+				"subpasses":[
+					{
+						"name":"compute",
+						"state":"transient",
+						"technique":"compute",
+						"type":"reflection",
+						"program":3
+					}
+				]
+			},
+			{
+				"render_targets":[
 					{
 						"index":0,
-						"action":"store"
+						"load_action":"clear",
+						"store_action":"store"
 					}
 				],
-				"program_id":3
+				"subpasses":[
+					{
+						"name":"light-bin",
+						"state":"transient",
+						"technique":"compute",
+						"type":"light_bin",
+						"program":3
+					}
+				]
 			},
 			{
-				"name":"Shadowing",
-				"type":"shadow",
-				"state":"transient",
-				"debug_output":true,
+				"render_targets":[
+					{
+						"index":0,
+						"load_action":"clear",
+						"store_action":"store"
+					}
+				],
+				"subpasses":[
+					{
+						"name":"main",
+						"state":"transient",
+						"type":"main",
+						"program":3
+					}
+				]
+			},
+			{
+				"render_targets":[
+					{
+						"index":0,
+						"load_action":"clear",
+						"store_action":"store"
+					}
+				],
+				"viewport":{
+					"x":0,
+					"y":0,
+					"w":1024,
+					"h":768
+				},
 				"depends_on":[
 					1
 				],
-				"inputs":[
+				"subpasses":[
 					{
-						"index":0,
-						"action":"clear"
-					},
-					{
-						"index":1,
-						"action":"clear"
+						"name":"shadowing",
+						"type":"shadow",
+						"state":"transient",
+						"debug_output":true,
+						"program":2
 					}
-				],
-				"outputs":[
+				]
+			},
+			{
+				"render_targets":[
 					{
 						"index":2,
-						"action":"store"
+						"load_action":"clear",
+						"store_action":"store"
 					},
 					{
 						"index":3,
-						"action":"dont_care"
+						"load_action":"clear",
+						"store_action":"store"
 					}
 				],
 				"viewport":{
@@ -271,206 +278,112 @@
 					"w":1024,
 					"h":768
 				},
-				"program":2
-			},
-			{
-				"name":"Depth Pre-pass",
-				"type":"depth",
-				"state":"transient",
-				"debug_output":true,
-				"depends_on":[
-					1
-				],
-				"inputs":[
-					{
-						"index":0,
-						"action":"clear"
-					},
-					{
-						"index":1,
-						"action":"clear"
-					}
-				],
-				"outputs":[
-					{
-						"index":2,
-						"action":"store"
-					},
-					{
-						"index":3,
-						"action":"dont_care"
-					}
-				],
-				"viewport":{
-					"x":0,
-					"y":0,
-					"w":1024,
-					"h":768
-				},
-				"program":1
-			},
-			{
-				"name":"G-Buffer",
-				"type":"deferred_gbuffer",
-				"state":"transient",
-				"debug_output":true,
-				"depends_on":[
-					2
-				],
-				"inputs":[
-					{
-						"index":0,
-						"action":"clear"
-					},
-					{
-						"index":1,
-						"action":"clear"
-					}
-				],
-				"outputs":[
-					{
-						"index":2,
-						"action":"store"
-					},
-					{
-						"index":3,
-						"action":"dont_care"
-					}
-				],
-				"viewport":{
-					"x":0,
-					"y":0,
-					"w":1024,
-					"h":768
-				},
-				"program":1
-			},
-			{
-				"name":"G-Buffer-Resolve-Lighting",
-				"type":"post_process",
-				"state":"transient",
-				"debug_output":true,
-				"depends_on":[
-					1
-				],
-				"inputs":[
-					{
-						"index":0,
-						"action":"clear"
-					},
-					{
-						"index":1,
-						"action":"clear"
-					}
-				],
-				"outputs":[
-					{
-						"index":2,
-						"action":"store"
-					},
-					{
-						"index":3,
-						"action":"dont_care"
-					}
-				],
-				"viewport":{
-					"x":0,
-					"y":0,
-					"w":1024,
-					"h":768
-				},
-				"program":1
-			},
-			{
-				"name":"Render",
-				"width":1024,
-				"height":768,
-				"type":"main",
-				"state":"transient",
 				"depends_on":[
 					0,
 					1
 				],
-				"debug_output":true,
-				"inputs":[
+				"subpasses":[
 					{
-						"index":0,
-						"action":"clear"
+						"name":"depth pre-pass",
+						"type":"depth",
+						"state":"transient",
+						"debug_output":true,
+						"program":1
 					},
 					{
-						"index":1,
-						"action":"clear"
+						"name":"g-buffer",
+						"type":"deferred_gbuffer",
+						"state":"transient",
+						"debug_output":true,
+						"subpass_inputs":[
+							0,
+							1
+						],
+						"program":1
+					},
+					{
+						"name":"g-buffer-resolve-lighting",
+						"type":"post_process",
+						"state":"transient",
+						"debug_output":true,
+						"subpass_inputs":[
+							0,
+							1
+						],
+						"program":1
+					},
+					{
+						"name":"render",
+						"width":1024,
+						"height":768,
+						"type":"main",
+						"state":"transient",
+						"debug_output":true,
+						"subpass_inputs":[
+							0,
+							1
+						],
+						"program":0
 					}
-				],
-				"outputs":[
+				]
+			},
+			{
+				"render_targets":[
 					{
 						"index":2,
-						"action":"store"
+						"load_action":"clear",
+						"store_action":"store"
 					},
 					{
 						"index":3,
-						"action":"dont_care"
+						"load_action":"clear",
+						"store_action":"store"
 					}
 				],
-				"program_id":0
-			},
-			{
-				"name":"Bloom",
-				"type":"post_process",
-				"state":"transient",
 				"depends_on":[
 					0
 				],
-				"inputs":[
+				"subpasses":[
 					{
-						"index":0,
-						"action":"clear"
-					},
-					{
-						"index":1,
-						"action":"clear"
+						"name":"bloom",
+						"type":"post_process",
+						"state":"transient",
+						"subpass_inputs":[
+							0,
+							1
+						],
+						"program":1
 					}
-				],
-				"outputs":[
+				]
+			},
+			{
+				"render_targets":[
 					{
 						"index":2,
-						"action":"store"
+						"load_action":"clear",
+						"store_action":"store"
 					},
 					{
 						"index":3,
-						"action":"dont_care"
+						"load_action":"clear",
+						"store_action":"store"
 					}
 				],
-				"program":1
-			},
-			{
-				"name":"Tonemap",
-				"type":"post_process",
-				"state":"transient",
 				"depends_on":[
 					0
 				],
-				"inputs":[
+				"subpasses":[
 					{
-						"index":0,
-						"action":"clear"
-					},
-					{
-						"index":1,
-						"action":"clear"
+						"name":"tonemap",
+						"type":"post_process",
+						"state":"transient",
+						"subpass_inputs":[
+							0,
+							1
+						],
+						"program":1
 					}
-				],
-				"outputs":[
-					{
-						"index":2,
-						"action":"store"
-					},
-					{
-						"index":3,
-						"action":"dont_care"
-					}
-				],
-				"program":1
+				]
 			}
 		]
 	}

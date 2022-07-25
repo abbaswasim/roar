@@ -55,7 +55,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		basist::basisu_transcoder_init();
 
 		// Load all the models now in a deferred way
-		this->m_scene.load_models(*this->m_job_system, this->m_current_device);
+		this->m_scene.load_models(*this->m_job_system, *this->m_current_device);
 
 		this->underlying().init_derived();
 	}

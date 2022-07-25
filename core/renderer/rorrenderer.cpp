@@ -30,7 +30,7 @@
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
-#include "rhi/metal/rorrenderpass.hpp"
+#include "rhi/rordevice.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rortexture.hpp"
@@ -43,7 +43,7 @@ namespace ror
 define_translation_unit_vtable(Renderer)
 {}
 
-rhi::TextureTarget string_to_texture_target(const std::string& a_target)
+rhi::TextureTarget string_to_texture_target(const std::string &a_target)
 {
 	if (a_target == "2D")
 		return rhi::TextureTarget::texture_2D;
@@ -126,7 +126,6 @@ void Renderer::load_render_targets()
 			if (render_target.contains("name"))
 				texture.name(render_target["name"]);
 
-			// TODO: test if this is causing copy elision issues
 			this->m_render_targets.emplace_back(std::move(texture));
 		}
 	}
@@ -143,13 +142,14 @@ void Renderer::load_render_buffers()
 		auto render_buffers = this->m_json_file["render_buffers"];
 		for (auto &render_buffer : render_buffers)
 		{
+			// TODO: Add implementation here
 			if (render_buffer.contains("name")) {}
 			this->m_render_buffers.emplace_back();
 		}
 	}
 }
 
-rhi::RenderpassType string_to_renderpass_type(const std::string& a_type)
+rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
 {
 	// clang-format off
 	if      (a_type == "lut")                return rhi::RenderpassType::lut;
@@ -173,25 +173,8 @@ rhi::RenderpassType string_to_renderpass_type(const std::string& a_type)
 	return rhi::RenderpassType::main;
 }
 
-void read_render_pass(json &a_render_pass, rhi::Renderpass& rp)
+void read_render_pass(json &a_render_pass, rhi::Renderpass &rp)
 {
-	if (a_render_pass.contains("name"))
-		rp.name(a_render_pass["name"]);
-
-	if (a_render_pass.contains("technique"))
-	{
-		rp.technique(a_render_pass["technique"] == "fragment" ? rhi::RenderpassTechnique::fragment : rhi::RenderpassTechnique::compute);
-	}
-
-	if (a_render_pass.contains("type"))
-		rp.type(string_to_renderpass_type(a_render_pass["type"]));
-
-	if (a_render_pass.contains("state"))
-		rp.state(a_render_pass["state"] == "transient" ? rhi::RenderpassState::transient : rhi::RenderpassState::presistent);
-
-	if (a_render_pass.contains("debug_output"))
-		rp.debug_output(a_render_pass["debug_output"]);
-
 	ror::Vector2ui dims = rp.dimensions();
 
 	if (a_render_pass.contains("width"))
@@ -222,66 +205,104 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass& rp)
 		rp.parents(parents);
 	}
 
-	if (a_render_pass.contains("program"))
-		rp.program_id(a_render_pass["program"]);
-
-	std::vector<rhi::Attachment<rhi::LoadAction>>  input_attachments{};
-	std::vector<rhi::Attachment<rhi::StoreAction>> output_attachments{};
-
-	if (a_render_pass.contains("inputs"))
+	if (a_render_pass.contains("background"))
 	{
-		auto inputs = a_render_pass["inputs"];
-		for (auto &input : inputs)
-		{
-			assert(input.contains("index") && "Input must contain a render target/buffer index");
-
-			rhi::Attachment<rhi::LoadAction> attachment;
-			attachment.m_target_index = input["index"];
-
-			if (input.contains("action"))
-			{
-				auto action = input["action"];
-				if (action == "load")
-					attachment.m_action = rhi::LoadAction::load;
-				else if (action == "clear")
-					attachment.m_action = rhi::LoadAction::clear;
-				else if (action == "dont_care")
-					attachment.m_action = rhi::LoadAction::dont_care;
-				else
-					assert(0);
-			}
-
-			input_attachments.emplace_back(std::move(attachment));
-		}
+		auto color = a_render_pass["background"];
+		assert(color.size() == 4 && "Renderpass background color is not correctly defined");
+		rp.background({color[0], color[1], color[2], color[3]});
 	}
-	assert(a_render_pass.contains("outputs") && "There must be some outputs specified in render passes");
 
-	auto outputs = a_render_pass["outputs"];
-	for (auto &output : outputs)
+	assert(a_render_pass.contains("render_targets") && "Render pass must have render targets");
+
 	{
-		assert(output.contains("index") && "Input must contain a render target/buffer index");
+		auto render_targets = a_render_pass["render_targets"];
 
-		rhi::Attachment<rhi::StoreAction> attachment;
-		attachment.m_target_index = output["index"];
+		std::vector<rhi::RenderTarget> rts;
 
-		if (output.contains("action"))
+		for (auto &rt : render_targets)
 		{
-			auto action = output["action"];
-			if (action == "store")
-				attachment.m_action = rhi::StoreAction::store;
-			else if (action == "discard")
-				attachment.m_action = rhi::StoreAction::discard;
-			else if (action == "dont_care")
-				attachment.m_action = rhi::StoreAction::dont_care;
+			assert(rt.contains("index") && rt.contains("load_action") && rt.contains("store_action") && "Render Target must contain all index, load and store actions");
+
+			uint32_t index       = rt["index"];
+			auto     loadaction  = rt["load_action"];
+			auto     storeaction = rt["store_action"];
+
+			rhi::LoadAction  load_action{rhi::LoadAction::dont_care};
+			rhi::StoreAction store_action{rhi::StoreAction::dont_care};
+
+			if (loadaction == "load")
+				load_action = rhi::LoadAction::load;
+			else if (loadaction == "clear")
+				load_action = rhi::LoadAction::clear;
+			else if (loadaction == "dont_care")
+				load_action = rhi::LoadAction::dont_care;
 			else
-				assert(0);
+				assert(0 && "Invalid load action string provided");
+
+			if (storeaction == "store")
+				store_action = rhi::StoreAction::store;
+			else if (storeaction == "discard")
+				store_action = rhi::StoreAction::discard;
+			else if (storeaction == "dont_care")
+				store_action = rhi::StoreAction::dont_care;
+			else
+				assert(0 && "Invalid store action string provided");
+
+			// Emplaces a RenderTarget
+			rts.emplace_back(index, load_action, store_action);
 		}
 
-		output_attachments.emplace_back(std::move(attachment));
+		rp.render_targets(std::move(rts));
 	}
 
-	rp.input_attachments(input_attachments);
-	rp.output_attachments(output_attachments);
+	assert(a_render_pass.contains("subpasses") && "There must be atleast one subpass in a render pass");
+
+	auto subpasses = a_render_pass["subpasses"];
+
+	std::vector<rhi::Rendersubpass> rsps;
+	for (auto &subpass : subpasses)
+	{
+		rhi::Rendersubpass rsp{};
+
+		if (subpass.contains("name"))
+			rsp.name(subpass["name"]);
+
+		if (subpass.contains("technique"))
+		{
+			rsp.technique(subpass["technique"] == "fragment" ? rhi::RenderpassTechnique::fragment : rhi::RenderpassTechnique::compute);
+		}
+
+		if (subpass.contains("type"))
+			rsp.type(string_to_renderpass_type(subpass["type"]));
+
+		if (subpass.contains("state"))
+			rsp.state(subpass["state"] == "transient" ? rhi::RenderpassState::transient : rhi::RenderpassState::persistent);
+
+		if (subpass.contains("debug_output"))
+			rsp.debug_output(subpass["debug_output"]);
+
+		if (subpass.contains("program"))
+			rsp.program_id(subpass["program"]);
+
+		std::vector<rhi::RenderTarget> input_attachments{};
+		std::vector<rhi::RenderTarget> output_attachments{};
+
+		if (subpass.contains("rendered_inputs"))
+		{
+			std::vector<uint32_t> rendered_inputs = subpass["rendered_inputs"];
+			rsp.rendered_inputs(std::move(rendered_inputs));
+		}
+
+		if (subpass.contains("subpass_inputs"))
+		{
+			std::vector<uint32_t> subpass_inputs = subpass["subpass_inputs"];
+			rsp.input_attachments(std::move(subpass_inputs));
+		}
+
+		rsps.emplace_back(std::move(rsp));
+
+	}
+	rp.subpasses(std::move(rsps));
 }
 
 void Renderer::load_frame_graphs()
@@ -308,6 +329,8 @@ void Renderer::load_frame_graphs()
 		this->m_viewport.w = viewport["h"];
 	}
 
+	assert(frame_graph.contains("forward") || frame_graph.contains("deferred") && "There must be at least one frame graph provided");
+
 	if (frame_graph.contains("forward"))
 	{
 		auto forward_passes = frame_graph["forward"];
@@ -321,6 +344,7 @@ void Renderer::load_frame_graphs()
 			this->m_frame_graphs["forward"].emplace_back(std::move(rp));
 		}
 	}
+
 	if (frame_graph.contains("deferred"))
 	{
 		auto deferred_passes = frame_graph["deferred"];
@@ -337,6 +361,13 @@ void Renderer::load_frame_graphs()
 
 	if (frame_graph.contains("current"))
 		this->m_current_frame_graph = &this->m_frame_graphs[frame_graph["current"]];
+	else
+	{
+		if (frame_graph.contains("forward"))
+			this->m_current_frame_graph = &this->m_frame_graphs["forward"];
+		else
+			this->m_current_frame_graph = &this->m_frame_graphs["deferred"];
+	}
 }
 
 void Renderer::load_specific()
@@ -346,6 +377,33 @@ void Renderer::load_specific()
 	this->load_render_targets();
 	this->load_render_buffers();
 	this->load_frame_graphs();
+}
+
+void Renderer::upload(rhi::Device &a_device)
+{
+	for (auto &shader : this->m_shaders)
+		shader.upload();
+
+	for (auto &program : this->m_programs)
+		program.upload();
+
+	for (auto &render_target : this->m_render_targets)
+		render_target.upload(a_device);
+
+	// TODO: Fix uploads in the buffer
+	// for (auto &render_buffer : this->m_render_buffers)
+	//     render_buffer.upload();
+
+	for (auto &graph : this->m_frame_graphs)
+	{
+		for (auto &pass : graph.second)
+		{
+			pass.upload(a_device);
+		}
+	}
+
+	// m_frame_graphs{};                       //! Frame graph for all techniques like forward, deferred etc
+	// *m_current_frame_graph{nullptr};        //! Non-owning raw pointer alias that Points to the active technique in the framegraphs
 }
 
 }        // namespace ror

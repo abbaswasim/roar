@@ -1486,7 +1486,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 	}
 }
 
-void Model::upload(std::any a_device)
+void Model::upload(rhi::Device& a_device)
 {
 	for (auto &image : this->m_images)
 	{

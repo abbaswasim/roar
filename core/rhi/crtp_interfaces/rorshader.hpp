@@ -26,6 +26,7 @@
 
 #pragma once
 #include "core/foundation/rorcrtp.hpp"
+#include "foundation/rormacros.hpp"
 #include <filesystem>
 
 namespace rhi
@@ -43,6 +44,12 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	FORCE_INLINE explicit ShaderCrtp(std::filesystem::path a_shader) :
 	    m_shader_path(a_shader)
 	{}
+
+	// clang-format off
+	FORCE_INLINE constexpr auto shader_path() const noexcept { return this->m_shader_path; }
+	FORCE_INLINE constexpr void upload()      const noexcept { this->underlying().upload(); }
+	// clang-format on
+
 
   protected:
 	FORCE_INLINE ShaderCrtp() = default;        //! Default constructor

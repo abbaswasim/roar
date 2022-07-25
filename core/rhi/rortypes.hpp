@@ -354,6 +354,13 @@ enum class PrimitiveTopology
 	triangles_fan
 };
 
+enum class FormatType
+{
+	format_unorm,
+	format_norm,
+	format_float
+};
+
 enum class TextureFilter
 {
 	nearest,
@@ -364,13 +371,6 @@ enum class TextureTransfer
 {
 	linear,
 	srgb
-};
-
-enum class FormatType
-{
-	format_unorm,
-	format_norm,
-	format_float
 };
 
 enum class TextureAddressMode
@@ -387,11 +387,65 @@ enum class TextureBorder
 	white
 };
 
+enum class TextureTarget
+{
+	texture_1D,
+	texture_2D,
+	texture_3D,
+	texture_cube,
+	texture_2D_MS,
+	texture_2D_MS_array,
+	texture_1D_array,
+	texture_2D_array,
+	texture_cube_array
+};
+
+enum class TextureUsage
+{
+
+	unknown       = 0,
+	shader_read   = 1,
+	shader_write  = 2,
+	render_target = 4,
+};
+
 enum class BlendMode
 {
 	opaque,
 	mask,
 	blend
+};
+
+enum class BlendFactor
+{
+	zero,
+	one,
+	source_color,
+	one_minus_source_color,
+	source_alpha,
+	one_minus_source_alpha,
+	destination_color,
+	one_minus_destination_color,
+	destination_alpha,
+	one_minus_destination_alpha,
+	source_alpha_saturated,
+	blend_color,
+	one_minus_blend_color,
+	blend_alpha,
+	one_minus_blend_alpha,
+	source1_color,
+	one_minus_source1_color,
+	source1_alpha,
+	one_minus_source1_alpha,
+};
+
+enum class BlendOperation
+{
+	add,
+	subtract,
+	reverse_subtract,
+	min,
+	max,
 };
 
 enum class MaterialModel
@@ -447,7 +501,7 @@ enum class RenderpassTechnique
 enum class RenderpassState
 {
 	transient,
-	presistent
+	persistent
 };
 
 enum class ShaderType

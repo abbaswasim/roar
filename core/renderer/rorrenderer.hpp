@@ -56,6 +56,27 @@ class Renderer final : public Configuration<Renderer>
 
 	FORCE_INLINE Renderer();        //! Default constructor
 	void         load_specific();
+	void         upload(rhi::Device&);
+
+	// clang-format off
+	auto& shaders()                       { return this->m_shaders; }
+	auto& programs()                      { return this->m_programs; }
+	auto& render_targets()                { return this->m_render_targets; }
+	auto& render_buffers()                { return this->m_render_buffers; }
+	auto& dimensions()                    { return this->m_dimensions; }
+	auto& viewport()                      { return this->m_viewport; }
+	auto& frame_graphs()                  { return this->m_frame_graphs; }
+	auto& current_frame_graph()           { return *this->m_current_frame_graph; }
+
+	void shaders(const std::vector<rhi::Shader>                      &a_shaders)                { this->m_shaders = a_shaders; }
+	void programs(const std::vector<rhi::Program>                    &a_programs)               { this->m_programs = a_programs; }
+	// void render_targets(const std::vector<rhi::TextureImage>         &a_render_targets)         { this->m_render_targets = a_render_targets; }
+	// void render_buffers(const std::vector<rhi::Buffer<rhi::Static>>  &a_render_buffers)         { this->m_render_buffers = a_render_buffers; }
+	void dimensions(const ror::Vector2ui                             &a_dimensions)             { this->m_dimensions = a_dimensions; }
+	void viewport(const ror::Vector4i                                &a_viewport)               { this->m_viewport = a_viewport; }
+	void frame_graphs(const FrameGraph                               &a_frame_graphs)           { this->m_frame_graphs = a_frame_graphs; }
+	void current_frame_graph(std::vector<rhi::Renderpass>            *a_current_frame_graph)    { this->m_current_frame_graph = a_current_frame_graph; }
+	// clang-format on
 
   protected:
   private:
