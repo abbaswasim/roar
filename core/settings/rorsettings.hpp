@@ -56,7 +56,8 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_working_dir     = setting.get<std::string>("working_dir");
 		this->m_renderer_config = setting.get<std::string>("renderer_config");
 
-		this->m_zoom_speed = setting.get<float32_t>("zoom_speed");
+		this->m_zoom_speed  = setting.get<float32_t>("zoom_speed");
+		this->m_depth_clear = setting.get<float32_t>("depth");
 
 		this->m_unit              = setting.get<uint32_t>("unit");
 		this->m_buffer_increment  = setting.get<uint32_t>("buffer_increment");
@@ -131,6 +132,7 @@ class ROAR_ENGINE_ITEM Settings final
 	float32_t m_zoom_speed{20.0f};
 	float32_t m_fog_start{0.0f};
 	float32_t m_fog_end{500.0f};
+	float32_t m_depth_clear{1.0f};
 
 	uint32_t m_unit{1};        //! 1 == meter, 1000 == km etc, to use the unit multiply it with your quantities
 	uint32_t m_buffer_increment{1};

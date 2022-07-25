@@ -38,6 +38,8 @@ class ROAR_ENGINE_ITEM TextureImageMetal : public TextureImageCrtp<TextureImageM
   public:
 	void upload(rhi::Device& a_device);
 
+	FORCE_INLINE constexpr auto platform_handle() const noexcept;
+
   protected:
   private:
 	MTL::Texture *m_texture{nullptr};

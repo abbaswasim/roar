@@ -54,6 +54,8 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		// Should only be called once per execution, TODO: check if this could be used in MT environment
 		basist::basisu_transcoder_init();
 
+		this->m_renderer.upload(*this->m_current_device);
+
 		// Load all the models now in a deferred way
 		this->m_scene.load_models(*this->m_job_system, *this->m_current_device);
 

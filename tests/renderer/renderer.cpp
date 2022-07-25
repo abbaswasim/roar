@@ -5,6 +5,7 @@
 #include "renderer/rorrenderer.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rorrenderpass.hpp"
+#include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <gtest/gtest-typed-test.h>
 #include <gtest/gtest.h>
@@ -20,6 +21,7 @@ void test_render_targets(const std::vector<rhi::RenderTarget> a, std::vector<rhi
 	for (size_t i = 0; i < b.size(); ++i)
 	{
 		EXPECT_EQ(a[i].m_target_index, b[i].m_target_index);
+		EXPECT_EQ(&a[i].m_target_reference.get(), &b[i].m_target_reference.get());
 		EXPECT_EQ(a[i].m_load_action, b[i].m_load_action);
 		EXPECT_EQ(a[i].m_store_action, b[i].m_store_action);
 	}
@@ -41,7 +43,7 @@ void test_render_pass(rhi::Renderpass                       rdps,
 {
 	auto dimensions     = rdps.dimensions();
 	auto viewport       = rdps.viewport();
-	auto parents        = rdps.parents();
+	auto parents        = rdps.parent_ids();
 	auto render_targets = rdps.render_targets();
 
 	test_vector2f_equal(dimensions, a_dimensions);
@@ -63,8 +65,8 @@ void test_render_pass(rhi::Renderpass                       rdps,
 		auto state             = rsps.state();
 		auto program_id        = rsps.program_id();
 		auto debug_output      = rsps.debug_output();
-		auto input_attachments = rsps.input_attachments();
-		auto rendered_inputs = rsps.rendered_inputs();
+		auto input_attachments = rsps.input_attachment_ids();
+		auto rendered_inputs   = rsps.rendered_input_ids();
 
 		EXPECT_EQ(name, a_names[iai]);
 		EXPECT_EQ(technique, a_techniques[iai]);
@@ -89,6 +91,7 @@ TEST(RendererTest, config_load)
 {
 	ror::Renderer rdr;
 
+	auto &rtgs = rdr.render_targets();
 	auto &fgphs = rdr.frame_graphs();
 
 	std::vector<std::vector<uint32_t>> empty_indices{};
@@ -106,7 +109,7 @@ TEST(RendererTest, config_load)
 			{
 				case 0:
 					test_render_pass(rdps,
-					                 {{2, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{2, rtgs[2], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -121,7 +124,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 1:
 					test_render_pass(rdps,
-					                 {{0, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{0, rtgs[0], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {0},        // Parents
@@ -153,7 +156,7 @@ TEST(RendererTest, config_load)
 			{
 				case 0:
 					test_render_pass(rdps,
-					                 {{3, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{3, rtgs[3], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -168,7 +171,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 1:
 					test_render_pass(rdps,
-					                 {{4, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{4, rtgs[4], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -183,7 +186,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 2:
 					test_render_pass(rdps,
-					                 {{0, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{0, rtgs[0], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -198,7 +201,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 3:
 					test_render_pass(rdps,
-					                 {{0, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{0, rtgs[0], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -213,7 +216,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 4:
 					test_render_pass(rdps,
-					                 {{0, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{0, rtgs[0], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {1},        // Parents
@@ -228,7 +231,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 5:
 					test_render_pass(rdps,
-					                 {{2, rhi::LoadAction::clear, rhi::StoreAction::store}, {3, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{2, rtgs[2], rhi::LoadAction::clear, rhi::StoreAction::store}, {3, rtgs[3], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {0, 1},        // Parents
@@ -244,7 +247,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 6:
 					test_render_pass(rdps,
-					                 {{2, rhi::LoadAction::clear, rhi::StoreAction::store},{3, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{2, rtgs[2], rhi::LoadAction::clear, rhi::StoreAction::store}, {3, rtgs[3], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {0},        // Parents
@@ -253,13 +256,13 @@ TEST(RendererTest, config_load)
 					                 {rhi::RenderpassType::post_process},
 					                 {rhi::RenderpassState::transient},
 					                 {{}},
-					                 {{0, 1}},
+					                 {{0}},
 					                 {1},
 					                 {false});
 					break;
 				case 7:
 					test_render_pass(rdps,
-					                 {{2, rhi::LoadAction::clear, rhi::StoreAction::store},{3, rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {{2, rtgs[2], rhi::LoadAction::clear, rhi::StoreAction::store}, {3, rtgs[3], rhi::LoadAction::clear, rhi::StoreAction::store}},
 					                 dimensions,
 					                 viewport,
 					                 {0},        // Parents
@@ -268,7 +271,7 @@ TEST(RendererTest, config_load)
 					                 {rhi::RenderpassType::post_process},
 					                 {rhi::RenderpassState::transient},
 					                 {{}},
-					                 {{0, 1}},
+					                 {{0}},
 					                 {1},
 					                 {false});
 					break;

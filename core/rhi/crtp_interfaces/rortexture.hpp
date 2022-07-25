@@ -96,7 +96,6 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
   protected:
 	FORCE_INLINE TextureImageCrtp() = default;        //! Default constructor
   private:
-	// TextureAPIHandle           m_handle{-1};                                            // Texture id used by the Renderer APIs
 	bool                       m_ready{false};                                               //! True when the texture is uploaded to the GPU and ready to be used
 	uint32_t                   m_bytes_per_pixel{4};                                         // Bytes per pixel
 	uint64_t                   m_size{0};                                                    // Size of all mipmaps combined in bytes

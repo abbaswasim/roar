@@ -24,6 +24,8 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorutilities.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/metal/rorrenderpass.hpp"
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
@@ -62,25 +64,63 @@ MTL::StoreAction to_metal_store_action(rhi::StoreAction a_action)
 void RenderpassMetal::upload(rhi::Device &a_device)
 {
 	(void) a_device;
-	this->m_render_pass = MTL::RenderPassDescriptor::alloc()->init();
+	// For subpass/programmable blending rendering (only available in iOS) you would use a single command encoder created from the first render pass
+	// For your geometry pass the render targets "store" becomes "dont_care" and set storageMode to "memoryLess" == transient in Roar
 
-	// auto bgc = this->background();
+	auto  bgc            = this->background();
+	auto &render_targets = this->render_targets();
 
-	// auto &input_attachments = this->input_attachments();
-	// for (size_t i = 0; i < input_attachments.size(); ++i)
-	// {
-	// 	auto colorAttachment = this->m_render_pass->colorAttachments()->object(i);
+	// There is no concept of subpass in metal so we create a render pass for each subpass, PLS and Merging is done via single encoder instead
+	auto render_supasses = this->subpasses();
+	this->m_render_passes.reserve(render_supasses.size());
 
-	// 	colorAttachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
-	// 	colorAttachment->setLoadAction(to_metal_load_action(input_attachments[i].m_action));
-	// 	colorAttachment->setStoreAction(to_metal_store_action(rhi::StoreAction::dont_care));
-	// 	// colorAttachment->setTexture(swapchain->texture());
-	// }
+	uint32_t ii =0 ;
+	for (auto &subpass : render_supasses)
+	{
+		ror::log_critical("Creating metal render passes {}", ii++);
+		auto mtl_render_pass = MTL::RenderPassDescriptor::alloc()->init();
 
-	// auto depth = this->m_render_pass->depthAttachment();
-	// depth->clearDepth();
-	// depth->setLoadAction(MTL::LoadActionClear);
-	// depth->setStoreAction(MTL::StoreActionStore);
+		mtl_render_pass->setRenderTargetWidth(this->dimensions().x);
+		mtl_render_pass->setRenderTargetHeight(this->dimensions().y);
+
+		(void) subpass;
+
+		auto   &render_target_attachments = this->render_targets();
+		int32_t depth_index               = -1;
+		for (size_t i = 0; i < render_target_attachments.size(); ++i)
+		{
+			if (is_pixel_format_depth_format(render_targets[i].m_target_reference.get().format()))
+			{
+				if (depth_index == -1)
+				{
+					depth_index = ror::static_cast_safe<int32_t>(i);
+					continue;
+				}
+				else
+				{
+					assert(0 && "Too many depth render targets provided");
+				}
+			}
+
+			auto color_attachment = mtl_render_pass->colorAttachments()->object(i);
+
+			color_attachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
+			color_attachment->setLoadAction(to_metal_load_action(render_targets[i].m_load_action));
+			color_attachment->setStoreAction(to_metal_store_action(render_targets[i].m_store_action));
+			color_attachment->setTexture(render_targets[i].m_target_reference.get().platform_handle());
+		}
+
+		if (depth_index != -1)
+		{
+			auto depth = mtl_render_pass->depthAttachment();
+			depth->setClearDepth(ror::settings().m_depth_clear);
+			depth->clearDepth();
+			depth->setLoadAction(to_metal_load_action(render_targets[static_cast<uint32_t>(depth_index)].m_load_action));
+			depth->setStoreAction(to_metal_store_action(render_targets[static_cast<uint32_t>(depth_index)].m_store_action));
+		}
+
+		this->m_render_passes.emplace_back(mtl_render_pass);
+	}
 }
 
 }        // namespace rhi
@@ -101,7 +141,7 @@ public:
     MTL::ColorWriteMask                                   writeMask() const;
 };
 
-class RenderPassColorAttachmentDescriptor 
+class RenderPassColorAttachmentDescriptor
 {
 public:
     class Texture*                               texture() const;

@@ -166,6 +166,7 @@ rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a
 	ti.depth(1u);
 	ti.bytes_per_pixel(static_cast<uint32_t>(bpp));
 	ti.name(a_buffer_view->name);
+	ti.usage(rhi::TextureUsage::shader_read);
 
 	return ti;
 }

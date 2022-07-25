@@ -112,8 +112,6 @@
 						"type":"shadow",
 						"state":"transient",
 						"debug_output":true,
-						"width":1024,
-						"height":768,
 						"program":0
 					}
 				]
@@ -222,6 +220,12 @@
 						"load_action":"clear",
 						"store_action":"store"
 					}
+				],
+				"background":[
+					0.14,
+					0.14,
+					0.14,
+					1.0
 				],
 				"subpasses":[
 					{
@@ -349,8 +353,7 @@
 						"type":"post_process",
 						"state":"transient",
 						"subpass_inputs":[
-							0,
-							1
+							0
 						],
 						"program":1
 					}
@@ -378,8 +381,7 @@
 						"type":"post_process",
 						"state":"transient",
 						"subpass_inputs":[
-							0,
-							1
+							0
 						],
 						"program":1
 					}

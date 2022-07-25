@@ -54,44 +54,81 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 
 	assert(device);
 
+	if (this->width() == 0 || this->height() == 0)
+	{
+		ror::log_critical("Uploading a texture of zero width or height texture name = {}, width x height=({}, {})",
+		                  this->name().c_str(), this->width(), this->height());
+		return;
+	}
+
 	texture_descriptor->setWidth(this->width());
 	texture_descriptor->setHeight(this->height());
 	texture_descriptor->setPixelFormat(mtl::to_metal_pixelformat(this->format()));
 	texture_descriptor->setTextureType(mtl::to_metal_texture_target(this->target()));
-	texture_descriptor->setUsage(MTL::ResourceUsageRead);
 	texture_descriptor->setMipmapLevelCount(this->mips().size());
+	texture_descriptor->setUsage(MTL::TextureUsageUnknown);
 
-	this->m_texture = device->newTexture(texture_descriptor);
+	bool needs_upload = true;
+
+	if (this->usage() == rhi::TextureUsage::shader_read || this->usage() == rhi::TextureUsage::render_target_read)
+		texture_descriptor->setUsage(MTL::TextureUsageShaderRead);
+
+	if (this->usage() == rhi::TextureUsage::render_target || this->usage() == rhi::TextureUsage::render_target_read)
+	{
+		texture_descriptor->setUsage(texture_descriptor->usage() | MTL::TextureUsageRenderTarget);
+		needs_upload = false;
+	}
+
+	if (this->usage() == rhi::TextureUsage::shader_write)
+	{
+		texture_descriptor->setUsage(texture_descriptor->usage() | MTL::TextureUsageShaderWrite);
+		needs_upload = false;
+	}
 
 #if 1
 	// Enable the managed route for now because of bug in BigSur
-	texture_descriptor->setStorageMode(MTL::StorageModeManaged);
+	if (is_pixel_format_depth_format(this->format()))
+		texture_descriptor->setStorageMode(MTL::StorageModePrivate);
+	else
+		texture_descriptor->setStorageMode(MTL::StorageModeManaged);
 
-	MTL::Region region{0, 0, 0, this->width(), this->height(), 1};
-	this->m_texture->replaceRegion(region, 0, this->data(), bytes_per_row);
+	this->m_texture = device->newTexture(texture_descriptor);
+
+	if (needs_upload)
+	{
+		MTL::Region region{0, 0, 0, this->width(), this->height(), 1};
+		this->m_texture->replaceRegion(region, 0, this->data(), bytes_per_row);
+		this->ready(true);
+	}
 #else
 
-	MTL::CommandQueue *queue = rhi_device->platform_queue();
-	assert(queue);
 	texture_descriptor->setStorageMode(MTL::StorageModePrivate);
 
-	assert(this->data());
-	assert(this->size() == this->width() * this->height() * this->bytes_per_pixel());
+	this->m_texture = device->newTexture(texture_descriptor);
 
-	MTL::Buffer *source_buffer = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);
-	(void) source_buffer;
+	if (needs_upload)
+	{
+		MTL::CommandQueue *queue = rhi_device->platform_queue();
+		assert(queue);
 
-	MTL::CommandBuffer *command_buffer = queue->commandBuffer();
+		assert(this->data());
+		assert(this->size() == this->width() * this->height() * this->bytes_per_pixel());
 
-	MTL::BlitCommandEncoder *blit_command_encoder = command_buffer->blitCommandEncoder();
+		MTL::Buffer *source_buffer = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);
+		(void) source_buffer;
 
-	// copyFromBuffer is hanging the whole System and rebooting the machine
-	// This is a bug in BigSur it works fine on Monterey M1
-	blit_command_encoder->copyFromBuffer(source_buffer, 0, bytes_per_row, this->width() * this->height() * this->bytes_per_pixel(), size, this->m_texture, 0, 0, texture_origin);
-	blit_command_encoder->endEncoding();
+		MTL::CommandBuffer *command_buffer = queue->commandBuffer();
 
-	command_buffer->addCompletedHandler([this](MTL::CommandBuffer *) { this->ready(true); });
-	command_buffer->commit();
+		MTL::BlitCommandEncoder *blit_command_encoder = command_buffer->blitCommandEncoder();
+
+		// copyFromBuffer is hanging the whole System and rebooting the machine
+		// This is a bug in BigSur it works fine on Monterey M1
+		blit_command_encoder->copyFromBuffer(source_buffer, 0, bytes_per_row, this->width() * this->height() * this->bytes_per_pixel(), size, this->m_texture, 0, 0, texture_origin);
+		blit_command_encoder->endEncoding();
+
+		command_buffer->addCompletedHandler([this](MTL::CommandBuffer *) { this->ready(true); });
+		command_buffer->commit();
+	}
 
 #endif
 

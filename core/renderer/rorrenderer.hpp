@@ -56,7 +56,7 @@ class Renderer final : public Configuration<Renderer>
 
 	FORCE_INLINE Renderer();        //! Default constructor
 	void         load_specific();
-	void         upload(rhi::Device&);
+	void         upload(rhi::Device &);
 
 	// clang-format off
 	auto& shaders()                       { return this->m_shaders; }
@@ -70,8 +70,6 @@ class Renderer final : public Configuration<Renderer>
 
 	void shaders(const std::vector<rhi::Shader>                      &a_shaders)                { this->m_shaders = a_shaders; }
 	void programs(const std::vector<rhi::Program>                    &a_programs)               { this->m_programs = a_programs; }
-	// void render_targets(const std::vector<rhi::TextureImage>         &a_render_targets)         { this->m_render_targets = a_render_targets; }
-	// void render_buffers(const std::vector<rhi::Buffer<rhi::Static>>  &a_render_buffers)         { this->m_render_buffers = a_render_buffers; }
 	void dimensions(const ror::Vector2ui                             &a_dimensions)             { this->m_dimensions = a_dimensions; }
 	void viewport(const ror::Vector4i                                &a_viewport)               { this->m_viewport = a_viewport; }
 	void frame_graphs(const FrameGraph                               &a_frame_graphs)           { this->m_frame_graphs = a_frame_graphs; }
@@ -86,6 +84,7 @@ class Renderer final : public Configuration<Renderer>
 	void load_frame_graphs();
 	void load_render_targets();
 	void load_render_buffers();
+	void setup_references();
 
 	std::vector<rhi::Shader>              m_shaders{};                           //! All the global shaders
 	std::vector<rhi::Program>             m_programs{};                          //! All the global shader programs

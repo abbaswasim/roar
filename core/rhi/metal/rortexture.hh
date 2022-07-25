@@ -26,4 +26,11 @@
 #include "rhi/metal/rortexture.hpp"
 
 namespace rhi
-{}        // namespace rhi
+{
+
+FORCE_INLINE constexpr auto TextureImageMetal::platform_handle() const noexcept
+{
+	return this->m_texture;
+}
+
+}        // namespace rhi

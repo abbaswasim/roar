@@ -29,12 +29,12 @@
 #include "math/rorvector2.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
-#include "rhi/crtp_interfaces/rorrenderpass.hpp"
-#include "rhi/rordevice.hpp"
 #include "rhi/rorbuffer.hpp"
+#include "rhi/rordevice.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
+#include <cassert>
 #include <vector>
 
 namespace ror
@@ -111,6 +111,7 @@ void Renderer::load_render_targets()
 
 			assert(render_target.contains("format") && "Render_target must specifiy format");
 			texture.format(rhi::string_to_pixel_format(render_target["format"]));
+			texture.usage(rhi::TextureUsage::render_target);        // Is also changed/updated later in reading framegraphs
 
 			// Not allocated render target, will be allocated when needed in render passes and properties set
 			// texture.allocate();
@@ -173,9 +174,9 @@ rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
 	return rhi::RenderpassType::main;
 }
 
-void read_render_pass(json &a_render_pass, rhi::Renderpass &rp)
+void read_render_pass(json &a_render_pass, rhi::Renderpass &render_pass, std::vector<rhi::TextureImage> &a_render_targets)
 {
-	ror::Vector2ui dims = rp.dimensions();
+	ror::Vector2ui dims = render_pass.dimensions();
 
 	if (a_render_pass.contains("width"))
 		dims.x = (a_render_pass["width"]);
@@ -183,7 +184,7 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass &rp)
 	if (a_render_pass.contains("height"))
 		dims.y = (a_render_pass["height"]);
 
-	rp.dimensions(dims);
+	render_pass.dimensions(dims);
 
 	if (a_render_pass.contains("viewport"))
 	{
@@ -196,20 +197,20 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass &rp)
 		viewport.z = vip["w"];
 		viewport.w = vip["h"];
 
-		rp.viewport(viewport);
+		render_pass.viewport(viewport);
 	}
 
 	if (a_render_pass.contains("depends_on"))
 	{
 		auto parents = a_render_pass["depends_on"];
-		rp.parents(parents);
+		render_pass.parent_ids(parents);
 	}
 
 	if (a_render_pass.contains("background"))
 	{
 		auto color = a_render_pass["background"];
 		assert(color.size() == 4 && "Renderpass background color is not correctly defined");
-		rp.background({color[0], color[1], color[2], color[3]});
+		render_pass.background({color[0], color[1], color[2], color[3]});
 	}
 
 	assert(a_render_pass.contains("render_targets") && "Render pass must have render targets");
@@ -249,10 +250,12 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass &rp)
 				assert(0 && "Invalid store action string provided");
 
 			// Emplaces a RenderTarget
-			rts.emplace_back(index, load_action, store_action);
+			assert(index < a_render_targets.size() && "Index is out of bound for render targets provided");
+
+			rts.emplace_back(index, a_render_targets[index], load_action, store_action);
 		}
 
-		rp.render_targets(std::move(rts));
+		render_pass.render_targets(std::move(rts));
 	}
 
 	assert(a_render_pass.contains("subpasses") && "There must be atleast one subpass in a render pass");
@@ -290,19 +293,29 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass &rp)
 		if (subpass.contains("rendered_inputs"))
 		{
 			std::vector<uint32_t> rendered_inputs = subpass["rendered_inputs"];
-			rsp.rendered_inputs(std::move(rendered_inputs));
+			for (auto &rt_index : rendered_inputs)
+			{
+				assert(rt_index < a_render_targets.size() && "This rendered input doesn't exist in the render targets");
+				a_render_targets[rt_index].usage(rhi::TextureUsage::render_target_read);
+			}
+			rsp.rendered_input_ids(std::move(rendered_inputs));
 		}
 
 		if (subpass.contains("subpass_inputs"))
 		{
 			std::vector<uint32_t> subpass_inputs = subpass["subpass_inputs"];
-			rsp.input_attachments(std::move(subpass_inputs));
+			for (auto &rt_index : subpass_inputs)
+			{
+				assert(rt_index < a_render_targets.size() && "This subpass input doesn't exist in the render targets");
+				a_render_targets[rt_index].usage(rhi::TextureUsage::render_target_read);
+			}
+			rsp.input_attachment_ids(std::move(subpass_inputs));
 		}
 
 		rsps.emplace_back(std::move(rsp));
-
 	}
-	rp.subpasses(std::move(rsps));
+
+	render_pass.subpasses(std::move(rsps));
 }
 
 void Renderer::load_frame_graphs()
@@ -329,7 +342,7 @@ void Renderer::load_frame_graphs()
 		this->m_viewport.w = viewport["h"];
 	}
 
-	assert(frame_graph.contains("forward") || frame_graph.contains("deferred") && "There must be at least one frame graph provided");
+	assert((frame_graph.contains("forward") || frame_graph.contains("deferred")) && "There must be at least one frame graph provided");
 
 	if (frame_graph.contains("forward"))
 	{
@@ -340,7 +353,7 @@ void Renderer::load_frame_graphs()
 
 			rp.viewport(this->m_viewport);
 			rp.dimensions(this->m_dimensions);
-			read_render_pass(forward_pass, rp);
+			read_render_pass(forward_pass, rp, this->m_render_targets);
 			this->m_frame_graphs["forward"].emplace_back(std::move(rp));
 		}
 	}
@@ -354,7 +367,7 @@ void Renderer::load_frame_graphs()
 
 			rp.viewport(this->m_viewport);
 			rp.dimensions(this->m_dimensions);
-			read_render_pass(deferred_pass, rp);
+			read_render_pass(deferred_pass, rp, this->m_render_targets);
 			this->m_frame_graphs["deferred"].emplace_back(std::move(rp));
 		}
 	}
@@ -370,6 +383,61 @@ void Renderer::load_frame_graphs()
 	}
 }
 
+void Renderer::setup_references()
+{
+	// Lets setup all the refrences, we have to do this last because hopefully everything is loaded by now
+	// All reference are set here except RenderTargets in subpasses which are done earlier
+	for (auto &graph : this->m_frame_graphs)
+	{
+		for (auto &pass : graph.second)
+		{
+			// All the parent_ids into parents (refrences)
+			{
+				auto &pids = pass.parent_ids();
+
+				rhi::Renderpass::Renderpasses ps{};
+
+				assert(pids.size() <= graph.second.size() && "Parent Ids and number of render passes in this graph doesn't match");
+
+				for (auto pid : pids)
+					ps.emplace_back(std::ref(graph.second[pid]));
+
+				pass.parents(std::move(ps));
+			}
+
+			for (auto &subpass : pass.subpasses())
+			{
+				// All the render input ids into render input references
+				{
+					auto &rids = subpass.rendered_input_ids();
+
+					rhi::Rendersubpass::RenderTargets rts{};
+
+					assert(rids.size() <= pass.render_targets().size() && "Rendered Ids and number of render targets in the renderer doesn't match");
+
+					for (auto rid : rids)
+						rts.emplace_back(std::ref(pass.render_targets()[rid]));
+
+					subpass.rendered_inputs(std::move(rts));
+				}
+				// All the subpass input ids into subpass input references
+				{
+					auto &iads = subpass.input_attachment_ids();
+
+					rhi::Rendersubpass::Rendersubpasses rsps{};
+
+					assert(iads.size() <= pass.subpasses().size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
+
+					for (auto rid : iads)
+						rsps.emplace_back(std::ref(pass.subpasses()[rid]));
+
+					subpass.input_attachments(std::move(rsps));
+				}
+			}
+		}
+	}
+}
+
 void Renderer::load_specific()
 {
 	// Order is important don't re-order
@@ -377,6 +445,7 @@ void Renderer::load_specific()
 	this->load_render_targets();
 	this->load_render_buffers();
 	this->load_frame_graphs();
+	this->setup_references();
 }
 
 void Renderer::upload(rhi::Device &a_device)
@@ -387,9 +456,6 @@ void Renderer::upload(rhi::Device &a_device)
 	for (auto &program : this->m_programs)
 		program.upload();
 
-	for (auto &render_target : this->m_render_targets)
-		render_target.upload(a_device);
-
 	// TODO: Fix uploads in the buffer
 	// for (auto &render_buffer : this->m_render_buffers)
 	//     render_buffer.upload();
@@ -398,12 +464,18 @@ void Renderer::upload(rhi::Device &a_device)
 	{
 		for (auto &pass : graph.second)
 		{
+			auto this_m_render_targets = pass.render_targets();
+			for (auto &render_target : this_m_render_targets)
+			{
+				auto &texture = render_target.m_target_reference.get();
+				texture.width(pass.dimensions().x);
+				texture.height(pass.dimensions().y);
+				texture.upload(a_device);        // Doesn't necessarily upload a texture to the GPU but creates the texture in the GPU for later use
+			}
+
 			pass.upload(a_device);
 		}
 	}
-
-	// m_frame_graphs{};                       //! Frame graph for all techniques like forward, deferred etc
-	// *m_current_frame_graph{nullptr};        //! Non-owning raw pointer alias that Points to the active technique in the framegraphs
 }
 
 }        // namespace ror

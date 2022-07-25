@@ -45,6 +45,7 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 	a_texture.depth(1u);
 	a_texture.bytes_per_pixel(static_cast<uint32_t>(bpp));
 	a_texture.name("stbi_memory");
+	a_texture.usage(rhi::TextureUsage::shader_read);
 }
 
 }        // namespace rhi

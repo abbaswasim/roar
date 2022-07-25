@@ -177,6 +177,7 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 
 	a_texture.allocate(mips_size);
 	a_texture.format(basis_to_format(tex_fmt));
+	a_texture.usage(rhi::TextureUsage::shader_read);
 
 	uint8_t *decoded_data = a_texture.data();
 	uint64_t mip_offset   = 0;

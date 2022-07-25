@@ -51,7 +51,7 @@ class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 
   protected:
   private:
-	MTL::RenderPassDescriptor *m_render_pass{nullptr};        //! Platform render pass descriptor
+	std::vector<MTL::RenderPassDescriptor *> m_render_passes{nullptr};        //! Platform render pass descriptors, we have a list here because engine subpasses are split into render passes for Metal
 };
 
 declare_rhi_render_type(Renderpass);

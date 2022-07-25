@@ -613,5 +613,16 @@ rhi::PixelFormat string_to_pixel_format(const std::string& a_format)
 	return rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb;
 }
 
-// clang-format on
+bool is_pixel_format_depth_format(const rhi::PixelFormat a_format)
+{
+	if (a_format == PixelFormat::depth16_uint16_norm ||
+	    a_format == PixelFormat::depth24_norm_stencil8_uint32 ||
+	    a_format == PixelFormat::depth32_float32_stencil8_int8 ||
+	    a_format == PixelFormat::depth32_float32 ||
+	    a_format == PixelFormat::x32_stencil8 ||
+	    a_format == PixelFormat::x24_stencil8)
+		return true;
+
+	return false;
+}
 }        // namespace rhi

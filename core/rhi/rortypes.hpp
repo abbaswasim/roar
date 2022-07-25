@@ -402,11 +402,11 @@ enum class TextureTarget
 
 enum class TextureUsage
 {
-
-	unknown       = 0,
-	shader_read   = 1,
-	shader_write  = 2,
-	render_target = 4,
+	unknown,
+	shader_read,              // Read only textures that are sampled in shaders
+	shader_write,             // Implies a read somewhere later, otherwise what is the point of writing it
+	render_target,            // Not same as write, and you don't need to combine write and render target for render targets, metal likes it this way
+	render_target_read        // A readable (sample) render target, some drivers might be able to optimise write only render targets
 };
 
 enum class BlendMode
@@ -1013,6 +1013,7 @@ constexpr uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 BufferSemantic   get_format_semantic(const std::string &a_format);
 std::string      get_format_semantic(const BufferSemantic &a_semantic);
 rhi::PixelFormat string_to_pixel_format(const std::string &a_format);
+bool             is_pixel_format_depth_format(const rhi::PixelFormat a_format);
 constexpr bool   has_semantic(uint64_t a_type, BufferSemantic a_semantic);
 
 const auto format_to_bytes = vertex_format_to_bytes;
