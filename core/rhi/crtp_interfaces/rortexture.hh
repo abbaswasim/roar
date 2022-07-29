@@ -142,7 +142,7 @@ FORCE_INLINE void TextureImageCrtp<_type>::allocate(uint64_t a_size)
 }
 
 template <class _type>
-FORCE_INLINE void TextureImageCrtp<_type>::upload(rhi::Device* a_device)
+FORCE_INLINE void TextureImageCrtp<_type>::upload(rhi::Device *a_device)
 {
 	this->underlying().upload(a_device);
 }
@@ -204,65 +204,77 @@ FORCE_INLINE void TextureImageCrtp<_type>::push_empty_mip() noexcept
 }
 
 template <class _type>
-rhi::TextureFilter TextureSamplerCrtp<_type>::mag_filter()
+FORCE_INLINE constexpr rhi::TextureFilter TextureSamplerCrtp<_type>::mag_filter() const noexcept
 {
 	return this->m_mag_filter;
 }
 template <class _type>
-rhi::TextureFilter TextureSamplerCrtp<_type>::min_filter()
+FORCE_INLINE constexpr rhi::TextureFilter TextureSamplerCrtp<_type>::min_filter() const noexcept
 {
 	return this->m_min_filter;
 }
 template <class _type>
-rhi::TextureFilter TextureSamplerCrtp<_type>::mip_mode()
+FORCE_INLINE constexpr rhi::TextureMipFilter TextureSamplerCrtp<_type>::mip_mode() const noexcept
 {
 	return this->m_mip_mode;
 }
 template <class _type>
-rhi::TextureAddressMode TextureSamplerCrtp<_type>::wrap_s()
+FORCE_INLINE constexpr rhi::TextureAddressMode TextureSamplerCrtp<_type>::wrap_s() const noexcept
 {
 	return this->m_wrap_s;
 }
 template <class _type>
-rhi::TextureAddressMode TextureSamplerCrtp<_type>::wrap_t()
+FORCE_INLINE constexpr rhi::TextureAddressMode TextureSamplerCrtp<_type>::wrap_t() const noexcept
 {
 	return this->m_wrap_t;
 }
 template <class _type>
-rhi::TextureAddressMode TextureSamplerCrtp<_type>::wrap_u()
+FORCE_INLINE constexpr rhi::TextureAddressMode TextureSamplerCrtp<_type>::wrap_u() const noexcept
 {
 	return this->m_wrap_u;
 }
 
 template <class _type>
-void TextureSamplerCrtp<_type>::mag_filter(rhi::TextureFilter a_filter)
+FORCE_INLINE constexpr rhi::TextureBorder TextureSamplerCrtp<_type>::border_color() const noexcept
+{
+	return this->m_border_color;
+}
+
+template <class _type>
+FORCE_INLINE constexpr void TextureSamplerCrtp<_type>::mag_filter(rhi::TextureFilter a_filter) noexcept
 {
 	this->m_mag_filter = a_filter;
 }
 template <class _type>
-void TextureSamplerCrtp<_type>::min_filter(rhi::TextureFilter a_filter)
+FORCE_INLINE constexpr void TextureSamplerCrtp<_type>::min_filter(rhi::TextureFilter a_filter) noexcept
 {
 	this->m_min_filter = a_filter;
 }
 template <class _type>
-void TextureSamplerCrtp<_type>::mip_mode(rhi::TextureFilter a_mode)
+FORCE_INLINE constexpr void TextureSamplerCrtp<_type>::mip_mode(rhi::TextureMipFilter a_mode) noexcept
 {
 	this->m_mip_mode = a_mode;
 }
 template <class _type>
-void TextureSamplerCrtp<_type>::wrap_s(rhi::TextureAddressMode a_wrap)
+FORCE_INLINE constexpr void TextureSamplerCrtp<_type>::wrap_s(rhi::TextureAddressMode a_wrap) noexcept
 {
 	this->m_wrap_s = a_wrap;
 }
 template <class _type>
-void TextureSamplerCrtp<_type>::wrap_t(rhi::TextureAddressMode a_wrap)
+FORCE_INLINE constexpr void TextureSamplerCrtp<_type>::wrap_t(rhi::TextureAddressMode a_wrap) noexcept
 {
 	this->m_wrap_t = a_wrap;
 }
 template <class _type>
-void TextureSamplerCrtp<_type>::wrap_u(rhi::TextureAddressMode a_wrap)
+FORCE_INLINE constexpr void TextureSamplerCrtp<_type>::wrap_u(rhi::TextureAddressMode a_wrap) noexcept
 {
 	this->m_wrap_u = a_wrap;
+}
+
+template <class _type>
+FORCE_INLINE constexpr void TextureSamplerCrtp<_type>::border_color(rhi::TextureBorder a_border) noexcept
+{
+	this->m_border_color = a_border;
 }
 
 template <class _type>

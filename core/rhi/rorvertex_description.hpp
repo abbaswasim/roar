@@ -158,7 +158,6 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 	FORCE_INLINE const auto &layouts() const;
 
-	// TODO: cache the result if this turns out to be expensive
 	FORCE_INLINE auto hash_64() const;
 
   private:

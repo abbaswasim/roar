@@ -23,7 +23,6 @@
 //
 // Version: 1.0.0
 
-#include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rortexture.hpp"
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/metal/rormetal_common.hpp"
@@ -37,11 +36,56 @@
 #include <Metal/MTLCommandQueue.hpp>
 #include <Metal/MTLDevice.hpp>
 #include <Metal/MTLResource.hpp>
+#include <Metal/MTLSampler.hpp>
 #include <Metal/MTLTexture.hpp>
 #include <Metal/MTLTypes.hpp>
 
 namespace rhi
 {
+constexpr FORCE_INLINE MTL::TextureType to_metal_texture_target(rhi::TextureTarget a_target)
+{
+	switch (a_target)
+	{
+		case rhi::TextureTarget::texture_1D:
+			return MTL::TextureType::TextureType1D;
+		case rhi::TextureTarget::texture_1D_array:
+			return MTL::TextureType::TextureType1DArray;
+		case rhi::TextureTarget::texture_2D:
+			return MTL::TextureType::TextureType2D;
+		case rhi::TextureTarget::texture_2D_array:
+			return MTL::TextureType::TextureType2DArray;
+		case rhi::TextureTarget::texture_2D_MS:
+			return MTL::TextureType::TextureType2DMultisample;
+		case rhi::TextureTarget::texture_cube:
+			return MTL::TextureType::TextureTypeCube;
+		case rhi::TextureTarget::texture_cube_array:
+			return MTL::TextureType::TextureTypeCubeArray;
+		case rhi::TextureTarget::texture_3D:
+			return MTL::TextureType::TextureType3D;
+		case rhi::TextureTarget::texture_2D_MS_array:
+			return MTL::TextureType::TextureType2DMultisampleArray;
+	}
+}
+
+constexpr FORCE_INLINE MTL::SamplerMinMagFilter to_metal_texture_filter(rhi::TextureFilter a_filter)
+{
+	return static_cast<MTL::SamplerMinMagFilter>(a_filter);
+}
+
+constexpr FORCE_INLINE MTL::SamplerMipFilter to_metal_texture_mip_filter(rhi::TextureMipFilter a_filter)
+{
+	return static_cast<MTL::SamplerMipFilter>(a_filter);
+}
+
+constexpr FORCE_INLINE MTL::SamplerBorderColor to_metal_texture_border(rhi::TextureBorder a_color)
+{
+	return static_cast<MTL::SamplerBorderColor>(a_color);
+}
+
+constexpr FORCE_INLINE MTL::SamplerAddressMode to_metal_texture_address_mode(rhi::TextureAddressMode a_mode)
+{
+	return static_cast<MTL::SamplerAddressMode>(a_mode);
+}
 
 void TextureImageMetal::upload(rhi::Device &a_device)
 {
@@ -63,8 +107,8 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 
 	texture_descriptor->setWidth(this->width());
 	texture_descriptor->setHeight(this->height());
-	texture_descriptor->setPixelFormat(mtl::to_metal_pixelformat(this->format()));
-	texture_descriptor->setTextureType(mtl::to_metal_texture_target(this->target()));
+	texture_descriptor->setPixelFormat(to_metal_pixelformat(this->format()));
+	texture_descriptor->setTextureType(to_metal_texture_target(this->target()));
 	texture_descriptor->setMipmapLevelCount(this->mips().size());
 	texture_descriptor->setUsage(MTL::TextureUsageUnknown);
 
@@ -133,6 +177,24 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 #endif
 
 	texture_descriptor->release();
+}
+
+void TextureSamplerMetal::upload(rhi::Device &a_device)
+{
+	MTL::Device            *device             = a_device.platform_device();
+	MTL::SamplerDescriptor *sampler_descriptor = MTL::SamplerDescriptor::alloc()->init();
+
+	sampler_descriptor->setSAddressMode(to_metal_texture_address_mode(this->wrap_s()));
+	sampler_descriptor->setTAddressMode(to_metal_texture_address_mode(this->wrap_t()));
+	sampler_descriptor->setRAddressMode(to_metal_texture_address_mode(this->wrap_u()));
+	sampler_descriptor->setMinFilter(to_metal_texture_filter(this->min_filter()));
+	sampler_descriptor->setMagFilter(to_metal_texture_filter(this->mag_filter()));
+	sampler_descriptor->setMipFilter(to_metal_texture_mip_filter(this->mip_mode()));
+	sampler_descriptor->setBorderColor(to_metal_texture_border(this->border_color()));
+
+	this->m_sampler = device->newSamplerState(sampler_descriptor);
+
+	sampler_descriptor->release();
 }
 
 define_translation_unit_vtable(TextureImageMetal)

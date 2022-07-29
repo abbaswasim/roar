@@ -34,6 +34,7 @@
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortypes.hpp"
 #include "shader_system/rorshader_system.hpp"
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <map>
@@ -364,7 +365,7 @@ std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_nam
 		str.append(line);
 	}
 
-	str.append("\n}\n");
+	str.append("}\n");
 	return str;
 }
 

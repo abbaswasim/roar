@@ -27,6 +27,7 @@
 
 namespace rhi
 {
+// TODO: Change the following to Vulkan format enum values
 // Pixel formats
 constexpr auto PlatformPixelFormatInvalid               = 0;
 constexpr auto PlatformPixelFormatA8Unorm               = 1;
@@ -222,4 +223,21 @@ constexpr auto PlatformVertexFormatUShortNormalized      = 49;
 constexpr auto PlatformVertexFormatShortNormalized       = 50;
 constexpr auto PlatformVertexFormatHalf                  = 51;
 
+constexpr auto PlatformTextureAddressModeClampToEdge        = 0;
+constexpr auto PlatformTextureAddressModeMirrorClampToEdge  = 1;
+constexpr auto PlatformTextureAddressModeRepeat             = 2;
+constexpr auto PlatformTextureAddressModeMirrorRepeat       = 3;
+constexpr auto PlatformTextureAddressModeClampToZero        = 4;
+constexpr auto PlatformTextureAddressModeClampToBorderColor = 5;
+
+constexpr auto PlatformTextureBorderTransparent = 0;
+constexpr auto PlatformTextureBorderOpaque      = 1;
+constexpr auto PlatformTextureBorderWhite       = 2;
+
+constexpr auto PlatformTextureFilterNearest = 0;
+constexpr auto PlatformTextureFilterLinear  = 1;
+
+constexpr auto PlatformTextureMipFilterNotMipmapped = 0;
+constexpr auto PlatformTextureMipFilterNearest      = 1;
+constexpr auto PlatformTextureMipFilterLinear       = 2;
 }        // namespace rhi

@@ -45,7 +45,9 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	 * If in doubt if the layout represented is valid or not call complete() to check
 	 * This makes VertexLayout more aware and clever than dumb data blob
 	 */
-	FORCE_INLINE VertexLayout(uint32_t a_binding, uint32_t a_rate, rhi::StepFunction a_function) :
+	FORCE_INLINE VertexLayout(uint32_t          a_binding,
+	                          uint32_t          a_rate,
+	                          rhi::StepFunction a_function) :
 	    m_binding(a_binding),
 	    m_rate(a_rate),
 	    m_function(a_function)
@@ -55,7 +57,11 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	 * Use this version of the constructor if you want to take care of creating stride yourself
 	 * At the time of use layout will be considered complete and valid
 	 */
-	FORCE_INLINE VertexLayout(uint32_t a_binding, uint32_t a_stride, uint32_t a_rate = 1, uint32_t a_multiplier = 1, rhi::StepFunction a_function = rhi::StepFunction::vertex) :
+	FORCE_INLINE VertexLayout(uint32_t          a_binding,
+	                          uint32_t          a_stride,
+	                          uint32_t          a_rate       = 1,
+	                          uint32_t          a_multiplier = 1,
+	                          rhi::StepFunction a_function   = rhi::StepFunction::vertex) :
 	    m_binding(a_binding),
 	    m_stride(a_stride),
 	    m_rate(a_rate),
@@ -78,7 +84,7 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	// clang-format on
 
   private:
-	uint32_t          m_binding{0};                                 //! Binding in shaders set by VertexDescriptor
+	uint32_t          m_binding{0};                                 //! Binding in shaders set by VertexDescriptor, binding means sub buffer index in this context
 	uint32_t          m_stride{0};                                  //! Stride from attribute to attribute, set by VertexDescriptor
 	uint32_t          m_rate{1};                                    //! Contain rate at which attributes are read. Default 1, only use when m_function is instance
 	uint32_t          m_format_multiplier{1};                       //! Defined for custom formats and arrays

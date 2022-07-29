@@ -120,28 +120,31 @@ class ROAR_ENGINE_ITEM TextureSamplerCrtp : public ror::Crtp<_type, TextureSampl
 	FORCE_INLINE TextureSamplerCrtp &operator=(TextureSamplerCrtp &&a_other) noexcept          = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~TextureSamplerCrtp() noexcept override                               = default;        //! Destructor
 
-	rhi::TextureFilter      mag_filter();
-	rhi::TextureFilter      min_filter();
-	rhi::TextureFilter      mip_mode();
-	rhi::TextureAddressMode wrap_s();
-	rhi::TextureAddressMode wrap_t();
-	rhi::TextureAddressMode wrap_u();
-	void                    mag_filter(rhi::TextureFilter a_filter);
-	void                    min_filter(rhi::TextureFilter a_filter);
-	void                    mip_mode(rhi::TextureFilter a_mode);
-	void                    wrap_s(rhi::TextureAddressMode a_wrap);
-	void                    wrap_t(rhi::TextureAddressMode a_wrap);
-	void                    wrap_u(rhi::TextureAddressMode a_wrap);
+	FORCE_INLINE constexpr rhi::TextureFilter      mag_filter() const noexcept;
+	FORCE_INLINE constexpr rhi::TextureFilter      min_filter() const noexcept;
+	FORCE_INLINE constexpr rhi::TextureMipFilter   mip_mode() const noexcept;
+	FORCE_INLINE constexpr rhi::TextureAddressMode wrap_s() const noexcept;
+	FORCE_INLINE constexpr rhi::TextureAddressMode wrap_t() const noexcept;
+	FORCE_INLINE constexpr rhi::TextureAddressMode wrap_u() const noexcept;
+	FORCE_INLINE constexpr rhi::TextureBorder      border_color() const noexcept;
+	FORCE_INLINE constexpr void                    mag_filter(rhi::TextureFilter a_filter) noexcept;
+	FORCE_INLINE constexpr void                    min_filter(rhi::TextureFilter a_filter) noexcept;
+	FORCE_INLINE constexpr void                    mip_mode(rhi::TextureMipFilter a_mode) noexcept;
+	FORCE_INLINE constexpr void                    wrap_s(rhi::TextureAddressMode a_wrap) noexcept;
+	FORCE_INLINE constexpr void                    wrap_t(rhi::TextureAddressMode a_wrap) noexcept;
+	FORCE_INLINE constexpr void                    wrap_u(rhi::TextureAddressMode a_wrap) noexcept;
+	FORCE_INLINE constexpr void                    border_color(rhi::TextureBorder a_color) noexcept;
 
   protected:
 	FORCE_INLINE TextureSamplerCrtp() = default;        //! Default constructor
   private:
-	rhi::TextureFilter      m_mag_filter{rhi::TextureFilter::linear};         // Magnification filter
-	rhi::TextureFilter      m_min_filter{rhi::TextureFilter::linear};         // Minification filter
-	rhi::TextureFilter      m_mip_mode{rhi::TextureFilter::linear};           // Mipmapping mode
-	rhi::TextureAddressMode m_wrap_s{rhi::TextureAddressMode::repeat};        // Wrapping mode in X direction
-	rhi::TextureAddressMode m_wrap_t{rhi::TextureAddressMode::repeat};        // Wrapping mode in Y direction
-	rhi::TextureAddressMode m_wrap_u{rhi::TextureAddressMode::repeat};        // Wrapping mode in Z direction
+	rhi::TextureFilter      m_mag_filter{rhi::TextureFilter::linear};                // Magnification filter
+	rhi::TextureFilter      m_min_filter{rhi::TextureFilter::linear};                // Minification filter
+	rhi::TextureMipFilter   m_mip_mode{rhi::TextureMipFilter::not_mipmapped};        // Mipmapping mode
+	rhi::TextureAddressMode m_wrap_s{rhi::TextureAddressMode::clamp_to_edge};        // Wrapping mode in X direction
+	rhi::TextureAddressMode m_wrap_t{rhi::TextureAddressMode::clamp_to_edge};        // Wrapping mode in Y direction
+	rhi::TextureAddressMode m_wrap_u{rhi::TextureAddressMode::clamp_to_edge};        // Wrapping mode in Z direction
+	rhi::TextureBorder      m_border_color{rhi::TextureBorder::opaque};              // Border color by default is opaque black
 };
 
 // static_assert(std::is_trivially_copyable_v<TextureSampler>, "TextureSampler is not trivially copyable");

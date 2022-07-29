@@ -29,6 +29,7 @@
 #include "rhi/crtp_interfaces/rortexture.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
+#include <Metal/MTLSampler.hpp>
 #include <Metal/MTLTexture.hpp>
 
 namespace rhi
@@ -42,16 +43,21 @@ class ROAR_ENGINE_ITEM TextureImageMetal : public TextureImageCrtp<TextureImageM
 
   protected:
   private:
-	MTL::Texture *m_texture{nullptr};
 	declare_translation_unit_vtable();
+
+	MTL::Texture *m_texture{nullptr};
 };
 
 class ROAR_ENGINE_ITEM TextureSamplerMetal : public TextureSamplerCrtp<TextureSamplerMetal>
 {
   public:
+	void upload(rhi::Device& a_device);
+
   protected:
   private:
 	declare_translation_unit_vtable();
+
+	MTL::SamplerState *m_sampler{nullptr};
 };
 
 class ROAR_ENGINE_ITEM TextureMetal final : public TextureCrtp<TextureMetal>

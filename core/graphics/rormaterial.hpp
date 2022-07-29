@@ -114,12 +114,12 @@ class ROAR_ENGINE_ITEM Material final
 	Component<float32_t>    m_occlusion{};                                    //! Occlusion map factor is the strength
 	Component<float32_t>    m_normal{};                                       //! Normal map, Used for normal mapping and bump mapping, factor is the normal scale
 	Component<float32_t>    m_bent_normal{};                                  //! Map of median rays of un-occluded normal of a hemisphere around a texel, can be used for AO etc
-	Component<float32_t>    m_height{};                                       //! Height map that ca be used for bump mapping, factor is the scale
+	Component<float32_t>    m_height{};                                       //! Height map that can be used for bump mapping, factor is the scale
 	Component<float32_t>    m_opacity{};                                      //! Map to create cutouts, or a constant factor as alpha_cutoff_threshold of {0.5} default, also called Mask texture
 	Component<ror::Color4f> m_subsurface_color{};                             //! Whats the color of scattering, could also be a texture map
 	ror::Color4f            m_subsurface{0.0f};                               //! Reach in each component, red is higher compared to blue and green (1.0, 0.2, 0.1) for human skin, w is scattering like how much SSS do we want
 	rhi::MaterialModel      m_material_model{rhi::MaterialModel::lit};        //! Is it lit, hair or eyes material etc
-	rhi::BlendMode          m_blend_mode{rhi::BlendMode::opaque};             //! Blend mode of the material
+	rhi::BlendMode          m_blend_mode{rhi::BlendMode::opaque};             //! Blend mode of the material // TODO: Use blend mode in shader generator
 	MaterialType            m_type{MaterialType::metalic_roughness};          //! Material could either be metallic roughness or specular glossy or both in which case one will be chosen
 	bool                    m_double_sided{false};                            //! Should this be rendered with double sided triangle state
 	bool                    m_layered{false};                                 //! Is this material part of a layerd material chain

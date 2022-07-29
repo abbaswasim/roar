@@ -26,6 +26,7 @@
 #pragma once
 
 #include <Metal/MTLPixelFormat.hpp>
+#include <Metal/MTLSampler.hpp>
 #include <Metal/MTLVertexDescriptor.hpp>
 
 namespace rhi
@@ -224,5 +225,23 @@ constexpr auto PlatformVertexFormatShort                 = MTL::VertexFormat::Ve
 constexpr auto PlatformVertexFormatUShortNormalized      = MTL::VertexFormat::VertexFormatUShortNormalized;
 constexpr auto PlatformVertexFormatShortNormalized       = MTL::VertexFormat::VertexFormatShortNormalized;
 constexpr auto PlatformVertexFormatHalf                  = MTL::VertexFormat::VertexFormatHalf;
+
+constexpr auto PlatformTextureAddressModeClampToEdge        = MTL::SamplerAddressMode::SamplerAddressModeClampToEdge;
+constexpr auto PlatformTextureAddressModeMirrorClampToEdge  = MTL::SamplerAddressMode::SamplerAddressModeMirrorClampToEdge;
+constexpr auto PlatformTextureAddressModeRepeat             = MTL::SamplerAddressMode::SamplerAddressModeRepeat;
+constexpr auto PlatformTextureAddressModeMirrorRepeat       = MTL::SamplerAddressMode::SamplerAddressModeMirrorRepeat;
+constexpr auto PlatformTextureAddressModeClampToZero        = MTL::SamplerAddressMode::SamplerAddressModeClampToZero;
+constexpr auto PlatformTextureAddressModeClampToBorderColor = MTL::SamplerAddressMode::SamplerAddressModeClampToBorderColor;
+
+constexpr auto PlatformTextureBorderTransparent = MTL::SamplerBorderColorTransparentBlack;
+constexpr auto PlatformTextureBorderOpaque      = MTL::SamplerBorderColorOpaqueBlack;
+constexpr auto PlatformTextureBorderWhite       = MTL::SamplerBorderColorOpaqueWhite;
+
+constexpr auto PlatformTextureFilterNearest = MTL::SamplerMinMagFilterNearest;
+constexpr auto PlatformTextureFilterLinear  = MTL::SamplerMinMagFilterLinear;
+
+constexpr auto PlatformTextureMipFilterNotMipmapped = MTL::SamplerMipFilterNotMipmapped;
+constexpr auto PlatformTextureMipFilterNearest      = MTL::SamplerMipFilterNearest;
+constexpr auto PlatformTextureMipFilterLinear       = MTL::SamplerMipFilterLinear;
 
 }        // namespace rhi

@@ -47,7 +47,7 @@ FORCE_INLINE void DeviceMetal::init(std::any a_window)
 	}
 
 	auto    &settings     = ror::settings();
-	uint32_t pixel_format = ror::static_cast_safe<uint32_t>(mtl::to_metal_pixelformat(settings.m_pixel_format));
+	uint32_t pixel_format = ror::static_cast_safe<uint32_t>(to_metal_pixelformat(settings.m_pixel_format));
 
 	this->m_window         = a_window;
 	this->m_ca_metal_layer = get_metal_layer(a_window,

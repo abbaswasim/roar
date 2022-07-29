@@ -43,27 +43,27 @@ TEST(RoarGeneral, RoarGeneral_standard_types_atomic_is_lock_free)
 	std::cout << ror::get_build_string() << std::endl;
 	std::cout << ror::get_compiler_string() << std::endl;
 
-	std::atomic<bool>        bool_t_type;
-	std::atomic<char16_t>    char16_t_type;
-	std::atomic<char32_t>    char32_t_type;
-	std::atomic<uchar8_t>    uchar8_t_type;
-	std::atomic<uchar32_t>   uchar32_t_type;
-	std::atomic<int8_t>      int8_t_type;
-	std::atomic<int32_t>     int32_t_type;
-	std::atomic<size_t>      size_t_type;
-	std::atomic<uint8_t>     uint8_t_type;
-	std::atomic<uint32_t>    uint32_t_type;
-	std::atomic<double64_t>  double64_t_type;
-	std::atomic<intptr_t>    intptr_t_type;
+	std::atomic<bool>       bool_t_type;
+	std::atomic<char16_t>   char16_t_type;
+	std::atomic<char32_t>   char32_t_type;
+	std::atomic<uchar8_t>   uchar8_t_type;
+	std::atomic<uchar32_t>  uchar32_t_type;
+	std::atomic<int8_t>     int8_t_type;
+	std::atomic<int32_t>    int32_t_type;
+	std::atomic<size_t>     size_t_type;
+	std::atomic<uint8_t>    uint8_t_type;
+	std::atomic<uint32_t>   uint32_t_type;
+	std::atomic<double64_t> double64_t_type;
+	std::atomic<intptr_t>   intptr_t_type;
 	// std::atomic<double128_t> double128_t_type;
-	std::atomic<float32_t>   float32_t_type;
-	std::atomic<uint64_t>    uint64_t_type;
-	std::atomic<uint16_t>    uint16_t_type;
-	std::atomic<int64_t>     int64_t_type;
-	std::atomic<int16_t>     int16_t_type;
-	std::atomic<uchar16_t>   uchar16_t_type;
-	std::atomic<char8_t>     char8_t_type;
-	std::atomic<ptrdiff_t>   ptrdiff_t_type;
+	std::atomic<float32_t> float32_t_type;
+	std::atomic<uint64_t>  uint64_t_type;
+	std::atomic<uint16_t>  uint16_t_type;
+	std::atomic<int64_t>   int64_t_type;
+	std::atomic<int16_t>   int16_t_type;
+	std::atomic<uchar16_t> uchar16_t_type;
+	std::atomic<char8_t>   char8_t_type;
+	std::atomic<ptrdiff_t> ptrdiff_t_type;
 	// std::atomic<hash_128_t>  hash128_t_type;
 
 	EXPECT_TRUE(std::atomic_is_lock_free<bool>(&bool_t_type)) << "atomic bool_t is not lock_free";
@@ -249,6 +249,52 @@ TEST(RoarGeneral, settings_test)
 	EXPECT_EQ(sett.m_buffers_format, "buffers_format.json");
 	EXPECT_EQ(sett.m_roar_cache, ".roar_cache");
 	EXPECT_EQ(sett.m_renderer_config, "renderer.json");
+}
+
+TEST(RoarGeneral, buffer_semantic_indices)
+{
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_position), 0);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_texture_coord_0), 1);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_texture_coord_1), 2);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_texture_coord_2), 3);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_normal), 4);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_bent_normal), 5);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_tangent), 6);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_color_0), 7);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_color_1), 8);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_bone_id_0), 9);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_bone_id_1), 10);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_weight_0), 11);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_weight_1), 12);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_morph_target), 13);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_morph_weight), 14);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::vertex_index), 15);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::instance_translation), 16);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::instance_rotation), 17);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::instance_scale), 18);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::instance_transform), 19);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::mesh_index), 20);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::meshlet_data), 21);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::drawcall_data), 22);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::texture_image_data), 23);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::texture_sampler_data), 24);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::texture_data), 25);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::material_data), 26);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::mesh_data), 27);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::skin_data), 28);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::node_data), 29);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::node_suplementory_data), 30);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::animation_sampler_data), 31);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::animation_channel_data), 32);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::animation_input_data), 33);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::animation_output_data), 34);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::animation_data), 35);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::bounding_box_data), 36);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::index_data), 37);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::joint_index_data), 38);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::instance_trs), 39);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::gltf_bin_buffer), 40);
+	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::custom), 41);
 }
 
 }        // namespace ror_test

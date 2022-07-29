@@ -107,7 +107,6 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	template <typename U = _type, std::enable_if_t<std::is_same<U, Static>::value, bool> = true>
 	ptrdiff_t _offset(ptrdiff_t a_bytes);        //! Returns offset of the location available
 
-	// uint32_t                    m_device_handle{0};               //! To be filled in by device buffer create calls, do I actually want this here?
 	// uint8_t                    *m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
 	// bool                        m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
 	ptrdiff_t                   m_filled_size{0};                 //! How much of the buffer is filled, this should be aligned, also this needs synchronising

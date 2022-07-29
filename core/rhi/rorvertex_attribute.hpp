@@ -98,7 +98,7 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	uint32_t            m_location{0};                                            //! Use in shader like "layout(location = m_location)", decided by layout
 	uint32_t            m_offset{0};                                              //! Offset of this attribute relative to other attributes
 	ptrdiff_t           m_buffer_offset{0};                                       //! Offset of this attribute in buffer buffer_index from the start, decided by layout
-	uint32_t            m_binding{0};                                             //! Which layout binding describes this attribute
+	uint32_t            m_binding{0};                                             //! Copy of the binding in its corresponding layout binding that describes this attribute
 	uint32_t            m_buffer_index{0};                                        //! Which buffer do I live in? this is the buffer_pack index, destination buffer index
 	rhi::BufferSemantic m_semantics{rhi::BufferSemantic::vertex_position};        //! Whats the type of attribute? Position, UV, Normal etc
 	rhi::VertexFormat   m_format{rhi::VertexFormat::float32_3};                   //! float/int vec2/vec3/vec4 normalized/not packed/unpacked

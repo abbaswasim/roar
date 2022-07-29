@@ -28,6 +28,8 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rortexture.hpp"
 #include "rhi/rortypes.hpp"
+
+#include <Metal/MTLSampler.hpp>
 #include <Metal/MTLTexture.hpp>
 
 // NOTE: Don't include any Metal headers here like <Metal/MTLDevice.hpp> etc
@@ -35,35 +37,11 @@
 // Generate implementations only once. If these are included here they gets compiled
 // without implementation of the functions and then we get linker errors
 
-namespace mtl
+namespace rhi
 {
 constexpr FORCE_INLINE MTL::PixelFormat to_metal_pixelformat(rhi::PixelFormat a_pixelformat)
 {
 	return static_cast<MTL::PixelFormat>(a_pixelformat);
 }
 
-constexpr FORCE_INLINE MTL::TextureType to_metal_texture_target(rhi::TextureTarget a_target)
-{
-	switch (a_target)
-	{
-		case rhi::TextureTarget::texture_1D:
-			return MTL::TextureType::TextureType1D;
-		case rhi::TextureTarget::texture_1D_array:
-			return MTL::TextureType::TextureType1DArray;
-		case rhi::TextureTarget::texture_2D:
-			return MTL::TextureType::TextureType2D;
-		case rhi::TextureTarget::texture_2D_array:
-			return MTL::TextureType::TextureType2DArray;
-		case rhi::TextureTarget::texture_2D_MS:
-			return MTL::TextureType::TextureType2DMultisample;
-		case rhi::TextureTarget::texture_cube:
-			return MTL::TextureType::TextureTypeCube;
-		case rhi::TextureTarget::texture_cube_array:
-			return MTL::TextureType::TextureTypeCubeArray;
-		case rhi::TextureTarget::texture_3D:
-			return MTL::TextureType::TextureType3D;
-		case rhi::TextureTarget::texture_2D_MS_array:
-			return MTL::TextureType::TextureType2DMultisampleArray;
-	}
-}
 }        // namespace mtl

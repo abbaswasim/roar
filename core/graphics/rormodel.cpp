@@ -165,7 +165,10 @@ rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a
 	ti.height(static_cast<uint32_t>(h));
 	ti.depth(1u);
 	ti.bytes_per_pixel(static_cast<uint32_t>(bpp));
-	ti.name(a_buffer_view->name);
+	if (a_buffer_view->name != nullptr)
+		ti.name(a_buffer_view->name);
+	else 
+		ti.name("texture_from_buffer_view");
 	ti.usage(rhi::TextureUsage::shader_read);
 
 	return ti;
@@ -486,20 +489,68 @@ rhi::TextureSampler cgltf_sampler_to_sampler(const cgltf_sampler *a_sampler)
 	// "enum" :           [ 9728,      9729,     9984,                     9985,                    9986,                    9987],
 	// "gltf_enumNames" : ["NEAREST", "LINEAR", "NEAREST_MIPMAP_NEAREST", "LINEAR_MIPMAP_NEAREST", "NEAREST_MIPMAP_LINEAR", "LINEAR_MIPMAP_LINEAR"],
 
-	// "enum" : [33071, 33648, 10497],
+	// "enum" :           [  33071,           33648,            10497],
 	// "gltf_enumNames" : ["CLAMP_TO_EDGE", "MIRRORED_REPEAT", "REPEAT"],
+#define NEAREST 9728
+#define LINEAR 9729
+#define NEAREST_MIPMAP_NEAREST 9984
+#define LINEAR_MIPMAP_NEAREST 9985
+#define NEAREST_MIPMAP_LINEAR 9986
+#define LINEAR_MIPMAP_LINEAR 9987
+
+#define CLAMP_TO_EDGE 33071
+#define MIRRORED_REPEAT 33648
+#define REPEAT 10497
 
 	rhi::TextureSampler sampler;
 
-	sampler.mag_filter(static_cast<rhi::TextureFilter>(a_sampler->mag_filter - 9728));                                // 9728 is NEAREST GLTF GL value for Mag filter (can only be NEAREST and LINEAR)
-	sampler.min_filter(a_sampler->min_filter % 2 ? rhi::TextureFilter::linear : rhi::TextureFilter::nearest);         // All NEAREST min filters are even, it can be all of the above
-	sampler.mip_mode(a_sampler->min_filter > 9985 ? rhi::TextureFilter::linear : rhi::TextureFilter::nearest);        // Only values above 9985 are mipmapped linear
-	if (a_sampler->wrap_s != 10497)
-		sampler.wrap_s(a_sampler->wrap_s == 33648 ? rhi::TextureAddressMode::mirrored_repeat : rhi::TextureAddressMode::clamp_to_edge);        // Else leave the default repeat
-	if (a_sampler->wrap_t != 10497)
-		sampler.wrap_t(a_sampler->wrap_t == 33648 ? rhi::TextureAddressMode::mirrored_repeat : rhi::TextureAddressMode::clamp_to_edge);        // Else leave the default repeat
+	if (a_sampler->mag_filter == NEAREST)
+		sampler.mag_filter(rhi::TextureFilter::nearest);
+	else if (a_sampler->mag_filter == LINEAR)
+		sampler.mag_filter(rhi::TextureFilter::linear);
+
+	if (a_sampler->min_filter == NEAREST ||
+	    a_sampler->min_filter == NEAREST_MIPMAP_LINEAR ||
+	    a_sampler->min_filter == NEAREST_MIPMAP_LINEAR)
+		sampler.min_filter(rhi::TextureFilter::nearest);
+	else if (a_sampler->min_filter == LINEAR ||
+	         a_sampler->min_filter == LINEAR_MIPMAP_LINEAR ||
+	         a_sampler->min_filter == LINEAR_MIPMAP_LINEAR)
+		sampler.min_filter(rhi::TextureFilter::linear);
+
+	if (a_sampler->min_filter == NEAREST_MIPMAP_NEAREST ||
+	    a_sampler->min_filter == LINEAR_MIPMAP_NEAREST)
+		sampler.mip_mode(rhi::TextureMipFilter::nearest);
+	else if (a_sampler->min_filter == NEAREST_MIPMAP_LINEAR ||
+	         a_sampler->min_filter == LINEAR_MIPMAP_LINEAR)
+		sampler.mip_mode(rhi::TextureMipFilter::linear);
+
+	if (a_sampler->wrap_s == CLAMP_TO_EDGE)
+		sampler.wrap_s(rhi::TextureAddressMode::clamp_to_edge);
+	else if (a_sampler->wrap_s == MIRRORED_REPEAT)
+		sampler.wrap_s(rhi::TextureAddressMode::mirror_repeat);
+	else if (a_sampler->wrap_s == REPEAT)
+		sampler.wrap_s(rhi::TextureAddressMode::repeat);
+
+	if (a_sampler->wrap_t == CLAMP_TO_EDGE)
+		sampler.wrap_t(rhi::TextureAddressMode::clamp_to_edge);
+	else if (a_sampler->wrap_t == MIRRORED_REPEAT)
+		sampler.wrap_t(rhi::TextureAddressMode::mirror_repeat);
+	else if (a_sampler->wrap_t == REPEAT)
+		sampler.wrap_t(rhi::TextureAddressMode::repeat);
 
 	return sampler;
+
+#undef NEAREST
+#undef LINEAR
+#undef NEAREST_MIPMAP_NEAREST
+#undef LINEAR_MIPMAP_NEAREST
+#undef NEAREST_MIPMAP_LINEAR
+#undef LINEAR_MIPMAP_LINEAR
+
+#undef CLAMP_TO_EDGE
+#undef MIRRORED_REPEAT
+#undef REPEAT
 }
 
 rhi::PrimitiveTopology cglf_primitive_to_primitive_topology(cgltf_primitive_type a_type)
@@ -583,6 +634,27 @@ void read_material_component(ror::Material::Component<_factor_type>             
 		a_component.m_type = Material::ComponentType::factor;
 }
 
+std::string cgltf_result_to_string(cgltf_result a_result)
+{
+	// clang-format off
+    switch (a_result)
+    {
+        case cgltf_result_success:          return "cgltf_result_success";
+        case cgltf_result_data_too_short:   return "cgltf_result_data_too_short";
+        case cgltf_result_unknown_format:   return "cgltf_result_unknown_format";
+        case cgltf_result_invalid_json:     return "cgltf_result_invalid_json";
+        case cgltf_result_invalid_gltf:     return "cgltf_result_invalid_gltf";
+        case cgltf_result_invalid_options:  return "cgltf_result_invalid_options";
+        case cgltf_result_file_not_found:   return "cgltf_result_file_not_found";
+        case cgltf_result_io_error:         return "cgltf_result_io_error";
+        case cgltf_result_out_of_memory:    return "cgltf_result_out_of_memory";
+        case cgltf_result_legacy_gltf:      return "cgltf_result_legacy_gltf";
+    }
+	// clang-format on
+
+	return "cgltf_result_success";
+}
+
 void Model::load_from_gltf_file(std::filesystem::path a_filename)
 {
 	// Lets start by reading a_filename via resource cache
@@ -602,11 +674,10 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 	if (result != cgltf_result_success)
 	{
-		ror::log_critical("Can't load gltf file {}", a_filename.c_str());
+		ror::log_critical("glTF file {} load failed with error {}", a_filename.c_str(), cgltf_result_to_string(result).c_str());
 		return;
 	}
-
-	if (result == cgltf_result_success)
+	else
 	{
 		std::unordered_map<const cgltf_image *, int32_t>    image_to_index{};
 		std::unordered_map<const cgltf_sampler *, int32_t>  sampler_to_index{};
@@ -1481,14 +1552,16 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 		cgltf_free(data);
 	}
-	else
-	{
-		ror::log_critical("Can't load gltf file {}", filename.c_str());
-	}
 }
 
-void Model::upload(rhi::Device& a_device)
+void Model::upload(rhi::Device &a_device)
 {
+	// TODO: Jobify me
+	for (auto &sampler : this->m_samplers)
+	{
+		sampler.upload(a_device);
+	}
+
 	for (auto &image : this->m_images)
 	{
 		image.upload(a_device);

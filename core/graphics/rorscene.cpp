@@ -112,6 +112,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device& a_device)
 	}
 
 	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
+	// TODO: find out this might need to be done differently for Vulkan
 	auto& bpack = rhi::get_buffers_pack();
 	bpack.upload(a_device);
 }

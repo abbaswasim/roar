@@ -363,8 +363,15 @@ enum class FormatType
 
 enum class TextureFilter
 {
-	nearest,
-	linear
+	nearest = PlatformTextureFilterNearest,
+	linear  = PlatformTextureFilterLinear
+};
+
+enum class TextureMipFilter
+{
+	not_mipmapped = PlatformTextureMipFilterNotMipmapped,
+	nearest       = PlatformTextureMipFilterNearest,
+	linear        = PlatformTextureMipFilterLinear
 };
 
 enum class TextureTransfer
@@ -375,16 +382,19 @@ enum class TextureTransfer
 
 enum class TextureAddressMode
 {
-	clamp_to_edge,
-	mirrored_repeat,
-	repeat
+	clamp_to_edge         = PlatformTextureAddressModeClampToEdge,
+	mirror_clamp_to_edge  = PlatformTextureAddressModeMirrorClampToEdge,
+	repeat                = PlatformTextureAddressModeRepeat,
+	mirror_repeat         = PlatformTextureAddressModeMirrorRepeat,
+	clamp_to_zero         = PlatformTextureAddressModeClampToZero,
+	clamp_to_border_color = PlatformTextureAddressModeClampToBorderColor
 };
 
 enum class TextureBorder
 {
-	transparent,
-	opaque,
-	white
+	transparent = PlatformTextureBorderTransparent,
+	opaque      = PlatformTextureBorderOpaque,
+	white       = PlatformTextureBorderWhite
 };
 
 enum class TextureTarget
@@ -604,7 +614,7 @@ enum class StoreAction
 	item(joint_index_data)                item_value(= 1ul << 37),      \
 	item(instance_trs)                    item_value(= 1ul << 38),      \
 	item(gltf_bin_buffer)                 item_value(= 1ul << 39),      \
-	item(custom)                          item_value(= 1ul << 63)
+	item(custom)                          item_value(= 1ul << 40)
 // clang-format on
 #define item(_enum) _enum
 #define item_value(_enum) _enum
@@ -1010,11 +1020,32 @@ constexpr uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 	return 0;
 }
 
-BufferSemantic   get_format_semantic(const std::string &a_format);
-std::string      get_format_semantic(const BufferSemantic &a_semantic);
-rhi::PixelFormat string_to_pixel_format(const std::string &a_format);
-bool             is_pixel_format_depth_format(const rhi::PixelFormat a_format);
-constexpr bool   has_semantic(uint64_t a_type, BufferSemantic a_semantic);
+constexpr uint32_t semantic_to_index(BufferSemantic a_semantic)
+{
+#define item(_enum) BufferSemantic::_enum
+#define item_value(_enum)
+
+	const BufferSemantic indices[]{describe_buffer_semantics(item)};
+
+#undef item
+#undef item_value
+
+	for (size_t i = 0; i < sizeof(indices); ++i)
+		if (a_semantic == indices[i])
+			return static_cast<uint32_t>(i);
+
+	return 0;
+}
+
+constexpr bool has_semantic(uint64_t a_type, BufferSemantic a_semantic)
+{
+	return ((a_type & ror::enum_to_type_cast(a_semantic)) == ror::enum_to_type_cast(a_semantic));
+}
+
+BufferSemantic     get_format_semantic(const std::string &a_format);
+std::string        get_format_semantic(const BufferSemantic &a_semantic);
+rhi::PixelFormat   string_to_pixel_format(const std::string &a_format);
+bool               is_pixel_format_depth_format(const rhi::PixelFormat a_format);
 
 const auto format_to_bytes = vertex_format_to_bytes;
 

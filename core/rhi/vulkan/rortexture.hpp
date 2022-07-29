@@ -50,6 +50,11 @@ class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImage
 
 class ROAR_ENGINE_ITEM TextureSamplerVulkan : public TextureSamplerCrtp<TextureSamplerVulkan>
 {
+  public:
+	void upload(rhi::Device &a_device);
+
+  protected:
+  private:
 	declare_translation_unit_vtable();
 };
 

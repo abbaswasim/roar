@@ -1,6 +1,7 @@
 {
 	"buffer_pack_current":"optimal",
-	"unit": 1024,
+	"unit": 5000000,
+	"unit_all_tests": 500000000,
 	"buffer_packs":[
 		{
 			"name": "optimal",
