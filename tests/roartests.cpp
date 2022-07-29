@@ -45,6 +45,7 @@ int main(int argc, char **argv)
 	std::string test_default_project{"test_roar_project"};
 	std::string gltf_test_file{""};
 	std::string gltf_tests_root{""};
+	bool        gltf_compile_shader{false};
 	bool        gltf_print_shader{false};
 	bool        gltf_all{false};
 	bool        gltf_write_shaders{false};
@@ -55,7 +56,9 @@ int main(int argc, char **argv)
 	        [&test_default_project](std::any a_argument_value) { test_default_project = std::any_cast<std::string>(a_argument_value); });
 	cli.add("--gltf-test", "-gt", "Can be used to test a single gltf file", ror::CommandLineParser::OptionType::type_string, false,
 	        [&gltf_test_file](std::any a_argument_value) { gltf_test_file = std::any_cast<std::string>(a_argument_value); });
-	cli.add("--gltf-print-compile-shader", "-gtp", "Should compile and print generated shaders for the gltf file provided", ror::CommandLineParser::OptionType::none, false,
+	cli.add("--gltf-compile-shader", "-gp", "Should compile generated shaders for the gltf file provided", ror::CommandLineParser::OptionType::none, false,
+	        [&gltf_compile_shader](std::any) { gltf_compile_shader = true; });
+	cli.add("--gltf-compile-print-shader", "-gtp", "Should compile and print generated shaders for the gltf file provided", ror::CommandLineParser::OptionType::none, false,
 	        [&gltf_print_shader](std::any) { gltf_print_shader = true; });
 	cli.add("--gltf-samples", "-gs", "Should test all the glTF 2.0 samples from khronos", ror::CommandLineParser::OptionType::none, false,
 	        [&gltf_all](std::any) { gltf_all = true; });
@@ -75,6 +78,7 @@ int main(int argc, char **argv)
 	if (gltf_test_file != "")
 		ror_test::settings_configs_copy.add("gltf_input", gltf_test_file);
 
+	ror_test::settings_configs_copy.add("gltf_compile_shader", gltf_compile_shader);
 	ror_test::settings_configs_copy.add("gltf_compile_print_shader", gltf_print_shader);
 	ror_test::settings_configs_copy.add("gltf_all", gltf_all);
 	ror_test::settings_configs_copy.add("gltf_write_shaders", gltf_write_shaders);

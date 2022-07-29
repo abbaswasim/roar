@@ -35,6 +35,7 @@ struct Light
 	vec3  color;
 	vec3  position;
 	vec3  direction;
+	float shadow;
 	float intensity;
 	float attenuation;
 	float normal_dot_direction;

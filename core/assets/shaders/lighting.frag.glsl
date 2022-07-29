@@ -6,6 +6,7 @@ Light get_directional_light(const Material material, const Fragment fragment, co
 	// Do direction setup here
 	light.color                = directional.color.rgb;
 	light.direction            = directional.direction;
+	light.shadow               = @;
 	light.intensity            = directional.intensity;
 	light.attenuation          = 1.0;
 	light.normal_dot_direction = saturate(dot(material.normal, light.direction));
@@ -28,6 +29,7 @@ Light get_point_light(const Material material, const Fragment fragment, const ui
 	light.color                = point.color;
 	light.position             = point.position;
 	light.direction            = point.position - fragment.position;
+	light.shadow               = @;
 	light.intensity            = point.intensity;
 	light.attenuation          = point_light_attenuation(length(light.direction), 0.01);
 	light.normal_dot_direction = saturate(dot(material.normal, light.direction));
@@ -56,6 +58,7 @@ Light get_spot_light(const Material material, const Fragment fragment, const uin
 	light.color                = spot.color;
 	light.position             = spot.position;
 	light.direction            = spot.direction;
+	light.shadow               = @;
 	light.intensity            = spot.intensity;
 	light.attenuation          = point_light_attenuation(length(light.direction), 0.01);
 	light.normal_dot_direction = saturate(dot(material.normal, light.direction));

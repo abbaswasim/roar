@@ -263,11 +263,49 @@ TEST_F(GLTFTest, gltf_assert_test)
 	(void) build;
 }
 
+void compile_print_shader_result(const std::string &a_shader_source, const std::string &a_shader_name, bool a_print_shader_source)
+{
+	std::filesystem::path tmp_file = std::filesystem::temp_directory_path() / a_shader_name;
+	tmp_file                       = std::filesystem::absolute(tmp_file);
+
+	std::ios_base::openmode mode = std::ios::out;
+	{
+		std::ofstream of(tmp_file, mode);
+		of << a_shader_source;
+	}
+
+	std::string command{"glslangValidator -V  "};
+	command.append(tmp_file);
+
+	auto res = ror_test::execute_command(command.c_str());
+	if (res.second != EXIT_SUCCESS)
+	{
+		std::stringstream ss{a_shader_source};
+		std::string       to;
+		uint32_t          linnum = 1;
+		while (std::getline(ss, to, '\n'))
+		{
+			std::cout << linnum++ << " : " << to << std::endl;
+		}
+
+		ror::log_critical("Created bad shader source code, glslangValidator says {}\n", res.first);
+	}
+	else
+	{
+		if (a_print_shader_source)
+			ror::log_warn("Vertex shader source code\n{}", a_shader_source.c_str());
+	}
+}
+
 void GLTFTest::load_model(std::string path)
 {
-	auto        print_shader_source = settings_configs_copy.get<bool>("gltf_compile_print_shader");
-	ror::Model *model2              = new ror::Model();
+	auto        compile_shader_source = settings_configs_copy.get<bool>("gltf_compile_shader");
+	auto        print_shader_source   = settings_configs_copy.get<bool>("gltf_compile_print_shader");
+	ror::Model *model2                = new ror::Model();
 	model2->load_from_gltf_file(path);
+
+	if (print_shader_source)
+		compile_shader_source = true;
 
 	uint32_t         mesh_index = 0;
 	std::vector<int> v;
@@ -289,7 +327,7 @@ void GLTFTest::load_model(std::string path)
 
 			std::string program_source{""};
 			{
-				auto vs = rhi::generate_primitive_vertex_shader(*model2, static_cast<uint32_t>(mesh_index), static_cast<uint32_t>(j));
+				auto vs = rhi::generate_primitive_vertex_shader(*model2, static_cast<uint32_t>(mesh_index), static_cast<uint32_t>(j), rhi::RenderpassType::main);
 				(void) vs;
 
 				program_source = vs;
@@ -299,30 +337,11 @@ void GLTFTest::load_model(std::string path)
 				unique_vs[hash]      = vs;
 				unique_vattrib[hash] = std::make_pair(mesh_index, j);
 
-				if (print_shader_source)
-				{
-					std::filesystem::path tmp_file = std::filesystem::temp_directory_path() / "tmp_shader.vert";
-					tmp_file                       = std::filesystem::absolute(tmp_file);
-
-					std::ios_base::openmode mode = std::ios::out;
-					{
-						std::ofstream of(tmp_file, mode);
-						of << vs;
-					}
-
-					std::string command{"glslangValidator -V  "};
-					command.append(tmp_file);
-
-					auto res = ror_test::execute_command(command.c_str());
-					std::cout << "glslangValidator says \n\t" << res.first << std::endl;
-					if (res.second != EXIT_SUCCESS)
-						ror::log_critical("Created bad shader source code\n{}", vs.c_str());
-					else
-						ror::log_warn("Vertex shader source code\n{}", vs.c_str());
-				}
+				if (compile_shader_source)
+					compile_print_shader_result(vs, "tmp_shader.vert", print_shader_source);
 			}
 			{
-				auto fs = rhi::generate_primitive_fragment_shader(ms, model2->materials(), static_cast<uint32_t>(j));
+				auto fs = rhi::generate_primitive_fragment_shader(ms, model2->materials(), static_cast<uint32_t>(j), rhi::RenderpassType::main, true);
 				(void) fs;
 
 				program_source.append(fs);
@@ -336,37 +355,8 @@ void GLTFTest::load_model(std::string path)
 				unique_ps[prog_hash] = program_source;
 				hashes_of_ps[prog_hash]++;
 
-				if (print_shader_source)
-				{
-					std::filesystem::path tmp_file = std::filesystem::temp_directory_path() / "tmp_shader.frag";
-					tmp_file                       = std::filesystem::absolute(tmp_file);
-
-					std::ios_base::openmode mode = std::ios::out;
-					{
-						std::ofstream of(tmp_file, mode);
-						of << fs;
-					}
-
-					std::string command{"glslangValidator -V  "};
-					command.append(tmp_file);
-
-					auto res = ror_test::execute_command(command.c_str());
-					if (res.second != EXIT_SUCCESS)
-					{
-						ror::log_critical("Created bad fragment shader source code\n");
-						std::stringstream ss{fs};
-						std::string       to;
-						uint32_t          linnum = 1;
-						while (std::getline(ss, to, '\n'))
-						{
-							std::cout << linnum++ << " : " << to << std::endl;
-						}
-
-						std::cout << "glslangValidator says \n\t" << res.first << std::endl;
-					}
-					else
-						ror::log_warn("Fragment shader source code\n{}", fs.c_str());
-				}
+				if (compile_shader_source)
+					compile_print_shader_result(fs, "tmp_shader.frag", print_shader_source);
 			}
 		}
 		++mesh_index;
@@ -422,6 +412,8 @@ void GLTFTest::print_hashes()
 void GLTFTest::write_shaders()
 {
 	std::filesystem::path root_path = std::filesystem::absolute(std::filesystem::temp_directory_path() / "roar_shaders");
+
+	std::filesystem::remove_all(root_path);
 
 	std::filesystem::create_directory(root_path);
 

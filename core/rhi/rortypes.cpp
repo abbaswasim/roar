@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorutilities.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
 #include <unordered_map>

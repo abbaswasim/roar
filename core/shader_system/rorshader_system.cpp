@@ -538,11 +538,11 @@ void set_position()
 {
 	vec4 vertex_position = in_vertex_position;
 
-	morph_vertex_position(vertex_position);
-	skin_position(vertex_position.xyz);
+	@morph_vertex_position(vertex_position);
+	@skin_position(vertex_position.xyz);
 	world_transform_position(vertex_position);
 
-	out_vertex_position = vertex_position;
+	@out_vertex_position = vertex_position;
 
 	gl_Position = vertex_position;
 }
@@ -558,21 +558,22 @@ void set_normal()
 {
 	vec3 vertex_normal = in_vertex_normal;
 
-	morph_vertex_normal(vertex_normal);
-	skin_normal(vertex_normal);
+	@morph_vertex_normal(vertex_normal);
+	@skin_normal(vertex_normal);
 	world_transform_normal(vertex_normal);
 
 	out_vertex_normal = vertex_normal;
 }
 )snor";
 
+// TODO: Is this skin_position and world_transform_position correct here?, I think I need world_transform_tangent here
 const std::string vs_set_tangent_str = R"stan(
 void set_tangent()
 {
 	vec4 vertex_tangent = in_vertex_tangent;
 
-	morph_vertex_tangent(vertex_tangent);
-	skin_position(vertex_tangent.xyz);
+	@morph_vertex_tangent(vertex_tangent);
+	@skin_position(vertex_tangent.xyz);
 	world_transform_position(vertex_tangent);
 
 	out_vertex_tangent = vertex_tangent;
@@ -584,17 +585,33 @@ void set_texture_coordinate_@()
 {
 	vec2 vertex_texture_coordinate = in_vertex_texture_coord_@;
 
-	morph_vertex_texture_coord_@(vertex_texture_coordinate);
+	@morph_vertex_texture_coord_@(vertex_texture_coordinate);
 	out_vertex_texture_coord_@ = vertex_texture_coordinate;
 }
 )suv0";
 
-std::string vs_set_texture_coordinate(uint32_t a_uvs_count)
+std::string vs_set_texture_coordinate(uint32_t a_uvs_count, const std::array<uint32_t, 3> a_uv_morph_targets)
 {
 	assert(a_uvs_count < 4 && "Too many UV sets provided, only support upto 3");
 
 	std::string result{};
-	append_count_times(a_uvs_count, 4, result, vs_set_texture_coordinate_str);
+
+	for (uint32_t i = 0; i < a_uvs_count; ++i)
+	{
+		auto str{vs_set_texture_coordinate_str};
+		replace_all_ats(2, i, str);        // Replace the first 2 @s with numbers
+
+		// Replace the next @ with comment or remove it
+		if (a_uv_morph_targets[i] > 0)
+			replace_next_at("", str);
+		else
+			replace_next_at("//", str);
+
+		replace_all_ats(2, i, str);        // Replace the last 2 @s with numbers
+
+		result.append(str);
+	}
+
 	return result;
 }
 
@@ -603,17 +620,33 @@ void set_color_@()
 {
 	vec4 vertex_color = in_vertex_color_@;
 
-	morph_vertex_color_@(vertex_color);
+	@morph_vertex_color_@(vertex_color);
 	out_vertex_color_@ = vertex_color;
 }
 )scol0";
 
-std::string vs_set_color(uint32_t a_colors_count)
+std::string vs_set_color(uint32_t a_colors_count, const std::array<uint32_t, 2> a_colors_morph_targets)
 {
 	assert(a_colors_count < 3 && "Too many color sets provided, only support upto 2");
 
 	std::string result{};
-	append_count_times(a_colors_count, 4, result, vs_set_color_str);
+
+	for (uint32_t i = 0; i < a_colors_count; ++i)
+	{
+		auto str{vs_set_color_str};
+		replace_all_ats(2, i, str);        // Replace the first 2 @s with numbers
+
+		// Replace the next @ with comment or remove it
+		if (a_colors_morph_targets[i] > 0)
+			replace_next_at("", str);
+		else
+			replace_next_at("//", str);
+
+		replace_all_ats(2, i, str);        // Replace the last 2 @s with numbers
+
+		result.append(str);
+	}
+
 	return result;
 }
 
@@ -654,6 +687,27 @@ std::string vs_set_main(bool a_has_normal, bool a_has_tangent, bool a_has_bent_n
 	return result;
 }
 
+bool is_semantic_valid_attribute(rhi::BufferSemantic a_semantic, bool a_depth_shadow)
+{
+	if (a_semantic < rhi::BufferSemantic::vertex_index)        // Only need vertex attributes that are bellow vertex_index, FIXME: what happens to custom ones?
+	{
+		if (!a_depth_shadow)
+			return true;
+		else if (a_semantic == rhi::BufferSemantic::vertex_position ||
+		         a_semantic == rhi::BufferSemantic::vertex_bone_id_0 ||
+		         a_semantic == rhi::BufferSemantic::vertex_bone_id_1 ||
+		         a_semantic == rhi::BufferSemantic::vertex_weight_0 ||
+		         a_semantic == rhi::BufferSemantic::vertex_weight_1 ||
+		         a_semantic == rhi::BufferSemantic::vertex_morph_target ||
+		         a_semantic == rhi::BufferSemantic::vertex_morph_weight)
+			return true;
+		else
+			return false;
+	}
+
+	return false;
+}
+
 // This is to be used for calculating standard output formats for each attribute so I can remove lots of combinations and have a standard interface into fragment shaders
 // This is basically an override on whatever data is coming in
 static const std::unordered_map<rhi::BufferSemantic, rhi::VertexFormat> attrib_in_out_format{
@@ -666,7 +720,7 @@ static const std::unordered_map<rhi::BufferSemantic, rhi::VertexFormat> attrib_i
     {rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4},
     {rhi::BufferSemantic::vertex_color_1, rhi::VertexFormat::float32_4}};
 
-std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset, uint32_t a_target_offset, const std::string &a_prefix, bool a_output)
+std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset, uint32_t a_target_offset, const std::string &a_prefix, bool a_output, bool a_depth_shadow)
 {
 	std::string result{};
 	auto       &attributes = a_vertex_descriptor.attributes();
@@ -688,7 +742,7 @@ std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descript
 			if (out_format_iter != attrib_in_out_format.end())
 				in_out_format = out_format_iter->second;
 
-			if (semantic < rhi::BufferSemantic::vertex_index)        // Only need vertex attributes that are bellow vertex_index, FIXME: what happens to custom ones?
+			if (is_semantic_valid_attribute(semantic, a_depth_shadow))
 			{
 				auto location          = attrib.location();
 				auto in_out_format_str = attribute_format(in_out_format);
@@ -703,7 +757,7 @@ std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descript
 				result.append(line);
 
 				// TODO: Add support for outputting normal + tangent or TBN
-				if (semantic < rhi::BufferSemantic::vertex_bone_id_0)        // Only output vertex attributes that are bellow vertex_bone_id_0, FIXME: Add support for custom ones
+				if (semantic < rhi::BufferSemantic::vertex_bone_id_0 && !a_depth_shadow)        // Only output vertex attributes that are bellow vertex_bone_id_0, FIXME: Add support for custom ones
 					result.append(a_output ? std::string{first_half + out + middle_half + out + second_half} : "");
 			}
 		}
@@ -713,7 +767,7 @@ std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descript
 }
 
 // TODO: Use https://github.com/aras-p/glsl-optimizer on the output for further optimising the GLSL
-std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_primitive_index)
+std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_primitive_index, rhi::RenderpassType a_renderpass_type)
 {
 	const auto &mesh                     = a_model.meshes()[a_mesh_index];
 	auto       &vertex_descriptor        = mesh.m_attribute_vertex_descriptors[a_primitive_index];
@@ -728,6 +782,8 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	auto        has_uv_2                 = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_2)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_2);
 	auto        has_color_0              = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0);
 	auto        has_color_1              = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1);
+	auto        has_morphs               = (mesh.m_morph_weights.size() > 0 && vertex_target_descriptor.size() > 0);
+	auto        is_depth_shadow          = (a_renderpass_type == rhi::RenderpassType::depth || a_renderpass_type == rhi::RenderpassType::shadow);
 
 	std::unordered_map<rhi::BufferSemantic, std::pair<uint32_t, bool>> targets_count{
 	    {rhi::BufferSemantic::vertex_position, {0, true}},
@@ -739,10 +795,10 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	    {rhi::BufferSemantic::vertex_color_0, {0, has_color_0}},
 	    {rhi::BufferSemantic::vertex_color_1, {0, has_color_1}}};
 
-	std::string result{"#version 450\n\nprecision highp float;\nprecision highp int;\n"};        // TODO: abstract out version
+	std::string result{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 
 	// Write out vertex shader input output
-	result.append(rhi::vertex_shader_input_output(vertex_descriptor, 0, 0, "", true));
+	result.append(rhi::vertex_shader_input_output(vertex_descriptor, 0, 0, "", true, is_depth_shadow));
 
 	uint32_t location_offset = 0;
 
@@ -758,7 +814,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	uint32_t j = 0;
 	for (const auto &v : vertex_target_descriptor)
 	{
-		result.append(rhi::vertex_shader_input_output(v, location_offset, j++, "target"));
+		result.append(rhi::vertex_shader_input_output(v, location_offset, j++, "target", false, is_depth_shadow));
 
 		if (!v.attributes().empty())
 		{
@@ -778,7 +834,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	result.append(per_view_common(0, 0));        // TODO: Abstract out set and binding
 
 	// Only add morph common if mesh has weights and has morph targets
-	if (mesh.m_morph_weights.size() > 0 && vertex_target_descriptor.size() > 0)
+	if (has_morphs)
 		result.append(vs_morph_common(mesh.m_morph_weights.size(), 0, 1));        // TODO: Abstract out set and binding
 
 	// Write out common morph target functions
@@ -792,7 +848,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		auto in_out_format_str = attribute_format(in_out_format);
 		auto semantic_str      = get_format_semantic(tc.first);
 
-		if (tc.second.second > 0)
+		if (tc.second.first > 0 && is_semantic_valid_attribute(tc.first, is_depth_shadow))
 			result.append(vs_morph_attribute_common(tc.second.first, semantic_str, in_out_format_str));
 	}
 
@@ -805,7 +861,6 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		result.append(vs_skin_common(static_cast<uint32_t>(skin.m_joints.size()), 2, 0, has_normal));        // TODO: Abstract out set and binding
 	}
 
-	// vs_skin_normal and vs_skin_position needs to be unconditional from bas_bone_id_0, because these are referenced in set_postion and set_normal
 	auto joint_sets{0u};
 	if (has_bone_id_0)
 		joint_sets++;
@@ -813,18 +868,53 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	if (has_bone_id_1)
 		joint_sets++;
 
-	if (has_normal)
-		result.append(vs_skin_normal(joint_sets));        // Max 2 joint/weights sets
+	if (has_bone_id_0 || has_bone_id_1)
+	{
+		if (has_normal)
+			result.append(vs_skin_normal(joint_sets));        // Max 2 joint/weights sets
 
-	result.append(vs_skin_position(joint_sets));        // Max 2 joint/weights sets
+		result.append(vs_skin_position(joint_sets));        // Max 2 joint/weights sets
+	}
 
-	result.append(vs_set_position_str);        // Add set_position
+#define setup_for_depth_shadow()        \
+	if (has_morphs)                     \
+		replace_next_at("", tmp);       \
+	else                                \
+		replace_next_at("//", tmp);     \
+	if (has_bone_id_0 || has_bone_id_1) \
+		replace_next_at("", tmp);       \
+	else                                \
+		replace_next_at("//", tmp)
 
-	if (has_normal)
-		result.append(vs_set_normal_str);        // Add set_normal
+	{
+		auto tmp{vs_set_position_str};
+		setup_for_depth_shadow();
 
-	if (has_tangent)
-		result.append(vs_set_tangent_str);        // Add set_tangent
+		if (is_depth_shadow)
+			replace_next_at("//", tmp);        // Final @ to enable disable out_vertex_position
+		else
+			replace_next_at("", tmp);
+
+		result.append(tmp);        // Add set_position
+	}
+
+	if (!is_depth_shadow)
+	{
+		if (has_normal)
+		{
+			auto tmp{vs_set_normal_str};
+			setup_for_depth_shadow();
+
+			result.append(tmp);        // Add set_normal
+		}
+
+		if (has_tangent)
+		{
+			auto tmp{vs_set_tangent_str};
+			setup_for_depth_shadow();
+			result.append(tmp);        // Add set_tangent
+		}
+	}
 
 	auto uv_sets{0u};
 	if (has_uv_0)
@@ -836,8 +926,10 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	if (has_uv_2)
 		uv_sets++;
 
-	if (uv_sets > 0)
-		result.append(vs_set_texture_coordinate(uv_sets));        // Max 3 UV sets count
+	if (uv_sets > 0 && !is_depth_shadow)
+		result.append(vs_set_texture_coordinate(uv_sets, {targets_count[rhi::BufferSemantic::vertex_texture_coord_0].first,
+		                                                  targets_count[rhi::BufferSemantic::vertex_texture_coord_1].first,
+		                                                  targets_count[rhi::BufferSemantic::vertex_texture_coord_2].first}));        // Max 3 UV sets count
 
 	auto color_sets{0u};
 	if (has_color_0)
@@ -846,10 +938,15 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	if (has_color_1)
 		color_sets++;
 
-	if (color_sets > 0)
-		result.append(vs_set_color(color_sets));        // Max 2 color sets count
+	if (color_sets > 0 && !is_depth_shadow)
+		result.append(vs_set_color(color_sets, {targets_count[rhi::BufferSemantic::vertex_color_0].first,
+		                                        targets_count[rhi::BufferSemantic::vertex_color_1].first}));        // Max 2 color sets count
 
-	result.append(vs_set_main(has_normal, has_tangent, false, uv_sets, color_sets));        // Add main as well
+	result.append(vs_set_main((is_depth_shadow ? false : has_normal),
+	                          (is_depth_shadow ? false : has_tangent),
+	                          false,        //  bent normal
+	                          (is_depth_shadow ? false : uv_sets),
+	                          (is_depth_shadow ? false : color_sets)));        // Add main as well
 
 	return result;
 }
@@ -865,6 +962,7 @@ struct DirectionalLight
 	vec3  color;
 	vec3  direction;
 	float intensity;
+	mat4  mvp;
 };
 
 layout(std140, set = @, binding = @) uniform directional_light_uniform
@@ -881,6 +979,7 @@ struct PointLight
 	vec3  color;
 	vec3  position;
 	float intensity;
+	mat4  mvp;
 };
 
 layout(std140, set = @, binding = @) uniform point_light_uniform
@@ -900,6 +999,7 @@ struct SpotLight
 	float intensity;
 	float inner_angle;
 	float outer_angle;
+	mat4  mvp;
 };
 
 layout(std140, set = @, binding = @) uniform spot_light_uniform
@@ -1116,7 +1216,7 @@ std::string texture_lookups(const ror::Material &a_material)
 	return output;
 }
 
-std::string material_samplers(const ror::Material &a_material)
+std::string material_samplers(const ror::Material &a_material, bool a_add_shadow_map)
 {
 	std::string       output{"\n"};
 	const std::string set_binding{"layout(set = 0, binding = "};           // TODO: Abstract out the set and binding for all of the below
@@ -1163,6 +1263,9 @@ std::string material_samplers(const ror::Material &a_material)
 		output_append("anisotrophy_sampler;\n");
 	if (a_material.m_opacity.m_texture != -1)
 		output_append("opacity_sampler;\n");
+
+	if (a_add_shadow_map)
+		output_append("shadow_map_sampler;\n");
 
 	return output;
 }
@@ -1333,7 +1436,7 @@ std::string fs_set_output(const ror::Material &a_material)
 	return result;
 }
 
-std::string fs_set_main(const ror::Material &a_material)
+std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow)
 {
 	// Read all the shader snippets
 	// Read brdf.frag.glsl resource and create a string_view
@@ -1344,13 +1447,17 @@ std::string fs_set_main(const ror::Material &a_material)
 	auto            &temporary_structs_resource = ror::load_resource("shaders/temporary_structs.frag.glsl", ror::ResourceSemantic::shaders);
 	std::string_view temporary_structs_code{reinterpret_cast<const char *>(temporary_structs_resource.data().data()), temporary_structs_resource.data().size()};
 
+	// Read shadows.frag.glsl resource and create a string_view
+	auto            &shadows_resource = ror::load_resource("shaders/shadows.frag.glsl", ror::ResourceSemantic::shaders);
+	std::string_view shadows_code{reinterpret_cast<const char *>(shadows_resource.data().data()), shadows_resource.data().size()};
+
 	// Read shading_standard.frag.glsl resource and create a string_view
 	auto            &shading_standard_resource = ror::load_resource("shaders/shading_standard.frag.glsl", ror::ResourceSemantic::shaders);
 	std::string_view shading_standard_code{reinterpret_cast<const char *>(shading_standard_resource.data().data()), shading_standard_resource.data().size()};
 
 	// Read lighting.frag.glsl resource and create a string_view
-	auto            &lighting_resource = ror::load_resource("shaders/lighting.frag.glsl", ror::ResourceSemantic::shaders);
-	std::string_view lighting_code{reinterpret_cast<const char *>(lighting_resource.data().data()), lighting_resource.data().size()};
+	auto       &lighting_resource = ror::load_resource("shaders/lighting.frag.glsl", ror::ResourceSemantic::shaders);
+	std::string lighting_code{reinterpret_cast<const char *>(lighting_resource.data().data()), lighting_resource.data().size()};
 
 	// Read main.frag.glsl resource and create a string_view
 	auto            &main_resource = ror::load_resource("shaders/main.frag.glsl", ror::ResourceSemantic::shaders);
@@ -1365,6 +1472,20 @@ std::string fs_set_main(const ror::Material &a_material)
 	output.append("\n");
 	output.append(fs_set_output(a_material));
 	output.append("\n");
+	if (a_has_shadow)
+	{
+		output.append(shadows_code);
+		output.append("\n");
+		replace_next_at("get_shadow(directional.mvp);", lighting_code);
+		replace_next_at("get_shadow(point.mvp);", lighting_code);
+		replace_next_at("get_shadow(spot.mvp);", lighting_code);
+	}
+	else
+	{
+		replace_next_at("1.0;", lighting_code);
+		replace_next_at("1.0;", lighting_code);
+		replace_next_at("1.0;", lighting_code);
+	}
 	output.append(shading_standard_code);
 	output.append("\n");
 	output.append(lighting_code);
@@ -1374,8 +1495,9 @@ std::string fs_set_main(const ror::Material &a_material)
 	return output;
 }
 
-std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const std::vector<ror::Material, rhi::BufferAllocator<ror::Material>> &a_materials, uint32_t a_primitive_index)
+std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const std::vector<ror::Material, rhi::BufferAllocator<ror::Material>> &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, bool a_has_shadow)
 {
+	auto          is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
 	const auto   &vertex_descriptor = a_mesh.m_attribute_vertex_descriptors[a_primitive_index];
 	ror::Material material{};        // Default material if no material available for this mesh primitive
 
@@ -1384,21 +1506,29 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const st
 
 	std::string output{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 
+	if (is_depth_shadow)
+	{
+		const std::string fs_depth_shadow_main{"void main()\n{\n}\n"};
+		output.append(fs_depth_shadow_main);
+		return output;
+	}
+
 	rhi::ShaderBuffer sb{"factors", rhi::Layout::std140};        // TODO: Move this out
 
 	// write out inputs from fragment shader
 	output.append(rhi::fragment_shader_input_output(vertex_descriptor));
 	output.append(per_view_common(0, 0));
 	output.append(per_frame_common(0, 1));
-	output.append(material_samplers(material));
+	output.append(material_samplers(material, a_has_shadow));
 	output.append(material_factors_ubo(material, sb));
 	output.append(fs_light_common(1, 2, 0, fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count, set and bindings
 	output.append(fs_light_common(1, 2, 1, fs_point_light_common_str));              // TODO: Make conditional, and abstract out lights_count, set and bindings
 	output.append(fs_light_common(1, 2, 2, fs_spot_light_common_str));               // TODO: Make conditional, and abstract out lights_count, set and bindings
 	output.append(texture_lookups(material));
-	output.append(fs_set_main(material));
+	output.append(fs_set_main(material, a_has_shadow));
 
 	return output;
 }
 
+// End of fragment shader code
 }        // namespace rhi
