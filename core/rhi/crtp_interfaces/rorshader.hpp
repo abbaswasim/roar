@@ -52,7 +52,7 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	 * which could be saved to disk if needed by calling write on the resource
 	 * if a_create == false, This will load a file from project_root/[*]/a_shader_name from disk
 	 */
-	FORCE_INLINE ShaderCrtp(std::string a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action);
+	FORCE_INLINE ShaderCrtp(const std::string &a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto shader_path() const noexcept { return this->m_shader->absolute_path(); }
