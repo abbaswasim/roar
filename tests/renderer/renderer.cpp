@@ -3,7 +3,6 @@
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
-#include "rhi/rortexture.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
@@ -91,7 +90,7 @@ TEST(RendererTest, config_load)
 {
 	ror::Renderer rdr;
 
-	auto &rtgs = rdr.render_targets();
+	auto &rtgs  = rdr.render_targets();
 	auto &fgphs = rdr.frame_graphs();
 
 	std::vector<std::vector<uint32_t>> empty_indices{};
@@ -340,15 +339,19 @@ TEST(RendererTest, config_load)
 	// Test shaders
 	auto &shdrs = rdr.shaders();
 
+	auto ends_with = [](std::string &&value, const std::string &ending) {
+		return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+	};
+
 	{
-		EXPECT_EQ(shdrs[0].shader_path(), "default_pbr.vert");
-		EXPECT_EQ(shdrs[1].shader_path(), "default_pbr.frag");
-		EXPECT_EQ(shdrs[2].shader_path(), "shadow.vert");
-		EXPECT_EQ(shdrs[3].shader_path(), "shadow.frag");
-		EXPECT_EQ(shdrs[4].shader_path(), "depth.vert");
-		EXPECT_EQ(shdrs[5].shader_path(), "depth.frag");
-		EXPECT_EQ(shdrs[6].shader_path(), "blur.kern");
-		EXPECT_EQ(shdrs[7].shader_path(), "explode.geom");
+		EXPECT_TRUE(ends_with(shdrs[0].shader_path().filename(), "default_pbr.vert"));
+		EXPECT_TRUE(ends_with(shdrs[1].shader_path().filename(), "default_pbr.frag"));
+		EXPECT_TRUE(ends_with(shdrs[2].shader_path().filename(), "shadow.vert"));
+		EXPECT_TRUE(ends_with(shdrs[3].shader_path().filename(), "shadow.frag"));
+		EXPECT_TRUE(ends_with(shdrs[4].shader_path().filename(), "depth.vert"));
+		EXPECT_TRUE(ends_with(shdrs[5].shader_path().filename(), "depth.frag"));
+		EXPECT_TRUE(ends_with(shdrs[6].shader_path().filename(), "blur.kern"));
+		EXPECT_TRUE(ends_with(shdrs[7].shader_path().filename(), "explode.comp"));
 	}
 	// Test programs
 	auto &prg = rdr.programs();

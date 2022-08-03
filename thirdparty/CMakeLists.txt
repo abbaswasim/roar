@@ -78,6 +78,16 @@ elseif (${ROR_RENDER_TYPE_DX12})
 elseif (${ROR_RENDER_TYPE_GLES3})
 endif()
 
+# Add glslang
+option(ENABLE_SPVREMAPPER OFF)
+option(ENABLE_GLSLANG_BINARIES OFF)
+set(ENABLE_HLSL OFF)
+option(ENABLE_OPT OFF)
+option(BUILD_TESTING OFF)
+option(BUILD_EXTERNAL OFF)
+
+add_subdirectory(glslang)
+
 # Add basis
 set(BASIS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/basis_universal)
 set(BASIS_SOURCE_FILES

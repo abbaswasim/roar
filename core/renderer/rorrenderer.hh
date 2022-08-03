@@ -37,4 +37,19 @@ FORCE_INLINE Renderer::Renderer()
 	this->load(ror::settings().m_renderer_config, ResourceSemantic::configs);        // By default its renderer.json
 }
 
+FORCE_INLINE std::vector<rhi::RenderpassType> Renderer::render_passes(std::vector<rhi::Renderpass> &a_pass)
+{
+	std::vector<rhi::RenderpassType> passes;
+	for (auto &rp : a_pass)
+	{
+		auto subpasses = rp.subpasses();
+		for (auto &srp : subpasses)
+		{
+			passes.emplace_back(srp.type());
+		}
+	}
+
+	return passes;
+}
+
 }        // namespace ror

@@ -7,7 +7,7 @@
 		"depth.vert",
 		"depth.frag",
 		"blur.kern",
-		"explode.geom"
+		"explode.comp"
 	],
 	"programs":[
 		{

@@ -63,16 +63,18 @@ class ROAR_ENGINE_ITEM Model
 	void upload(rhi::Device& a_device);
 
 	// clang-format off
-	FORCE_INLINE const auto &images()           const    {  return this->m_images;          }
-	FORCE_INLINE const auto &samplers()         const    {  return this->m_samplers;        }
-	FORCE_INLINE const auto &textures()         const    {  return this->m_textures;        }
-	FORCE_INLINE const auto &materials()        const    {  return this->m_materials;       }
-	FORCE_INLINE const auto &meshes()           const    {  return this->m_meshes;          }
-	FORCE_INLINE const auto &skins()            const    {  return this->m_skins;           }
-	FORCE_INLINE const auto &nodes()            const    {  return this->m_nodes;           }
-	FORCE_INLINE const auto &nodes_side_data()  const    {  return this->m_nodes_side_data; }
-	FORCE_INLINE const auto &animations()       const    {  return this->m_animations;      }
+	FORCE_INLINE constexpr auto &images()           const    {  return this->m_images;          }
+	FORCE_INLINE constexpr auto &samplers()         const    {  return this->m_samplers;        }
+	FORCE_INLINE constexpr auto &textures()         const    {  return this->m_textures;        }
+	FORCE_INLINE constexpr auto &materials()        const    {  return this->m_materials;       }
+	FORCE_INLINE constexpr auto &meshes()           const    {  return this->m_meshes;          }
+	FORCE_INLINE constexpr auto &skins()            const    {  return this->m_skins;           }
+	FORCE_INLINE constexpr auto &nodes()            const    {  return this->m_nodes;           }
+	FORCE_INLINE constexpr auto &nodes_side_data()  const    {  return this->m_nodes_side_data; }
+	FORCE_INLINE constexpr auto &animations()       const    {  return this->m_animations;      }
 	// clang-format on
+
+	void update_mesh_program(uint32_t a_mesh_index, uint32_t a_primitive_index, int32_t a_program_index);
 
   private:
 	// This works for 1 model at the moment. Next append to these when a second asset is loaded

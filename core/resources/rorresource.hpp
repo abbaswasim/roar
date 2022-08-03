@@ -97,6 +97,13 @@ enum class ResourceExtension
 	logs_txt
 };
 
+enum class ResourceAction
+{
+	load,
+	create,
+	make
+};
+
 std::string       get_resource_semantic_string(ResourceSemantic a_semantic);
 ResourceExtension get_resource_extension(const std::filesystem::path &a_path);
 
@@ -143,7 +150,7 @@ class ROAR_ENGINE_ITEM Resource final
 	void                         remove();
 	void                         load();
 	void                         flush();
-	void                         update(bytes_vector &&a_data, bool a_append = false);
+	void                         update(bytes_vector &&a_data, bool a_append = false, bool a_mark_dirty = false);
 
   protected:
   private:
@@ -173,8 +180,13 @@ class ROAR_ENGINE_ITEM Resource final
  * @return     Reference to heap allocated Resource object. Client doesn't need to worry about memory management
  */
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
-
 Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path = {});
+Resource &make_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path = {});
+
+/**
+ * Uses the above 3 methods based on a_action
+ */
+Resource &resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, ResourceAction a_action, const std::filesystem::path &a_parent_path = {});
 
 // static_assert(std::is_trivially_copyable_v<Resource>, "Resource is not trivially copyable");
 // static_assert(std::is_standard_layout_v<Resource>, "Resource is not standard layout");

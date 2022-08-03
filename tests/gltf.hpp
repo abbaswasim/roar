@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
 #include "graphics/rormodel.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rorbuffers_pack.hpp"
@@ -63,6 +64,9 @@ class GLTFTest : public testing::Test
 	std::unordered_map<hash_64_t, uint32_t> unique_mesh_ps{};
 
 	std::unordered_map<hash_64_t, std::pair<size_t, size_t>> unique_vattrib{};
+
+	std::unordered_map<hash_64_t, hash_64_t> unique_vs_attribs_to_source{};
+	std::unordered_map<hash_64_t, hash_64_t> unique_fs_attribs_to_source{};
 
 	void load_model(std::string path);
 	void print_hashes();

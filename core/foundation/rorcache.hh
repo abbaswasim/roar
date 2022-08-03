@@ -30,12 +30,12 @@
 namespace ror
 {
 template <class _key, class _type, class _hasher>
-bool Cache<_key, _type, _hasher>::insert(_key a_key, _type a_value)
+auto Cache<_key, _type, _hasher>::insert(_key a_key, _type a_value)
 {
 	std::lock_guard<std::mutex> mtx(this->m_mutex);
 
 	auto result = this->m_cache.emplace(a_key, a_value);
-	return result.second;
+	return result;
 }
 
 template <class _key, class _type, class _hasher>

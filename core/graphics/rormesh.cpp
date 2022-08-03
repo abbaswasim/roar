@@ -33,17 +33,17 @@ hash_64_t Mesh::hash() const
 	return this->m_hash;
 }
 
-hash_64_t Mesh::vertex_hash(size_t a_primitive_index) const
+hash_64_t Mesh::vertex_hash(size_t a_primitive_index) const noexcept
 {
 	return this->m_primitive_vertex_hashes[a_primitive_index];
 }
 
-hash_64_t Mesh::fragment_hash(size_t a_primitive_index) const
+hash_64_t Mesh::fragment_hash(size_t a_primitive_index) const noexcept
 {
 	return this->m_primitive_fragment_hashes[a_primitive_index];
 }
 
-hash_64_t Mesh::program_hash(size_t a_primitive_index) const
+hash_64_t Mesh::program_hash(size_t a_primitive_index) const noexcept
 {
 	return this->m_primitive_program_hashes[a_primitive_index];
 }
@@ -60,4 +60,8 @@ void Mesh::generate_hash()
 		hash_combine_64(this->m_hash, this->program_hash(i));
 }
 
+size_t Mesh::primitives_count() const noexcept
+{
+	return  this->m_attribute_vertex_descriptors.size();
+}
 }        // namespace ror

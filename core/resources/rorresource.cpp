@@ -282,18 +282,24 @@ static Resource &cache_resource(const std::filesystem::path &a_absolute_path)
 
 	assert(a_absolute_path != "" && "Path can't be empty");
 
+	// NOTE: resource_cache is thread safe but from find() till insert() another thread might interfere, we can't make this whole opp atomic so multiple insertion attempts might happen
+	// Which is fine, we ignore our generated shared_ptr in that case
 	auto found = resource_cache.find(a_absolute_path);
 	if (found.second)
+	{
+		log_trace("Resource cache hit for {}", a_absolute_path.c_str());
 		return *found.first;
+	}
 
 	auto pointer = std::make_shared<Resource>(a_absolute_path);
 	assert(pointer);
+
 	auto result = resource_cache.insert(a_absolute_path, pointer);
 
-	assert(result && "Resource wasn't inserted, probably already exists or failure happend");
-	(void) result;        // in release builds it will complain otherwise
-
-	return *pointer;
+	if (result.second)        // Means newly inserted
+		return *pointer;
+	else        // Means we thought we _can_ insert it at "find()" stage but at "insert()" stage it was inserted by someone else, so lets use the already inserted one
+		return *result.first->second;
 }
 
 /**
@@ -310,6 +316,24 @@ Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_
 }
 
 /**
+ * Can be used to create absolute paths using the project_root
+ * For example if "boy10.jpg" is provided as assets path with semantic of "textures" while parent path is "astro_boy" will result in
+ * project_root/astro_boy/textures/boy10.jpg
+ * if "astro_boy/boy10.jpg" is provided as assets path with semantic of "textures" while parent path is "" will result in
+ * project_root/textures/astro_boy/boy10.jpg
+ */
+std::filesystem::path make_resource_path(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
+{
+	assert(a_path != "" && "create_resource is provided empty path");
+	auto &project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
+
+	std::filesystem::path semantic_path{get_resource_semantic_string(a_semantic)};
+	std::filesystem::path absolute_path{project_root_path / a_parent_path / semantic_path / a_path};
+
+	return absolute_path;
+}
+
+/**
  * Can be used to create resources relative to project_root if they don't already exist
  * Requires the path to resource that to be created and semantic and will try to create that, parent_path is optional
  * For example if "boy10.jpg" is provided as assets path with semantic of "textures" while parent path is "astro_boy" will result in
@@ -320,15 +344,37 @@ Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_
 */
 Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
 {
-	assert(a_path != "" && "create_resource is provided empty path");
-	auto &project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
+	auto  absolute_path = make_resource_path(a_path, a_semantic, a_parent_path);
+	auto &resource      = cache_resource(absolute_path);
 
-	std::filesystem::path semantic_path{get_resource_semantic_string(a_semantic)};
-	std::filesystem::path absolute_path{project_root_path / a_parent_path / semantic_path / a_path};
-
-	auto &resource = cache_resource(absolute_path);
 	resource.create();
 	return resource;
+}
+
+/**
+ * Can be used to make a resource in memory relative to project_root if they don't already exist
+ * Requires the path to resource that to be created and semantic and will create a Resource object corresponding to that path
+ * NOTE: You need to call write on the resource at someone if you want to write it to desk
+ */
+Resource &make_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
+{
+	auto  absolute_path = make_resource_path(a_path, a_semantic, a_parent_path);
+	auto &resource      = cache_resource(absolute_path);
+
+	return resource;
+}
+
+Resource &resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, ResourceAction a_action, const std::filesystem::path &a_parent_path)
+{
+	switch (a_action)
+	{
+		case ResourceAction::load:
+			return load_resource(a_path, a_semantic);
+		case ResourceAction::create:
+			return create_resource(a_path, a_semantic, a_parent_path);
+		case ResourceAction::make:
+			return make_resource(a_path, a_semantic, a_parent_path);
+	}
 }
 
 Resource::~Resource() noexcept
@@ -341,7 +387,7 @@ Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_
 {
 	if (!this->m_absolute_path.is_absolute())
 	{
-		log_error("{} path is not absolute, Resource only accepts absolute filename ", this->m_absolute_path.c_str());
+		log_critical("{} path is not absolute, Resource only accepts absolute filename ", this->m_absolute_path.c_str());
 	}
 
 	this->m_extension = get_resource_extension(this->m_absolute_path);
@@ -375,7 +421,7 @@ void Resource::create()
 	}
 	else
 	{
-		log_warn("Trying to create resource but it already exists {}", this->m_absolute_path.c_str());
+		log_critical("Trying to create resource but it already exists {}", this->m_absolute_path.c_str());
 	}
 
 	this->m_dirty = true;
@@ -520,7 +566,7 @@ ResourceExtension Resource::extension()
 	return this->m_extension;
 }
 
-void Resource::update(bytes_vector &&a_data, bool a_append)
+void Resource::update(bytes_vector &&a_data, bool a_append, bool a_mark_dirty)
 {
 	if (a_append)
 	{
@@ -532,7 +578,7 @@ void Resource::update(bytes_vector &&a_data, bool a_append)
 		this->m_data = std::move(a_data);
 
 	this->update_hashes();
-	this->m_dirty = true;
+	this->m_dirty = a_mark_dirty;
 }
 
 std::filesystem::path get_cache_path()

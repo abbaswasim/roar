@@ -24,9 +24,32 @@
 //
 // Version: 1.0.0
 
+#include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorshader.hpp"
 
 namespace rhi
 {
 
+template <class _type>
+FORCE_INLINE ShaderCrtp<_type>::ShaderCrtp(std::string a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action) :
+    m_type(a_type)
+{
+	if (a_action == ror::ResourceAction::create)
+		this->m_shader = &ror::resource(a_shader, ror::ResourceSemantic::caches, ror::ResourceAction::create, "shaders");
+	else
+		this->m_shader = &ror::resource(a_shader, ror::ResourceSemantic::shaders, a_action);
+}
+
+template <class _type>
+FORCE_INLINE void ShaderCrtp<_type>::source(const std::string &a_source)
+{
+	assert(this->m_shader);
+	this->m_shader->update({a_source.begin(), a_source.end()}, false, false);
+
+	std::string info_log;
+	if (!compile_to_spirv(a_source, this->m_type, "main", this->m_spirv, info_log))
+	{
+		ror::log_critical("Shader to SPIR-V conversion failed \n{}", info_log.c_str());
+	}
+}
 }        // namespace rhi

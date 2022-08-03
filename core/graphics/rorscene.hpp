@@ -36,9 +36,11 @@
 #include "math/rortransform.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorshader.hpp"
+#include "rhi/rortypes.hpp"
 #include <any>
 #include <filesystem>
 #include <limits>
+#include <unordered_map>
 
 namespace ror
 {
@@ -157,18 +159,18 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	void render(const RenderDevice *a_rendering_device);
 	void update(double64_t a_milli_seconds);
-	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device);
+	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const std::vector<rhi::RenderpassType> &a_render_passes);
 	void unload();
 	void load_specific();
 
 	// clang-format off
 	FORCE_INLINE const auto &models()           const    {  return this->m_models;          }
-	FORCE_INLINE const auto &textures()         const    {  return this->m_textures;        }
 	FORCE_INLINE const auto &nodes()            const    {  return this->m_nodes;           }
 	FORCE_INLINE const auto &nodes_side_data()  const    {  return this->m_nodes_data;      }
 	FORCE_INLINE const auto &particles()        const    {  return this->m_particles;       }
-	FORCE_INLINE const auto &shaders()          const    {  return this->m_shaders;         }
 	FORCE_INLINE const auto &programs()         const    {  return this->m_programs;        }
+    FORCE_INLINE const auto &global_shaders()   const    {  return this->m_shaders;  }
+	FORCE_INLINE const auto &global_programs()  const    {  return this->m_global_programs; }
 	FORCE_INLINE const auto &cameras()          const    {  return this->m_cameras;         }
 	FORCE_INLINE const auto &lights()           const    {  return this->m_lights;          }
 	// clang-format on
@@ -179,18 +181,21 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void read_cameras();
 	void read_programs();
 	void read_probes();
+	void generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes);
+
+	using render_pass_shaders = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;
 
 	// All of these can be buffer allocated but for now leave them as is
-	std::vector<ror::Model>          m_models{};            //! All the assets loaded as 3D models
-	std::vector<rhi::Texture>        m_textures{};          //! All textures by handles
-	std::vector<ror::SceneNode>      m_nodes{};             //! All the nodes in this scene
-	std::vector<ror::SceneNodeData>  m_nodes_data{};        //! All the nodes parallel data that needs to be maintained
-	std::vector<ror::ParticleSystem> m_particles{};         //! All the particle emittors
-	std::vector<rhi::Shader>         m_shaders{};           //! All the global shaders
-	std::vector<rhi::Program>        m_programs{};          //! All the global shader programs
-	std::vector<ror::OrbitCamera>    m_cameras{};           //! All the cameras in the scene
-	std::vector<ror::Light>          m_lights{};            //! All the lights in the scene
-	std::vector<EnvironmentProbe>    m_probes{};            //! All the environment probes
+	std::vector<ror::Model>          m_models{};                 //! All the assets loaded as 3D models
+	std::vector<ror::SceneNode>      m_nodes{};                  //! All the nodes in this scene
+	std::vector<ror::SceneNodeData>  m_nodes_data{};             //! All the nodes parallel data that needs to be maintained
+	std::vector<ror::ParticleSystem> m_particles{};              //! All the particle emittors
+	render_pass_shaders              m_programs{};               //! All the shader programs per render pass for all the models
+	std::vector<rhi::Shader>         m_shaders{};                //! All the shaders that for all meshesh in each model
+	std::vector<rhi::Program>        m_global_programs{};        //! All the global shader programs that overrides per mesh/model programs
+	std::vector<ror::OrbitCamera>    m_cameras{};                //! All the cameras in the scene
+	std::vector<ror::Light>          m_lights{};                 //! All the lights in the scene
+	std::vector<EnvironmentProbe>    m_probes{};                 //! All the environment probes
 };
 
 }        // namespace ror

@@ -610,6 +610,25 @@ rhi::PixelFormat string_to_pixel_format(const std::string &a_format)
 	return rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb;
 }
 
+rhi::ShaderType string_to_shader_type(const std::string &a_extension)
+{
+	auto type{rhi::ShaderType::vertex};
+	if (a_extension == ".vert")
+		type = rhi::ShaderType::vertex;
+	else if (a_extension == ".frag")
+		type = rhi::ShaderType::fragment;
+	else if (a_extension == ".comp")
+		type = rhi::ShaderType::compute;
+	else if (a_extension == ".kern")
+		type = rhi::ShaderType::compute;
+	else if (a_extension == ".mesh")
+		type = rhi::ShaderType::mesh;
+	else
+		assert(0 && "Implement more types");
+
+	return type;
+}
+
 bool is_pixel_format_depth_format(const rhi::PixelFormat a_format)
 {
 	if (a_format == PixelFormat::depth16_uint16_norm ||
@@ -622,4 +641,32 @@ bool is_pixel_format_depth_format(const rhi::PixelFormat a_format)
 
 	return false;
 }
+
+std::string renderpass_type_to_string(const rhi::RenderpassType &a_type)
+{
+	// clang-format off
+	switch (a_type)
+	{
+		case rhi::RenderpassType::lut: 					return "lut";
+		case rhi::RenderpassType::main: 				return "main";
+		case rhi::RenderpassType::depth: 				return "depth";
+		case rhi::RenderpassType::shadow: 				return "shadow";
+		case rhi::RenderpassType::light_bin: 			return "light_bin";
+		case rhi::RenderpassType::reflection: 			return "reflection";
+		case rhi::RenderpassType::refraction: 			return "refraction";
+		case rhi::RenderpassType::tone_mapping: 		return "tone_mapping";
+		case rhi::RenderpassType::forward_light: 		return "forward_light";
+		case rhi::RenderpassType::post_process: 		return "post_process";
+		case rhi::RenderpassType::deferred_gbuffer: 	return "deferred_gbuffer";
+		case rhi::RenderpassType::reflection_probes: 	return "reflection_probes";
+		case rhi::RenderpassType::image_based_light: 	return "image_based_light";
+		case rhi::RenderpassType::ambient_occlusion: 	return "ambient_occlusion";
+	    case rhi::RenderpassType::deferred_clustered:   return "deferred_clustered";
+	}
+	// clang-format on
+
+	assert(0);
+	return "";
+}
+
 }        // namespace rhi

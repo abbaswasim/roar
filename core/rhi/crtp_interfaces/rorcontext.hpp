@@ -54,10 +54,13 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		// Should only be called once per execution, TODO: check if this could be used in MT environment
 		basist::basisu_transcoder_init();
 
+		// Initialize glslang library via our wrapper, calling glslang directly means we need to link it with editor which creaates all kinds of issues
+		glslang_wrapper_initialize_process();
+
 		this->m_renderer.upload(*this->m_current_device);
 
 		// Load all the models now in a deferred way
-		this->m_scene.load_models(*this->m_job_system, *this->m_current_device);
+		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer.render_passes());
 
 		this->underlying().init_derived();
 	}
@@ -84,6 +87,9 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 
 	FORCE_INLINE void shutdown()
 	{
+		// Shutdown glslang library via our wrapper, calling glslang directly means we need to link it with editor which creaates all kinds of issues
+		glslang_wrapper_finalize_process();
+
 		this->m_buffer_pack->free();
 		this->m_job_system->stop();
 

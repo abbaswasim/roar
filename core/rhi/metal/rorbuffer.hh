@@ -50,7 +50,10 @@ template <typename _type>
 void BufferMetal<_type>::partial_upload(rhi::Device &a_device, size_t a_offset, size_t a_length)
 {
 	MTL::Device *device = a_device.platform_device();
-	this->m_buffer      = device->newBuffer(a_length, MTL::ResourceStorageModeManaged);        // TODO: Add other modes
+
+	// Create the buffer once. but can be uploaded many times with updates
+	if (this->m_buffer == nullptr)
+		this->m_buffer      = device->newBuffer(std::max(1ul, a_length), MTL::ResourceStorageModeManaged);        // TODO: Add other modes
 
 	memcpy(this->m_buffer->contents(), this->data().data() + a_offset, a_length);
 

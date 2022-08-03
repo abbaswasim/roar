@@ -35,6 +35,8 @@
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rortexture.hpp"
+#include "rhi/rortypes.hpp"
+#include <cassert>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -54,9 +56,11 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE Renderer &operator=(Renderer &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Renderer() noexcept override            = default;        //! Destructor
 
-	FORCE_INLINE Renderer();        //! Default constructor
-	void         load_specific();
-	void         upload(rhi::Device &);
+	FORCE_INLINE                     Renderer();        //! Default constructor
+	void                             load_specific();
+	void                             upload(rhi::Device &);
+	std::vector<rhi::RenderpassType> render_passes();
+	std::vector<rhi::RenderpassType> all_render_passes();
 
 	// clang-format off
 	auto& shaders()                       { return this->m_shaders; }
@@ -79,6 +83,8 @@ class Renderer final : public Configuration<Renderer>
   protected:
   private:
 	declare_translation_unit_vtable();
+
+	FORCE_INLINE std::vector<rhi::RenderpassType> render_passes(std::vector<rhi::Renderpass>& a_pass);
 
 	void load_programs();
 	void load_frame_graphs();

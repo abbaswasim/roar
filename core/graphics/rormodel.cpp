@@ -167,7 +167,7 @@ rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a
 	ti.bytes_per_pixel(static_cast<uint32_t>(bpp));
 	if (a_buffer_view->name != nullptr)
 		ti.name(a_buffer_view->name);
-	else 
+	else
 		ti.name("texture_from_buffer_view");
 	ti.usage(rhi::TextureUsage::shader_read);
 
@@ -976,6 +976,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 				// The last 2 are important and definitely needs reserving because these are BufferAllocated
 				mesh.m_bounding_boxes.resize(cmesh.primitives_count);
 				mesh.m_material_indices.resize(cmesh.primitives_count);
+				mesh.m_program_indices.resize(cmesh.primitives_count);
 
 				for (size_t j = 0; j < cmesh.primitives_count; ++j)
 				{
@@ -995,6 +996,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						mesh.m_material_indices[j] = find_safe_index(material_to_index, cprim.material);
 					else
 						mesh.m_material_indices[j] = -1;
+
+					mesh.m_program_indices[j] = -1;
 
 					// Read all other vertex attributes
 					for (size_t k = 0; k < cprim.attributes_count; ++k)
@@ -1566,6 +1569,11 @@ void Model::upload(rhi::Device &a_device)
 	{
 		image.upload(a_device);
 	}
+}
+
+void Model::update_mesh_program(uint32_t a_mesh_index, uint32_t a_primitive_index, int32_t a_program_index)
+{
+	this->m_meshes[a_mesh_index].m_program_indices[a_primitive_index] = a_program_index;
 }
 
 }        // namespace ror

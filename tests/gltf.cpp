@@ -333,6 +333,16 @@ void GLTFTest::load_model(std::string path)
 				program_source = vs;
 
 				auto hash = ror::hash_64(vs);
+
+				auto mesh_vs_hash = ms.vertex_hash(j);
+
+				auto res = unique_vs_attribs_to_source.emplace(mesh_vs_hash, hash);
+				if (!res.second)
+				{
+					assert(res.first->second == hash && "Source hashes for non-inserted vertex shader aren't the same");
+					assert(res.first->first == mesh_vs_hash && "Shouldn't happen");
+				}
+
 				hashes_of_vs[hash]++;
 				unique_vs[hash]      = vs;
 				unique_vattrib[hash] = std::make_pair(mesh_index, j);
@@ -347,6 +357,15 @@ void GLTFTest::load_model(std::string path)
 				program_source.append(fs);
 
 				auto hash = ror::hash_64(fs);
+
+				auto mesh_fs_hash = ms.fragment_hash(j);
+				auto res = unique_fs_attribs_to_source.emplace(mesh_fs_hash, hash);
+				if (!res.second)
+				{
+					assert(res.first->second == hash && "Source hashes for non-inserted fragment shader aren't the same");
+					assert(res.first->first == mesh_fs_hash && "Shouldn't happen");
+				}
+
 				hashes_of_fs[hash]++;
 				unique_fs[hash] = fs;
 

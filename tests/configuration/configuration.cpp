@@ -117,7 +117,7 @@ TEST(ResourcesTest, resouce_load_upload_write)
 
 	{
 		auto &shader = ror::create_resource("my_assets/my_shader.vs", ror::ResourceSemantic::shaders);
-		shader.update({data.begin(), data.end()});
+		shader.update({data.begin(), data.end()}, false, true);
 		if constexpr (ror::get_os() < ror::OsType::os_android)        // This means all Host OSes
 		{
 			{
@@ -159,7 +159,7 @@ TEST(ResourcesTest, resouce_load_upload_write)
 	}
 	{
 		auto &shader = ror::create_resource("my_assets/my_shader.vs", ror::ResourceSemantic::shaders);
-		shader.update({data.begin(), data.end()});
+		shader.update({data.begin(), data.end()}, false, true);
 		shader.flush();
 	}
 
@@ -170,7 +170,7 @@ TEST(ResourcesTest, resouce_load_upload_write)
 	{
 		auto &loaded_shader = ror::load_resource("my_assets/my_shader.vs", ror::ResourceSemantic::shaders);
 		EXPECT_EQ(loaded_shader.data(), bytes);
-		loaded_shader.update({data.begin(), data.end()}, true);        // Append data
+		loaded_shader.update({data.begin(), data.end()}, true, true);        // Append data
 		loaded_shader.flush();
 	}
 	{

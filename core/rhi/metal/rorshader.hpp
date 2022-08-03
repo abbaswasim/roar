@@ -28,6 +28,7 @@
 
 #include "foundation/rormacros.hpp"
 #include "profiling/rorlog.hpp"
+#include "resources/rorresource.hpp"
 #include "rhi/crtp_interfaces/rorshader.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
@@ -42,8 +43,8 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 	FORCE_INLINE ShaderMetal &operator=(ShaderMetal &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ShaderMetal() noexcept override                 = default;        //! Destructor
 
-	FORCE_INLINE explicit ShaderMetal(std::filesystem::path a_shader) :
-	    ShaderCrtp(a_shader)
+	FORCE_INLINE ShaderMetal(std::string a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action) :
+	    ShaderCrtp(a_shader, a_type, a_action)
 	{}
 
 	void upload()

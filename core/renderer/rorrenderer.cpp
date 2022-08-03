@@ -29,12 +29,15 @@
 #include "math/rorvector2.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
+#include "resources/rorresource.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
+#include <filesystem>
+#include <string>
 #include <vector>
 
 namespace ror
@@ -62,10 +65,13 @@ void Renderer::load_programs()
 	if (this->m_json_file.contains("shaders"))
 	{
 		// Read all the shaders
-		auto shaders = this->m_json_file["shaders"];
+		std::vector<std::string> shaders = this->m_json_file["shaders"];
 		for (auto &shader : shaders)
 		{
-			this->m_shaders.emplace_back(shader);
+			auto s_path = std::filesystem::path(shader);
+			auto type = rhi::string_to_shader_type(s_path.extension());
+
+			this->m_shaders.emplace_back(shader, type, ror::ResourceAction::load);
 		}
 	}
 
@@ -478,4 +484,21 @@ void Renderer::upload(rhi::Device &a_device)
 	}
 }
 
+std::vector<rhi::RenderpassType> Renderer::render_passes()
+{
+	assert(this->m_current_frame_graph);
+	return this->render_passes(*this->m_current_frame_graph);
+}
+
+std::vector<rhi::RenderpassType> Renderer::all_render_passes()
+{
+	std::vector<rhi::RenderpassType> passes;
+	for (auto &rps : this->m_frame_graphs)
+	{
+		auto rpees = this->render_passes(rps.second);
+		passes.insert(passes.end(), std::make_move_iterator(rpees.begin()), std::make_move_iterator(rpees.end()));
+	}
+
+	return passes;
+}
 }        // namespace ror

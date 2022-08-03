@@ -49,7 +49,7 @@ class ROAR_ENGINE_ITEM Cache final
 	FORCE_INLINE ~Cache() noexcept                          = default;        //! Destructor
 
 	// NOTE: Don't add methods like begin() or end() which makes thread safety impossible
-	bool                   insert(_key a_key, _type a_value);
+	auto                   insert(_key a_key, _type a_value);
 	_type                  remove(_key a_key);
 	std::pair<_type, bool> find(_key a_key);
 

@@ -26,20 +26,26 @@
 #include "camera/rorcamera.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
+#include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "graphics/rormesh.hpp"
+#include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
 #include "graphics/rorscene.hpp"
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
 #include "math/rorvector3.hpp"
 #include "profiling/rorlog.hpp"
+#include "profiling/rortimer.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorhandles.hpp"
+#include "rhi/rortypes.hpp"
+#include "shader_system/rorshader_system.hpp"
 #include <array>
-#include <ostream>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 namespace ror
@@ -63,7 +69,7 @@ void Scene::update(double64_t a_milli_seconds)
 	(void) a_milli_seconds;
 }
 
-void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device& a_device)
+void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const std::vector<rhi::RenderpassType> &a_render_passes)
 {
 	auto model_nodes{0u};
 	for (auto &node : this->m_nodes_data)
@@ -108,13 +114,121 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device& a_device)
 		// Wait for all jobs to finish
 		for (auto &jh : job_handles)
 			if (!jh.data())
-				ror::log_error("Can't load models specified in the scene.");
+				ror::log_critical("Can't load models specified in the scene.");
 	}
+
+	// Lets kick off shader generation while we upload the buffers
+	auto shader_gen_job_handle = a_job_system.push_job([this, &a_render_passes]() -> auto{ this->generate_shaders(a_render_passes); return true; });
 
 	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
 	// TODO: find out this might need to be done differently for Vulkan
-	auto& bpack = rhi::get_buffers_pack();
+	auto &bpack = rhi::get_buffers_pack();
 	bpack.upload(a_device);
+
+	if (!shader_gen_job_handle.data())
+		ror::log_critical("Can't generate model shaders.");
+}
+
+void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes)
+{
+	size_t shaders_count = 0;
+
+	for (auto &model : this->m_models)
+		for (auto &mesh : model.meshes())
+			shaders_count += mesh.primitives_count();
+
+	// For each render pass in the framegraph create programs the model meshes can use
+	bool has_shadows = false;
+
+	for (auto &passtype : a_render_passes)
+		if (passtype == rhi::RenderpassType::shadow)
+			has_shadows = true;
+
+	// This should be shaders_count * 2 * a_render_passes.size();
+	// Then fill me up in a loop before entering the next loop with jobs in it
+	this->m_shaders.reserve(shaders_count * 2 * a_render_passes.size());
+
+	log_warn("About to create {} shaders ", shaders_count * 2 * a_render_passes.size());
+
+	std::unordered_map<rhi::RenderpassType, std::unordered_map<hash_64_t, size_t>> shader_hash_to_index{};
+	for (auto &passtype : a_render_passes)
+	{
+		this->m_programs[passtype] = {};
+		auto &pass_programs        = this->m_programs[passtype];
+		auto  pass_string          = std::string("_") + rhi::renderpass_type_to_string(passtype);
+		pass_programs.reserve(shaders_count);        // Pre-reserve so no reallocation happen under the hood while jobs are using it, times 2 for both vertex and fragment
+
+		std::unordered_map<hash_64_t, uint32_t> unique_vs{};
+		std::unordered_map<hash_64_t, uint32_t> unique_fs{};
+
+		// Generate vertex and fragment shaders
+		for (auto &model : this->m_models)
+		{
+			uint32_t mesh_index = 0;
+			for (auto &mesh : model.meshes())
+			{
+				for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+				{
+					auto vs_hash = mesh.vertex_hash(prim_index);
+
+					auto res = unique_vs.emplace(vs_hash, 0);
+					if (res.second)
+					{
+						shader_hash_to_index[passtype][vs_hash] = this->m_shaders.size();
+
+						const auto vs_name = std::string(std::to_string(vs_hash) + pass_string + ".vert");
+						this->m_shaders.emplace_back(vs_name, rhi::ShaderType::vertex, ror::ResourceAction::make);
+
+						auto vs = rhi::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype);
+						this->m_shaders.back().source(vs);
+					}
+
+					auto fs_hash = mesh.fragment_hash(prim_index);
+
+					res = unique_fs.emplace(fs_hash, 0);
+					if (res.second)
+					{
+						shader_hash_to_index[passtype][fs_hash] = this->m_shaders.size();
+
+						const auto fs_name = std::string(std::to_string(fs_hash) + pass_string + ".frag");
+						this->m_shaders.emplace_back(fs_name, rhi::ShaderType::vertex, ror::ResourceAction::make);
+
+						auto fs = rhi::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, has_shadows);
+						this->m_shaders.back().source(fs);
+					}
+
+					pass_programs.emplace_back(shader_hash_to_index[passtype][vs_hash], shader_hash_to_index[passtype][fs_hash]);
+
+					// This is set once for the first render pass but it must stay the same for all of the rest because everypass must contain the same amount of shaders
+					if (mesh.m_program_indices[prim_index] == -1)
+						model.update_mesh_program(mesh_index, static_cast_safe<uint32_t>(prim_index), static_cast_safe<int32_t>(pass_programs.size()) - 1);
+				}
+				++mesh_index;
+			}
+		}
+	}
+
+	if constexpr (get_build() == BuildType::build_debug)
+	{
+		for (auto &passtype : a_render_passes)
+		{
+			auto &pass_programs = this->m_programs[passtype];
+			auto  size          = pass_programs.size();
+			for (auto &passtype2 : a_render_passes)
+			{
+				auto &pass_programs2 = this->m_programs[passtype2];
+				assert(pass_programs2.size() == size && "Something went wrong, sizes don't match");
+			}
+		}
+	}
+
+	log_warn("Actual number of shaders created {} ", this->m_shaders.size());
+
+	// Now lets upload them
+	for (auto &shader : this->m_shaders)
+	{
+		shader.upload();
+	}
 }
 
 void Scene::read_nodes()
@@ -318,7 +432,9 @@ void Scene::read_programs()
 		auto shaders = this->m_json_file["shaders"];
 		for (auto &shader : shaders)
 		{
-			this->m_shaders.emplace_back(shader);
+			auto s_path = std::filesystem::path(shader);
+			auto type   = rhi::string_to_shader_type(s_path.extension());
+			this->m_shaders.emplace_back(shader, type, ror::ResourceAction::load);
 		}
 	}
 
@@ -340,7 +456,7 @@ void Scene::read_programs()
 				fid = program["fragment"];
 			}
 
-			this->m_programs.emplace_back(vid, fid);
+			this->m_global_programs.emplace_back(vid, fid);
 		}
 	}
 }
@@ -353,7 +469,7 @@ void Scene::read_probes()
 		for (auto &probe : probes)
 		{
 			EnvironmentProbe prob;
-			ror::Transformf xform;
+			ror::Transformf  xform;
 			if (probe.contains("translation"))
 			{
 				std::array<float32_t, 3> t = probe["translation"];

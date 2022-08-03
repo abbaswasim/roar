@@ -63,10 +63,11 @@ class ROAR_ENGINE_ITEM Mesh final
 
 	// Provides has for a specific part of the mesh
 	hash_64_t hash() const;
-	hash_64_t vertex_hash(size_t a_primitive_index) const;
-	hash_64_t fragment_hash(size_t a_primitive_index) const;
-	hash_64_t program_hash(size_t a_primitive_index) const;
+	hash_64_t vertex_hash(size_t a_primitive_index) const noexcept;
+	hash_64_t fragment_hash(size_t a_primitive_index) const noexcept;
+	hash_64_t program_hash(size_t a_primitive_index) const noexcept;
 	void      generate_hash();
+	size_t    primitives_count() const noexcept;
 
 	// TODO: Flatten this into 'Mesh' into 'Models' etc to see if I get cache locallity
 	using BoundingBoxAllocator = rhi::BufferAllocator<ror::BoundingBoxf>;
@@ -85,6 +86,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	std::vector<float32_t, rhi::BufferAllocator<float32_t>> m_morph_weights{};                           //! Optional morph weights provided per mesh
 	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>    m_bounding_boxes{};                          //! This is per part
 	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Should be init with -1
+	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_program_indices{};                         //! Should be init with -1
 	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1
 	uint64_t                                                m_hash{0};                                   //! Hash of this mesh depending on most of its properties
 };
