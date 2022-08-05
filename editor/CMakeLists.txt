@@ -50,4 +50,4 @@ target_link_libraries(${ROAR_EDITOR_NAME} PRIVATE
   ${ROAR_EDITOR_REQUIRED_PRIVATE_LIBRARIES}
   ${ROAR_EDITOR_REQUIRED_PUBLIC_LIBRARIES})
 
-build_options(${ROAR_EDITOR_NAME})                               # Set common build options
+build_options(${ROAR_EDITOR_NAME} true)                               # Set common build options

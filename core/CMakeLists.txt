@@ -195,13 +195,18 @@ endif()
 set(ROAR_REQUIRED_PRIVATE_LIBRARIES
   roar_version)
 
+set(ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM
+  roar_version
+  glslang
+  SPIRV
+  glslang-default-resource-limits)
+
 set(ROAR_REQUIRED_PUBLIC_LIBRARIES
   ctpl
   cimage
   stb
   basisu
   spdlog
-  glslang
   glfw
   nlohmann_json
   xxhash)
@@ -233,5 +238,6 @@ target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES})
 # To make sure project warning levels are not transferred to dependencies, one can link to these as SYSTEM libraries
 # This still seems like a hack, target_link_libraries_system is defined in build.cmake
 target_link_libraries_system(${ROAR_NAME} PUBLIC ${ROAR_REQUIRED_PUBLIC_LIBRARIES})
+target_link_libraries_system(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES})
 
-build_options(${ROAR_NAME})                               # Set common build options
+build_options(${ROAR_NAME} true)                               # Set common build options

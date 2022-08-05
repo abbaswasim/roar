@@ -39,6 +39,7 @@ include(${ROAR_ROOT_DIR}/build.cmake)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 option(BUILD_GMOCK "Builds the googlemock subproject" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries by defaul" OFF) # This needs to be set otherwise some dependencies (xxHash) sets it to ON and then other dependencies (glslang) create problems
 
 if (DEFINED ROAR_RENDER_TYPE)
   string(TOLOWER "${ROAR_RENDER_TYPE}" render_value)

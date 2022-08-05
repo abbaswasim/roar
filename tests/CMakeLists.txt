@@ -100,6 +100,7 @@ target_link_libraries_system(${ROAR_TEST_NAME} PRIVATE ${ROAR_REQUIRED_TEST_SYST
 # Does this make any different, first tests didn't find any, explore some day
 target_precompile_headers(${ROAR_TEST_NAME} PRIVATE <gtest/gtest.h> <vector> <array> <complex> <map> <optional> <iostream> <iomanip> <memory>)
 
-build_options(${ROAR_TEST_NAME})
+build_options(${ROAR_TEST_NAME} true)
+build_options(gtest false)
 
 target_compile_definitions(${ROAR_TEST_NAME} PUBLIC ROAR_IMPORTING_SYMBOLS)

@@ -34,7 +34,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_CXX_EXTENSIONS false)
 
-function(build_options target_name)
+function(build_options target_name extra_pedantic)
   if (CMAKE_BUILD_TYPE MATCHES "Debug")
 	target_compile_definitions(${target_name} PRIVATE RORDEBUG)
 	set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
@@ -45,49 +45,62 @@ function(build_options target_name)
   endif (CMAKE_BUILD_TYPE MATCHES "Debug")
 
   # Be slightly more pedantic
-  target_compile_options(${target_name} PRIVATE
-	-Wall
-	-Wextra
-	-Werror
-	-Wconversion
-	-Wsign-conversion
-	-Wunreachable-code
-	-Wuninitialized
-	-pedantic-errors
-	-Wold-style-cast
-	-Wshadow
-	-Weffc++
-	-Wfloat-equal)
+  if (extra_pedantic)
+	target_compile_options(${target_name} PRIVATE
+	  -Wall
+	  -Wextra
+	  -Werror
+	  -Wconversion
+	  -Wsign-conversion
+	  -Wunreachable-code
+	  -Wuninitialized
+	  -pedantic-errors
+	  -Wold-style-cast
+	  -Wshadow
+	  -Weffc++
+	  -Wfloat-equal)
+  endif()
 
-if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-  target_compile_options(${target_name} PRIVATE -Wmost)
-  target_compile_options(${target_name} PRIVATE
-	-Wno-c++98-compat-pedantic
-	-Wno-c++98-compat
-	# -fsanitize=address
-	# -fno-omit-frame-pointer
-	# -fno-optimize-sibling-calls
-	-Wno-poison-system-directories
-	-Wno-gnu-zero-variadic-macro-arguments) # TODO: Find a solution to this for gtest
+  if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
+	if (extra_pedantic)
+	  target_compile_options(${target_name} PRIVATE
+		-Wmost
+		-Wno-c++98-compat-pedantic
+		-Wno-c++98-compat
+		# -fno-omit-frame-pointer
+		# -fno-optimize-sibling-calls
+		-Wno-poison-system-directories
+		-Wno-gnu-zero-variadic-macro-arguments) # TODO: Find a solution to this for gtest
 
-  target_compile_options(${target_name} PRIVATE
-	# The following warnings after everyting are enabled by -Weverything but are not practical to fix hence ignoring
-	-Weverything
-	-Wno-exit-time-destructors        # worth enabling if getting crashes at exit time
-	-Wno-global-constructors          # worth enabling if getting crashes at exit time
-	-Wno-c++2a-compat
-	-Wno-missing-prototypes
-	-Wno-padded                       # TODO: This one is interesting, enable to fix all issues
-	-Wno-double-promotion             # re-enable this later
-	-Wno-documentation                # I don't understand why this is passed through to thirdparty deps still, investigate later
-	)
+	  target_compile_options(${target_name} PRIVATE
+		# The following warnings after everyting are enabled by -Weverything but are not practical to fix hence ignoring
+		-Weverything
+		-Wno-exit-time-destructors        # worth enabling if getting crashes at exit time
+		-Wno-global-constructors          # worth enabling if getting crashes at exit time
+		-Wno-c++2a-compat
+		-Wno-missing-prototypes
+		-Wno-padded                       # TODO: This one is interesting, enable to fix all issues
+		-Wno-double-promotion             # re-enable this later
+		-Wno-documentation                # I don't understand why this is passed through to thirdparty deps still, investigate later
+	  )
+	endif()
+	# target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments)
 
-  # target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments)
+	if (ROAR_BUILD_SANITIZED)
+	  target_compile_options(${target_name} PRIVATE
+		-fsanitize=address
+		-fsanitize=undefined
+		-fno-sanitize-recover=all
+		-fsanitize=float-divide-by-zero
+		-fsanitize=float-cast-overflow
+		-fno-sanitize=null
+		-fno-sanitize=alignment)
 
-  # target_link_options(${target_name} PRIVATE
-	# -fsanitize=address)
-else()
-endif()
+	  target_link_options(${target_name} PRIVATE
+		-fsanitize=undefined
+		-fsanitize=address)
+	endif()
+  endif()
 
 endfunction(build_options)
 

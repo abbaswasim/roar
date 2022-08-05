@@ -79,14 +79,24 @@ elseif (${ROR_RENDER_TYPE_GLES3})
 endif()
 
 # Add glslang
-option(ENABLE_SPVREMAPPER OFF)
-option(ENABLE_GLSLANG_BINARIES OFF)
-set(ENABLE_HLSL OFF)
-option(ENABLE_OPT OFF)
-option(BUILD_TESTING OFF)
-option(BUILD_EXTERNAL OFF)
+set(ENABLE_SPVREMAPPER OFF)
+set(ENABLE_GLSLANG_BINARIES ON)
+set(ENABLE_HLSL ON)
+set(ENABLE_OPT OFF)
+set(BUILD_TESTING OFF)
+set(BUILD_EXTERNAL OFF)
 
+cmake_policy(PUSH)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+
+# We need glslang to build as static library
+# if someone somewhere, i.e. another dependency in this case xxHash, sets BUILD_SHARED_LIBS to ON glslang will build as shared library
+# but it doesn't work if used the way I am using it, linked into another shared library (roar) and then used by clients (editor)
+# For some reason at Editor point, there are multiple copies of glslang loaded and some TLS variables PoolIndex in glslang is unset for the second run
 add_subdirectory(glslang)
+build_options(glslang false)                               # Set common build options
+
+cmake_policy(POP)
 
 # Add basis
 set(BASIS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/basis_universal)
