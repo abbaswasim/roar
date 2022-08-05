@@ -23,7 +23,9 @@
 //
 // Version: 1.0.0
 
+#include "profiling/rorlog.hpp"
 #include "rhi/rortexture.hpp"
+#include "settings/rorsettings.hpp"
 
 #define STBI_NO_FAILURE_STRINGS
 #define STB_IMAGE_IMPLEMENTATION
@@ -32,10 +34,14 @@
 namespace rhi
 {
 
-void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::TextureImage &a_texture)
+void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::TextureImage &a_texture, const std::string &a_name)
 {
-	int32_t w = 0, h = 0, bpp = 0;
-	auto   *new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
+	int32_t w = 0, h = 0, bpp = 0, req_comp = 4;
+
+	if (!ror::settings().m_force_rgba_textures)
+		ror::log_critical("Reading 4 component textures but force_rgba_textures isn't set in settings.json");
+
+	auto *new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
 
 	a_texture.push_empty_mip();
 	a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);        // TODO: How do I read this via STB or gltf?
@@ -44,7 +50,7 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 	a_texture.height(static_cast<uint32_t>(h));
 	a_texture.depth(1u);
 	a_texture.bytes_per_pixel(static_cast<uint32_t>(bpp));
-	a_texture.name("stbi_memory");
+	a_texture.name(a_name);
 	a_texture.usage(rhi::TextureUsage::shader_read);
 }
 

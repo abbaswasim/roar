@@ -19,6 +19,7 @@
 	"ambient_light_color" : [0.2, 0.2, 0.2, 1.0],
 	"working_dir" : "./working_dir",
 	"renderer_config" : "renderer.json",
+	"force_rgba_textures": true,
 	"fog" :
 	{
 		"enabled" : true,

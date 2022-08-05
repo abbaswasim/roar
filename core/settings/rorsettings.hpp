@@ -70,6 +70,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_window_prerotated    = setting.get<bool>("window_prerotated");
 		this->m_fullscreen           = setting.get<bool>("fullscreen");
 		this->m_resizable            = setting.get<bool>("resizable");
+		this->m_force_rgba_textures  = setting.get<bool>("force_rgba_textures");
 
 		auto bgc = setting.get<std::vector<float32_t>>("background");
 		if (bgc.size() >= 4)
@@ -146,6 +147,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_fullscreen{false};
 	bool m_resizable{false};
 	bool m_fog_enabled{false};
+	bool m_force_rgba_textures{false};
 
 	ror::Vector4f m_background_color{0.19f, 0.04f, 0.14f, 1.0f};
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};

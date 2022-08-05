@@ -31,7 +31,7 @@ namespace rhi
 {
 
 template <class _type>
-FORCE_INLINE ShaderCrtp<_type>::ShaderCrtp(std::string a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action) :
+FORCE_INLINE ShaderCrtp<_type>::ShaderCrtp(const std::string &a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action) :
     m_type(a_type)
 {
 	if (a_action == ror::ResourceAction::create)

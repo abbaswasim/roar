@@ -81,15 +81,9 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
 	glslang::EShTargetLanguage        target_language = glslang::EShTargetLanguage::EShTargetSpv;
 	glslang::EShTargetLanguageVersion version         = glslang::EShTargetSpv_1_5; // Could be 1_6
 
-	// const char *const *shader_source = reinterpret_cast<const char *const *>(a_glsl_source.c_str());
 	const char *shader_source     = reinterpret_cast<const char *>(a_glsl_source.data());
 
-	// std::cout << "Here is the shader source \n" << a_glsl_source << std::endl;
-
-	// const char *file_name_list[1] = {""};
 	glslang::TShader shader(language);
-
-	// shader.setStringsWithLengthsAndNames(&shader_source, nullptr, file_name_list, 1);
 	shader.setStrings(&shader_source, 1);
 	shader.setEntryPoint(a_entry_point.c_str());
 	shader.setSourceEntryPoint(a_entry_point.c_str());
@@ -100,7 +94,7 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
 	// shader.addProcesses();        // Should be something like -DSkinning=ON or -USkinning=Off, not sure
 
 	// TODO: Find out what does this 100 or 110 mean here some people use it like ((EOptionNone & EOptionDefaultDesktop) ? 110 : 100, false)
-	if (!shader.parse(&glslang::DefaultTBuiltInResource, 100, false, messages))
+	if (!shader.parse(&glslang::DefaultTBuiltInResource, 110, false, messages))
 	{
 		info_log = std::string(shader.getInfoLog()) + "\n" + std::string(shader.getInfoDebugLog());
 		return false;
@@ -133,7 +127,7 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
 	// // Translate to SPIRV.
 	if (!intermediate)
 	{
-		info_log += "Failed to get shared intermediate code.\n";
+		info_log += "Creating glslang::TIntermediate failed.\n";
 		return false;
 	}
 

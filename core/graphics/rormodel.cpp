@@ -131,7 +131,7 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 	assert(res == cgltf_result_success && "Base64 decoding failed for image");
 	(void) res;
 
-	rhi::read_texture_from_memory(data, data_size, ti);
+	rhi::read_texture_from_memory(data, data_size, ti, "cgltf_base64_image");
 
 	// Delete data pointer
 	delete[] data;
@@ -155,21 +155,7 @@ rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a
 
 	// TODO: Abstract this out into rortexture.cpp
 	cgltf_size data_size{a_buffer_view->size};
-	int32_t    w = 0, h = 0, bpp = 0;
-	auto      *new_data = stbi_load_from_memory(reinterpret_cast<const uint8_t *>(data), static_cast_safe<int32_t>(data_size), &w, &h, &bpp, 0);        // Final argument = 0 means get real bpp
-
-	ti.push_empty_mip();
-	ti.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);        // TODO: How do I read this via STB or gltf?
-	ti.reset(new_data, static_cast<uint64_t>(w * h * bpp));        // ti now owns the new_data pointer returned by stbi
-	ti.width(static_cast<uint32_t>(w));
-	ti.height(static_cast<uint32_t>(h));
-	ti.depth(1u);
-	ti.bytes_per_pixel(static_cast<uint32_t>(bpp));
-	if (a_buffer_view->name != nullptr)
-		ti.name(a_buffer_view->name);
-	else
-		ti.name("texture_from_buffer_view");
-	ti.usage(rhi::TextureUsage::shader_read);
+	rhi::read_texture_from_memory(data, data_size, ti, (a_buffer_view->name != nullptr) ? a_buffer_view->name : "cgltf_buffer_view_image");
 
 	return ti;
 }
