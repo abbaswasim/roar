@@ -88,8 +88,10 @@ function(build_options target_name extra_pedantic)
 
 	if (ROAR_BUILD_SANITIZED)
 	  target_compile_options(${target_name} PRIVATE
-		-fsanitize=address
 		-fsanitize=undefined
+		-fsanitize=memory
+		-fsanitize=thread
+		-fsanitize=address
 		-fno-sanitize-recover=all
 		-fsanitize=float-divide-by-zero
 		-fsanitize=float-cast-overflow
@@ -98,6 +100,8 @@ function(build_options target_name extra_pedantic)
 
 	  target_link_options(${target_name} PRIVATE
 		-fsanitize=undefined
+		-fsanitize=memory
+		-fsanitize=thread
 		-fsanitize=address)
 	endif()
   endif()

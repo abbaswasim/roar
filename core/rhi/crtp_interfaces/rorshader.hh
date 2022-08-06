@@ -51,5 +51,7 @@ FORCE_INLINE void ShaderCrtp<_type>::source(const std::string &a_source)
 	{
 		ror::log_critical("Shader to SPIR-V conversion failed \n{}", info_log.c_str());
 	}
+
+	this->platform_source();
 }
 }        // namespace rhi

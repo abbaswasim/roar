@@ -30,6 +30,7 @@
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/crtp_interfaces/rorshader.hpp"
+#include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
 namespace rhi
@@ -41,21 +42,24 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 	FORCE_INLINE              ShaderMetal(ShaderMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ShaderMetal &operator=(const ShaderMetal &a_other)       = default;        //! Copy assignment operator
 	FORCE_INLINE ShaderMetal &operator=(ShaderMetal &&a_other) noexcept   = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~ShaderMetal() noexcept override                 = default;        //! Destructor
+	FORCE_INLINE virtual ~ShaderMetal() noexcept override;                                  //! Destructor
 
 	FORCE_INLINE ShaderMetal(const std::string &a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action) :
 	    ShaderCrtp(a_shader, a_type, a_action)
 	{}
 
-	void upload()
-	{
-		ror::log_critical("Uploading metal shader");
-	}
+	void platform_source();
+	void upload(rhi::Device &a_device);
 
   protected:
 	FORCE_INLINE ShaderMetal() = default;        //! Default constructor
   private:
 	declare_translation_unit_vtable();
+
+	std::string    m_msl_source{};                      //! Copy of the msl source code
+	MTL::Library  *m_msl_Library{nullptr};              //! Point to the metal shader library
+	MTL::Function *m_main_function{nullptr};            //! Pointer to the entry point, it should be vertex_main for vertex and fragment_main for fragment shaders
+	std::string    m_entry_point{"vertex_main"};        //! Shader main entry point, will be different based on the type of shader 
 };
 
 declare_rhi_render_type(Shader);

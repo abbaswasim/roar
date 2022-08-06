@@ -457,7 +457,7 @@ void Renderer::load_specific()
 void Renderer::upload(rhi::Device &a_device)
 {
 	for (auto &shader : this->m_shaders)
-		shader.upload();
+		shader.upload(a_device);
 
 	for (auto &program : this->m_programs)
 		program.upload();

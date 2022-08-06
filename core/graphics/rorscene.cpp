@@ -118,7 +118,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	}
 
 	// Lets kick off shader generation while we upload the buffers
-	auto shader_gen_job_handle = a_job_system.push_job([this, &a_render_passes]() -> auto{ this->generate_shaders(a_render_passes); return true; });
+	auto shader_gen_job_handle = a_job_system.push_job([this, &a_render_passes, &a_device]() -> auto{ this->generate_shaders(a_render_passes, a_device); return true; });
 
 	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
 	// TODO: find out this might need to be done differently for Vulkan
@@ -129,7 +129,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		ror::log_critical("Can't generate model shaders.");
 }
 
-void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes)
+void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device)
 {
 	size_t shaders_count = 0;
 
@@ -191,7 +191,7 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 						shader_hash_to_index[passtype][fs_hash] = this->m_shaders.size();
 
 						const auto fs_name = std::string(std::to_string(fs_hash) + pass_string + ".frag");
-						this->m_shaders.emplace_back(fs_name, rhi::ShaderType::vertex, ror::ResourceAction::make);
+						this->m_shaders.emplace_back(fs_name, rhi::ShaderType::fragment, ror::ResourceAction::make);
 
 						auto fs = rhi::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, has_shadows);
 						this->m_shaders.back().source(fs);
@@ -227,7 +227,7 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 	// Now lets upload them
 	for (auto &shader : this->m_shaders)
 	{
-		shader.upload();
+		shader.upload(a_device);
 	}
 }
 

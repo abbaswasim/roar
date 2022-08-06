@@ -55,8 +55,11 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	FORCE_INLINE ShaderCrtp(const std::string &a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto shader_path() const noexcept { return this->m_shader->absolute_path(); }
-	FORCE_INLINE constexpr void upload()      const noexcept { this->underlying().upload(); }
+	FORCE_INLINE constexpr auto  shader_path()                  const noexcept { return this->m_shader->absolute_path(); }
+	FORCE_INLINE constexpr auto& spirv()                        const noexcept { return this->m_spirv;                   }
+	FORCE_INLINE constexpr auto  type()                         const noexcept { return this->m_type;                    }
+	FORCE_INLINE constexpr void  upload()                       const noexcept { this->underlying().upload();            }
+	FORCE_INLINE constexpr void  type(rhi::ShaderType a_type)         noexcept { this->m_type = a_type;                  }
 	// clang-format on
 
 	/**
@@ -67,6 +70,10 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
   protected:
 	FORCE_INLINE ShaderCrtp() = default;        //! Default constructor
   private:
+	// clang-format off
+	FORCE_INLINE void platform_source()      { this->underlying().platform_source(); }
+	// clang-format on
+
 	rhi::ShaderType       m_type{rhi::ShaderType::vertex};        //! Shader type could be vertex, fragment, compute etc
 	ror::Resource        *m_shader{nullptr};                      //! non-owning pointer to a resource that has the shader source
 	std::vector<uint32_t> m_spirv{};                              //! SPIR-V compiled version of the source code for this shader

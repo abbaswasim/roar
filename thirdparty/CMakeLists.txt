@@ -123,6 +123,22 @@ set(CTPL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CTPL)
 target_sources(ctpl INTERFACE ${CTPL_INCLUDE_DIR}/ctpl_stl.h)
 target_include_directories(ctpl INTERFACE ${CTPL_INCLUDE_DIR})
 
+# SPIRV-Cross
+set(SPIRV_CROSS_STATIC ON)
+set(SPIRV_CROSS_ENABLE_MSL  ON)
+set(SPIRV_CROSS_ENABLE_REFLECT  ON)
+
+set(SPIRV_CROSS_ENABLE_UTIL  OFF)
+set(SPIRV_CROSS_SHARED OFF)
+set(SPIRV_CROSS_CLI OFF)
+set(SPIRV_CROSS_ENABLE_TESTS OFF)
+set(SPIRV_CROSS_ENABLE_HLSL  OFF)
+set(SPIRV_CROSS_ENABLE_CPP  OFF)
+set(SPIRV_CROSS_ENABLE_C_API  OFF)
+set(SPIRV_CROSS_SKIP_INSTALL ON)
+
+add_subdirectory(spirv-cross)
+
 # add_subdirectory(convhull_3d)
 # target_compile_options(convhull_3d PRIVATE
 #   "-Wno-gnu-anonymous-struct"

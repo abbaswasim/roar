@@ -29,4 +29,13 @@
 namespace rhi
 {
 
+FORCE_INLINE ShaderMetal::~ShaderMetal() noexcept
+{
+	if (this->m_main_function)
+		this->m_main_function->release();
+
+	if (this->m_msl_Library)
+		this->m_msl_Library->release();
+}
+
 }        // namespace rhi

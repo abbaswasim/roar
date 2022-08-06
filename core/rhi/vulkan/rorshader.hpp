@@ -30,6 +30,7 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorshader.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/rordevice.hpp"
 
 namespace rhi
 {
@@ -42,12 +43,15 @@ class ShaderVulkan : public ShaderCrtp<ShaderVulkan>
 	FORCE_INLINE ShaderVulkan &operator=(ShaderVulkan &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ShaderVulkan() noexcept override                   = default;        //! Destructor
 
-	FORCE_INLINE explicit ShaderVulkan(std::filesystem::path a_shader) :
-	    ShaderCrtp(a_shader)
+	FORCE_INLINE ShaderVulkan(const std::string &a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action) :
+	    ShaderCrtp(a_shader, a_type, a_action)
 	{}
 
-	void upload()
+	void platform_source()
+	{}
+	void upload(rhi::Device &a_device)
 	{
+		(void) a_device;
 		ror::log_critical("Uploading vulkan shader");
 	}
 

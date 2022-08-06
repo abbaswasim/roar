@@ -121,6 +121,15 @@ class ROAR_ENGINE_ITEM Settings final
 			if (x > 0 && w > 0 && h > 0)
 				this->m_viewport = ror::Vector4i(static_cast<int32_t>(x), static_cast<int32_t>(y), static_cast<int32_t>(w), static_cast<int32_t>(h));
 		}
+
+		this->m_metal.version_major    = setting.get<uint32_t>("metal:version_major");
+		this->m_metal.version_minor    = setting.get<uint32_t>("metal:version_minor");
+		this->m_metal.argument_buffers = setting.get<bool>("metal:argument_buffers");
+
+		this->m_vulkan.version_major = setting.get<uint32_t>("vulkan:version_major");
+		this->m_vulkan.version_minor = setting.get<uint32_t>("vulkan:version_minor");
+
+		this->m_print_generated_shaders = setting.get<bool>("print_generated_shaders");
 	}
 
 	std::string m_roar_title{};
@@ -148,6 +157,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_resizable{false};
 	bool m_fog_enabled{false};
 	bool m_force_rgba_textures{false};
+	bool m_print_generated_shaders{false};
 
 	ror::Vector4f m_background_color{0.19f, 0.04f, 0.14f, 1.0f};
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
@@ -159,6 +169,23 @@ class ROAR_ENGINE_ITEM Settings final
 
 	rhi::PixelFormat m_pixel_format{rhi::PixelFormat::r8g8b8a8_uint32_norm};
 	rhi::PixelFormat m_depth_stencil_format{rhi::PixelFormat::depth24_norm_stencil8_uint32};
+
+	struct Options
+	{
+		uint32_t version_major{3};
+		uint32_t version_minor{0};
+	};
+
+	struct MetalOptions : public Options
+	{
+		bool argument_buffers{true};
+	};
+
+	struct VulkanOptions : public Options
+	{};
+
+	VulkanOptions m_vulkan;
+	MetalOptions  m_metal;
 
   protected:
   private:

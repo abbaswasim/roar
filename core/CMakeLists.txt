@@ -198,6 +198,7 @@ set(ROAR_REQUIRED_PRIVATE_LIBRARIES
 set(ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM
   glslang
   SPIRV
+  spirv-cross-core
   glslang-default-resource-limits)
 
 set(ROAR_REQUIRED_PUBLIC_LIBRARIES
@@ -227,6 +228,7 @@ if (${ROR_RENDER_TYPE_VULKAN})
   link_libraries(${Vulkan_LIBRARY})
 elseif (${ROR_RENDER_TYPE_METAL})
   list(APPEND ROAR_REQUIRED_PUBLIC_LIBRARIES metalcpp)
+  list(APPEND ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM spirv-cross-msl)
 elseif (${ROR_RENDER_TYPE_DX12})
 elseif (${ROR_RENDER_TYPE_GLES3})
 endif()

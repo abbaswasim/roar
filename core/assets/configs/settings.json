@@ -19,7 +19,19 @@
 	"ambient_light_color" : [0.2, 0.2, 0.2, 1.0],
 	"working_dir" : "./working_dir",
 	"renderer_config" : "renderer.json",
-	"force_rgba_textures": true,
+	"force_rgba_textures" : true,
+	"print_generated_shaders" : false,
+	"metal" :
+	{
+		"version_major" : 3,
+		"version_minor" : 0,
+		"argument_buffers" : true
+	},
+	"vulkan" :
+	{
+		"version_major" : 1,
+		"version_minor" : 2
+	},
 	"fog" :
 	{
 		"enabled" : true,
