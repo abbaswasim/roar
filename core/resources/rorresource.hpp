@@ -126,8 +126,7 @@ std::filesystem::path find_resource(const std::filesystem::path &, ResourceSeman
 // Infact make sure to use a separate pool for each ResourceSemantic type of resource, this will add in bindless descriptor assignment
 
 /**
- * A generic resource class to load all resources into, its not thread safe and it needs to be externally synchronised
- * This externally synchornisation might not work in practice will fix it when it becomes a problem
+ * A generic resource class to load all resources into, its thread safe and it does not need need to be externally synchronised
  */
 class ROAR_ENGINE_ITEM Resource final
 {
@@ -169,6 +168,7 @@ class ROAR_ENGINE_ITEM Resource final
 	hash_64_t             m_path_hash{0};                                 // Hash of the path of the resource
 	hash_64_t             m_data_hash{0};                                 // Hash of the contents of the resource
 	hash_128_t            m_uuid{0, 0};                                   // The UUID of the resource, if it doesn't have one, one will be generated for it
+	std::mutex            m_mutex{};                                      // Mutux used to lock when synchronising
 };
 
 /**

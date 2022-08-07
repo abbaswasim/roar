@@ -43,6 +43,7 @@
 #include <iomanip>
 #include <ios>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -382,6 +383,8 @@ Resource &resource(const std::filesystem::path &a_path, ResourceSemantic a_seman
 
 Resource::~Resource() noexcept
 {
+	std::lock_guard<std::mutex> lock(this->m_mutex);
+
 	this->write_or_unmap();
 }
 
@@ -398,6 +401,8 @@ Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_
 
 void Resource::create()
 {
+	std::lock_guard<std::mutex> lock(this->m_mutex);
+
 	if (!std::filesystem::exists(this->m_absolute_path))
 	{
 		ror::log_info("Creating resource at location {}", this->m_absolute_path.c_str());
@@ -434,6 +439,8 @@ void Resource::remove()
 {
 	ror::log_info("Removing resource {}", this->m_absolute_path.c_str());
 
+	std::lock_guard<std::mutex> lock(this->m_mutex);
+
 	if (std::filesystem::exists(this->m_absolute_path))
 	{
 		auto project_root = get_project_root().path();
@@ -453,6 +460,9 @@ void Resource::remove()
 void Resource::load()
 {
 	// Create cache or load cached file name
+
+	std::lock_guard<std::mutex> lock(this->m_mutex);
+
 	this->load_or_mmap();
 	this->update_hashes();
 	ror::log_info("Loaded cached resource file {}", this->m_absolute_path.c_str());
@@ -542,6 +552,8 @@ void Resource::write_or_unmap()
 
 void Resource::flush()
 {
+	std::lock_guard<std::mutex> lock(this->m_mutex);
+
 	this->write_or_unmap();
 }
 
@@ -571,6 +583,8 @@ ResourceExtension Resource::extension() const
 
 void Resource::update(bytes_vector &&a_data, bool a_append, bool a_mark_dirty)
 {
+	std::lock_guard<std::mutex> lock(this->m_mutex);
+
 	if (a_append)
 	{
 		auto psize = this->m_data.size();
