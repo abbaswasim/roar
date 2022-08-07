@@ -279,29 +279,29 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 
 static Resource &cache_resource(const std::filesystem::path &a_absolute_path)
 {
-	using ResourceCache = Cache<std::filesystem::path, std::shared_ptr<Resource>, PathHash>;        // Thread Safe resource cache
+	using ResourceCache = std::unordered_map<std::filesystem::path, std::shared_ptr<Resource>, PathHash>;
+
+	static std::mutex    mutex;
 	static ResourceCache resource_cache{};
+
+	std::lock_guard<std::mutex> lock(mutex);
 
 	assert(a_absolute_path != "" && "Path can't be empty");
 
-	// NOTE: resource_cache is thread safe but from find() till insert() another thread might interfere, we can't make this whole opp atomic so multiple insertion attempts might happen
-	// Which is fine, we ignore our generated shared_ptr in that case
 	auto found = resource_cache.find(a_absolute_path);
-	if (found.second)
+	if (found != resource_cache.end())
 	{
 		log_trace("Resource cache hit for {}", a_absolute_path.c_str());
-		return *found.first;
+		return *found->second;
 	}
 
 	auto pointer = std::make_shared<Resource>(a_absolute_path);
 	assert(pointer);
 
-	auto result = resource_cache.insert(a_absolute_path, pointer);
+	auto result = resource_cache.insert(std::make_pair(a_absolute_path, pointer));
+	assert(result.second && "Insertion into cache failed");
 
-	if (result.second)        // Means newly inserted
-		return *pointer;
-	else        // Means we thought we _can_ insert it at "find()" stage but at "insert()" stage it was inserted by someone else, so lets use the already inserted one
-		return *result.first->second;
+	return *result.first->second;
 }
 
 /**
