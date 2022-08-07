@@ -11,6 +11,7 @@
 	"roar_cache": ".roar_cache",
 	"renderer_config" : "renderer.json",
 	"buffer_increment": 10000000,
+	"force_rgba_textures" : true,
 	"roar_args": {
 		"arg1" : "arguno",
 		"arg2" : 2,
