@@ -214,10 +214,12 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 		{
 			auto &pass_programs = this->m_programs[passtype];
 			auto  size          = pass_programs.size();
+			(void) size;
 			for (auto &passtype2 : a_render_passes)
 			{
 				auto &pass_programs2 = this->m_programs[passtype2];
 				assert(pass_programs2.size() == size && "Something went wrong, sizes don't match");
+				(void) pass_programs2;
 			}
 		}
 	}

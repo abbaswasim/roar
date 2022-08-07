@@ -184,8 +184,8 @@ class ROAR_ENGINE_ITEM Settings final
 	struct VulkanOptions : public Options
 	{};
 
-	VulkanOptions m_vulkan;
-	MetalOptions  m_metal;
+	VulkanOptions m_vulkan{};
+	MetalOptions  m_metal{};
 
   protected:
   private:

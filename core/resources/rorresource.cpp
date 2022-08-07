@@ -375,6 +375,8 @@ Resource &resource(const std::filesystem::path &a_path, ResourceSemantic a_seman
 		case ResourceAction::make:
 			return make_resource(a_path, a_semantic, a_parent_path);
 	}
+
+	return load_resource(a_path, a_semantic);
 }
 
 Resource::~Resource() noexcept
