@@ -46,9 +46,9 @@ define_translation_unit_vtable(ShaderMetal)
 
 spv::ExecutionModel shader_type_to_execution_model(const rhi::ShaderType a_type)
 {
+	// clang-format off
 	switch (a_type)
 	{
-		// clang-format off
 		case rhi::ShaderType::mesh:               return spv::ExecutionModelMeshNV;
 		case rhi::ShaderType::task:               return spv::ExecutionModelTaskNV;
 		case rhi::ShaderType::vertex:             return spv::ExecutionModelVertex;
@@ -62,8 +62,9 @@ spv::ExecutionModel shader_type_to_execution_model(const rhi::ShaderType a_type)
 		case rhi::ShaderType::none:
 		case rhi::ShaderType::tile:
 			assert(0 && "Can't convert this shader type to execution model");
-			// clang-format on
+
 	}
+	// clang-format on
 	assert(0 && "Implement more types");
 
 	return spv::ExecutionModelVertex;
@@ -71,9 +72,9 @@ spv::ExecutionModel shader_type_to_execution_model(const rhi::ShaderType a_type)
 
 std::string shader_type_to_msl_entry(const rhi::ShaderType a_type)
 {
+	// clang-format off
 	switch (a_type)
 	{
-		// clang-format off
 		case rhi::ShaderType::mesh:               return "mesh_main";
 		case rhi::ShaderType::task:               return "task_main";
 		case rhi::ShaderType::vertex:             return "vertex_main";
@@ -86,8 +87,9 @@ std::string shader_type_to_msl_entry(const rhi::ShaderType a_type)
 		case rhi::ShaderType::ray_generation:     return "ray_generation_main";
 		case rhi::ShaderType::none:               return "none_main";
 		case rhi::ShaderType::tile:               return "tile_main";
-		// clang-format on
+
 	}
+	// clang-format on
 	assert(0 && "Implement more types");
 
 	return "main0";
@@ -95,11 +97,12 @@ std::string shader_type_to_msl_entry(const rhi::ShaderType a_type)
 
 void ShaderMetal::platform_source()
 {
-	auto  spirv_binary = this->spirv();
-	auto &setting      = ror::settings();
+	auto  spirv_binary  = this->spirv();
+	auto &setting       = ror::settings();
+	this->m_entry_point = shader_type_to_msl_entry(this->type());
 
 	spirv_cross::CompilerMSL msl(std::move(spirv_binary));
-	msl.rename_entry_point("main", shader_type_to_msl_entry(this->type()), shader_type_to_execution_model(this->type()));
+	msl.rename_entry_point("main", this->m_entry_point, shader_type_to_execution_model(this->type()));
 
 	spirv_cross::CompilerMSL::Options options;
 	options.set_msl_version(setting.m_metal.version_major, setting.m_metal.version_minor);
@@ -110,7 +113,11 @@ void ShaderMetal::platform_source()
 
 	if constexpr (ror::get_build() == ror::BuildType::build_debug)
 		if (setting.m_print_generated_shaders)
-			ror::log_info("Spirv-cross generated MSL shader.\n {}", this->m_msl_source.c_str());
+		{
+			auto resource = this->source();
+			ror::log_info("Generated GLSL shader code.\n{}", resource);
+			ror::log_info("Spirv-cross generated MSL shader.\n{}", this->m_msl_source.c_str());
+		}
 }
 
 void ShaderMetal::upload(rhi::Device &a_device)
@@ -128,11 +135,11 @@ void ShaderMetal::upload(rhi::Device &a_device)
 	if (this->m_main_function)
 		this->m_main_function->release();
 
-	this->m_main_function = this->m_msl_Library->newFunction(NS::String::string(shader_type_to_msl_entry(this->type()).c_str(), NS::UTF8StringEncoding));
+	this->m_main_function = this->m_msl_Library->newFunction(NS::String::string(this->m_entry_point.c_str(), NS::UTF8StringEncoding));
 
 	if (!this->m_main_function)
 	{
-		ror::log_critical("Metal shader entry point \"{}\" query failed for shader \"{}\"", shader_type_to_msl_entry(this->type()).c_str(), this->m_msl_source.c_str());
+		ror::log_critical("Metal shader entry point \"{}\" query failed for shader \"{}\"", this->m_entry_point.c_str(), this->m_msl_source.c_str());
 		return;
 	}
 }

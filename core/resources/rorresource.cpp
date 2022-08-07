@@ -504,7 +504,7 @@ void Resource::load_or_mmap()
 		}
 
 		// Cast is ok because if byte_count is bigger than size_t range, we have a bigger problem
-		this->m_data.resize(static_cast<size_t>(bytes_count));
+		this->m_data.resize(static_cast<size_t>(bytes_count));                           // std::streampos has "operator long log" so this works fine, here I am just making it unsigned
 		as_file.read(reinterpret_cast<char *>(this->m_data.data()), bytes_count);        // Weird that int8_t is 'signed char' and can't be converted to 'char'
 
 		as_file.close();
