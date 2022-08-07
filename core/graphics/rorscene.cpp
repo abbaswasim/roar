@@ -118,7 +118,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	}
 
 	// Lets kick off shader generation while we upload the buffers
-	auto shader_gen_job_handle = a_job_system.push_job([this, &a_render_passes, &a_device]() -> auto{ this->generate_shaders(a_render_passes, a_device); return true; });
+	auto shader_gen_job_handle = a_job_system.push_job([this, &a_render_passes, &a_device, &a_job_system]() -> auto{ this->generate_shaders(a_render_passes, a_device, a_job_system); return true; });
 
 	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
 	// TODO: find out this might need to be done differently for Vulkan
@@ -129,7 +129,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		ror::log_critical("Can't generate model shaders.");
 }
 
-void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device)
+void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device, ror::JobSystem &a_job_system)
 {
 	size_t shaders_count = 0;
 

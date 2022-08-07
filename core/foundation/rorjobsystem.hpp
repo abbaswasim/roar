@@ -423,6 +423,9 @@ class ROAR_ENGINE_ITEM JobSystem final
 	template <class _function, class... _arguments>
 	FORCE_INLINE decltype(auto) make_packaged(_function &&a_function, _arguments &&...a_arguments)
 	{
+		// TODO: Make use of the technique in https://stackoverflow.com/questions/46564845/perfect-forwarding-of-references-with-stdbind-inside-variadic-template
+		// This way clients won't have to wrap function arguments in std::ref and std::cref to push_job labmda's if they are passed by reference
+
 		using return_type = decltype(a_function(a_arguments...));
 		return std::make_shared<std::packaged_task<return_type()>>(
 		    std::bind(std::forward<_function>(a_function), std::forward<_arguments>(a_arguments)...));
