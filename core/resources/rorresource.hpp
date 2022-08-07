@@ -142,10 +142,10 @@ class ROAR_ENGINE_ITEM Resource final
 
 	Resource(std::filesystem::path a_absolute_path, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
 
-	// What will be the best way to send it back in to update data
+	// What will be the best way to send it back in to update data, maybe a string_view
 	const bytes_vector          &data() const;
 	const std::filesystem::path &absolute_path() const;
-	ResourceExtension            extension();
+	ResourceExtension            extension() const;
 	void                         create();
 	void                         remove();
 	void                         load();

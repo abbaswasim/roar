@@ -44,6 +44,7 @@
 #include <ios>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -563,7 +564,7 @@ const std::filesystem::path &Resource::absolute_path() const
 	return this->m_absolute_path;
 }
 
-ResourceExtension Resource::extension()
+ResourceExtension Resource::extension() const
 {
 	return this->m_extension;
 }
