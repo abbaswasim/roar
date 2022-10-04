@@ -27,47 +27,39 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
-#include "graphics/rormodel.hpp"
-#include "profiling/rorlog.hpp"
-#include "rhi/crtp_interfaces/rorprogram.hpp"
-#include "rhi/rorrhi_macros.hpp"
+#include "rhi/crtp_interfaces/rorrenderstate.hpp"
 #include "rhi/rordevice.hpp"
-#include "rhi/metal/rorshader.hpp"
+#include "rhi/rorrhi_macros.hpp"
 
-#include <Metal/MTLRenderPipeline.hpp>
+#include <Metal/MTLDepthStencil.hpp>
 
 namespace rhi
 {
-class ProgramMetal : public ProgramCrtp<ProgramMetal>
+class RenderstateMetal : public RenderstateCrtp<RenderstateMetal>
 {
   public:
-	FORCE_INLINE               ProgramMetal(const ProgramMetal &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE               ProgramMetal(ProgramMetal &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE ProgramMetal &operator=(const ProgramMetal &a_other)        = default;        //! Copy assignment operator
-	FORCE_INLINE ProgramMetal &operator=(ProgramMetal &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~ProgramMetal() noexcept override                   = default;        //! Destructor
+	FORCE_INLINE                   RenderstateMetal()                                    = default;        //! Default constructor
+	FORCE_INLINE                   RenderstateMetal(const RenderstateMetal &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                   RenderstateMetal(RenderstateMetal &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE RenderstateMetal &operator=(const RenderstateMetal &a_other)            = default;        //! Copy assignment operator
+	FORCE_INLINE RenderstateMetal &operator=(RenderstateMetal &&a_other) noexcept        = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~RenderstateMetal() noexcept override                           = default;        //! Destructor
 
-	FORCE_INLINE ProgramMetal(int32_t a_vert_id, int32_t a_frag_id) :
-	    ProgramCrtp(a_vert_id, a_frag_id)
-	{}
-
-	FORCE_INLINE explicit ProgramMetal(int32_t a_compute_id) :
-	    ProgramCrtp(a_compute_id)
-	{}
-
-	FORCE_INLINE void upload()
-	{
-		ror::log_critical("Uploading metal program");
-	}
+	void upload(rhi::Device& a_device);
 
   protected:
-	FORCE_INLINE ProgramMetal() = default;        //! Default constructor
   private:
 	declare_translation_unit_vtable();
+
+	MTL::DepthStencilState *m_depth_state{nullptr};
+	MTL::DepthStencilState *m_depth_state_less_equal{nullptr};
+	MTL::DepthStencilState *m_depth_state_equal_no_write{nullptr};
+	MTL::DepthStencilState *m_depth_state_always_no_write{nullptr};
+	MTL::DepthStencilState *m_depth_state_less_no_write{nullptr};
 };
 
-declare_rhi_render_type(Program);
+declare_rhi_render_type(Renderstate);
 
 }        // namespace rhi
 
-#include "rhi/metal/rorprogram.hh"
+#include "rhi/metal/rorrenderstate.hh"

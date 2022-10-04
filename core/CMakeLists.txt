@@ -136,6 +136,7 @@ if (${ROR_RENDER_TYPE_VULKAN})
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorshader.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorprogram.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorrenderpass.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorrenderstate.cpp)
 elseif (${ROR_RENDER_TYPE_METAL})
   list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.hpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.cpp)
@@ -143,6 +144,7 @@ elseif (${ROR_RENDER_TYPE_METAL})
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorshader.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorprogram.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorrenderpass.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorrenderstate.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorcore_graphics_bridge.mm)
 elseif (${ROR_RENDER_TYPE_DX12})
 elseif (${ROR_RENDER_TYPE_GLES3})
@@ -241,4 +243,10 @@ target_link_libraries(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES})
 target_link_libraries_system(${ROAR_NAME} PUBLIC ${ROAR_REQUIRED_PUBLIC_LIBRARIES})
 target_link_libraries_system(${ROAR_NAME} PRIVATE ${ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM})
 
-build_options(${ROAR_NAME} true)                               # Set common build options
+set(pedantic true)
+
+if (NOT ROAR_BUILD_PEDANTIC)
+  set(pedantic false)
+endif()
+
+build_options(${ROAR_NAME} ${pedantic})                               # Set common build options

@@ -169,7 +169,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE const auto &nodes_side_data()  const    {  return this->m_nodes_data;      }
 	FORCE_INLINE const auto &particles()        const    {  return this->m_particles;       }
 	FORCE_INLINE const auto &programs()         const    {  return this->m_programs;        }
-    FORCE_INLINE const auto &global_shaders()   const    {  return this->m_shaders;  }
+    FORCE_INLINE const auto &global_shaders()   const    {  return this->m_shaders;         }
 	FORCE_INLINE const auto &global_programs()  const    {  return this->m_global_programs; }
 	FORCE_INLINE const auto &cameras()          const    {  return this->m_cameras;         }
 	FORCE_INLINE const auto &lights()           const    {  return this->m_lights;          }
@@ -183,14 +183,14 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void read_probes();
 	void generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device, ror::JobSystem &a_job_system);
 
-	using render_pass_shaders = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;
+	using RenderpassPrograms = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;
 
 	// All of these can be buffer allocated but for now leave them as is
 	std::vector<ror::Model>          m_models{};                 //! All the assets loaded as 3D models
 	std::vector<ror::SceneNode>      m_nodes{};                  //! All the nodes in this scene
 	std::vector<ror::SceneNodeData>  m_nodes_data{};             //! All the nodes parallel data that needs to be maintained
 	std::vector<ror::ParticleSystem> m_particles{};              //! All the particle emittors
-	render_pass_shaders              m_programs{};               //! All the shader programs per render pass for all the models
+	RenderpassPrograms               m_programs{};               //! All the shader programs per render pass for all the models
 	std::vector<rhi::Shader>         m_shaders{};                //! All the shaders that for all meshesh in each model
 	std::vector<rhi::Program>        m_global_programs{};        //! All the global shader programs that overrides per mesh/model programs
 	std::vector<ror::OrbitCamera>    m_cameras{};                //! All the cameras in the scene

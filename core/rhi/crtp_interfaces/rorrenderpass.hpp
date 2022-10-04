@@ -118,6 +118,13 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
   public:
 	using Renderpasses = std::vector<std::reference_wrapper<RenderpassCrtp>>;
 
+	FORCE_INLINE                 RenderpassCrtp()                                  = default;        //! Default constructor
+	FORCE_INLINE                 RenderpassCrtp(const RenderpassCrtp &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                 RenderpassCrtp(RenderpassCrtp &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE RenderpassCrtp &operator=(const RenderpassCrtp &a_other)          = default;        //! Copy assignment operator
+	FORCE_INLINE RenderpassCrtp &operator=(RenderpassCrtp &&a_other) noexcept      = default;        //! Move assignment operator
+	FORCE_INLINE ~RenderpassCrtp() noexcept override                               = default;        //! Destructor
+
 	// clang-format off
 	FORCE_INLINE           auto &subpasses()           noexcept       { return this->m_subpasses;          }
 	FORCE_INLINE           auto &render_targets()      noexcept       { return this->m_render_targets;     }

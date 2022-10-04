@@ -30,7 +30,9 @@
 #include "rhi/rortypes.hpp"
 
 #include <Metal/MTLSampler.hpp>
+#include <Metal/MTLStageInputOutputDescriptor.hpp>
 #include <Metal/MTLTexture.hpp>
+#include <Metal/MTLVertexDescriptor.hpp>
 
 // NOTE: Don't include any Metal headers here like <Metal/MTLDevice.hpp> etc
 // All metal headers needs to be included in the rormetal_common.cpp file so we
@@ -44,4 +46,23 @@ constexpr FORCE_INLINE MTL::PixelFormat to_metal_pixelformat(rhi::PixelFormat a_
 	return static_cast<MTL::PixelFormat>(a_pixelformat);
 }
 
-}        // namespace mtl
+constexpr FORCE_INLINE MTL::VertexFormat to_metal_vertexformat(rhi::VertexFormat a_vertexformat)
+{
+	assert(a_vertexformat < rhi::VertexFormat::bool32_1 && "Unsupported vertex format");
+	return static_cast<MTL::VertexFormat>(a_vertexformat);
+}
+
+constexpr FORCE_INLINE MTL::VertexStepFunction to_metal_step_function(rhi::StepFunction a_function)
+{
+	switch (a_function)
+	{
+		// clang-format off
+		case rhi::StepFunction::vertex:                       return MTL::VertexStepFunctionPerVertex;
+	    case rhi::StepFunction::constant:                     return MTL::VertexStepFunctionConstant;
+    	case rhi::StepFunction::instance:                     return MTL::VertexStepFunctionPerInstance;
+    	case rhi::StepFunction::patch:                        return MTL::VertexStepFunctionPerPatch;
+    	case rhi::StepFunction::patch_control_point:          return MTL::VertexStepFunctionPerPatchControlPoint;
+		// clang-format on
+	}
+}
+}        // namespace rhi

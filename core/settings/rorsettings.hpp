@@ -122,14 +122,16 @@ class ROAR_ENGINE_ITEM Settings final
 				this->m_viewport = ror::Vector4i(static_cast<int32_t>(x), static_cast<int32_t>(y), static_cast<int32_t>(w), static_cast<int32_t>(h));
 		}
 
-		this->m_metal.version_major    = setting.get<uint32_t>("metal:version_major");
-		this->m_metal.version_minor    = setting.get<uint32_t>("metal:version_minor");
-		this->m_metal.argument_buffers = setting.get<bool>("metal:argument_buffers");
+		this->m_metal.version_major            = setting.get<uint32_t>("metal:version_major");
+		this->m_metal.version_minor            = setting.get<uint32_t>("metal:version_minor");
+		this->m_metal.argument_buffers         = setting.get<bool>("metal:argument_buffers");
+		this->m_metal.indirect_command_buffers = setting.get<bool>("metal:indirect_command_buffers");
 
 		this->m_vulkan.version_major = setting.get<uint32_t>("vulkan:version_major");
 		this->m_vulkan.version_minor = setting.get<uint32_t>("vulkan:version_minor");
 
 		this->m_print_generated_shaders = setting.get<bool>("print_generated_shaders");
+		this->m_write_generated_shaders = setting.get<bool>("write_generated_shaders");
 	}
 
 	std::string m_roar_title{};
@@ -158,6 +160,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_fog_enabled{false};
 	bool m_force_rgba_textures{false};
 	bool m_print_generated_shaders{false};
+	bool m_write_generated_shaders{false};
 
 	ror::Vector4f m_background_color{0.19f, 0.04f, 0.14f, 1.0f};
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
@@ -179,6 +182,7 @@ class ROAR_ENGINE_ITEM Settings final
 	struct MetalOptions : public Options
 	{
 		bool argument_buffers{true};
+		bool indirect_command_buffers{false};
 	};
 
 	struct VulkanOptions : public Options

@@ -33,6 +33,7 @@
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorrenderpass.hpp"
+#include "rhi/rorrenderstate.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
@@ -84,7 +85,7 @@ class Renderer final : public Configuration<Renderer>
   private:
 	declare_translation_unit_vtable();
 
-	FORCE_INLINE std::vector<rhi::RenderpassType> render_passes(std::vector<rhi::Renderpass>& a_pass);
+	FORCE_INLINE std::vector<rhi::RenderpassType> render_passes(std::vector<rhi::Renderpass> &a_pass);
 
 	void load_programs();
 	void load_frame_graphs();
@@ -100,6 +101,7 @@ class Renderer final : public Configuration<Renderer>
 	ror::Vector4i                         m_viewport{0, 0, 1024, 768};           //! Viewport to use to render into the render targets, RTs can override it
 	FrameGraph                            m_frame_graphs{};                      //! Frame graph for all techniques like forward, deferred etc
 	std::vector<rhi::Renderpass>         *m_current_frame_graph{nullptr};        //! Non-owning raw pointer alias that Points to the active technique in the framegraphs
+	rhi::Renderstate                      m_render_state{};                      //! Almost all the render state that the renderer requires will be stored here
 };
 
 }        // namespace ror

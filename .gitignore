@@ -1,4 +1,8 @@
 build
+build-metal-release
+build-metal-debug
+build-vulkan-release
+build-vulkan-debug
 xcode-project
 build-xcode
 *.log

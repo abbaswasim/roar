@@ -32,6 +32,8 @@
 #include "rhi/crtp_interfaces/rorshader.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include <Metal/MTLLibrary.hpp>
+#include <string_view>
 
 namespace rhi
 {
@@ -59,7 +61,7 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 	std::string    m_msl_source{};                      //! Copy of the msl source code
 	MTL::Library  *m_msl_Library{nullptr};              //! Point to the metal shader library
 	MTL::Function *m_main_function{nullptr};            //! Pointer to the entry point, it should be vertex_main for vertex and fragment_main for fragment shaders
-	std::string    m_entry_point{"vertex_main"};        //! Shader main entry point, will be different based on the type of shader 
+	std::string    m_entry_point{"vertex_main"};        //! Shader main entry point, will be different based on the type of shader
 };
 
 declare_rhi_render_type(Shader);

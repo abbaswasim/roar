@@ -60,7 +60,6 @@ class ProgramCrtp : public ror::Crtp<_type, ProgramCrtp>
 	FORCE_INLINE constexpr auto compute_id()    const noexcept { return this->m_compute_id;  }
 	FORCE_INLINE constexpr auto tile_id()       const noexcept { return this->m_tile_id;     }
 	FORCE_INLINE constexpr auto mesh_id()       const noexcept { return this->m_mesh_id;     }
-
 	// clang-format on
 
   protected:

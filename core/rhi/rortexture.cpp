@@ -43,6 +43,8 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 
 	auto *new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
 
+    bpp = req_comp;
+
 	a_texture.push_empty_mip();
 	a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);        // TODO: How do I read this via STB or gltf?
 	a_texture.reset(new_data, static_cast<uint64_t>(w * h * bpp));        // a_texture now owns the new_data pointer returned by stbi
