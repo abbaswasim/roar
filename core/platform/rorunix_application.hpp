@@ -42,8 +42,8 @@ class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 {
   public:
 	// FORCE_INLINE          UnixApp()                             = delete;         //! Default constructor
-	FORCE_INLINE          UnixApp(const UnixApp &a_other)       = default;        //! Copy constructor
-	FORCE_INLINE          UnixApp(UnixApp &&a_other) noexcept   = default;        //! Move constructor
+	FORCE_INLINE          UnixApp(const UnixApp &a_other)       = delete;         //! Copy constructor
+	FORCE_INLINE          UnixApp(UnixApp &&a_other) noexcept   = delete;         //! Move constructor
 	FORCE_INLINE UnixApp &operator=(const UnixApp &a_other)     = delete;         //! Copy assignment operator
 	FORCE_INLINE UnixApp &operator=(UnixApp &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~UnixApp() noexcept override                   = default;        //! Destructor

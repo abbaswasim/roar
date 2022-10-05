@@ -27,6 +27,7 @@
 #pragma once
 #include "core/foundation/rorcrtp.hpp"
 #include "foundation/rormacros.hpp"
+#include "foundation/rortypes.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rortypes.hpp"
@@ -53,21 +54,23 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	 * which could be saved to disk if needed by calling write on the resource
 	 * if a_create == false, This will load a file from project_root/[*]/a_shader_name from disk
 	 */
-	FORCE_INLINE ShaderCrtp(const std::string &a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action);
+	FORCE_INLINE ShaderCrtp(const std::string &a_shader, hash_64_t a_hash, rhi::ShaderType a_type, ror::ResourceAction a_action);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto  shader_path()                  const noexcept { return this->m_shader->absolute_path(); }
 	FORCE_INLINE constexpr auto& spirv()                        const noexcept { return this->m_spirv;                   }
 	FORCE_INLINE constexpr auto  type()                         const noexcept { return this->m_type;                    }
+	FORCE_INLINE constexpr auto  hash()                         const noexcept { return this->m_hash;                    }
 	FORCE_INLINE constexpr void  upload()                       const noexcept { this->underlying().upload();            }
 	FORCE_INLINE constexpr void  type(rhi::ShaderType a_type)         noexcept { this->m_type = a_type;                  }
+	FORCE_INLINE constexpr void  hash(hash_64_t a_hash)               noexcept { this->m_hash = a_hash;                  }
 	// clang-format on
 
 	/**
 	 * Updates the underlying Resource data with a_source and also converts it to SPIRV
 	 */
-	FORCE_INLINE void source(const std::string &a_source);
-	FORCE_INLINE constexpr auto source() const noexcept { return std::string_view(reinterpret_cast<const char*>(this->m_shader->data().data()), this->m_shader->data().size()); }
+	FORCE_INLINE void           source(const std::string &a_source);
+	FORCE_INLINE constexpr auto source() const noexcept;
 
   protected:
 	FORCE_INLINE ShaderCrtp() = default;        //! Default constructor
@@ -76,6 +79,7 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	FORCE_INLINE void platform_source()      { this->underlying().platform_source(); }
 	// clang-format on
 
+	hash_64_t             m_hash{};                               //! Shader hash that can be used to query this shader by hash
 	rhi::ShaderType       m_type{rhi::ShaderType::vertex};        //! Shader type could be vertex, fragment, compute etc
 	ror::Resource        *m_shader{nullptr};                      //! non-owning pointer to a resource that has the shader source
 	std::vector<uint32_t> m_spirv{};                              //! SPIR-V compiled version of the source code for this shader

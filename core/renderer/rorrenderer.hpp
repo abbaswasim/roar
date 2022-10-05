@@ -51,10 +51,10 @@ class Renderer final : public Configuration<Renderer>
 	using FrameGraph = std::unordered_map<std::string, std::vector<rhi::Renderpass>>;
 
 	// FORCE_INLINE           Renderer()                             = default;        //! Default constructor
-	FORCE_INLINE           Renderer(const Renderer &a_other)      = default;        //! Copy constructor
-	FORCE_INLINE           Renderer(Renderer &&a_other) noexcept  = default;        //! Move constructor
-	FORCE_INLINE Renderer &operator=(const Renderer &a_other)     = default;        //! Copy assignment operator
-	FORCE_INLINE Renderer &operator=(Renderer &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE           Renderer(const Renderer &a_other)      = delete;         //! Copy constructor
+	FORCE_INLINE           Renderer(Renderer &&a_other) noexcept  = delete;         //! Move constructor
+	FORCE_INLINE Renderer &operator=(const Renderer &a_other)     = delete;         //! Copy assignment operator
+	FORCE_INLINE Renderer &operator=(Renderer &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE virtual ~Renderer() noexcept override            = default;        //! Destructor
 
 	FORCE_INLINE                     Renderer();        //! Default constructor

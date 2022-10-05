@@ -49,9 +49,9 @@ int main(int argc, char *argv[])
 	ror::CommandLineParser cli{std::vector<std::string>{argv, argv + argc}};
 
 	cli.add("--default-project", "-dp", "Default project name for the editor", ror::CommandLineParser::OptionType::type_string, true,
-			[&editor_default_project](std::any a_argument_value) { editor_default_project = std::any_cast<std::string>(a_argument_value); });
+	        [&editor_default_project](std::any a_argument_value) { editor_default_project = std::any_cast<std::string>(a_argument_value); });
 	cli.add("--default-scene", "-ds", "Default scene to load from the project folder", ror::CommandLineParser::OptionType::type_string, false,
-			[&editor_default_scene](std::any a_argument_value) { editor_default_scene = std::any_cast<std::string>(a_argument_value); });
+	        [&editor_default_scene](std::any a_argument_value) { editor_default_scene = std::any_cast<std::string>(a_argument_value); });
 
 	if (!cli.execute())
 		return 1;

@@ -687,27 +687,6 @@ std::string vs_set_main(bool a_has_normal, bool a_has_tangent, bool a_has_bent_n
 	return result;
 }
 
-bool is_semantic_valid_attribute(rhi::BufferSemantic a_semantic, bool a_depth_shadow)
-{
-	if (a_semantic < rhi::BufferSemantic::vertex_index)        // Only need vertex attributes that are bellow vertex_index, FIXME: what happens to custom ones?
-	{
-		if (!a_depth_shadow)
-			return true;
-		else if (a_semantic == rhi::BufferSemantic::vertex_position ||
-		         a_semantic == rhi::BufferSemantic::vertex_bone_id_0 ||
-		         a_semantic == rhi::BufferSemantic::vertex_bone_id_1 ||
-		         a_semantic == rhi::BufferSemantic::vertex_weight_0 ||
-		         a_semantic == rhi::BufferSemantic::vertex_weight_1 ||
-		         a_semantic == rhi::BufferSemantic::vertex_morph_target ||
-		         a_semantic == rhi::BufferSemantic::vertex_morph_weight)
-			return true;
-		else
-			return false;
-	}
-
-	return false;
-}
-
 // This is to be used for calculating standard output formats for each attribute so I can remove lots of combinations and have a standard interface into fragment shaders
 // This is basically an override on whatever data is coming in
 static const std::unordered_map<rhi::BufferSemantic, rhi::VertexFormat> attrib_in_out_format{
@@ -720,7 +699,7 @@ static const std::unordered_map<rhi::BufferSemantic, rhi::VertexFormat> attrib_i
     {rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4},
     {rhi::BufferSemantic::vertex_color_1, rhi::VertexFormat::float32_4}};
 
-std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_location_offset, uint32_t a_target_offset, const std::string &a_prefix, bool a_output, bool a_depth_shadow)
+std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descriptor, uint32_t a_target_offset, const std::string &a_prefix, bool a_output, bool a_depth_shadow)
 {
 	std::string result{};
 	auto       &attributes = a_vertex_descriptor.attributes();
@@ -742,13 +721,13 @@ std::string vertex_shader_input_output(const VertexDescriptor &a_vertex_descript
 			if (out_format_iter != attrib_in_out_format.end())
 				in_out_format = out_format_iter->second;
 
-			if (is_semantic_valid_attribute(semantic, a_depth_shadow))
+			if (is_attribute_required_in_pass(semantic, a_depth_shadow))
 			{
 				auto location          = attrib.location();
 				auto in_out_format_str = attribute_format(in_out_format);
 				auto semantic_str      = get_format_semantic(semantic);
 
-				std::string first_half{layout + std::to_string(location + a_location_offset) + ")"};
+				std::string first_half{layout + std::to_string(location) + ")"};
 				std::string middle_half{precision + in_out_format_str};
 				std::string second_half{(a_prefix != "" ? "_" + a_prefix : "") + "_" + semantic_str + (a_prefix != "" ? std::to_string(a_target_offset) : "") + ";\n"};
 
@@ -798,31 +777,15 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	std::string result{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 
 	// Write out vertex shader input output
-	result.append(rhi::vertex_shader_input_output(vertex_descriptor, 0, 0, "", true, is_depth_shadow));
-
-	uint32_t location_offset = 0;
-
-	if (!vertex_descriptor.attributes().empty())
-	{
-		const auto &att      = vertex_descriptor.attributes().back();
-		auto        location = att.location();
-		location_offset      = location;        // Its +1 then the last attribute in the list because of vertex_index not considered, if mesh don't have index data, this will conflict if not incremented
-		if (att.semantics() != rhi::BufferSemantic::vertex_index)
-			location_offset++;
-	}
+	result.append(rhi::vertex_shader_input_output(vertex_descriptor, 0, "", true, is_depth_shadow));
 
 	uint32_t j = 0;
 	for (const auto &v : vertex_target_descriptor)
 	{
-		result.append(rhi::vertex_shader_input_output(v, location_offset, j++, "target", false, is_depth_shadow));
+		result.append(rhi::vertex_shader_input_output(v, j++, "target", false, is_depth_shadow));
 
-		if (!v.attributes().empty())
-		{
-			auto location = v.attributes().back().location();
-			location_offset += location + 1;
-		}
+		const auto &attributes = v.attributes();
 
-		auto &attributes = v.attributes();
 		for (auto &attrib : attributes)
 		{
 			const auto semantic = attrib.semantics();
@@ -848,7 +811,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		auto in_out_format_str = attribute_format(in_out_format);
 		auto semantic_str      = get_format_semantic(tc.first);
 
-		if (tc.second.first > 0 && is_semantic_valid_attribute(tc.first, is_depth_shadow))
+		if (tc.second.first > 0 && is_attribute_required_in_pass(tc.first, is_depth_shadow))
 			result.append(vs_morph_attribute_common(tc.second.first, semantic_str, in_out_format_str));
 	}
 

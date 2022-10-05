@@ -27,6 +27,7 @@
 
 #include "profiling/rorlog.hpp"
 #include "resources/rorprojectroot.hpp"
+#include "settings/rorsettings.hpp"
 #include <filesystem>
 
 // This one is setup by cmake with a `configure` command, currently pointing at roar root absolute path
@@ -45,6 +46,21 @@ void create_content_symlink(std::filesystem::path a_target, std::filesystem::pat
 		std::filesystem::create_directory_symlink(a_target, a_link_name);
 }
 
+void cleanup_on_boot()
+{
+	if (ror::settings().m_clean_on_boot)
+	{
+		auto pr = ror::get_project_root().path();
+		for (auto &clean_dir : ror::settings().m_clean_dirs)
+		{
+			auto remove_dir = pr / clean_dir;
+			ror::log_info("Removing directory {}", remove_dir.c_str());
+			if (std::filesystem::exists(remove_dir))
+				std::filesystem::remove_all(remove_dir);
+		}
+	}
+}
+
 // Call with the a project name where your project is, and a prefix to append to the current path "tests", "editor" etc
 void setup_project_root(std::filesystem::path a_project_name, std::filesystem::path a_prefix = "")
 {
@@ -60,7 +76,7 @@ void setup_project_root(std::filesystem::path a_project_name, std::filesystem::p
 	ror::log_info("Changing current directory to {}.", new_current_path.c_str());
 	std::filesystem::current_path(new_current_path);
 
-	// This will create a project root folder names a_project_name in the current_path and give absolute path to it
+	// This will create a project root folder name a_project_name in the current_path and give absolute path to it
 	std::filesystem::path project_root_dir{ror::get_project_root(a_project_name).path()};
 
 	auto assets = new_current_path / "assets";
@@ -69,6 +85,9 @@ void setup_project_root(std::filesystem::path a_project_name, std::filesystem::p
 
 	// Now create symbolic links to the core/assets and editor/assets into the project folder
 	create_content_symlink(assets, project_assets);
+
+	// Lets clean folders that are requested to be cleaned
+	cleanup_on_boot();
 }
 
 }        // namespace ror

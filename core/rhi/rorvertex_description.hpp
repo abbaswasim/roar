@@ -155,10 +155,11 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	void upload(const std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> &a_attrib_data, rhi::BuffersPack *a_buffers_pack);
 
 	FORCE_INLINE const auto &attributes() const;
-
 	FORCE_INLINE const auto &layouts() const;
+	FORCE_INLINE auto        hash_64() const;
+	FORCE_INLINE auto        hash_64_pass_aware(rhi::RenderpassType a_passtype) const;
 
-	FORCE_INLINE auto hash_64() const;
+	FORCE_INLINE auto &attributes();
 
   private:
 	void create_mapping();

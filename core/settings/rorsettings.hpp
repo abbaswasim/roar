@@ -63,6 +63,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_buffer_increment  = setting.get<uint32_t>("buffer_increment");
 		this->m_multisample_count = setting.get<uint32_t>("multisample_count");
 
+		this->m_clean_on_boot        = setting.get<bool>("clean_on_boot");
 		this->m_visualise_mipmaps    = setting.get<bool>("visualise_mipmaps");
 		this->m_vertical_sync        = setting.get<bool>("vsync");
 		this->m_window_transparent   = setting.get<bool>("window_transparent");
@@ -132,6 +133,8 @@ class ROAR_ENGINE_ITEM Settings final
 
 		this->m_print_generated_shaders = setting.get<bool>("print_generated_shaders");
 		this->m_write_generated_shaders = setting.get<bool>("write_generated_shaders");
+
+		this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
 	}
 
 	std::string m_roar_title{};
@@ -140,6 +143,8 @@ class ROAR_ENGINE_ITEM Settings final
 	std::string m_buffers_format{};
 	std::string m_working_dir{};
 	std::string m_renderer_config{"renderer.json"};
+
+	std::vector<std::string> m_clean_dirs{};        //! Directories to clean on boot
 
 	float32_t m_zoom_speed{20.0f};
 	float32_t m_fog_start{0.0f};
@@ -150,6 +155,7 @@ class ROAR_ENGINE_ITEM Settings final
 	uint32_t m_buffer_increment{1};
 	uint32_t m_multisample_count{8};
 
+	bool m_clean_on_boot{false};
 	bool m_visualise_mipmaps{false};
 	bool m_vertical_sync{false};
 	bool m_window_transparent{false};

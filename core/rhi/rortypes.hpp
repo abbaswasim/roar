@@ -1021,6 +1021,27 @@ constexpr uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 	return 0;
 }
 
+constexpr bool is_attribute_required_in_pass(rhi::BufferSemantic a_semantic, bool a_depth_shadow)
+{
+	if (a_semantic < rhi::BufferSemantic::vertex_index)        // Only need vertex attributes that are bellow vertex_index, FIXME: what happens to custom ones?
+	{
+		if (!a_depth_shadow)
+			return true;
+		else if (a_semantic == rhi::BufferSemantic::vertex_position ||
+		         a_semantic == rhi::BufferSemantic::vertex_bone_id_0 ||
+		         a_semantic == rhi::BufferSemantic::vertex_bone_id_1 ||
+		         a_semantic == rhi::BufferSemantic::vertex_weight_0 ||
+		         a_semantic == rhi::BufferSemantic::vertex_weight_1 ||
+		         a_semantic == rhi::BufferSemantic::vertex_morph_target ||
+		         a_semantic == rhi::BufferSemantic::vertex_morph_weight)
+			return true;
+		else
+			return false;
+	}
+
+	return false;
+}
+
 constexpr uint32_t semantic_to_index(BufferSemantic a_semantic)
 {
 #define item(_enum) BufferSemantic::_enum

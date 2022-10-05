@@ -1190,6 +1190,34 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						morph_target_vertex_attribute_descriptor.emplace_back(std::move(target_vertex_descriptor));
 					}
 
+					// By now each attribute and morph target attributes are loaded, lets update the locations in morph target attributes
+					uint32_t location_offset = 0;
+					if (!vertex_attribute_descriptor.attributes().empty())
+					{
+						const auto &att = vertex_attribute_descriptor.attributes().back();
+
+						// Its +1 than the last attribute in the list, but if last attribute was vertex_index we use its location instead
+						auto location = att.location();
+						if (att.semantics() == rhi::BufferSemantic::vertex_index)
+							location_offset = location;
+						else
+							location_offset = location + 1;
+					}
+
+					for (auto &morph_vertex_descriptor : morph_target_vertex_attribute_descriptor)
+					{
+						auto &morph_attributes = morph_vertex_descriptor.attributes();
+						for (auto &morph_attribute : morph_attributes)
+						{
+							morph_attribute.location(morph_attribute.location() + location_offset);
+						}
+						if (!morph_attributes.empty())
+						{
+							auto location = morph_attributes.back().location();
+							location_offset = location + 1;
+						}
+					}
+
 					// Save Morph target weights
 					assert(cmesh.weights_count == cprim.targets_count && "Targets count and weights don't match data error");
 					mesh.m_morph_weights.resize(cmesh.weights_count);
@@ -1468,6 +1496,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 			{
 				Mesh             &mesh  = this->m_meshes[i];
 				const cgltf_mesh &cmesh = data->meshes[i];
+
+				if (cmesh.name)
+					mesh.m_name = cmesh.name;
 
 				for (size_t j = 0; j < cmesh.primitives_count; ++j)
 				{

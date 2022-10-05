@@ -182,6 +182,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void read_programs();
 	void read_probes();
 	void generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device, ror::JobSystem &a_job_system);
+	void upload(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device);
 
 	using RenderpassPrograms = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;
 

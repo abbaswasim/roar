@@ -25,6 +25,7 @@
 
 #include "foundation/rorhash.hpp"
 #include "foundation/rormacros.hpp"
+#include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
 
 namespace rhi
@@ -86,6 +87,11 @@ FORCE_INLINE VertexLayout &VertexDescriptor::layout(rhi::BufferSemantic a_semant
 }
 
 FORCE_INLINE const auto &VertexDescriptor::attributes() const
+{
+	return this->m_attributes;
+}
+
+FORCE_INLINE auto &VertexDescriptor::attributes()
 {
 	return this->m_attributes;
 }
@@ -214,4 +220,30 @@ FORCE_INLINE auto VertexDescriptor::hash_64() const
 	return hash;
 }
 
+FORCE_INLINE auto VertexDescriptor::hash_64_pass_aware(rhi::RenderpassType a_passtype) const
+{
+	auto is_depth_shadow = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
+
+	const auto type = this->type();
+
+	auto hash = ror::hash_64(&type, sizeof(type));
+
+	for (auto &attrib : this->m_attributes)
+	{
+		const auto semantics = attrib.semantics();
+		if (is_attribute_required_in_pass(semantics, is_depth_shadow))
+		{
+			const auto location = attrib.location();
+			const auto offset   = attrib.offset();
+			const auto format   = attrib.format();
+
+			ror::hash_combine_64(hash, ror::hash_64(&location, sizeof(location)));          // Now lets add all the locations
+			ror::hash_combine_64(hash, ror::hash_64(&offset, sizeof(offset)));              // Now lets add all the offests
+			ror::hash_combine_64(hash, ror::hash_64(&semantics, sizeof(semantics)));        // Now lets add all the semantics
+			ror::hash_combine_64(hash, ror::hash_64(&format, sizeof(format)));              // Now lets add all the formats
+		}
+	}
+
+	return hash;
+}
 }        // namespace rhi

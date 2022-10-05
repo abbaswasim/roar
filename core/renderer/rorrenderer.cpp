@@ -25,7 +25,9 @@
 // Version: 1.0.0
 
 #include "configuration/rorconfiguration.hpp"
+#include "foundation/rorhash.hpp"
 #include "foundation/rormacros.hpp"
+#include "foundation/rortypes.hpp"
 #include "math/rorvector2.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
@@ -68,10 +70,10 @@ void Renderer::load_programs()
 		std::vector<std::string> shaders = this->m_json_file["shaders"];
 		for (auto &shader : shaders)
 		{
-			auto s_path = std::filesystem::path(shader);
-			auto type = rhi::string_to_shader_type(s_path.extension());
-
-			this->m_shaders.emplace_back(shader, type, ror::ResourceAction::load);
+			auto      s_path = std::filesystem::path(shader);
+			auto      type   = rhi::string_to_shader_type(s_path.extension());
+			hash_64_t hash   = hash_64(s_path.c_str(), s_path.string().length());
+			this->m_shaders.emplace_back(shader, hash, type, ror::ResourceAction::load);
 		}
 	}
 
@@ -482,6 +484,8 @@ void Renderer::upload(rhi::Device &a_device)
 			pass.upload(a_device);
 		}
 	}
+
+	this->m_render_state.upload(a_device);
 }
 
 std::vector<rhi::RenderpassType> Renderer::render_passes()

@@ -30,9 +30,10 @@
 #include "graphics/rormodel.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
-#include "rhi/rorrhi_macros.hpp"
-#include "rhi/rordevice.hpp"
 #include "rhi/metal/rorshader.hpp"
+#include "rhi/rordevice.hpp"
+#include "rhi/rorrhi_macros.hpp"
+#include "rhi/rortypes.hpp"
 
 #include <Metal/MTLRenderPipeline.hpp>
 
@@ -45,7 +46,7 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	FORCE_INLINE               ProgramMetal(ProgramMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ProgramMetal &operator=(const ProgramMetal &a_other)        = default;        //! Copy assignment operator
 	FORCE_INLINE ProgramMetal &operator=(ProgramMetal &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~ProgramMetal() noexcept override                   = default;        //! Destructor
+	FORCE_INLINE virtual ~ProgramMetal() noexcept override;                                    //! Destructor
 
 	FORCE_INLINE ProgramMetal(int32_t a_vert_id, int32_t a_frag_id) :
 	    ProgramCrtp(a_vert_id, a_frag_id)
@@ -55,15 +56,15 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	    ProgramCrtp(a_compute_id)
 	{}
 
-	FORCE_INLINE void upload()
-	{
-		ror::log_critical("Uploading metal program");
-	}
+	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, rhi::RenderpassType a_renderpass_type);
 
   protected:
 	FORCE_INLINE ProgramMetal() = default;        //! Default constructor
+
   private:
 	declare_translation_unit_vtable();
+
+	MTL::RenderPipelineState *m_render_pipeline_state{nullptr};
 };
 
 declare_rhi_render_type(Program);

@@ -1,4 +1,3 @@
-
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
@@ -31,8 +30,8 @@ namespace rhi
 {
 
 template <class _type>
-FORCE_INLINE ShaderCrtp<_type>::ShaderCrtp(const std::string &a_shader, rhi::ShaderType a_type, ror::ResourceAction a_action) :
-    m_type(a_type)
+FORCE_INLINE ShaderCrtp<_type>::ShaderCrtp(const std::string &a_shader, hash_64_t a_hash, rhi::ShaderType a_type, ror::ResourceAction a_action) :
+    m_hash(a_hash), m_type(a_type)
 {
 	if (a_action == ror::ResourceAction::create)
 		this->m_shader = &ror::resource(a_shader, ror::ResourceSemantic::caches, ror::ResourceAction::create, "shaders");
@@ -53,5 +52,11 @@ FORCE_INLINE void ShaderCrtp<_type>::source(const std::string &a_source)
 	}
 
 	this->platform_source();
+}
+
+template <class _type>
+FORCE_INLINE constexpr auto ShaderCrtp<_type>::source() const noexcept
+{
+	return std::string_view(reinterpret_cast<const char *>(this->m_shader->data().data()), this->m_shader->data().size());
 }
 }        // namespace rhi

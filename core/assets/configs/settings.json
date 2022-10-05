@@ -22,6 +22,7 @@
 	"force_rgba_textures" : true,
 	"print_generated_shaders" : false,
 	"write_generated_shaders" : true,
+	"clean_on_boot" : true,
 	"metal" :
 	{
 		"version_major" : 3,
@@ -58,5 +59,10 @@
 		"y" : 0,
 		"width" : 1024,
 		"height" : 768
-	}
+	},
+	"clean_dirs" :
+	[
+		"generated_shaders",
+		"roar_temp"
+	]
 }

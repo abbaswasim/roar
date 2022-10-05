@@ -25,7 +25,7 @@ build_target="--target "
 target="RoarEditor"
 
 print_help() {
-	echo "Build accepts the following arguments\n
+	echo "Build accepts the following arguments
 -a [vulkan/metal]                         Metal renderer or Vulkan renderer
 -b [debug/release]                        Debug or Release build
 -c [build/clean/configure]                Builds only or build + configure only or clean + build + configure
@@ -68,7 +68,7 @@ if [[ "$OSTYPE" == "linux-gnu" ]]; then
 fi
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-	NUMCPUS=`sysctl -n hw.ncpu`
+	NUMCPUS=$(sysctl -n hw.ncpu)
 fi
 
 if [ "$api" = "metal" ] ; then

@@ -27,6 +27,7 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "profiling/rorlog.hpp"
+#include "resources/rorresource.hpp"
 #include "rhi/metal/rorshader.hpp"
 
 #include "rhi/rortypes.hpp"
@@ -34,6 +35,7 @@
 #include "spirv-cross/spirv_glsl.hpp"
 #include <spirv-cross/spirv_msl.hpp>
 #include <spirv.hpp>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -112,12 +114,33 @@ void ShaderMetal::platform_source()
 	this->m_msl_source = msl.compile();
 
 	if constexpr (ror::get_build() == ror::BuildType::build_debug)
+	{
 		if (setting.m_print_generated_shaders)
 		{
 			auto resource = this->source();
 			ror::log_info("Generated GLSL shader code.\n{}", resource);
 			ror::log_info("Spirv-cross generated MSL shader.\n{}", this->m_msl_source.c_str());
 		}
+		if (setting.m_write_generated_shaders)
+		{
+			static uint32_t index = 0;        // NOTE: This is not mutex protected because its not critical, adding shader hash makes contention highly unlikely
+			std::string     name{};
+			name += std::to_string(this->hash());
+			name += "_";
+			name += std::to_string(index++);
+			name += this->type() == rhi::ShaderType::vertex ? ".vert" : ".frag";
+
+			auto source = this->source();
+			{
+				auto &resource = ror::resource(name + ".glsl", ror::ResourceSemantic::caches, ror::ResourceAction::create, "generated_shaders");
+				resource.update({source.begin(), source.end()}, false, true);
+			}
+			{
+				auto &resource = ror::resource(name + ".msl", ror::ResourceSemantic::caches, ror::ResourceAction::create, "generated_shaders");
+				resource.update({this->m_msl_source.begin(), this->m_msl_source.end()}, false, true);
+			}
+		}
+	}
 }
 
 void ShaderMetal::upload(rhi::Device &a_device)

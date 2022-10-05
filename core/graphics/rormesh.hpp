@@ -89,6 +89,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_program_indices{};                         //! Should be init with -1
 	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1
 	uint64_t                                                m_hash{0};                                   //! Hash of this mesh depending on most of its properties
+	std::string                                             m_name{"generic_mesh"};                      //! Name of this mesh
 };
 
 }        // namespace ror

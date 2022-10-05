@@ -28,5 +28,9 @@
 
 namespace rhi
 {
-
+	FORCE_INLINE ProgramMetal::~ProgramMetal() noexcept
+	{
+		if (this->m_render_pipeline_state)
+			this->m_render_pipeline_state->release();
+	}
 }        // namespace rhi

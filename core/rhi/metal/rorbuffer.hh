@@ -41,7 +41,7 @@ void BufferMetal<_type>::upload(rhi::Device &a_device)
 	For buffers in the constant address space, align the offset to 256 bytes in macOS. In iOS, align the offset to the maximum of either the data type consumed by the vertex function, or 4 bytes. A 16-byte alignment is safe in iOS if you don't need to consider the data type.
 	 */
 
-	ror::log_critical("Uploading buffer to metal of size {}", this->filled_size());
+	// ror::log_critical("Uploading buffer to metal of size {}", this->filled_size());
 
 	this->partial_upload(a_device, 0, static_cast<size_t>(this->filled_size()));
 }

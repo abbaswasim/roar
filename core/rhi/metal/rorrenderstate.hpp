@@ -39,13 +39,13 @@ class RenderstateMetal : public RenderstateCrtp<RenderstateMetal>
 {
   public:
 	FORCE_INLINE                   RenderstateMetal()                                    = default;        //! Default constructor
-	FORCE_INLINE                   RenderstateMetal(const RenderstateMetal &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE                   RenderstateMetal(RenderstateMetal &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE RenderstateMetal &operator=(const RenderstateMetal &a_other)            = default;        //! Copy assignment operator
-	FORCE_INLINE RenderstateMetal &operator=(RenderstateMetal &&a_other) noexcept        = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~RenderstateMetal() noexcept override                           = default;        //! Destructor
+	FORCE_INLINE                   RenderstateMetal(const RenderstateMetal &a_other)     = delete;         //! Copy constructor
+	FORCE_INLINE                   RenderstateMetal(RenderstateMetal &&a_other) noexcept = delete;         //! Move constructor
+	FORCE_INLINE RenderstateMetal &operator=(const RenderstateMetal &a_other)            = delete;         //! Copy assignment operator
+	FORCE_INLINE RenderstateMetal &operator=(RenderstateMetal &&a_other) noexcept        = delete;         //! Move assignment operator
+	FORCE_INLINE virtual ~RenderstateMetal() noexcept override;                                            //! Destructor
 
-	void upload(rhi::Device& a_device);
+	void upload(rhi::Device &a_device);
 
   protected:
   private:

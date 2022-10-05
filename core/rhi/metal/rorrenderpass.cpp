@@ -74,10 +74,8 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 	auto render_supasses = this->subpasses();
 	this->m_render_passes.reserve(render_supasses.size());
 
-	uint32_t ii =0 ;
 	for (auto &subpass : render_supasses)
 	{
-		ror::log_critical("Creating metal render passes {}", ii++);
 		auto mtl_render_pass = MTL::RenderPassDescriptor::alloc()->init();
 
 		mtl_render_pass->setRenderTargetWidth(this->dimensions().x);
