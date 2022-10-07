@@ -71,8 +71,8 @@ void *next_drawable(void *layer);
   Compute states
   Render pipeline states
   Depth/stencil states
-
 */
+
 class DeviceMetal : public DeviceCrtp<DeviceMetal>
 {
   public:

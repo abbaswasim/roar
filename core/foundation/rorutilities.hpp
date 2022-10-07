@@ -362,4 +362,15 @@ class ConditionalMutex<true>
 	std::mutex m_mutex{};        //! Use to synchronize access from different threads
 };
 
+template <typename _type>
+struct MemoryLayout
+{
+  public:
+	// clang-format off
+	FORCE_INLINE static constexpr uint8_t size()          { return sizeof(_type);  }
+	FORCE_INLINE static constexpr uint8_t stride()        { return sizeof(_type);  }
+	FORCE_INLINE static constexpr uint8_t alignment()     { return alignof(_type); }
+	// clang-format on
+};
+
 }        // namespace ror

@@ -36,22 +36,23 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 {
   public:
 	FORCE_INLINE               ContextMetal()                                = default;        //! Default constructor
-	FORCE_INLINE               ContextMetal(const ContextMetal &a_other)     = delete;        //! Copy constructor
-	FORCE_INLINE               ContextMetal(ContextMetal &&a_other) noexcept = delete;        //! Move constructor
-	FORCE_INLINE ContextMetal &operator=(const ContextMetal &a_other)        = delete;        //! Copy assignment operator
-	FORCE_INLINE ContextMetal &operator=(ContextMetal &&a_other) noexcept    = delete;        //! Move assignment operator
+	FORCE_INLINE               ContextMetal(const ContextMetal &a_other)     = delete;         //! Copy constructor
+	FORCE_INLINE               ContextMetal(ContextMetal &&a_other) noexcept = delete;         //! Move constructor
+	FORCE_INLINE ContextMetal &operator=(const ContextMetal &a_other)        = delete;         //! Copy assignment operator
+	FORCE_INLINE ContextMetal &operator=(ContextMetal &&a_other) noexcept    = delete;         //! Move assignment operator
 	FORCE_INLINE virtual ~ContextMetal() noexcept override                   = default;        //! Destructor
 
 	declare_translation_unit_vtable();
 
 	// clang-format off
-	FORCE_INLINE void         init_derived()                                     {}
-	FORCE_INLINE void         post_init_derived()                                {}
-	FORCE_INLINE void         pre_tick_derived()                                 {}
-	FORCE_INLINE void         tick_derived()                                     {}
-	FORCE_INLINE void         post_tick_derived()                                {}
-	FORCE_INLINE void         shutdown_derived()                                 {}
+	FORCE_INLINE void     init_derived()            {}
+	FORCE_INLINE void     post_init_derived()       {}
+	FORCE_INLINE void     pre_tick_derived()        {}
+	FORCE_INLINE void     tick_derived()            {}
+	FORCE_INLINE void     post_tick_derived()       {}
+	FORCE_INLINE void     shutdown_derived()        {}
 	// clang-format on
+
   protected:
 	// FORCE_INLINE ContextMetal(std::any *a_window)
 	// {

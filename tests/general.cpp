@@ -7,6 +7,7 @@
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
+#include "foundation/rorutilities.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
 #include "math/rorquaternion.hpp"
@@ -295,6 +296,169 @@ TEST(RoarGeneral, buffer_semantic_indices)
 	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::instance_trs), 39);
 	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::gltf_bin_buffer), 40);
 	EXPECT_EQ(rhi::semantic_to_index(rhi::BufferSemantic::custom), 41);
+}
+
+TEST(RoarGeneral, memory_layout)
+{
+	class C1
+	{
+	  public:
+		double64_t m1;        //  8 bytes
+		double64_t m2;        //  8 bytes
+		bool       m3;        //  4 bytes + 4
+	};                        //  8 bytes alignment
+
+	EXPECT_EQ(ror::MemoryLayout<C1>::size(), 24);
+	EXPECT_EQ(ror::MemoryLayout<C1>::stride(), ror::MemoryLayout<C1>::size());
+	EXPECT_EQ(ror::MemoryLayout<C1>::alignment(), 8);
+
+	class C2
+	{
+	  public:
+		float m1;        //  4 bytes
+		char  m2;        //  1 byte + 1 byte
+		short m3;        //  2 bytes
+		char  m4;        //  1 byte + 3 byte
+	};                   //  4 bytes alignment
+
+	EXPECT_EQ(ror::MemoryLayout<C2>::size(), 12);
+	EXPECT_EQ(ror::MemoryLayout<C2>::stride(), ror::MemoryLayout<C2>::size());
+	EXPECT_EQ(ror::MemoryLayout<C2>::alignment(), 4);
+
+	class C3
+	{
+	  public:
+		char  *m1;         //  8 byte
+		int    m2;         //  4 bytes + 4
+		char  *m3;         //  8 byte
+		double m4;         //  8 bytes
+		char  *m5;         //  8 bytes
+		short  m6;         //  2 bytes + 6
+		char  *m7;         //  8 byte
+		int    m8;         //  4 bytes + 4
+		char  *m9;         //  8 bytes
+		char   m10;        //  1 byte + 7
+	};                     //  8 bytes alignment
+
+	EXPECT_EQ(ror::MemoryLayout<C3>::size(), 80);
+	EXPECT_EQ(ror::MemoryLayout<C3>::stride(), ror::MemoryLayout<C3>::size());
+	EXPECT_EQ(ror::MemoryLayout<C3>::alignment(), 8);
+
+	class C4
+	{
+	  public:
+		char  *m1;         //  8 byte
+		char  *m3;         //  8 byte
+		char  *m5;         //  8 bytes
+		char  *m7;         //  8 byte
+		char  *m9;         //  8 bytes
+		double m4;         //  8 bytes
+		int    m2;         //  4 bytes
+		int    m8;         //  4 bytes
+		short  m6;         //  2 bytes
+		char   m10;        //  1 byte + 7
+	};                     //  8 bytes alignment
+
+	EXPECT_EQ(ror::MemoryLayout<C4>::size(), 64);
+	EXPECT_EQ(ror::MemoryLayout<C4>::stride(), ror::MemoryLayout<C4>::size());
+	EXPECT_EQ(ror::MemoryLayout<C4>::alignment(), 8);
+
+	struct C5
+	{
+		char      m1;
+		short int m2;
+	};        // 4 bytes alignment
+
+	EXPECT_EQ(ror::MemoryLayout<C5>::size(), 4);
+	EXPECT_EQ(ror::MemoryLayout<C5>::stride(), ror::MemoryLayout<C5>::size());
+	EXPECT_EQ(ror::MemoryLayout<C5>::alignment(), 2);
+
+	struct C6
+	{
+		short int m1;
+		char      m2;
+		int       m3;
+	};        // 4 bytes alignment
+
+	EXPECT_EQ(ror::MemoryLayout<C6>::size(), 8);
+	EXPECT_EQ(ror::MemoryLayout<C6>::stride(), ror::MemoryLayout<C6>::size());
+	EXPECT_EQ(ror::MemoryLayout<C6>::alignment(), 4);
+
+	// structure C
+	struct C7
+	{
+		char   m1;
+		double m2;
+		int    m3;
+	};        // 8 bytes alignment
+
+	EXPECT_EQ(ror::MemoryLayout<C7>::size(), 24);
+	EXPECT_EQ(ror::MemoryLayout<C7>::stride(), ror::MemoryLayout<C7>::size());
+	EXPECT_EQ(ror::MemoryLayout<C7>::alignment(), 8);
+
+	struct C8
+	{
+		double m1;
+		int    m2;
+		char   m3;
+	};        // 8 bytes alignment
+
+	EXPECT_EQ(ror::MemoryLayout<C8>::size(), 16);
+	EXPECT_EQ(ror::MemoryLayout<C8>::stride(), ror::MemoryLayout<C8>::size());
+	EXPECT_EQ(ror::MemoryLayout<C8>::alignment(), 8);
+
+	{
+		struct C9
+		{
+			double m1;         //  8 bytes
+			C5     mc5;        //  2 bytes + 2
+			int    m2;         //  4 bytes
+			char   m3;         //  1 bytes + 7
+		};                     //  8 bytes alignment
+
+		EXPECT_EQ(ror::MemoryLayout<C9>::size(), 24);
+		EXPECT_EQ(ror::MemoryLayout<C9>::stride(), ror::MemoryLayout<C9>::size());
+		EXPECT_EQ(ror::MemoryLayout<C9>::alignment(), 8);
+	}
+	{
+		struct C9
+		{
+			C5     mc5;        //  2 bytes + 6
+			double m1;         //  8 bytes
+			int    m2;         //  4 bytes
+			char   m3;         //  1 bytes + 3
+		};                     //  8 bytes alignment
+
+		EXPECT_EQ(ror::MemoryLayout<C9>::size(), 24);
+		EXPECT_EQ(ror::MemoryLayout<C9>::stride(), ror::MemoryLayout<C9>::size());
+		EXPECT_EQ(ror::MemoryLayout<C9>::alignment(), 8);
+	}
+	{
+		struct C9
+		{
+			char   m3;         //  1 bytes + 1
+			C5     mc5;        //  2 bytes + 4
+			double m1;         //  8 bytes
+			int    m2;         //  4 bytes
+		};                     //  8 bytes alignment
+
+		EXPECT_EQ(ror::MemoryLayout<C9>::size(), 24);
+		EXPECT_EQ(ror::MemoryLayout<C9>::stride(), ror::MemoryLayout<C9>::size());
+		EXPECT_EQ(ror::MemoryLayout<C9>::alignment(), 8);
+	}
+	{
+		struct C9
+		{
+			char   m3;         //  1 bytes + 7
+			C8     mc8;        //  16 bytes
+			double m1;         //  8 bytes
+			int    m2;         //  4 bytes + 4
+		};                     //  8 bytes alignment
+
+		EXPECT_EQ(ror::MemoryLayout<C9>::size(), 40);
+		EXPECT_EQ(ror::MemoryLayout<C9>::stride(), ror::MemoryLayout<C9>::size());
+		EXPECT_EQ(ror::MemoryLayout<C9>::alignment(), 8);
+	}
 }
 
 }        // namespace ror_test
