@@ -1,4 +1,5 @@
 #include "bounds/rorbounding.hpp"
+#include "camera/rorcamera.hpp"
 #include "common.hpp"
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorcommon.hpp"
@@ -65,7 +66,11 @@ TEST_F(GLTFTest, gltf_loader_test)
 	(void) fox_sampler0_input;
 	(void) fox_sampler0_output;
 
-	this->fox_model->load_from_gltf_file("Fox/Fox.gltf");
+	std::vector<ror::OrbitCamera> fox_cameras;
+
+	this->fox_model->load_from_gltf_file("Fox/Fox.gltf", fox_cameras);
+
+	EXPECT_EQ(fox_cameras.size(), 0);
 
 	EXPECT_EQ(this->fox_model->meshes().size(), 1);
 	auto &m = this->fox_model->meshes()[0];
@@ -299,10 +304,12 @@ void compile_print_shader_result(const std::string &a_shader_source, const std::
 
 void GLTFTest::load_model(std::string path)
 {
-	auto        compile_shader_source = settings_configs_copy.get<bool>("gltf_compile_shader");
-	auto        print_shader_source   = settings_configs_copy.get<bool>("gltf_compile_print_shader");
-	ror::Model *model2                = new ror::Model();
-	model2->load_from_gltf_file(path);
+	auto                          compile_shader_source = settings_configs_copy.get<bool>("gltf_compile_shader");
+	auto                          print_shader_source   = settings_configs_copy.get<bool>("gltf_compile_print_shader");
+	std::vector<ror::OrbitCamera> model_cameras;
+	ror::Model                   *model2 = new ror::Model();
+
+	model2->load_from_gltf_file(path, model_cameras);
 
 	if (print_shader_source)
 		compile_shader_source = true;
@@ -359,7 +366,7 @@ void GLTFTest::load_model(std::string path)
 				auto hash = ror::hash_64(fs);
 
 				auto mesh_fs_hash = ms.fragment_hash(j);
-				auto res = unique_fs_attribs_to_source.emplace(mesh_fs_hash, hash);
+				auto res          = unique_fs_attribs_to_source.emplace(mesh_fs_hash, hash);
 				if (!res.second)
 				{
 					assert(res.first->second == hash && "Source hashes for non-inserted fragment shader aren't the same");

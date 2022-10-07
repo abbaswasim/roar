@@ -70,8 +70,13 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE void   pre_tick()         {    this->underlying().pre_tick_derived();     }
 	FORCE_INLINE void   tick()             {    this->underlying().tick_derived();         }
 	FORCE_INLINE void   post_tick()        {    this->underlying().post_tick_derived();    }
-	FORCE_INLINE auto  &event_system()     {    return this->m_event_system;               }
 
+	FORCE_INLINE auto  &job_system()       {    return this->m_job_system;                 }
+	FORCE_INLINE auto  &event_system()     {    return this->m_event_system;               }
+	FORCE_INLINE auto  &scene()            {    return this->m_scene;                      }
+	FORCE_INLINE auto  &buffer_pack()      {    return *this->m_buffer_pack;               }
+	FORCE_INLINE auto  &device()           {    return *this->m_current_device;            }
+	FORCE_INLINE auto  &renderer()         {    return this->m_renderer;                   }
 	// clang-format on
 
 	FORCE_INLINE void shutdown()
@@ -83,22 +88,6 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		this->m_job_system->stop();
 
 		this->underlying().shutdown_derived();
-	}
-
-	void resize()
-	{
-		// Do a proactive recreate of swapchain instead of waiting for error messages
-		// TODO: Try to understand why the resize is rigid, as in while resizing the contents don't update even though resize is called multiple times
-		//	assert(this->m_current_device && "Current gpu is not initialized");
-		//	this->m_current_device->recreate_swapchain();
-		ror::log_warn("resizing frame {}", __PRETTY_FUNCTION__);
-	}
-
-	void draw_frame()
-	{
-		//	assert(this->m_current_device && "Current gpu is not initialized");
-		//	this->m_current_device->draw_frame();
-		ror::log_warn("drawing frame {}", __PRETTY_FUNCTION__);
 	}
 
   protected:

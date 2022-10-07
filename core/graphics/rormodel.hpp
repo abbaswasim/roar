@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "camera/rorcamera.hpp"
 #include "graphics/roranimation.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
@@ -58,9 +59,10 @@ class ROAR_ENGINE_ITEM Model
 	FORCE_INLINE ~Model() noexcept                          = default;        //! Destructor
 
 	// Populates data from a gltf file loaded as a resource.
+	// Takes scene cameras and lights as parameter and fills it up with this model cameras and lights
 	// If this or any other load functions are called before, data needs to be appended
-	void load_from_gltf_file(std::filesystem::path a_filename);
-	void upload(rhi::Device& a_device);
+	void load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera>& a_cameras);
+	void upload(rhi::Device &a_device);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &images()           const    {  return this->m_images;          }

@@ -26,12 +26,13 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "foundation/rortypes.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorcontext.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
 namespace rhi
 {
-
 class ContextMetal : public ContextCrtp<ContextMetal>
 {
   public:
@@ -48,26 +49,41 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 	FORCE_INLINE void     init_derived()            {}
 	FORCE_INLINE void     post_init_derived()       {}
 	FORCE_INLINE void     pre_tick_derived()        {}
-	FORCE_INLINE void     tick_derived()            {}
 	FORCE_INLINE void     post_tick_derived()       {}
 	FORCE_INLINE void     shutdown_derived()        {}
 	// clang-format on
 
+	FORCE_INLINE void tick_derived()
+	{
+		auto &job_system   = this->job_system();
+		auto &event_system = this->event_system();
+		auto &scene        = this->scene();
+		auto &buffer_pack  = this->buffer_pack();
+		auto &device       = this->device();
+		auto &renderer     = this->renderer();
+
+		(void) job_system;
+		(void) event_system;
+		(void) scene;
+		(void) buffer_pack;
+		(void) device;
+		(void) renderer;
+
+		// Setup uniforms
+		/*
+		Uniforms *uniform = reinterpret_cast<Uniforms *>(mvp->contents());
+
+		// Update uniforms here
+
+		memcpy(uniform->joints_matrices[0].m_values, skinning_matrices[0].m_values, 44 * sizeof(float) * 16);
+
+		// Only for ResourceStorageModeManaged resources
+		mvp->didModifyRange(NS::Range::Make(0, mvp->length()));
+		*/
+	}
+
   protected:
-	// FORCE_INLINE ContextMetal(std::any *a_window)
-	// {
-	// this->m_current_instance = std::make_shared<Instance>();
-	// this->m_current_gpu      = std::make_shared<Device>(this->m_current_instance->get_handle(), a_window);
-
-	// this->m_instances.emplace_back(this->m_current_instance);
-	// this->m_gpus.emplace_back(this->m_current_gpu);
-	// }
-
   private:
-	// std::vector<std::shared_ptr<Instance>> m_instances;
-	// std::vector<std::shared_ptr<Device>>   m_gpus;
-	// std::shared_ptr<Device>                m_current_gpu{nullptr};
-	// std::shared_ptr<Instance>              m_current_instance{nullptr};
 };
 
 define_translation_unit_vtable(ContextMetal)

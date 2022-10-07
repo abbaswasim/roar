@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "camera/rorcamera.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rorsystem.hpp"
@@ -641,7 +642,45 @@ std::string cgltf_result_to_string(cgltf_result a_result)
 	return "cgltf_result_success";
 }
 
-void Model::load_from_gltf_file(std::filesystem::path a_filename)
+ror::OrbitCamera read_node_camera(cgltf_camera *a_camera)
+{
+	ror::OrbitCamera camera;
+
+	if (a_camera->type == cgltf_camera_type_perspective)
+	{
+		camera.type(ror::CameraType::perspective);
+
+		cgltf_camera_perspective &perspective_camera = a_camera->data.perspective;
+
+		if (perspective_camera.has_aspect_ratio)
+			camera.aspect_ratio(perspective_camera.aspect_ratio);
+
+		camera.y_fov(perspective_camera.yfov);
+
+		if (perspective_camera.has_zfar)
+			camera.z_far(perspective_camera.zfar);
+
+		camera.z_near(perspective_camera.znear);
+	}
+	else if (a_camera->type == cgltf_camera_type_orthographic)
+	{
+		cgltf_camera_orthographic &orthographic_camera = a_camera->data.orthographic;
+		camera.type(ror::CameraType::orthographic);
+		camera.z_far(orthographic_camera.zfar);
+		camera.z_near(orthographic_camera.znear);
+		(void) orthographic_camera.xmag;
+		(void) orthographic_camera.ymag;
+		ror::log_warn("Unused orthographic camera parameter xmag and ymag");
+	}
+	else
+	{
+		ror::log_warn("Data error! Invalid camera type provided, using default camera.");
+	}
+
+	return camera;
+}
+
+void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras)
 {
 	// Lets start by reading a_filename via resource cache
 	auto &resource = load_resource(a_filename, ResourceSemantic::models);
@@ -1213,7 +1252,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 						}
 						if (!morph_attributes.empty())
 						{
-							auto location = morph_attributes.back().location();
+							auto location   = morph_attributes.back().location();
 							location_offset = location + 1;
 						}
 					}
@@ -1320,6 +1359,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename)
 
 					if (node.m_skin_index != -1)
 						this->m_skins[static_cast<size_t>(node.m_skin_index)].m_node_index = node_to_index[cnode];        // Cast ok again, index not negative
+
+					if (node.m_camera_index != -1)
+					{
+						node.m_camera_index = static_cast_safe<int32_t>(a_cameras.size());
+						a_cameras.emplace_back(read_node_camera(cnode->camera));
+					}
 
 					if (cnode->has_translation)
 						node.m_trs_transform.m_translation = ror::Vector3f(cnode->translation[0], cnode->translation[1], cnode->translation[2]);

@@ -88,7 +88,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		auto model_load_job = [this](SceneNodeData & node, size_t a_index) -> auto
 		{
 			Model &model = this->m_models[a_index];
-			model.load_from_gltf_file(node.m_model_path);
+			model.load_from_gltf_file(node.m_model_path, this->m_cameras);
 			return true;
 		};
 
