@@ -878,7 +878,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 					material.m_reflectance = mat.has_ior ? convert_ior_to_f0(mat.ior.ior) : 1.0f;
 
-					// TODO: Add support for texture transforms and maybe scale for other textures apart from occlusion strength(scale) and normal scale which are alreayd handled
+					// TODO: Add support for texture transforms and maybe scale for other textures apart from occlusion strength(scale) and normal scale which are already handled
 					// mat.pbr_metallic_roughness.base_color_texture.scale
 					// mat.pbr_metallic_roughness.base_color_texture.transform
 				}

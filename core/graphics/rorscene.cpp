@@ -272,7 +272,7 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 						vs_shader_index.second = true;
 						auto &vs_shader        = this->m_shaders[vs_shader_index.first];
 						auto  vs_job_handle    = a_job_system.push_job([mesh_index, prim_index, passtype, &vs_shader, &model]() -> auto{
-                            auto vs = rhi::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype);
+                            auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype);
                             vs_shader.source(vs);
                             return true;
 						    });
@@ -285,7 +285,7 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 						fs_shader_index.second = true;
 						auto &fs_shader        = this->m_shaders[fs_shader_index.first];
 						auto  fs_job_handle    = a_job_system.push_job([prim_index, passtype, has_shadows, &fs_shader, &mesh, &model]() -> auto{
-                            auto fs = rhi::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, has_shadows);
+                            auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, has_shadows);
                             fs_shader.source(fs);
                             return true;
 						    });

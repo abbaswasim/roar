@@ -112,6 +112,12 @@ class ROAR_ENGINE_ITEM ShaderBuffer final
 		this->m_entries.add_struct(a_struct);
 	}
 
+	FORCE_INLINE std::string layout_string()
+	{
+		assert(this->m_layout == Layout::std140 || this->m_layout == Layout::std430 && "Requesting invalid layout set");
+		return this->m_layout == Layout::std140 ? "std140" : "std430";
+	}
+
 	/**
 	 * Use this as an iterator to get the entries in the buffer
 	 * This should only be used with buffers that are "simple" and
