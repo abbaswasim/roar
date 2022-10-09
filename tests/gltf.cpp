@@ -334,7 +334,7 @@ void GLTFTest::load_model(std::string path)
 
 			std::string program_source{""};
 			{
-				auto vs = rhi::generate_primitive_vertex_shader(*model2, static_cast<uint32_t>(mesh_index), static_cast<uint32_t>(j), rhi::RenderpassType::main);
+				auto vs = ror::generate_primitive_vertex_shader(*model2, static_cast<uint32_t>(mesh_index), static_cast<uint32_t>(j), rhi::RenderpassType::main);
 				(void) vs;
 
 				program_source = vs;
@@ -358,7 +358,7 @@ void GLTFTest::load_model(std::string path)
 					compile_print_shader_result(vs, "tmp_shader.vert", print_shader_source);
 			}
 			{
-				auto fs = rhi::generate_primitive_fragment_shader(ms, model2->materials(), static_cast<uint32_t>(j), rhi::RenderpassType::main, true);
+				auto fs = ror::generate_primitive_fragment_shader(ms, model2->materials(), static_cast<uint32_t>(j), rhi::RenderpassType::main, true);
 				(void) fs;
 
 				program_source.append(fs);

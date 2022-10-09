@@ -25,7 +25,7 @@ void test_entries(rhi::ShaderBuffer &a_sb, std::unordered_map<std::string, std::
 
 void example0_test(rhi::Layout a_layout)
 {
-	rhi::ShaderBuffer sb{"Example0", a_layout};
+	rhi::ShaderBuffer sb{"Example0", rhi::ShaderBufferType::ubo, a_layout};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -43,19 +43,19 @@ void example0_test(rhi::Layout a_layout)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::float32_1}},
-		{"b", {8, 8, rhi::Format::float32_2}},
-		{"c", {16, 12, rhi::Format::float32_3}},
-		{"d", {28, 4, rhi::Format::int32_1}},
-		{"e", {32, 8, rhi::Format::bool32_2}},
-		{"g", {40, 4, rhi::Format::float32_1}},
-		{"h", {44, 4, rhi::Format::float32_1}},
-		{"i", {48, 32, rhi::Format::float32_2x3}},
-		{"j", {80, 12, rhi::Format::uint32_3}},
-		{"k", {96, 8, rhi::Format::float32_2}},
-		{"l", {104, 4, rhi::Format::float32_1}},
-		{"m", {112, 8, rhi::Format::float32_2}},
-		{"n", {128, 64, rhi::Format::float32_3x3}}};
+	    {"a", {0, 4, rhi::Format::float32_1}},
+	    {"b", {8, 8, rhi::Format::float32_2}},
+	    {"c", {16, 12, rhi::Format::float32_3}},
+	    {"d", {28, 4, rhi::Format::int32_1}},
+	    {"e", {32, 8, rhi::Format::bool32_2}},
+	    {"g", {40, 4, rhi::Format::float32_1}},
+	    {"h", {44, 4, rhi::Format::float32_1}},
+	    {"i", {48, 32, rhi::Format::float32_2x3}},
+	    {"j", {80, 12, rhi::Format::uint32_3}},
+	    {"k", {96, 8, rhi::Format::float32_2}},
+	    {"l", {104, 4, rhi::Format::float32_1}},
+	    {"m", {112, 8, rhi::Format::float32_2}},
+	    {"n", {128, 64, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 
@@ -97,7 +97,7 @@ TEST(ShaderBuffer, example0_test)
 
 void example1_test(rhi::Layout a_layout)
 {
-	rhi::ShaderBuffer sb{"Example1", a_layout};
+	rhi::ShaderBuffer sb{"Example1", rhi::ShaderBufferType::ubo, a_layout};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -115,19 +115,19 @@ void example1_test(rhi::Layout a_layout)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::float32_1}},
-		{"b", {8, 8, rhi::Format::float32_2}},
-		{"c", {16, 12, rhi::Format::float32_3}},
-		{"d", {28, 4, rhi::Format::int32_1}},
-		{"e", {32, 8, rhi::Format::bool32_2}},
-		{"g", {40, 4, rhi::Format::float32_1}},
-		{"h", {44, 4, rhi::Format::float32_1}},
-		{"i", {48, 32, rhi::Format::float32_2x3}},
-		{"j", {80, 4, rhi::Format::uint32_1}},
-		{"k", {88, 8, rhi::Format::float32_2}},
-		{"l", {96, 4, rhi::Format::float32_1}},
-		{"m", {104, 8, rhi::Format::float32_2}},
-		{"n", {112, 64, rhi::Format::float32_3x3}}};
+	    {"a", {0, 4, rhi::Format::float32_1}},
+	    {"b", {8, 8, rhi::Format::float32_2}},
+	    {"c", {16, 12, rhi::Format::float32_3}},
+	    {"d", {28, 4, rhi::Format::int32_1}},
+	    {"e", {32, 8, rhi::Format::bool32_2}},
+	    {"g", {40, 4, rhi::Format::float32_1}},
+	    {"h", {44, 4, rhi::Format::float32_1}},
+	    {"i", {48, 32, rhi::Format::float32_2x3}},
+	    {"j", {80, 4, rhi::Format::uint32_1}},
+	    {"k", {88, 8, rhi::Format::float32_2}},
+	    {"l", {96, 4, rhi::Format::float32_1}},
+	    {"m", {104, 8, rhi::Format::float32_2}},
+	    {"n", {112, 64, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 
@@ -169,7 +169,7 @@ TEST(ShaderBuffer, example1_test)
 
 TEST(ShaderBuffer, std140_example2_test)
 {
-	rhi::ShaderBuffer sb{"Example2", rhi::Layout::std140};
+	rhi::ShaderBuffer sb{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -187,19 +187,19 @@ TEST(ShaderBuffer, std140_example2_test)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::float32_1}},
-		{"b", {8, 8, rhi::Format::float32_2}},
-		{"c", {16, 12, rhi::Format::float32_3}},
-		{"d", {28, 4, rhi::Format::int32_1}},
-		{"e", {32, 8, rhi::Format::bool32_2}},
-		{"g", {48, 16, rhi::Format::float32_1}},
-		{"h", {80, 4, rhi::Format::float32_1}},
-		{"i", {96, 32, rhi::Format::float32_2x3}},
-		{"j", {128, 4, rhi::Format::uint32_1}},
-		{"k", {136, 8, rhi::Format::float32_2}},
-		{"l", {144, 16, rhi::Format::float32_1}},
-		{"m", {176, 8, rhi::Format::float32_2}},
-		{"n", {192, 64, rhi::Format::float32_3x3}}};
+	    {"a", {0, 4, rhi::Format::float32_1}},
+	    {"b", {8, 8, rhi::Format::float32_2}},
+	    {"c", {16, 12, rhi::Format::float32_3}},
+	    {"d", {28, 4, rhi::Format::int32_1}},
+	    {"e", {32, 8, rhi::Format::bool32_2}},
+	    {"g", {48, 16, rhi::Format::float32_1}},
+	    {"h", {80, 4, rhi::Format::float32_1}},
+	    {"i", {96, 32, rhi::Format::float32_2x3}},
+	    {"j", {128, 4, rhi::Format::uint32_1}},
+	    {"k", {136, 8, rhi::Format::float32_2}},
+	    {"l", {144, 16, rhi::Format::float32_1}},
+	    {"m", {176, 8, rhi::Format::float32_2}},
+	    {"n", {192, 64, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 
@@ -235,7 +235,7 @@ TEST(ShaderBuffer, std140_example2_test)
 
 TEST(ShaderBuffer, std140_example3_test)
 {
-	rhi::ShaderBuffer sb{"Example3", rhi::Layout::std140};
+	rhi::ShaderBuffer sb{"Example3", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -253,26 +253,26 @@ TEST(ShaderBuffer, std140_example3_test)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::float32_1}},
-		{"b", {8, 8, rhi::Format::float32_2}},
-		{"c", {16, 12, rhi::Format::float32_3}},
-		{"d", {28, 4, rhi::Format::int32_1}},
-		{"e", {32, 8, rhi::Format::bool32_2}},
-		{"g", {48, 16, rhi::Format::float32_1}},
-		{"h", {80, 4, rhi::Format::float32_1}},
-		{"i", {96, 32, rhi::Format::float32_2x3}},
-		{"j", {160, 4, rhi::Format::uint32_1}},
-		{"k", {168, 8, rhi::Format::float32_2}},
-		{"l", {176, 16, rhi::Format::float32_1}},
-		{"m", {208, 8, rhi::Format::float32_2}},
-		{"n", {224, 64, rhi::Format::float32_3x3}}};
+	    {"a", {0, 4, rhi::Format::float32_1}},
+	    {"b", {8, 8, rhi::Format::float32_2}},
+	    {"c", {16, 12, rhi::Format::float32_3}},
+	    {"d", {28, 4, rhi::Format::int32_1}},
+	    {"e", {32, 8, rhi::Format::bool32_2}},
+	    {"g", {48, 16, rhi::Format::float32_1}},
+	    {"h", {80, 4, rhi::Format::float32_1}},
+	    {"i", {96, 32, rhi::Format::float32_2x3}},
+	    {"j", {160, 4, rhi::Format::uint32_1}},
+	    {"k", {168, 8, rhi::Format::float32_2}},
+	    {"l", {176, 16, rhi::Format::float32_1}},
+	    {"m", {208, 8, rhi::Format::float32_2}},
+	    {"n", {224, 64, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std140_example4_test)
 {
-	rhi::ShaderBuffer sb{"Example4", rhi::Layout::std140};
+	rhi::ShaderBuffer sb{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -302,21 +302,21 @@ TEST(ShaderBuffer, std140_example4_test)
 
 	// Index of offset, stride, size, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, 4, rhi::Format::float32_1}},
-		{"b", {8, 8, 8, rhi::Format::float32_2}},
-		{"c", {16, 12, 12, rhi::Format::float32_3}},
-		{"d", {32, 4, 4, rhi::Format::int32_1}},
-		{"e", {40, 8, 8, rhi::Format::bool32_2}},
-		{"f", {32, 16, 48, rhi::Format::struct_1}},
-		{"g", {48, 4, 4, rhi::Format::float32_1}},
-		{"h", {64, 16, 4, rhi::Format::float32_1}},
-		{"i", {96, 32, 32, rhi::Format::float32_2x3}},
-		{"j", {128, 12, 12, rhi::Format::uint32_3}},
-		{"k", {144, 8, 8, rhi::Format::float32_2}},
-		{"l", {160, 16, 4, rhi::Format::float32_1}},
-		{"m", {192, 8, 8, rhi::Format::float32_2}},
-		{"n", {208, 64, 64, rhi::Format::float32_3x3}},
-		{"o", {128, 208, 544, rhi::Format::struct_1}}};
+	    {"a", {0, 4, 4, rhi::Format::float32_1}},
+	    {"b", {8, 8, 8, rhi::Format::float32_2}},
+	    {"c", {16, 12, 12, rhi::Format::float32_3}},
+	    {"d", {32, 4, 4, rhi::Format::int32_1}},
+	    {"e", {40, 8, 8, rhi::Format::bool32_2}},
+	    {"f", {32, 16, 48, rhi::Format::struct_1}},
+	    {"g", {48, 4, 4, rhi::Format::float32_1}},
+	    {"h", {64, 16, 4, rhi::Format::float32_1}},
+	    {"i", {96, 32, 32, rhi::Format::float32_2x3}},
+	    {"j", {128, 12, 12, rhi::Format::uint32_3}},
+	    {"k", {144, 8, 8, rhi::Format::float32_2}},
+	    {"l", {160, 16, 4, rhi::Format::float32_1}},
+	    {"m", {192, 8, 8, rhi::Format::float32_2}},
+	    {"n", {208, 64, 64, rhi::Format::float32_3x3}},
+	    {"o", {128, 208, 544, rhi::Format::struct_1}}};
 
 	auto entries = sb.entries_structs();
 
@@ -405,48 +405,48 @@ void add_bool_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, bool_test_std140)
 {
-	rhi::ShaderBuffer sb{"ExampleBool", rhi::Layout::std140};
+	rhi::ShaderBuffer sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	add_bool_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::bool32_1}},
-		{"b", {4, 4, rhi::Format::bool32_1}},
-		{"c", {8, 4, rhi::Format::bool32_1}},
-		{"d", {12, 4, rhi::Format::bool32_1}},
-		{"e", {16, 4, rhi::Format::bool32_1}},
-		{"g", {32, 16, rhi::Format::bool32_1}},
-		{"h", {64, 4, rhi::Format::bool32_1}},
-		{"i", {80, 16, rhi::Format::bool32_1}},
-		{"j", {112, 4, rhi::Format::bool32_1}},
-		{"k", {116, 4, rhi::Format::bool32_1}},
-		{"l", {128, 16, rhi::Format::bool32_1}},
-		{"m", {160, 4, rhi::Format::bool32_1}},
-		{"n", {164, 4, rhi::Format::bool32_1}}};
+	    {"a", {0, 4, rhi::Format::bool32_1}},
+	    {"b", {4, 4, rhi::Format::bool32_1}},
+	    {"c", {8, 4, rhi::Format::bool32_1}},
+	    {"d", {12, 4, rhi::Format::bool32_1}},
+	    {"e", {16, 4, rhi::Format::bool32_1}},
+	    {"g", {32, 16, rhi::Format::bool32_1}},
+	    {"h", {64, 4, rhi::Format::bool32_1}},
+	    {"i", {80, 16, rhi::Format::bool32_1}},
+	    {"j", {112, 4, rhi::Format::bool32_1}},
+	    {"k", {116, 4, rhi::Format::bool32_1}},
+	    {"l", {128, 16, rhi::Format::bool32_1}},
+	    {"m", {160, 4, rhi::Format::bool32_1}},
+	    {"n", {164, 4, rhi::Format::bool32_1}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, bool_test_std430)
 {
-	rhi::ShaderBuffer sb{"ExampleBool", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	add_bool_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::bool32_1}},
-		{"b", {4, 4, rhi::Format::bool32_1}},
-		{"c", {8, 4, rhi::Format::bool32_1}},
-		{"d", {12, 4, rhi::Format::bool32_1}},
-		{"e", {16, 4, rhi::Format::bool32_1}},
-		{"g", {20, 4, rhi::Format::bool32_1}},
-		{"h", {28, 4, rhi::Format::bool32_1}},
-		{"i", {32, 4, rhi::Format::bool32_1}},
-		{"j", {40, 4, rhi::Format::bool32_1}},
-		{"k", {44, 4, rhi::Format::bool32_1}},
-		{"l", {48, 4, rhi::Format::bool32_1}},
-		{"m", {56, 4, rhi::Format::bool32_1}},
-		{"n", {60, 4, rhi::Format::bool32_1}}};
+	    {"a", {0, 4, rhi::Format::bool32_1}},
+	    {"b", {4, 4, rhi::Format::bool32_1}},
+	    {"c", {8, 4, rhi::Format::bool32_1}},
+	    {"d", {12, 4, rhi::Format::bool32_1}},
+	    {"e", {16, 4, rhi::Format::bool32_1}},
+	    {"g", {20, 4, rhi::Format::bool32_1}},
+	    {"h", {28, 4, rhi::Format::bool32_1}},
+	    {"i", {32, 4, rhi::Format::bool32_1}},
+	    {"j", {40, 4, rhi::Format::bool32_1}},
+	    {"k", {44, 4, rhi::Format::bool32_1}},
+	    {"l", {48, 4, rhi::Format::bool32_1}},
+	    {"m", {56, 4, rhi::Format::bool32_1}},
+	    {"n", {60, 4, rhi::Format::bool32_1}}};
 
 	test_entries(sb, var_values);
 }
@@ -470,48 +470,48 @@ void add_double_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, double_test_std140)
 {
-	rhi::ShaderBuffer sb{"ExampleDouble", rhi::Layout::std140};
+	rhi::ShaderBuffer sb{"ExampleDouble", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	add_double_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 8, rhi::Format::float64_1}},
-		{"b", {8, 8, rhi::Format::float64_1}},
-		{"c", {16, 8, rhi::Format::float64_1}},
-		{"d", {24, 8, rhi::Format::float64_1}},
-		{"e", {32, 8, rhi::Format::float64_1}},
-		{"g", {48, 16, rhi::Format::float64_1}},
-		{"h", {80, 8, rhi::Format::float64_1}},
-		{"i", {96, 16, rhi::Format::float64_1}},
-		{"j", {128, 8, rhi::Format::float64_1}},
-		{"k", {136, 8, rhi::Format::float64_1}},
-		{"l", {144, 16, rhi::Format::float64_1}},
-		{"m", {176, 8, rhi::Format::float64_1}},
-		{"n", {184, 8, rhi::Format::float64_1}}};
+	    {"a", {0, 8, rhi::Format::float64_1}},
+	    {"b", {8, 8, rhi::Format::float64_1}},
+	    {"c", {16, 8, rhi::Format::float64_1}},
+	    {"d", {24, 8, rhi::Format::float64_1}},
+	    {"e", {32, 8, rhi::Format::float64_1}},
+	    {"g", {48, 16, rhi::Format::float64_1}},
+	    {"h", {80, 8, rhi::Format::float64_1}},
+	    {"i", {96, 16, rhi::Format::float64_1}},
+	    {"j", {128, 8, rhi::Format::float64_1}},
+	    {"k", {136, 8, rhi::Format::float64_1}},
+	    {"l", {144, 16, rhi::Format::float64_1}},
+	    {"m", {176, 8, rhi::Format::float64_1}},
+	    {"n", {184, 8, rhi::Format::float64_1}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, double_test_std430)
 {
-	rhi::ShaderBuffer sb{"ExampleDouble", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"ExampleDouble", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	add_double_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 8, rhi::Format::float64_1}},
-		{"b", {8, 8, rhi::Format::float64_1}},
-		{"c", {16, 8, rhi::Format::float64_1}},
-		{"d", {24, 8, rhi::Format::float64_1}},
-		{"e", {32, 8, rhi::Format::float64_1}},
-		{"g", {40, 8, rhi::Format::float64_1}},
-		{"h", {56, 8, rhi::Format::float64_1}},
-		{"i", {64, 8, rhi::Format::float64_1}},
-		{"j", {80, 8, rhi::Format::float64_1}},
-		{"k", {88, 8, rhi::Format::float64_1}},
-		{"l", {96, 8, rhi::Format::float64_1}},
-		{"m", {112, 8, rhi::Format::float64_1}},
-		{"n", {120, 8, rhi::Format::float64_1}}};
+	    {"a", {0, 8, rhi::Format::float64_1}},
+	    {"b", {8, 8, rhi::Format::float64_1}},
+	    {"c", {16, 8, rhi::Format::float64_1}},
+	    {"d", {24, 8, rhi::Format::float64_1}},
+	    {"e", {32, 8, rhi::Format::float64_1}},
+	    {"g", {40, 8, rhi::Format::float64_1}},
+	    {"h", {56, 8, rhi::Format::float64_1}},
+	    {"i", {64, 8, rhi::Format::float64_1}},
+	    {"j", {80, 8, rhi::Format::float64_1}},
+	    {"k", {88, 8, rhi::Format::float64_1}},
+	    {"l", {96, 8, rhi::Format::float64_1}},
+	    {"m", {112, 8, rhi::Format::float64_1}},
+	    {"n", {120, 8, rhi::Format::float64_1}}};
 
 	test_entries(sb, var_values);
 }
@@ -535,55 +535,55 @@ void add_double_vec_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, double_vec_test_std140)
 {
-	rhi::ShaderBuffer sb{"ExampleBool", rhi::Layout::std140};
+	rhi::ShaderBuffer sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	add_double_vec_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 8, rhi::Format::float64_1}},
-		{"b", {16, 16, rhi::Format::float64_2}},
-		{"c", {32, 8, rhi::Format::float64_1}},
-		{"d", {40, 8, rhi::Format::float64_1}},
-		{"e", {64, 32, rhi::Format::float64_4}},
-		{"g", {96, 16, rhi::Format::float64_1}},
-		{"h", {128, 8, rhi::Format::float64_1}},
-		{"i", {144, 16, rhi::Format::float64_1}},
-		{"j", {176, 8, rhi::Format::float64_1}},
-		{"k", {192, 32, rhi::Format::float64_4}},
-		{"l", {224, 16, rhi::Format::float64_1}},
-		{"m", {256, 24, rhi::Format::float64_3}},
-		{"n", {280, 8, rhi::Format::float64_1}}};
+	    {"a", {0, 8, rhi::Format::float64_1}},
+	    {"b", {16, 16, rhi::Format::float64_2}},
+	    {"c", {32, 8, rhi::Format::float64_1}},
+	    {"d", {40, 8, rhi::Format::float64_1}},
+	    {"e", {64, 32, rhi::Format::float64_4}},
+	    {"g", {96, 16, rhi::Format::float64_1}},
+	    {"h", {128, 8, rhi::Format::float64_1}},
+	    {"i", {144, 16, rhi::Format::float64_1}},
+	    {"j", {176, 8, rhi::Format::float64_1}},
+	    {"k", {192, 32, rhi::Format::float64_4}},
+	    {"l", {224, 16, rhi::Format::float64_1}},
+	    {"m", {256, 24, rhi::Format::float64_3}},
+	    {"n", {280, 8, rhi::Format::float64_1}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, double_vec_test_std430)
 {
-	rhi::ShaderBuffer sb{"ExampleBool", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	add_double_vec_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 8, rhi::Format::float64_1}},
-		{"b", {16, 16, rhi::Format::float64_2}},
-		{"c", {32, 8, rhi::Format::float64_1}},
-		{"d", {40, 8, rhi::Format::float64_1}},
-		{"e", {64, 32, rhi::Format::float64_4}},
-		{"g", {96, 8, rhi::Format::float64_1}},
-		{"h", {112, 8, rhi::Format::float64_1}},
-		{"i", {120, 8, rhi::Format::float64_1}},
-		{"j", {136, 8, rhi::Format::float64_1}},
-		{"k", {160, 32, rhi::Format::float64_4}},
-		{"l", {192, 8, rhi::Format::float64_1}},
-		{"m", {224, 24, rhi::Format::float64_3}},
-		{"n", {248, 8, rhi::Format::float64_1}}};
+	    {"a", {0, 8, rhi::Format::float64_1}},
+	    {"b", {16, 16, rhi::Format::float64_2}},
+	    {"c", {32, 8, rhi::Format::float64_1}},
+	    {"d", {40, 8, rhi::Format::float64_1}},
+	    {"e", {64, 32, rhi::Format::float64_4}},
+	    {"g", {96, 8, rhi::Format::float64_1}},
+	    {"h", {112, 8, rhi::Format::float64_1}},
+	    {"i", {120, 8, rhi::Format::float64_1}},
+	    {"j", {136, 8, rhi::Format::float64_1}},
+	    {"k", {160, 32, rhi::Format::float64_4}},
+	    {"l", {192, 8, rhi::Format::float64_1}},
+	    {"m", {224, 24, rhi::Format::float64_3}},
+	    {"n", {248, 8, rhi::Format::float64_1}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example2_test)
 {
-	rhi::ShaderBuffer sb{"Example2", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -601,26 +601,26 @@ TEST(ShaderBuffer, std430_ssbo_example2_test)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::float32_1}},
-		{"b", {8, 8, rhi::Format::float32_2}},
-		{"c", {16, 12, rhi::Format::float32_3}},
-		{"d", {28, 4, rhi::Format::int32_1}},
-		{"e", {32, 8, rhi::Format::bool32_2}},
-		{"g", {40, 4, rhi::Format::float32_1}},
-		{"h", {48, 4, rhi::Format::float32_1}},
-		{"i", {64, 32, rhi::Format::float32_2x3}},
-		{"j", {128, 4, rhi::Format::float32_1}},
-		{"k", {136, 8, rhi::Format::float32_2}},
-		{"l", {144, 4, rhi::Format::float32_1}},
-		{"m", {152, 8, rhi::Format::float32_2}},
-		{"n", {160, 64, rhi::Format::float32_3x3}}};
+	    {"a", {0, 4, rhi::Format::float32_1}},
+	    {"b", {8, 8, rhi::Format::float32_2}},
+	    {"c", {16, 12, rhi::Format::float32_3}},
+	    {"d", {28, 4, rhi::Format::int32_1}},
+	    {"e", {32, 8, rhi::Format::bool32_2}},
+	    {"g", {40, 4, rhi::Format::float32_1}},
+	    {"h", {48, 4, rhi::Format::float32_1}},
+	    {"i", {64, 32, rhi::Format::float32_2x3}},
+	    {"j", {128, 4, rhi::Format::float32_1}},
+	    {"k", {136, 8, rhi::Format::float32_2}},
+	    {"l", {144, 4, rhi::Format::float32_1}},
+	    {"m", {152, 8, rhi::Format::float32_2}},
+	    {"n", {160, 64, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example3_test)
 {
-	rhi::ShaderBuffer sb{"Example3", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example3", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_1, 2);
@@ -638,26 +638,26 @@ TEST(ShaderBuffer, std430_ssbo_example3_test)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::float32_1}},
-		{"b", {4, 4, rhi::Format::float32_1}},
-		{"c", {12, 4, rhi::Format::float32_1}},
-		{"d", {16, 4, rhi::Format::float32_1}},
-		{"e", {20, 4, rhi::Format::float32_1}},
-		{"g", {24, 4, rhi::Format::float32_1}},
-		{"h", {28, 4, rhi::Format::float32_1}},
-		{"i", {32, 4, rhi::Format::float32_1}},
-		{"j", {40, 4, rhi::Format::float32_1}},
-		{"k", {44, 4, rhi::Format::float32_1}},
-		{"l", {52, 4, rhi::Format::float32_1}},
-		{"m", {56, 4, rhi::Format::float32_1}},
-		{"n", {64, 4, rhi::Format::float32_1}}};
+	    {"a", {0, 4, rhi::Format::float32_1}},
+	    {"b", {4, 4, rhi::Format::float32_1}},
+	    {"c", {12, 4, rhi::Format::float32_1}},
+	    {"d", {16, 4, rhi::Format::float32_1}},
+	    {"e", {20, 4, rhi::Format::float32_1}},
+	    {"g", {24, 4, rhi::Format::float32_1}},
+	    {"h", {28, 4, rhi::Format::float32_1}},
+	    {"i", {32, 4, rhi::Format::float32_1}},
+	    {"j", {40, 4, rhi::Format::float32_1}},
+	    {"k", {44, 4, rhi::Format::float32_1}},
+	    {"l", {52, 4, rhi::Format::float32_1}},
+	    {"m", {56, 4, rhi::Format::float32_1}},
+	    {"n", {64, 4, rhi::Format::float32_1}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example4_test)
 {
-	rhi::ShaderBuffer sb{"Example4", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_3, 1);
@@ -675,26 +675,26 @@ TEST(ShaderBuffer, std430_ssbo_example4_test)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::float32_1}},
-		{"b", {16, 12, rhi::Format::float32_3}},
-		{"c", {32, 12, rhi::Format::float32_3}},
-		{"d", {48, 12, rhi::Format::float32_3}},
-		{"e", {64, 12, rhi::Format::float32_3}},
-		{"g", {80, 12, rhi::Format::float32_3}},
-		{"h", {96, 12, rhi::Format::float32_3}},
-		{"i", {112, 12, rhi::Format::float32_3}},
-		{"j", {128, 12, rhi::Format::float32_3}},
-		{"k", {144, 16, rhi::Format::float32_3}},
-		{"l", {176, 12, rhi::Format::float32_3}},
-		{"m", {192, 16, rhi::Format::float32_3}},
-		{"n", {224, 12, rhi::Format::float32_3}}};
+	    {"a", {0, 4, rhi::Format::float32_1}},
+	    {"b", {16, 12, rhi::Format::float32_3}},
+	    {"c", {32, 12, rhi::Format::float32_3}},
+	    {"d", {48, 12, rhi::Format::float32_3}},
+	    {"e", {64, 12, rhi::Format::float32_3}},
+	    {"g", {80, 12, rhi::Format::float32_3}},
+	    {"h", {96, 12, rhi::Format::float32_3}},
+	    {"i", {112, 12, rhi::Format::float32_3}},
+	    {"j", {128, 12, rhi::Format::float32_3}},
+	    {"k", {144, 16, rhi::Format::float32_3}},
+	    {"l", {176, 12, rhi::Format::float32_3}},
+	    {"m", {192, 16, rhi::Format::float32_3}},
+	    {"n", {224, 12, rhi::Format::float32_3}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example5_test)
 {
-	rhi::ShaderBuffer sb{"Example5", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example5", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_3, 3);
@@ -712,26 +712,26 @@ TEST(ShaderBuffer, std430_ssbo_example5_test)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::float32_1}},
-		{"b", {16, 16, rhi::Format::float32_3}},
-		{"c", {64, 16, rhi::Format::float32_3}},
-		{"d", {128, 16, rhi::Format::float32_3}},
-		{"e", {160, 16, rhi::Format::float32_3}},
-		{"g", {192, 16, rhi::Format::float32_3}},
-		{"h", {224, 16, rhi::Format::float32_3}},
-		{"i", {256, 16, rhi::Format::float32_3}},
-		{"j", {288, 16, rhi::Format::float32_3}},
-		{"k", {320, 16, rhi::Format::float32_3}},
-		{"l", {352, 16, rhi::Format::float32_3}},
-		{"m", {384, 16, rhi::Format::float32_3}},
-		{"n", {416, 16, rhi::Format::float32_3}}};
+	    {"a", {0, 4, rhi::Format::float32_1}},
+	    {"b", {16, 16, rhi::Format::float32_3}},
+	    {"c", {64, 16, rhi::Format::float32_3}},
+	    {"d", {128, 16, rhi::Format::float32_3}},
+	    {"e", {160, 16, rhi::Format::float32_3}},
+	    {"g", {192, 16, rhi::Format::float32_3}},
+	    {"h", {224, 16, rhi::Format::float32_3}},
+	    {"i", {256, 16, rhi::Format::float32_3}},
+	    {"j", {288, 16, rhi::Format::float32_3}},
+	    {"k", {320, 16, rhi::Format::float32_3}},
+	    {"l", {352, 16, rhi::Format::float32_3}},
+	    {"m", {384, 16, rhi::Format::float32_3}},
+	    {"n", {416, 16, rhi::Format::float32_3}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example6_test)
 {
-	rhi::ShaderBuffer sb{"Example6", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example6", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_2x3, 1);
 	sb.add_entry("b", rhi::Format::float32_2x3, 1);
@@ -749,26 +749,26 @@ TEST(ShaderBuffer, std430_ssbo_example6_test)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 32, rhi::Format::float32_2x3}},
-		{"b", {32, 32, rhi::Format::float32_2x3}},
-		{"c", {64, 32, rhi::Format::float32_2x3}},
-		{"d", {96, 32, rhi::Format::float32_2x3}},
-		{"e", {128, 32, rhi::Format::float32_2x3}},
-		{"g", {160, 32, rhi::Format::float32_2x3}},
-		{"h", {224, 32, rhi::Format::float32_2x3}},
-		{"i", {256, 32, rhi::Format::float32_2x3}},
-		{"j", {320, 32, rhi::Format::float32_2x3}},
-		{"k", {352, 32, rhi::Format::float32_2x3}},
-		{"l", {384, 32, rhi::Format::float32_2x3}},
-		{"m", {448, 32, rhi::Format::float32_2x3}},
-		{"n", {480, 32, rhi::Format::float32_2x3}}};
+	    {"a", {0, 32, rhi::Format::float32_2x3}},
+	    {"b", {32, 32, rhi::Format::float32_2x3}},
+	    {"c", {64, 32, rhi::Format::float32_2x3}},
+	    {"d", {96, 32, rhi::Format::float32_2x3}},
+	    {"e", {128, 32, rhi::Format::float32_2x3}},
+	    {"g", {160, 32, rhi::Format::float32_2x3}},
+	    {"h", {224, 32, rhi::Format::float32_2x3}},
+	    {"i", {256, 32, rhi::Format::float32_2x3}},
+	    {"j", {320, 32, rhi::Format::float32_2x3}},
+	    {"k", {352, 32, rhi::Format::float32_2x3}},
+	    {"l", {384, 32, rhi::Format::float32_2x3}},
+	    {"m", {448, 32, rhi::Format::float32_2x3}},
+	    {"n", {480, 32, rhi::Format::float32_2x3}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example7_test)
 {
-	rhi::ShaderBuffer sb{"Example7", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example7", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2x3, 1);
@@ -786,26 +786,26 @@ TEST(ShaderBuffer, std430_ssbo_example7_test)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 4, rhi::Format::float32_1}},
-		{"b", {16, 32, rhi::Format::float32_2x3}},
-		{"c", {48, 32, rhi::Format::float32_2x3}},
-		{"d", {80, 32, rhi::Format::float32_2x3}},
-		{"e", {112, 32, rhi::Format::float32_2x3}},
-		{"g", {144, 32, rhi::Format::float32_2x3}},
-		{"h", {208, 32, rhi::Format::float32_2x3}},
-		{"i", {240, 32, rhi::Format::float32_2x3}},
-		{"j", {304, 32, rhi::Format::float32_2x3}},
-		{"k", {336, 32, rhi::Format::float32_2x3}},
-		{"l", {368, 32, rhi::Format::float32_2x3}},
-		{"m", {432, 32, rhi::Format::float32_2x3}},
-		{"n", {464, 32, rhi::Format::float32_2x3}}};
+	    {"a", {0, 4, rhi::Format::float32_1}},
+	    {"b", {16, 32, rhi::Format::float32_2x3}},
+	    {"c", {48, 32, rhi::Format::float32_2x3}},
+	    {"d", {80, 32, rhi::Format::float32_2x3}},
+	    {"e", {112, 32, rhi::Format::float32_2x3}},
+	    {"g", {144, 32, rhi::Format::float32_2x3}},
+	    {"h", {208, 32, rhi::Format::float32_2x3}},
+	    {"i", {240, 32, rhi::Format::float32_2x3}},
+	    {"j", {304, 32, rhi::Format::float32_2x3}},
+	    {"k", {336, 32, rhi::Format::float32_2x3}},
+	    {"l", {368, 32, rhi::Format::float32_2x3}},
+	    {"m", {432, 32, rhi::Format::float32_2x3}},
+	    {"n", {464, 32, rhi::Format::float32_2x3}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example8_test)
 {
-	rhi::ShaderBuffer sb{"Example8", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example8", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_3x2, 1);
 	sb.add_entry("b", rhi::Format::float32_3x2, 1);
@@ -823,19 +823,19 @@ TEST(ShaderBuffer, std430_ssbo_example8_test)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 24, rhi::Format::float32_3x2}},
-		{"b", {24, 24, rhi::Format::float32_3x2}},
-		{"c", {48, 24, rhi::Format::float32_3x2}},
-		{"d", {72, 24, rhi::Format::float32_3x2}},
-		{"e", {96, 24, rhi::Format::float32_3x2}},
-		{"g", {120, 24, rhi::Format::float32_3x2}},
-		{"h", {168, 24, rhi::Format::float32_3x2}},
-		{"i", {192, 24, rhi::Format::float32_3x2}},
-		{"j", {240, 24, rhi::Format::float32_3x2}},
-		{"k", {264, 24, rhi::Format::float32_3x2}},
-		{"l", {288, 24, rhi::Format::float32_3x2}},
-		{"m", {336, 24, rhi::Format::float32_3x2}},
-		{"n", {360, 24, rhi::Format::float32_3x2}}};
+	    {"a", {0, 24, rhi::Format::float32_3x2}},
+	    {"b", {24, 24, rhi::Format::float32_3x2}},
+	    {"c", {48, 24, rhi::Format::float32_3x2}},
+	    {"d", {72, 24, rhi::Format::float32_3x2}},
+	    {"e", {96, 24, rhi::Format::float32_3x2}},
+	    {"g", {120, 24, rhi::Format::float32_3x2}},
+	    {"h", {168, 24, rhi::Format::float32_3x2}},
+	    {"i", {192, 24, rhi::Format::float32_3x2}},
+	    {"j", {240, 24, rhi::Format::float32_3x2}},
+	    {"k", {264, 24, rhi::Format::float32_3x2}},
+	    {"l", {288, 24, rhi::Format::float32_3x2}},
+	    {"m", {336, 24, rhi::Format::float32_3x2}},
+	    {"n", {360, 24, rhi::Format::float32_3x2}}};
 
 	test_entries(sb, var_values);
 }
@@ -858,32 +858,32 @@ void test_double_matrix_entries(rhi::ShaderBuffer &sb)
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 32, rhi::Format::float64_2x2}},
-		{"b", {32, 32, rhi::Format::float64_2x2}},
-		{"c", {64, 32, rhi::Format::float64_2x2}},
-		{"d", {96, 32, rhi::Format::float64_2x2}},
-		{"e", {128, 32, rhi::Format::float64_2x2}},
-		{"g", {160, 32, rhi::Format::float64_2x2}},
-		{"h", {224, 32, rhi::Format::float64_2x2}},
-		{"i", {256, 32, rhi::Format::float64_2x2}},
-		{"j", {320, 32, rhi::Format::float64_2x2}},
-		{"k", {352, 32, rhi::Format::float64_2x2}},
-		{"l", {384, 32, rhi::Format::float64_2x2}},
-		{"m", {448, 32, rhi::Format::float64_2x2}},
-		{"n", {480, 32, rhi::Format::float64_2x2}}};
+	    {"a", {0, 32, rhi::Format::float64_2x2}},
+	    {"b", {32, 32, rhi::Format::float64_2x2}},
+	    {"c", {64, 32, rhi::Format::float64_2x2}},
+	    {"d", {96, 32, rhi::Format::float64_2x2}},
+	    {"e", {128, 32, rhi::Format::float64_2x2}},
+	    {"g", {160, 32, rhi::Format::float64_2x2}},
+	    {"h", {224, 32, rhi::Format::float64_2x2}},
+	    {"i", {256, 32, rhi::Format::float64_2x2}},
+	    {"j", {320, 32, rhi::Format::float64_2x2}},
+	    {"k", {352, 32, rhi::Format::float64_2x2}},
+	    {"l", {384, 32, rhi::Format::float64_2x2}},
+	    {"m", {448, 32, rhi::Format::float64_2x2}},
+	    {"n", {480, 32, rhi::Format::float64_2x2}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std140_ubo_example9_test)
 {
-	rhi::ShaderBuffer sb{"Example9", rhi::Layout::std140};
+	rhi::ShaderBuffer sb{"Example9", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	test_double_matrix_entries(sb);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example9_test)
 {
-	rhi::ShaderBuffer sb{"Example9", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example9", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	test_double_matrix_entries(sb);
 }
 
@@ -906,48 +906,48 @@ void test_double_diff_matrix_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, std140_ubo_example10_test)
 {
-	rhi::ShaderBuffer sb{"Example10", rhi::Layout::std140};
+	rhi::ShaderBuffer sb{"Example10", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	test_double_diff_matrix_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 32, rhi::Format::float64_2x2}},
-		{"b", {32, 48, rhi::Format::float64_3x2}},
-		{"c", {80, 32, rhi::Format::float64_2x2}},
-		{"d", {112, 32, rhi::Format::float64_2x2}},
-		{"e", {160, 64, rhi::Format::float64_2x3}},
-		{"g", {224, 32, rhi::Format::float64_2x2}},
-		{"h", {288, 64, rhi::Format::float64_4x2}},
-		{"i", {352, 32, rhi::Format::float64_2x2}},
-		{"j", {416, 64, rhi::Format::float64_2x4}},
-		{"k", {480, 128, rhi::Format::float64_4x4}},
-		{"l", {608, 128, rhi::Format::float64_4x4}},
-		{"m", {864, 32, rhi::Format::float64_2x2}},
-		{"n", {896, 32, rhi::Format::float64_2x2}}};
+	    {"a", {0, 32, rhi::Format::float64_2x2}},
+	    {"b", {32, 48, rhi::Format::float64_3x2}},
+	    {"c", {80, 32, rhi::Format::float64_2x2}},
+	    {"d", {112, 32, rhi::Format::float64_2x2}},
+	    {"e", {160, 64, rhi::Format::float64_2x3}},
+	    {"g", {224, 32, rhi::Format::float64_2x2}},
+	    {"h", {288, 64, rhi::Format::float64_4x2}},
+	    {"i", {352, 32, rhi::Format::float64_2x2}},
+	    {"j", {416, 64, rhi::Format::float64_2x4}},
+	    {"k", {480, 128, rhi::Format::float64_4x4}},
+	    {"l", {608, 128, rhi::Format::float64_4x4}},
+	    {"m", {864, 32, rhi::Format::float64_2x2}},
+	    {"n", {896, 32, rhi::Format::float64_2x2}}};
 
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example10_test)
 {
-	rhi::ShaderBuffer sb{"Example10", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example10", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	test_double_diff_matrix_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 32, rhi::Format::float64_2x2}},
-		{"b", {32, 48, rhi::Format::float64_3x2}},
-		{"c", {80, 32, rhi::Format::float64_2x2}},
-		{"d", {112, 32, rhi::Format::float64_2x2}},
-		{"e", {160, 64, rhi::Format::float64_2x3}},
-		{"g", {224, 32, rhi::Format::float64_2x2}},
-		{"h", {288, 64, rhi::Format::float64_4x2}},
-		{"i", {352, 32, rhi::Format::float64_2x2}},
-		{"j", {416, 64, rhi::Format::float64_2x4}},
-		{"k", {480, 128, rhi::Format::float64_4x4}},
-		{"l", {608, 128, rhi::Format::float64_4x4}},
-		{"m", {864, 32, rhi::Format::float64_2x2}},
-		{"n", {896, 32, rhi::Format::float64_2x2}}};
+	    {"a", {0, 32, rhi::Format::float64_2x2}},
+	    {"b", {32, 48, rhi::Format::float64_3x2}},
+	    {"c", {80, 32, rhi::Format::float64_2x2}},
+	    {"d", {112, 32, rhi::Format::float64_2x2}},
+	    {"e", {160, 64, rhi::Format::float64_2x3}},
+	    {"g", {224, 32, rhi::Format::float64_2x2}},
+	    {"h", {288, 64, rhi::Format::float64_4x2}},
+	    {"i", {352, 32, rhi::Format::float64_2x2}},
+	    {"j", {416, 64, rhi::Format::float64_2x4}},
+	    {"k", {480, 128, rhi::Format::float64_4x4}},
+	    {"l", {608, 128, rhi::Format::float64_4x4}},
+	    {"m", {864, 32, rhi::Format::float64_2x2}},
+	    {"n", {896, 32, rhi::Format::float64_2x2}}};
 
 	test_entries(sb, var_values);
 }
@@ -971,49 +971,78 @@ void test_double_diff2_matrix_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, std140_ubo_example11_test)
 {
-	rhi::ShaderBuffer sb{"Example11", rhi::Layout::std140};
+	rhi::ShaderBuffer sb{"Example11", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	test_double_diff2_matrix_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 48, rhi::Format::float32_3x4}},
-		{"b", {48, 48, rhi::Format::float32_3x4}},
-		{"c", {96, 48, rhi::Format::float32_3x4}},
-		{"d", {160, 96, rhi::Format::float64_3x4}},
-		{"e", {256, 96, rhi::Format::float64_3x4}},
-		{"g", {352, 16, rhi::Format::float32_2x2}},
-		{"h", {384, 32, rhi::Format::float32_4x2}},
-		{"i", {416, 16, rhi::Format::float32_2x2}},
-		{"j", {448, 32, rhi::Format::float32_2x4}},
-		{"k", {480, 64, rhi::Format::float32_4x4}},
-		{"l", {544, 64, rhi::Format::float32_4x4}},
-		{"m", {672, 16, rhi::Format::float32_2x2}},
-		{"n", {688, 16, rhi::Format::float32_2x2}}};
+	    {"a", {0, 48, rhi::Format::float32_3x4}},
+	    {"b", {48, 48, rhi::Format::float32_3x4}},
+	    {"c", {96, 48, rhi::Format::float32_3x4}},
+	    {"d", {160, 96, rhi::Format::float64_3x4}},
+	    {"e", {256, 96, rhi::Format::float64_3x4}},
+	    {"g", {352, 16, rhi::Format::float32_2x2}},
+	    {"h", {384, 32, rhi::Format::float32_4x2}},
+	    {"i", {416, 16, rhi::Format::float32_2x2}},
+	    {"j", {448, 32, rhi::Format::float32_2x4}},
+	    {"k", {480, 64, rhi::Format::float32_4x4}},
+	    {"l", {544, 64, rhi::Format::float32_4x4}},
+	    {"m", {672, 16, rhi::Format::float32_2x2}},
+	    {"n", {688, 16, rhi::Format::float32_2x2}}};
 	test_entries(sb, var_values);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example11_test)
 {
-	rhi::ShaderBuffer sb{"Example11", rhi::Layout::std430};
+	rhi::ShaderBuffer sb{"Example11", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	test_double_diff2_matrix_entries(sb);
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
-		{"a", {0, 48, rhi::Format::float32_3x4}},
-		{"b", {48, 48, rhi::Format::float32_3x4}},
-		{"c", {96, 48, rhi::Format::float32_3x4}},
-		{"d", {160, 96, rhi::Format::float64_3x4}},
-		{"e", {256, 96, rhi::Format::float64_3x4}},
-		{"g", {352, 16, rhi::Format::float32_2x2}},
-		{"h", {384, 32, rhi::Format::float32_4x2}},
-		{"i", {416, 16, rhi::Format::float32_2x2}},
-		{"j", {448, 32, rhi::Format::float32_2x4}},
-		{"k", {480, 64, rhi::Format::float32_4x4}},
-		{"l", {544, 64, rhi::Format::float32_4x4}},
-		{"m", {672, 16, rhi::Format::float32_2x2}},
-		{"n", {688, 16, rhi::Format::float32_2x2}}};
+	    {"a", {0, 48, rhi::Format::float32_3x4}},
+	    {"b", {48, 48, rhi::Format::float32_3x4}},
+	    {"c", {96, 48, rhi::Format::float32_3x4}},
+	    {"d", {160, 96, rhi::Format::float64_3x4}},
+	    {"e", {256, 96, rhi::Format::float64_3x4}},
+	    {"g", {352, 16, rhi::Format::float32_2x2}},
+	    {"h", {384, 32, rhi::Format::float32_4x2}},
+	    {"i", {416, 16, rhi::Format::float32_2x2}},
+	    {"j", {448, 32, rhi::Format::float32_2x4}},
+	    {"k", {480, 64, rhi::Format::float32_4x4}},
+	    {"l", {544, 64, rhi::Format::float32_4x4}},
+	    {"m", {672, 16, rhi::Format::float32_2x2}},
+	    {"n", {688, 16, rhi::Format::float32_2x2}}};
 
 	test_entries(sb, var_values);
+}
+
+TEST(ShaderBuffer, std140_joint_transforms_test)
+{
+	// Needs to create something like the following
+	/*
+	  const uint joints_count = 24;
+	  struct trs_transform
+	  {
+	      vec4 rotation;
+	      vec3 translation;
+	      vec3 scale;
+	  };
+	  layout(std140, set = 2, binding = 0) uniform joint_transform
+	  {
+	      trs_transform joint_transforms[joints_count];
+	  } in_joint_transforms;
+	*/
+	uint32_t joints_count = 24;
+
+	rhi::ShaderBuffer::Struct trs_transform("joint_transforms", joints_count);
+
+	trs_transform.add_entry("rotation", rhi::Format::float32_4, rhi::Layout::std140, 1);
+	trs_transform.add_entry("translation", rhi::Format::float32_3, rhi::Layout::std140, 1);
+	trs_transform.add_entry("scale", rhi::Format::float32_3, rhi::Layout::std140, 1);
+
+	rhi::ShaderBuffer joint_transform{"joint_transform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 2, 0};
+
+	joint_transform.add_struct(trs_transform);
 }
 
 }        // namespace ror_test

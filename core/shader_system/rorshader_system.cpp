@@ -1477,7 +1477,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 		return output;
 	}
 
-	rhi::ShaderBuffer sb{"factors", rhi::Layout::std140};        // TODO: Move this out
+	rhi::ShaderBuffer sb{"factors", rhi::ShaderBufferType::ubo, rhi::Layout::std140};        // TODO: Move this out
 
 	// write out inputs from fragment shader
 	output.append(ror::fragment_shader_input_output(vertex_descriptor));

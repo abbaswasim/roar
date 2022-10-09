@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
 #include "rorquaternion.hpp"
 #include "rorvector3.hpp"
 
@@ -69,6 +70,8 @@ class ROAR_ENGINE_ITEM Transform final
   protected:
   private:
 };
+
+static_assert(sizeof(Transform<float32_t>) == sizeof(float32_t) * 10, "Size of transform is wrong");
 
 using Transformf = Transform<float32_t>;
 using Transformd = Transform<double64_t>;

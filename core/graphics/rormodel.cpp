@@ -995,9 +995,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				mesh.m_morph_targets_vertex_descriptors.resize(cmesh.primitives_count);
 				mesh.m_primitive_types.resize(cmesh.primitives_count);
 				mesh.m_has_indices_states.resize(cmesh.primitives_count);
-				mesh.m_primitive_vertex_hashes.resize(cmesh.primitives_count);
-				mesh.m_primitive_fragment_hashes.resize(cmesh.primitives_count);
-				mesh.m_primitive_program_hashes.resize(cmesh.primitives_count);
+				mesh.m_vertex_hashes.resize(cmesh.primitives_count);
+				mesh.m_fragment_hashes.resize(cmesh.primitives_count);
+				mesh.m_program_hashes.resize(cmesh.primitives_count);
 				// The last 2 are important and definitely needs reserving because these are BufferAllocated
 				mesh.m_bounding_boxes.resize(cmesh.primitives_count);
 				mesh.m_material_indices.resize(cmesh.primitives_count);
@@ -1318,7 +1318,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				for (size_t j = 0; j < cskin.joints_count; ++j)
 					skin.m_joints.emplace_back(find_safe_index(node_to_index, cskin.joints[j]));
 
-				skin.m_joint_matrices.resize(cskin.joints_count);
+				skin.m_joint_transforms.resize(cskin.joints_count);
+				skin.setup_shader_buffer();
 
 				skin_to_index.emplace(&cskin, i);
 				this->m_skins.emplace_back(std::move(skin));
@@ -1549,9 +1550,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				{
 					auto &vertex_attribute_descriptor              = mesh.m_attribute_vertex_descriptors[j];
 					auto &morph_target_vertex_attribute_descriptor = mesh.m_morph_targets_vertex_descriptors[j];
-					auto &vertex_hash                              = mesh.m_primitive_vertex_hashes[j];
-					auto &fragment_hash                            = mesh.m_primitive_fragment_hashes[j];
-					auto &program_hash                             = mesh.m_primitive_program_hashes[j];
+					auto &vertex_hash                              = mesh.m_vertex_hashes[j];
+					auto &fragment_hash                            = mesh.m_fragment_hashes[j];
+					auto &program_hash                             = mesh.m_program_hashes[j];
 
 					// Setup vertex hash
 					vertex_hash = vertex_attribute_descriptor.hash_64();

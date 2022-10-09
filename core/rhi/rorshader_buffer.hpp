@@ -35,12 +35,16 @@
 
 namespace rhi
 {
-// Types and their base alignment according to std140 and std430? (confirm std430)
-
 enum class Layout : uint32_t
 {
 	std140,
 	std430
+};
+
+enum class ShaderBufferType : uint32_t
+{
+	ubo,
+	ssbo
 };
 
 /**
@@ -51,7 +55,7 @@ enum class Layout : uint32_t
 class ROAR_ENGINE_ITEM ShaderBuffer final
 {
   public:
-	FORCE_INLINE               ShaderBuffer();                                                 //! Default constructor
+	FORCE_INLINE               ShaderBuffer()                                = default;        //! Default constructor
 	FORCE_INLINE               ShaderBuffer(const ShaderBuffer &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE               ShaderBuffer(ShaderBuffer &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ShaderBuffer &operator=(const ShaderBuffer &a_other)        = default;        //! Copy assignment operator
@@ -85,12 +89,19 @@ class ROAR_ENGINE_ITEM ShaderBuffer final
 
 	using entry = std::variant<Struct, Entry>;
 
-	struct Struct : public Entry
+	struct Struct final : public Entry
 	{
 		uint32_t           m_alignment{16};        //! Alignment of the struct, it could be alignof(vec4) or something else
 		std::vector<entry> m_entries{};            //! Data block of the struct entries
 
 		Struct(std::string a_name, uint32_t a_count);
+
+		Struct()                                     = default;        //! Default constructor
+		Struct(const Struct &a_other)                = default;        //! Copy constructor
+		Struct(Struct &&a_other) noexcept            = default;        //! Move constructor
+		Struct &operator=(const Struct &a_other)     = default;        //! Copy assignment operator
+		Struct &operator=(Struct &&a_other) noexcept = default;        //! Move assignment operator
+		~Struct() noexcept override                  = default;        //! Destructor
 
 		void add_entry(std::string a_name, Format a_type, Layout a_layout = Layout::std140, uint32_t a_count = 1);
 		void add_struct(Struct a_struct);
@@ -98,9 +109,16 @@ class ROAR_ENGINE_ITEM ShaderBuffer final
 		declare_translation_unit_vtable() override;
 	};
 
-	FORCE_INLINE ShaderBuffer(std::string a_name, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
-	    m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_entries(a_name, 1)
+	FORCE_INLINE ShaderBuffer(std::string a_name, ShaderBufferType a_type = ShaderBufferType::ubo, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
+	    m_type(a_type), m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_entries(a_name, 1)
 	{}
+
+	// clang-format off
+	FORCE_INLINE constexpr auto type()    const noexcept   {   return this->m_type;       }
+	FORCE_INLINE constexpr auto layout()  const noexcept   {   return this->m_layout;     }
+	FORCE_INLINE constexpr auto set()     const noexcept   {   return this->m_set;        }
+	FORCE_INLINE constexpr auto binding() const noexcept   {   return this->m_binding;    }
+	// clang-format on
 
 	FORCE_INLINE void add_entry(std::string a_name, Format a_type, uint32_t a_count = 1)
 	{
@@ -135,10 +153,11 @@ class ROAR_ENGINE_ITEM ShaderBuffer final
 	std::vector<const Entry *> entries_structs();
 
   private:
-	Layout   m_layout{Layout::std140};        //! Default layout
-	uint32_t m_set{0};                        //! Which set does this buffer belongs in
-	uint32_t m_binding{0};                    //! Which binding does this buffer belongs in
-	Struct   m_entries;                       //! All the entries in the buffer, Raw entries in this struct or linked-list of structures
+	ShaderBufferType m_type{ShaderBufferType::ubo};        //! What is the type of the ShaderBuffer (UBO, SSBO etc)
+	Layout           m_layout{Layout::std140};             //! Default layout
+	uint32_t         m_set{0};                             //! Which set does this buffer belongs in
+	uint32_t         m_binding{0};                         //! Which binding does this buffer belongs in
+	Struct           m_entries{};                          //! All the entries in the buffer, Raw entries in this struct or linked-list of structures
 };
 
 }        // namespace rhi
