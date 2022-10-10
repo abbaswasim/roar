@@ -62,6 +62,45 @@ void Mesh::generate_hash()
 
 size_t Mesh::primitives_count() const noexcept
 {
-	return  this->m_attribute_vertex_descriptors.size();
+	return this->m_attribute_vertex_descriptors.size();
+}
+
+void Mesh::update()
+{
+	auto mapping = this->m_morph_weights_shader_buffer.map();
+	std::memcpy(mapping, m_morph_weights.data(), sizeof(float32_t) * this->weights_count());
+
+	this->m_morph_weights_shader_buffer.unmap();
+}
+
+void Mesh::upload(rhi::Device &a_device)
+{
+	// Will create UBO for something like the following
+	/*
+	  const uint weights_count = 1;
+
+	  layout(set = 0, binding = 1) uniform morph_weight
+	  {
+	      float morph_weights[weights_count];
+	  } in_morph_weights;
+	*/
+
+	auto &shader_buffer = this->m_morph_weights_shader_buffer.shader_buffer();
+	shader_buffer.add_entry("morph_weights", rhi::VertexFormat::float32_1, static_cast_safe<uint32_t>(this->weights_count()));
+
+	this->m_morph_weights_shader_buffer.init(a_device, sizeof(float32_t) * static_cast_safe<uint32_t>(this->weights_count()));
+
+	if constexpr (ror::get_build() == ror::BuildType::build_debug)
+	{
+		auto entries = shader_buffer.entries();
+		(void) entries;
+		assert(entries.size() == 1 && "More entries in morph weights UBO than expected");
+		assert(entries[0]->m_offset == 0 && "Invalid offset for morph weights UBO entry");
+		assert(entries[0]->m_size == sizeof(float32_t) && "Invalid size for morph weights UBO entry");
+		// Can't trust stride in this case because of float to vec4 correction for glsl
+		// assert(entries[0]->m_stride == sizeof(float32_t) * this->weights_count() && "Invalid stride for morph weights UBO entry");
+	}
+
+	this->update();
 }
 }        // namespace ror

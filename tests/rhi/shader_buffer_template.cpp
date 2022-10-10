@@ -8,7 +8,7 @@
 namespace ror_test
 {
 
-void test_entries(rhi::ShaderBuffer &a_sb, std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> a_var_values, bool a_debug_messages = false)
+void test_entries(rhi::ShaderBufferTemplate &a_sb, std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> a_var_values, bool a_debug_messages = false)
 {
 	auto entries = a_sb.entries();
 
@@ -25,7 +25,7 @@ void test_entries(rhi::ShaderBuffer &a_sb, std::unordered_map<std::string, std::
 
 void example0_test(rhi::Layout a_layout)
 {
-	rhi::ShaderBuffer sb{"Example0", rhi::ShaderBufferType::ubo, a_layout};
+	rhi::ShaderBufferTemplate sb{"Example0", rhi::ShaderBufferType::ubo, a_layout};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -97,7 +97,7 @@ TEST(ShaderBuffer, example0_test)
 
 void example1_test(rhi::Layout a_layout)
 {
-	rhi::ShaderBuffer sb{"Example1", rhi::ShaderBufferType::ubo, a_layout};
+	rhi::ShaderBufferTemplate sb{"Example1", rhi::ShaderBufferType::ubo, a_layout};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -169,7 +169,7 @@ TEST(ShaderBuffer, example1_test)
 
 TEST(ShaderBuffer, std140_example2_test)
 {
-	rhi::ShaderBuffer sb{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+	rhi::ShaderBufferTemplate sb{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -235,7 +235,7 @@ TEST(ShaderBuffer, std140_example2_test)
 
 TEST(ShaderBuffer, std140_example3_test)
 {
-	rhi::ShaderBuffer sb{"Example3", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+	rhi::ShaderBufferTemplate sb{"Example3", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -272,14 +272,14 @@ TEST(ShaderBuffer, std140_example3_test)
 
 TEST(ShaderBuffer, std140_example4_test)
 {
-	rhi::ShaderBuffer sb{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+	rhi::ShaderBufferTemplate sb{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
 	sb.add_entry("c", rhi::Format::float32_3, 1);
 
 	// Lets create struct f
-	rhi::ShaderBuffer::Struct f("f", 1);
+	rhi::ShaderBufferTemplate::Struct f("f", 1);
 	f.add_entry("d", rhi::Format::int32_1, rhi::Layout::std140, 1);
 	f.add_entry("e", rhi::Format::bool32_2, rhi::Layout::std140, 1);
 
@@ -291,7 +291,7 @@ TEST(ShaderBuffer, std140_example4_test)
 	sb.add_entry("i", rhi::Format::float32_2x3, 1);
 
 	// // Lets create struct o
-	rhi::ShaderBuffer::Struct o("o", 2);
+	rhi::ShaderBufferTemplate::Struct o("o", 2);
 	o.add_entry("j", rhi::Format::uint32_3, rhi::Layout::std140, 1);
 	o.add_entry("k", rhi::Format::float32_2, rhi::Layout::std140, 1);
 	o.add_entry("l", rhi::Format::float32_1, rhi::Layout::std140, 2);
@@ -386,7 +386,7 @@ TEST(ShaderBuffer, std140_example4_test)
 }
 
 // TODO: Create std430 equvivalent of the following 3 tests
-void add_bool_entries(rhi::ShaderBuffer &sb)
+void add_bool_entries(rhi::ShaderBufferTemplate &sb)
 {
 	sb.add_entry("a", rhi::Format::bool32_1, 1);
 	sb.add_entry("b", rhi::Format::bool32_1, 1);
@@ -405,7 +405,7 @@ void add_bool_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, bool_test_std140)
 {
-	rhi::ShaderBuffer sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+	rhi::ShaderBufferTemplate sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	add_bool_entries(sb);
 
 	// Index of offset, stride, type
@@ -429,7 +429,7 @@ TEST(ShaderBuffer, bool_test_std140)
 
 TEST(ShaderBuffer, bool_test_std430)
 {
-	rhi::ShaderBuffer sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	add_bool_entries(sb);
 
 	// Index of offset, stride, type
@@ -451,7 +451,7 @@ TEST(ShaderBuffer, bool_test_std430)
 	test_entries(sb, var_values);
 }
 
-void add_double_entries(rhi::ShaderBuffer &sb)
+void add_double_entries(rhi::ShaderBufferTemplate &sb)
 {
 	sb.add_entry("a", rhi::Format::float64_1, 1);
 	sb.add_entry("b", rhi::Format::float64_1, 1);
@@ -470,7 +470,7 @@ void add_double_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, double_test_std140)
 {
-	rhi::ShaderBuffer sb{"ExampleDouble", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+	rhi::ShaderBufferTemplate sb{"ExampleDouble", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	add_double_entries(sb);
 
 	// Index of offset, stride, type
@@ -494,7 +494,7 @@ TEST(ShaderBuffer, double_test_std140)
 
 TEST(ShaderBuffer, double_test_std430)
 {
-	rhi::ShaderBuffer sb{"ExampleDouble", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"ExampleDouble", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	add_double_entries(sb);
 
 	// Index of offset, stride, type
@@ -516,7 +516,7 @@ TEST(ShaderBuffer, double_test_std430)
 	test_entries(sb, var_values);
 }
 
-void add_double_vec_entries(rhi::ShaderBuffer &sb)
+void add_double_vec_entries(rhi::ShaderBufferTemplate &sb)
 {
 	sb.add_entry("a", rhi::Format::float64_1, 1);
 	sb.add_entry("b", rhi::Format::float64_2, 1);
@@ -535,7 +535,7 @@ void add_double_vec_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, double_vec_test_std140)
 {
-	rhi::ShaderBuffer sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+	rhi::ShaderBufferTemplate sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	add_double_vec_entries(sb);
 
 	// Index of offset, stride, type
@@ -559,7 +559,7 @@ TEST(ShaderBuffer, double_vec_test_std140)
 
 TEST(ShaderBuffer, double_vec_test_std430)
 {
-	rhi::ShaderBuffer sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"ExampleBool", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	add_double_vec_entries(sb);
 
 	// Index of offset, stride, type
@@ -583,7 +583,7 @@ TEST(ShaderBuffer, double_vec_test_std430)
 
 TEST(ShaderBuffer, std430_ssbo_example2_test)
 {
-	rhi::ShaderBuffer sb{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2, 1);
@@ -620,7 +620,7 @@ TEST(ShaderBuffer, std430_ssbo_example2_test)
 
 TEST(ShaderBuffer, std430_ssbo_example3_test)
 {
-	rhi::ShaderBuffer sb{"Example3", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example3", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_1, 2);
@@ -657,7 +657,7 @@ TEST(ShaderBuffer, std430_ssbo_example3_test)
 
 TEST(ShaderBuffer, std430_ssbo_example4_test)
 {
-	rhi::ShaderBuffer sb{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_3, 1);
@@ -694,7 +694,7 @@ TEST(ShaderBuffer, std430_ssbo_example4_test)
 
 TEST(ShaderBuffer, std430_ssbo_example5_test)
 {
-	rhi::ShaderBuffer sb{"Example5", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example5", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_3, 3);
@@ -731,7 +731,7 @@ TEST(ShaderBuffer, std430_ssbo_example5_test)
 
 TEST(ShaderBuffer, std430_ssbo_example6_test)
 {
-	rhi::ShaderBuffer sb{"Example6", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example6", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_2x3, 1);
 	sb.add_entry("b", rhi::Format::float32_2x3, 1);
@@ -768,7 +768,7 @@ TEST(ShaderBuffer, std430_ssbo_example6_test)
 
 TEST(ShaderBuffer, std430_ssbo_example7_test)
 {
-	rhi::ShaderBuffer sb{"Example7", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example7", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_1, 1);
 	sb.add_entry("b", rhi::Format::float32_2x3, 1);
@@ -805,7 +805,7 @@ TEST(ShaderBuffer, std430_ssbo_example7_test)
 
 TEST(ShaderBuffer, std430_ssbo_example8_test)
 {
-	rhi::ShaderBuffer sb{"Example8", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example8", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 
 	sb.add_entry("a", rhi::Format::float32_3x2, 1);
 	sb.add_entry("b", rhi::Format::float32_3x2, 1);
@@ -840,7 +840,7 @@ TEST(ShaderBuffer, std430_ssbo_example8_test)
 	test_entries(sb, var_values);
 }
 
-void test_double_matrix_entries(rhi::ShaderBuffer &sb)
+void test_double_matrix_entries(rhi::ShaderBufferTemplate &sb)
 {
 	sb.add_entry("a", rhi::Format::float64_2x2, 1);
 	sb.add_entry("b", rhi::Format::float64_2x2, 1);
@@ -877,17 +877,17 @@ void test_double_matrix_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, std140_ubo_example9_test)
 {
-	rhi::ShaderBuffer sb{"Example9", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+	rhi::ShaderBufferTemplate sb{"Example9", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	test_double_matrix_entries(sb);
 }
 
 TEST(ShaderBuffer, std430_ssbo_example9_test)
 {
-	rhi::ShaderBuffer sb{"Example9", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example9", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	test_double_matrix_entries(sb);
 }
 
-void test_double_diff_matrix_entries(rhi::ShaderBuffer &sb)
+void test_double_diff_matrix_entries(rhi::ShaderBufferTemplate &sb)
 {
 	sb.add_entry("a", rhi::Format::float64_2x2, 1);
 	sb.add_entry("b", rhi::Format::float64_3x2, 1);
@@ -906,7 +906,7 @@ void test_double_diff_matrix_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, std140_ubo_example10_test)
 {
-	rhi::ShaderBuffer sb{"Example10", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+	rhi::ShaderBufferTemplate sb{"Example10", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	test_double_diff_matrix_entries(sb);
 
 	// Index of offset, stride, type
@@ -930,7 +930,7 @@ TEST(ShaderBuffer, std140_ubo_example10_test)
 
 TEST(ShaderBuffer, std430_ssbo_example10_test)
 {
-	rhi::ShaderBuffer sb{"Example10", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example10", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	test_double_diff_matrix_entries(sb);
 
 	// Index of offset, stride, type
@@ -952,7 +952,7 @@ TEST(ShaderBuffer, std430_ssbo_example10_test)
 	test_entries(sb, var_values);
 }
 
-void test_double_diff2_matrix_entries(rhi::ShaderBuffer &sb)
+void test_double_diff2_matrix_entries(rhi::ShaderBufferTemplate &sb)
 {
 	sb.add_entry("a", rhi::Format::float32_3x4, 1);
 	sb.add_entry("b", rhi::Format::float32_3x4, 1);
@@ -971,7 +971,7 @@ void test_double_diff2_matrix_entries(rhi::ShaderBuffer &sb)
 
 TEST(ShaderBuffer, std140_ubo_example11_test)
 {
-	rhi::ShaderBuffer sb{"Example11", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+	rhi::ShaderBufferTemplate sb{"Example11", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 	test_double_diff2_matrix_entries(sb);
 
 	// Index of offset, stride, type
@@ -994,7 +994,7 @@ TEST(ShaderBuffer, std140_ubo_example11_test)
 
 TEST(ShaderBuffer, std430_ssbo_example11_test)
 {
-	rhi::ShaderBuffer sb{"Example11", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
+	rhi::ShaderBufferTemplate sb{"Example11", rhi::ShaderBufferType::ubo, rhi::Layout::std430};
 	test_double_diff2_matrix_entries(sb);
 
 	// Index of offset, stride, type
@@ -1034,13 +1034,13 @@ TEST(ShaderBuffer, std140_joint_transforms_test)
 	*/
 	uint32_t joints_count = 24;
 
-	rhi::ShaderBuffer::Struct trs_transform("joint_transforms", joints_count);
+	rhi::ShaderBufferTemplate::Struct trs_transform("joint_transforms", joints_count);
 
 	trs_transform.add_entry("rotation", rhi::Format::float32_4, rhi::Layout::std140, 1);
 	trs_transform.add_entry("translation", rhi::Format::float32_3, rhi::Layout::std140, 1);
 	trs_transform.add_entry("scale", rhi::Format::float32_3, rhi::Layout::std140, 1);
 
-	rhi::ShaderBuffer joint_transform{"joint_transform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 2, 0};
+	rhi::ShaderBufferTemplate joint_transform{"joint_transform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 2, 0};
 
 	joint_transform.add_struct(trs_transform);
 }

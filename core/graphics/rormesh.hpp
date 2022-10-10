@@ -27,12 +27,15 @@
 
 #include "bounds/rorbounding.hpp"
 #include "foundation/rorhash.hpp"
+#include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorbuffer_view.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
+#include <cassert>
 #include <string>
 #include <vector>
 
@@ -69,6 +72,12 @@ class ROAR_ENGINE_ITEM Mesh final
 	hash_64_t program_hash(size_t a_primitive_index) const noexcept;
 	void      generate_hash();
 	size_t    primitives_count() const noexcept;
+	void      update();
+	void      upload(rhi::Device &a_device);
+
+	// clang-format off
+	FORCE_INLINE constexpr auto weights_count() const noexcept  { return this->m_morph_weights.size(); }
+	// clang-format on
 
 	// TODO: Flatten this into 'Mesh' into 'Models' etc to see if I get cache locallity
 	using BoundingBoxAllocator = rhi::BufferAllocator<ror::BoundingBoxf>;
@@ -88,6 +97,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>    m_bounding_boxes{};                          //! This is per part
 	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Should be init with -1
 	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_program_indices{};                         //! Should be init with -1
+	rhi::ShaderBuffer                                       m_morph_weights_shader_buffer{};             //! ShaderBuffers for joint_transforms within the skinning shader
 	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1
 	uint64_t                                                m_hash{0};                                   //! Hash of this mesh depending on most of its properties
 	std::string                                             m_name{"generic_mesh"};                      //! Name of this mesh

@@ -1319,7 +1319,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 					skin.m_joints.emplace_back(find_safe_index(node_to_index, cskin.joints[j]));
 
 				skin.m_joint_transforms.resize(cskin.joints_count);
-				skin.setup_shader_buffer();
 
 				skin_to_index.emplace(&cskin, i);
 				this->m_skins.emplace_back(std::move(skin));
@@ -1631,6 +1630,21 @@ void Model::upload(rhi::Device &a_device)
 	for (auto &image : this->m_images)
 	{
 		image.upload(a_device);
+	}
+
+	for (auto &material : this->m_materials)
+	{
+		material.upload(a_device);
+	}
+
+	for (auto &skin : this->m_skins)
+	{
+		skin.upload(a_device);
+	}
+
+	for (auto &mesh : this->m_meshes)
+	{
+		mesh.upload(a_device);
 	}
 }
 

@@ -95,6 +95,7 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/rhi/rorhandles.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorshader_buffer.hpp
+  ${ROAR_SOURCE_DIR}/rhi/rorshader_buffer_template.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorbuffer.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorvertex_attribute.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorvertex_description.hpp
@@ -121,6 +122,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/rhi/rorbuffers_format.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorvertex_description.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorshader_buffer.cpp
+  ${ROAR_SOURCE_DIR}/rhi/rorshader_buffer_template.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorshader.cpp
   ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rorshader.cpp
   ${ROAR_SOURCE_DIR}/shader_system/rorshader_system.cpp
@@ -137,6 +139,7 @@ if (${ROR_RENDER_TYPE_VULKAN})
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorprogram.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorrenderpass.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorrenderstate.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/vulkan/rorshader_buffer.cpp)
 elseif (${ROR_RENDER_TYPE_METAL})
   list(APPEND ROAR_HEADERS ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.hpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rortexture.cpp)
@@ -145,6 +148,7 @@ elseif (${ROR_RENDER_TYPE_METAL})
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorprogram.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorrenderpass.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorrenderstate.cpp)
+  list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorshader_buffer.cpp)
   list(APPEND ROAR_SOURCES ${ROAR_SOURCE_DIR}/rhi/metal/rorcore_graphics_bridge.mm)
 elseif (${ROR_RENDER_TYPE_DX12})
 elseif (${ROR_RENDER_TYPE_GLES3})

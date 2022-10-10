@@ -80,6 +80,7 @@ class ROAR_ENGINE_ITEM Material final
 		_factor_type       m_factor{1.0f};                     //! TODO: Should be set differently for different textures
 		rhi::TextureHandle m_texture{-1};                      //! Texture ID of a Texture within a textures array (contains texture image id and texture sampler id)
 		uint32_t           m_uv_map{0};                        //! Which UV map set should be used, 0 is default but some things like light maps usually use uv set 1
+		uint32_t           m_factor_offset{0};                 //! Offset of this factors in the UBO
 		ComponentType      m_type{ComponentType::none};        //! Whether it has factor or texture only or both or none
 		bool               m_has_transform{false};             //! Whether the UVs has a texture transform or not
 		ror::Matrix3f      m_transform{};                      //! The UV transform available for this map, at the moment its constant for this material and in its shader
@@ -124,18 +125,20 @@ class ROAR_ENGINE_ITEM Material final
 	bool                    m_double_sided{false};                            //! Should this be rendered with double sided triangle state
 	bool                    m_layered{false};                                 //! Is this material part of a layerd material chain
 	uint8_t                 m_material_name[30];                              //! Can't use string here otherwise not trivially_copyable
+	uint32_t                m_reflectance_offset{0};                          //! Reflectance offset for reflectance factor in the UBO
 	float32_t               m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, we use only F0 from F0=((ior − 1) / (ior + 1))²
 	                                                                          //! Note we don't need F90 coz Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
-	rhi::ShaderBuffer *m_shader_buffer{nullptr};                              //! Non-owning pointer to ShaderBuffer which describes its shader's UBO/SSBO view
-	hash_64_t          m_hash{};                                              //! Material hash to make sure we don't create duplicate shaders
+	rhi::ShaderBuffer m_shader_buffer{};                                      //! ShaderBuffer which describes its shader's UBO/SSBO view
+	hash_64_t         m_hash{};                                               //! Material hash to make sure we don't create duplicate shaders
 
 	void generate_hash();
+	void update();
+	void upload(rhi::Device &a_device);
+	void fill_shader_buffer();
 };
 
-void material_to_shader_buffer(const ror::Material &a_material, rhi::ShaderBuffer &a_shader_buffer);
-
-static_assert(std::is_trivially_copyable_v<Material>, "Material is not trivially copyable");
-static_assert(std::is_standard_layout_v<Material>, "Material is not standard layout");
+// static_assert(std::is_trivially_copyable_v<Material>, "Material is not trivially copyable");
+// static_assert(std::is_standard_layout_v<Material>, "Material is not standard layout");
 
 }        // namespace ror
 

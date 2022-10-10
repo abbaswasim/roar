@@ -36,6 +36,7 @@
 #include "math/rortransform.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorshader.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortypes.hpp"
 #include <any>
 #include <filesystem>
@@ -69,12 +70,30 @@ class ROAR_ENGINE_ITEM Light
 		area
 	};
 
+	void update();
+	void upload(rhi::Device &a_device);
+	void fill_shader_buffer();
+
 	LightType m_type{LightType::directional};                        //! Light type
-	float32_t m_innerAngle{0.0f};                                    //! Spot light inner angle
-	float32_t m_outerAngle{ror::ror_pi / 4.0f};                      //! Spot light outter angle
+	Matrix4f  m_mvp{};                                               //! Model view projection of the light, used in shadow mapping
+	Vector3f  m_color{};                                             //! Light color
+	Vector3f  m_position{};                                          //! Position of point and spot lights
+	Vector3f  m_direction{};                                         //! Direction of directional and spot lights
 	float32_t m_intensity{1.0f};                                     //! Light intensity
 	float32_t m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
-	Vector3f  m_color{};                                             //! Light color
+	float32_t m_inner_angle{0.0f};                                   //! Spot light inner angle
+	float32_t m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle
+
+	uint32_t m_mvp_offset{0};                //! Offset in UBO of Model view projection of the light, used in shadow mapping
+	uint32_t m_color_offset{0};              //! Offset in UBO of Light color
+	uint32_t m_position_offset{0};           //! Offset in UBO of Position of point and spot lights
+	uint32_t m_direction_offset{0};          //! Offset in UBO of Direction of directional and spot lights
+	uint32_t m_intensity_offset{0};          //! Offset in UBO of Light intensity
+	uint32_t m_range_offset{0};              //! Offset in UBO of Light range after which light attenuates
+	uint32_t m_inner_angle_offset{0};        //! Offset in UBO of Spot light inner angle
+	uint32_t m_outer_angle_offset{0};        //! Offset in UBO of Spot light outter angle
+
+	rhi::ShaderBuffer m_shader_buffer{};        //! Shader buffer for a specific type of light UBO
 };
 
 class ROAR_ENGINE_ITEM EnvironmentProbe final

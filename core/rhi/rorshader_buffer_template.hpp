@@ -51,16 +51,16 @@ enum class ShaderBufferType : uint32_t
  * Shader input Buffer encapsulation
  * Could be used for UBOs, and SSBOs etc
  */
-// TODO: Have a simplified version of this, with no nest structs allowed in it
-class ROAR_ENGINE_ITEM ShaderBuffer final
+// TODO: Have a simplified version of this, with no nested structs allowed in it
+class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 {
   public:
-	FORCE_INLINE               ShaderBuffer()                                = default;        //! Default constructor
-	FORCE_INLINE               ShaderBuffer(const ShaderBuffer &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE               ShaderBuffer(ShaderBuffer &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE ShaderBuffer &operator=(const ShaderBuffer &a_other)        = default;        //! Copy assignment operator
-	FORCE_INLINE ShaderBuffer &operator=(ShaderBuffer &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE ~ShaderBuffer() noexcept                                    = default;        //! Destructor
+	FORCE_INLINE                       ShaderBufferTemplate()                                        = default;        //! Default constructor
+	FORCE_INLINE                       ShaderBufferTemplate(const ShaderBufferTemplate &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                       ShaderBufferTemplate(ShaderBufferTemplate &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE ShaderBufferTemplate &operator=(const ShaderBufferTemplate &a_other)                = default;        //! Copy assignment operator
+	FORCE_INLINE ShaderBufferTemplate &operator=(ShaderBufferTemplate &&a_other) noexcept            = default;        //! Move assignment operator
+	FORCE_INLINE ~ShaderBufferTemplate() noexcept                                                    = default;        //! Destructor
 
 	struct Entry
 	{
@@ -109,7 +109,7 @@ class ROAR_ENGINE_ITEM ShaderBuffer final
 		declare_translation_unit_vtable() override;
 	};
 
-	FORCE_INLINE ShaderBuffer(std::string a_name, ShaderBufferType a_type = ShaderBufferType::ubo, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
+	FORCE_INLINE ShaderBufferTemplate(std::string a_name, ShaderBufferType a_type = ShaderBufferType::ubo, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
 	    m_type(a_type), m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_entries(a_name, 1)
 	{}
 

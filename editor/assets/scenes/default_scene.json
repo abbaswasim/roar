@@ -124,7 +124,7 @@
 		  ]
 	  },
 	  {
-		  "type": "area",
+		  "type": "spot",
 		  "intensity":1.0,
 		  "color": [
 			  1.0,

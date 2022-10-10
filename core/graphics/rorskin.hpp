@@ -27,9 +27,11 @@
 
 #include "foundation/rorutilities.hpp"
 #include "math/rormatrix4.hpp"
+#include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
+#include "math/rorvector4.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
-#include "rhi/rorshader_buffer.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include <cstddef>
 
 namespace ror
@@ -48,7 +50,21 @@ class ROAR_ENGINE_ITEM Skin
 	FORCE_INLINE constexpr auto joints_count() const noexcept  { return this->m_joints.size(); }
 	// clang-format on
 
-	void setup_shader_buffer()
+	void update()
+	{
+		auto mapping = this->m_joint_transform_shader_buffer.map();
+		for (size_t joint_id = 0; joint_id < this->m_joint_transforms.size(); ++joint_id)
+		{
+			auto &xform = this->m_joint_transforms[joint_id];
+			auto joint_mapping = mapping + (joint_id * this->m_joint_trasform_stride);
+			std::memcpy(joint_mapping +  m_translation_offset, &xform.m_translation.x, sizeof(Vector3f));
+			std::memcpy(joint_mapping +  m_rotation_offset, &xform.m_rotation.x, sizeof(Quaternionf));
+			std::memcpy(joint_mapping +  m_scale_offset, &xform.m_scale.x, sizeof(Vector3f));
+		}
+		this->m_joint_transform_shader_buffer.unmap();
+	}
+
+	void upload(rhi::Device &a_device)
 	{
 		// Needs to create something like the following
 		/*
@@ -64,16 +80,30 @@ class ROAR_ENGINE_ITEM Skin
 		      trs_transform joint_transforms[joints_count];
 		  } in_joint_transforms;
 		*/
-		rhi::ShaderBuffer::Struct trs_transform("joint_transforms", static_cast_safe<uint32_t>(this->joints_count()));
+		rhi::ShaderBufferTemplate::Struct trs_transform("joint_transforms", static_cast_safe<uint32_t>(this->joints_count()));
 		trs_transform.add_entry("rotation", rhi::Format::float32_4, rhi::Layout::std140, 1);
 		trs_transform.add_entry("translation", rhi::Format::float32_3, rhi::Layout::std140, 1);
 		trs_transform.add_entry("scale", rhi::Format::float32_3, rhi::Layout::std140, 1);
 
-		this->m_joint_transform_shader_buffer.add_struct(trs_transform);
-	}
+		auto &shader_buffer = this->m_joint_transform_shader_buffer.shader_buffer();
+		shader_buffer.add_struct(trs_transform);
 
-	void update_shader_buffer()
-	{
+		this->m_joint_transform_shader_buffer.init(a_device, sizeof(Vector4f) * 3 * static_cast_safe<uint32_t>(this->joints_count()));
+
+		auto entries = shader_buffer.entries_structs();
+		for (auto entry : entries)
+		{
+			if (entry->m_name == "joint_transforms")
+				this->m_joint_trasform_stride = entry->m_stride;
+			else if (entry->m_name == "translation")
+				this->m_translation_offset = entry->m_offset;
+			else if (entry->m_name == "rotation")
+				this->m_rotation_offset = entry->m_offset;
+			else if (entry->m_name == "scale")
+				this->m_scale_offset = entry->m_offset;
+		}
+
+		this->update();
 	}
 
 	std::vector<uint32_t, rhi::BufferAllocator<uint32_t>>     m_joints{};                               //! All the joints in this skeleton
@@ -82,6 +112,10 @@ class ROAR_ENGINE_ITEM Skin
 	rhi::ShaderBuffer                                         m_joint_transform_shader_buffer{};        //! ShaderBuffers for joint_transforms within the skinning shader
 	int32_t                                                   m_root{-1};                               //! Node index of each skin, should be init with -1
 	int32_t                                                   m_node_index{-1};                         //! Node index as well where the each skin is attached, should be init with -1
+	uint32_t                                                  m_translation_offset{0};                  //! Offset of translation in the UBO
+	uint32_t                                                  m_rotation_offset{0};                     //! Offset of rotation in the UBO
+	uint32_t                                                  m_scale_offset{0};                        //! Offset of scale in the UBO
+	uint32_t                                                  m_joint_trasform_stride{0};               //! Offset of scale in the UBO
 };
 
 }        // namespace ror

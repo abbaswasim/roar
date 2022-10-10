@@ -31,7 +31,7 @@
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rorshader_buffer.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include <array>
@@ -922,10 +922,11 @@ const uint directional_lights_count = @;
 
 struct DirectionalLight
 {
+	mat4  mvp;
 	vec3  color;
 	vec3  direction;
 	float intensity;
-	mat4  mvp;
+    float range;
 };
 
 layout(std140, set = @, binding = @) uniform directional_light_uniform
@@ -939,10 +940,11 @@ const uint point_lights_count = @;
 
 struct PointLight
 {
+	mat4  mvp;
 	vec3  color;
 	vec3  position;
 	float intensity;
-	mat4  mvp;
+    float range;
 };
 
 layout(std140, set = @, binding = @) uniform point_light_uniform
@@ -956,13 +958,14 @@ const uint spot_lights_count = @;
 
 struct SpotLight
 {
+	mat4  mvp;
 	vec3  color;
 	vec3  position;
 	vec3  direction;
 	float intensity;
+    float range;
 	float inner_angle;
 	float outer_angle;
-	mat4  mvp;
 };
 
 layout(std140, set = @, binding = @) uniform spot_light_uniform
@@ -1233,7 +1236,7 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 	return output;
 }
 
-std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuffer &a_shader_buffer)
+std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBufferTemplate &a_shader_buffer)
 {
 	std::string result{"\nlayout(" + a_shader_buffer.layout_string() + ", set = 1, binding = 0) uniform factors\n{\n\t"};        // TODO: Abstract out the set and binding
 	std::string output{};
@@ -1256,14 +1259,14 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 		create_component("emissive_factor", rhi::Format::float32_4, 1, "vec4  emissive_factor;\n\t");
 	if (a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor || a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("anisotrophy_factor", rhi::Format::float32_4, 1, "vec4  anisotrophy_factor;\n\t");
-	if (a_material.m_transmission.m_type == ror::Material::ComponentType::factor || a_material.m_transmission.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("transmission_factor", rhi::Format::float32_2, 1, "vec2  transmission_factor;\n\t");
 	if (a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("sheen_color_factor", rhi::Format::float32_3, 1, "vec3  sheen_color_factor;\n\t");
-	if (a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("sheen_roughness_factor", rhi::Format::float32_1, 1, "float sheen_roughness_factor;\n\t");
 	if (a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("clearcoat_normal_factor", rhi::Format::float32_3, 1, "vec3  clearcoat_normal_factor;\n\t");
+	if (a_material.m_transmission.m_type == ror::Material::ComponentType::factor || a_material.m_transmission.m_type == ror::Material::ComponentType::factor_texture)
+		create_component("transmission_factor", rhi::Format::float32_2, 1, "vec2  transmission_factor;\n\t");
+	if (a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor_texture)
+		create_component("sheen_roughness_factor", rhi::Format::float32_1, 1, "float sheen_roughness_factor;\n\t");
 	if (a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("clearcoat_factor", rhi::Format::float32_1, 1, "float clearcoat_factor;\n\t");
 	if (a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor_texture)
@@ -1477,7 +1480,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 		return output;
 	}
 
-	rhi::ShaderBuffer sb{"factors", rhi::ShaderBufferType::ubo, rhi::Layout::std140};        // TODO: Move this out
+	rhi::ShaderBufferTemplate sb{"factors", rhi::ShaderBufferType::ubo, rhi::Layout::std140};        // TODO: Move this out, or remove
 
 	// write out inputs from fragment shader
 	output.append(ror::fragment_shader_input_output(vertex_descriptor));

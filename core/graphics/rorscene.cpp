@@ -57,6 +57,111 @@ namespace ror
 define_translation_unit_vtable(Scene)
 {}
 
+void Light::fill_shader_buffer()
+{
+	const uint32_t fixed_light_count = 2;        // TODO: needs to be moved out of here, at least 2 so we make an array
+	assert(this->m_type != ror::Light::LightType::area && "Area lights not supported yet");
+
+	rhi::ShaderBufferTemplate::Struct light_type("lights", static_cast_safe<uint32_t>(fixed_light_count));
+
+	light_type.add_entry("mvp", rhi::Format::float32_4x4, rhi::Layout::std140, 1);
+	light_type.add_entry("color", rhi::Format::float32_3, rhi::Layout::std140, 1);
+
+	if (this->m_type != ror::Light::LightType::directional)
+		light_type.add_entry("position", rhi::Format::float32_3, rhi::Layout::std140, 1);
+
+	if (this->m_type != ror::Light::LightType::point)
+		light_type.add_entry("direction", rhi::Format::float32_3, rhi::Layout::std140, 1);
+
+	light_type.add_entry("intensity", rhi::Format::float32_1, rhi::Layout::std140, 1);
+	light_type.add_entry("range", rhi::Format::float32_1, rhi::Layout::std140, 1);
+
+	if (this->m_type == ror::Light::LightType::spot)
+	{
+		light_type.add_entry("inner_angle", rhi::Format::float32_1, rhi::Layout::std140, 1);
+		light_type.add_entry("outer_angle", rhi::Format::float32_1, rhi::Layout::std140, 1);
+	}
+
+	auto &shader_buffer = this->m_shader_buffer.shader_buffer();
+	shader_buffer.add_struct(light_type);
+}
+
+void Light::update()
+{
+	auto mapping = this->m_shader_buffer.map();
+
+	std::memcpy(mapping + this->m_mvp_offset, &this->m_mvp.m_values, sizeof(decltype(this->m_mvp)));
+	std::memcpy(mapping + this->m_color_offset, &this->m_color, sizeof(decltype(this->m_color)));
+
+	if (this->m_type != ror::Light::LightType::directional)
+		std::memcpy(mapping + this->m_position_offset, &this->m_position, sizeof(decltype(this->m_position)));
+
+	if (this->m_type != ror::Light::LightType::point)
+		std::memcpy(mapping + this->m_direction_offset, &this->m_direction, sizeof(decltype(this->m_direction)));
+
+	std::memcpy(mapping + this->m_intensity_offset, &this->m_intensity, sizeof(decltype(this->m_intensity)));
+	std::memcpy(mapping + this->m_range_offset, &this->m_range, sizeof(decltype(this->m_range)));
+
+	if (this->m_type == ror::Light::LightType::spot)
+	{
+		std::memcpy(mapping + this->m_inner_angle_offset, &this->m_inner_angle, sizeof(decltype(this->m_inner_angle)));
+		std::memcpy(mapping + this->m_outer_angle_offset, &this->m_outer_angle, sizeof(decltype(this->m_outer_angle)));
+	}
+
+	this->m_shader_buffer.unmap();
+}
+
+void Light::upload(rhi::Device &a_device)
+{
+	// Looking to create a UBO for directional light like below
+	/*
+	  const uint directional_lights_count = @;
+	  struct light_type
+	  {
+	      vec3  color;
+	      vec3  direction;
+	      float intensity;
+	      mat4  mvp;
+	  };
+
+	  layout(std140, set = @, binding = @) uniform directional_light_uniform
+	  {
+	      light_type lights[directional_lights_count];
+	  } in_directional_light_uniforms;
+	*/
+	this->fill_shader_buffer();
+	auto &shader_buffer = this->m_shader_buffer.shader_buffer();
+	auto  entries       = shader_buffer.entries_structs();
+
+	auto size = 0u;
+	for (auto entry : entries)
+	{
+		if (entry->m_name == "lights")
+			size = entry->m_stride;
+		else if (entry->m_name == "mvp")
+			this->m_mvp_offset = entry->m_offset;
+		else if (entry->m_name == "color")
+			this->m_color_offset = entry->m_offset;
+		else if (entry->m_name == "position")
+			this->m_position_offset = entry->m_offset;
+		else if (entry->m_name == "direction")
+			this->m_direction_offset = entry->m_offset;
+		else if (entry->m_name == "intensity")
+			this->m_intensity_offset = entry->m_offset;
+		else if (entry->m_name == "range")
+			this->m_range_offset = entry->m_offset;
+		else if (entry->m_name == "inner_angle")
+			this->m_inner_angle_offset = entry->m_offset;
+		else if (entry->m_name == "outer_angle")
+			this->m_outer_angle_offset = entry->m_offset;
+	}
+
+	assert(size != 0 && "Couldn't determine lights struct size in the UBO");
+	this->m_shader_buffer.init(a_device, size);
+
+	this->update();
+}
+
 Scene::Scene(std::filesystem::path a_level)
 {
 	this->load(a_level, ResourceSemantic::scenes);
@@ -356,6 +461,18 @@ void Scene::upload(const std::vector<rhi::RenderpassType> &a_render_passes, rhi:
 			}
 		}
 	}
+
+	// Upload lights
+	for (auto &light : this->m_lights)
+	{
+		light.upload(a_device);
+	}
+
+	// Upload cameras
+	for (auto &camera : this->m_cameras)
+	{
+		camera.upload(a_device);
+	}
 }
 
 void Scene::read_nodes()
@@ -538,10 +655,10 @@ void Scene::read_lights()
 				lit.m_intensity = light["intensity"];
 
 			if (light.contains("innerAngle"))
-				lit.m_innerAngle = light["innerAngle"];
+				lit.m_inner_angle = light["innerAngle"];
 
 			if (light.contains("outerAngle"))
-				lit.m_outerAngle = light["outerAngle"];
+				lit.m_outer_angle = light["outerAngle"];
 
 			if (light.contains("range"))
 				lit.m_range = light["range"];

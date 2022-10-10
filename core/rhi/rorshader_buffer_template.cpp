@@ -190,13 +190,13 @@ constexpr uint32_t glsl_size_vec3_correction(Format a_type, uint32_t a_size)
 	return a_size;
 }
 
-ShaderBuffer::Struct::Struct(std::string a_name, uint32_t a_count) :
+ShaderBufferTemplate::Struct::Struct(std::string a_name, uint32_t a_count) :
     Entry(a_name, Format::struct_1, a_count, 0, 0, 0)
 {
 	this->m_entries.reserve(10);
 }
 
-void ShaderBuffer::Struct::add_entry(std::string a_name, Format a_type, Layout a_layout, uint32_t a_count)
+void ShaderBufferTemplate::Struct::add_entry(std::string a_name, Format a_type, Layout a_layout, uint32_t a_count)
 {
 	const uint32_t base_alignment = format_base_alignment(a_type);
 	const uint32_t aligned_offset = ror::align(this->m_offset, (a_count > 1 && a_layout == Layout::std140 ? 16 : base_alignment));
@@ -217,7 +217,7 @@ void ShaderBuffer::Struct::add_entry(std::string a_name, Format a_type, Layout a
 		this->m_offset = ror::align(this->m_offset, base_alignment);
 }
 
-void ShaderBuffer::Struct::add_struct(Struct a_struct)
+void ShaderBufferTemplate::Struct::add_struct(Struct a_struct)
 {
 	// Lets make sure our input index is aligned to the struct alignment
 	auto struct_offset = ror::align(this->m_offset, this->m_alignment);
@@ -240,14 +240,14 @@ void ShaderBuffer::Struct::add_struct(Struct a_struct)
 	this->m_entries.emplace_back(a_struct);
 }
 
-std::vector<const ShaderBuffer::Entry *> ShaderBuffer::entries()
+std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries()
 {
 	std::vector<const Entry *> es;
 	es.reserve(this->m_entries.m_entries.size());
 
 	for (auto &e : this->m_entries.m_entries)
 	{
-		if (const rhi::ShaderBuffer::Entry *pentry = std::get_if<rhi::ShaderBuffer::Entry>(&e))
+		if (const rhi::ShaderBufferTemplate::Entry *pentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&e))
 			es.push_back(pentry);
 		else
 			assert(0 && "Requesting only entries from a non-simple shader buffer");
@@ -256,24 +256,24 @@ std::vector<const ShaderBuffer::Entry *> ShaderBuffer::entries()
 	return es;
 }
 
-std::vector<const ShaderBuffer::Entry *> ShaderBuffer::entries_structs()
+std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries_structs()
 {
 	std::vector<const Entry *> es;
 	es.reserve(this->m_entries.m_entries.size());
 
 	for (auto &e : this->m_entries.m_entries)
 	{
-		if (const rhi::ShaderBuffer::Entry *pentry = std::get_if<rhi::ShaderBuffer::Entry>(&e))
+		if (const rhi::ShaderBufferTemplate::Entry *pentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&e))
 		{
 			es.push_back(pentry);
 		}
 		else
 		{
-			auto &s = std::get<rhi::ShaderBuffer::Struct>(e);
+			auto &s = std::get<rhi::ShaderBufferTemplate::Struct>(e);
 
 			for (auto &se : s.m_entries)
 			{
-				if (const rhi::ShaderBuffer::Entry *spentry = std::get_if<rhi::ShaderBuffer::Entry>(&se))
+				if (const rhi::ShaderBufferTemplate::Entry *spentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&se))
 				{
 					es.push_back(spentry);
 				}
@@ -287,10 +287,10 @@ std::vector<const ShaderBuffer::Entry *> ShaderBuffer::entries_structs()
 	return es;
 }
 
-define_translation_unit_vtable(ShaderBuffer::Entry)
+define_translation_unit_vtable(ShaderBufferTemplate::Entry)
 {}
 
-define_translation_unit_vtable(ShaderBuffer::Struct)
+define_translation_unit_vtable(ShaderBufferTemplate::Struct)
 {}
 
 }        // namespace rhi

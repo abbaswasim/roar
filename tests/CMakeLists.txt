@@ -70,7 +70,7 @@ set(ROAR_TEST_SOURCES
   ${ROAR_TEST_SOURCE_DIR}/command_line.cpp
   ${ROAR_TEST_SOURCE_DIR}/renderer/renderer.cpp
   ${ROAR_TEST_SOURCE_DIR}/configuration/configuration.cpp
-  ${ROAR_TEST_SOURCE_DIR}/rhi/shader_buffer.cpp
+  ${ROAR_TEST_SOURCE_DIR}/rhi/shader_buffer_template.cpp
   ${ROAR_TEST_SOURCE_DIR}/vertex_description/vertex_description.cpp
   ${ROAR_TEST_SOURCE_DIR}/carray_vs_stdarray.cpp)
 
