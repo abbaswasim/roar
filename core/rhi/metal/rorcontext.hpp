@@ -30,6 +30,9 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorcontext.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/rortypes.hpp"
+
+#include <QuartzCore/CAMetalDrawable.hpp>
 
 namespace rhi
 {

@@ -60,32 +60,33 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE                     Renderer();        //! Default constructor
 	void                             load_specific();
 	void                             upload(rhi::Device &);
-	std::vector<rhi::RenderpassType> render_passes();
-	std::vector<rhi::RenderpassType> all_render_passes();
+	std::vector<rhi::RenderpassType> render_pass_types() const;
+	std::vector<rhi::RenderpassType> all_render_pass_types() const;
 
 	// clang-format off
-	auto& shaders()                       { return this->m_shaders; }
-	auto& programs()                      { return this->m_programs; }
-	auto& render_targets()                { return this->m_render_targets; }
-	auto& render_buffers()                { return this->m_render_buffers; }
-	auto& dimensions()                    { return this->m_dimensions; }
-	auto& viewport()                      { return this->m_viewport; }
-	auto& frame_graphs()                  { return this->m_frame_graphs; }
-	auto& current_frame_graph()           { return *this->m_current_frame_graph; }
+	FORCE_INLINE constexpr auto& shaders()             const noexcept { return this->m_shaders;              }
+	FORCE_INLINE constexpr auto& programs()            const noexcept { return this->m_programs;             }
+	FORCE_INLINE constexpr auto& render_targets()      const noexcept { return this->m_render_targets;       }
+	FORCE_INLINE constexpr auto& render_buffers()      const noexcept { return this->m_render_buffers;       }
+	FORCE_INLINE constexpr auto& render_state()        const noexcept { return this->m_render_state;         }
+	FORCE_INLINE constexpr auto& dimensions()          const noexcept { return this->m_dimensions;           }
+	FORCE_INLINE constexpr auto& viewport()            const noexcept { return this->m_viewport;             }
+	FORCE_INLINE constexpr auto& frame_graphs()        const noexcept { return this->m_frame_graphs;         }
+	FORCE_INLINE constexpr auto& current_frame_graph() const noexcept { return *this->m_current_frame_graph; }
 
-	void shaders(const std::vector<rhi::Shader>                      &a_shaders)                { this->m_shaders = a_shaders; }
-	void programs(const std::vector<rhi::Program>                    &a_programs)               { this->m_programs = a_programs; }
-	void dimensions(const ror::Vector2ui                             &a_dimensions)             { this->m_dimensions = a_dimensions; }
-	void viewport(const ror::Vector4i                                &a_viewport)               { this->m_viewport = a_viewport; }
-	void frame_graphs(const FrameGraph                               &a_frame_graphs)           { this->m_frame_graphs = a_frame_graphs; }
-	void current_frame_graph(std::vector<rhi::Renderpass>            *a_current_frame_graph)    { this->m_current_frame_graph = a_current_frame_graph; }
+	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
+	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }
+	FORCE_INLINE constexpr void dimensions(const ror::Vector2ui                   &a_dimensions)          noexcept { this->m_dimensions = a_dimensions;                   }
+	FORCE_INLINE constexpr void viewport(const ror::Vector4i                      &a_viewport)            noexcept { this->m_viewport = a_viewport;                       }
+	FORCE_INLINE constexpr void frame_graphs(const FrameGraph                     &a_frame_graphs)        noexcept { this->m_frame_graphs = a_frame_graphs;               }
+	FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
 	// clang-format on
 
   protected:
   private:
 	declare_translation_unit_vtable();
 
-	FORCE_INLINE std::vector<rhi::RenderpassType> render_passes(std::vector<rhi::Renderpass> &a_pass);
+	std::vector<rhi::RenderpassType> render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const;
 
 	void load_programs();
 	void load_frame_graphs();

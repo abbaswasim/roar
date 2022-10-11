@@ -31,6 +31,7 @@
 #include <any>
 
 #include <Metal/Metal.hpp>
+#include <QuartzCore/CAMetalDrawable.hpp>
 
 namespace rhi
 {
@@ -86,6 +87,7 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 	FORCE_INLINE void init(std::any a_window);
 	FORCE_INLINE MTL::Device *platform_device();
 	FORCE_INLINE MTL::CommandQueue *platform_queue();
+	FORCE_INLINE CA::MetalDrawable *platform_swapchain();
 
   protected:
   private:

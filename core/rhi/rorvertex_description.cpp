@@ -118,6 +118,7 @@ void VertexDescriptor::upload(const std::unordered_map<rhi::BufferSemantic, std:
 			// Case 4: Both destination and source stride means they are interleaved
 			// Thats why lets do element by element upload
 			auto element_count = buffer_size / format_bytes;
+			attribute.count(element_count);
 			for (size_t i = 0; i < element_count; ++i)
 				buffer.copy(buffer_pointer + i * buffer_stride, format_bytes, attrib_offset + stride * static_cast<ptrdiff_t>(i));
 		}
@@ -199,7 +200,7 @@ void VertexDescriptor::create_attributes_and_layouts(const tuple_type_vector &a_
 			}
 		}
 
-		this->m_attributes.emplace_back(location, offset, /* buffer_offset */ 0ULL, binding, buffer_index, semantic, format);
+		this->m_attributes.emplace_back(location, offset, /* count */ 0u, /* buffer_offset */ 0ULL, binding, buffer_index, semantic, format);        // count and buffer_offset are set later, chech ::upload()
 
 		location += vertex_format_to_location(format);
 		binding += 1;

@@ -85,22 +85,25 @@ void Mesh::upload(rhi::Device &a_device)
 	  } in_morph_weights;
 	*/
 
-	auto &shader_buffer = this->m_morph_weights_shader_buffer.shader_buffer();
-	shader_buffer.add_entry("morph_weights", rhi::VertexFormat::float32_1, static_cast_safe<uint32_t>(this->weights_count()));
-
-	this->m_morph_weights_shader_buffer.init(a_device, sizeof(float32_t) * static_cast_safe<uint32_t>(this->weights_count()));
-
-	if constexpr (ror::get_build() == ror::BuildType::build_debug)
+	if (this->weights_count() > 0)
 	{
-		auto entries = shader_buffer.entries();
-		(void) entries;
-		assert(entries.size() == 1 && "More entries in morph weights UBO than expected");
-		assert(entries[0]->m_offset == 0 && "Invalid offset for morph weights UBO entry");
-		assert(entries[0]->m_size == sizeof(float32_t) && "Invalid size for morph weights UBO entry");
-		// Can't trust stride in this case because of float to vec4 correction for glsl
-		// assert(entries[0]->m_stride == sizeof(float32_t) * this->weights_count() && "Invalid stride for morph weights UBO entry");
-	}
+		auto &shader_buffer = this->m_morph_weights_shader_buffer.shader_buffer();
+		shader_buffer.add_entry("morph_weights", rhi::VertexFormat::float32_1, static_cast_safe<uint32_t>(this->weights_count()));
 
-	this->update();
+		this->m_morph_weights_shader_buffer.init(a_device, sizeof(float32_t) * static_cast_safe<uint32_t>(this->weights_count()));
+
+		if constexpr (ror::get_build() == ror::BuildType::build_debug)
+		{
+			auto entries = shader_buffer.entries();
+			(void) entries;
+			assert(entries.size() == 1 && "More entries in morph weights UBO than expected");
+			assert(entries[0]->m_offset == 0 && "Invalid offset for morph weights UBO entry");
+			assert(entries[0]->m_size == sizeof(float32_t) && "Invalid size for morph weights UBO entry");
+			// Can't trust stride in this case because of float to vec4 correction for glsl
+			// assert(entries[0]->m_stride == sizeof(float32_t) * this->weights_count() && "Invalid stride for morph weights UBO entry");
+		}
+
+		this->update();
+	}
 }
 }        // namespace ror

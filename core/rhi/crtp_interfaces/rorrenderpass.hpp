@@ -64,8 +64,8 @@ class RenderTarget final
 class Rendersubpass final
 {
   public:
-	using Rendersubpasses = std::vector<std::reference_wrapper<Rendersubpass>>;
-	using RenderTargets   = std::vector<std::reference_wrapper<RenderTarget>>;
+	using Rendersubpasses = std::vector<std::reference_wrapper<const Rendersubpass>>;
+	using RenderTargets   = std::vector<std::reference_wrapper<const RenderTarget>>;
 
 	FORCE_INLINE                Rendersubpass()                                 = default;        //! Default constructor
 	FORCE_INLINE                Rendersubpass(const Rendersubpass &a_other)     = default;        //! Copy constructor
@@ -85,17 +85,19 @@ class Rendersubpass final
 	FORCE_INLINE constexpr auto &rendered_inputs()        const noexcept { return this->m_rendered_inputs;       }
 	FORCE_INLINE constexpr auto program_id()              const noexcept { return this->m_program_id;            }
 	FORCE_INLINE constexpr auto debug_output()            const noexcept { return this->m_debug_output;          }
+	FORCE_INLINE constexpr auto has_depth()               const noexcept { return this->m_has_depth;             }
 
-	FORCE_INLINE           void name(const std::string& a_name)                                             { this->m_name = a_name;                             }
-	FORCE_INLINE constexpr void technique(rhi::RenderpassTechnique a_technique)                             { this->m_technique = a_technique;                   }
-	FORCE_INLINE constexpr void type(rhi::RenderpassType a_type)                                            { this->m_type = a_type;                             }
-	FORCE_INLINE constexpr void state(rhi::RenderpassState a_state)                                         { this->m_state = a_state;                           }
-	FORCE_INLINE           void input_attachment_ids(const std::vector<uint32_t> &a_input_attachments)      { this->m_input_attachment_ids = a_input_attachments;}
-	FORCE_INLINE           void rendered_input_ids(const std::vector<uint32_t> &a_rendered_inputs)          { this->m_rendered_input_ids = a_rendered_inputs;    }
-	FORCE_INLINE           void input_attachments(const Rendersubpasses &a_input_attachments)               { this->m_input_attachments = a_input_attachments;   }
-	FORCE_INLINE           void rendered_inputs(const RenderTargets &a_rendered_inputs)                     { this->m_rendered_inputs = a_rendered_inputs;       }
-	FORCE_INLINE constexpr void program_id(int32_t a_program_id)                                            { this->m_program_id = a_program_id;                 }
-	FORCE_INLINE constexpr void debug_output(bool a_debug_output)                                           { this->m_debug_output = a_debug_output;             }
+	FORCE_INLINE constexpr void name(const std::string& a_name)                                            noexcept { this->m_name = a_name;                             }
+	FORCE_INLINE constexpr void technique(rhi::RenderpassTechnique a_technique)                            noexcept { this->m_technique = a_technique;                   }
+	FORCE_INLINE constexpr void type(rhi::RenderpassType a_type)                                           noexcept { this->m_type = a_type;                             }
+	FORCE_INLINE constexpr void state(rhi::RenderpassState a_state)                                        noexcept { this->m_state = a_state;                           }
+	FORCE_INLINE constexpr void input_attachment_ids(const std::vector<uint32_t> &a_input_attachments)     noexcept { this->m_input_attachment_ids = a_input_attachments;}
+	FORCE_INLINE constexpr void rendered_input_ids(const std::vector<uint32_t> &a_rendered_inputs)         noexcept { this->m_rendered_input_ids = a_rendered_inputs;    }
+	FORCE_INLINE constexpr void input_attachments(const Rendersubpasses &a_input_attachments)              noexcept { this->m_input_attachments = a_input_attachments;   }
+	FORCE_INLINE constexpr void rendered_inputs(const RenderTargets &a_rendered_inputs)                    noexcept { this->m_rendered_inputs = a_rendered_inputs;       }
+	FORCE_INLINE constexpr void program_id(int32_t a_program_id)                                           noexcept { this->m_program_id = a_program_id;                 }
+	FORCE_INLINE constexpr void debug_output(bool a_debug_output)                                          noexcept { this->m_debug_output = a_debug_output;             }
+	FORCE_INLINE constexpr void has_depth(bool a_has_depth)                                                noexcept { this->m_has_depth = a_has_depth;                   }
 	// clang-format on
 
   protected:
@@ -110,6 +112,7 @@ class Rendersubpass final
 	RenderTargets            m_rendered_inputs{};                                    //! References to outputs from other attachments that can be sampled by this subpass as a texture, like shadow map
 	int32_t                  m_program_id{};                                         //! A program id that could be used to execute this pass or will use the content PSOs
 	bool                     m_debug_output{false};                                  //! Whether debug output is required
+	bool                     m_has_depth{false};                                     //! Whether there is a depth buffer required and attached
 };
 
 template <class _type>
@@ -126,13 +129,14 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE ~RenderpassCrtp() noexcept override                               = default;        //! Destructor
 
 	// clang-format off
-	FORCE_INLINE           auto &subpasses()           noexcept       { return this->m_subpasses;          }
-	FORCE_INLINE           auto &render_targets()      noexcept       { return this->m_render_targets;     }
-	FORCE_INLINE constexpr auto dimensions()           const noexcept { return this->m_dimensions;         }
-	FORCE_INLINE constexpr auto viewport()             const noexcept { return this->m_viewport;           }
+	FORCE_INLINE constexpr auto &subpasses()                 noexcept { return this->m_subpasses;          }
+	FORCE_INLINE constexpr auto &subpasses()           const noexcept { return this->m_subpasses;          }
+	FORCE_INLINE constexpr auto &render_targets()      const noexcept { return this->m_render_targets;     }
+	FORCE_INLINE constexpr auto  dimensions()          const noexcept { return this->m_dimensions;         }
+	FORCE_INLINE constexpr auto  viewport()            const noexcept { return this->m_viewport;           }
 	FORCE_INLINE constexpr auto &parent_ids()          const noexcept { return this->m_parent_ids;         }
 	FORCE_INLINE constexpr auto &parents()             const noexcept { return this->m_parents;            }
-	FORCE_INLINE constexpr auto background()           const noexcept { return this->m_background;         }
+	FORCE_INLINE constexpr auto  background()          const noexcept { return this->m_background;         }
 
 	FORCE_INLINE constexpr void subpasses(const std::vector<Rendersubpass>& a_passes)                    { this->m_subpasses = a_passes;                 }
 	FORCE_INLINE constexpr void dimensions(ror::Vector2ui a_dimensions)                                  { this->m_dimensions = a_dimensions;            }

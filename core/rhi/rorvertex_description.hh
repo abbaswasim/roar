@@ -207,7 +207,7 @@ FORCE_INLINE auto VertexDescriptor::hash_64() const
 	for (auto &attrib : this->m_attributes)
 	{
 		const auto location  = attrib.location();
-		const auto offset    = attrib.offset();
+		const auto offset    = attrib.offset();        // Could also add buffer_offset but for a specific format it will always be the same
 		const auto semantics = attrib.semantics();
 		const auto format    = attrib.format();
 
@@ -234,7 +234,7 @@ FORCE_INLINE auto VertexDescriptor::hash_64_pass_aware(rhi::RenderpassType a_pas
 		if (is_attribute_required_in_pass(semantics, is_depth_shadow))
 		{
 			const auto location = attrib.location();
-			const auto offset   = attrib.offset();
+			const auto offset   = attrib.offset();        // Could also add buffer_offset but for a specific format it will always be the same
 			const auto format   = attrib.format();
 
 			ror::hash_combine_64(hash, ror::hash_64(&location, sizeof(location)));          // Now lets add all the locations

@@ -47,6 +47,14 @@ class RenderstateMetal : public RenderstateCrtp<RenderstateMetal>
 
 	void upload(rhi::Device &a_device);
 
+	// clang-format off
+	FORCE_INLINE constexpr auto depth_state()                 const noexcept     { return this->m_depth_state;                 }
+	FORCE_INLINE constexpr auto depth_state_less_equal()      const noexcept     { return this->m_depth_state_less_equal;      }
+	FORCE_INLINE constexpr auto depth_state_equal_no_write()  const noexcept     { return this->m_depth_state_equal_no_write;  }
+	FORCE_INLINE constexpr auto depth_state_always_no_write() const noexcept     { return this->m_depth_state_always_no_write; }
+	FORCE_INLINE constexpr auto depth_state_less_no_write()   const noexcept     { return this->m_depth_state_less_no_write;   }
+	// clang-format on
+
   protected:
   private:
 	declare_translation_unit_vtable();

@@ -61,6 +61,7 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	 */
 	FORCE_INLINE VertexAttribute(uint32_t            a_location,
 	                             uint32_t            a_offset,
+	                             uint32_t            a_count,
 	                             ptrdiff_t           a_buffer_offset,
 	                             uint32_t            a_binding,
 	                             uint32_t            a_buffer_index,
@@ -68,6 +69,7 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	                             rhi::VertexFormat   a_format    = rhi::VertexFormat::float32_3) :
 	    m_location(a_location),
 	    m_offset(a_offset),
+	    m_count(a_count),
 	    m_buffer_offset(a_buffer_offset),
 	    m_binding(a_binding),
 	    m_buffer_index(a_buffer_index),
@@ -76,17 +78,18 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	{}
 
 	// clang-format off
-	FORCE_INLINE uint32_t            location()         const { return this->m_location;         }
-	FORCE_INLINE uint32_t            offset()           const { return this->m_offset;           }
-	FORCE_INLINE ptrdiff_t           buffer_offset()    const { return this->m_buffer_offset;    }
-	FORCE_INLINE uint32_t            binding()          const { return this->m_binding;          }
-	FORCE_INLINE uint32_t            buffer_index()     const { return this->m_buffer_index;     }
-	FORCE_INLINE rhi::BufferSemantic semantics()        const { return this->m_semantics;        }
-	FORCE_INLINE rhi::VertexFormat   format()           const { return this->m_format;           }
-
+	FORCE_INLINE constexpr auto location()         const noexcept { return this->m_location;         }
+	FORCE_INLINE constexpr auto offset()           const noexcept { return this->m_offset;           }
+	FORCE_INLINE constexpr auto count()            const noexcept { return this->m_count;            }
+	FORCE_INLINE constexpr auto buffer_offset()    const noexcept { return this->m_buffer_offset;    }
+	FORCE_INLINE constexpr auto binding()          const noexcept { return this->m_binding;          }
+	FORCE_INLINE constexpr auto buffer_index()     const noexcept { return this->m_buffer_index;     }
+	FORCE_INLINE constexpr auto semantics()        const noexcept { return this->m_semantics;        }
+	FORCE_INLINE constexpr auto format()           const noexcept { return this->m_format;           }
 
 	FORCE_INLINE void   location(uint32_t a_location)              noexcept { this->m_location         = a_location;     }
 	FORCE_INLINE void   offset(uint32_t a_offset)                  noexcept { this->m_offset           = a_offset;       }
+	FORCE_INLINE void   count(uint32_t a_count)                    noexcept { this->m_count            = a_count;        }
 	FORCE_INLINE void   buffer_offset(ptrdiff_t a_offset)          noexcept { this->m_buffer_offset    = a_offset;       }
 	FORCE_INLINE void   binding(uint32_t a_binding)                noexcept { this->m_binding          = a_binding;      }
 	FORCE_INLINE void   buffer_index(uint32_t a_index)             noexcept { this->m_buffer_index     = a_index;        }
@@ -97,6 +100,7 @@ class ROAR_ENGINE_ITEM VertexAttribute final
   private:
 	uint32_t            m_location{0};                                            //! Use in shader like "layout(location = m_location)", decided by layout
 	uint32_t            m_offset{0};                                              //! Offset of this attribute relative to other attributes
+	uint32_t            m_count{0};                                               //! How many of VertexFormat count elements are there in this attribute
 	ptrdiff_t           m_buffer_offset{0};                                       //! Offset of this attribute in buffer buffer_index from the start, decided by layout
 	uint32_t            m_binding{0};                                             //! Copy of the binding in its corresponding layout binding that describes this attribute
 	uint32_t            m_buffer_index{0};                                        //! Which buffer do I live in? this is the buffer_pack index, destination buffer index

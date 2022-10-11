@@ -148,7 +148,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	/**
 	 * Does an upload into the buffer for these attributes, it doesn't have to be all the attributes
 	 * It can do element wise or bulk upload depending on the source and destination strides
-	 * It requires a tuple of buffer_pointer, buffer_size and buffer_size for each attribute keyed by semantic.
+	 * It requires a tuple of buffer_pointer, buffer_size and buffer_stride for each attribute keyed by semantic.
 	 * The buffer_size is the total bytes required for this attribute, it doesn't necessarily means the whole buffer available.
 	 * This is because the data might be interleaved. In which case the buffer_size for both attributes will be added up using stride.
 	 */

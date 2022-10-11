@@ -34,7 +34,6 @@
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rordevice.hpp"
-#include "rhi/rorrenderpass.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
@@ -488,21 +487,37 @@ void Renderer::upload(rhi::Device &a_device)
 	this->m_render_state.upload(a_device);
 }
 
-std::vector<rhi::RenderpassType> Renderer::render_passes()
-{
-	assert(this->m_current_frame_graph);
-	return this->render_passes(*this->m_current_frame_graph);
-}
-
-std::vector<rhi::RenderpassType> Renderer::all_render_passes()
+std::vector<rhi::RenderpassType> Renderer::render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const
 {
 	std::vector<rhi::RenderpassType> passes;
-	for (auto &rps : this->m_frame_graphs)
+	for (auto &rp : a_pass)
 	{
-		auto rpees = this->render_passes(rps.second);
+		const auto& subpasses = rp.subpasses();
+		for (auto &srp : subpasses)
+		{
+			passes.emplace_back(srp.type());
+		}
+	}
+
+	return passes;
+}
+
+std::vector<rhi::RenderpassType> Renderer::render_pass_types() const
+{
+	assert(this->m_current_frame_graph);
+	return this->render_pass_types(*this->m_current_frame_graph);
+}
+
+std::vector<rhi::RenderpassType> Renderer::all_render_pass_types() const
+{
+	std::vector<rhi::RenderpassType> passes;
+	for (const auto &rps : this->m_frame_graphs)
+	{
+		const auto rpees = this->render_pass_types(rps.second);
 		passes.insert(passes.end(), std::make_move_iterator(rpees.begin()), std::make_move_iterator(rpees.end()));
 	}
 
 	return passes;
 }
+
 }        // namespace ror

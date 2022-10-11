@@ -30,9 +30,10 @@
 #include "graphics/rormodel.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
-#include "rhi/metal/rorshader.hpp"
 #include "rhi/rordevice.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"
 
 #include <Metal/MTLRenderPipeline.hpp>
@@ -56,7 +57,12 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	    ProgramCrtp(a_compute_id)
 	{}
 
-	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, rhi::RenderpassType a_renderpass_type);
+	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass);
+
+	FORCE_INLINE constexpr auto render_pipeline_state() const
+	{
+		return this->m_render_pipeline_state;
+	}
 
   protected:
 	FORCE_INLINE ProgramMetal() = default;        //! Default constructor

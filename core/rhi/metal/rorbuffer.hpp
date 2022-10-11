@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rorbuffer.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include <Metal/MTLBuffer.hpp>
@@ -45,8 +46,12 @@ class ROAR_ENGINE_ITEM BufferMetal : public BufferCrtp<BufferMetal<_type>, _type
 	FORCE_INLINE BufferMetal &operator=(BufferMetal &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~BufferMetal() noexcept override                 = default;        //! Destructor
 
-	void upload(rhi::Device& a_device);
-	void partial_upload(rhi::Device& a_device, size_t a_offset, size_t a_length); 
+	void upload(rhi::Device &a_device);
+	void partial_upload(rhi::Device &a_device, size_t a_offset, size_t a_length);
+
+	// clang-format off
+	FORCE_INLINE constexpr auto platform_buffer()      { return this->m_buffer; }
+	// clang-format on
 
   protected:
   private:

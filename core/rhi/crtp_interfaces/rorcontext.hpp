@@ -60,7 +60,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		this->m_renderer.upload(*this->m_current_device);
 
 		// Load all the models now in a deferred way
-		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer.render_passes());
+		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer);
 
 		this->underlying().init_derived();
 	}

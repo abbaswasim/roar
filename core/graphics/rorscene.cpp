@@ -39,6 +39,7 @@
 #include "math/rorvector3.hpp"
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
+#include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorhandles.hpp"
@@ -46,6 +47,7 @@
 #include "shader_system/rorshader_system.hpp"
 #include <array>
 #include <cassert>
+#include <cstddef>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -177,7 +179,7 @@ void Scene::update(double64_t a_milli_seconds)
 	(void) a_milli_seconds;
 }
 
-void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const std::vector<rhi::RenderpassType> &a_render_passes)
+void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer)
 {
 	auto model_nodes{0u};
 	for (auto &node : this->m_nodes_data)
@@ -227,7 +229,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	}
 
 	// Lets kick off shader generation while we upload the buffers
-	auto shader_gen_job_handle = a_job_system.push_job([this, &a_render_passes, &a_device, &a_job_system]() -> auto{ this->generate_shaders(a_render_passes, a_device, a_job_system); return true; });
+	auto shader_gen_job_handle = a_job_system.push_job([this, &a_renderer, &a_device, &a_job_system]() -> auto{ this->generate_shaders(a_renderer, a_device, a_job_system); return true; });
 
 	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
 	// TODO: find out this might need to be done differently for Vulkan
@@ -278,8 +280,10 @@ hash_64_t pass_aware_fragment_hash(hash_64_t a_fragment_hash, hash_64_t a_vertex
 	return fragment_hash;
 }
 
-void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device, ror::JobSystem &a_job_system)
+void Scene::generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::JobSystem &a_job_system)
 {
+	const std::vector<rhi::RenderpassType> render_pass_types = a_renderer.render_pass_types();
+
 	size_t shaders_count = 0;
 
 	for (auto &model : this->m_models)
@@ -289,15 +293,15 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 	// For each render pass in the framegraph create programs the model meshes can use
 	bool has_shadows = false;
 
-	for (auto &passtype : a_render_passes)
+	for (auto &passtype : render_pass_types)
 		if (passtype == rhi::RenderpassType::shadow)
 			has_shadows = true;
 
-	// This should be shaders_count * 2 * a_render_passes.size();
+	// This should be shaders_count * 2 * render_passes.size();
 	// Then fill me up in a loop before entering the next loop with jobs in it
-	this->m_shaders.reserve(shaders_count * 2 * a_render_passes.size());
+	this->m_shaders.reserve(shaders_count * 2 * render_pass_types.size());
 
-	log_warn("About to create {} shaders ", shaders_count * 2 * a_render_passes.size());
+	log_warn("About to create {} shaders ", shaders_count * 2 * render_pass_types.size());
 
 	// Two pass approach, first create all the shaders into m_shaders, then allocate each to a job to fill it in with data
 	std::unordered_map<hash_64_t, std::pair<size_t, bool>> shader_hash_to_index{};
@@ -315,7 +319,7 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 	}                                                                                                               \
 	(void) 0
 
-	for (auto &passtype : a_render_passes)
+	for (auto &passtype : render_pass_types)
 	{
 		this->m_programs[passtype] = {};
 		auto &pass_programs        = this->m_programs[passtype];
@@ -354,7 +358,7 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 	std::vector<ror::JobHandle<bool>> job_handles;
 	job_handles.reserve(shaders_count * 2);        // Multiplied by 2 because I am creating two jobs for each vertex and fragment shaders
 
-	for (auto &passtype : a_render_passes)
+	for (auto &passtype : render_pass_types)
 	{
 		// Generate vertex and fragment shaders for pre allocated shaders
 		for (auto &model : this->m_models)
@@ -415,12 +419,12 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 			(void) fs;
 			assert(fs.second.second == true && "Not all unique shaders are generated");
 		}
-		for (auto &passtype1 : a_render_passes)
+		for (auto &passtype1 : render_pass_types)
 		{
 			auto &pass_programs1 = this->m_programs[passtype1];
 			auto  size           = pass_programs1.size();
 			(void) size;
-			for (auto &passtype2 : a_render_passes)
+			for (auto &passtype2 : render_pass_types)
 			{
 				auto &pass_programs2 = this->m_programs[passtype2];
 				assert(pass_programs2.size() == size && "Something went wrong, sizes don't match");
@@ -431,11 +435,13 @@ void Scene::generate_shaders(const std::vector<rhi::RenderpassType> &a_render_pa
 
 	log_warn("Actual number of shaders created {} ", this->m_shaders.size());
 
-	this->upload(a_render_passes, a_device);
+	this->upload(a_renderer, a_device);
 }
 
-void Scene::upload(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device)
+void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device)
 {
+	auto render_passes = a_renderer.current_frame_graph();
+
 	// Now lets upload them
 	for (auto &shader : this->m_shaders)
 	{
@@ -443,21 +449,24 @@ void Scene::upload(const std::vector<rhi::RenderpassType> &a_render_passes, rhi:
 	}
 
 	// Upload all the shader programs creates pipelines in metal and vulkan cases
-	for (auto &passtype : a_render_passes)
+	for (auto &pass : render_passes)
 	{
-		auto    &pass_programs = this->m_programs[passtype];
-		uint32_t program       = 0;
-		for (auto &model : this->m_models)
+		for (auto &subpass : pass.subpasses())
 		{
-			uint32_t mesh_index = 0;
-			for (auto &mesh : model.meshes())
+			auto    &pass_programs = this->m_programs[subpass.type()];
+			uint32_t program       = 0;
+			for (auto &model : this->m_models)
 			{
-				for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+				uint32_t mesh_index = 0;
+				for (auto &mesh : model.meshes())
 				{
-					pass_programs[program].upload(a_device, this->m_shaders, model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype);
-					program++;
+					for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+					{
+						pass_programs[program].upload(a_device, this->m_shaders, model, mesh_index, static_cast_safe<uint32_t>(prim_index), subpass);
+						program++;
+					}
+					mesh_index++;
 				}
-				mesh_index++;
 			}
 		}
 	}

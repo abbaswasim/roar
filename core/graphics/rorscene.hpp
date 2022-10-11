@@ -34,6 +34,7 @@
 #include "graphics/rornode.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rortransform.hpp"
+#include "renderer/rorrenderer.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rorshader_buffer.hpp"
@@ -178,7 +179,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	void render(const RenderDevice *a_rendering_device);
 	void update(double64_t a_milli_seconds);
-	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const std::vector<rhi::RenderpassType> &a_render_passes);
+	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device,  const ror::Renderer& a_renderer);
 	void unload();
 	void load_specific();
 
@@ -200,8 +201,8 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void read_cameras();
 	void read_programs();
 	void read_probes();
-	void generate_shaders(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device, ror::JobSystem &a_job_system);
-	void upload(const std::vector<rhi::RenderpassType> &a_render_passes, rhi::Device &a_device);
+	void generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::JobSystem &a_job_system);
+	void upload(const ror::Renderer &a_renderer, rhi::Device &a_device);
 
 	using RenderpassPrograms = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;
 

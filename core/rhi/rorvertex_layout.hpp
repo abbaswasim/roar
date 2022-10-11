@@ -70,17 +70,17 @@ class ROAR_ENGINE_ITEM VertexLayout final
 	{}
 
 	// clang-format off
-	FORCE_INLINE uint32_t           binding()               const { return this->m_binding;              }
-	FORCE_INLINE uint32_t           stride()                const { return this->m_stride;               }
-	FORCE_INLINE uint32_t           rate()                  const { return this->m_rate;                 }          // Make sure to read the lower 16bits only for rate
-	FORCE_INLINE uint32_t           format_multiplier()     const { return this->m_format_multiplier;    }          // Make sure to read the higher 16bits only for rate
-	FORCE_INLINE rhi::StepFunction  step_function()         const { return this->m_function;             }
+	FORCE_INLINE constexpr auto binding()               const noexcept { return this->m_binding;              }
+	FORCE_INLINE constexpr auto stride()                const noexcept { return this->m_stride;               }
+	FORCE_INLINE constexpr auto rate()                  const noexcept { return this->m_rate;                 }          // Make sure to read the lower 16bits only for rate
+	FORCE_INLINE constexpr auto format_multiplier()     const noexcept { return this->m_format_multiplier;    }          // Make sure to read the higher 16bits only for rate
+	FORCE_INLINE constexpr auto step_function()         const noexcept { return this->m_function;             }
 
-	FORCE_INLINE void   binding(uint32_t a_binding)                     noexcept { this->m_binding            = a_binding;           }
-	FORCE_INLINE void   stride(uint32_t a_stride)                       noexcept { this->m_stride             = a_stride;            }
-	FORCE_INLINE void   rate(uint32_t a_rate)                           noexcept { this->m_rate               = a_rate;              }
-	FORCE_INLINE void   format_multiplier(uint32_t a_multiplier)        noexcept { this->m_format_multiplier  = a_multiplier;        }
-	FORCE_INLINE void   step_function(rhi::StepFunction a_function)     noexcept { this->m_function           = a_function;          }
+	FORCE_INLINE constexpr void binding(uint32_t a_binding)                     noexcept { this->m_binding            = a_binding;           }
+	FORCE_INLINE constexpr void stride(uint32_t a_stride)                       noexcept { this->m_stride             = a_stride;            }
+	FORCE_INLINE constexpr void rate(uint32_t a_rate)                           noexcept { this->m_rate               = a_rate;              }
+	FORCE_INLINE constexpr void format_multiplier(uint32_t a_multiplier)        noexcept { this->m_format_multiplier  = a_multiplier;        }
+	FORCE_INLINE constexpr void step_function(rhi::StepFunction a_function)     noexcept { this->m_function           = a_function;          }
 	// clang-format on
 
   private:

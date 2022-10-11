@@ -30,8 +30,11 @@
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/metal/rormetal_common.hpp"
 #include "settings/rorsettings.hpp"
-#include <Metal/MTLCommandQueue.hpp>
 #include <any>
+
+#include <Metal/MTLCommandQueue.hpp>
+#include <QuartzCore/CAMetalDrawable.hpp>
+
 
 namespace rhi
 {
@@ -81,5 +84,11 @@ FORCE_INLINE MTL::CommandQueue *DeviceMetal::platform_queue()
 {
 	assert(this->m_command_queue && "Metal device requested is null");
 	return this->m_command_queue;
+}
+
+FORCE_INLINE CA::MetalDrawable *DeviceMetal::platform_swapchain()
+{
+	assert(this->m_ca_metal_layer && "Metal ca layer is null, can't create swapchain");
+	return reinterpret_cast<CA::MetalDrawable *>(next_drawable(this->m_ca_metal_layer));
 }
 }        // namespace rhi

@@ -77,6 +77,7 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 	for (auto &subpass : render_supasses)
 	{
 		auto mtl_render_pass = MTL::RenderPassDescriptor::alloc()->init();
+		assert(mtl_render_pass && "Can't create MTL::RenderPassDescriptor");
 
 		mtl_render_pass->setRenderTargetWidth(this->dimensions().x);
 		mtl_render_pass->setRenderTargetHeight(this->dimensions().y);
@@ -115,10 +116,23 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 			depth->clearDepth();
 			depth->setLoadAction(to_metal_load_action(render_targets[static_cast<uint32_t>(depth_index)].m_load_action));
 			depth->setStoreAction(to_metal_store_action(render_targets[static_cast<uint32_t>(depth_index)].m_store_action));
+
+			subpass.has_depth(true);
+		}
+		else
+		{
+			ror::log_info("No depth textures created for this renderpass {}", subpass.name().c_str());
 		}
 
 		this->m_render_passes.emplace_back(mtl_render_pass);
 	}
+}
+
+MTL::RenderCommandEncoder *RenderpassMetal::encoder(MTL::CommandBuffer *a_command_buffer)
+{
+	// Hack to get the main pass
+	ror::log_critical("All render passes are of size {}", this->m_render_passes.size());
+	return a_command_buffer->renderCommandEncoder(this->m_render_passes[0]);
 }
 
 }        // namespace rhi

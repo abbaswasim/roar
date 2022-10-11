@@ -95,8 +95,8 @@ class ROAR_ENGINE_ITEM Mesh final
 	std::vector<bool>                                       m_has_indices_states{};                      //! Should be init with false
 	std::vector<float32_t, rhi::BufferAllocator<float32_t>> m_morph_weights{};                           //! Optional morph weights provided per mesh
 	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>    m_bounding_boxes{};                          //! This is per part
-	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Should be init with -1
-	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_program_indices{};                         //! Should be init with -1
+	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Should be init with -1 and might not have valid values after load, Maybe add a default material
+	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_program_indices{};                         //! Should be init with -1 but should have valid values when fully loaded
 	rhi::ShaderBuffer                                       m_morph_weights_shader_buffer{};             //! ShaderBuffers for joint_transforms within the skinning shader
 	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1
 	uint64_t                                                m_hash{0};                                   //! Hash of this mesh depending on most of its properties

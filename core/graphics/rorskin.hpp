@@ -31,7 +31,7 @@
 #include "math/rortransform.hpp"
 #include "math/rorvector4.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
-#include "rhi/rorshader_buffer_template.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include <cstddef>
 
 namespace ror

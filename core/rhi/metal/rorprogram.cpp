@@ -87,9 +87,9 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 	return mtl_vertex_descriptor;
 }
 
-void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, rhi::RenderpassType a_renderpass_type)
+void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass)
 {
-	auto                           is_depth_shadow            = (a_renderpass_type == rhi::RenderpassType::depth || a_renderpass_type == rhi::RenderpassType::shadow);
+	auto                           is_depth_shadow            = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
 	auto                          &setting                    = ror::settings();
 	MTL::Device                   *device                     = a_device.platform_device();
 	NS::Error                     *pError                     = nullptr;
@@ -127,21 +127,31 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	render_pipeline_descriptor->setVertexFunction(vs.function());
 	render_pipeline_descriptor->setFragmentFunction(fs.function());
 	render_pipeline_descriptor->setVertexDescriptor(mtl_vertex_descriptor);
-	render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);        // TODO: Read from settings, and understand why I not "depthbuffer = device->newTexture(depth_descriptor);"
+
+	if (a_subpass.has_depth())
+		render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);        // TODO: Read from settings
+	else
+		render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatInvalid);
+
 	render_pipeline_descriptor->setSupportIndirectCommandBuffers(setting.m_metal.indirect_command_buffers);
 
-	// TODO: Add support for how many attachments do we have is driven by render pass type
-	render_pipeline_descriptor->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
-	render_pipeline_descriptor->colorAttachments()->object(0)->setRgbBlendOperation(MTL::BlendOperationAdd);
-	render_pipeline_descriptor->colorAttachments()->object(0)->setAlphaBlendOperation(MTL::BlendOperationAdd);
-	render_pipeline_descriptor->colorAttachments()->object(0)->setSourceRGBBlendFactor(MTL::BlendFactorOne);
-	render_pipeline_descriptor->colorAttachments()->object(0)->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
-	render_pipeline_descriptor->colorAttachments()->object(0)->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-	render_pipeline_descriptor->colorAttachments()->object(0)->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+	// TODO: Add support for how ever many attachments we might have which is driven by render pass type
+	auto colorAttachment = render_pipeline_descriptor->colorAttachments()->object(0);
 
-	render_pipeline_descriptor->colorAttachments()->object(0)->setBlendingEnabled(false);        // TODO: get from setting or material
+	colorAttachment->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+	colorAttachment->setRgbBlendOperation(MTL::BlendOperationAdd);
+	colorAttachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
+	colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
+	colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+	colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+	colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+
+	colorAttachment->setBlendingEnabled(false);        // TODO: get from setting or material
 
 	render_pipeline_descriptor->setLabel(NS::String::string(a_model.meshes()[a_mesh_index].m_name.c_str(), NS::StringEncoding::UTF8StringEncoding));
+	// render_pipeline_descriptor->setRasterSampleCount(setting.m_multisample_count);
+	render_pipeline_descriptor->setRasterizationEnabled(true);
+	render_pipeline_descriptor->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassTriangle);
 
 	this->m_render_pipeline_state = device->newRenderPipelineState(render_pipeline_descriptor, &pError);
 
@@ -155,5 +165,32 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	render_pipeline_descriptor->release();
 
 	pError->release();
+
+	// Other setting functions that can be called on RPD
+	/*
+	  render_pipeline_descriptor->setAlphaToCoverageEnabled();
+	  render_pipeline_descriptor->setAlphaToOneEnabled();
+	  render_pipeline_descriptor->setMaxVertexAmplificationCount();
+	  render_pipeline_descriptor->setStencilAttachmentPixelFormat();
+	  render_pipeline_descriptor->setVertexBuffers();
+	  render_pipeline_descriptor->setFragmentBuffers();
+	  render_pipeline_descriptor->setSampleCount(); // deprecated, find out how to do multisampling otherwise
+	  render_pipeline_descriptor->setTessellationPartitionMode();
+	  render_pipeline_descriptor->setMaxTessellationFactor();
+	  render_pipeline_descriptor->setTessellationFactorScaleEnabled();
+	  render_pipeline_descriptor->setTessellationFactorFormat();
+	  render_pipeline_descriptor->setTessellationControlPointIndexType();
+	  render_pipeline_descriptor->setTessellationFactorStepFunction();
+	  render_pipeline_descriptor->setTessellationOutputWindingOrder();
+	  render_pipeline_descriptor->setBinaryArchives();
+	  render_pipeline_descriptor->setVertexPreloadedLibraries();
+	  render_pipeline_descriptor->setFragmentPreloadedLibraries();
+	  render_pipeline_descriptor->setVertexLinkedFunctions();
+	  render_pipeline_descriptor->setFragmentLinkedFunctions();
+	  render_pipeline_descriptor->setSupportAddingVertexBinaryFunctions();
+	  render_pipeline_descriptor->setSupportAddingFragmentBinaryFunctions();
+	  render_pipeline_descriptor->setMaxVertexCallStackDepth();
+	  render_pipeline_descriptor->setMaxFragmentCallStackDepth();
+	*/
 }
 }        // namespace rhi

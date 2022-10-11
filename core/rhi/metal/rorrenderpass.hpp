@@ -47,11 +47,12 @@ class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 
 	declare_translation_unit_vtable();
 
-	void upload(rhi::Device &a_device);
+	void                       upload(rhi::Device &a_device);
+	MTL::RenderCommandEncoder *encoder(MTL::CommandBuffer *a_command_buffer);
 
   protected:
   private:
-	std::vector<MTL::RenderPassDescriptor *> m_render_passes{nullptr};        //! Platform render pass descriptors, we have a list here because engine subpasses are split into render passes for Metal
+	std::vector<MTL::RenderPassDescriptor *> m_render_passes{};        //! Platform render pass descriptors, we have a list here because engine subpasses are split into render passes for Metal
 };
 
 declare_rhi_render_type(Renderpass);
