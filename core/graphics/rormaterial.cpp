@@ -79,7 +79,7 @@ void Material::fill_shader_buffer()
 	if (this->m_emissive.m_type == ror::Material::ComponentType::factor || this->m_emissive.m_type == ror::Material::ComponentType::factor_texture)
 		shader_buffer.add_entry("emissive_factor", rhi::Format::float32_4, 1);
 	if (this->m_anisotropy.m_type == ror::Material::ComponentType::factor || this->m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
-		shader_buffer.add_entry("anisotrophy_factor", rhi::Format::float32_4, 1);
+		shader_buffer.add_entry("anisotropy_factor", rhi::Format::float32_4, 1);
 	if (this->m_sheen_color.m_type == ror::Material::ComponentType::factor || this->m_sheen_color.m_type == ror::Material::ComponentType::factor_texture)
 		shader_buffer.add_entry("sheen_color_factor", rhi::Format::float32_3, 1);
 	if (this->m_clearcoat_normal.m_type == ror::Material::ComponentType::factor || this->m_clearcoat_normal.m_type == ror::Material::ComponentType::factor_texture)
@@ -104,8 +104,6 @@ void Material::fill_shader_buffer()
 		shader_buffer.add_entry("bent_normal_factor", rhi::Format::float32_1, 1);
 	if (this->m_height.m_type == ror::Material::ComponentType::factor || this->m_height.m_type == ror::Material::ComponentType::factor_texture)
 		shader_buffer.add_entry("height_factor", rhi::Format::float32_1, 1);
-	if (this->m_anisotropy.m_type == ror::Material::ComponentType::factor || this->m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
-		shader_buffer.add_entry("anisotrophy_factor", rhi::Format::float32_1, 1);
 	if (this->m_opacity.m_type == ror::Material::ComponentType::factor || this->m_opacity.m_type == ror::Material::ComponentType::factor_texture)
 		shader_buffer.add_entry("opacity_factor", rhi::Format::float32_1, 1);
 
@@ -128,7 +126,7 @@ void Material::fill_shader_buffer()
 		else if (entry->m_name == "diffuse_color_factor")			this->m_diffuse_color.m_factor_offset          = entry->m_offset;
 		else if (entry->m_name == "specular_glossyness_factor")		this->m_specular_glossyness.m_factor_offset    = entry->m_offset;
 		else if (entry->m_name == "emissive_factor")				this->m_emissive.m_factor_offset               = entry->m_offset;
-		else if (entry->m_name == "anisotrophy_factor")				this->m_anisotropy.m_factor_offset             = entry->m_offset;
+		else if (entry->m_name == "anisotropy_factor")				this->m_anisotropy.m_factor_offset             = entry->m_offset;
 		else if (entry->m_name == "sheen_color_factor")				this->m_sheen_color.m_factor_offset            = entry->m_offset;
 		else if (entry->m_name == "clearcoat_normal_factor")		this->m_clearcoat_normal.m_factor_offset       = entry->m_offset;
 		else if (entry->m_name == "transmission_factor")			this->m_transmission.m_factor_offset           = entry->m_offset;
@@ -141,7 +139,6 @@ void Material::fill_shader_buffer()
 		else if (entry->m_name == "normal_factor")					this->m_normal.m_factor_offset                 = entry->m_offset;
 		else if (entry->m_name == "bent_normal_factor")				this->m_bent_normal.m_factor_offset            = entry->m_offset;
 		else if (entry->m_name == "height_factor")					this->m_height.m_factor_offset                 = entry->m_offset;
-		else if (entry->m_name == "anisotrophy_factor")				this->m_anisotropy.m_factor_offset             = entry->m_offset;
 		else if (entry->m_name == "opacity_factor")					this->m_opacity.m_factor_offset                = entry->m_offset;
 		else if (entry->m_name == "reflectance_factor")				this->m_reflectance_offset                     = entry->m_offset;
 		// clang-format on
@@ -186,8 +183,6 @@ void Material::update()
 		std::memcpy(mapping + this->m_bent_normal.m_factor_offset, &this->m_bent_normal.m_factor, sizeof(decltype(this->m_bent_normal.m_factor)));
 	if (this->m_height.m_type == ror::Material::ComponentType::factor || this->m_height.m_type == ror::Material::ComponentType::factor_texture)
 		std::memcpy(mapping + this->m_height.m_factor_offset, &this->m_height.m_factor, sizeof(decltype(this->m_height.m_factor)));
-	if (this->m_anisotropy.m_type == ror::Material::ComponentType::factor || this->m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
-		std::memcpy(mapping + this->m_anisotropy.m_factor_offset, &this->m_anisotropy.m_factor, sizeof(decltype(this->m_anisotropy.m_factor)));
 	if (this->m_opacity.m_type == ror::Material::ComponentType::factor || this->m_opacity.m_type == ror::Material::ComponentType::factor_texture)
 		std::memcpy(mapping + this->m_opacity.m_factor_offset, &this->m_opacity.m_factor, sizeof(decltype(this->m_opacity.m_factor)));
 

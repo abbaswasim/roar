@@ -109,7 +109,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		declare_translation_unit_vtable() override;
 	};
 
-	FORCE_INLINE ShaderBufferTemplate(std::string a_name, ShaderBufferType a_type = ShaderBufferType::ubo, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
+	FORCE_INLINE ShaderBufferTemplate(const std::string& a_name, ShaderBufferType a_type = ShaderBufferType::ubo, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
 	    m_type(a_type), m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_entries(a_name, 1)
 	{}
 

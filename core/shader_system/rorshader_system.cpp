@@ -1146,7 +1146,7 @@ std::string texture_lookups(const ror::Material &a_material)
 	output.append(texture_lookup(a_material.m_diffuse_color, "diffuse_color"));
 	output.append(texture_lookup(a_material.m_specular_glossyness, "specular_glossyness"));
 	output.append(texture_lookup(a_material.m_emissive, "emissive"));
-	output.append(texture_lookup(a_material.m_anisotropy, "anisotrophy"));
+	output.append(texture_lookup(a_material.m_anisotropy, "anisotropy", "vec4"));
 	output.append(texture_lookup(a_material.m_transmission, "transmission", "vec2", ".xy"));
 	output.append(texture_lookup(a_material.m_sheen_color, "sheen_color", "vec3", ".xyz"));
 	output.append(texture_lookup(a_material.m_sheen_roughness, "sheen_roughness", "float", ".x"));
@@ -1160,7 +1160,6 @@ std::string texture_lookups(const ror::Material &a_material)
 	// output.append(texture_lookup(a_material.m_tangent, "tangent", "vec3", ".xyz"));
 	output.append(texture_lookup(a_material.m_bent_normal, "bent_normal", "vec3", ".xyz"));
 	output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));        // Alpha component of MRO[H] texture
-	output.append(texture_lookup(a_material.m_anisotropy, "anisotrophy", "vec4"));
 	output.append(texture_lookup(a_material.m_opacity, "opacity", "float", ".x"));
 
 	// If we have a normal map, lets add code to generate tangent frame in the shader
@@ -1200,7 +1199,7 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 	if (a_material.m_emissive.m_texture != -1)
 		output_append("emissive_sampler;\n");
 	if (a_material.m_anisotropy.m_texture != -1)
-		output_append("anisotrophy_sampler;\n");
+		output_append("anisotropy_sampler;\n");
 	if (a_material.m_transmission.m_texture != -1)
 		output_append("transmission_sampler;\n");
 	if (a_material.m_sheen_color.m_texture != -1)
@@ -1225,8 +1224,6 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 		output_append("bent_normal_sampler;\n");
 	if (a_material.m_height.m_texture != -1)
 		output_append("height_sampler;\n");
-	if (a_material.m_anisotropy.m_texture != -1)
-		output_append("anisotrophy_sampler;\n");
 	if (a_material.m_opacity.m_texture != -1)
 		output_append("opacity_sampler;\n");
 
@@ -1258,7 +1255,7 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 	if (a_material.m_emissive.m_type == ror::Material::ComponentType::factor || a_material.m_emissive.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("emissive_factor", rhi::Format::float32_4, 1, "vec4  emissive_factor;\n\t");
 	if (a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor || a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("anisotrophy_factor", rhi::Format::float32_4, 1, "vec4  anisotrophy_factor;\n\t");
+		create_component("anisotropy_factor", rhi::Format::float32_4, 1, "vec4  anisotropy_factor;\n\t");
 	if (a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("sheen_color_factor", rhi::Format::float32_3, 1, "vec3  sheen_color_factor;\n\t");
 	if (a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor_texture)
@@ -1283,8 +1280,6 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 		create_component("bent_normal_factor", rhi::Format::float32_1, 1, "float bent_normal_factor;\n\t");
 	if (a_material.m_height.m_type == ror::Material::ComponentType::factor || a_material.m_height.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("height_factor", rhi::Format::float32_1, 1, "float height_factor;\n\t");
-	if (a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor || a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("anisotrophy_factor", rhi::Format::float32_1, 1, "float anisotrophy_factor;\n\t");
 	if (a_material.m_opacity.m_type == ror::Material::ComponentType::factor || a_material.m_opacity.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("opacity_factor", rhi::Format::float32_1, 1, "float opacity_factor;\n\t");
 	// clang-format on
