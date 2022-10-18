@@ -27,3 +27,4 @@ gltf2_shader/
 gltf_samples_shaders/
 temp/
 ycm_extra_conf.template
+.simple-debug.json
