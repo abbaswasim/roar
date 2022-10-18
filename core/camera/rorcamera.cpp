@@ -64,13 +64,17 @@ void OrbitCamera::init(EventSystem &a_event_system)
 	};
 
 	this->m_resize_callback = [this](ror::Event &e) {
-		if (e.is_compatible<ror::Vector2i>())
+		if (e.is_compatible<ror::Vector2ui>())
 		{
-			auto vec2 = std::any_cast<ror::Vector2i>(e.m_payload);
+			auto vec2 = std::any_cast<ror::Vector2ui>(e.m_payload);
 			this->set_bounds(vec2.x, vec2.y);
 
 			// Now update the MVP and the likes
 			this->look_at();
+		}
+		else
+		{
+			assert(0 && "Incompatible payload with resize callback");
 		}
 	};
 
@@ -82,6 +86,10 @@ void OrbitCamera::init(EventSystem &a_event_system)
 
 			// Now update the MVP and the likes
 			this->look_at();
+		}
+		else
+		{
+			assert(0 && "Incompatible payload with zoom callback");
 		}
 	};
 
@@ -166,20 +174,20 @@ void OrbitCamera::upload(rhi::Device &a_device)
 	auto &shader_buffer = this->m_shader_buffer.shader_buffer();
 	auto  entries       = shader_buffer.entries_structs();
 
-	auto size = 528u; // TODO: Get this from shader buffer
+	auto size = 528u;        // TODO: Get this from shader buffer
 	for (auto entry : entries)
 	{
-		//clang-format off
-		if      (entry->m_name == "mvp_mat4")                       this->m_mvp_mat4_offset                       = entry->m_offset;
-		else if (entry->m_name == "model_mat4")                     this->m_model_mat4_offset                     = entry->m_offset;
-		else if (entry->m_name == "view_mat4")                      this->m_view_mat4_offset                      = entry->m_offset;
-		else if (entry->m_name == "projection_mat4")                this->m_projection_mat4_offset                = entry->m_offset;
-		else if (entry->m_name == "view_projection_mat4")           this->m_view_projection_mat4_offset           = entry->m_offset;
-		else if (entry->m_name == "inverse_projection_mat4")        this->m_inverse_projection_mat4_offset        = entry->m_offset;
-		else if (entry->m_name == "inverse_view_projection_mat4")   this->m_inverse_view_projection_mat4_offset   = entry->m_offset;
-		else if (entry->m_name == "normal_mat4")                    this->m_normal_mat4_offset                    = entry->m_offset;
-		else if (entry->m_name == "camera_position")                this->m_camera_position_offset                = entry->m_offset;
-		//clang-format on
+		// clang-format off
+		if      (entry->m_name == "mvp_mat4")                      this->m_mvp_mat4_offset                     = entry->m_offset;
+		else if (entry->m_name == "model_mat4")                    this->m_model_mat4_offset                   = entry->m_offset;
+		else if (entry->m_name == "view_mat4")                     this->m_view_mat4_offset                    = entry->m_offset;
+		else if (entry->m_name == "projection_mat4")               this->m_projection_mat4_offset              = entry->m_offset;
+		else if (entry->m_name == "view_projection_mat4")          this->m_view_projection_mat4_offset         = entry->m_offset;
+		else if (entry->m_name == "inverse_projection_mat4")       this->m_inverse_projection_mat4_offset      = entry->m_offset;
+		else if (entry->m_name == "inverse_view_projection_mat4")  this->m_inverse_view_projection_mat4_offset = entry->m_offset;
+		else if (entry->m_name == "normal_mat4")                   this->m_normal_mat4_offset                  = entry->m_offset;
+		else if (entry->m_name == "camera_position")               this->m_camera_position_offset              = entry->m_offset;
+		// clang-format on
 	}
 
 	assert(size != 0 && "Couldn't determine per_view_uniform struct size in the UBO");

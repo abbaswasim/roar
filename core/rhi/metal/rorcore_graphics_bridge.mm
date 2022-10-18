@@ -32,22 +32,24 @@
 namespace rhi
 {
 // From https://github.com/spnda/metal-cpp-bug/blob/main/glfw_bridge.mm
-// Probably also need to add   target_compile_options(krypton_rapi PRIVATE "-fno-objc-arc") somewhere some day
+// Probably also need to add   target_compile_options(roar PRIVATE "-fno-objc-arc") somewhere some day
 void *get_metal_layer(std::any a_window,               // NSWindow 
 					  double a_width,                  // Width of the layer
 					  double a_height,                 // Height of the layer
 					  void *a_device,                  // MTLDevice pointer
 					  unsigned int a_pixel_format)     // MTLPixelFormat, usually RGBA8Unorm
 {
-	(void) a_pixel_format;
 	CGSize size = {};
-	size.height = a_height;
 	size.width  = a_width;
+	size.height = a_height;
 
 	CAMetalLayer *layer = [CAMetalLayer layer];
 	layer.device        = (__bridge static_cast<id<MTLDevice>>(a_device));
 	layer.pixelFormat   = static_cast<MTLPixelFormat>(a_pixel_format); // TODO: Find out why Metal only supports BGRA and not RGBA
 	layer.drawableSize  = size;
+	layer.opaque        = YES;
+
+	assert(layer.device && "CAMetalLayer device is null");
 
 	NSWindow *nswindow              = (__bridge std::any_cast<id>(a_window));
 	nswindow.contentView.layer      = layer;

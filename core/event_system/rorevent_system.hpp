@@ -132,7 +132,7 @@ struct Event
 	 * TODO: Check the performance of this, it might be slow due to typeid
 	 */
 	template <class _type>
-	bool is_compatible()
+	FORCE_INLINE constexpr bool is_compatible() const noexcept
 	{
 		return this->m_payload.has_value() && this->m_payload.type() == typeid(_type);
 	}
@@ -143,7 +143,7 @@ struct Event
 	 * of the requested type is requred
 	 */
 	template <class _type>
-	auto get_payload()
+	FORCE_INLINE constexpr auto get_payload() const noexcept
 	{
 		if (is_compatible<_type>())
 			return std::any_cast<_type>(this->m_payload);
@@ -201,19 +201,19 @@ constexpr EventType event_type(EventHandle a_handle)
 constexpr EventCode event_code(EventHandle a_handle)
 {
 	uint32_t mask = 0x0000FF00;
-	return static_cast<EventCode>(a_handle & mask);
+	return static_cast<EventCode>((a_handle & mask) >> 8);
 }
 
 constexpr EventModifier event_modifier(EventHandle a_handle)
 {
 	uint32_t mask = 0x00FF0000;
-	return static_cast<EventModifier>(a_handle & mask);
+	return static_cast<EventModifier>((a_handle & mask) >> 16);
 }
 
 constexpr EventState event_state(EventHandle a_handle)
 {
 	uint32_t mask = 0xFF000000;
-	return static_cast<EventState>(a_handle & mask);
+	return static_cast<EventState>((a_handle & mask) >> 24);
 }
 
 }        // namespace ror

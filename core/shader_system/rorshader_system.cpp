@@ -926,7 +926,7 @@ struct DirectionalLight
 	vec3  color;
 	vec3  direction;
 	float intensity;
-    float range;
+	float range;
 };
 
 layout(std140, set = @, binding = @) uniform directional_light_uniform
@@ -944,7 +944,7 @@ struct PointLight
 	vec3  color;
 	vec3  position;
 	float intensity;
-    float range;
+	float range;
 };
 
 layout(std140, set = @, binding = @) uniform point_light_uniform
@@ -963,7 +963,7 @@ struct SpotLight
 	vec3  position;
 	vec3  direction;
 	float intensity;
-    float range;
+	float range;
 	float inner_angle;
 	float outer_angle;
 };

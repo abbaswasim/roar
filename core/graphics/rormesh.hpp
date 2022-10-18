@@ -76,7 +76,8 @@ class ROAR_ENGINE_ITEM Mesh final
 	void      upload(rhi::Device &a_device);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto weights_count() const noexcept  { return this->m_morph_weights.size(); }
+	FORCE_INLINE constexpr auto  weights_count() const noexcept  { return this->m_morph_weights.size();        }
+	FORCE_INLINE constexpr auto &shader_buffer() const noexcept  { return this->m_morph_weights_shader_buffer; }
 	// clang-format on
 
 	// TODO: Flatten this into 'Mesh' into 'Models' etc to see if I get cache locallity

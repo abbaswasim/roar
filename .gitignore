@@ -19,6 +19,7 @@ compile_commands.json
 xcodebuild
 tools
 .cache
+.simple-debug.el
 roar_test_project
 _thirdparty-software
 compile_flags_back.txt

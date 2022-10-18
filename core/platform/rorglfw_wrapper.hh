@@ -27,7 +27,9 @@
 
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
+#include "foundation/rorutilities.hpp"
 #include "math/rorvector2.hpp"
+#include "math/rorvector4.hpp"
 #include "platform/rorglfw_wrapper.hpp"
 #include "settings/rorsettings.hpp"
 #include <cstddef>
@@ -118,6 +120,18 @@ FORCE_INLINE GLFWwindow *GLFWwindowWrapper<_type>::window()
 }
 
 template <class _type>
+FORCE_INLINE ror::Vector4ui GLFWwindowWrapper<_type>::dimensions()
+{
+	ror::Vector4i dimensions;
+
+	glfwGetFramebufferSize(this->m_window, &dimensions.x, &dimensions.y);
+	glfwGetWindowSize(this->m_window, &dimensions.z, &dimensions.w);
+
+	return {static_cast<uint32_t>(dimensions.x), static_cast<uint32_t>(dimensions.y),
+	        static_cast<uint32_t>(dimensions.z), static_cast<uint32_t>(dimensions.w)};
+}
+
+template <class _type>
 FORCE_INLINE EventSystem &glfw_event_system(GLFWwindow *a_window)
 {
 	auto *app = glfw_user_pointer<_type>(a_window);
@@ -141,13 +155,12 @@ void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button
 		*draging = false;
 	};
 
-	auto drag_test = [draging, event_system, a_mouse_button](Event &a_event) {
-		(void) a_event;
-
+	auto drag_test = [draging, &event_system, a_mouse_button](Event &a_event) {
 		if (*draging)
 		{
 			auto event_handle = create_event_handle(EventType::mouse, EventCode::none, a_mouse_button, EventState::drag);
-			event_system.notify({event_handle, true});
+			auto payload      = a_event.get_payload<ror::Vector2d>();
+			event_system.notify({event_handle, true, payload});
 		}
 	};
 
@@ -186,12 +199,12 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 template <class _type>
 void glfw_window_resize_callback(GLFWwindow *a_window, int a_width, int a_height)
 {
-	if (a_width == 0 || a_height == 0)
+	if (a_width <= 0 || a_height <= 0)
 		return;
 
 	auto  event_handle = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::resize);
 	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({event_handle, true, ror::Vector2i{a_width, a_height}});
+	event_system.notify({event_handle, true, ror::Vector2ui{static_cast<uint32_t>(a_width), static_cast<uint32_t>(a_height)}});
 }
 
 template <class _type>
@@ -211,12 +224,12 @@ void glfw_key_callback(GLFWwindow *a_window, int a_key, int a_scancode, int a_ac
 template <class _type>
 void glfw_buffer_resize_callback(GLFWwindow *a_window, int a_width, int a_height)
 {
-	if (a_width == 0 || a_height == 0)
+	if (a_width <= 0 || a_height <= 0)
 		return;
 
 	auto  event_handle = create_event_handle(EventType::buffer, EventCode::none, EventModifier::none, EventState::resize);
 	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({event_handle, true, ror::Vector2i{a_width, a_height}});
+	event_system.notify({event_handle, true, ror::Vector2ui{static_cast<uint32_t>(a_width), static_cast<uint32_t>(a_height)}});
 }
 
 template <class _type>

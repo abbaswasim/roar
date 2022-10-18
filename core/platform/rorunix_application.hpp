@@ -26,6 +26,7 @@
 #pragma once
 
 #include "event_system/rorevent_system.hpp"
+#include "math/rorvector4.hpp"
 #include "platform/rorapplication.hpp"
 #include "platform/rorglfw_wrapper.hpp"
 
@@ -50,9 +51,19 @@ class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 
 	declare_translation_unit_vtable();
 
-	FORCE_INLINE UnixApp() :
+	FORCE_INLINE UnixApp()
+#if defined USE_GLFW
+	    :
 	    m_glfw_window(this)
+#endif
 	{}
+
+	FORCE_INLINE ror::Vector4ui dimensions()
+	{
+#if defined USE_GLFW
+		return this->m_glfw_window.dimensions();
+#endif
+	}
 
 	FORCE_INLINE void loop()
 	{

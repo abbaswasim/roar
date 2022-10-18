@@ -46,6 +46,34 @@ namespace rhi
 define_translation_unit_vtable(ProgramMetal)
 {}
 
+/*
+
+Metal vertex attributes to shader and buffer mapping
+
+uint32_t pos_loc = 4
+uint32_t nor_loc = 0
+
+struct Vertex
+{
+    float3 normal        [[attribute(pos_loc)]];
+    float3 position      [[attribute(nor_loc)]];
+};
+
+These attribute(index) in shader needs to match atIndex:index from api side at buffer binding time
+
+[cmd_encoder setVertexBuffer:normals offset:0 atIndex:pos_loc];
+[cmd_encoder setVertexBuffer:positions offset:0 atIndex:nor_loc];
+
+Although the order or sequence doesn't matter, the idices needs to match.
+You can have all attributes in one buffer with offets for each separate attribute like the following
+
+[cmd_encoder setVertexBuffer:positions offset:position_offset atIndex:pos_loc];
+[cmd_encoder setVertexBuffer:positions offset:normals_offset atIndex:nor_loc];
+
+The offset required for interleaved can be provided via vertex attribute or at attach time for specific vertex [[attribute(pos_loc)]]
+The order of attribute and layout in vertex attribute descriptor specification time doesn't matter the "index/location" matters
+*/
+
 static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>> &a_meshes, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_depth_shadow)
 {
 	const auto &mesh                     = a_meshes[a_mesh_index];
@@ -61,23 +89,22 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 	for (const auto &morph_descriptor : morph_vertex_descriptors)
 		descriptors.emplace_back(morph_descriptor);
 
-	uint32_t layout_index = 0;
 	for (auto &descriptor : descriptors)
 	{
 		const auto &attributes = descriptor.get().attributes();
-		for (auto &attribs : attributes)
+		for (auto &attrib : attributes)
 		{
-			if (is_attribute_required_in_pass(attribs.semantics(), a_depth_shadow))
+			if (is_attribute_required_in_pass(attrib.semantics(), a_depth_shadow))
 			{
-				auto *vertex_descriptor_attribute = mtl_vertex_descriptor->attributes()->object(attribs.location());
-				vertex_descriptor_attribute->setFormat(to_metal_vertexformat(attribs.format()));
-				vertex_descriptor_attribute->setBufferIndex(layout_index);        // attribs.buffer_index());        // This is actually the layout index in the mtl_vertex_descriptor, 0 means first layout 1 means second and so on, "The index in the argument table for the associated vertex buffer"
-				vertex_descriptor_attribute->setOffset(static_cast<unsigned long>(attribs.buffer_offset()));
+				auto  attribute_index             = attrib.location();        // This doesn't have to be sequential, as long as it matches for an attribute to its corresponding layout
+				auto *vertex_descriptor_attribute = mtl_vertex_descriptor->attributes()->object(attribute_index);
+				vertex_descriptor_attribute->setFormat(to_metal_vertexformat(attrib.format()));
+				vertex_descriptor_attribute->setBufferIndex(attribute_index);        // The index in the argument table for the associated vertex buffer
+				vertex_descriptor_attribute->setOffset(static_cast<unsigned long>(attrib.buffer_offset() + attrib.offset()));
 
-				auto &layout = descriptor.get().layout(attribs.semantics());
+				auto &layout = descriptor.get().layout(attrib.semantics());
 
-				auto *vertex_descriptor_layout = mtl_vertex_descriptor->layouts()->object(layout_index++);        // layout.binding());
-
+				auto *vertex_descriptor_layout = mtl_vertex_descriptor->layouts()->object(attribute_index);
 				vertex_descriptor_layout->setStride(layout.stride());
 				vertex_descriptor_layout->setStepFunction(to_metal_step_function(layout.step_function()));
 			}

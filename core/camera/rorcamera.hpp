@@ -64,8 +64,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE OrbitCamera &operator=(OrbitCamera &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE ~OrbitCamera() noexcept                                  = default;        //! Destructor
 
-	FORCE_INLINE void       set_bounds(int32_t a_width, int32_t a_height);
-	FORCE_INLINE void       get_bounds(int32_t &a_width, int32_t &a_height);
+	FORCE_INLINE void       set_bounds(uint32_t a_width, uint32_t a_height);
+	FORCE_INLINE void       get_bounds(uint32_t &a_width, uint32_t &a_height);
 	FORCE_INLINE void       set_visual_volume(Vector3f a_minimum, Vector3f a_maximum);
 	FORCE_INLINE Matrix4f   get_model_view_projection();
 	FORCE_INLINE Matrix4f   get_view_projection();
@@ -83,16 +83,20 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE float32_t  y_fov();
 	FORCE_INLINE void       aspect_ratio(float32_t a_far);
 	FORCE_INLINE float32_t  aspect_ratio();
-	FORCE_INLINE void       width(int32_t a_far);
-	FORCE_INLINE int32_t    width();
-	FORCE_INLINE void       height(int32_t a_far);
-	FORCE_INLINE int32_t    height();
+	FORCE_INLINE void       width(uint32_t a_far);
+	FORCE_INLINE uint32_t   width();
+	FORCE_INLINE void       height(uint32_t a_far);
+	FORCE_INLINE uint32_t   height();
 	void                    init(EventSystem &a_event_system);
 	void                    enable();
 	void                    disable();
 	void                    update();
 	void                    upload(rhi::Device &a_device);
 	void                    fill_shader_buffer();
+
+	// clang-format off
+	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; }
+	// clang-format on
 
   private:
 	FORCE_INLINE void left_key_function(double64_t &a_x_delta, double64_t &a_y_delta);
@@ -125,8 +129,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t                    m_z_near{0.1f};                                  //! z-near of the camera
 	float32_t                    m_z_far{1000.0f};                                //! z-far of the camera
 	float32_t                    m_aspect_ratio{1.0f};                            //! Aspect ratio of the camera
-	int32_t                      m_width{800};                                    //! Width of the rectangle it needs to fill
-	int32_t                      m_height{600};                                   //! Height of the rectangle it needs to fill
+	uint32_t                     m_width{800};                                    //! Width of the rectangle it needs to fill
+	uint32_t                     m_height{600};                                   //! Height of the rectangle it needs to fill
 	CameraType                   m_type{CameraType::perspective};                 //! Default perspective camera
 	EventSystem                 *m_event_system{nullptr};                         //! A non-owning alias of the event system to not have to keep moving this around
 	std::function<void(Event &)> m_drag_callback{};                               //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system

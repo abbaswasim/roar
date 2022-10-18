@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rorcrtp.hpp"
 #include "foundation/rorjobsystem.hpp"
@@ -53,9 +54,9 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 
 	// clang-format off
 	FORCE_INLINE void         loop()                                     {     this->underlying().loop();                        }
-	FORCE_INLINE void         resize(int a_width, int a_height)          {     this->underlying().resize(a_width, a_height);     }
 	FORCE_INLINE std::any     window()                                   {     return this->underlying().window();               }
 	FORCE_INLINE std::any     platform_window()                          {     return this->underlying().platform_window();      }
+	FORCE_INLINE auto         dimensions()                               {     return this->underlying().dimensions();           }
 	FORCE_INLINE EventSystem &event_system()                             {     return this->m_context.event_system();            }
 	// clang-format on
 
@@ -76,12 +77,22 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 
   protected:
 	// This is protected so that no one can create pointers to base Application
-	FORCE_INLINE Application() = default;        //! Default constructor
+	FORCE_INLINE Application()        //! Default constructor
+	{
+		auto renderer_resize = [this](Event &a_event) {
+			auto &renderer = this->m_context.renderer();
+			renderer.dimensions(a_event.get_payload<ror::Vector2ui>());
+		};
+
+		auto &event_system = this->m_context.event_system();
+		event_system.subscribe(buffer_resize, renderer_resize);
+	}
 
   private:
 	FORCE_INLINE void init()
 	{
-		this->m_context.init(this->platform_window());
+		ror::Vector4ui dimensions = this->dimensions();        // For the first time need to get framebuffer size, for later we have registered a callback
+		this->m_context.init(this->platform_window(), {dimensions.x, dimensions.y});
 		this->m_context.post_init();
 	}
 

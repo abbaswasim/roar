@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "camera/rorcamera.hpp"
+#include "event_system/rorevent_system.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
@@ -179,7 +180,7 @@ void Scene::update(double64_t a_milli_seconds)
 	(void) a_milli_seconds;
 }
 
-void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer)
+void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system)
 {
 	auto model_nodes{0u};
 	for (auto &node : this->m_nodes_data)
@@ -229,7 +230,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	}
 
 	// Lets kick off shader generation while we upload the buffers
-	auto shader_gen_job_handle = a_job_system.push_job([this, &a_renderer, &a_device, &a_job_system]() -> auto{ this->generate_shaders(a_renderer, a_device, a_job_system); return true; });
+	auto shader_gen_job_handle = a_job_system.push_job([this, &a_renderer, &a_device, &a_job_system, &a_event_system]() -> auto{ this->generate_shaders(a_renderer, a_device, a_job_system, a_event_system); return true; });
 
 	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
 	// TODO: find out this might need to be done differently for Vulkan
@@ -280,7 +281,7 @@ hash_64_t pass_aware_fragment_hash(hash_64_t a_fragment_hash, hash_64_t a_vertex
 	return fragment_hash;
 }
 
-void Scene::generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::JobSystem &a_job_system)
+void Scene::generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::JobSystem &a_job_system, ror::EventSystem& a_event_system)
 {
 	const std::vector<rhi::RenderpassType> render_pass_types = a_renderer.render_pass_types();
 
@@ -435,10 +436,10 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_dev
 
 	log_warn("Actual number of shaders created {} ", this->m_shaders.size());
 
-	this->upload(a_renderer, a_device);
+	this->upload(a_renderer, a_device, a_event_system);
 }
 
-void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device)
+void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem& a_event_system)
 {
 	auto render_passes = a_renderer.current_frame_graph();
 
@@ -480,6 +481,7 @@ void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device)
 	// Upload cameras
 	for (auto &camera : this->m_cameras)
 	{
+		camera.init(a_event_system);
 		camera.upload(a_device);
 	}
 }

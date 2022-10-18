@@ -44,12 +44,12 @@
 #include <limits>
 #include <unordered_map>
 
+// TODO: Remove me
+#include <Metal/MTLRenderCommandEncoder.hpp>
+
 namespace ror
 {
 // TODO: Define properly somewhere
-class ROAR_ENGINE_ITEM RenderDevice
-{};
-
 class ROAR_ENGINE_ITEM ParticleSystem
 {};
 
@@ -74,6 +74,10 @@ class ROAR_ENGINE_ITEM Light
 	void update();
 	void upload(rhi::Device &a_device);
 	void fill_shader_buffer();
+
+	// clang-format off
+	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; }
+	// clang-format on
 
 	LightType m_type{LightType::directional};                        //! Light type
 	Matrix4f  m_mvp{};                                               //! Model view projection of the light, used in shadow mapping
@@ -179,7 +183,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	void render(const RenderDevice *a_rendering_device);
 	void update(double64_t a_milli_seconds);
-	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device,  const ror::Renderer& a_renderer);
+	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device,  const ror::Renderer& a_renderer, ror::EventSystem &a_event_system);
 	void unload();
 	void load_specific();
 
@@ -191,7 +195,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE const auto &programs()         const    {  return this->m_programs;        }
     FORCE_INLINE const auto &global_shaders()   const    {  return this->m_shaders;         }
 	FORCE_INLINE const auto &global_programs()  const    {  return this->m_global_programs; }
-	FORCE_INLINE const auto &cameras()          const    {  return this->m_cameras;         }
+	FORCE_INLINE       auto &cameras()                   {  return this->m_cameras;         }
 	FORCE_INLINE const auto &lights()           const    {  return this->m_lights;          }
 	// clang-format on
 
@@ -201,8 +205,8 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void read_cameras();
 	void read_programs();
 	void read_probes();
-	void generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::JobSystem &a_job_system);
-	void upload(const ror::Renderer &a_renderer, rhi::Device &a_device);
+	void generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::JobSystem &a_job_system, ror::EventSystem& a_event_system);
+	void upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem& a_event_system);
 
 	using RenderpassPrograms = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;
 

@@ -29,6 +29,7 @@
 #include "foundation/rorcrtp.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "graphics/rorscene.hpp"
+#include "math/rorvector2.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rordevice.hpp"
@@ -47,7 +48,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE ContextCrtp &operator=(ContextCrtp &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ContextCrtp() noexcept override                 = default;        //! Destructor
 
-	FORCE_INLINE void init(std::any a_window)
+	FORCE_INLINE void init(std::any a_window, ror::Vector2ui a_dimensions)
 	{
 		this->m_current_device->init(a_window);
 
@@ -57,10 +58,11 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		// Initialize glslang library via our wrapper, calling glslang directly means we need to link it with editor which creaates all kinds of issues
 		glslang_wrapper_initialize_process();
 
+		this->m_renderer.dimensions(a_dimensions);
 		this->m_renderer.upload(*this->m_current_device);
 
 		// Load all the models now in a deferred way
-		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer);
+		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer, this->m_event_system);
 
 		this->underlying().init_derived();
 	}

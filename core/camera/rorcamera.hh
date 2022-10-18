@@ -85,13 +85,13 @@ void OrbitCamera::look_at()
 	// TODO: Create normal matrix for xforming normals from transpose of inverse of model-view (top 3x3) without translations Transpose and Inverse removes non-uniform scale from it
 }
 
-void OrbitCamera::set_bounds(int32_t a_width, int32_t a_height)
+void OrbitCamera::set_bounds(uint32_t a_width, uint32_t a_height)
 {
 	this->m_width  = a_width;
 	this->m_height = a_height;
 }
 
-void OrbitCamera::get_bounds(int32_t &a_width, int32_t &a_height)
+void OrbitCamera::get_bounds(uint32_t &a_width, uint32_t &a_height)
 {
 	a_width  = this->m_width;
 	a_height = this->m_height;
@@ -218,22 +218,22 @@ float32_t OrbitCamera::aspect_ratio()
 	return this->m_aspect_ratio;
 }
 
-void OrbitCamera::width(int32_t a_width)
+void OrbitCamera::width(uint32_t a_width)
 {
 	this->m_width = a_width;
 }
 
-int32_t OrbitCamera::width()
+uint32_t OrbitCamera::width()
 {
 	return this->m_width;
 }
 
-void OrbitCamera::height(int32_t a_height)
+void OrbitCamera::height(uint32_t a_height)
 {
 	this->m_height = a_height;
 }
 
-int32_t OrbitCamera::height()
+uint32_t OrbitCamera::height()
 {
 	return this->m_height;
 }

@@ -135,6 +135,10 @@ class ROAR_ENGINE_ITEM Material final
 	void update();
 	void upload(rhi::Device &a_device);
 	void fill_shader_buffer();
+
+	// clang-format off
+	FORCE_INLINE constexpr auto &shader_buffer() const noexcept  { return this->m_shader_buffer; }
+	// clang-format on
 };
 
 // static_assert(std::is_trivially_copyable_v<Material>, "Material is not trivially copyable");

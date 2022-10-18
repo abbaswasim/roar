@@ -53,6 +53,7 @@ class ROAR_ENGINE_ITEM TextureSamplerMetal : public TextureSamplerCrtp<TextureSa
   public:
 	void upload(rhi::Device& a_device);
 
+	FORCE_INLINE constexpr auto platform_handle() const noexcept;
   protected:
   private:
 	declare_translation_unit_vtable();

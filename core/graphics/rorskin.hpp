@@ -47,7 +47,8 @@ class ROAR_ENGINE_ITEM Skin
 	FORCE_INLINE ~Skin() noexcept                         = default;        //! Destructor
 
 	// clang-format off
-	FORCE_INLINE constexpr auto joints_count() const noexcept  { return this->m_joints.size(); }
+	FORCE_INLINE constexpr auto  joints_count() const noexcept   { return this->m_joints.size();                 }
+	FORCE_INLINE constexpr auto &shader_buffer() const noexcept  { return this->m_joint_transform_shader_buffer; }
 	// clang-format on
 
 	void update()

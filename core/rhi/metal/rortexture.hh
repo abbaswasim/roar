@@ -33,4 +33,9 @@ FORCE_INLINE constexpr auto TextureImageMetal::platform_handle() const noexcept
 	return this->m_texture;
 }
 
+FORCE_INLINE constexpr auto TextureSamplerMetal::platform_handle() const noexcept
+{
+	return this->m_sampler;
+}
+
 }        // namespace rhi

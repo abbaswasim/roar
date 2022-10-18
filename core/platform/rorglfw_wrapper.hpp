@@ -27,7 +27,7 @@
 
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rormacros.hpp"
-#include "profiling/rorlog.hpp"
+#include "math/rorvector4.hpp"
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -91,6 +91,7 @@ class ROAR_ENGINE_ITEM GLFWwindowWrapper final
 
 	FORCE_INLINE void        loop();
 	FORCE_INLINE GLFWwindow *window();
+	FORCE_INLINE ror::Vector4ui dimensions();
 
   protected:
   private:
