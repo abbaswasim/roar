@@ -65,7 +65,7 @@ void BuffersFormatConfig::load_specific()
 			buffer.size(size);
 
 			if (b.contains("interleaved"))
-				buffer.interleaved(b["interleaved"] == "global" ? false : true);
+				buffer.interleaved(b["interleaved"]);
 
 			auto semantics = b["semantic"];
 			for (auto &f : semantics)

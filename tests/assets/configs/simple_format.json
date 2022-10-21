@@ -7,6 +7,7 @@
 			"buffers":[
 				{
 					"size":150,
+					"interleaved":true,
 					"semantic":[
 						{
 							"vertex_position":100,
@@ -17,7 +18,6 @@
 				},
 				{
 					"size":200,
-					"interleaved":"global",
 					"semantic":[
 						{
 							"vertex_texture_coord_0":100,
@@ -28,7 +28,6 @@
 				},
 				{
 					"size":200,
-					"interleaved":"global",
 					"semantic":[
 					]
 				}

@@ -154,13 +154,13 @@ ptrdiff_t BufferCrtp<_type, _derived>::filled_size() const noexcept
 template <typename _type, typename _derived>
 void BufferCrtp<_type, _derived>::interleaved(bool a_interleaved) noexcept
 {
-	this->m_interleaved_local = a_interleaved;
+	this->m_interleaved = a_interleaved;
 }
 
 template <typename _type, typename _derived>
 bool BufferCrtp<_type, _derived>::interleaved() const noexcept
 {
-	return this->m_interleaved_local;
+	return this->m_interleaved;
 }
 
 template <typename _type, typename _derived>

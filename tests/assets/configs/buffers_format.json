@@ -8,6 +8,7 @@
 			"buffers":[
 				{
 					"size":1,
+					"interleaved": true,
 					"semantic":[
 						{
 							"vertex_position":100,
@@ -18,6 +19,7 @@
 				},
 				{
 					"size":1,
+					"interleaved": true,
 					"semantic":[
 						{
 							"vertex_texture_coord_0":100,
@@ -28,6 +30,7 @@
 				},
 				{
 					"size":1,
+					"interleaved": true,
 					"semantic":[
 						{
 							"vertex_index":100
@@ -36,6 +39,7 @@
 				},
 				{
 					"size":1,
+					"interleaved": true,
 					"semantic":[
 						{
 							"instance_translation":80,
@@ -46,7 +50,6 @@
 				},
 				{
 					"size":1,
-					"interleaved":"global",
 					"semantic":[
 
 					]
@@ -58,7 +61,7 @@
 			"buffers":[
 				{
 					"size":1,
-					"interleaved":"local",
+					"interleaved": true,
 					"semantic":[
 
 					]
@@ -70,7 +73,6 @@
 			"buffers":[
 				{
 					"size":1,
-					"interleaved":"global",
 					"semantic":[
 
 					]
@@ -82,7 +84,7 @@
 			"buffers":[
 				{
 					"size":1,
-					"interleaved":"local",
+					"interleaved": true,
 					"semantic":[
 						{
 							"vertex_position":30,
@@ -95,7 +97,6 @@
 				},
 				{
 					"size":1,
-					"interleaved":"global",
 					"semantic":[
 
 					]
@@ -107,7 +108,7 @@
 			"buffers":[
 				{
 					"size":1,
-					"interleaved":"local",
+					"interleaved": true,
 					"semantic":[
 						{
 							"vertex_position":20
@@ -174,7 +175,6 @@
 				},
 				{
 					"size":1,
-					"interleaved":"global",
 					"semantic":[
 
 					]
