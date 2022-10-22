@@ -1088,6 +1088,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						}
 
 						// TODO: GL expects stride to be zero if data is tightly packed
+						// NOTE: cgltf buffer_view->stride vs accessor->stride notes
+						// If buffer_view is valid and has a stride and not zero (0), accessor->stride == buffer_view->stride
+						// If buffer_view does not have a stride or its zero. accessor->stride is calculated from format byte size * number of components
+						// What this means is that if (buffer_view->stride == 0) it means tightly packed data, use accessor->stride as stride from one element to another
+						// If buffer->view->stride != 0 that means not-tightly packed data, stride is accessor->stride which is equal to buffer_view->stride
+						// This buffer_view->stride is only valid for attributes of if enabled by extensions
 
 						const auto *attrib_accessor  = attrib.data;
 						auto        attrib_format    = get_format_from_gltf_type_format(attrib_accessor->type, attrib_accessor->component_type);
@@ -1125,12 +1131,13 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						auto index_format            = get_format_from_gltf_type_format(cprim.indices->type, cprim.indices->component_type);
 
 						// TODO: GL expects stride to be zero if data is tightly packed
-						assert(!cprim.indices->is_sparse && "Sparce index buffers not supported");
+						assert(!cprim.indices->is_sparse && "Sparse index buffers not supported");
 
 						auto attrib_accessor   = cprim.indices;
 						auto buffer_index      = find_safe_index(buffer_to_index, cprim.indices->buffer_view->buffer);
 						auto indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
-						auto stride            = cprim.indices->buffer_view->stride;
+						auto offset            = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
+						auto stride            = cprim.indices->stride;
 
 						if (attrib_accessor->normalized)
 							ror::log_critical("Attribute Index data is normalised but there is no support at the moment for normalised data");
@@ -1138,7 +1145,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this index buffer");
 						uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
 
-						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, attrib_accessor->count * indices_byte_size, stride};
+						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * indices_byte_size, stride};
 						attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
 
 						vertex_attribute_descriptor.add(rhi::BufferSemantic::vertex_index, index_format, &bp);
@@ -1302,16 +1309,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 					cgltf_accessor_unpack_floats(inverse_bind_matrices_accessor,
 					                             reinterpret_cast<cgltf_float *>(skin.m_inverse_bind_matrices.data()),
 					                             skin.m_inverse_bind_matrices.size() * 16);
-
-					auto attrib_byte_size = cgltf_calc_size(inverse_bind_matrices_accessor->type, inverse_bind_matrices_accessor->component_type);
-
-					assert(inverse_bind_matrices_accessor->stride == attrib_byte_size && "Looks like inverse_bind_matrices data is interleaved, not supported");
-
-					// TODO: This is only required because GL expects stride to be zero if data is tightly packed
-					if (inverse_bind_matrices_accessor->buffer_view->stride >= attrib_byte_size)
-					{
-						ror::log_warn("Stride was suppose to be adjusted for GL, it won't work in Vulkan/Metal/DX");
-					}
 				}
 
 				skin.m_joints.reserve(cskin.joints_count);
