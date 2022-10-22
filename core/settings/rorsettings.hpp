@@ -126,6 +126,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_metal.version_major            = setting.get<uint32_t>("metal:version_major");
 		this->m_metal.version_minor            = setting.get<uint32_t>("metal:version_minor");
 		this->m_metal.argument_buffers         = setting.get<bool>("metal:argument_buffers");
+		this->m_metal.decoration_bindings      = setting.get<bool>("metal:force_spirv_bindings");
 		this->m_metal.indirect_command_buffers = setting.get<bool>("metal:indirect_command_buffers");
 
 		this->m_vulkan.version_major = setting.get<uint32_t>("vulkan:version_major");
@@ -188,6 +189,7 @@ class ROAR_ENGINE_ITEM Settings final
 	struct MetalOptions : public Options
 	{
 		bool argument_buffers{true};
+		bool decoration_bindings{true};
 		bool indirect_command_buffers{false};
 	};
 

@@ -131,30 +131,27 @@ void OrbitCamera::zoom_by(double64_t a_zoom_delta)
 
 	if (this->m_zooming_depth > abs_camera_depth)
 		this->m_zooming_depth = abs_camera_depth;
-
-	// Now update the MVP and the likes
-	this->look_at();
 }
 
 void OrbitCamera::left_key_function(double64_t &a_x_delta, double64_t &a_y_delta)
 {
-	this->m_x_rotation += static_cast<float32_t>(0.05f * static_cast<float32_t>(a_y_delta));
-	this->m_z_rotation += static_cast<float32_t>(0.05f * static_cast<float32_t>(a_x_delta));
+	this->m_x_rotation += static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_y_delta));
+	this->m_z_rotation += static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_x_delta));
 }
 
 void OrbitCamera::middle_key_function(double64_t &a_x_delta, double64_t &a_y_delta)
 {
-	this->m_x_translation += static_cast<float32_t>(0.05f * static_cast<float32_t>(a_x_delta));
-	this->m_y_translation -= static_cast<float32_t>(0.05f * static_cast<float32_t>(a_y_delta));
+	this->m_x_translation += static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_x_delta));
+	this->m_y_translation -= static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_y_delta));
 }
 
 void OrbitCamera::right_key_function(double64_t &a_x_delta, double64_t &a_y_delta)
 {
 	(void) a_y_delta;
-	this->m_zooming_depth += static_cast<float32_t>(0.05f * static_cast<float32_t>(a_x_delta));
+	this->m_zooming_depth += static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_x_delta));
 
 	auto abs_camera_depth = fabs(this->m_camera_depth);
-	abs_camera_depth      = abs_camera_depth - fmax(1.0f, abs_camera_depth * 0.1f);
+	abs_camera_depth      = abs_camera_depth - fmax(1.0f, abs_camera_depth * 0.001f);
 
 	if (this->m_zooming_depth > abs_camera_depth)
 		this->m_zooming_depth = abs_camera_depth;
@@ -164,8 +161,6 @@ void OrbitCamera::set_visual_volume(Vector3f a_minimum, Vector3f a_maximum)
 {
 	this->m_minimum = a_minimum;
 	this->m_maximum = a_maximum;
-
-	this->look_at();
 }
 
 void OrbitCamera::type(CameraType a_type)

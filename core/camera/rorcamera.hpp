@@ -26,6 +26,7 @@
 #pragma once
 
 #include "event_system/rorevent_system.hpp"
+#include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "math/rormatrix3.hpp"
 #include "math/rormatrix4.hpp"

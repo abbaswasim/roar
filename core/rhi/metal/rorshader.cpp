@@ -1,4 +1,3 @@
-
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
@@ -108,7 +107,8 @@ void ShaderMetal::platform_source()
 
 	spirv_cross::CompilerMSL::Options options;
 	options.set_msl_version(setting.m_metal.version_major, setting.m_metal.version_minor);
-	options.argument_buffers = setting.m_metal.argument_buffers;
+	options.argument_buffers          = setting.m_metal.argument_buffers;
+	options.enable_decoration_binding = setting.m_metal.decoration_bindings;
 	msl.set_msl_options(options);
 
 	this->m_msl_source = msl.compile();

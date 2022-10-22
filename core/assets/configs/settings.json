@@ -21,13 +21,14 @@
 	"renderer_config" : "renderer.json",
 	"force_rgba_textures" : true,
 	"print_generated_shaders" : false,
-	"write_generated_shaders" : true,
+	"write_generated_shaders" : false,
 	"clean_on_boot" : true,
 	"metal" :
 	{
 		"version_major" : 3,
 		"version_minor" : 0,
-		"argument_buffers" : true,
+		"argument_buffers" : false,
+		"force_spirv_bindings" : true,
 		"indirect_command_buffers" : false
 	},
 	"vulkan" :

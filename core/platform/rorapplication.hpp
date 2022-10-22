@@ -31,6 +31,7 @@
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "graphics/rorscene.hpp"
+#include "math/rorvector2.hpp"
 #include "rhi/rorbuffers_format.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorcontext.hpp"
