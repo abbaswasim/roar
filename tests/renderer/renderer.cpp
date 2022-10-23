@@ -26,7 +26,7 @@ void test_render_targets(const std::vector<rhi::RenderTarget> a, std::vector<rhi
 	}
 }
 
-void test_render_pass(rhi::Renderpass                       rdps,
+void test_render_pass(const rhi::Renderpass                 rdps,
                       std::vector<rhi::RenderTarget>        a_render_targets,
                       ror::Vector2ui                        a_dimensions,
                       ror::Vector4ui                        a_viewport,
@@ -96,10 +96,14 @@ TEST(RendererTest, config_load)
 	std::vector<std::vector<uint32_t>> empty_indices{};
 	// Test forward
 	{
-		auto rdpses = fgphs["forward"];
+		auto rdpses = fgphs.at("forward");
 
 		ror::Vector4ui viewport{0, 0, 1024, 768};
 		ror::Vector2ui dimensions{1024, 768};
+
+		// const_cast is only allowed in tests
+		rhi::RenderTarget rt0{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store};
+		rhi::RenderTarget rt1{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store};
 
 		uint32_t index = 0;
 		for (auto rdps : rdpses)
@@ -108,7 +112,7 @@ TEST(RendererTest, config_load)
 			{
 				case 0:
 					test_render_pass(rdps,
-					                 {{2, rtgs[2], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt0},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -123,7 +127,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 1:
 					test_render_pass(rdps,
-					                 {{0, rtgs[0], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt1},
 					                 dimensions,
 					                 viewport,
 					                 {0},        // Parents
@@ -143,10 +147,17 @@ TEST(RendererTest, config_load)
 
 	// Test deferred
 	{
-		auto rdpses = fgphs["deferred"];
+		auto rdpses = fgphs.at("deferred");
 
 		ror::Vector4ui viewport{0, 0, 1024, 768};
 		ror::Vector2ui dimensions{1024, 768};
+
+		// const_cast is only allowed in tests
+		rhi::RenderTarget rt0{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store};
+		rhi::RenderTarget rt1{1, const_cast<rhi::TextureImage &>(rtgs[1]), rhi::LoadAction::clear, rhi::StoreAction::store};
+		rhi::RenderTarget rt2{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store};
+		rhi::RenderTarget rt3{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::store};
+		rhi::RenderTarget rt4{4, const_cast<rhi::TextureImage &>(rtgs[4]), rhi::LoadAction::clear, rhi::StoreAction::store};
 
 		uint32_t index = 0;
 		for (auto rdps : rdpses)
@@ -155,7 +166,7 @@ TEST(RendererTest, config_load)
 			{
 				case 0:
 					test_render_pass(rdps,
-					                 {{3, rtgs[3], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt3},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -170,7 +181,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 1:
 					test_render_pass(rdps,
-					                 {{4, rtgs[4], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt4},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -185,7 +196,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 2:
 					test_render_pass(rdps,
-					                 {{0, rtgs[0], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt0},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -200,7 +211,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 3:
 					test_render_pass(rdps,
-					                 {{0, rtgs[0], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt0},
 					                 dimensions,
 					                 viewport,
 					                 {},        // Parents
@@ -215,7 +226,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 4:
 					test_render_pass(rdps,
-					                 {{0, rtgs[0], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt0},
 					                 dimensions,
 					                 viewport,
 					                 {1},        // Parents
@@ -230,7 +241,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 5:
 					test_render_pass(rdps,
-					                 {{2, rtgs[2], rhi::LoadAction::clear, rhi::StoreAction::store}, {3, rtgs[3], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt2, rt3},
 					                 dimensions,
 					                 viewport,
 					                 {0, 1},        // Parents
@@ -246,7 +257,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 6:
 					test_render_pass(rdps,
-					                 {{2, rtgs[2], rhi::LoadAction::clear, rhi::StoreAction::store}, {3, rtgs[3], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt2, rt3},
 					                 dimensions,
 					                 viewport,
 					                 {0},        // Parents
@@ -261,7 +272,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 7:
 					test_render_pass(rdps,
-					                 {{2, rtgs[2], rhi::LoadAction::clear, rhi::StoreAction::store}, {3, rtgs[3], rhi::LoadAction::clear, rhi::StoreAction::store}},
+					                 {rt2, rt3},
 					                 dimensions,
 					                 viewport,
 					                 {0},        // Parents

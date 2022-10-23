@@ -88,7 +88,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	/**
 	 * Use this constructor if you want the system to work out what layout and mapping you need
 	 * Just provide the attribute semantics, the only compulsory argument and optional format, step function and rate and let VertexDescriptor take care of the rest for you
-	 * Rate is special, if any of the formats are custom then rate is split between two uin16_t, lower bits has rate while upper bits has format multiplier
+	 * Rate is special, if any of the formats are custom then rate is split between two uint16_t, lower bits has rate while upper bits has format multiplier
 	 * If no formats are custom then its value is used as it is, in other words the top bits when 0 or 1 both means single format multiplier
 	 * Usage could be something like
 	 * VertexDescriptor vd{rhi::ShaderSemantic::vertex_position, &bp};
