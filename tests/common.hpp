@@ -281,6 +281,16 @@ void test_one_vertex_description(const rhi::VertexDescriptor &vd,
                                  uint64_t          semantic_type,
                                  uint32_t          line);
 
+void test_one_vertex_attribute(const rhi::VertexAttribute &va,
+                               uint32_t                    location,
+                               uint32_t                    offset,
+                               uint32_t                    count,
+                               uint64_t                    buffer_offset,
+                               uint32_t                    binding,
+                               uint32_t                    buffer_index,
+                               rhi::BufferSemantic         semantic,
+                               rhi::VertexFormat           format,
+                               uint32_t                    line);
 // From https://stackoverflow.com/questions/52164723/how-to-execute-a-command-and-get-return-code-stdout-and-stderr-of-command-in-c
 /*
   Calls a command 'cmd' and returns its stdout result and error code in a pair

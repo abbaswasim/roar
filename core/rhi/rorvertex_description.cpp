@@ -80,32 +80,32 @@ void VertexDescriptor::upload(const std::unordered_map<rhi::BufferSemantic, std:
 	}
 
 	// Allocate space for all of the attributes in its specific buffer
-	for (const auto &attr_data : buffer_to_size_map)
+	for (auto &attr_data : buffer_to_size_map)
 	{
 		auto &buffer        = a_buffers_pack->buffer(attr_data.first);
 		auto  buffer_offset = buffer.offset(attr_data.second);        // Do allocation by calling Buffer::offset()
-
-		// Now update every attribute's buffer_offset that is using this buffer and this allocation
-		for (auto &attribute : this->m_attributes)
-		{
-			if (attribute.buffer_index() == attr_data.first)
-				attribute.buffer_offset(buffer_offset);
-		}
+		attr_data.second    = buffer_offset;                          // This is the offset not the size anymore
 	}
 
 	// Upload the data into the allocated space
 	for (auto &attrib_data : a_attrib_data)
 	{
-		auto &attribute = this->attribute(attrib_data.first);
-		auto &layout    = this->layout(attrib_data.first);
-
-		auto  stride        = layout.stride();
-		auto  buffer_index  = attribute.buffer_index();
-		auto  format_bytes  = rhi::format_to_bytes(attribute.format());
-		auto &buffer        = a_buffers_pack->buffer(buffer_index);
-		auto  attrib_offset = attribute.buffer_offset() + attribute.offset();        // Will be 0 in case of single attribute or bulk upload;
+		auto &attribute    = this->attribute(attrib_data.first);
+		auto &layout       = this->layout(attrib_data.first);
+		auto  stride       = layout.stride();
+		auto  buffer_index = attribute.buffer_index();
+		auto  format_bytes = rhi::format_to_bytes(attribute.format()) * layout.format_multiplier();
+		auto &buffer       = a_buffers_pack->buffer(buffer_index);
+		auto &real_offset  = buffer_to_size_map[buffer_index];
+		auto  attrib_offset{0L};
 
 		auto [buffer_pointer, buffer_size, buffer_stride] = attrib_data.second;
+
+		attribute.buffer_offset(real_offset);
+		attrib_offset = real_offset + attribute.offset();
+
+		if (!buffer.interleaved())
+			real_offset += buffer_size;
 
 		auto element_count = buffer_size / format_bytes;
 		if (stride == format_bytes && buffer_stride == format_bytes)        // Case 1: both source and destination strides are equal to format_bytes, everything is packed
@@ -174,35 +174,36 @@ void VertexDescriptor::create_attributes_and_layouts(const tuple_type_vector &a_
 				auto semantic0     = std::get<rhi::BufferSemantic>(attribute0);
 				auto buffer_index0 = a_buffers_pack->attribute_buffer_index(semantic0);
 				auto format0       = std::get<rhi::VertexFormat>(attribute0);
-				auto rate0          = std::get<uint32_t>(attribute);
-				auto multiplier0    = std::max(1U, rate0 >> 16);
+				auto rate0         = std::get<uint32_t>(attribute);
+				auto multiplier0   = std::max(1U, rate0 >> 16);
 				auto format_bytes  = vertex_format_to_bytes(format0) * multiplier0;
 
 				if (buffer_index == buffer_index0)
 					stride += format_bytes;
 			}
+
 			for (auto &attribute0 : this->m_attributes)
 			{
 				auto semantic0     = attribute0.semantics();
 				auto buffer_index0 = a_buffers_pack->attribute_buffer_index(semantic0);
 				auto format0       = attribute0.format();
-				auto multiplier0    = this->m_layouts[attribute0.binding()].format_multiplier();
+				auto multiplier0   = this->m_layouts[attribute0.binding()].format_multiplier();
 				auto format_bytes  = vertex_format_to_bytes(format0) * multiplier0;
 
 				if (buffer_index == buffer_index0)
 					stride += format_bytes;
 			}
+
+			// Lets update all the existing layouts with new strides
+			// This assumes the property that there is 1:1 mapping of attributes to layouts
+			for (auto &attrib : this->m_attributes)        // Can't use mapping here because it contains iterators that are invalid after input into attributes or layouts
+			{
+				if (attrib.buffer_index() == buffer_index)
+					this->m_layouts[attrib.binding()].stride(stride);
+			}
 		}
 		else
 			stride = vertex_format_to_bytes(format) * multiplier;
-
-		// Lets update all the existing layouts with new strides
-		// This assumes the property that there is 1:1 mapping of attributes to layouts
-		for (auto &attrib : this->m_attributes)        // Can't use mapping here because it contains iterators they are invalid after input into attributes or layouts
-		{
-			if (attrib.buffer_index() == buffer_index)
-				this->m_layouts[attrib.binding()].stride(stride);
-		}
 
 		this->m_layouts.emplace_back(binding++, stride, rate & 65535, multiplier, step_function);
 	}

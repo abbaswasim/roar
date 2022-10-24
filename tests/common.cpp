@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "foundation/rorcommon.hpp"
 #include "foundation/rorjobsystem.hpp"
+#include "rhi/rorvertex_attribute.hpp"
 #include <gtest/gtest.h>
 #include <iostream>
 
@@ -158,20 +159,20 @@ TEST(JobSystem, JobSystem_hardware_threads)
 }
 
 void test_one_vertex_description(const rhi::VertexDescriptor &vd,
-								 rhi::BufferSemantic    semantic,
-								 uint32_t               location,
-								 uint32_t               offset,
-								 uint64_t               buffer_offset,
-								 uint32_t               binding,
-								 uint32_t               buffer_index,
-								 rhi::VertexFormat      format,
+                                 rhi::BufferSemantic          semantic,
+                                 uint32_t                     location,
+                                 uint32_t                     offset,
+                                 uint64_t                     buffer_offset,
+                                 uint32_t                     binding,
+                                 uint32_t                     buffer_index,
+                                 rhi::VertexFormat            format,
 
-								 rhi::StepFunction function,
-								 uint64_t          stride,
-								 rhi::Rate         rate,
-								 uint32_t          multiplier,
-								 uint64_t          semantic_type,
-								 uint32_t          line)
+                                 rhi::StepFunction function,
+                                 uint64_t          stride,
+                                 rhi::Rate         rate,
+                                 uint32_t          multiplier,
+                                 uint64_t          semantic_type,
+                                 uint32_t          line)
 {
 	(void) buffer_offset;
 	(void) buffer_index;
@@ -198,5 +199,32 @@ void test_one_vertex_description(const rhi::VertexDescriptor &vd,
 	ASSERT_EQ(at.location(), location);
 	ASSERT_EQ(at.offset(), offset);
 	ASSERT_EQ(at.semantics(), semantic);
+}
+
+void test_one_vertex_attribute(const rhi::VertexAttribute &va,
+                               uint32_t                    location,
+                               uint32_t                    offset,
+                               uint32_t                    count,
+                               uint64_t                    buffer_offset,
+                               uint32_t                    binding,
+                               uint32_t                    buffer_index,
+                               rhi::BufferSemantic         semantic,
+                               rhi::VertexFormat           format,
+                               uint32_t                    line)
+{
+	// Uncomment to find out the error line
+	(void) line;
+	// std::string line_header{"Looking at line = "};
+	// line_header += std::to_string(line);
+	// print_with_gtest_header(line_header.c_str(), green);
+
+	ASSERT_EQ(va.location(), location);
+	ASSERT_EQ(va.offset(), offset);
+	ASSERT_EQ(va.count(), count);
+	ASSERT_EQ(va.buffer_offset(), buffer_offset);
+	ASSERT_EQ(va.binding(), binding);
+	ASSERT_EQ(va.buffer_index(), buffer_index);
+	ASSERT_EQ(va.semantics(), semantic);
+	ASSERT_EQ(va.format(), format);
 }
 }        // namespace ror_test

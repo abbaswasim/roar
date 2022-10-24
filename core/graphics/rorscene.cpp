@@ -281,7 +281,7 @@ hash_64_t pass_aware_fragment_hash(hash_64_t a_fragment_hash, hash_64_t a_vertex
 	return fragment_hash;
 }
 
-void Scene::generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::JobSystem &a_job_system, ror::EventSystem& a_event_system)
+void Scene::generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system)
 {
 	const std::vector<rhi::RenderpassType> render_pass_types = a_renderer.render_pass_types();
 
@@ -439,7 +439,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, rhi::Device &a_dev
 	this->upload(a_renderer, a_device, a_event_system);
 }
 
-void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem& a_event_system)
+void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system)
 {
 	auto render_passes = a_renderer.current_frame_graph();
 

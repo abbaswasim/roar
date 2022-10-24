@@ -19,7 +19,6 @@
 				},
 				{
 					"size":1,
-					"interleaved": true,
 					"semantic":[
 						{
 							"vertex_texture_coord_0":100,

@@ -47,6 +47,7 @@ class GLTFTest : public testing::Test
 
 	static rhi::BuffersPack           *bp;        //! Non-owning raw pointer to buffers pack
 	static std::shared_ptr<ror::Model> fox_model;
+	static std::shared_ptr<ror::Model> couldron0_model;
 
 	std::unordered_map<hash_64_t, uint32_t> hashes_of_vs{};
 	std::unordered_map<hash_64_t, uint32_t> hashes_of_fs{};
@@ -75,8 +76,9 @@ class GLTFTest : public testing::Test
   protected:
 	static void SetUpTestSuite()
 	{
-		bp        = &rhi::get_buffers_pack();
-		fox_model = std::make_shared<ror::Model>();
+		bp              = &rhi::get_buffers_pack();
+		fox_model       = std::make_shared<ror::Model>();
+		couldron0_model = std::make_shared<ror::Model>();
 	}
 
 	static void TearDownTestSuite()

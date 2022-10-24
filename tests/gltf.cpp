@@ -28,6 +28,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "couldron_0.hpp"
 #include "fox.h"
 #include "graphics/rormodel.hpp"
 #include "rhi/rorbuffer.hpp"
@@ -35,6 +36,7 @@
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorrender_data.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rorvertex_attribute.hpp"
 #include "rhi/rorvertex_description.hpp"
 #include "shader_system/rorshader_system.hpp"
 
@@ -45,6 +47,38 @@ namespace ror_test
 
 rhi::BuffersPack           *GLTFTest::bp = nullptr;
 std::shared_ptr<ror::Model> GLTFTest::fox_model;
+std::shared_ptr<ror::Model> GLTFTest::couldron0_model;
+
+template <typename _type>
+void compare_attribute_values(const rhi::VertexDescriptor &a_vd, rhi::BufferSemantic a_semantic, rhi::VertexFormat a_format, uint32_t a_components, const _type *a_reference, uint32_t a_attrib_count, rhi::BuffersPack *a_bp, uint32_t a_line)
+{
+	(void) a_components;
+	(void) a_reference;
+	(void) a_format;
+	(void) a_line;
+
+	// std::string line_header{"Looking at line = "};
+	// line_header += std::to_string(a_line);
+	// print_with_gtest_header(line_header.c_str(), green);
+
+	const float epsilon = 0.0001f;
+	{
+		auto          &attrib        = a_vd.attribute(a_semantic);
+		auto          &layout        = a_vd.layout(a_semantic);
+		auto          &buffer        = a_bp->buffer(a_semantic);
+		auto           stride        = layout.stride();
+		const uint8_t *attrib_values = buffer.data().data();
+
+		const uint8_t *ptr = attrib_values + attrib.buffer_offset() + attrib.offset();
+		for (size_t i = 0; i < a_attrib_count; ++i)
+		{
+			for (size_t j = 0; j < a_components; ++j)
+				EXPECT_NEAR(a_reference[i * a_components + j], reinterpret_cast<const _type *>(ptr)[j], epsilon);
+
+			ptr += stride;
+		}
+	}
+}
 
 void GLTFTest::SetUp()
 {}
@@ -52,7 +86,9 @@ void GLTFTest::SetUp()
 void GLTFTest::TearDown()
 {}
 
-TEST_F(GLTFTest, gltf_loader_test)
+static bool loaded_fox = false;
+
+TEST_F(GLTFTest, fox_gltf_loader_test)
 {
 	(void) fox_attrib_count;
 	(void) fox_positions;
@@ -69,6 +105,7 @@ TEST_F(GLTFTest, gltf_loader_test)
 	std::vector<ror::OrbitCamera> fox_cameras;
 
 	this->fox_model->load_from_gltf_file("Fox/Fox.gltf", fox_cameras);
+	loaded_fox = true;
 
 	EXPECT_EQ(fox_cameras.size(), 0);
 
@@ -89,120 +126,22 @@ TEST_F(GLTFTest, gltf_loader_test)
 	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_bone_id_0, 2, sizeof(float32_t) * 3, 0, 2, 0, rhi::VertexFormat::uint16_4, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4 + sizeof(uint16_t) * 4, 1, 1, semantics, __LINE__);
 	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_weight_0, 3, sizeof(float32_t) * 3 + sizeof(uint16_t) * 4, 0, 3, 0, rhi::VertexFormat::float32_4, rhi::StepFunction::vertex, sizeof(float32_t) * 3 + sizeof(float32_t) * 4 + sizeof(uint16_t) * 4, 1, 1, semantics, __LINE__);
 
-	{
-		auto &attrib_pos = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_position);
-		EXPECT_EQ(attrib_pos.location(), 0);
-		EXPECT_EQ(attrib_pos.offset(), 0);
-		EXPECT_EQ(attrib_pos.buffer_offset(), 0);
-		EXPECT_EQ(attrib_pos.binding(), 0);
-		EXPECT_EQ(attrib_pos.buffer_index(), 0);
-		EXPECT_EQ(attrib_pos.semantics(), rhi::BufferSemantic::vertex_position);
-		EXPECT_EQ(attrib_pos.format(), rhi::VertexFormat::float32_3);
-	}
-	{
-		auto &attrib_uv = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_texture_coord_0);
-		EXPECT_EQ(attrib_uv.location(), 1);
-		EXPECT_EQ(attrib_uv.offset(), 0);
-		EXPECT_EQ(attrib_uv.buffer_offset(), 0);
-		EXPECT_EQ(attrib_uv.binding(), 1);
-		EXPECT_EQ(attrib_uv.buffer_index(), 1);
-		EXPECT_EQ(attrib_uv.semantics(), rhi::BufferSemantic::vertex_texture_coord_0);
-		EXPECT_EQ(attrib_uv.format(), rhi::VertexFormat::float32_2);
-	}
-	{
-		auto &attrib_bone = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_bone_id_0);
-		EXPECT_EQ(attrib_bone.location(), 2);
-		EXPECT_EQ(attrib_bone.offset(), sizeof(float32_t) * 3);
-		EXPECT_EQ(attrib_bone.buffer_offset(), 0);
-		EXPECT_EQ(attrib_bone.binding(), 2);
-		EXPECT_EQ(attrib_bone.buffer_index(), 0);
-		EXPECT_EQ(attrib_bone.semantics(), rhi::BufferSemantic::vertex_bone_id_0);
-		EXPECT_EQ(attrib_bone.format(), rhi::VertexFormat::uint16_4);
-	}
-	{
-		auto &attrib_weight = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_weight_0);
-		EXPECT_EQ(attrib_weight.location(), 3);
-		EXPECT_EQ(attrib_weight.offset(), sizeof(float32_t) * 3 + sizeof(uint16_t) * 4);
-		EXPECT_EQ(attrib_weight.buffer_offset(), 0);
-		EXPECT_EQ(attrib_weight.binding(), 3);
-		EXPECT_EQ(attrib_weight.buffer_index(), 0);
-		EXPECT_EQ(attrib_weight.semantics(), rhi::BufferSemantic::vertex_weight_0);
-		EXPECT_EQ(attrib_weight.format(), rhi::VertexFormat::float32_4);
-	}
+	auto &attrib_pos = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_position);
+	test_one_vertex_attribute(attrib_pos, 0, 0, 1728, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, __LINE__);
+	auto &attrib_uv = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_texture_coord_0);
+	test_one_vertex_attribute(attrib_uv, 1, 0, 1728, 0, 1, 1, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2, __LINE__);
+	auto &attrib_bone = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_bone_id_0);
+	test_one_vertex_attribute(attrib_bone, 2, sizeof(float32_t) * 3, 1728, 0, 2, 0, rhi::BufferSemantic::vertex_bone_id_0, rhi::VertexFormat::uint16_4, __LINE__);
+	auto &attrib_weight = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_weight_0);
+	test_one_vertex_attribute(attrib_weight, 3, sizeof(float32_t) * 3 + sizeof(uint16_t) * 4, 1728, 0, 3, 0, rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_4, __LINE__);
 
 	// Now lets see if the attributes data is copied correctly or not
-
-	const uint8_t *pos_buff    = this->bp->buffer(rhi::BufferSemantic::vertex_position).data().data();
-	const uint8_t *uv_buff     = this->bp->buffer(rhi::BufferSemantic::vertex_texture_coord_0).data().data();
-	const uint8_t *bone_buff   = this->bp->buffer(rhi::BufferSemantic::vertex_bone_id_0).data().data();
-	const uint8_t *weight_buff = this->bp->buffer(rhi::BufferSemantic::vertex_weight_0).data().data();
+	compare_attribute_values<float32_t>(m.m_attribute_vertex_descriptors[0], rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, 3, fox_positions, fox_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_attribute_vertex_descriptors[0], rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2, 2, fox_uvs, fox_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<uint16_t>(m.m_attribute_vertex_descriptors[0], rhi::BufferSemantic::vertex_bone_id_0, rhi::VertexFormat::float32_4, 4, fox_joint_ids, fox_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_attribute_vertex_descriptors[0], rhi::BufferSemantic::vertex_weight_0, rhi::VertexFormat::float32_4, 4, fox_weights, fox_attrib_count, this->bp, __LINE__);
 
 	const float epsilon = 0.000001f;
-	{
-		auto  semantic = rhi::BufferSemantic::vertex_position;
-		auto &attrib   = m.m_attribute_vertex_descriptors[0].attribute(semantic);
-		auto &layout   = m.m_attribute_vertex_descriptors[0].layout(semantic);
-
-		uint32_t comp_count = 3;
-		uint8_t *ptr        = const_cast<uint8_t *>(pos_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
-		for (size_t i = 0; i < fox_attrib_count; ++i)
-		{
-			for (size_t j = 0; j < comp_count; ++j)
-			{
-				EXPECT_NEAR(fox_positions[i * comp_count + j], reinterpret_cast<float32_t *>(ptr)[j], epsilon);
-			}
-
-			ptr += layout.stride();
-		}
-	}
-	{
-		auto     semantic   = rhi::BufferSemantic::vertex_texture_coord_0;
-		auto    &attrib     = m.m_attribute_vertex_descriptors[0].attribute(semantic);
-		auto    &layout     = m.m_attribute_vertex_descriptors[0].layout(semantic);
-		uint32_t comp_count = 2;
-		uint8_t *ptr        = const_cast<uint8_t *>(uv_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
-		for (size_t i = 0; i < fox_attrib_count; ++i)
-		{
-			for (size_t j = 0; j < comp_count; ++j)
-			{
-				EXPECT_NEAR(fox_uvs[i * comp_count + j], reinterpret_cast<float32_t *>(ptr)[j], epsilon);
-			}
-
-			ptr += layout.stride();
-		}
-	}
-	{
-		auto     semantic   = rhi::BufferSemantic::vertex_bone_id_0;
-		auto    &attrib     = m.m_attribute_vertex_descriptors[0].attribute(semantic);
-		auto    &layout     = m.m_attribute_vertex_descriptors[0].layout(semantic);
-		uint32_t comp_count = 4;
-		uint8_t *ptr        = const_cast<uint8_t *>(bone_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
-		for (size_t i = 0; i < fox_attrib_count; ++i)
-		{
-			for (size_t j = 0; j < comp_count; ++j)
-			{
-				EXPECT_EQ(fox_joint_ids[i * comp_count + j], reinterpret_cast<uint16_t *>(ptr)[j]);
-			}
-
-			ptr += layout.stride();
-		}
-	}
-	{
-		auto     semantic   = rhi::BufferSemantic::vertex_weight_0;
-		auto    &attrib     = m.m_attribute_vertex_descriptors[0].attribute(semantic);
-		auto    &layout     = m.m_attribute_vertex_descriptors[0].layout(semantic);
-		uint32_t comp_count = 4;
-		uint8_t *ptr        = const_cast<uint8_t *>(weight_buff) + attrib.buffer_offset() + attrib.offset();        // const_cast only allowed in tests
-		for (size_t i = 0; i < fox_attrib_count; ++i)
-		{
-			for (size_t j = 0; j < comp_count; ++j)
-			{
-				EXPECT_NEAR(fox_weights[i * comp_count + j], reinterpret_cast<float32_t *>(ptr)[j], epsilon);
-			}
-
-			ptr += layout.stride();
-		}
-	}
 	{
 		EXPECT_EQ(this->fox_model->skins().size(), 1);
 		auto &s = this->fox_model->skins()[0];
@@ -243,6 +182,71 @@ TEST_F(GLTFTest, gltf_loader_test)
 			EXPECT_NEAR(o[j * 4 + 3], fox_sampler0_output[j * 4 + 3], epsilon);
 		}
 	}
+}
+
+TEST_F(GLTFTest, couldron0_gltf_loader_test)
+{
+	(void) fox_attrib_count;
+	(void) fox_positions;
+	(void) fox_uvs;
+	(void) fox_joint_ids;
+	(void) fox_weights;
+	(void) fox_inverse_bind_matrices_count;
+	(void) fox_inverse_bind_matrices;
+	(void) fox_joints;
+	(void) fox_sampler0_count;
+	(void) fox_sampler0_input;
+	(void) fox_sampler0_output;
+
+	std::vector<ror::OrbitCamera> couldron0_cameras;
+
+	this->couldron0_model->load_from_gltf_file("baba_yagas_hut/scene.gltf", couldron0_cameras);
+
+	EXPECT_EQ(couldron0_cameras.size(), 0);
+
+	EXPECT_GT(this->couldron0_model->meshes().size(), 1);
+	auto &m = this->couldron0_model->meshes()[0];
+	EXPECT_EQ(m.m_attribute_vertex_descriptors.size(), 1);
+	EXPECT_EQ(m.m_morph_targets_vertex_descriptors.size(), 1);
+	EXPECT_EQ(m.m_has_indices_states[0], true);
+	EXPECT_EQ(m.m_primitive_types[0], rhi::PrimitiveTopology::triangles);
+
+	auto &vd = m.m_attribute_vertex_descriptors[0];
+
+	auto semantics = ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_position) |
+	                 ror::enum_to_type_cast(rhi::BufferSemantic::vertex_tangent) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) | ror::enum_to_type_cast(rhi::BufferSemantic::vertex_index);
+
+	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_normal, 0, 0, 0, 0, 0, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_position, 1, 0, 0, 1, 1, rhi::VertexFormat::float32_3, rhi::StepFunction::vertex, sizeof(float32_t) * 3, 1, 1, semantics, __LINE__);
+	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_tangent, 2, 0, 0, 2, 0, rhi::VertexFormat::float32_4, rhi::StepFunction::vertex, sizeof(float32_t) * 4, 1, 1, semantics, __LINE__);
+	test_one_vertex_description(vd, rhi::BufferSemantic::vertex_texture_coord_0, 3, 0, 0, 3, 0, rhi::VertexFormat::float32_2, rhi::StepFunction::vertex, sizeof(float32_t) * 2, 1, 1, semantics, __LINE__);
+
+	auto &attrib_normal = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_normal);
+	test_one_vertex_attribute(attrib_normal, 0, 0, 948, (loaded_fox ? 36576 : 22752), 0, 1, rhi::BufferSemantic::vertex_normal, rhi::VertexFormat::float32_3, __LINE__);
+	auto &attrib_position = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_position);
+	test_one_vertex_attribute(attrib_position, 1, 0, 948, (loaded_fox ? 62208 : 0), 1, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, __LINE__);
+	auto &attrib_tangent = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_tangent);
+	test_one_vertex_attribute(attrib_tangent, 2, 0, 948, (loaded_fox ? 21408 : 7584), 2, 1, rhi::BufferSemantic::vertex_tangent, rhi::VertexFormat::float32_4, __LINE__);
+	auto &attrib_uv = m.m_attribute_vertex_descriptors[0].attribute(rhi::BufferSemantic::vertex_texture_coord_0);
+	test_one_vertex_attribute(attrib_uv, 3, 0, 948, (loaded_fox ? 13824 : 0), 3, 1, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2, __LINE__);
+
+	// Now lets see if the attributes data is copied correctly or not
+	compare_attribute_values<float32_t>(m.m_attribute_vertex_descriptors[0], rhi::BufferSemantic::vertex_normal, rhi::VertexFormat::float32_3, 3, couldron0_vertex_NORMAL, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_attribute_vertex_descriptors[0], rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, 3, couldron0_vertex_POSITION, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_attribute_vertex_descriptors[0], rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2, 2, couldron0_vertex_TEXCOORD_0, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_attribute_vertex_descriptors[0], rhi::BufferSemantic::vertex_tangent, rhi::VertexFormat::float32_4, 4, couldron0_vertex_TANGENT, couldron0_attrib_count, this->bp, __LINE__);
+
+	compare_attribute_values<uint32_t>(m.m_attribute_vertex_descriptors[0], rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint32_1, 1, couldron0_vertex_INDEX, couldron0_vertex_index_count, this->bp, __LINE__);
+
+	compare_attribute_values<float32_t>(m.m_morph_targets_vertex_descriptors[0][0], rhi::BufferSemantic::vertex_normal, rhi::VertexFormat::float32_3, 3, couldron0_target_NORMAL0, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_morph_targets_vertex_descriptors[0][0], rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, 3, couldron0_target_POSITION0, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_morph_targets_vertex_descriptors[0][0], rhi::BufferSemantic::vertex_tangent, rhi::VertexFormat::float32_3, 3, couldron0_target_TANGENT0, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_morph_targets_vertex_descriptors[0][1], rhi::BufferSemantic::vertex_normal, rhi::VertexFormat::float32_3, 3, couldron0_target_NORMAL1, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_morph_targets_vertex_descriptors[0][1], rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, 3, couldron0_target_POSITION1, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_morph_targets_vertex_descriptors[0][1], rhi::BufferSemantic::vertex_tangent, rhi::VertexFormat::float32_3, 3, couldron0_target_TANGENT1, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_morph_targets_vertex_descriptors[0][2], rhi::BufferSemantic::vertex_normal, rhi::VertexFormat::float32_3, 3, couldron0_target_NORMAL2, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_morph_targets_vertex_descriptors[0][2], rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3, 3, couldron0_target_POSITION2, couldron0_attrib_count, this->bp, __LINE__);
+	compare_attribute_values<float32_t>(m.m_morph_targets_vertex_descriptors[0][2], rhi::BufferSemantic::vertex_tangent, rhi::VertexFormat::float32_3, 3, couldron0_target_TANGENT2, couldron0_attrib_count, this->bp, __LINE__);
 }
 
 TEST_F(GLTFTest, gltf_assert_test)
