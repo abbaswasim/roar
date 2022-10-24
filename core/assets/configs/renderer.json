@@ -7,7 +7,7 @@
 		"depth.vert",
 		"depth.frag",
 		"blur.kern",
-		"explode.comp"
+		"node_transform.comp"
 	],
 	"programs":[
 		{
@@ -76,8 +76,8 @@
 	],
 	"render_buffers":[
 		{
-			"name":"compute_buffer0",
-			"format":"r8_uint8"
+			"name":"node_transform_output",
+			"format":"r32_float32"
 		},
 		{
 			"name":"compute_buffer1",
@@ -95,6 +95,24 @@
 			"h":768
 		},
 		"forward":[
+			{
+				"render_buffers":[
+					{
+						"index":0,
+						"load_action":"clear",
+						"store_action":"store"
+					}
+				],
+				"subpasses":[
+					{
+						"name":"node_compute_traversal",
+						"technique":"compute",
+						"type":"node_transform",
+						"state":"transient",
+						"program":2
+					}
+				]
+			},
 			{
 				"render_targets":[
 					{

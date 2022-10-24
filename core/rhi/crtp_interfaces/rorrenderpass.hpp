@@ -29,6 +29,7 @@
 #include "foundation/rormacros.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector4.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <functional>
@@ -36,7 +37,30 @@
 
 namespace rhi
 {
-class RenderTarget final
+class RenderOutput
+{
+  public:
+	FORCE_INLINE               RenderOutput(const RenderOutput &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE               RenderOutput(RenderOutput &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE RenderOutput &operator=(const RenderOutput &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE RenderOutput &operator=(RenderOutput &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~RenderOutput() noexcept                            = default;        //! Destructor
+
+	FORCE_INLINE RenderOutput(uint32_t a_target, LoadAction a_load_action, StoreAction a_store_action) :
+	    m_target_index(a_target), m_load_action(a_load_action), m_store_action(a_store_action)
+	{}
+
+	uint32_t    m_target_index{};                              //! Could be a render_target or render_buffer to write into
+	LoadAction  m_load_action{LoadAction::dont_care};          //! What to do at load time
+	StoreAction m_store_action{StoreAction::dont_care};        //! What to do at store time
+
+  protected:
+	FORCE_INLINE RenderOutput() = delete;        //! Default constructor
+  private:
+	declare_translation_unit_vtable();
+};
+
+class RenderTarget final : public RenderOutput
 {
   public:
 	using TextureReference = std::reference_wrapper<rhi::TextureImage>;
@@ -46,19 +70,40 @@ class RenderTarget final
 	FORCE_INLINE               RenderTarget(RenderTarget &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE RenderTarget &operator=(const RenderTarget &a_other)        = default;        //! Copy assignment operator
 	FORCE_INLINE RenderTarget &operator=(RenderTarget &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE ~RenderTarget() noexcept                                    = default;        //! Destructor
+	FORCE_INLINE ~RenderTarget() noexcept override                           = default;        //! Destructor
 
 	FORCE_INLINE RenderTarget(uint32_t a_target, rhi::TextureImage &a_target_reference, LoadAction a_load_action, StoreAction a_store_action) :
-	    m_target_index(a_target), m_target_reference(a_target_reference), m_load_action(a_load_action), m_store_action(a_store_action)
+	    RenderOutput(a_target, a_load_action, a_store_action), m_target_reference(a_target_reference)
 	{}
 
-	uint32_t         m_target_index{};                              //! Could be a render_target or render_buffer to write into
-	TextureReference m_target_reference;                            //! Reference to target texture
-	LoadAction       m_load_action{LoadAction::dont_care};          //! What to do at load time
-	StoreAction      m_store_action{StoreAction::dont_care};        //! What to do at store time
+	TextureReference m_target_reference;        //! Reference to target texture
 
   protected:
   private:
+	declare_translation_unit_vtable() override;
+};
+
+class RenderBuffer final : public RenderOutput
+{
+  public:
+	using BufferReference = std::reference_wrapper<rhi::Buffer<rhi::Static>>;
+
+	FORCE_INLINE               RenderBuffer()                                = delete;         //! Default constructor
+	FORCE_INLINE               RenderBuffer(const RenderBuffer &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE               RenderBuffer(RenderBuffer &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE RenderBuffer &operator=(const RenderBuffer &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE RenderBuffer &operator=(RenderBuffer &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE ~RenderBuffer() noexcept override                           = default;        //! Destructor
+
+	FORCE_INLINE RenderBuffer(uint32_t a_target, rhi::Buffer<rhi::Static> &a_target_reference, LoadAction a_load_action, StoreAction a_store_action) :
+	    RenderOutput(a_target, a_load_action, a_store_action), m_target_reference(a_target_reference)
+	{}
+
+	BufferReference m_target_reference;        //! Reference to buffer
+
+  protected:
+  private:
+	declare_translation_unit_vtable() override;
 };
 
 class Rendersubpass final
@@ -132,6 +177,7 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE constexpr auto &subpasses()                 noexcept { return this->m_subpasses;          }
 	FORCE_INLINE constexpr auto &subpasses()           const noexcept { return this->m_subpasses;          }
 	FORCE_INLINE constexpr auto &render_targets()      const noexcept { return this->m_render_targets;     }
+	FORCE_INLINE constexpr auto &render_buffers()      const noexcept { return this->m_render_buffers;     }
 	FORCE_INLINE constexpr auto  dimensions()          const noexcept { return this->m_dimensions;         }
 	FORCE_INLINE constexpr auto  viewport()            const noexcept { return this->m_viewport;           }
 	FORCE_INLINE constexpr auto &parent_ids()          const noexcept { return this->m_parent_ids;         }
@@ -144,6 +190,7 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE constexpr void parent_ids(const std::vector<uint32_t>& a_parents)                       { this->m_parent_ids = a_parents;               }
 	FORCE_INLINE constexpr void parents(const Renderpasses& a_parents)                                   { this->m_parents = a_parents;                  }
 	FORCE_INLINE constexpr void render_targets(const std::vector<RenderTarget> &a_render_targets)        { this->m_render_targets = a_render_targets;    }
+	FORCE_INLINE constexpr void render_buffers(const std::vector<RenderBuffer> &a_render_buffers)        { this->m_render_buffers = a_render_buffers;    }
 	FORCE_INLINE constexpr void background(ror::Vector4f a_color)                                        { this->m_background = a_color;                 }
 	FORCE_INLINE constexpr void upload()                                                                 { this->underlying().upload();                  }
 	// clang-format on
@@ -151,7 +198,8 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
   protected:
   private:
 	std::vector<Rendersubpass> m_subpasses{};                                  //! All the subpasses in this render pass
-	std::vector<RenderTarget>  m_render_targets{};                             //! Output attachments
+	std::vector<RenderTarget>  m_render_targets{};                             //! Output attachments (images)
+	std::vector<RenderBuffer>  m_render_buffers{};                             //! Output attachments (buffers)
 	ror::Vector4f              m_background{0.14f, 0.14f, 0.14f, 1.0f};        //! Background color of this render pass we will use to clear it with
 	ror::Vector2ui             m_dimensions{1024, 768};                        //! Dimensions for this renderpass if provided will override frame graph dimensions
 	ror::Vector4i              m_viewport{0, 0, 1024, 768};                    //! Viewport for this renderpass if provided will override frame graph viewport

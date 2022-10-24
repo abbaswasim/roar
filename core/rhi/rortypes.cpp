@@ -654,13 +654,16 @@ std::string renderpass_type_to_string(const rhi::RenderpassType &a_type)
 		case rhi::RenderpassType::light_bin: 			return "light_bin";
 		case rhi::RenderpassType::reflection: 			return "reflection";
 		case rhi::RenderpassType::refraction: 			return "refraction";
+		case rhi::RenderpassType::pre_process: 		    return "pre_process";
+		case rhi::RenderpassType::post_process: 		return "post_process";
 		case rhi::RenderpassType::tone_mapping: 		return "tone_mapping";
 		case rhi::RenderpassType::forward_light: 		return "forward_light";
-		case rhi::RenderpassType::post_process: 		return "post_process";
+		case rhi::RenderpassType::node_transform: 		return "node_transform";
 		case rhi::RenderpassType::deferred_gbuffer: 	return "deferred_gbuffer";
 		case rhi::RenderpassType::reflection_probes: 	return "reflection_probes";
 		case rhi::RenderpassType::image_based_light: 	return "image_based_light";
 		case rhi::RenderpassType::ambient_occlusion: 	return "ambient_occlusion";
+		case rhi::RenderpassType::skeletal_transform: 	return "skeletal_transform";
 	    case rhi::RenderpassType::deferred_clustered:   return "deferred_clustered";
 	}
 	// clang-format on

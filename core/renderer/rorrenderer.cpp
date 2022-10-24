@@ -167,13 +167,16 @@ rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
 	else if (a_type == "light_bin")          return rhi::RenderpassType::light_bin;
 	else if (a_type == "reflection")         return rhi::RenderpassType::reflection;
 	else if (a_type == "refraction")         return rhi::RenderpassType::refraction;
+	else if (a_type == "pre_process")        return rhi::RenderpassType::pre_process;
+	else if (a_type == "post_process")       return rhi::RenderpassType::post_process;
 	else if (a_type == "tone_mapping")       return rhi::RenderpassType::tone_mapping;
 	else if (a_type == "forward_light")      return rhi::RenderpassType::forward_light;
-	else if (a_type == "post_process")       return rhi::RenderpassType::post_process;
+	else if (a_type == "node_transform")      return rhi::RenderpassType::node_transform;
 	else if (a_type == "deferred_gbuffer")   return rhi::RenderpassType::deferred_gbuffer;
 	else if (a_type == "reflection_probes")  return rhi::RenderpassType::reflection_probes;
 	else if (a_type == "image_based_light")  return rhi::RenderpassType::image_based_light;
 	else if (a_type == "ambient_occlusion")  return rhi::RenderpassType::ambient_occlusion;
+	else if (a_type == "skeletal_transform")  return rhi::RenderpassType::skeletal_transform;
 	else if (a_type == "deferred_clustered") return rhi::RenderpassType::deferred_clustered;
 	// clang-format on
 
@@ -181,7 +184,37 @@ rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
 	return rhi::RenderpassType::main;
 }
 
-void read_render_pass(json &a_render_pass, rhi::Renderpass &render_pass, std::vector<rhi::TextureImage> &a_render_targets)
+rhi::LoadAction to_load_action(nlohmann::json a_loadaction)
+{
+	rhi::LoadAction load_action;
+	if (a_loadaction == "load")
+		load_action = rhi::LoadAction::load;
+	else if (a_loadaction == "clear")
+		load_action = rhi::LoadAction::clear;
+	else if (a_loadaction == "dont_care")
+		load_action = rhi::LoadAction::dont_care;
+	else
+		assert(0 && "Invalid load/store action string provided");
+
+	return load_action;
+}
+
+rhi::StoreAction to_store_action(nlohmann::json a_storeaction)
+{
+	rhi::StoreAction store_action;
+	if (a_storeaction == "store")
+		store_action = rhi::StoreAction::store;
+	else if (a_storeaction == "discard")
+		store_action = rhi::StoreAction::discard;
+	else if (a_storeaction == "dont_care")
+		store_action = rhi::StoreAction::dont_care;
+	else
+		assert(0 && "Invalid store action string provided");
+
+	return store_action;
+}
+
+void read_render_pass(json &a_render_pass, rhi::Renderpass &render_pass, std::vector<rhi::TextureImage> &a_render_targets, std::vector<rhi::Buffer<rhi::Static>> &a_render_buffers)
 {
 	ror::Vector2ui dims = render_pass.dimensions();
 
@@ -220,8 +253,9 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass &render_pass, std::ve
 		render_pass.background({color[0], color[1], color[2], color[3]});
 	}
 
-	assert(a_render_pass.contains("render_targets") && "Render pass must have render targets");
+	assert((a_render_pass.contains("render_targets") || a_render_pass.contains("render_buffers")) && "Render pass must have render targets");
 
+	if (a_render_pass.contains("render_targets"))
 	{
 		auto render_targets = a_render_pass["render_targets"];
 
@@ -235,26 +269,8 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass &render_pass, std::ve
 			auto     loadaction  = rt["load_action"];
 			auto     storeaction = rt["store_action"];
 
-			rhi::LoadAction  load_action{rhi::LoadAction::dont_care};
-			rhi::StoreAction store_action{rhi::StoreAction::dont_care};
-
-			if (loadaction == "load")
-				load_action = rhi::LoadAction::load;
-			else if (loadaction == "clear")
-				load_action = rhi::LoadAction::clear;
-			else if (loadaction == "dont_care")
-				load_action = rhi::LoadAction::dont_care;
-			else
-				assert(0 && "Invalid load action string provided");
-
-			if (storeaction == "store")
-				store_action = rhi::StoreAction::store;
-			else if (storeaction == "discard")
-				store_action = rhi::StoreAction::discard;
-			else if (storeaction == "dont_care")
-				store_action = rhi::StoreAction::dont_care;
-			else
-				assert(0 && "Invalid store action string provided");
+			rhi::LoadAction  load_action  = to_load_action(loadaction);
+			rhi::StoreAction store_action = to_store_action(storeaction);
 
 			// Emplaces a RenderTarget
 			assert(index < a_render_targets.size() && "Index is out of bound for render targets provided");
@@ -263,6 +279,32 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass &render_pass, std::ve
 		}
 
 		render_pass.render_targets(std::move(rts));
+	}
+
+	if (a_render_pass.contains("render_buffers"))
+	{
+		auto render_buffers = a_render_pass["render_buffers"];
+
+		std::vector<rhi::RenderBuffer> rbs;
+
+		for (auto &rb : render_buffers)
+		{
+			assert(rb.contains("index") && rb.contains("load_action") && rb.contains("store_action") && "Render Buffer must contain all index, load and store actions");
+
+			uint32_t index       = rb["index"];
+			auto     loadaction  = rb["load_action"];
+			auto     storeaction = rb["store_action"];
+
+			rhi::LoadAction  load_action  = to_load_action(loadaction);
+			rhi::StoreAction store_action = to_store_action(storeaction);
+
+			// Emplaces a RenderTarget
+			assert(index < a_render_buffers.size() && "Index is out of bound for render targets provided");
+
+			rbs.emplace_back(index, a_render_buffers[index], load_action, store_action);
+		}
+
+		render_pass.render_buffers(std::move(rbs));
 	}
 
 	assert(a_render_pass.contains("subpasses") && "There must be atleast one subpass in a render pass");
@@ -360,7 +402,7 @@ void Renderer::load_frame_graphs()
 
 			rp.viewport(this->m_viewport);
 			rp.dimensions(this->m_dimensions);
-			read_render_pass(forward_pass, rp, this->m_render_targets);
+			read_render_pass(forward_pass, rp, this->m_render_targets, this->m_render_buffers);
 			this->m_frame_graphs["forward"].emplace_back(std::move(rp));
 		}
 	}
@@ -374,7 +416,7 @@ void Renderer::load_frame_graphs()
 
 			rp.viewport(this->m_viewport);
 			rp.dimensions(this->m_dimensions);
-			read_render_pass(deferred_pass, rp, this->m_render_targets);
+			read_render_pass(deferred_pass, rp, this->m_render_targets, this->m_render_buffers);
 			this->m_frame_graphs["deferred"].emplace_back(std::move(rp));
 		}
 	}
@@ -492,7 +534,7 @@ std::vector<rhi::RenderpassType> Renderer::render_pass_types(const std::vector<r
 	std::vector<rhi::RenderpassType> passes;
 	for (auto &rp : a_pass)
 	{
-		const auto& subpasses = rp.subpasses();
+		const auto &subpasses = rp.subpasses();
 		for (auto &srp : subpasses)
 		{
 			passes.emplace_back(srp.type());

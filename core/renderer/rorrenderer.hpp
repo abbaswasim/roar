@@ -98,7 +98,7 @@ class Renderer final : public Configuration<Renderer>
 	std::vector<rhi::Program>             m_programs{};                          //! All the global shader programs
 	std::vector<rhi::TextureImage>        m_render_targets{};                    //! All the render_targets some render passes might want to write into
 	std::vector<rhi::Buffer<rhi::Static>> m_render_buffers{};                    //! All the render_buffers some render passes might want to write into
-	ror::Vector2ui                        m_dimensions{1024, 768};               //! Dimensions of the renderer framebuffers, if not provided will use from window
+	ror::Vector2ui                        m_dimensions{1024, 768};               //! Dimensions of the renderer framebuffers, if not provided will use from window, overriden by renderer.json
 	ror::Vector4i                         m_viewport{0, 0, 1024, 768};           //! Viewport to use to render into the render targets, RTs can override it
 	FrameGraph                            m_frame_graphs{};                      //! Frame graph for all techniques like forward, deferred etc
 	std::vector<rhi::Renderpass>         *m_current_frame_graph{nullptr};        //! Non-owning raw pointer alias that Points to the active technique in the framegraphs

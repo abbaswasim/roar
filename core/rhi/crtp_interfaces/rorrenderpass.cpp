@@ -29,4 +29,13 @@
 namespace rhi
 {
 
+define_translation_unit_vtable(RenderOutput)
+{}
+
+define_translation_unit_vtable(RenderTarget)
+{}
+
+define_translation_unit_vtable(RenderBuffer)
+{}
+
 }        // namespace rhi

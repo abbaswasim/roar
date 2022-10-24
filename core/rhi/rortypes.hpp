@@ -492,13 +492,16 @@ enum class RenderpassType
 	light_bin,
 	reflection,
 	refraction,
+	pre_process,
+	post_process,
 	tone_mapping,
 	forward_light,
-	post_process,
+	node_transform,
 	deferred_gbuffer,
 	reflection_probes,
 	image_based_light,
 	ambient_occlusion,
+	skeletal_transform,
 	deferred_clustered
 };
 
