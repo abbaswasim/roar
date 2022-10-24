@@ -1,0 +1,2 @@
+Link to source: https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/Fox
+License: https://creativecommons.org/publicdomain/zero/1.0/
