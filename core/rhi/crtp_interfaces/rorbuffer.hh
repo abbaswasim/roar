@@ -164,6 +164,18 @@ bool BufferCrtp<_type, _derived>::interleaved() const noexcept
 }
 
 template <typename _type, typename _derived>
+void BufferCrtp<_type, _derived>::ready(bool a_ready) noexcept
+{
+	this->m_ready = a_ready;
+}
+
+template <typename _type, typename _derived>
+bool BufferCrtp<_type, _derived>::ready() const noexcept
+{
+	return this->m_ready;
+}
+
+template <typename _type, typename _derived>
 void BufferCrtp<_type, _derived>::emplace_semantic(std::pair<rhi::BufferSemantic, uint64_t> &&a_pair)
 {
 	this->m_semantics.emplace_back(std::move(a_pair));

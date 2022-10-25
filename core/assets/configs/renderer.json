@@ -114,6 +114,7 @@
 				]
 			},
 			{
+				"disabled": true,
 				"render_targets":[
 					{
 						"index":2,
@@ -134,6 +135,9 @@
 						"type":"shadow",
 						"state":"transient",
 						"debug_output":true,
+						"buffer_inputs":[
+							0
+						],
 						"program":0
 					}
 				]
@@ -168,6 +172,9 @@
 						"debug_output":true,
 						"rendered_inputs":[
 							2
+						],
+						"buffer_inputs":[
+							0
 						],
 						"program":1
 					},

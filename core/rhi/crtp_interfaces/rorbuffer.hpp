@@ -87,6 +87,8 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	ptrdiff_t                    size() const noexcept;
 	ptrdiff_t                    filled_size() const noexcept;
 	void                         interleaved(bool a_interleaved) noexcept;
+	void                         ready(bool a_ready) noexcept;
+	bool                         ready() const noexcept;
 	bool                         interleaved() const noexcept;
 	void                         emplace_semantic(BufferSemanticPair &&a_pair);
 	BufferSemanticPair           semantic(size_t a_index) const noexcept;
@@ -113,6 +115,7 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	ptrdiff_t                   m_size_in_bytes{0};          //! This is the total size in bytes
 	BufferSemanticPairVec       m_semantics{};               //! Pair of semantic and size required
 	bool                        m_interleaved{false};        //! Interleaved true means PNTPNTPNT, and otherwise its PPPNNNTTT
+	bool                        m_ready{false};              //! Whether the buffer is ready to be used and uploaded to the GPU
 	std::vector<uint8_t>        m_data{};                    //! Data block of the buffer
 	std::shared_ptr<std::mutex> m_mutex{};                   //! Mutex to lock _offset() calls with, its shared_ptr and not unique_ptr or std::mutex because I need the ctors
 };

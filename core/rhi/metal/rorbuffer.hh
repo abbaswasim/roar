@@ -34,6 +34,13 @@ void BufferMetal<_type>::_temp_virtual()
 {}
 
 template <typename _type>
+void BufferMetal<_type>::release()
+{
+	if (this->m_buffer)
+		this->m_buffer->release;
+}
+
+template <typename _type>
 void BufferMetal<_type>::upload(rhi::Device &a_device)
 {
 	/*
@@ -41,9 +48,9 @@ void BufferMetal<_type>::upload(rhi::Device &a_device)
 	For buffers in the constant address space, align the offset to 256 bytes in macOS. In iOS, align the offset to the maximum of either the data type consumed by the vertex function, or 4 bytes. A 16-byte alignment is safe in iOS if you don't need to consider the data type.
 	 */
 
-	// ror::log_critical("Uploading buffer to metal of size {}", this->filled_size());
-
 	this->partial_upload(a_device, 0, static_cast<size_t>(this->filled_size()));
+
+	this->ready(true);
 }
 
 template <typename _type>
@@ -53,7 +60,7 @@ void BufferMetal<_type>::partial_upload(rhi::Device &a_device, size_t a_offset, 
 
 	// Create the buffer once. but can be uploaded many times with updates
 	if (this->m_buffer == nullptr)
-		this->m_buffer      = device->newBuffer(std::max(1ul, a_length), MTL::ResourceStorageModeManaged);        // TODO: Add other modes
+		this->m_buffer = device->newBuffer(std::max(1ul, a_length), MTL::ResourceStorageModeManaged);        // TODO: Add other modes
 
 	memcpy(this->m_buffer->contents(), this->data().data() + a_offset, a_length);
 

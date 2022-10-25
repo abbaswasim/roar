@@ -29,6 +29,7 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "math/rorvector2.hpp"
+#include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
@@ -214,8 +215,22 @@ rhi::StoreAction to_store_action(nlohmann::json a_storeaction)
 	return store_action;
 }
 
-void read_render_pass(json &a_render_pass, rhi::Renderpass &render_pass, std::vector<rhi::TextureImage> &a_render_targets, std::vector<rhi::Buffer<rhi::Static>> &a_render_buffers)
+void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame_graph, ror::Vector4i a_viewport, ror::Vector2ui a_dimensions,
+                      std::vector<rhi::TextureImage>        &a_render_targets,
+                      std::vector<rhi::Buffer<rhi::Static>> &a_render_buffers)
 {
+	if (a_render_pass.contains("disabled"))
+	{
+		auto disabled = a_render_pass["disabled"];
+		if (disabled)
+			return;
+	}
+
+	rhi::Renderpass render_pass;
+
+	render_pass.viewport(a_viewport);
+	render_pass.dimensions(a_dimensions);
+
 	ror::Vector2ui dims = render_pass.dimensions();
 
 	if (a_render_pass.contains("width"))
@@ -350,6 +365,17 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass &render_pass, std::ve
 			rsp.rendered_input_ids(std::move(rendered_inputs));
 		}
 
+		if (subpass.contains("buffer_inputs"))
+		{
+			std::vector<uint32_t> buffer_inputs = subpass["buffer_inputs"];
+			for (auto &bi_index : buffer_inputs)
+			{
+				assert(bi_index < a_render_buffers.size() && "This buffer input doesn't exist in the buffer targets");
+				// a_render_buffers[bi_index].usage(rhi::TextureUsage::render_target_read);
+			}
+			rsp.buffer_input_ids(std::move(buffer_inputs));
+		}
+
 		if (subpass.contains("subpass_inputs"))
 		{
 			std::vector<uint32_t> subpass_inputs = subpass["subpass_inputs"];
@@ -365,6 +391,8 @@ void read_render_pass(json &a_render_pass, rhi::Renderpass &render_pass, std::ve
 	}
 
 	render_pass.subpasses(std::move(rsps));
+
+	a_frame_graph.emplace_back(std::move(render_pass));
 }
 
 void Renderer::load_frame_graphs()
@@ -398,12 +426,7 @@ void Renderer::load_frame_graphs()
 		auto forward_passes = frame_graph["forward"];
 		for (auto &forward_pass : forward_passes)
 		{
-			rhi::Renderpass rp;
-
-			rp.viewport(this->m_viewport);
-			rp.dimensions(this->m_dimensions);
-			read_render_pass(forward_pass, rp, this->m_render_targets, this->m_render_buffers);
-			this->m_frame_graphs["forward"].emplace_back(std::move(rp));
+			read_render_pass(forward_pass, this->m_frame_graphs["forward"], this->m_viewport, this->m_dimensions, this->m_render_targets, this->m_render_buffers);
 		}
 	}
 
@@ -412,12 +435,7 @@ void Renderer::load_frame_graphs()
 		auto deferred_passes = frame_graph["deferred"];
 		for (auto &deferred_pass : deferred_passes)
 		{
-			rhi::Renderpass rp;
-
-			rp.viewport(this->m_viewport);
-			rp.dimensions(this->m_dimensions);
-			read_render_pass(deferred_pass, rp, this->m_render_targets, this->m_render_buffers);
-			this->m_frame_graphs["deferred"].emplace_back(std::move(rp));
+			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], this->m_viewport, this->m_dimensions, this->m_render_targets, this->m_render_buffers);
 		}
 	}
 
@@ -513,16 +531,59 @@ void Renderer::upload(rhi::Device &a_device)
 	{
 		for (auto &pass : graph.second)
 		{
-			auto this_m_render_targets = pass.render_targets();
-			for (auto &render_target : this_m_render_targets)
+			// Prepare render targets
+			auto pass_render_targets = pass.render_targets();
+			for (auto &render_target : pass_render_targets)
 			{
 				auto &texture = render_target.m_target_reference.get();
-				texture.width(pass.dimensions().x);
-				texture.height(pass.dimensions().y);
-				texture.upload(a_device);        // Doesn't necessarily upload a texture to the GPU but creates the texture in the GPU for later use
+				if (!texture.ready())
+				{
+					texture.width(pass.dimensions().x);
+					texture.height(pass.dimensions().y);
+					texture.upload(a_device);        // Doesn't necessarily upload a texture to the GPU but creates the texture in the GPU for later use
+				}
+				else
+				{
+					if ((texture.width() != pass.dimensions().x) || (texture.height() != pass.dimensions().y))
+						ror::log_critical("Reusing render target with different dimensions");
+				}
+			}
+
+			auto pass_render_buffers = pass.render_buffers();
+			for (auto &render_buffer : pass_render_buffers)
+			{
+				auto &buffer = render_buffer.m_target_reference.get();
+				if (!buffer.ready())
+				{
+					buffer.upload(a_device);        // Creates a gpu buffer with 1 byte size, which can be released and uploaded later with proper size
+				}
+				else
+				{
+					ror::log_critical("Reusing buffer target with different size");
+				}
 			}
 
 			pass.upload(a_device);
+		}
+
+		// Make sure all the rendered_inputs and buffer_inputs are ready
+		for (auto &pass : graph.second)
+		{
+			auto pass_render_targets = pass.render_targets();
+			auto pass_render_buffers = pass.render_buffers();
+
+			for (auto &render_target : pass_render_targets)
+			{
+				auto &texture = render_target.m_target_reference.get();
+				(void) texture;
+				assert(texture.ready() && "Required textures are not ready");
+			}
+			for (auto &render_buffer : pass_render_buffers)
+			{
+				auto &buffer = render_buffer.m_target_reference.get();
+				(void) buffer;
+				assert(buffer.ready() && "Required buffers are not ready");
+			}
 		}
 	}
 

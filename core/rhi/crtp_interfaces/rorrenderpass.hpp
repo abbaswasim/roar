@@ -111,6 +111,7 @@ class Rendersubpass final
   public:
 	using Rendersubpasses = std::vector<std::reference_wrapper<const Rendersubpass>>;
 	using RenderTargets   = std::vector<std::reference_wrapper<const RenderTarget>>;
+	using BufferTargets   = std::vector<std::reference_wrapper<const RenderBuffer>>;
 
 	FORCE_INLINE                Rendersubpass()                                 = default;        //! Default constructor
 	FORCE_INLINE                Rendersubpass(const Rendersubpass &a_other)     = default;        //! Copy constructor
@@ -126,8 +127,10 @@ class Rendersubpass final
 	FORCE_INLINE constexpr auto state()                   const noexcept { return this->m_state;                 }
 	FORCE_INLINE constexpr auto &input_attachment_ids()   const noexcept { return this->m_input_attachment_ids;  }
 	FORCE_INLINE constexpr auto &rendered_input_ids()     const noexcept { return this->m_rendered_input_ids;    }
+	FORCE_INLINE constexpr auto &buffer_input_ids()       const noexcept { return this->m_buffer_input_ids;      }
 	FORCE_INLINE constexpr auto &input_attachments()      const noexcept { return this->m_input_attachments;     }
 	FORCE_INLINE constexpr auto &rendered_inputs()        const noexcept { return this->m_rendered_inputs;       }
+	FORCE_INLINE constexpr auto &buffer_inputs()          const noexcept { return this->m_buffer_inputs;         }
 	FORCE_INLINE constexpr auto program_id()              const noexcept { return this->m_program_id;            }
 	FORCE_INLINE constexpr auto debug_output()            const noexcept { return this->m_debug_output;          }
 	FORCE_INLINE constexpr auto has_depth()               const noexcept { return this->m_has_depth;             }
@@ -138,8 +141,10 @@ class Rendersubpass final
 	FORCE_INLINE constexpr void state(rhi::RenderpassState a_state)                                        noexcept { this->m_state = a_state;                           }
 	FORCE_INLINE constexpr void input_attachment_ids(const std::vector<uint32_t> &a_input_attachments)     noexcept { this->m_input_attachment_ids = a_input_attachments;}
 	FORCE_INLINE constexpr void rendered_input_ids(const std::vector<uint32_t> &a_rendered_inputs)         noexcept { this->m_rendered_input_ids = a_rendered_inputs;    }
+	FORCE_INLINE constexpr void buffer_input_ids(const std::vector<uint32_t> &a_buffer_inputs)             noexcept { this->m_buffer_input_ids = a_buffer_inputs;        }
 	FORCE_INLINE constexpr void input_attachments(const Rendersubpasses &a_input_attachments)              noexcept { this->m_input_attachments = a_input_attachments;   }
 	FORCE_INLINE constexpr void rendered_inputs(const RenderTargets &a_rendered_inputs)                    noexcept { this->m_rendered_inputs = a_rendered_inputs;       }
+	FORCE_INLINE constexpr void buffer_inputs(const BufferTargets &a_buffer_inputs)                        noexcept { this->m_buffer_inputs = a_buffer_inputs;           }
 	FORCE_INLINE constexpr void program_id(int32_t a_program_id)                                           noexcept { this->m_program_id = a_program_id;                 }
 	FORCE_INLINE constexpr void debug_output(bool a_debug_output)                                          noexcept { this->m_debug_output = a_debug_output;             }
 	FORCE_INLINE constexpr void has_depth(bool a_has_depth)                                                noexcept { this->m_has_depth = a_has_depth;                   }
@@ -152,9 +157,11 @@ class Rendersubpass final
 	rhi::RenderpassType      m_type{rhi::RenderpassType::main};                      //! Is it a shadow, reflection etc or main pass etc
 	rhi::RenderpassState     m_state{rhi::RenderpassState::transient};               //! Do I need to pre-run this once or required every frame
 	std::vector<uint32_t>    m_input_attachment_ids{};                               //! Input attachments from other subpasses, different from m_render_inputs
-	std::vector<uint32_t>    m_rendered_input_ids{};                                 //! Outputs from other attachments that can be sampled by this subpass as a texture, like shadow map
+	std::vector<uint32_t>    m_rendered_input_ids{};                                 //! Texture outputs from other attachments that can be sampled by this subpass as a texture, like shadow map
+	std::vector<uint32_t>    m_buffer_input_ids{};                                   //! Buffer outputs from other attachments that can be read by this subpass as a buffer
 	Rendersubpasses          m_input_attachments{};                                  //! Refereces to input attachments from other subpasses, different from m_render_inputs
-	RenderTargets            m_rendered_inputs{};                                    //! References to outputs from other attachments that can be sampled by this subpass as a texture, like shadow map
+	RenderTargets            m_rendered_inputs{};                                    //! References to texture outputs from other attachments that can be sampled by this subpass as a texture, like shadow map
+	BufferTargets            m_buffer_inputs{};                                      //! References to buffer outputs from other attachments that can be read by this subpass as a buffer
 	int32_t                  m_program_id{};                                         //! A program id that could be used to execute this pass or will use the content PSOs
 	bool                     m_debug_output{false};                                  //! Whether debug output is required
 	bool                     m_has_depth{false};                                     //! Whether there is a depth buffer required and attached

@@ -142,9 +142,9 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 	{
 		MTL::Region region{0, 0, 0, this->width(), this->height(), 1};
 		this->m_texture->replaceRegion(region, 0, this->data(), bytes_per_row);
-		this->ready(true);
 	}
-#else
+	this->ready(true);
+#else // Make sure you call this->ready(true); somewhere when done in the else case
 
 	texture_descriptor->setStorageMode(MTL::StorageModePrivate);
 

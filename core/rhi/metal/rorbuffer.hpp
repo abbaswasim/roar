@@ -46,6 +46,7 @@ class ROAR_ENGINE_ITEM BufferMetal : public BufferCrtp<BufferMetal<_type>, _type
 	FORCE_INLINE BufferMetal &operator=(BufferMetal &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~BufferMetal() noexcept override                 = default;        //! Destructor
 
+	void release();
 	void upload(rhi::Device &a_device);
 	void partial_upload(rhi::Device &a_device, size_t a_offset, size_t a_length);
 
