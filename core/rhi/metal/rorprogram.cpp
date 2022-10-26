@@ -29,6 +29,7 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/metal/rormetal_common.hpp"
 #include "rhi/metal/rorprogram.hpp"
+#include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
 #include "rhi/rorvertex_description.hpp"
@@ -37,6 +38,7 @@
 #include <string>
 #include <vector>
 
+#include <Metal/MTLDevice.hpp>
 #include <Metal/MTLPixelFormat.hpp>
 #include <Metal/MTLRenderPipeline.hpp>
 #include <Metal/MTLVertexDescriptor.hpp>
@@ -116,21 +118,21 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 
 void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass)
 {
-	auto                           is_depth_shadow            = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
-	auto                          &setting                    = ror::settings();
-	MTL::Device                   *device                     = a_device.platform_device();
-	NS::Error                     *pError                     = nullptr;
-	MTL::RenderPipelineDescriptor *render_pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
+	auto       is_depth_shadow            = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
+	auto      &setting                    = ror::settings();
+	auto      *device                     = a_device.platform_device();
+	NS::Error *pError                     = nullptr;
+	auto      *render_pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
 
 	assert(device);
 	assert(render_pipeline_descriptor && "Can't allocate metal render pipeline descriptor");
 
-	auto vs_id  = this->vertex_id();
-	auto fs_id  = this->fragment_id();
-	auto com_id = this->compute_id();
+	auto vs_id = this->vertex_id();
+	auto fs_id = this->fragment_id();
+	auto cs_id = this->compute_id();
 
-	assert((vs_id >= 0 || com_id >= 0) && "Invalid vs shader id");
-	assert((fs_id >= 0 || com_id >= 0) && "Invalid fs shader id");
+	assert((vs_id >= 0 || cs_id >= 0) && "Invalid vs shader id");
+	assert((fs_id >= 0 || cs_id >= 0) && "Invalid fs shader id");
 
 	if (vs_id < 0 || fs_id < 0)
 	{
@@ -141,7 +143,11 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	const auto &vs = a_shaders[static_cast<size_t>(vs_id)];
 	const auto &fs = a_shaders[static_cast<size_t>(fs_id)];
 
-	(void) com_id;        // TODO: Create compute pipelines
+	// TODO: Create compute pipelines
+	if (cs_id != -1)
+	{
+		ror::log_critical("Add mesh based compute shaders support");
+	}
 
 	if (vs.function() == nullptr)
 	{
@@ -180,11 +186,11 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	render_pipeline_descriptor->setRasterizationEnabled(true);
 	render_pipeline_descriptor->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassTriangle);
 
-	this->m_render_pipeline_state = device->newRenderPipelineState(render_pipeline_descriptor, &pError);
+	this->m_pipeline_state = device->newRenderPipelineState(render_pipeline_descriptor, &pError);
 
-	if (!this->m_render_pipeline_state)
+	if (!this->render_pipeline_state())
 	{
-		ror::log_critical("Metal program creation failed with error: {}", pError->localizedDescription()->utf8String());
+		ror::log_critical("Metal render program creation failed with error: {}", pError->localizedDescription()->utf8String());
 		return;
 	}
 
@@ -219,5 +225,52 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	  render_pipeline_descriptor->setMaxVertexCallStackDepth();
 	  render_pipeline_descriptor->setMaxFragmentCallStackDepth();
 	*/
+}
+
+void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders)
+{
+	// TODO: Add support for non-mesh vertex and fragment pipelines, would require a RenderpassType as a must
+	// auto      *render_pipeline_descriptor  = MTL::RenderPipelineDescriptor::alloc()->init();
+	// assert(render_pipeline_descriptor && "Can't allocate metal render pipeline descriptor");
+
+	auto vs_id = this->vertex_id();
+	auto fs_id = this->fragment_id();
+	auto cs_id = this->compute_id();
+
+	assert((vs_id >= 0 || cs_id >= 0) && "Invalid vs shader id");
+	assert((fs_id >= 0 || cs_id >= 0) && "Invalid fs shader id");
+
+	if (vs_id >= 0 || fs_id >= 0)
+	{
+		ror::log_critical("Only compute programs for non-mesh are supported at the moment");
+		return;
+	}
+
+	// const auto &vs = a_shaders[static_cast<size_t>(vs_id)];
+	// const auto &fs = a_shaders[static_cast<size_t>(fs_id)];
+	const auto &cs = a_shaders[static_cast<size_t>(cs_id)];
+
+	// if (vs.function() == nullptr && cs.function() == nullptr)
+	if (cs.function() == nullptr)
+	{
+		ror::log_critical("Compute function can't be null or empty");
+		return;
+	}
+
+	// Don't need a descriptor but its possible to have one and create a compute pipeline from that
+	// auto      *compute_pipeline_descriptor = MTL::ComputePipelineDescriptor::alloc()->init();
+	// assert(compute_pipeline_descriptor && "Can't allocate metal compute pipeline descriptor");
+	auto      *device = a_device.platform_device();
+	NS::Error *pError = nullptr;
+
+	assert(device);
+
+	this->m_pipeline_state = device->newComputePipelineState(cs.function(), &pError);
+
+	if (!this->compute_pipeline_state())
+	{
+		ror::log_critical("Metal compute program creation failed with error: {}", pError->localizedDescription()->utf8String());
+		return;
+	}
 }
 }        // namespace rhi

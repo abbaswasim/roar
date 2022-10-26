@@ -30,7 +30,10 @@ namespace rhi
 {
 	FORCE_INLINE ProgramMetal::~ProgramMetal() noexcept
 	{
-		if (this->m_render_pipeline_state)
-			this->m_render_pipeline_state->release();
+		if (std::holds_alternative<MTL::RenderPipelineState *>(this->m_pipeline_state))
+			std::get<MTL::RenderPipelineState *>(this->m_pipeline_state)->release();
+
+		else if (std::holds_alternative<MTL::ComputePipelineState *>(this->m_pipeline_state))
+			std::get<MTL::ComputePipelineState *>(this->m_pipeline_state)->release();
 	}
 }        // namespace rhi

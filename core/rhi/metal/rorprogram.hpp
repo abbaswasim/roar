@@ -36,6 +36,7 @@
 #include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"
 
+#include <Metal/MTLComputePipeline.hpp>
 #include <Metal/MTLRenderPipeline.hpp>
 
 namespace rhi
@@ -58,10 +59,22 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	{}
 
 	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass);
+	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders);
 
-	FORCE_INLINE constexpr auto render_pipeline_state() const
+	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept
 	{
-		return this->m_render_pipeline_state;
+		if (std::holds_alternative<MTL::ComputePipelineState *>(this->m_pipeline_state))
+			return std::get<MTL::ComputePipelineState *>(this->m_pipeline_state);
+
+		return static_cast<MTL::ComputePipelineState *>(nullptr);
+	}
+
+	FORCE_INLINE constexpr auto *render_pipeline_state() const noexcept
+	{
+		if (std::holds_alternative<MTL::RenderPipelineState *>(this->m_pipeline_state))
+			return std::get<MTL::RenderPipelineState *>(this->m_pipeline_state);
+
+		return static_cast<MTL::RenderPipelineState *>(nullptr);
 	}
 
   protected:
@@ -70,7 +83,7 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
   private:
 	declare_translation_unit_vtable();
 
-	MTL::RenderPipelineState *m_render_pipeline_state{nullptr};
+	std::variant<MTL::RenderPipelineState *, MTL::ComputePipelineState *> m_pipeline_state{};        //! This program will contain either Render or Compute pipeline state
 };
 
 declare_rhi_render_type(Program);
