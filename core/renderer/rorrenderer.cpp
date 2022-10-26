@@ -216,14 +216,13 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
                       std::vector<rhi::TextureImage>        &a_render_targets,
                       std::vector<rhi::Buffer<rhi::Static>> &a_render_buffers)
 {
+	rhi::Renderpass render_pass;
+
 	if (a_render_pass.contains("disabled"))
 	{
 		auto disabled = a_render_pass["disabled"];
-		if (disabled)
-			return;
+		render_pass.enabled(!disabled);
 	}
-
-	rhi::Renderpass render_pass;
 
 	render_pass.viewport(a_viewport);
 	render_pass.dimensions(a_dimensions);

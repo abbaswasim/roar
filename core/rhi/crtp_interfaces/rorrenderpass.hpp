@@ -200,6 +200,7 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE constexpr auto &parent_ids()          const noexcept { return this->m_parent_ids;         }
 	FORCE_INLINE constexpr auto &parents()             const noexcept { return this->m_parents;            }
 	FORCE_INLINE constexpr auto  background()          const noexcept { return this->m_background;         }
+	FORCE_INLINE constexpr auto  enabled()             const noexcept { return this->m_enabled;            }
 
 	FORCE_INLINE constexpr void subpasses(const std::vector<Rendersubpass>& a_passes)                    { this->m_subpasses = a_passes;                 }
 	FORCE_INLINE constexpr void dimensions(ror::Vector2ui a_dimensions)                                  { this->m_dimensions = a_dimensions;            }
@@ -209,6 +210,7 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE constexpr void render_targets(const std::vector<RenderTarget> &a_render_targets)        { this->m_render_targets = a_render_targets;    }
 	FORCE_INLINE constexpr void render_buffers(const std::vector<RenderBuffer> &a_render_buffers)        { this->m_render_buffers = a_render_buffers;    }
 	FORCE_INLINE constexpr void background(ror::Vector4f a_color)                                        { this->m_background = a_color;                 }
+	FORCE_INLINE constexpr void enabled(bool a_enabled)                                                  { this->m_enabled = a_enabled;                  }
 	FORCE_INLINE constexpr void upload()                                                                 { this->underlying().upload();                  }
 	// clang-format on
 
@@ -222,6 +224,7 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	ror::Vector4i              m_viewport{0, 0, 1024, 768};                    //! Viewport for this renderpass if provided will override frame graph viewport
 	std::vector<uint32_t>      m_parent_ids{};                                 //! All passes that need to complete before this can run
 	Renderpasses               m_parents{};                                    //! All passes that need to complete before this can run
+	bool                       m_enabled{true};                                //! Enabled by default unless a "disabled":true is found in the config
 };
 
 }        // namespace rhi
