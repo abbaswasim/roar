@@ -30,6 +30,7 @@
 #include "foundation/rorjobsystem.hpp"
 #include "graphics/rorscene.hpp"
 #include "math/rorvector2.hpp"
+#include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rordevice.hpp"
@@ -80,6 +81,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE auto  &buffer_pack()      {    return *this->m_buffer_pack;               }
 	FORCE_INLINE auto  &device()           {    return *this->m_current_device;            }
 	FORCE_INLINE auto  &renderer()         {    return this->m_renderer;                   }
+	FORCE_INLINE auto  &timer()            {    return this->m_timer;                      }
 	// clang-format on
 
 	FORCE_INLINE void shutdown()
@@ -105,6 +107,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	}
 
   private:
+	ror::Timer                           m_timer{};                        //! Main timer for the system
 	ror::JobSystem                      *m_job_system{nullptr};            //! Non-owning job system alias that will be used by the whole application
 	ror::EventSystem                     m_event_system{};                 //! An event system that the application can use,
 	ror::Scene                           m_scene{};                        //! A scene we want to render

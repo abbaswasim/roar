@@ -23,7 +23,10 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rortypes.hpp"
 #include "rortimer.hpp"
+#include <chrono>
+#include <ratio>
 
 namespace ror
 {
@@ -32,13 +35,38 @@ FORCE_INLINE Timer::Timer()
 	// this->m_previous_time = std::chrono::high_resolution_clock::now();
 	this->m_previous_time = std::chrono::steady_clock::now();
 }
-FORCE_INLINE int64_t Timer::tick()
+
+FORCE_INLINE auto Timer::elapsed()
 {
-	// auto now              = std::chrono::high_resolution_clock::now();
 	auto now              = std::chrono::steady_clock::now();
 	auto elapsed          = now - this->m_previous_time;
 	this->m_previous_time = now;
-	return std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed).count();
+
+	return elapsed;
 }
 
+FORCE_INLINE int64_t Timer::tick()
+{
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(this->elapsed()).count();
+}
+
+FORCE_INLINE double64_t Timer::tick_seconds()
+{
+	return std::chrono::duration<double>(this->elapsed()).count();
+}
+
+FORCE_INLINE double64_t Timer::tick_milliseconds()
+{
+	return std::chrono::duration<double, std::milli>(this->elapsed()).count();
+}
+
+FORCE_INLINE double64_t Timer::tick_microseconds()
+{
+	return std::chrono::duration<double, std::micro>(this->elapsed()).count();
+}
+
+FORCE_INLINE double64_t Timer::tick_nanoseconds()
+{
+	return std::chrono::duration<double, std::nano>(this->elapsed()).count();
+}
 }        // namespace ror

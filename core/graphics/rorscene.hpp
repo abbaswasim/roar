@@ -34,6 +34,7 @@
 #include "graphics/rornode.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rortransform.hpp"
+#include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorshader.hpp"
@@ -57,9 +58,9 @@ class ROAR_ENGINE_ITEM Light
 {
   public:
 	FORCE_INLINE        Light()                             = default;        //! Default constructors
-	FORCE_INLINE        Light(const Light &a_other)         = default;        //! Copy constructor
+	FORCE_INLINE        Light(const Light &a_other)         = delete;        //! Copy constructor
 	FORCE_INLINE        Light(Light &&a_other) noexcept     = default;        //! Move constructor
-	FORCE_INLINE Light &operator=(const Light &a_other)     = default;        //! Copy assignment operator
+	FORCE_INLINE Light &operator=(const Light &a_other)     = delete;        //! Copy assignment operator
 	FORCE_INLINE Light &operator=(Light &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Light() noexcept                          = default;        //! Destructor
 

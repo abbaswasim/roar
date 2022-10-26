@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
 #include "roar.hpp"
 
 #include <chrono>
@@ -33,17 +34,23 @@ static_assert(std::chrono::steady_clock::is_steady, "chrono::steady_clock is not
 // static_assert(std::chrono::high_resolution_clock::period::den == 1000000000);
 static_assert(std::chrono::steady_clock::period::den == 1000000000, "chrono::steady_clock doesn't have enough resolution.");        // Steady clock is high resolution
 
-class ROAR_ENGINE_ITEM Timer
+class ROAR_ENGINE_ITEM Timer final
 {
   public:
-	FORCE_INLINE Timer();                                      //! Default constructor
-	Timer(const Timer &other)                = delete;         //! Copy constructor
-	Timer(Timer &&other) noexcept            = delete;         //! Move constructor
-	Timer &operator=(const Timer &other)     = delete;         //! Copy assignment operator
-	Timer &operator=(Timer &&other) noexcept = delete;         //! Move assignment operator
-	~Timer() noexcept                        = default;        //! Destructor
+	FORCE_INLINE        Timer();                                            //! Default constructor
+	FORCE_INLINE        Timer(const Timer &other)         = delete;         //! Copy constructor
+	FORCE_INLINE        Timer(Timer &&other) noexcept     = delete;         //! Move constructor
+	FORCE_INLINE Timer &operator=(const Timer &other)     = delete;         //! Copy assignment operator
+	FORCE_INLINE Timer &operator=(Timer &&other) noexcept = delete;         //! Move assignment operator
+	FORCE_INLINE ~Timer() noexcept                        = default;        //! Destructor
 
 	FORCE_INLINE int64_t tick();        // Tick will return the time difference in useconds between calls
+	FORCE_INLINE auto    elapsed();
+
+	FORCE_INLINE double64_t tick_seconds();             // Tick will return the time difference in seconds between calls
+	FORCE_INLINE double64_t tick_milliseconds();        // Tick will return the time difference in milliseconds between calls
+	FORCE_INLINE double64_t tick_microseconds();        // Tick will return the time difference in microseconds between calls
+	FORCE_INLINE double64_t tick_nanoseconds();         // Tick will return the time difference in nanoseconds between calls
 
   private:
 	// using TimePoint    = std::chrono::high_resolution_clock::time_point;

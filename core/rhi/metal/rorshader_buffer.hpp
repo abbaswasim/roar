@@ -40,13 +40,15 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>
 {
   public:
 	FORCE_INLINE                    ShaderBufferMetal()                                     = default;        //! Default constructor
-	FORCE_INLINE                    ShaderBufferMetal(const ShaderBufferMetal &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                    ShaderBufferMetal(const ShaderBufferMetal &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE                    ShaderBufferMetal(ShaderBufferMetal &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE ShaderBufferMetal &operator=(const ShaderBufferMetal &a_other)             = default;        //! Copy assignment operator
+	FORCE_INLINE ShaderBufferMetal &operator=(const ShaderBufferMetal &a_other)             = delete;         //! Copy assignment operator
 	FORCE_INLINE ShaderBufferMetal &operator=(ShaderBufferMetal &&a_other) noexcept         = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ShaderBufferMetal() noexcept override                             = default;        //! Destructor
 
 	declare_translation_unit_vtable();
+
+	FORCE_INLINE auto *platform_buffer() { return this->m_platform_buffer; }
 
 	FORCE_INLINE void init(rhi::Device &a_device, uint32_t a_size_in_bytes)
 	{
@@ -70,7 +72,8 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>
 		this->m_platform_buffer->didModifyRange(NS::Range::Make(a_from, a_to));
 	}
 
-	FORCE_INLINE constexpr void bind(MTL::RenderCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept
+	template <typename _type>
+	FORCE_INLINE constexpr void bind(_type *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept
 	{
 		// auto &shader_buffer = this->shader_buffer();
 		switch (a_shader_stage)

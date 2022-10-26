@@ -40,9 +40,9 @@ class ROAR_ENGINE_ITEM Skin
 {
   public:
 	FORCE_INLINE       Skin()                             = default;        //! Default constructor
-	FORCE_INLINE       Skin(const Skin &a_other)          = default;        //! Copy constructor
+	FORCE_INLINE       Skin(const Skin &a_other)          = delete;         //! Copy constructor
 	FORCE_INLINE       Skin(Skin &&a_other) noexcept      = default;        //! Move constructor
-	FORCE_INLINE Skin &operator=(const Skin &a_other)     = default;        //! Copy assignment operator
+	FORCE_INLINE Skin &operator=(const Skin &a_other)     = delete;         //! Copy assignment operator
 	FORCE_INLINE Skin &operator=(Skin &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Skin() noexcept                         = default;        //! Destructor
 
@@ -56,11 +56,11 @@ class ROAR_ENGINE_ITEM Skin
 		auto mapping = this->m_joint_transform_shader_buffer.map();
 		for (size_t joint_id = 0; joint_id < this->m_joint_transforms.size(); ++joint_id)
 		{
-			auto &xform = this->m_joint_transforms[joint_id];
-			auto joint_mapping = mapping + (joint_id * this->m_joint_trasform_stride);
-			std::memcpy(joint_mapping +  m_translation_offset, &xform.m_translation.x, sizeof(Vector3f));
-			std::memcpy(joint_mapping +  m_rotation_offset, &xform.m_rotation.x, sizeof(Quaternionf));
-			std::memcpy(joint_mapping +  m_scale_offset, &xform.m_scale.x, sizeof(Vector3f));
+			auto &xform         = this->m_joint_transforms[joint_id];
+			auto  joint_mapping = mapping + (joint_id * this->m_joint_trasform_stride);
+			std::memcpy(joint_mapping + m_translation_offset, &xform.m_translation.x, sizeof(Vector3f));
+			std::memcpy(joint_mapping + m_rotation_offset, &xform.m_rotation.x, sizeof(Quaternionf));
+			std::memcpy(joint_mapping + m_scale_offset, &xform.m_scale.x, sizeof(Vector3f));
 		}
 		this->m_joint_transform_shader_buffer.unmap();
 	}

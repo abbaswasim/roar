@@ -59,9 +59,9 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 {
   public:
 	FORCE_INLINE              OrbitCamera()                               = default;        //! Default constructor
-	FORCE_INLINE              OrbitCamera(const OrbitCamera &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE              OrbitCamera(const OrbitCamera &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE              OrbitCamera(OrbitCamera &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE OrbitCamera &operator=(const OrbitCamera &a_other)       = default;        //! Copy assignment operator
+	FORCE_INLINE OrbitCamera &operator=(const OrbitCamera &a_other)       = delete;         //! Copy assignment operator
 	FORCE_INLINE OrbitCamera &operator=(OrbitCamera &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE ~OrbitCamera() noexcept                                  = default;        //! Destructor
 

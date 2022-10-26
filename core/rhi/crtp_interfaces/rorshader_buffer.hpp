@@ -39,6 +39,8 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	FORCE_INLINE ShaderBufferCrtp &operator=(ShaderBufferCrtp &&a_other) noexcept        = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ShaderBufferCrtp() noexcept override                           = default;        //! Destructor
 
+	FORCE_INLINE auto platform_buffer() noexcept { return this->underlying()->platform_buffer(); }
+
 	FORCE_INLINE auto &shader_buffer() noexcept
 	{
 		return this->m_shader_buffer_template;

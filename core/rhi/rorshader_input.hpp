@@ -184,6 +184,12 @@ class ROAR_ENGINE_ITEM ShaderInput final
 		this->m_variables.emplace(std::make_pair<std::string, VariableEntry>(std::move(a_variable.first), {a_variable.second, 0, 0}));
 	}
 
+	template<typename _type>
+	void update_data(std::string a_variable, _type a_value)
+	{
+		this->update_data(std::move(a_variable), reinterpret_cast<const uint8_t *>(&a_value));
+	}
+
 	void update_data(std::string a_variable, const uint8_t *a_value)
 	{
 		auto &variable = this->m_variables[a_variable];
@@ -229,7 +235,7 @@ class ROAR_ENGINE_ITEM ShaderInput final
 	{
 		std::string output{"layout(std140, set = 0, binding = 2) uniform "};        // TODO: Abstract out the set and binding
 		output.append(a_name);
-		output.append("\n{");
+		output.append("\n{\n");
 
 		for (auto &[variable_name, variable_data] : this->m_variables)
 		{
@@ -245,6 +251,8 @@ class ROAR_ENGINE_ITEM ShaderInput final
 		output.append(";\n");
 		return output;
 	}
+
+	auto &shader_buffer() { return this->m_shader_buffer;}
 
 	struct VariableEntry
 	{

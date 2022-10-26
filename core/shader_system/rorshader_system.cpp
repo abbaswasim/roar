@@ -45,125 +45,6 @@
 namespace ror
 {
 
-std::string format_to_glsl_type(rhi::VertexFormat a_format)
-{
-	// bool
-	// int
-	// uint
-	// float
-	// double
-
-	// bvecn:
-	// ivecn:
-	// uvecn:
-	// vecn:
-	// dvecn:
-
-	// mat3x3
-	// mat3x4
-	// mat4x4
-
-	// clang-format off
-	switch (a_format)
-	{
-		case rhi::VertexFormat::invalid:			return " ";
-		case rhi::VertexFormat::struct_1:			return " ";
-		case rhi::VertexFormat::bool32_1:			return " bool";
-		case rhi::VertexFormat::bool32_2:			return " bvec2";
-		case rhi::VertexFormat::bool32_3:			return " bvec3";
-		case rhi::VertexFormat::bool32_4:			return " bvec4";
-		case rhi::VertexFormat::int8_1:				return " int";
-		case rhi::VertexFormat::int8_2:				return " ivec2";
-		case rhi::VertexFormat::int8_3:				return " ivec3";
-		case rhi::VertexFormat::int8_4:				return " ivec4";
-		case rhi::VertexFormat::int16_1:			return " int";
-		case rhi::VertexFormat::int16_2:			return " ivec2";
-		case rhi::VertexFormat::int16_3:			return " ivec3";
-		case rhi::VertexFormat::int16_4:			return " ivec4";
-		case rhi::VertexFormat::int32_1:			return " int";
-		case rhi::VertexFormat::int32_2:			return " ivec2";
-		case rhi::VertexFormat::int32_3:			return " ivec3";
-		case rhi::VertexFormat::int32_4:			return " ivec4";
-		case rhi::VertexFormat::half16_1:			return " int";
-		case rhi::VertexFormat::half16_2:			return " ivec2";
-		case rhi::VertexFormat::half16_3:			return " ivec3";
-		case rhi::VertexFormat::half16_4:			return " ivec4";
-
-		case rhi::VertexFormat::float32_1:			return " float";
-		case rhi::VertexFormat::float32_2:			return " vec2";
-		case rhi::VertexFormat::float32_3:			return " vec3";
-		case rhi::VertexFormat::float32_4:			return " vec4";
-		case rhi::VertexFormat::float32_2x2:		return " mat2x2";
-		case rhi::VertexFormat::float32_2x3:		return " mat2x3";
-		case rhi::VertexFormat::float32_2x4:		return " mat2x4";
-		case rhi::VertexFormat::float32_3x2:		return " mat3x2";
-		case rhi::VertexFormat::float32_3x3:		return " mat3x3";
-		case rhi::VertexFormat::float32_3x4:		return " mat3x4";
-		case rhi::VertexFormat::float32_4x2:		return " mat4x2";
-		case rhi::VertexFormat::float32_4x3:		return " mat4x3";
-		case rhi::VertexFormat::float32_4x4:		return " mat4x4";
-		case rhi::VertexFormat::float64_2x2:		return " dmat2x2";
-		case rhi::VertexFormat::float64_2x3:		return " dmat2x3";
-		case rhi::VertexFormat::float64_2x4:		return " dmat2x4";
-		case rhi::VertexFormat::float64_3x2:		return " dmat3x2";
-		case rhi::VertexFormat::float64_3x3:		return " dmat3x3";
-		case rhi::VertexFormat::float64_3x4:		return " dmat3x4";
-		case rhi::VertexFormat::float64_4x2:		return " dmat4x2";
-		case rhi::VertexFormat::float64_4x3:		return " dmat4x3";
-		case rhi::VertexFormat::float64_4x4:		return " dmat4x4";
-		case rhi::VertexFormat::float64_1:			return " double";
-		case rhi::VertexFormat::float64_2:			return " dvec2";
-		case rhi::VertexFormat::float64_3:			return " dvec3";
-		case rhi::VertexFormat::float64_4:			return " dvec4";
-
-		case rhi::VertexFormat::uint8_1:			return " uint";
-		case rhi::VertexFormat::uint8_2:			return " uvec2";
-		case rhi::VertexFormat::uint8_3:			return " uvec3";
-		case rhi::VertexFormat::uint8_4:			return " uvec4";
-		case rhi::VertexFormat::uint16_1:			return " uint";
-		case rhi::VertexFormat::uint16_2:			return " uvec2";
-		case rhi::VertexFormat::uint16_3:			return " uvec3";
-		case rhi::VertexFormat::uint16_4:			return " uvec4";
-		case rhi::VertexFormat::uint32_1:			return " uint";
-		case rhi::VertexFormat::uint32_2:			return " uvec2";
-		case rhi::VertexFormat::uint32_3:			return " uvec3";
-		case rhi::VertexFormat::uint32_4:			return " uvec4";
-		case rhi::VertexFormat::uint64_1:			return " double";
-		case rhi::VertexFormat::uint64_2:			return " dvec2";
-		case rhi::VertexFormat::uint64_3:			return " dvec3";
-		case rhi::VertexFormat::uint64_4:			return " dvec4";
-
-		case rhi::VertexFormat::int8_1_norm:		return " int";
-		case rhi::VertexFormat::int8_2_norm:		return " ivec2";
-		case rhi::VertexFormat::int8_3_norm:		return " ivec3";
-		case rhi::VertexFormat::int8_4_norm:		return " ivec4";
-		case rhi::VertexFormat::int16_1_norm:		return " int";
-		case rhi::VertexFormat::int16_2_norm:		return " ivec2";
-		case rhi::VertexFormat::int16_3_norm:		return " ivec3";
-		case rhi::VertexFormat::int16_4_norm:		return " ivec4";
-		case rhi::VertexFormat::uint8_1_norm:		return " uint";
-		case rhi::VertexFormat::uint8_2_norm:		return " uvec2";
-		case rhi::VertexFormat::uint8_3_norm:		return " uvec3";
-		case rhi::VertexFormat::uint8_4_norm:		return " uvec4";
-		case rhi::VertexFormat::uint16_1_norm:		return " uint";
-		case rhi::VertexFormat::uint16_2_norm:		return " uvec2";
-		case rhi::VertexFormat::uint16_3_norm:		return " uvec3";
-		case rhi::VertexFormat::uint16_4_norm:		return " uvec4";
-		case rhi::VertexFormat::int1010102_norm:	return " int";
-		case rhi::VertexFormat::uint1010102_norm:	return " uint";
-		case rhi::VertexFormat::int101111_norm:		return " int";
-		case rhi::VertexFormat::uint101111_norm:	return " uint";
-		case rhi::VertexFormat::uint8_4_norm_bgra:	return " uint";
-		case rhi::VertexFormat::uint8_custom:		return " uint";
-		case rhi::VertexFormat::uint16_custom:		return " uint";
-		case rhi::VertexFormat::uint32_custom:		return " uint";
-		case rhi::VertexFormat::float32_custom:		return " float";
-	}
-	// clang-format on
-
-	return "";
-}
-
 std::string attribute_format(rhi::VertexFormat a_format)
 {
 	// bool
@@ -1459,12 +1340,13 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow)
 
 std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const materials_vector &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, bool a_has_shadow)
 {
-	auto          is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
-	const auto   &vertex_descriptor = a_mesh.m_attribute_vertex_descriptors[a_primitive_index];
-	ror::Material material{};        // Default material if no material available for this mesh primitive
+	auto                 is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
+	const auto          &vertex_descriptor = a_mesh.m_attribute_vertex_descriptors[a_primitive_index];
+	ror::Material        default_material{};                 // Default material if no material available for this mesh primitive
+	const ror::Material *material{&default_material};        // Default material if no material available for this mesh primitive
 
 	if (a_mesh.m_material_indices[a_primitive_index] != -1)
-		material = a_materials[ror::static_cast_safe<size_t>(a_mesh.m_material_indices[a_primitive_index])];
+		material = &a_materials[ror::static_cast_safe<size_t>(a_mesh.m_material_indices[a_primitive_index])];
 
 	std::string output{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 

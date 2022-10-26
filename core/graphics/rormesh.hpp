@@ -59,9 +59,9 @@ class ROAR_ENGINE_ITEM Mesh final
 {
   public:
 	FORCE_INLINE       Mesh()                             = default;        //! Default constructor
-	FORCE_INLINE       Mesh(const Mesh &a_other)          = default;        //! Copy constructor
+	FORCE_INLINE       Mesh(const Mesh &a_other)          = delete;         //! Copy constructor
 	FORCE_INLINE       Mesh(Mesh &&a_other) noexcept      = default;        //! Move constructor
-	FORCE_INLINE Mesh &operator=(const Mesh &a_other)     = default;        //! Copy assignment operator
+	FORCE_INLINE Mesh &operator=(const Mesh &a_other)     = delete;         //! Copy assignment operator
 	FORCE_INLINE Mesh &operator=(Mesh &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Mesh() noexcept                         = default;        //! Destructor
 
