@@ -30,7 +30,9 @@
 #include "core/foundation/rorcrtp.hpp"
 #include "foundation/rormacros.hpp"
 #include "math/rorvector2.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorbuffer.hpp"
+#include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorrenderstate.hpp"
@@ -64,15 +66,17 @@ class Renderer final : public Configuration<Renderer>
 	std::vector<rhi::RenderpassType> all_render_pass_types() const;
 
 	// clang-format off
-	FORCE_INLINE constexpr auto& shaders()             const noexcept { return this->m_shaders;              }
-	FORCE_INLINE constexpr auto& programs()            const noexcept { return this->m_programs;             }
-	FORCE_INLINE constexpr auto& render_targets()      const noexcept { return this->m_render_targets;       }
-	FORCE_INLINE constexpr auto& render_buffers()      const noexcept { return this->m_render_buffers;       }
-	FORCE_INLINE constexpr auto& render_state()        const noexcept { return this->m_render_state;         }
-	FORCE_INLINE constexpr auto& dimensions()          const noexcept { return this->m_dimensions;           }
-	FORCE_INLINE constexpr auto& viewport()            const noexcept { return this->m_viewport;             }
-	FORCE_INLINE constexpr auto& frame_graphs()        const noexcept { return this->m_frame_graphs;         }
-	FORCE_INLINE constexpr auto& current_frame_graph() const noexcept { return *this->m_current_frame_graph; }
+	FORCE_INLINE constexpr auto& shaders()                const noexcept { return this->m_shaders;                 }
+	FORCE_INLINE constexpr auto& programs()               const noexcept { return this->m_programs;                }
+	FORCE_INLINE constexpr auto& render_targets()         const noexcept { return this->m_render_targets;          }
+	FORCE_INLINE constexpr auto& render_buffers()         const noexcept { return this->m_render_buffers;          }
+	FORCE_INLINE constexpr auto& input_render_targets()   const noexcept { return this->m_input_render_targets;    }
+	FORCE_INLINE constexpr auto& input_render_buffers()   const noexcept { return this->m_input_render_buffers;    }
+	FORCE_INLINE constexpr auto& render_state()           const noexcept { return this->m_render_state;            }
+	FORCE_INLINE constexpr auto& dimensions()             const noexcept { return this->m_dimensions;              }
+	FORCE_INLINE constexpr auto& viewport()               const noexcept { return this->m_viewport;                }
+	FORCE_INLINE constexpr auto& frame_graphs()           const noexcept { return this->m_frame_graphs;            }
+	FORCE_INLINE constexpr auto& current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
 
 	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
 	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }
@@ -82,11 +86,16 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
 	// clang-format on
 
+	using InputRenderTargets = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
+	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
+
   protected:
   private:
 	declare_translation_unit_vtable();
 
-	std::vector<rhi::RenderpassType> render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const;
+	std::vector<rhi::RenderpassType>                render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const;
+	std::reference_wrapper<const rhi::RenderTarget> find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
+	std::reference_wrapper<const rhi::RenderBuffer> find_renderbuffer_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
 
 	void load_programs();
 	void load_frame_graphs();
@@ -103,6 +112,8 @@ class Renderer final : public Configuration<Renderer>
 	FrameGraph                            m_frame_graphs{};                      //! Frame graph for all techniques like forward, deferred etc
 	std::vector<rhi::Renderpass>         *m_current_frame_graph{nullptr};        //! Non-owning raw pointer alias that Points to the active technique in the framegraphs
 	rhi::Renderstate                      m_render_state{};                      //! Almost all the render state that the renderer requires will be stored here
+	InputRenderTargets                    m_input_render_targets{};              //! Render targets that are not directly associated with any render pass but required to be filled in before rendering starts
+	InputBufferTargets                    m_input_render_buffers{};              //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
 };
 
 }        // namespace ror

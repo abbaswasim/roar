@@ -1,25 +1,10 @@
 {
 	"shaders":[
-		"default_pbr.vert",
-		"default_pbr.frag",
-		"shadow.vert",
-		"shadow.frag",
-		"depth.vert",
-		"depth.frag",
-		"blur.kern",
 		"node_transform.comp"
 	],
 	"programs":[
 		{
-			"vertex":0,
-			"fragment":1
-		},
-		{
-			"vertex":2,
-			"fragment":3
-		},
-		{
-			"compute":7
+			"compute":0
 		}
 	],
 	"render_targets":[
@@ -80,7 +65,7 @@
 			"format":"r32_float32"
 		},
 		{
-			"name":"compute_buffer1",
+			"name":"node_transform_input",
 			"format":"r32_float32"
 		}
 	],
@@ -109,6 +94,9 @@
 						"technique":"compute",
 						"type":"node_transform",
 						"state":"transient",
+						"buffer_inputs":[
+							1
+						],
 						"program":2
 					}
 				]
@@ -334,8 +322,7 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0,
-							1
+							0
 						],
 						"program":1
 					},
@@ -345,8 +332,7 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0,
-							1
+							0
 						],
 						"program":1
 					},
@@ -358,8 +344,7 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0,
-							1
+							0
 						],
 						"program":0
 					}

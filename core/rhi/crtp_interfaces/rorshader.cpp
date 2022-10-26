@@ -75,13 +75,13 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
                       std::vector<std::uint32_t> &spirv,
                       std::string                &info_log)
 {
-	EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgVulkanRules | EShMsgSpvRules);// | EShMsgDebugInfo);
+	EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgVulkanRules | EShMsgSpvRules);        // | EShMsgDebugInfo);
 
 	EShLanguage                       language        = shader_type_to_language(a_shader_type);
 	glslang::EShTargetLanguage        target_language = glslang::EShTargetLanguage::EShTargetSpv;
-	glslang::EShTargetLanguageVersion version         = glslang::EShTargetSpv_1_5; // Could be 1_6
+	glslang::EShTargetLanguageVersion version         = glslang::EShTargetSpv_1_5;        // Could be 1_6
 
-	const char *shader_source     = reinterpret_cast<const char *>(a_glsl_source.data());
+	const char *shader_source = reinterpret_cast<const char *>(a_glsl_source.data());
 
 	glslang::TShader shader(language);
 	shader.setStrings(&shader_source, 1);
@@ -96,7 +96,8 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
 	// TODO: Find out what does this 100 or 110 mean here some people use it like ((EOptionNone & EOptionDefaultDesktop) ? 110 : 100, false)
 	if (!shader.parse(&glslang::DefaultTBuiltInResource, 110, false, messages))
 	{
-		info_log = std::string(shader.getInfoLog()) + "\n" + std::string(shader.getInfoDebugLog());
+		info_log += a_glsl_source;
+		info_log += std::string(shader.getInfoLog()) + "\n" + std::string(shader.getInfoDebugLog());
 		return false;
 	}
 

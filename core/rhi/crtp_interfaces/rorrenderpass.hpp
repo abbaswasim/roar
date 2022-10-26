@@ -83,6 +83,11 @@ class RenderTarget final : public RenderOutput
 	declare_translation_unit_vtable() override;
 };
 
+define_type_to_shader_semantics(RenderTarget)
+{
+	return rhi::BufferSemantic::custom;
+}
+
 class RenderBuffer final : public RenderOutput
 {
   public:
@@ -105,6 +110,11 @@ class RenderBuffer final : public RenderOutput
   private:
 	declare_translation_unit_vtable() override;
 };
+
+define_type_to_shader_semantics(RenderBuffer)
+{
+	return rhi::BufferSemantic::custom;
+}
 
 class Rendersubpass final
 {
@@ -142,7 +152,7 @@ class Rendersubpass final
 	FORCE_INLINE constexpr void input_attachment_ids(const std::vector<uint32_t> &a_input_attachments)     noexcept { this->m_input_attachment_ids = a_input_attachments;}
 	FORCE_INLINE constexpr void rendered_input_ids(const std::vector<uint32_t> &a_rendered_inputs)         noexcept { this->m_rendered_input_ids = a_rendered_inputs;    }
 	FORCE_INLINE constexpr void buffer_input_ids(const std::vector<uint32_t> &a_buffer_inputs)             noexcept { this->m_buffer_input_ids = a_buffer_inputs;        }
-	FORCE_INLINE constexpr void input_attachments(const Rendersubpasses &a_input_attachments)              noexcept { this->m_input_attachments = a_input_attachments;   }
+	FORCE_INLINE constexpr void input_attachments(const RenderTargets &a_input_attachments)                noexcept { this->m_input_attachments = a_input_attachments;   }
 	FORCE_INLINE constexpr void rendered_inputs(const RenderTargets &a_rendered_inputs)                    noexcept { this->m_rendered_inputs = a_rendered_inputs;       }
 	FORCE_INLINE constexpr void buffer_inputs(const BufferTargets &a_buffer_inputs)                        noexcept { this->m_buffer_inputs = a_buffer_inputs;           }
 	FORCE_INLINE constexpr void program_id(int32_t a_program_id)                                           noexcept { this->m_program_id = a_program_id;                 }
@@ -157,11 +167,11 @@ class Rendersubpass final
 	rhi::RenderpassType      m_type{rhi::RenderpassType::main};                      //! Is it a shadow, reflection etc or main pass etc
 	rhi::RenderpassState     m_state{rhi::RenderpassState::transient};               //! Do I need to pre-run this once or required every frame
 	std::vector<uint32_t>    m_input_attachment_ids{};                               //! Input attachments from other subpasses, different from m_render_inputs
-	std::vector<uint32_t>    m_rendered_input_ids{};                                 //! Texture outputs from other attachments that can be sampled by this subpass as a texture, like shadow map
-	std::vector<uint32_t>    m_buffer_input_ids{};                                   //! Buffer outputs from other attachments that can be read by this subpass as a buffer
-	Rendersubpasses          m_input_attachments{};                                  //! Refereces to input attachments from other subpasses, different from m_render_inputs
-	RenderTargets            m_rendered_inputs{};                                    //! References to texture outputs from other attachments that can be sampled by this subpass as a texture, like shadow map
-	BufferTargets            m_buffer_inputs{};                                      //! References to buffer outputs from other attachments that can be read by this subpass as a buffer
+	std::vector<uint32_t>    m_rendered_input_ids{};                                 //! Texture outputs from other attachments that can be sampled by this subpass as a texture, like shadow map inputs
+	std::vector<uint32_t>    m_buffer_input_ids{};                                   //! Buffer outputs from other attachments that can be read by this subpass as a buffer inputs
+	RenderTargets            m_input_attachments{};                                  //! Refereces to input attachments from other subpasses, different from m_render_inputs
+	RenderTargets            m_rendered_inputs{};                                    //! References to texture outputs from other attachments that can be sampled by this subpass as a texture, like shadow map inputs
+	BufferTargets            m_buffer_inputs{};                                      //! References to buffer outputs from other attachments that can be read by this subpass as a buffer inputs
 	int32_t                  m_program_id{};                                         //! A program id that could be used to execute this pass or will use the content PSOs
 	bool                     m_debug_output{false};                                  //! Whether debug output is required
 	bool                     m_has_depth{false};                                     //! Whether there is a depth buffer required and attached

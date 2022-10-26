@@ -32,7 +32,6 @@
 #include "resources/rorresource.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
-#include <string_view>
 #include <vector>
 
 namespace rhi
@@ -69,6 +68,7 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	/**
 	 * Updates the underlying Resource data with a_source and also converts it to SPIRV
 	 */
+	FORCE_INLINE void           compile();
 	FORCE_INLINE void           source(const std::string &a_source);
 	FORCE_INLINE constexpr auto source() const noexcept;
 

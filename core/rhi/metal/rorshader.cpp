@@ -147,6 +147,7 @@ void ShaderMetal::upload(rhi::Device &a_device)
 {
 	MTL::Device *device = a_device.platform_device();
 	NS::Error   *pError = nullptr;
+
 	this->m_msl_Library = device->newLibrary(NS::String::string(this->m_msl_source.c_str(), NS::UTF8StringEncoding), nullptr, &pError);
 
 	if (!this->m_msl_Library)
@@ -163,6 +164,7 @@ void ShaderMetal::upload(rhi::Device &a_device)
 	if (!this->m_main_function)
 	{
 		ror::log_critical("Metal shader entry point \"{}\" query failed for shader \"{}\"", this->m_entry_point.c_str(), this->m_msl_source.c_str());
+		this->m_main_function = nullptr;
 		return;
 	}
 }

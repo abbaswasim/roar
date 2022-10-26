@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rorcompiler_workarounds.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "profiling/rorlog.hpp"

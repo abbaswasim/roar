@@ -45,8 +45,14 @@ FORCE_INLINE void ShaderCrtp<_type>::source(const std::string &a_source)
 	assert(this->m_shader);
 	this->m_shader->update({a_source.begin(), a_source.end()}, false, false);
 
+	this->compile();
+}
+
+template <class _type>
+FORCE_INLINE void ShaderCrtp<_type>::compile()
+{
 	std::string info_log;
-	if (!compile_to_spirv(a_source, this->m_type, "main", this->m_spirv, info_log))
+	if (!compile_to_spirv(this->source(), this->m_type, "main", this->m_spirv, info_log))
 	{
 		ror::log_critical("Shader to SPIR-V conversion failed \n{}", info_log.c_str());
 	}
@@ -54,9 +60,11 @@ FORCE_INLINE void ShaderCrtp<_type>::source(const std::string &a_source)
 	this->platform_source();
 }
 
+
 template <class _type>
 FORCE_INLINE constexpr auto ShaderCrtp<_type>::source() const noexcept
 {
-	return std::string_view(reinterpret_cast<const char *>(this->m_shader->data().data()), this->m_shader->data().size());
+	assert(this->m_shader);
+	return std::string(reinterpret_cast<const char *>(this->m_shader->data().data()), this->m_shader->data().size());
 }
 }        // namespace rhi

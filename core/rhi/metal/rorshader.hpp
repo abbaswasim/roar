@@ -54,8 +54,8 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 	void upload(rhi::Device &a_device);
 
 	// clang-format off
-	const MTL::Function *function() const      {      return this->m_main_function;     }
-	std::string_view     msl_source() const    {      return this->m_msl_source;        }
+	FORCE_INLINE constexpr auto      *function()   const  noexcept   {      return this->m_main_function;     }
+	FORCE_INLINE std::string_view     msl_source() const             {      return this->m_msl_source;        }
 	// clang-format on
 
   protected:

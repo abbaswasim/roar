@@ -55,14 +55,15 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		// Should only be called once per execution, TODO: check if this could be used in MT environment
 		basist::basisu_transcoder_init();
 
-		// Initialize glslang library via our wrapper, calling glslang directly means we need to link it with editor which creaates all kinds of issues
+		// Initialize glslang library via our wrapper, calling glslang directly means we need to link it with editor which creates all kinds of issues
 		glslang_wrapper_initialize_process();
 
 		this->m_renderer.dimensions(a_dimensions);
 		this->m_renderer.upload(*this->m_current_device);
 
 		// Load all the models now in a deferred way
-		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer, this->m_event_system);
+		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer);
+		this->m_scene.upload(this->m_renderer, *this->m_current_device, this->m_event_system);
 
 		this->underlying().init_derived();
 	}

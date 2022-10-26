@@ -33,6 +33,7 @@
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rortexture.hpp"
@@ -86,11 +87,8 @@ void Renderer::load_programs()
 			{
 				assert(program.contains("fragment") && "Program must contain both vertex and fragment ids");
 
-				int32_t vid{-1};
-				int32_t fid{-1};
-
-				vid = program["vertex"];
-				fid = program["fragment"];
+				int32_t vid = program["vertex"];
+				int32_t fid = program["fragment"];
 
 				this->m_programs.emplace_back(vid, fid);
 			}
@@ -98,9 +96,8 @@ void Renderer::load_programs()
 			{
 				assert(!program.contains("fragment") && !program.contains("vertex") && "Program can't have both compute and vertex,fragment ids");
 
-				int32_t cid{-1};
+				int32_t cid = program["compute"];
 
-				cid = program["compute"];
 				this->m_programs.emplace_back(cid);
 			}
 		}
@@ -450,6 +447,54 @@ void Renderer::load_frame_graphs()
 	}
 }
 
+std::reference_wrapper<const rhi::RenderTarget> Renderer::find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index)
+{
+	for (auto &pass : a_renderpasses)
+	{
+		for (auto &rts : pass.render_targets())
+		{
+			if (a_index == rts.m_target_index)
+				return std::ref(rts);
+		}
+	}
+
+	// If we don't have this render target lets create one
+	assert(a_index < this->m_render_targets.size() && "Index is out of bound in the render targets array");
+	rhi::LoadAction  load_action{rhi::LoadAction::clear};
+	rhi::StoreAction store_action{rhi::StoreAction::store};
+
+	if (this->m_input_render_targets.size() == 0)
+		this->m_input_render_targets.reserve(20);        // Should be enough otherwise an error will happen which I will know about
+
+	this->m_input_render_targets.emplace_back(a_index, this->m_render_targets[a_index], load_action, store_action);
+
+	return std::ref(this->m_input_render_targets.back());        // back is ok here because this vector can't be reallocated
+}
+
+std::reference_wrapper<const rhi::RenderBuffer> Renderer::find_renderbuffer_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index)
+{
+	for (auto &pass : a_renderpasses)
+	{
+		for (auto &rts : pass.render_buffers())
+		{
+			if (a_index == rts.m_target_index)
+				return std::ref(rts);
+		}
+	}
+
+	// If we don't have this render buffers lets create one
+	assert(a_index < this->m_render_buffers.size() && "Index is out of bound in the render targets array");
+	rhi::LoadAction  load_action{rhi::LoadAction::clear};
+	rhi::StoreAction store_action{rhi::StoreAction::store};
+
+	if (this->m_input_render_buffers.size() == 0)
+		this->m_input_render_buffers.reserve(20);        // Should be enough otherwise an error will happen which I will know about
+
+	this->m_input_render_buffers.emplace_back(a_index, this->m_render_buffers[a_index], load_action, store_action);
+
+	return std::ref(this->m_input_render_buffers.back());        // back is ok here because this vector can't be reallocated
+}
+
 void Renderer::setup_references()
 {
 	// Lets setup all the refrences, we have to do this last because hopefully everything is loaded by now
@@ -467,7 +512,10 @@ void Renderer::setup_references()
 				assert(pids.size() <= graph.second.size() && "Parent Ids and number of render passes in this graph doesn't match");
 
 				for (auto pid : pids)
+				{
+					assert(pid < graph.second.size() && "Parent Id is out of bound");
 					ps.emplace_back(std::ref(graph.second[pid]));
+				}
 
 				pass.parents(std::move(ps));
 			}
@@ -480,10 +528,13 @@ void Renderer::setup_references()
 
 					rhi::Rendersubpass::RenderTargets rts{};
 
-					assert(rids.size() <= pass.render_targets().size() && "Rendered Ids and number of render targets in the renderer doesn't match");
+					assert(rids.size() <= this->m_render_targets.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
 
 					for (auto rid : rids)
-						rts.emplace_back(std::ref(pass.render_targets()[rid]));
+					{
+						assert(rid < this->m_render_targets.size() && "Render input Id is out of bound");
+						rts.emplace_back(find_rendertarget_reference(graph.second, rid));
+					}
 
 					subpass.rendered_inputs(std::move(rts));
 				}
@@ -491,14 +542,31 @@ void Renderer::setup_references()
 				{
 					auto &iads = subpass.input_attachment_ids();
 
-					rhi::Rendersubpass::Rendersubpasses rsps{};
+					rhi::Rendersubpass::RenderTargets rsps{};
 
-					assert(iads.size() <= pass.subpasses().size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
+					assert(iads.size() <= this->m_render_targets.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
 
 					for (auto rid : iads)
-						rsps.emplace_back(std::ref(pass.subpasses()[rid]));
+					{
+						assert(rid < this->m_render_targets.size() && "Input attachment Id is out of bound");
+						rsps.emplace_back(find_rendertarget_reference(graph.second, rid));
+					}
 
 					subpass.input_attachments(std::move(rsps));
+				}
+				// All the buffer input ids into buffer input references
+				{
+					auto &biid = subpass.buffer_input_ids();
+
+					rhi::Rendersubpass::BufferTargets bfts{};
+
+					for (auto bid : biid)
+					{
+						assert(bid < this->m_render_buffers.size() && "Input attachment Id is out of bound");
+						bfts.emplace_back(find_renderbuffer_reference(graph.second, bid));
+					}
+
+					subpass.buffer_inputs(std::move(bfts));
 				}
 			}
 		}
@@ -518,14 +586,19 @@ void Renderer::load_specific()
 void Renderer::upload(rhi::Device &a_device)
 {
 	for (auto &shader : this->m_shaders)
+	{
+		shader.compile();
 		shader.upload(a_device);
+	}
 
 	for (auto &program : this->m_programs)
-		program.upload();
+		program.upload(a_device, this->m_shaders);
 
-	// TODO: Fix uploads in the buffer
-	// for (auto &render_buffer : this->m_render_buffers)
-	//     render_buffer.upload();
+	for (auto &render_target : this->m_input_render_targets)
+		render_target.m_target_reference.get().upload(a_device);
+
+	for (auto &render_buffer : this->m_input_render_buffers)
+		render_buffer.m_target_reference.get().upload(a_device);
 
 	for (auto &graph : this->m_frame_graphs)
 	{

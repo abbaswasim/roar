@@ -179,13 +179,7 @@
 	   }
    ],
    "shaders":[
-	   "default_pbr.vert",
-	   "default_pbr.frag"
    ],
    "programs":[
-	   {
-		   "vertex":0,
-		   "fragment":1
-	   }
    ]
 }
