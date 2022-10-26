@@ -88,20 +88,20 @@ function(build_options target_name extra_pedantic)
 
 	if (ROAR_BUILD_SANITIZED)
 	  target_compile_options(${target_name} PRIVATE
-		-fsanitize=memory
-		-fsanitize=thread
-		-fsanitize=undefined
-		-fno-sanitize-recover=all
-		-fsanitize=float-divide-by-zero
-		-fsanitize=float-cast-overflow
-		-fno-sanitize=null
-		-fno-sanitize=alignment
+		# -fsanitize=memory
+		# -fsanitize=thread
+		# -fsanitize=undefined
+		# -fno-sanitize-recover=all
+		# -fsanitize=float-divide-by-zero
+		# -fsanitize=float-cast-overflow
+		# -fno-sanitize=null
+		# -fno-sanitize=alignment
 		-fsanitize=address)
 
 	  target_link_options(${target_name} PRIVATE
-		-fsanitize=undefined
-		-fsanitize=memory
-		-fsanitize=thread
+		# -fsanitize=undefined
+		# -fsanitize=memory
+		# -fsanitize=thread
 		-fsanitize=address)
 	endif()
   endif()
