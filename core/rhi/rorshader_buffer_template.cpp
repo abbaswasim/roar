@@ -196,7 +196,7 @@ ShaderBufferTemplate::Struct::Struct(std::string a_name, uint32_t a_count) :
 	this->m_entries.reserve(10);
 }
 
-void ShaderBufferTemplate::Struct::add_entry(std::string a_name, Format a_type, Layout a_layout, uint32_t a_count)
+void ShaderBufferTemplate::Struct::add_entry(const std::string& a_name, Format a_type, Layout a_layout, uint32_t a_count)
 {
 	const uint32_t base_alignment = format_base_alignment(a_type);
 	const uint32_t aligned_offset = ror::align(this->m_offset, (a_count > 1 && a_layout == Layout::std140 ? 16 : base_alignment));
@@ -217,7 +217,7 @@ void ShaderBufferTemplate::Struct::add_entry(std::string a_name, Format a_type, 
 		this->m_offset = ror::align(this->m_offset, base_alignment);
 }
 
-void ShaderBufferTemplate::Struct::add_struct(Struct a_struct)
+void ShaderBufferTemplate::Struct::add_struct(Struct& a_struct)
 {
 	// Lets make sure our input index is aligned to the struct alignment
 	auto struct_offset = ror::align(this->m_offset, this->m_alignment);

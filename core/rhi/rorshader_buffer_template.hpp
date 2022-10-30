@@ -75,12 +75,12 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		    m_name(a_name), m_type(a_type), m_count(a_count), m_stride(a_stride), m_offset(a_offset), m_size(a_size)
 		{}
 
-		Entry()                                    = default;        //! Default constructor
-		Entry(const Entry &a_other)                = default;        //! Copy constructor
-		Entry(Entry &&a_other) noexcept            = default;        //! Move constructor
-		Entry &operator=(const Entry &a_other)     = default;        //! Copy assignment operator
-		Entry &operator=(Entry &&a_other) noexcept = default;        //! Move assignment operator
-		virtual ~Entry() noexcept                  = default;        //! Destructor
+		FORCE_INLINE        Entry()                             = default;        //! Default constructor
+		FORCE_INLINE        Entry(const Entry &a_other)         = default;        //! Copy constructor
+		FORCE_INLINE        Entry(Entry &&a_other) noexcept     = default;        //! Move constructor
+		FORCE_INLINE Entry &operator=(const Entry &a_other)     = default;        //! Copy assignment operator
+		FORCE_INLINE Entry &operator=(Entry &&a_other) noexcept = default;        //! Move assignment operator
+		FORCE_INLINE virtual ~Entry() noexcept                  = default;        //! Destructor
 
 		declare_translation_unit_vtable();
 	};
@@ -96,20 +96,20 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 
 		Struct(std::string a_name, uint32_t a_count);
 
-		Struct()                                     = default;        //! Default constructor
-		Struct(const Struct &a_other)                = default;        //! Copy constructor
-		Struct(Struct &&a_other) noexcept            = default;        //! Move constructor
-		Struct &operator=(const Struct &a_other)     = default;        //! Copy assignment operator
-		Struct &operator=(Struct &&a_other) noexcept = default;        //! Move assignment operator
-		~Struct() noexcept override                  = default;        //! Destructor
+		FORCE_INLINE         Struct()                             = default;        //! Default constructor
+		FORCE_INLINE         Struct(const Struct &a_other)        = default;        //! Copy constructor
+		FORCE_INLINE         Struct(Struct &&a_other) noexcept    = default;        //! Move constructor
+		FORCE_INLINE Struct &operator=(const Struct &a_other)     = default;        //! Copy assignment operator
+		FORCE_INLINE Struct &operator=(Struct &&a_other) noexcept = default;        //! Move assignment operator
+		FORCE_INLINE ~Struct() noexcept override                  = default;        //! Destructor
 
-		void add_entry(std::string a_name, Format a_type, Layout a_layout = Layout::std140, uint32_t a_count = 1);
-		void add_struct(Struct a_struct);
+		void add_entry(const std::string &a_name, Format a_type, Layout a_layout = Layout::std140, uint32_t a_count = 1);
+		void add_struct(Struct &a_struct);
 
 		declare_translation_unit_vtable() override;
 	};
 
-	FORCE_INLINE ShaderBufferTemplate(const std::string& a_name, ShaderBufferType a_type = ShaderBufferType::ubo, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
+	FORCE_INLINE ShaderBufferTemplate(const std::string &a_name, ShaderBufferType a_type = ShaderBufferType::ubo, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
 	    m_type(a_type), m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_entries(a_name, 1)
 	{}
 
@@ -120,17 +120,17 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	FORCE_INLINE constexpr auto binding() const noexcept   {   return this->m_binding;    }
 	// clang-format on
 
-	FORCE_INLINE void add_entry(std::string a_name, Format a_type, uint32_t a_count = 1)
+	FORCE_INLINE constexpr void add_entry(const std::string &a_name, Format a_type, uint32_t a_count = 1)
 	{
 		this->m_entries.add_entry(a_name, a_type, this->m_layout, a_count);
 	}
 
-	FORCE_INLINE void add_struct(Struct a_struct)
+	FORCE_INLINE constexpr void add_struct(Struct &a_struct)
 	{
 		this->m_entries.add_struct(a_struct);
 	}
 
-	FORCE_INLINE std::string layout_string()
+	FORCE_INLINE std::string layout_string() const
 	{
 		assert(this->m_layout == Layout::std140 || this->m_layout == Layout::std430 && "Requesting invalid layout set");
 		return this->m_layout == Layout::std140 ? "std140" : "std430";
