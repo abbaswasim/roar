@@ -36,6 +36,9 @@
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rordevice.hpp"
+#include "rhi/rorrenderpass.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
+#include "rhi/rorshader_input.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>

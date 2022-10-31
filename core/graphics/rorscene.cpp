@@ -672,6 +672,24 @@ void Scene::read_lights()
 				lit.m_color.z = c[2];
 			}
 
+			if (light.contains("position"))
+			{
+				std::array<float32_t, 3> p = light["position"];
+
+				lit.m_position.x = p[0];
+				lit.m_position.y = p[1];
+				lit.m_position.z = p[2];
+			}
+
+			if (light.contains("direction"))
+			{
+				std::array<float32_t, 3> d = light["direction"];
+
+				lit.m_direction.x = d[0];
+				lit.m_direction.y = d[1];
+				lit.m_direction.z = d[2];
+			}
+
 			if (light.contains("intensity"))
 				lit.m_intensity = light["intensity"];
 

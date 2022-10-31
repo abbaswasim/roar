@@ -29,6 +29,7 @@
 #include "foundation/rorutilities.hpp"
 #include "rhi/rortypes.hpp"
 #include <cstddef>
+#include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -67,7 +68,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		std::string m_name{};                         //! Name of the variable in the Buffer Object
 		Format      m_type{Format::float32_4};        //! Data type of the variable in the Buffer Object
 		uint32_t    m_count{1};                       //! How many of this Entries are there, a way to define arrays
-		uint32_t    m_stride{0};                      //! Gape between elements if its an array
+		uint32_t    m_stride{0};                      //! Gape between elements if its an array, otherwise undefined (equal to size but can't be trusted)
 		uint32_t    m_offset{0};                      //! Where in the buffer would this entry be, offset from start of the ShaderBuffer
 		uint32_t    m_size{0};                        //! Whats the size of this entry in machine units
 
@@ -104,7 +105,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		FORCE_INLINE ~Struct() noexcept override                  = default;        //! Destructor
 
 		void add_entry(const std::string &a_name, Format a_type, Layout a_layout = Layout::std140, uint32_t a_count = 1);
-		void add_struct(Struct &a_struct);
+		void add_struct(Struct a_struct);
 
 		declare_translation_unit_vtable() override;
 	};
@@ -135,6 +136,25 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		assert(this->m_layout == Layout::std140 || this->m_layout == Layout::std430 && "Requesting invalid layout set");
 		return this->m_layout == Layout::std140 ? "std140" : "std430";
 	}
+
+	FORCE_INLINE std::string type_string() const
+	{
+		assert(this->m_type == ShaderBufferType::ubo || this->m_type == ShaderBufferType::ssbo && "Requesting invalid type");
+		return this->m_type == ShaderBufferType::ubo ? "uniform" : "buffer";
+	}
+
+	/**
+	 * Returns the string representation of this shader buffer template
+	 * Something like:
+	 * layout(std140, srt = 0, binding = 0) uniform ubo_name
+	 * {
+	 *     float  float_variable;
+	 *     uint   uint_variable;
+	 *     vec3   vec3_variable;
+	 *     mat4x4 mat4x4_variable;
+	 * };
+	 */
+	std::string to_glsl_string() const;
 
 	/**
 	 * Use this as an iterator to get the entries in the buffer

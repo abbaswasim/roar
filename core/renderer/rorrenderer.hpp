@@ -37,6 +37,8 @@
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorrenderstate.hpp"
 #include "rhi/rorshader.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
+#include "rhi/rorshader_input.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
@@ -77,6 +79,9 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto& viewport()               const noexcept { return this->m_viewport;                }
 	FORCE_INLINE constexpr auto& frame_graphs()           const noexcept { return this->m_frame_graphs;            }
 	FORCE_INLINE constexpr auto& current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
+	FORCE_INLINE constexpr auto& shader_buffers()         const noexcept { return this->m_global_shader_buffers;   }
+
+	FORCE_INLINE           auto& shader_buffer(const std::string& a_name) { return this->m_global_shader_buffers.at(a_name);   }
 
 	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
 	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }
@@ -88,6 +93,7 @@ class Renderer final : public Configuration<Renderer>
 
 	using InputRenderTargets = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
 	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
+	using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderInput>;
 
   protected:
   private:
@@ -114,6 +120,7 @@ class Renderer final : public Configuration<Renderer>
 	rhi::Renderstate                      m_render_state{};                      //! Almost all the render state that the renderer requires will be stored here
 	InputRenderTargets                    m_input_render_targets{};              //! Render targets that are not directly associated with any render pass but required to be filled in before rendering starts
 	InputBufferTargets                    m_input_render_buffers{};              //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
+	ShaderBufferMap                       m_global_shader_buffers{};             //! All the global Shader buffers (UBO/SSBO) that can be used in different passes
 };
 
 }        // namespace ror

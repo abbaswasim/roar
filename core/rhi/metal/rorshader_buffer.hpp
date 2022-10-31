@@ -48,7 +48,9 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>
 
 	declare_translation_unit_vtable();
 
-	FORCE_INLINE auto *platform_buffer() { return this->m_platform_buffer; }
+	// clang-format off
+	FORCE_INLINE auto platform_buffer() { return this->m_platform_buffer; }
+	// clang-format on
 
 	FORCE_INLINE void init(rhi::Device &a_device, uint32_t a_size_in_bytes)
 	{
@@ -64,12 +66,12 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>
 
 	FORCE_INLINE constexpr void unmap() noexcept
 	{
-		this->m_platform_buffer->didModifyRange(NS::Range::Make(0, this->m_platform_buffer->length()));
+		this->m_platform_buffer->didModifyRange(NS::Range::Make(0, this->m_platform_buffer->length()));        // Remember this is only valid for Managed mode, shared doesn't require this
 	}
 
 	FORCE_INLINE constexpr void unmap_partial(std::uintptr_t a_from, std::uintptr_t a_to) noexcept
 	{
-		this->m_platform_buffer->didModifyRange(NS::Range::Make(a_from, a_to));
+		this->m_platform_buffer->didModifyRange(NS::Range::Make(a_from, a_to));        // Remember this is only valid for Managed mode, shared doesn't require this
 	}
 
 	template <typename _type>

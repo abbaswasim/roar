@@ -51,7 +51,7 @@ class ROAR_ENGINE_ITEM BufferMetal : public BufferCrtp<BufferMetal<_type>, _type
 	void partial_upload(rhi::Device &a_device, size_t a_offset, size_t a_length);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto platform_buffer()      { return this->m_buffer; }
+	FORCE_INLINE constexpr auto* platform_buffer()  noexcept { return this->m_buffer; }
 	// clang-format on
 
   protected:

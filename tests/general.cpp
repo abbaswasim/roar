@@ -461,4 +461,33 @@ TEST(RoarGeneral, memory_layout)
 	}
 }
 
+TEST(RoarGeneral, auto_type_verfication)
+{
+	class TempClass
+	{
+	  public:
+		FORCE_INLINE constexpr auto *platform_buffer0() noexcept
+		{
+			return this->m_buffer;
+		}
+		FORCE_INLINE constexpr auto platform_buffer1() noexcept
+		{
+			return this->m_buffer;
+		}
+
+	  private:
+		uint32_t *m_buffer{nullptr};        //! Point to unsigned 32-bit integer
+	};
+
+	TempClass tc;
+	auto      tcb0 = tc.platform_buffer0();
+	auto      tcb1 = tc.platform_buffer1();
+	EXPECT_EQ(tcb0, tcb1);
+
+	auto n0 = ror::type_name<decltype(tcb0)>();
+	auto n1 = ror::type_name<decltype(tcb1)>();
+
+	EXPECT_EQ(n0, n1);
+}
+
 }        // namespace ror_test

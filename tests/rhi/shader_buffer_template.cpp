@@ -1,7 +1,10 @@
+#include "profiling/rorlog.hpp"
 #include "rhi/rorshader_buffer.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
 #include <gtest/gtest-death-test.h>
 #include <gtest/gtest.h>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 
@@ -10,12 +13,12 @@ namespace ror_test
 
 void test_entries(rhi::ShaderBufferTemplate &a_sb, std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> a_var_values, bool a_debug_messages = false)
 {
-	auto entries = a_sb.entries();
+	auto entries = a_sb.entries_structs();
 
 	for (auto &e : entries)
 	{
 		if (a_debug_messages)
-			std::cout << ", " << e->m_name << "=" << e->m_offset;
+			std::cout << e->m_name << "=" << e->m_offset << ", " << e->m_stride << std::endl;
 
 		EXPECT_EQ(std::get<0>(a_var_values[e->m_name]), e->m_offset);
 		EXPECT_EQ(std::get<1>(a_var_values[e->m_name]), e->m_stride);
@@ -87,6 +90,37 @@ void example0_test(rhi::Layout a_layout)
 	//					   //                   160    160..171 (n, column 2)
 	//					   // 6/4     16   160  160    (pad end of n) confirm????
 	// };
+
+	auto output = sb.to_glsl_string();
+
+	std::string layout{"layout("};
+	if (a_layout == rhi::Layout::std140)
+		layout.append("std140");
+	else
+		layout.append("std430");
+
+	auto uniform_output{R"output(, set = 0, binding = 0) uniform Example0
+{
+	float a;
+	vec2 b;
+	vec3 c;
+	int d;
+	bvec2 e;
+	float g;
+	float h;
+	mat2x3 i;
+	uvec3 j;
+	vec2 k;
+	float l;
+	vec2 m;
+	mat3 n;
+} in_Example0;
+)output"};
+
+	auto expected_output{layout};
+	expected_output.append(uniform_output);
+
+	EXPECT_EQ(output, expected_output);
 }
 
 TEST(ShaderBuffer, example0_test)
@@ -159,6 +193,37 @@ void example1_test(rhi::Layout a_layout)
 	//					   //                   144    144..159 (n, column 2)
 	//					   // 6/4     16   160  160    (pad end of n) confirm????
 	// };
+
+	auto output = sb.to_glsl_string();
+
+	std::string layout{"layout("};
+	if (a_layout == rhi::Layout::std140)
+		layout.append("std140");
+	else
+		layout.append("std430");
+
+	auto uniform_output{R"output(, set = 0, binding = 0) uniform Example1
+{
+	float a;
+	vec2 b;
+	vec3 c;
+	int d;
+	bvec2 e;
+	float g;
+	float h;
+	mat2x3 i;
+	uint j;
+	vec2 k;
+	float l;
+	vec2 m;
+	mat3 n;
+} in_Example1;
+)output"};
+
+	auto expected_output{layout};
+	expected_output.append(uniform_output);
+
+	EXPECT_EQ(output, expected_output);
 }
 
 TEST(ShaderBuffer, example1_test)
@@ -231,6 +296,28 @@ TEST(ShaderBuffer, std140_example2_test)
 	//					   //                   144    144..159 (n, column 2)
 	//					   // 6/4     16   160  160    (pad end of n) confirm????
 	// };
+
+	auto output = sb.to_glsl_string();
+
+	auto expected_output{R"output(layout(std140, set = 0, binding = 0) uniform Example2
+{
+	float a;
+	vec2 b;
+	vec3 c;
+	int d;
+	bvec2 e;
+	float g[2];
+	float h;
+	mat2x3 i;
+	uint j;
+	vec2 k;
+	float l[2];
+	vec2 m;
+	mat3 n;
+} in_Example2;
+)output"};
+
+	EXPECT_EQ(output, expected_output);
 }
 
 TEST(ShaderBuffer, std140_example3_test)
@@ -268,6 +355,28 @@ TEST(ShaderBuffer, std140_example3_test)
 	    {"n", {224, 64, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
+
+	auto output = sb.to_glsl_string();
+
+	auto expected_output{R"output(layout(std140, set = 0, binding = 0) uniform Example3
+{
+	float a;
+	vec2 b;
+	vec3 c;
+	int d;
+	bvec2 e;
+	float g[2];
+	float h;
+	mat2x3 i[2];
+	uint j;
+	vec2 k;
+	float l[2];
+	vec2 m;
+	mat3 n;
+} in_Example3;
+)output"};
+
+	EXPECT_EQ(output, expected_output);
 }
 
 TEST(ShaderBuffer, std140_example4_test)
@@ -383,6 +492,38 @@ TEST(ShaderBuffer, std140_example4_test)
 	//						//  9      16   480  480    (pad end of o[1])
 	//	} o[2];
 	// };
+
+	auto output = sb.to_glsl_string();
+
+	auto expected_output{R"output(struct F
+{
+	int d;
+	bvec2 e;
+};
+
+struct O
+{
+	uvec3 j;
+	vec2 k;
+	float l[2];
+	vec2 m;
+	mat3 n[2];
+};
+
+layout(std140, set = 0, binding = 0) uniform Example4
+{
+	float a;
+	vec2 b;
+	vec3 c;
+	F f;
+	float g;
+	float h[2];
+	mat2x3 i;
+	O o[2];
+} in_Example4;
+)output"};
+
+	EXPECT_EQ(output, expected_output);
 }
 
 // TODO: Create std430 equvivalent of the following 3 tests
@@ -1016,11 +1157,10 @@ TEST(ShaderBuffer, std430_ssbo_example11_test)
 	test_entries(sb, var_values);
 }
 
-TEST(ShaderBuffer, std140_joint_transforms_test)
+void joint_transforms_test(uint32_t joints_count)
 {
 	// Needs to create something like the following
 	/*
-	  const uint joints_count = 24;
 	  struct trs_transform
 	  {
 	      vec4 rotation;
@@ -1029,11 +1169,9 @@ TEST(ShaderBuffer, std140_joint_transforms_test)
 	  };
 	  layout(std140, set = 2, binding = 0) uniform joint_transform
 	  {
-	      trs_transform joint_transforms[joints_count];
+	      trs_transform joint_transforms[24];
 	  } in_joint_transforms;
 	*/
-	uint32_t joints_count = 24;
-
 	rhi::ShaderBufferTemplate::Struct trs_transform("joint_transforms", joints_count);
 
 	trs_transform.add_entry("rotation", rhi::Format::float32_4, rhi::Layout::std140, 1);
@@ -1043,6 +1181,44 @@ TEST(ShaderBuffer, std140_joint_transforms_test)
 	rhi::ShaderBufferTemplate joint_transform{"joint_transform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 2, 0};
 
 	joint_transform.add_struct(trs_transform);
+
+	// Index of offset, stride, type
+	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
+	    {"rotation", {0, 16, rhi::Format::float32_4}},
+	    {"translation", {16, 12, rhi::Format::float32_3}},
+	    {"scale", {32, 12, rhi::Format::float32_3}},
+	    {"joint_transforms", {0, 48, rhi::Format::struct_1}}};
+
+	test_entries(joint_transform, var_values);
+
+	auto        output = joint_transform.to_glsl_string();
+	std::string expected_output{R"output(struct Joint_transforms
+{
+	vec4 rotation;
+	vec3 translation;
+	vec3 scale;
+};
+
+layout(std140, set = 2, binding = 0) uniform joint_transform
+{
+	Joint_transforms joint_transforms[)output"};
+
+	auto expected_output2{R"output(];
+} in_joint_transform;
+)output"};
+
+	if (joints_count != 0)
+		expected_output.append(std::to_string(joints_count));
+
+	expected_output.append(expected_output2);
+
+	EXPECT_EQ(output, expected_output);
+}
+
+TEST(ShaderBuffer, std140_joint_transforms_test)
+{
+	joint_transforms_test(0);
+	joint_transforms_test(24);
 }
 
 }        // namespace ror_test

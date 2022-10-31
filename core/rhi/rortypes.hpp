@@ -1024,6 +1024,125 @@ constexpr uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 	return 0;
 }
 
+constexpr auto vertex_format_to_glsl_type(rhi::VertexFormat a_format)
+{
+	// bool
+	// int
+	// uint
+	// float
+	// double
+
+	// bvecn:
+	// ivecn:
+	// uvecn:
+	// vecn:
+	// dvecn:
+
+	// mat3x3
+	// mat3x4
+	// mat4x4
+
+	// clang-format off
+	switch (a_format)
+	{
+		case rhi::VertexFormat::invalid:			return " ";
+		case rhi::VertexFormat::struct_1:			return " ";
+		case rhi::VertexFormat::bool32_1:			return "bool";
+		case rhi::VertexFormat::bool32_2:			return "bvec2";
+		case rhi::VertexFormat::bool32_3:			return "bvec3";
+		case rhi::VertexFormat::bool32_4:			return "bvec4";
+		case rhi::VertexFormat::int8_1:				return "int";
+		case rhi::VertexFormat::int8_2:				return "ivec2";
+		case rhi::VertexFormat::int8_3:				return "ivec3";
+		case rhi::VertexFormat::int8_4:				return "ivec4";
+		case rhi::VertexFormat::int16_1:			return "int";
+		case rhi::VertexFormat::int16_2:			return "ivec2";
+		case rhi::VertexFormat::int16_3:			return "ivec3";
+		case rhi::VertexFormat::int16_4:			return "ivec4";
+		case rhi::VertexFormat::int32_1:			return "int";
+		case rhi::VertexFormat::int32_2:			return "ivec2";
+		case rhi::VertexFormat::int32_3:			return "ivec3";
+		case rhi::VertexFormat::int32_4:			return "ivec4";
+		case rhi::VertexFormat::half16_1:			return "int";
+		case rhi::VertexFormat::half16_2:			return "ivec2";
+		case rhi::VertexFormat::half16_3:			return "ivec3";
+		case rhi::VertexFormat::half16_4:			return "ivec4";
+
+		case rhi::VertexFormat::float32_1:			return "float";
+		case rhi::VertexFormat::float32_2:			return "vec2";
+		case rhi::VertexFormat::float32_3:			return "vec3";
+		case rhi::VertexFormat::float32_4:			return "vec4";
+		case rhi::VertexFormat::float32_2x2:		return "mat2";
+		case rhi::VertexFormat::float32_2x3:		return "mat2x3";
+		case rhi::VertexFormat::float32_2x4:		return "mat2x4";
+		case rhi::VertexFormat::float32_3x2:		return "mat3x2";
+		case rhi::VertexFormat::float32_3x3:		return "mat3";
+		case rhi::VertexFormat::float32_3x4:		return "mat3x4";
+		case rhi::VertexFormat::float32_4x2:		return "mat4x2";
+		case rhi::VertexFormat::float32_4x3:		return "mat4x3";
+		case rhi::VertexFormat::float32_4x4:		return "mat4";
+		case rhi::VertexFormat::float64_2x2:		return "dmat2";
+		case rhi::VertexFormat::float64_2x3:		return "dmat2x3";
+		case rhi::VertexFormat::float64_2x4:		return "dmat2x4";
+		case rhi::VertexFormat::float64_3x2:		return "dmat3x2";
+		case rhi::VertexFormat::float64_3x3:		return "dmat3";
+		case rhi::VertexFormat::float64_3x4:		return "dmat3x4";
+		case rhi::VertexFormat::float64_4x2:		return "dmat4x2";
+		case rhi::VertexFormat::float64_4x3:		return "dmat4x3";
+		case rhi::VertexFormat::float64_4x4:		return "dmat4";
+		case rhi::VertexFormat::float64_1:			return "double";
+		case rhi::VertexFormat::float64_2:			return "dvec2";
+		case rhi::VertexFormat::float64_3:			return "dvec3";
+		case rhi::VertexFormat::float64_4:			return "dvec4";
+
+		case rhi::VertexFormat::uint8_1:			return "uint";
+		case rhi::VertexFormat::uint8_2:			return "uvec2";
+		case rhi::VertexFormat::uint8_3:			return "uvec3";
+		case rhi::VertexFormat::uint8_4:			return "uvec4";
+		case rhi::VertexFormat::uint16_1:			return "uint";
+		case rhi::VertexFormat::uint16_2:			return "uvec2";
+		case rhi::VertexFormat::uint16_3:			return "uvec3";
+		case rhi::VertexFormat::uint16_4:			return "uvec4";
+		case rhi::VertexFormat::uint32_1:			return "uint";
+		case rhi::VertexFormat::uint32_2:			return "uvec2";
+		case rhi::VertexFormat::uint32_3:			return "uvec3";
+		case rhi::VertexFormat::uint32_4:			return "uvec4";
+		case rhi::VertexFormat::uint64_1:			return "double";
+		case rhi::VertexFormat::uint64_2:			return "dvec2";
+		case rhi::VertexFormat::uint64_3:			return "dvec3";
+		case rhi::VertexFormat::uint64_4:			return "dvec4";
+
+		case rhi::VertexFormat::int8_1_norm:		return "int";
+		case rhi::VertexFormat::int8_2_norm:		return "ivec2";
+		case rhi::VertexFormat::int8_3_norm:		return "ivec3";
+		case rhi::VertexFormat::int8_4_norm:		return "ivec4";
+		case rhi::VertexFormat::int16_1_norm:		return "int";
+		case rhi::VertexFormat::int16_2_norm:		return "ivec2";
+		case rhi::VertexFormat::int16_3_norm:		return "ivec3";
+		case rhi::VertexFormat::int16_4_norm:		return "ivec4";
+		case rhi::VertexFormat::uint8_1_norm:		return "uint";
+		case rhi::VertexFormat::uint8_2_norm:		return "uvec2";
+		case rhi::VertexFormat::uint8_3_norm:		return "uvec3";
+		case rhi::VertexFormat::uint8_4_norm:		return "uvec4";
+		case rhi::VertexFormat::uint16_1_norm:		return "uint";
+		case rhi::VertexFormat::uint16_2_norm:		return "uvec2";
+		case rhi::VertexFormat::uint16_3_norm:		return "uvec3";
+		case rhi::VertexFormat::uint16_4_norm:		return "uvec4";
+		case rhi::VertexFormat::int1010102_norm:	return "int";
+		case rhi::VertexFormat::uint1010102_norm:	return "uint";
+		case rhi::VertexFormat::int101111_norm:		return "int";
+		case rhi::VertexFormat::uint101111_norm:	return "uint";
+		case rhi::VertexFormat::uint8_4_norm_bgra:	return "uint";
+		case rhi::VertexFormat::uint8_custom:		return "uint";
+		case rhi::VertexFormat::uint16_custom:		return "uint";
+		case rhi::VertexFormat::uint32_custom:		return "uint";
+		case rhi::VertexFormat::float32_custom:		return "float";
+	}
+	// clang-format on
+
+	return "";
+}
+
 constexpr bool is_attribute_required_in_pass(rhi::BufferSemantic a_semantic, bool a_depth_shadow)
 {
 	if (a_semantic < rhi::BufferSemantic::vertex_index)        // Only need vertex attributes that are bellow vertex_index, FIXME: what happens to custom ones?

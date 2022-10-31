@@ -66,8 +66,8 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	FORCE_INLINE virtual ~BufferCrtp() noexcept                        = default;        //! Destructor
 
 	// clang-format off
-	_derived       &underlying()       { return static_cast<_derived &>(*this);       }
-	_derived const &underlying() const { return static_cast<_derived const &>(*this); }
+	FORCE_INLINE _derived constexpr       &underlying()       noexcept { return static_cast<_derived &>(*this);       }
+	FORCE_INLINE _derived constexpr const &underlying() const noexcept { return static_cast<_derived const &>(*this); }
 	// clang-format on
 
 	// TODO: Remove the following, no need for individual semantic size, turn semantic into uint64_t value instead of vector

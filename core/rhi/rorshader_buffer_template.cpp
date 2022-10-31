@@ -24,7 +24,10 @@
 // Version: 1.0.0
 
 #include "rhi/rorshader_buffer.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
+#include <cctype>
+#include <string>
 
 namespace rhi
 {
@@ -131,7 +134,7 @@ constexpr uint32_t format_base_alignment_count(Format a_format)
 	return 0;
 }
 
-uint32_t format_base_alignment(Format a_format)        //, Layout a_layout = Layout::std140)
+constexpr uint32_t format_base_alignment(Format a_format)        //, Layout a_layout = Layout::std140)
 {
 	auto alignment = format_base_alignment_count(a_format);
 
@@ -196,28 +199,28 @@ ShaderBufferTemplate::Struct::Struct(std::string a_name, uint32_t a_count) :
 	this->m_entries.reserve(10);
 }
 
-void ShaderBufferTemplate::Struct::add_entry(const std::string& a_name, Format a_type, Layout a_layout, uint32_t a_count)
+void ShaderBufferTemplate::Struct::add_entry(const std::string &a_name, Format a_type, Layout a_layout, uint32_t a_count)
 {
 	const uint32_t base_alignment = format_base_alignment(a_type);
-	const uint32_t aligned_offset = ror::align(this->m_offset, (a_count > 1 && a_layout == Layout::std140 ? 16 : base_alignment));
+	const uint32_t aligned_offset = ror::align(this->m_offset, (a_count != 1 && a_layout == Layout::std140 ? 16 : base_alignment));        // a_count != 1 means either 0, unbounded array or > 1 a sized array
 	const uint32_t size           = glsl_size(a_type);
 	const uint32_t size_in_array  = glsl_size_vec3_correction(a_type, size);
-	const uint32_t stride         = (a_count > 1 ? (a_layout == Layout::std140 ? std::max(16u, size_in_array) : size_in_array) : size);
+	const uint32_t stride         = (a_count != 1 ? (a_layout == Layout::std140 ? std::max(16u, size_in_array) : size_in_array) : size);
 
 	this->m_entries.emplace_back(std::in_place_type<Entry>, a_name, a_type, a_count, stride, aligned_offset, size);
 
 	// Now lets calculate next entry offset
-	this->m_offset = aligned_offset + (stride * a_count);
+	this->m_offset = aligned_offset + (stride * std::max(a_count, 1u));
 
 	// Update struct alignment
 	this->m_alignment = ror::align(std::max(this->m_alignment, size), base_alignment);
 
 	// Next item after array alignment or matrix needs to be aligned to base_alignment, valid for std140 and std430
-	if (a_count > 1 || (is_matrix_type(a_type) && a_layout == Layout::std140))
+	if (a_count != 1 || (is_matrix_type(a_type) && a_layout == Layout::std140))
 		this->m_offset = ror::align(this->m_offset, base_alignment);
 }
 
-void ShaderBufferTemplate::Struct::add_struct(Struct& a_struct)
+void ShaderBufferTemplate::Struct::add_struct(Struct a_struct)
 {
 	// Lets make sure our input index is aligned to the struct alignment
 	auto struct_offset = ror::align(this->m_offset, this->m_alignment);
@@ -233,7 +236,7 @@ void ShaderBufferTemplate::Struct::add_struct(Struct& a_struct)
 	auto struct_stride = ror::align16(a_struct.m_offset);
 	a_struct.m_stride  = struct_stride;
 
-	this->m_offset    = ror::align16(this->m_offset + struct_stride * a_struct.m_count);
+	this->m_offset    = ror::align16(this->m_offset + struct_stride * std::max(a_struct.m_count, 1u));
 	a_struct.m_size   = this->m_offset;
 	a_struct.m_offset = struct_offset;
 
@@ -277,6 +280,10 @@ std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries_s
 				{
 					es.push_back(spentry);
 				}
+				else
+				{
+					assert(0 && "Don't support more than 1 level nested structs in shader buffer template");
+				}
 			}
 
 			// Also return the struct itself as an entry, discards the struct bits but returns the entry bits
@@ -285,6 +292,77 @@ std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries_s
 	}
 
 	return es;
+}
+
+static void create_variable_entry(std::string& a_output, const std::string& a_type, const std::string& a_name, uint32_t a_count)
+{
+	a_output.append("\t");
+	a_output.append(a_type);
+	a_output.append(" ");
+	a_output.append(a_name);
+	if (a_count != 1)
+	{
+		a_output.append("[");
+		a_output.append(a_count == 0 ? "" : std::to_string(a_count));
+		a_output.append("]");
+	}
+	a_output.append(";\n");
+}
+
+std::string ShaderBufferTemplate::to_glsl_string() const
+{
+	std::string pre_output{};
+	std::string output{"layout("};
+	output.append(this->layout_string());
+	output.append(", set = ");
+	output.append(std::to_string(this->m_set));
+	output.append(", binding = ");
+	output.append(std::to_string(this->m_binding));
+	output.append(") ");
+	output.append(this->type_string());
+	output.append(" ");
+	output.append(this->m_entries.m_name);
+	output.append("\n{\n");
+
+	for (auto &e : this->m_entries.m_entries)
+	{
+		if (const rhi::ShaderBufferTemplate::Entry *pentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&e))
+		{
+			create_variable_entry(output, vertex_format_to_glsl_type(pentry->m_type), pentry->m_name, pentry->m_count);
+		}
+		else
+		{
+			auto &s           = std::get<rhi::ShaderBufferTemplate::Struct>(e);
+			auto  struct_name = s.m_name;
+			struct_name[0]    = static_cast<char>(std::toupper(static_cast<unsigned char>(struct_name[0])));
+
+			create_variable_entry(output, struct_name, s.m_name, s.m_count);
+
+			pre_output.append("struct ");
+			pre_output.append(struct_name);
+			pre_output.append("\n{\n");
+
+			for (auto &se : s.m_entries)
+			{
+				if (const rhi::ShaderBufferTemplate::Entry *spentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&se))
+				{
+					create_variable_entry(pre_output, vertex_format_to_glsl_type(spentry->m_type), spentry->m_name, spentry->m_count);
+				}
+				else
+				{
+					assert(0 && "Don't support more than 1 level nested structs in shader buffer template");
+				}
+			}
+
+			pre_output.append("};\n\n");
+		}
+	}
+
+	output.append("} in_");
+	output.append(this->m_entries.m_name);
+	output.append(";\n");
+
+	return pre_output == "" ? output : pre_output + output;
 }
 
 define_translation_unit_vtable(ShaderBufferTemplate::Entry)

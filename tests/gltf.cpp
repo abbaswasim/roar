@@ -257,8 +257,8 @@ TEST_F(GLTFTest, gltf_assert_test)
 	alloc_buffer->reserve(2);        // This shouldn't assert
 	ror::Mesh m1;
 	ror::Mesh m2;
-	alloc_buffer->push_back(m1);
-	alloc_buffer->push_back(m2);
+	alloc_buffer->push_back(std::move(m1));
+	alloc_buffer->push_back(std::move(m2));
 
 	// Also some random calls to make the compiler happy about [-Werror,-Wunused-function]
 	auto os    = ror::get_os_string();
