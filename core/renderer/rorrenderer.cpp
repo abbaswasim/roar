@@ -107,19 +107,19 @@ void Renderer::load_programs()
 	}
 }
 
-void Renderer::load_render_targets()
+void Renderer::load_textures()
 {
-	if (this->m_json_file.contains("render_targets"))
+	if (this->m_json_file.contains("textures"))
 	{
-		auto render_targets = this->m_json_file["render_targets"];
-		for (auto &render_target : render_targets)
+		auto textures = this->m_json_file["textures"];
+		for (auto &texture : textures)
 		{
-			rhi::TextureImage texture;
-			texture.push_empty_mip();
+			rhi::TextureImage texture_image;
+			texture_image.push_empty_mip();
 
-			assert(render_target.contains("format") && "Render_target must specifiy format");
-			texture.format(rhi::string_to_pixel_format(render_target["format"]));
-			texture.usage(rhi::TextureUsage::render_target);        // Is also changed/updated later in reading framegraphs
+			assert(texture.contains("format") && "Texture must specifiy format");
+			texture_image.format(rhi::string_to_pixel_format(texture["format"]));
+			texture_image.usage(rhi::TextureUsage::render_target);        // Is also changed/updated later in reading framegraphs
 
 			// Not allocated render target, will be allocated when needed in render passes and properties set
 			// texture.allocate();
@@ -129,31 +129,33 @@ void Renderer::load_render_targets()
 			// texture.depth(1u);
 			// texture.bytes_per_pixel();
 
-			if (render_target.contains("target"))
-				texture.target(string_to_texture_target(render_target["target"]));
+			if (texture.contains("target"))
+				texture_image.target(string_to_texture_target(texture["target"]));
 
-			if (render_target.contains("name"))
-				texture.name(render_target["name"]);
+			if (texture.contains("name"))
+				texture_image.name(texture["name"]);
 
-			this->m_render_targets.emplace_back(std::move(texture));
+			this->m_textures.emplace_back(std::move(texture_image));
 		}
 	}
 	else
 	{
-		ror::log_critical("Renderer config should contain render_targets description but found nothing");
+		ror::log_critical("Renderer config should contain textures description but found nothing");
 	}
 }
 
-void Renderer::load_render_buffers()
+void Renderer::load_buffers()
 {
-	if (this->m_json_file.contains("render_buffers"))
+	if (this->m_json_file.contains("buffers"))
 	{
-		auto render_buffers = this->m_json_file["render_buffers"];
-		for (auto &render_buffer : render_buffers)
+		auto buffers = this->m_json_file["buffers"];
+		for (auto &buffer : buffers)
 		{
-			// TODO: Add implementation here
-			if (render_buffer.contains("name")) {}
-			this->m_render_buffers.emplace_back();
+			// Unused properties name and format
+			if (buffer.contains("name")) {}
+			if (buffer.contains("format")) {}
+
+			this->m_buffers.emplace_back();
 		}
 	}
 }
@@ -216,8 +218,8 @@ rhi::StoreAction to_store_action(nlohmann::json a_storeaction)
 }
 
 void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame_graph, ror::Vector4i a_viewport, ror::Vector2ui a_dimensions,
-                      std::vector<rhi::TextureImage>        &a_render_targets,
-                      std::vector<rhi::Buffer<rhi::Static>> &a_render_buffers)
+                      std::vector<rhi::TextureImage>        &a_textures,
+                      std::vector<rhi::Buffer<rhi::Static>> &a_buffers)
 {
 	rhi::Renderpass render_pass;
 
@@ -287,9 +289,9 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			rhi::StoreAction store_action = to_store_action(storeaction);
 
 			// Emplaces a RenderTarget
-			assert(index < a_render_targets.size() && "Index is out of bound for render targets provided");
+			assert(index < a_textures.size() && "Index is out of bound for render targets provided");
 
-			rts.emplace_back(index, a_render_targets[index], load_action, store_action);
+			rts.emplace_back(index, a_textures[index], load_action, store_action);
 		}
 
 		render_pass.render_targets(std::move(rts));
@@ -313,9 +315,9 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			rhi::StoreAction store_action = to_store_action(storeaction);
 
 			// Emplaces a RenderTarget
-			assert(index < a_render_buffers.size() && "Index is out of bound for render targets provided");
+			assert(index < a_buffers.size() && "Index is out of bound for render targets provided");
 
-			rbs.emplace_back(index, a_render_buffers[index], load_action, store_action);
+			rbs.emplace_back(index, a_buffers[index], load_action, store_action);
 		}
 
 		render_pass.render_buffers(std::move(rbs));
@@ -358,8 +360,8 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			std::vector<uint32_t> rendered_inputs = subpass["rendered_inputs"];
 			for (auto &rt_index : rendered_inputs)
 			{
-				assert(rt_index < a_render_targets.size() && "This rendered input doesn't exist in the render targets");
-				a_render_targets[rt_index].usage(rhi::TextureUsage::render_target_read);
+				assert(rt_index < a_textures.size() && "This rendered input doesn't exist in the render targets");
+				a_textures[rt_index].usage(rhi::TextureUsage::render_target_read);
 			}
 			rsp.rendered_input_ids(std::move(rendered_inputs));
 		}
@@ -369,7 +371,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			std::vector<uint32_t> buffer_inputs = subpass["buffer_inputs"];
 			for (auto &bi_index : buffer_inputs)
 			{
-				assert(bi_index < a_render_buffers.size() && "This buffer input doesn't exist in the buffer targets");
+				assert(bi_index < a_buffers.size() && "This buffer input doesn't exist in the buffer targets");
 				// a_render_buffers[bi_index].usage(rhi::TextureUsage::render_target_read);
 			}
 			rsp.buffer_input_ids(std::move(buffer_inputs));
@@ -380,8 +382,8 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			std::vector<uint32_t> subpass_inputs = subpass["subpass_inputs"];
 			for (auto &rt_index : subpass_inputs)
 			{
-				assert(rt_index < a_render_targets.size() && "This subpass input doesn't exist in the render targets");
-				a_render_targets[rt_index].usage(rhi::TextureUsage::render_target_read);
+				assert(rt_index < a_textures.size() && "This subpass input doesn't exist in the render targets");
+				a_textures[rt_index].usage(rhi::TextureUsage::render_target_read);
 			}
 			rsp.input_attachment_ids(std::move(subpass_inputs));
 		}
@@ -425,7 +427,7 @@ void Renderer::load_frame_graphs()
 		auto forward_passes = frame_graph["forward"];
 		for (auto &forward_pass : forward_passes)
 		{
-			read_render_pass(forward_pass, this->m_frame_graphs["forward"], this->m_viewport, this->m_dimensions, this->m_render_targets, this->m_render_buffers);
+			read_render_pass(forward_pass, this->m_frame_graphs["forward"], this->m_viewport, this->m_dimensions, this->m_textures, this->m_buffers);
 		}
 	}
 
@@ -434,7 +436,7 @@ void Renderer::load_frame_graphs()
 		auto deferred_passes = frame_graph["deferred"];
 		for (auto &deferred_pass : deferred_passes)
 		{
-			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], this->m_viewport, this->m_dimensions, this->m_render_targets, this->m_render_buffers);
+			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], this->m_viewport, this->m_dimensions, this->m_textures, this->m_buffers);
 		}
 	}
 
@@ -461,14 +463,14 @@ std::reference_wrapper<const rhi::RenderTarget> Renderer::find_rendertarget_refe
 	}
 
 	// If we don't have this render target lets create one
-	assert(a_index < this->m_render_targets.size() && "Index is out of bound in the render targets array");
+	assert(a_index < this->m_textures.size() && "Index is out of bound in the textures array");
 	rhi::LoadAction  load_action{rhi::LoadAction::clear};
 	rhi::StoreAction store_action{rhi::StoreAction::store};
 
 	if (this->m_input_render_targets.size() == 0)
 		this->m_input_render_targets.reserve(20);        // Should be enough otherwise an error will happen which I will know about
 
-	this->m_input_render_targets.emplace_back(a_index, this->m_render_targets[a_index], load_action, store_action);
+	this->m_input_render_targets.emplace_back(a_index, this->m_textures[a_index], load_action, store_action);
 
 	return std::ref(this->m_input_render_targets.back());        // back is ok here because this vector can't be reallocated
 }
@@ -485,14 +487,14 @@ std::reference_wrapper<const rhi::RenderBuffer> Renderer::find_renderbuffer_refe
 	}
 
 	// If we don't have this render buffers lets create one
-	assert(a_index < this->m_render_buffers.size() && "Index is out of bound in the render targets array");
+	assert(a_index < this->m_buffers.size() && "Index is out of bound in the render buffers array");
 	rhi::LoadAction  load_action{rhi::LoadAction::clear};
 	rhi::StoreAction store_action{rhi::StoreAction::store};
 
 	if (this->m_input_render_buffers.size() == 0)
 		this->m_input_render_buffers.reserve(20);        // Should be enough otherwise an error will happen which I will know about
 
-	this->m_input_render_buffers.emplace_back(a_index, this->m_render_buffers[a_index], load_action, store_action);
+	this->m_input_render_buffers.emplace_back(a_index, this->m_buffers[a_index], load_action, store_action);
 
 	return std::ref(this->m_input_render_buffers.back());        // back is ok here because this vector can't be reallocated
 }
@@ -530,11 +532,11 @@ void Renderer::setup_references()
 
 					rhi::Rendersubpass::RenderTargets rts{};
 
-					assert(rids.size() <= this->m_render_targets.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
+					assert(rids.size() <= this->m_textures.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
 
 					for (auto rid : rids)
 					{
-						assert(rid < this->m_render_targets.size() && "Render input Id is out of bound");
+						assert(rid < this->m_textures.size() && "Render input Id is out of bound");
 						rts.emplace_back(find_rendertarget_reference(graph.second, rid));
 					}
 
@@ -546,11 +548,11 @@ void Renderer::setup_references()
 
 					rhi::Rendersubpass::RenderTargets rsps{};
 
-					assert(iads.size() <= this->m_render_targets.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
+					assert(iads.size() <= this->m_textures.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
 
 					for (auto rid : iads)
 					{
-						assert(rid < this->m_render_targets.size() && "Input attachment Id is out of bound");
+						assert(rid < this->m_textures.size() && "Input attachment Id is out of bound");
 						rsps.emplace_back(find_rendertarget_reference(graph.second, rid));
 					}
 
@@ -564,7 +566,7 @@ void Renderer::setup_references()
 
 					for (auto bid : biid)
 					{
-						assert(bid < this->m_render_buffers.size() && "Input attachment Id is out of bound");
+						assert(bid < this->m_buffers.size() && "Input attachment Id is out of bound");
 						bfts.emplace_back(find_renderbuffer_reference(graph.second, bid));
 					}
 
@@ -579,8 +581,8 @@ void Renderer::load_specific()
 {
 	// Order is important don't re-order
 	this->load_programs();
-	this->load_render_targets();
-	this->load_render_buffers();
+	this->load_textures();
+	this->load_buffers();
 	this->load_frame_graphs();
 	this->setup_references();
 }

@@ -7,7 +7,7 @@
 			"compute":0
 		}
 	],
-	"render_targets":[
+	"textures":[
 		{
 			"name":"swapchain",
 			"format":"b8g8r8a8_uint32_norm_srgb"
@@ -59,7 +59,7 @@
 			"format":"r8g8b8a8_int32"
 		}
 	],
-	"render_buffers":[
+	"buffers":[
 		{
 			"name":"node_transform_output",
 			"format":"r32_float32"

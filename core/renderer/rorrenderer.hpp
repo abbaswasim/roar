@@ -70,8 +70,8 @@ class Renderer final : public Configuration<Renderer>
 	// clang-format off
 	FORCE_INLINE constexpr auto& shaders()                const noexcept { return this->m_shaders;                 }
 	FORCE_INLINE constexpr auto& programs()               const noexcept { return this->m_programs;                }
-	FORCE_INLINE constexpr auto& render_targets()         const noexcept { return this->m_render_targets;          }
-	FORCE_INLINE constexpr auto& render_buffers()         const noexcept { return this->m_render_buffers;          }
+	FORCE_INLINE constexpr auto& textures()               const noexcept { return this->m_textures;                }
+	FORCE_INLINE constexpr auto& buffers()                const noexcept { return this->m_buffers;                 }
 	FORCE_INLINE constexpr auto& input_render_targets()   const noexcept { return this->m_input_render_targets;    }
 	FORCE_INLINE constexpr auto& input_render_buffers()   const noexcept { return this->m_input_render_buffers;    }
 	FORCE_INLINE constexpr auto& render_state()           const noexcept { return this->m_render_state;            }
@@ -105,14 +105,14 @@ class Renderer final : public Configuration<Renderer>
 
 	void load_programs();
 	void load_frame_graphs();
-	void load_render_targets();
-	void load_render_buffers();
+	void load_textures();
+	void load_buffers();
 	void setup_references();
 
 	std::vector<rhi::Shader>              m_shaders{};                           //! All the global shaders
 	std::vector<rhi::Program>             m_programs{};                          //! All the global shader programs
-	std::vector<rhi::TextureImage>        m_render_targets{};                    //! All the render_targets some render passes might want to write into
-	std::vector<rhi::Buffer<rhi::Static>> m_render_buffers{};                    //! All the render_buffers some render passes might want to write into
+	std::vector<rhi::TextureImage>        m_textures{};                          //! All the textures some render passes might want to write into
+	std::vector<rhi::Buffer<rhi::Static>> m_buffers{};                           //! All the buffers some render passes might want to write into
 	ror::Vector2ui                        m_dimensions{1024, 768};               //! Dimensions of the renderer framebuffers, if not provided will use from window, overriden by renderer.json
 	ror::Vector4i                         m_viewport{0, 0, 1024, 768};           //! Viewport to use to render into the render targets, RTs can override it
 	FrameGraph                            m_frame_graphs{};                      //! Frame graph for all techniques like forward, deferred etc

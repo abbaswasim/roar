@@ -2,6 +2,7 @@
 #include "common.hpp"
 #include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorcommon.hpp"
+#include "foundation/rorcompiler_workarounds.hpp"
 #include "foundation/rorcrtp.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rorjobsystem.hpp"

@@ -1,5 +1,6 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/rorshader_buffer.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
 #include <gtest/gtest-death-test.h>
@@ -43,6 +44,21 @@ void example0_test(rhi::Layout a_layout)
 	sb.add_entry("l", rhi::Format::float32_1, 1);
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
+
+	rhi::ShaderBufferMetal sbm{"Example0", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
+	                           "a", rhi::VertexFormat::float32_1, 1u,
+	                           "b", rhi::VertexFormat::float32_2, 1u,
+	                           "c", rhi::VertexFormat::float32_3, 1u,
+	                           "d", rhi::VertexFormat::int32_1, 1u,
+	                           "e", rhi::VertexFormat::bool32_2, 1u,
+	                           "g", rhi::VertexFormat::float32_1, 1u,
+	                           "h", rhi::VertexFormat::float32_1, 1u,
+	                           "i", rhi::VertexFormat::float32_2x3, 1u,
+	                           "j", rhi::VertexFormat::uint32_3, 1u,
+	                           "k", rhi::VertexFormat::float32_2, 1u,
+	                           "l", rhi::VertexFormat::float32_1, 1u,
+	                           "m", rhi::VertexFormat::float32_2, 1u,
+	                           "n", rhi::VertexFormat::float32_3x3, 1u};
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
@@ -91,6 +107,7 @@ void example0_test(rhi::Layout a_layout)
 	//					   // 6/4     16   160  160    (pad end of n) confirm????
 	// };
 
+	auto output0 = sbm.to_glsl_string();
 	auto output = sb.to_glsl_string();
 
 	std::string layout{"layout("};
@@ -120,6 +137,7 @@ void example0_test(rhi::Layout a_layout)
 	auto expected_output{layout};
 	expected_output.append(uniform_output);
 
+	EXPECT_EQ(output0, expected_output);
 	EXPECT_EQ(output, expected_output);
 }
 
@@ -146,6 +164,21 @@ void example1_test(rhi::Layout a_layout)
 	sb.add_entry("l", rhi::Format::float32_1, 1);
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
+
+	rhi::ShaderBufferMetal sbm{"Example1", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
+	                           "a", rhi::VertexFormat::float32_1, 1u,
+	                           "b", rhi::VertexFormat::float32_2, 1u,
+	                           "c", rhi::VertexFormat::float32_3, 1u,
+	                           "d", rhi::VertexFormat::int32_1, 1u,
+	                           "e", rhi::VertexFormat::bool32_2, 1u,
+	                           "g", rhi::VertexFormat::float32_1, 1u,
+	                           "h", rhi::VertexFormat::float32_1, 1u,
+	                           "i", rhi::VertexFormat::float32_2x3, 1u,
+	                           "j", rhi::VertexFormat::uint32_1, 1u,
+	                           "k", rhi::VertexFormat::float32_2, 1u,
+	                           "l", rhi::VertexFormat::float32_1, 1u,
+	                           "m", rhi::VertexFormat::float32_2, 1u,
+	                           "n", rhi::VertexFormat::float32_3x3, 1u};
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
@@ -194,6 +227,7 @@ void example1_test(rhi::Layout a_layout)
 	//					   // 6/4     16   160  160    (pad end of n) confirm????
 	// };
 
+	auto output0 = sbm.to_glsl_string();
 	auto output = sb.to_glsl_string();
 
 	std::string layout{"layout("};
@@ -223,6 +257,7 @@ void example1_test(rhi::Layout a_layout)
 	auto expected_output{layout};
 	expected_output.append(uniform_output);
 
+	EXPECT_EQ(output0, expected_output);
 	EXPECT_EQ(output, expected_output);
 }
 
@@ -249,6 +284,21 @@ TEST(ShaderBuffer, std140_example2_test)
 	sb.add_entry("l", rhi::Format::float32_1, 2);
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
+
+	rhi::ShaderBufferMetal sbm{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
+	                           "a", rhi::VertexFormat::float32_1, 1u,
+	                           "b", rhi::VertexFormat::float32_2, 1u,
+	                           "c", rhi::VertexFormat::float32_3, 1u,
+	                           "d", rhi::VertexFormat::int32_1, 1u,
+	                           "e", rhi::VertexFormat::bool32_2, 1u,
+	                           "g", rhi::VertexFormat::float32_1, 2u,
+	                           "h", rhi::VertexFormat::float32_1, 1u,
+	                           "i", rhi::VertexFormat::float32_2x3, 1u,
+	                           "j", rhi::VertexFormat::uint32_1, 1u,
+	                           "k", rhi::VertexFormat::float32_2, 1u,
+	                           "l", rhi::VertexFormat::float32_1, 2u,
+	                           "m", rhi::VertexFormat::float32_2, 1u,
+	                           "n", rhi::VertexFormat::float32_3x3, 1u};
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
@@ -297,6 +347,7 @@ TEST(ShaderBuffer, std140_example2_test)
 	//					   // 6/4     16   160  160    (pad end of n) confirm????
 	// };
 
+	auto output0 = sbm.to_glsl_string();
 	auto output = sb.to_glsl_string();
 
 	auto expected_output{R"output(layout(std140, set = 0, binding = 0) uniform Example2
@@ -317,6 +368,7 @@ TEST(ShaderBuffer, std140_example2_test)
 } in_Example2;
 )output"};
 
+	EXPECT_EQ(output0, expected_output);
 	EXPECT_EQ(output, expected_output);
 }
 
@@ -338,6 +390,21 @@ TEST(ShaderBuffer, std140_example3_test)
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
 
+	rhi::ShaderBufferMetal sbm{"Example3", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
+	                           "a", rhi::VertexFormat::float32_1, 1u,
+	                           "b", rhi::VertexFormat::float32_2, 1u,
+	                           "c", rhi::VertexFormat::float32_3, 1u,
+	                           "d", rhi::VertexFormat::int32_1, 1u,
+	                           "e", rhi::VertexFormat::bool32_2, 1u,
+	                           "g", rhi::VertexFormat::float32_1, 2u,
+	                           "h", rhi::VertexFormat::float32_1, 1u,
+	                           "i", rhi::VertexFormat::float32_2x3, 2u,
+	                           "j", rhi::VertexFormat::uint32_1, 1u,
+	                           "k", rhi::VertexFormat::float32_2, 1u,
+	                           "l", rhi::VertexFormat::float32_1, 2u,
+	                           "m", rhi::VertexFormat::float32_2, 1u,
+	                           "n", rhi::VertexFormat::float32_3x3, 1u};
+
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
 	    {"a", {0, 4, rhi::Format::float32_1}},
@@ -356,6 +423,7 @@ TEST(ShaderBuffer, std140_example3_test)
 
 	test_entries(sb, var_values);
 
+	auto output0 = sbm.to_glsl_string();
 	auto output = sb.to_glsl_string();
 
 	auto expected_output{R"output(layout(std140, set = 0, binding = 0) uniform Example3
@@ -376,6 +444,7 @@ TEST(ShaderBuffer, std140_example3_test)
 } in_Example3;
 )output"};
 
+	EXPECT_EQ(output0, expected_output);
 	EXPECT_EQ(output, expected_output);
 }
 
@@ -408,6 +477,32 @@ TEST(ShaderBuffer, std140_example4_test)
 	o.add_entry("n", rhi::Format::float32_3x3, rhi::Layout::std140, 2);
 
 	sb.add_struct(o);
+
+	rhi::ShaderBufferMetal sbm{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
+	                           "a", rhi::VertexFormat::float32_1, 1u,
+	                           "b", rhi::VertexFormat::float32_2, 1u,
+	                           "c", rhi::VertexFormat::float32_3, 1u,
+
+	                           "f", rhi::VertexFormat::struct_1, 1u,
+
+	                           "d", rhi::VertexFormat::int32_1, 1u,
+	                           "e", rhi::VertexFormat::bool32_2, 1u,
+
+	                           "f_end", rhi::VertexFormat::struct_0, 1u,
+
+	                           "g", rhi::VertexFormat::float32_1, 1u,
+	                           "h", rhi::VertexFormat::float32_1, 2u,
+
+	                           "i", rhi::VertexFormat::float32_2x3, 1u,
+
+	                           "o", rhi::VertexFormat::struct_1, 2u,
+	                           "j", rhi::VertexFormat::uint32_3, 1u,
+	                           "k", rhi::VertexFormat::float32_2, 1u,
+	                           "l", rhi::VertexFormat::float32_1, 2u,
+	                           "m", rhi::VertexFormat::float32_2, 1u,
+	                           "n", rhi::VertexFormat::float32_3x3, 2u,
+	                           "o_end", rhi::VertexFormat::struct_0};
+
 
 	// Index of offset, stride, size, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, uint32_t, rhi::Format>> var_values{
@@ -493,6 +588,7 @@ TEST(ShaderBuffer, std140_example4_test)
 	//	} o[2];
 	// };
 
+	auto output0 = sbm.to_glsl_string();
 	auto output = sb.to_glsl_string();
 
 	auto expected_output{R"output(struct F
@@ -523,6 +619,7 @@ layout(std140, set = 0, binding = 0) uniform Example4
 } in_Example4;
 )output"};
 
+	EXPECT_EQ(output0, expected_output);
 	EXPECT_EQ(output, expected_output);
 }
 
@@ -1182,6 +1279,12 @@ void joint_transforms_test(uint32_t joints_count)
 
 	joint_transform.add_struct(trs_transform);
 
+	rhi::ShaderBufferMetal joint_transform_sbm{"joint_transform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 2u, 0u,
+	                           "joint_transforms", rhi::VertexFormat::struct_1, joints_count,
+	                           "rotation", rhi::VertexFormat::float32_4, 1u,
+	                           "translation", rhi::VertexFormat::float32_3, 1u,
+	                           "scale", rhi::VertexFormat::float32_3, 1u};
+
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
 	    {"rotation", {0, 16, rhi::Format::float32_4}},
@@ -1191,6 +1294,7 @@ void joint_transforms_test(uint32_t joints_count)
 
 	test_entries(joint_transform, var_values);
 
+	auto        output0 = joint_transform_sbm.to_glsl_string();
 	auto        output = joint_transform.to_glsl_string();
 	std::string expected_output{R"output(struct Joint_transforms
 {
@@ -1212,6 +1316,7 @@ layout(std140, set = 2, binding = 0) uniform joint_transform
 
 	expected_output.append(expected_output2);
 
+	EXPECT_EQ(output0, expected_output);
 	EXPECT_EQ(output, expected_output);
 }
 
