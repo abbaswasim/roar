@@ -32,6 +32,14 @@ namespace ror
 {
 void OrbitCamera::init(EventSystem &a_event_system)
 {
+	this->m_move_callback = [this](ror::Event &e) {
+		if (e.is_compatible<ror::Vector2d>())
+		{
+			auto vec2     = std::any_cast<ror::Vector2d>(e.m_payload);
+			this->update_position_function(vec2.x, vec2.y);
+		}
+	};
+
 	this->m_drag_callback = [this](ror::Event &e) {
 		if (e.is_compatible<ror::Vector2d>())
 		{
@@ -40,13 +48,13 @@ void OrbitCamera::init(EventSystem &a_event_system)
 			switch (modifier)
 			{
 				case EventModifier::left_mouse:
-					this->left_key_function(vec2.x, vec2.y);
+					this->left_key_drag(vec2.x, vec2.y);
 					break;
 				case EventModifier::middle_mouse:
-					this->middle_key_function(vec2.x, vec2.y);
+					this->middle_key_drag(vec2.x, vec2.y);
 					break;
 				case EventModifier::right_mouse:
-					this->right_key_function(vec2.x, vec2.y);
+					this->right_key_drag(vec2.x, vec2.y);
 					break;
 				case EventModifier::none:
 				case EventModifier::shift:
@@ -99,6 +107,10 @@ void OrbitCamera::init(EventSystem &a_event_system)
 
 void OrbitCamera::enable()
 {
+	this->m_event_system->subscribe(mouse_move, this->m_move_callback);
+	this->m_event_system->subscribe(mouse_move, this->m_move_callback);
+	this->m_event_system->subscribe(mouse_move, this->m_move_callback);
+
 	this->m_event_system->subscribe(mouse_left_mouse_drag, this->m_drag_callback);
 	this->m_event_system->subscribe(mouse_middle_mouse_drag, this->m_drag_callback);
 	this->m_event_system->subscribe(mouse_right_mouse_drag, this->m_drag_callback);
@@ -111,6 +123,10 @@ void OrbitCamera::enable()
 
 void OrbitCamera::disable()
 {
+	this->m_event_system->unsubscribe(mouse_move, this->m_move_callback);
+	this->m_event_system->unsubscribe(mouse_move, this->m_move_callback);
+	this->m_event_system->unsubscribe(mouse_move, this->m_move_callback);
+
 	this->m_event_system->unsubscribe(mouse_left_mouse_drag, this->m_drag_callback);
 	this->m_event_system->unsubscribe(mouse_middle_mouse_drag, this->m_drag_callback);
 	this->m_event_system->unsubscribe(mouse_right_mouse_drag, this->m_drag_callback);

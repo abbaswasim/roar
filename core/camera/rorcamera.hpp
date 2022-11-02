@@ -100,9 +100,11 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	// clang-format on
 
   private:
-	FORCE_INLINE void left_key_function(double64_t &a_x_delta, double64_t &a_y_delta);
-	FORCE_INLINE void middle_key_function(double64_t &a_x_delta, double64_t &a_y_delta);
-	FORCE_INLINE void right_key_function(double64_t &a_x_delta, double64_t &a_y_delta);
+	FORCE_INLINE void update_position_function(double64_t &a_x_delta, double64_t &a_y_delta);
+
+	FORCE_INLINE void left_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
+	FORCE_INLINE void middle_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
+	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
 
 	FORCE_INLINE void look_at();
 
@@ -122,6 +124,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t                    m_bounding_sphere_radius{100.0f};         //! Could also describe volume as a sphere with a radius
 	double64_t                   m_camera_depth{25.0f};                    //! How far does the camera see
 	double64_t                   m_zooming_depth{0.0f};                    //! How far does the camera move
+	float32_t                    m_x_position{0.0f};                       //! Previous cusor position of the mouse pointer
+	float32_t                    m_y_position{0.0f};                       //! Previous cusor position of the mouse pointer
 	float32_t                    m_x_rotation{0.0f};                       //! Euler angle of rotation around x-axis
 	float32_t                    m_z_rotation{0.0f};                       //! Euler angle of rotation around z-axis
 	float32_t                    m_x_translation{0.0f};                    //! Translation in x-coordinates
@@ -134,6 +138,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	uint32_t                     m_height{600};                            //! Height of the rectangle it needs to fill
 	CameraType                   m_type{CameraType::perspective};          //! Default perspective camera
 	EventSystem                 *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around
+	std::function<void(Event &)> m_move_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
 	std::function<void(Event &)> m_drag_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
 	std::function<void(Event &)> m_resize_callback{};                      //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	std::function<void(Event &)> m_zoom_callback{};                        //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system

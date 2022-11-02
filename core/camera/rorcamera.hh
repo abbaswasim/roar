@@ -133,22 +133,44 @@ void OrbitCamera::zoom_by(double64_t a_zoom_delta)
 		this->m_zooming_depth = abs_camera_depth;
 }
 
-void OrbitCamera::left_key_function(double64_t &a_x_delta, double64_t &a_y_delta)
+void OrbitCamera::update_position_function(double64_t &a_x_new_position, double64_t &a_y_new_position)
 {
-	this->m_x_rotation += static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_y_delta));
-	this->m_z_rotation += static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_x_delta));
+	m_x_position = static_cast<float>(a_x_new_position);
+	m_y_position = static_cast<float>(a_y_new_position);
 }
 
-void OrbitCamera::middle_key_function(double64_t &a_x_delta, double64_t &a_y_delta)
+void OrbitCamera::left_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
 {
-	this->m_x_translation += static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_x_delta));
-	this->m_y_translation -= static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_y_delta));
+	auto x_delta = m_x_position - a_x_new_position;
+	auto y_delta = m_y_position - a_y_new_position;
+
+	m_x_position = static_cast<float>(a_x_new_position);
+	m_y_position = static_cast<float>(a_y_new_position);
+
+	this->m_x_rotation += static_cast<float32_t>(0.05f * static_cast<float32_t>(y_delta));
+	this->m_z_rotation += static_cast<float32_t>(0.05f * static_cast<float32_t>(x_delta));
 }
 
-void OrbitCamera::right_key_function(double64_t &a_x_delta, double64_t &a_y_delta)
+void OrbitCamera::middle_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
 {
-	(void) a_y_delta;
-	this->m_zooming_depth += static_cast<float32_t>(0.0005f * static_cast<float32_t>(a_x_delta));
+	auto x_delta = m_x_position - a_x_new_position;
+	auto y_delta = m_y_position - a_y_new_position;
+
+	m_x_position = static_cast<float>(a_x_new_position);
+	m_y_position = static_cast<float>(a_y_new_position);
+
+	this->m_x_translation += static_cast<float32_t>(0.05f * static_cast<float32_t>(x_delta));
+	this->m_y_translation -= static_cast<float32_t>(0.05f * static_cast<float32_t>(y_delta));
+}
+
+void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
+{
+	(void) a_y_new_position;
+
+	auto x_delta = m_x_position - a_x_new_position;
+	m_x_position = static_cast<float>(a_x_new_position);
+
+	this->m_zooming_depth += static_cast<float32_t>(0.05f * static_cast<float32_t>(x_delta));
 
 	auto abs_camera_depth = fabs(this->m_camera_depth);
 	abs_camera_depth      = abs_camera_depth - fmax(1.0f, abs_camera_depth * 0.001f);
