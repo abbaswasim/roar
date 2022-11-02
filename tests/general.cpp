@@ -32,6 +32,7 @@
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorrender_data.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
 #include "shader_system/rorshader_system.hpp"

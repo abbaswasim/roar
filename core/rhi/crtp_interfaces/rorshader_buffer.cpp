@@ -23,9 +23,9 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rorshader_buffer.hpp"
 
 namespace rhi
 {
-
 }        // namespace rhi

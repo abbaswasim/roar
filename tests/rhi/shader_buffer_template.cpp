@@ -1,6 +1,5 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/rorshader_buffer.hpp"
-#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
 #include <gtest/gtest-death-test.h>
@@ -45,6 +44,8 @@ void example0_test(rhi::Layout a_layout)
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
 
+	EXPECT_EQ(sb.unit_size(), 176);
+
 	rhi::ShaderBufferMetal sbm{"Example0", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
 	                           "a", rhi::VertexFormat::float32_1, 1u,
 	                           "b", rhi::VertexFormat::float32_2, 1u,
@@ -74,7 +75,7 @@ void example0_test(rhi::Layout a_layout)
 	    {"k", {96, 8, rhi::Format::float32_2}},
 	    {"l", {104, 4, rhi::Format::float32_1}},
 	    {"m", {112, 8, rhi::Format::float32_2}},
-	    {"n", {128, 64, rhi::Format::float32_3x3}}};
+	    {"n", {128, 48, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 
@@ -104,11 +105,11 @@ void example0_test(rhi::Layout a_layout)
 	//	mat3 n;            // 6/4     16   120  128    128..139 (n, column 0)
 	//					   //                   144    144..155 (n, column 1)
 	//					   //                   160    160..171 (n, column 2)
-	//					   // 6/4     16   160  160    (pad end of n) confirm????
+	//					   // 6/4     16   172  176    (pad end of n)
 	// };
 
 	auto output0 = sbm.to_glsl_string();
-	auto output = sb.to_glsl_string();
+	auto output  = sb.to_glsl_string();
 
 	std::string layout{"layout("};
 	if (a_layout == rhi::Layout::std140)
@@ -165,6 +166,8 @@ void example1_test(rhi::Layout a_layout)
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
 
+	EXPECT_EQ(sb.unit_size(), 160);
+
 	rhi::ShaderBufferMetal sbm{"Example1", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
 	                           "a", rhi::VertexFormat::float32_1, 1u,
 	                           "b", rhi::VertexFormat::float32_2, 1u,
@@ -194,7 +197,7 @@ void example1_test(rhi::Layout a_layout)
 	    {"k", {88, 8, rhi::Format::float32_2}},
 	    {"l", {96, 4, rhi::Format::float32_1}},
 	    {"m", {104, 8, rhi::Format::float32_2}},
-	    {"n", {112, 64, rhi::Format::float32_3x3}}};
+	    {"n", {112, 48, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 
@@ -228,7 +231,7 @@ void example1_test(rhi::Layout a_layout)
 	// };
 
 	auto output0 = sbm.to_glsl_string();
-	auto output = sb.to_glsl_string();
+	auto output  = sb.to_glsl_string();
 
 	std::string layout{"layout("};
 	if (a_layout == rhi::Layout::std140)
@@ -285,6 +288,8 @@ TEST(ShaderBuffer, std140_example2_test)
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
 
+	EXPECT_EQ(sb.unit_size(), 240);
+
 	rhi::ShaderBufferMetal sbm{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
 	                           "a", rhi::VertexFormat::float32_1, 1u,
 	                           "b", rhi::VertexFormat::float32_2, 1u,
@@ -314,7 +319,7 @@ TEST(ShaderBuffer, std140_example2_test)
 	    {"k", {136, 8, rhi::Format::float32_2}},
 	    {"l", {144, 16, rhi::Format::float32_1}},
 	    {"m", {176, 8, rhi::Format::float32_2}},
-	    {"n", {192, 64, rhi::Format::float32_3x3}}};
+	    {"n", {192, 48, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 
@@ -324,31 +329,32 @@ TEST(ShaderBuffer, std140_example2_test)
 	// {
 	//	// Base types below consume 4 basic machine units
 	//	//
-	//	//                           base   base  align
-	//	//                     rule  align  off.  off.  bytes used
-	//	//                     ----  ------ ----  ----  -----------------------
-	//	float a;           //  1       4     0    0    0..3
-	//	vec2  b;           //  2       8     4    8    8..15
-	//	vec3  c;           //  3      16    16   16    16..27
-	//	int   d;           //  1       4    28   28    28..31
-	//	bvec2 e;           //  2       8    32   32    32..39
-	//	float g[2];        //  1      16    40   48    48..51, 64..67
-	//	float h;           //  4       4    44   80    44..47
-	//	mat2x3 i;          // 5/4     16    48   96    48..59 (i, column 0)
-	//					   //                    64    64..75 (i, column 1)
-	//					   // 5/4     16    76   80    (pad end of i because next thing needs to be 16 bytes aligned
-	//	float j;           //  3       4    76  128    80..83 (j)
-	//	vec2  k;           //  2       8    84  136    88..95 (k)
-	//	float l[2];        //  4      16    96  144    94..99 (l)
-	//	vec2 m;            //  2       8   100  176    104..111 (m)
-	//	mat3 n;            // 6/4     16   112  192    112..123 (n, column 0)
-	//					   //                   128    128..139 (n, column 1)
-	//					   //                   144    144..159 (n, column 2)
-	//					   // 6/4     16   160  160    (pad end of n) confirm????
+	//	//                           base     align
+	//	//                     rule  align    off.  bytes used
+	//	//                     ----  ------  ----  -----------------------
+	//	float a;           //  1       4      0    0..3
+	//	vec2  b;           //  2       8      8    8..15
+	//	vec3  c;           //  3      16     16    16..27
+	//	int   d;           //  1       4     28    28..31
+	//	bvec2 e;           //  2       8     32    32..39
+	//	float g[2];        //  1      16     48    48..51, 64..67
+	//	float h;           //  4       4     80    80..83
+	//	mat2x3 i;          // 5/4     16     96    96..107  (i, column 0)
+	//					   //               112    112..123 (i, column 1)
+	//					   // 5/4     16    128    (pad end of i because next thing needs to be 16 bytes aligned
+	//	uint  j;           //  3       4    128    128..131 (j)
+	//	vec2  k;           //  2       8    136    136..143 (k)
+	//	float l[2];        //  4      16    144    144..147 (l[0])
+	//	                                    160    160..163 (l[1])
+	//	vec2 m;            //  2       8    176    176..183 (m)
+	//	mat3 n;            // 6/4     16    192    192..203 (n, column 0)
+	//					   //               208    208..219 (n, column 1)
+	//					   //               224    224..235 (n, column 2)
+	//					   // 6/4     16    240    (pad end of n)
 	// };
 
 	auto output0 = sbm.to_glsl_string();
-	auto output = sb.to_glsl_string();
+	auto output  = sb.to_glsl_string();
 
 	auto expected_output{R"output(layout(std140, set = 0, binding = 0) uniform Example2
 {
@@ -419,12 +425,12 @@ TEST(ShaderBuffer, std140_example3_test)
 	    {"k", {168, 8, rhi::Format::float32_2}},
 	    {"l", {176, 16, rhi::Format::float32_1}},
 	    {"m", {208, 8, rhi::Format::float32_2}},
-	    {"n", {224, 64, rhi::Format::float32_3x3}}};
+	    {"n", {224, 48, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 
 	auto output0 = sbm.to_glsl_string();
-	auto output = sb.to_glsl_string();
+	auto output  = sb.to_glsl_string();
 
 	auto expected_output{R"output(layout(std140, set = 0, binding = 0) uniform Example3
 {
@@ -503,7 +509,6 @@ TEST(ShaderBuffer, std140_example4_test)
 	                           "n", rhi::VertexFormat::float32_3x3, 2u,
 	                           "o_end", rhi::VertexFormat::struct_0};
 
-
 	// Index of offset, stride, size, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, uint32_t, rhi::Format>> var_values{
 	    {"a", {0, 4, 4, rhi::Format::float32_1}},
@@ -511,7 +516,7 @@ TEST(ShaderBuffer, std140_example4_test)
 	    {"c", {16, 12, 12, rhi::Format::float32_3}},
 	    {"d", {32, 4, 4, rhi::Format::int32_1}},
 	    {"e", {40, 8, 8, rhi::Format::bool32_2}},
-	    {"f", {32, 16, 48, rhi::Format::struct_1}},
+	    {"f", {32, 16, 12, rhi::Format::struct_1}},
 	    {"g", {48, 4, 4, rhi::Format::float32_1}},
 	    {"h", {64, 16, 4, rhi::Format::float32_1}},
 	    {"i", {96, 32, 32, rhi::Format::float32_2x3}},
@@ -519,8 +524,8 @@ TEST(ShaderBuffer, std140_example4_test)
 	    {"k", {144, 8, 8, rhi::Format::float32_2}},
 	    {"l", {160, 16, 4, rhi::Format::float32_1}},
 	    {"m", {192, 8, 8, rhi::Format::float32_2}},
-	    {"n", {208, 64, 64, rhi::Format::float32_3x3}},
-	    {"o", {128, 208, 544, rhi::Format::struct_1}}};
+	    {"n", {208, 48, 48, rhi::Format::float32_3x3}},
+	    {"o", {128, 176, 352, rhi::Format::struct_1}}};
 
 	auto entries = sb.entries_structs();
 
@@ -537,9 +542,9 @@ TEST(ShaderBuffer, std140_example4_test)
 	// {
 	// Base types below consume 4 basic machine units
 	//
-	//                           base   base  align
-	//                     rule  align  off.  off.  bytes used
-	//                     ----  ------ ----  ----  -----------------------
+	//                               base   base  align
+	//                     rule     align   off.  off.  bytes used
+	//                     ----     ------ ----  ----  -----------------------
 	//	float a;            //  1       4     0    0    0..3
 	//	vec2  b;            //  2       8     4    8    8..15
 	//	vec3  c;            //  3      16    16   16    16..27
@@ -588,8 +593,10 @@ TEST(ShaderBuffer, std140_example4_test)
 	//	} o[2];
 	// };
 
+	EXPECT_EQ(sb.unit_size(), 480);
+
 	auto output0 = sbm.to_glsl_string();
-	auto output = sb.to_glsl_string();
+	auto output  = sb.to_glsl_string();
 
 	auto expected_output{R"output(struct F
 {
@@ -621,6 +628,116 @@ layout(std140, set = 0, binding = 0) uniform Example4
 
 	EXPECT_EQ(output0, expected_output);
 	EXPECT_EQ(output, expected_output);
+}
+
+TEST(ShaderBuffer, std140_example4_struct_o_test)
+{
+	rhi::ShaderBufferTemplate sb{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+
+	// // Lets create struct o
+	rhi::ShaderBufferTemplate::Struct o("o", 2);
+	o.add_entry("j", rhi::Format::uint32_3, rhi::Layout::std140, 1);
+	o.add_entry("k", rhi::Format::float32_2, rhi::Layout::std140, 1);
+	o.add_entry("l", rhi::Format::float32_1, rhi::Layout::std140, 2);
+	o.add_entry("m", rhi::Format::float32_2, rhi::Layout::std140, 1);
+	o.add_entry("n", rhi::Format::float32_3x3, rhi::Layout::std140, 2);
+
+	sb.add_struct(o);
+
+	// Index of offset, stride, size, type
+	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, uint32_t, rhi::Format>> var_values{
+	    {"j", {0, 12, 12, rhi::Format::uint32_3}},
+	    {"k", {16, 8, 8, rhi::Format::float32_2}},
+	    {"l", {32, 16, 4, rhi::Format::float32_1}},
+	    {"m", {64, 8, 8, rhi::Format::float32_2}},
+	    {"n", {80, 48, 48, rhi::Format::float32_3x3}},
+	    {"o", {0, 176, 352, rhi::Format::struct_1}}};
+
+	auto entries = sb.entries_structs();
+
+	for (auto &e : entries)
+	{
+		std::cout << ", " << e->m_name << "=" << e->m_offset;
+		EXPECT_EQ(std::get<0>(var_values[e->m_name]), e->m_offset);
+		EXPECT_EQ(std::get<1>(var_values[e->m_name]), e->m_stride);
+		EXPECT_EQ(std::get<2>(var_values[e->m_name]), e->m_size);
+		EXPECT_EQ(std::get<3>(var_values[e->m_name]), e->m_type);
+	}
+
+	//	struct
+	//	{                   //  10     16   0    (align begin)
+	//		uvec3 j;        //  3      16   0   0..12    (o[0].j)
+	//		vec2  k;        //  2       8   16  16..23   (o[0].k)
+	//		float l[2];     //  4      16   32  32..35   (o[0].l[0])
+	//						//              48  48..51   (o[0].l[1])
+	//						//  4      16   64  (pad end of o[0].l)
+	//		vec2 m;         //  2       8   64  64..71   (o[0].m)
+	//		mat3 n[2];      // 6/4     16   80  80..91   (o[0].n[0], column 0)
+	//						//              96  96..111  (o[0].n[0], column 1)
+	//						//              112 112..123 (o[0].n[0], column 2)
+	//						//              128 128..139 (o[0].n[1], column 0)
+	//						//              144 144..155 (o[0].n[1], column 1)
+	//						//              160 160..172 (o[0].n[1], column 2)
+	//						// 6/4     16   176 (pad end of o[0].n)
+	//						//  9      16   176 (pad end of o[0])
+	//						//  3      16   176 176..187 (o[1].j)
+	//						//  2       8   192 192..199 (o[1].k)
+	//						//  4      16   208 208..211 (o[1].l[0])
+	//						//              224 224..227 (o[1].l[1])
+	//						//  4      16   240 (pad end of o[1].l)
+	//						//  2       8   240 240..247 (o[1].m)
+	//						// 6/4     16   256 256..267 (o[1].n[0], column 0)
+	//						//              272 272..283 (o[1].n[0], column 1)
+	//						//              288 288..299 (o[1].n[0], column 2)
+	//						//              304 304..315 (o[1].n[1], column 0)
+	//						//              320 320..331 (o[1].n[1], column 1)
+	//						//              336 336..347 (o[1].n[1], column 2)
+	//						// 6/4     16   352 (pad end of o[1].n)
+	//						//  9      16   352 (pad end of o[1])
+	//	} o[2];
+}
+
+TEST(ShaderBuffer, std140_example4_struct_o_open_test)
+{
+	rhi::ShaderBufferTemplate sb{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+
+	sb.add_entry("j", rhi::Format::uint32_3, 1);
+	sb.add_entry("k", rhi::Format::float32_2, 1);
+	sb.add_entry("l", rhi::Format::float32_1, 2);
+	sb.add_entry("m", rhi::Format::float32_2, 1);
+	sb.add_entry("n", rhi::Format::float32_3x3, 2);
+
+	// Index of offset, stride, size, type
+	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, uint32_t, rhi::Format>> var_values{
+	    {"j", {0, 12, 12, rhi::Format::uint32_3}},
+	    {"k", {16, 8, 8, rhi::Format::float32_2}},
+	    {"l", {32, 16, 4, rhi::Format::float32_1}},
+	    {"m", {64, 8, 8, rhi::Format::float32_2}},
+	    {"n", {80, 48, 48, rhi::Format::float32_3x3}}};
+
+	auto entries = sb.entries_structs();
+
+	for (auto &e : entries)
+	{
+		EXPECT_EQ(std::get<0>(var_values[e->m_name]), e->m_offset);
+		EXPECT_EQ(std::get<1>(var_values[e->m_name]), e->m_stride);
+		EXPECT_EQ(std::get<2>(var_values[e->m_name]), e->m_size);
+		EXPECT_EQ(std::get<3>(var_values[e->m_name]), e->m_type);
+	}
+
+	//		uvec3 j;        //  3      16   0   0..12    (j)
+	//		vec2  k;        //  2       8   16  16..23   (k)
+	//		float l[2];     //  4      16   32  32..35   (l[0])
+	//						//              48  48..51   (l[1])
+	//						//  4      16   64  (pad end of l)
+	//		vec2 m;         //  2       8   64  64..71   (m)
+	//		mat3 n[2];      // 6/4     16   80  80..91   (n[0], column 0)
+	//						//              96  96..111  (n[0], column 1)
+	//						//              112 112..123 (n[0], column 2)
+	//						//              128 128..139 (n[1], column 0)
+	//						//              144 144..155 (n[1], column 1)
+	//						//              160 160..172 (n[1], column 2)
+	//						//              176 padding
 }
 
 // TODO: Create std430 equvivalent of the following 3 tests
@@ -851,7 +968,7 @@ TEST(ShaderBuffer, std430_ssbo_example2_test)
 	    {"k", {136, 8, rhi::Format::float32_2}},
 	    {"l", {144, 4, rhi::Format::float32_1}},
 	    {"m", {152, 8, rhi::Format::float32_2}},
-	    {"n", {160, 64, rhi::Format::float32_3x3}}};
+	    {"n", {160, 48, rhi::Format::float32_3x3}}};
 
 	test_entries(sb, var_values);
 }
@@ -1280,10 +1397,10 @@ void joint_transforms_test(uint32_t joints_count)
 	joint_transform.add_struct(trs_transform);
 
 	rhi::ShaderBufferMetal joint_transform_sbm{"joint_transform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 2u, 0u,
-	                           "joint_transforms", rhi::VertexFormat::struct_1, joints_count,
-	                           "rotation", rhi::VertexFormat::float32_4, 1u,
-	                           "translation", rhi::VertexFormat::float32_3, 1u,
-	                           "scale", rhi::VertexFormat::float32_3, 1u};
+	                                           "joint_transforms", rhi::VertexFormat::struct_1, joints_count,
+	                                           "rotation", rhi::VertexFormat::float32_4, 1u,
+	                                           "translation", rhi::VertexFormat::float32_3, 1u,
+	                                           "scale", rhi::VertexFormat::float32_3, 1u};
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
@@ -1295,7 +1412,7 @@ void joint_transforms_test(uint32_t joints_count)
 	test_entries(joint_transform, var_values);
 
 	auto        output0 = joint_transform_sbm.to_glsl_string();
-	auto        output = joint_transform.to_glsl_string();
+	auto        output  = joint_transform.to_glsl_string();
 	std::string expected_output{R"output(struct Joint_transforms
 {
 	vec4 rotation;
@@ -1324,6 +1441,28 @@ TEST(ShaderBuffer, std140_joint_transforms_test)
 {
 	joint_transforms_test(0);
 	joint_transforms_test(24);
+
+	{
+		rhi::ShaderBufferTemplate sb{"joints", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
+		sb.add_entry("rotation", rhi::Format::float32_4, 1);
+		EXPECT_EQ(sb.unit_size(), 16);
+	}
+	{
+		rhi::ShaderBufferTemplate sb{"joints", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
+		sb.add_entry("rotation", rhi::Format::float32_4, 1);
+		EXPECT_EQ(sb.unit_size(), 16);
+	}
+	{
+		rhi::ShaderBufferTemplate sb{"joints", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0};
+		sb.add_entry("rotation", rhi::Format::float32_3, 30);
+		EXPECT_EQ(sb.unit_size(), 16);
+	}
+	{
+		rhi::ShaderBufferTemplate sb{"joints", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0};
+		sb.add_entry("rotation", rhi::Format::float32_3, 3);
+		sb.add_entry("translation", rhi::Format::float32_3, 3);
+		EXPECT_EQ(sb.unit_size(), 96);
+	}
 }
 
 }        // namespace ror_test

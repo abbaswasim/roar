@@ -43,7 +43,7 @@ class ROAR_ENGINE_ITEM Skin
 	FORCE_INLINE       Skin(const Skin &a_other)          = delete;         //! Copy constructor
 	FORCE_INLINE       Skin(Skin &&a_other) noexcept      = default;        //! Move constructor
 	FORCE_INLINE Skin &operator=(const Skin &a_other)     = delete;         //! Copy assignment operator
-	FORCE_INLINE Skin &operator=(Skin &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE Skin &operator=(Skin &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~Skin() noexcept                         = default;        //! Destructor
 
 	// clang-format off

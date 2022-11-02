@@ -68,6 +68,7 @@ std::string attribute_format(rhi::VertexFormat a_format)
 	// clang-format off
 	switch (a_format)
 	{
+		case rhi::VertexFormat::struct_0:			return " ";
 		case rhi::VertexFormat::struct_1:			return " ";
 		case rhi::VertexFormat::bool32_1:			return " bool";
 		case rhi::VertexFormat::bool32_2:			return " bvec2";

@@ -45,7 +45,7 @@ class ROAR_ENGINE_ITEM ShaderInput final
 	FORCE_INLINE              ShaderInput(const ShaderInput &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE              ShaderInput(ShaderInput &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ShaderInput &operator=(const ShaderInput &a_other)       = delete;         //! Copy assignment operator
-	FORCE_INLINE ShaderInput &operator=(ShaderInput &&a_other) noexcept   = default;        //! Move assignment operator
+	FORCE_INLINE ShaderInput &operator=(ShaderInput &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~ShaderInput() noexcept                                  = default;        //! Destructor
 
 	FORCE_INLINE ShaderInput(std::unordered_map<std::string, rhi::Format> &&a_variables)
@@ -66,7 +66,7 @@ class ROAR_ENGINE_ITEM ShaderInput final
 		this->m_variables.emplace(std::make_pair<std::string, VariableEntry>(std::move(a_variable.first), {a_variable.second, 0, 0}));
 	}
 
-	template<typename _type>
+	template <typename _type>
 	void update_data(std::string a_variable, _type a_value)
 	{
 		this->update_data(std::move(a_variable), reinterpret_cast<const uint8_t *>(&a_value));
@@ -113,7 +113,10 @@ class ROAR_ENGINE_ITEM ShaderInput final
 		this->update();
 	}
 
-	auto &shader_buffer() { return this->m_shader_buffer;}
+	auto &shader_buffer()
+	{
+		return this->m_shader_buffer;
+	}
 
 	struct VariableEntry
 	{

@@ -58,10 +58,10 @@ class ROAR_ENGINE_ITEM Light
 {
   public:
 	FORCE_INLINE        Light()                             = default;        //! Default constructors
-	FORCE_INLINE        Light(const Light &a_other)         = delete;        //! Copy constructor
+	FORCE_INLINE        Light(const Light &a_other)         = delete;         //! Copy constructor
 	FORCE_INLINE        Light(Light &&a_other) noexcept     = default;        //! Move constructor
-	FORCE_INLINE Light &operator=(const Light &a_other)     = delete;        //! Copy assignment operator
-	FORCE_INLINE Light &operator=(Light &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE Light &operator=(const Light &a_other)     = delete;         //! Copy assignment operator
+	FORCE_INLINE Light &operator=(Light &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~Light() noexcept                          = default;        //! Destructor
 
 	enum class LightType

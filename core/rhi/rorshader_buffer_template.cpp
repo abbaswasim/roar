@@ -79,6 +79,7 @@ constexpr uint32_t format_base_alignment_count(Format a_format)
 		case Format::float32_4x2:
 			return 2;
 		case Format::struct_1:
+		case Format::struct_0:
 		case Format::int8_3:
 		case Format::int8_3_norm:
 		case Format::uint8_3:
@@ -165,23 +166,23 @@ constexpr uint32_t glsl_size(Format a_type)
 {
 	auto size = rhi::vertex_format_to_bytes(a_type);
 
-	if (a_type == Format::float32_2x3)
+	if (a_type == Format::float32_2x3)        // 24 -> 32
 		return size + 8;
-	else if (a_type == Format::float32_3x3)
-		return size + 28;
-	else if (a_type == Format::float32_4x3)
+	else if (a_type == Format::float32_3x3)        // 36 -> 48
+		return size + 12;
+	else if (a_type == Format::float32_4x3)        // 48 -> 64
 		return size + 16;
-	else if (a_type == Format::float64_2x3)
+	else if (a_type == Format::float64_2x3)        // 48 -> 64
 		return size + 16;
-	else if (a_type == Format::float64_3x3)
+	else if (a_type == Format::float64_3x3)        // 72 -> 96
 		return size + 24;
-	else if (a_type == Format::float64_4x3)
-		return size + 16;
+	else if (a_type == Format::float64_4x3)        // 96 -> 128
+		return size + 32;
 	else
 		return size;
 }
 
-// A bit of a hack but glsl aligns vec3 to vec4
+// A bit of a hack but glsl aligns vec3 to vec4 in arrays
 constexpr uint32_t glsl_size_vec3_correction(Format a_type, uint32_t a_size)
 {
 	if (a_type == Format::float32_3 ||
@@ -218,13 +219,20 @@ void ShaderBufferTemplate::Struct::add_entry(const std::string &a_name, Format a
 	// Next item after array alignment or matrix needs to be aligned to base_alignment, valid for std140 and std430
 	if (a_count != 1 || (is_matrix_type(a_type) && a_layout == Layout::std140))
 		this->m_offset = ror::align(this->m_offset, base_alignment);
+
+	if (this->m_unit_size == 0)
+		this->m_unit_size = stride;
+	else
+		this->m_unit_size = this->m_offset;
+
+	// std::cout << "add_entry(): Unit size = " << m_unit_size << std::endl;
 }
 
 void ShaderBufferTemplate::Struct::add_struct(Struct a_struct)
 {
 	// Lets make sure our input index is aligned to the struct alignment
-	auto struct_offset = ror::align(this->m_offset, this->m_alignment);
-	this->m_offset     = struct_offset;
+	const auto struct_offset = ror::align(this->m_offset, this->m_alignment);
+	this->m_offset           = struct_offset;
 
 	// Lets update the new struct offsets
 	for (auto &e : a_struct.m_entries)
@@ -233,22 +241,28 @@ void ShaderBufferTemplate::Struct::add_struct(Struct a_struct)
 			pentry->m_offset += this->m_offset;
 	}
 
-	auto struct_stride = ror::align16(a_struct.m_offset);
-	a_struct.m_stride  = struct_stride;
+	const auto struct_stride = ror::align16(a_struct.m_offset);
+	a_struct.m_stride        = struct_stride;
 
 	this->m_offset    = ror::align16(this->m_offset + struct_stride * std::max(a_struct.m_count, 1u));
 	a_struct.m_size   = this->m_offset;
 	a_struct.m_offset = struct_offset;
 
 	this->m_entries.emplace_back(a_struct);
+
+	this->m_unit_size = ror::align16((struct_stride * std::max(a_struct.m_count, 1u)) + struct_offset);
+	// std::cout << "add_struct(): Unit size = " << m_unit_size << std::endl;
+
+	// this->m_unit_size =  a_struct.m_unit_size * std::max(a_struct.m_count, 1u);
+	// this->m_unit_size = this->m_offset;
 }
 
 std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries()
 {
 	std::vector<const Entry *> es;
-	es.reserve(this->m_entries.m_entries.size());
+	es.reserve(this->m_toplevel.m_entries.size());
 
-	for (auto &e : this->m_entries.m_entries)
+	for (auto &e : this->m_toplevel.m_entries)
 	{
 		if (const rhi::ShaderBufferTemplate::Entry *pentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&e))
 			es.push_back(pentry);
@@ -262,9 +276,9 @@ std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries()
 std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries_structs()
 {
 	std::vector<const Entry *> es;
-	es.reserve(this->m_entries.m_entries.size());
+	es.reserve(this->m_toplevel.m_entries.size());
 
-	for (auto &e : this->m_entries.m_entries)
+	for (auto &e : this->m_toplevel.m_entries)
 	{
 		if (const rhi::ShaderBufferTemplate::Entry *pentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&e))
 		{
@@ -294,7 +308,7 @@ std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries_s
 	return es;
 }
 
-static void create_variable_entry(std::string& a_output, const std::string& a_type, const std::string& a_name, uint32_t a_count)
+static void create_variable_entry(std::string &a_output, const std::string &a_type, const std::string &a_name, uint32_t a_count)
 {
 	a_output.append("\t");
 	a_output.append(a_type);
@@ -321,10 +335,10 @@ std::string ShaderBufferTemplate::to_glsl_string() const
 	output.append(") ");
 	output.append(this->type_string());
 	output.append(" ");
-	output.append(this->m_entries.m_name);
+	output.append(this->m_toplevel.m_name);
 	output.append("\n{\n");
 
-	for (auto &e : this->m_entries.m_entries)
+	for (auto &e : this->m_toplevel.m_entries)
 	{
 		if (const rhi::ShaderBufferTemplate::Entry *pentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&e))
 		{
@@ -359,7 +373,7 @@ std::string ShaderBufferTemplate::to_glsl_string() const
 	}
 
 	output.append("} in_");
-	output.append(this->m_entries.m_name);
+	output.append(this->m_toplevel.m_name);
 	output.append(";\n");
 
 	return pre_output == "" ? output : pre_output + output;

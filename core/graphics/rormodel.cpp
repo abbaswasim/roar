@@ -409,6 +409,7 @@ rhi::VertexFormat int_format_to_int32_format_bit(rhi::VertexFormat a_input)
 
 		case rhi::VertexFormat::invalid:
 		case rhi::VertexFormat::struct_1:
+		case rhi::VertexFormat::struct_0:
 		case rhi::VertexFormat::float32_1:
 		case rhi::VertexFormat::float32_2:
 		case rhi::VertexFormat::float32_3:

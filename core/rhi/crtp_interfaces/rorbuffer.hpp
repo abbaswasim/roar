@@ -54,7 +54,8 @@ using Static  = DynamicBuffer<false>;
 /**
  * Device buffer encapsulation
  * Not copyable but moveable
- * Can be used for Vertex, Index, Instance, Constant as well as texture data
+ * Can be used for and GPU visible data like
+ * Vertex, Index, Instance, Constant as well as texture data etc
  */
 template <typename _derived, typename _type = Static>
 class ROAR_ENGINE_ITEM BufferCrtp

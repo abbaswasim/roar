@@ -28,85 +28,63 @@
 #include "foundation/rormacros.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorshader_buffer.hpp"
+#include "rhi/metal/rorbuffer.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
 
 #include <Metal/MTLBuffer.hpp>
+#include <cstddef>
 
 namespace rhi
 {
-class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>
+class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public BufferMetal<>        // Defaul _Static type BufferMetal base class
 {
   public:
 	FORCE_INLINE                    ShaderBufferMetal()                                     = default;        //! Default constructor
 	FORCE_INLINE                    ShaderBufferMetal(const ShaderBufferMetal &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE                    ShaderBufferMetal(ShaderBufferMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ShaderBufferMetal &operator=(const ShaderBufferMetal &a_other)             = delete;         //! Copy assignment operator
-	FORCE_INLINE ShaderBufferMetal &operator=(ShaderBufferMetal &&a_other) noexcept         = default;        //! Move assignment operator
+	FORCE_INLINE ShaderBufferMetal &operator=(ShaderBufferMetal &&a_other) noexcept         = delete;         //! Move assignment operator
 	FORCE_INLINE virtual ~ShaderBufferMetal() noexcept override                             = default;        //! Destructor
 
-	declare_translation_unit_vtable();
+	template <class... _types>
+	FORCE_INLINE ShaderBufferMetal(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding, _types... a_others) :
+	    ShaderBufferCrtp(a_buffer_name, a_type, a_layout, a_set, a_binding, a_others...)
+	{}
+
+	FORCE_INLINE ShaderBufferMetal(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding) :
+	    ShaderBufferCrtp(a_buffer_name, a_type, a_layout, a_set, a_binding)
+	{}
+
+	// FORCE_INLINE constexpr void add_entry(const std::string &a_name, Format a_type, uint32_t a_count = 1)
+	// {
+	// 	ShaderBufferCrtp::add_entry(a_name, a_type, a_count);
+	// }
+
+	// FORCE_INLINE constexpr void add_struct(rhi::ShaderBufferTemplate::Struct &a_struct)
+	// {
+	// 	ShaderBufferCrtp::add_struct(a_struct);
+	// }
+
+	declare_translation_unit_vtable() override;
 
 	// clang-format off
-	FORCE_INLINE auto platform_buffer() { return this->m_platform_buffer; }
+	FORCE_INLINE constexpr void  buffer_resize(ptrdiff_t a_size)                                                 { this->size(a_size);                   }
+	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept { this->unmap();                        }
+	FORCE_INLINE constexpr auto  buffer_map()                                                           noexcept { return this->map();                   }
+	FORCE_INLINE constexpr auto &buffer_data()                                                          noexcept { return this->data();                  }
+	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size)                             { this->init(a_device, a_size);         }
+	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset)  noexcept { this->copy(a_data, a_size, a_offset); }
+	FORCE_INLINE constexpr void  buffer_update()                                                        noexcept { this->reupload();                     }
 	// clang-format on
-
-	FORCE_INLINE void init(rhi::Device &a_device, uint32_t a_size_in_bytes)
-	{
-		assert(a_size_in_bytes && "Can't create a shader buffer with size 0");
-		MTL::Device *device     = a_device.platform_device();
-		this->m_platform_buffer = device->newBuffer(a_size_in_bytes, MTL::ResourceStorageModeManaged);
-	}
-
-	FORCE_INLINE constexpr uint8_t *map() noexcept
-	{
-		return static_cast<uint8_t *>(this->m_platform_buffer->contents());
-	}
-
-	FORCE_INLINE constexpr void unmap() noexcept
-	{
-		this->m_platform_buffer->didModifyRange(NS::Range::Make(0, this->m_platform_buffer->length()));        // Remember this is only valid for Managed mode, shared doesn't require this
-	}
-
-	FORCE_INLINE constexpr void unmap_partial(std::uintptr_t a_from, std::uintptr_t a_to) noexcept
-	{
-		this->m_platform_buffer->didModifyRange(NS::Range::Make(a_from, a_to));        // Remember this is only valid for Managed mode, shared doesn't require this
-	}
-
-	template <typename _type>
-	FORCE_INLINE constexpr void bind(_type *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept
-	{
-		// auto &shader_buffer = this->shader_buffer();
-		switch (a_shader_stage)
-		{
-			case rhi::ShaderType::vertex:
-				a_cmd_encoder->setVertexBuffer(this->m_platform_buffer, a_offset, a_index);
-				break;
-			case rhi::ShaderType::fragment:
-				a_cmd_encoder->setFragmentBuffer(this->m_platform_buffer, a_offset, a_index);
-				break;
-			case rhi::ShaderType::none:
-			case rhi::ShaderType::mesh:
-			case rhi::ShaderType::task:
-			case rhi::ShaderType::tile:
-			case rhi::ShaderType::compute:
-			case rhi::ShaderType::ray_miss:
-			case rhi::ShaderType::ray_any_hit:
-			case rhi::ShaderType::ray_closest_hit:
-			case rhi::ShaderType::ray_intersection:
-			case rhi::ShaderType::ray_generation:
-				ror::log_critical("Binding buffer to unsupported shader stage");
-				break;
-		}
-	}
 
   protected:
   private:
-	MTL::Buffer *m_platform_buffer{nullptr};
 };
 
-declare_rhi_render_type(ShaderBuffer);
+using ShaderBuffer = ShaderBufferMetal;
 
 }        // namespace rhi
 

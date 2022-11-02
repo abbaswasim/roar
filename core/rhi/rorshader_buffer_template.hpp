@@ -93,6 +93,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	struct Struct final : public Entry
 	{
 		uint32_t           m_alignment{16};        //! Alignment of the struct, it could be alignof(vec4) or something else
+		uint32_t           m_unit_size{0};         //! What is the size of one unit of this shader buffer, different from m_offset when there are arrays
 		std::vector<entry> m_entries{};            //! Data block of the struct entries
 
 		Struct(std::string a_name, uint32_t a_count);
@@ -111,24 +112,26 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	};
 
 	FORCE_INLINE ShaderBufferTemplate(const std::string &a_name, ShaderBufferType a_type = ShaderBufferType::ubo, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
-	    m_type(a_type), m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_entries(a_name, 1)
+	    m_type(a_type), m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_toplevel(a_name, 1)
 	{}
 
 	// clang-format off
-	FORCE_INLINE constexpr auto type()    const noexcept   {   return this->m_type;       }
-	FORCE_INLINE constexpr auto layout()  const noexcept   {   return this->m_layout;     }
-	FORCE_INLINE constexpr auto set()     const noexcept   {   return this->m_set;        }
-	FORCE_INLINE constexpr auto binding() const noexcept   {   return this->m_binding;    }
+	FORCE_INLINE constexpr auto type()         const noexcept   {   return this->m_type;                 }
+	FORCE_INLINE constexpr auto layout()       const noexcept   {   return this->m_layout;               }
+	FORCE_INLINE constexpr auto set()          const noexcept   {   return this->m_set;                  }
+	FORCE_INLINE constexpr auto binding()      const noexcept   {   return this->m_binding;              }
+	FORCE_INLINE constexpr auto size()         const noexcept   {   return this->m_toplevel.m_offset;    } // Offset of the struct is moved along for the next entry, which is also the size
+	FORCE_INLINE constexpr auto unit_size()    const noexcept   {   return this->m_toplevel.m_unit_size; }
 	// clang-format on
 
 	FORCE_INLINE constexpr void add_entry(const std::string &a_name, Format a_type, uint32_t a_count = 1)
 	{
-		this->m_entries.add_entry(a_name, a_type, this->m_layout, a_count);
+		this->m_toplevel.add_entry(a_name, a_type, this->m_layout, a_count);
 	}
 
 	FORCE_INLINE constexpr void add_struct(Struct &a_struct)
 	{
-		this->m_entries.add_struct(a_struct);
+		this->m_toplevel.add_struct(a_struct);
 	}
 
 	FORCE_INLINE std::string layout_string() const
@@ -146,7 +149,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	/**
 	 * Returns the string representation of this shader buffer template
 	 * Something like:
-	 * layout(std140, srt = 0, binding = 0) uniform ubo_name
+	 * layout(std140, set = 0, binding = 0) uniform ubo_name
 	 * {
 	 *     float  float_variable;
 	 *     uint   uint_variable;
@@ -177,7 +180,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	Layout           m_layout{Layout::std140};             //! Default layout
 	uint32_t         m_set{0};                             //! Which set does this buffer belongs in
 	uint32_t         m_binding{0};                         //! Which binding does this buffer belongs in
-	Struct           m_entries{};                          //! All the entries in the buffer, Raw entries in this struct or linked-list of structures
+	Struct           m_toplevel{};                         //! All the entries in the buffer, Raw entries in this struct or linked-list of structures
 };
 
 }        // namespace rhi

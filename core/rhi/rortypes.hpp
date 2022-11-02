@@ -298,7 +298,8 @@ enum class VertexFormat : uint32_t
 	int101111_norm,
 	uint101111_norm,
 
-	struct_1
+	struct_1,
+	struct_0
 };
 
 // Generic name when semantics are not clear
@@ -810,6 +811,7 @@ constexpr uint32_t vertex_format_to_bytes(VertexFormat a_vertex_format)
 	{
 		case VertexFormat::invalid:
 			return 0;
+		case VertexFormat::struct_0:
 		case VertexFormat::struct_1:
 			return 0;
 		case VertexFormat::int8_1:
@@ -926,6 +928,7 @@ constexpr uint32_t vertex_format_to_location(VertexFormat a_vertex_format)
 	{
 		case VertexFormat::invalid:
 			return 0;
+		case VertexFormat::struct_0:
 		case VertexFormat::struct_1:
 		case VertexFormat::bool32_1:
 		case VertexFormat::bool32_2:
@@ -1046,6 +1049,7 @@ constexpr auto vertex_format_to_glsl_type(rhi::VertexFormat a_format)
 	switch (a_format)
 	{
 		case rhi::VertexFormat::invalid:			return " ";
+		case rhi::VertexFormat::struct_0:			return " ";
 		case rhi::VertexFormat::struct_1:			return " ";
 		case rhi::VertexFormat::bool32_1:			return "bool";
 		case rhi::VertexFormat::bool32_2:			return "bvec2";
