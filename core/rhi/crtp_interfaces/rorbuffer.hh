@@ -121,14 +121,6 @@ uint32_t BufferCrtp<_type, _derived>::handle() noexcept
 }
 
 template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::map() noexcept
-{}
-
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::unmap() noexcept
-{}
-
-template <typename _type, typename _derived>
 void BufferCrtp<_type, _derived>::size(ptrdiff_t a_size) noexcept
 {
 	assert(a_size > 0 && "Buffer size must be positive");

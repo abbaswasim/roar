@@ -138,6 +138,18 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	FORCE_INLINE constexpr auto  to_glsl_string()           const                        { return this->m_shader_buffer_template.to_glsl_string();        }
 	// clang-format on
 
+	FORCE_INLINE constexpr auto stride(const std::string &a_name)
+	{
+		auto entry = this->m_variables[a_name];
+		assert(entry && "Entry is null");
+		return  entry->m_stride;
+	}
+
+	FORCE_INLINE constexpr auto stride()
+	{
+		return  this->m_shader_buffer_template.stride();
+	}
+
 	FORCE_INLINE constexpr void add_entry(const std::string &a_name, Format a_type, uint32_t a_count = 1)
 	{
 		this->m_shader_buffer_template.add_entry(a_name, a_type, a_count);

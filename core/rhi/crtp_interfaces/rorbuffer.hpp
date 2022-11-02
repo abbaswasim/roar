@@ -71,25 +71,19 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	FORCE_INLINE _derived constexpr const &underlying() const noexcept { return static_cast<_derived const &>(*this); }
 	// clang-format on
 
-	// TODO: Remove the following, no need for individual semantic size, turn semantic into uint64_t value instead of vector
 	using BufferSemanticPair    = std::pair<rhi::BufferSemantic, uint64_t>;
 	using BufferSemanticPairVec = std::vector<BufferSemanticPair>;
 
-	/**
-	 * Returns offset of the location available
-	 */
 	ptrdiff_t                    offset(ptrdiff_t a_bytes);                                             //! Returns offset of the location available
-	void                         copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset);        //! Also returns the offset where the data is copied
-	void                         copy(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset);          //! Also returns the offset where the data is copied
+	void                         copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset);        //! Copys contents a_size bytes from data into the buffer at a_offset
+	void                         copy(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset);          //! Copys contents from the whole of data into the buffer at a_offset
 	uint32_t                     handle() noexcept;
-	void                         map() noexcept;
-	void                         unmap() noexcept;
+	void                         ready(bool a_ready) noexcept;
+	bool                         ready() const noexcept;
 	void                         size(ptrdiff_t a_size) noexcept;
 	ptrdiff_t                    size() const noexcept;
 	ptrdiff_t                    filled_size() const noexcept;
 	void                         interleaved(bool a_interleaved) noexcept;
-	void                         ready(bool a_ready) noexcept;
-	bool                         ready() const noexcept;
 	bool                         interleaved() const noexcept;
 	void                         emplace_semantic(BufferSemanticPair &&a_pair);
 	BufferSemanticPair           semantic(size_t a_index) const noexcept;
@@ -110,8 +104,6 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	template <typename U = _type, std::enable_if_t<std::is_same<U, Static>::value, bool> = true>
 	ptrdiff_t _offset(ptrdiff_t a_bytes);        //! Returns offset of the location available
 
-	// uint8_t                    *m_mapped_address{nullptr};        //! Mapped address for write out and read in operations
-	// bool                        m_mapped{false};                  //! Whether the buffer has been mapped into CPU address space
 	ptrdiff_t                   m_filled_size{0};            //! How much of the buffer is filled, this should be aligned, also this needs synchronising
 	ptrdiff_t                   m_size_in_bytes{0};          //! This is the total size in bytes
 	BufferSemanticPairVec       m_semantics{};               //! Pair of semantic and size required
