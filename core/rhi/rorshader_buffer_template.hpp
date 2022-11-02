@@ -68,7 +68,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		std::string m_name{};                         //! Name of the variable in the Buffer Object
 		Format      m_type{Format::float32_4};        //! Data type of the variable in the Buffer Object
 		uint32_t    m_count{1};                       //! How many of this Entries are there, a way to define arrays
-		uint32_t    m_stride{0};                      //! Gape between elements if its an array, otherwise undefined (equal to size but can't be trusted)
+		uint32_t    m_stride{0};                      //! Gape between elements if its an array, otherwise equal to size
 		uint32_t    m_offset{0};                      //! Where in the buffer would this entry be, offset from start of the ShaderBuffer
 		uint32_t    m_size{0};                        //! Whats the size of this entry in machine units
 
@@ -93,7 +93,6 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	struct Struct final : public Entry
 	{
 		uint32_t           m_alignment{16};        //! Alignment of the struct, it could be alignof(vec4) or something else
-		uint32_t           m_unit_size{0};         //! What is the size of one unit of this shader buffer, different from m_offset when there are arrays
 		std::vector<entry> m_entries{};            //! Data block of the struct entries
 
 		Struct(std::string a_name, uint32_t a_count);
@@ -121,7 +120,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	FORCE_INLINE constexpr auto set()          const noexcept   {   return this->m_set;                  }
 	FORCE_INLINE constexpr auto binding()      const noexcept   {   return this->m_binding;              }
 	FORCE_INLINE constexpr auto size()         const noexcept   {   return this->m_toplevel.m_offset;    } // Offset of the struct is moved along for the next entry, which is also the size
-	FORCE_INLINE constexpr auto unit_size()    const noexcept   {   return this->m_toplevel.m_unit_size; }
+	FORCE_INLINE constexpr auto stride()       const noexcept   {   return this->m_toplevel.m_stride;    }
 	// clang-format on
 
 	FORCE_INLINE constexpr void add_entry(const std::string &a_name, Format a_type, uint32_t a_count = 1)

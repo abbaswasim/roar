@@ -17,6 +17,7 @@
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
 #include <atomic>
+#include <cassert>
 #include <cstdint>
 #include <filesystem>
 #include <gtest/gtest-death-test.h>

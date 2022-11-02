@@ -44,7 +44,7 @@ void example0_test(rhi::Layout a_layout)
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
 
-	EXPECT_EQ(sb.unit_size(), 176);
+	EXPECT_EQ(sb.stride(), 176);
 
 	rhi::ShaderBufferMetal sbm{"Example0", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
 	                           "a", rhi::VertexFormat::float32_1, 1u,
@@ -166,7 +166,7 @@ void example1_test(rhi::Layout a_layout)
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
 
-	EXPECT_EQ(sb.unit_size(), 160);
+	EXPECT_EQ(sb.stride(), 160);
 
 	rhi::ShaderBufferMetal sbm{"Example1", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
 	                           "a", rhi::VertexFormat::float32_1, 1u,
@@ -288,7 +288,7 @@ TEST(ShaderBuffer, std140_example2_test)
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
 
-	EXPECT_EQ(sb.unit_size(), 240);
+	EXPECT_EQ(sb.stride(), 240);
 
 	rhi::ShaderBufferMetal sbm{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
 	                           "a", rhi::VertexFormat::float32_1, 1u,
@@ -519,13 +519,13 @@ TEST(ShaderBuffer, std140_example4_test)
 	    {"f", {32, 16, 12, rhi::Format::struct_1}},
 	    {"g", {48, 4, 4, rhi::Format::float32_1}},
 	    {"h", {64, 16, 4, rhi::Format::float32_1}},
-	    {"i", {96, 32, 32, rhi::Format::float32_2x3}},
+	    {"i", {96, 32, 24, rhi::Format::float32_2x3}},
 	    {"j", {128, 12, 12, rhi::Format::uint32_3}},
 	    {"k", {144, 8, 8, rhi::Format::float32_2}},
 	    {"l", {160, 16, 4, rhi::Format::float32_1}},
 	    {"m", {192, 8, 8, rhi::Format::float32_2}},
-	    {"n", {208, 48, 48, rhi::Format::float32_3x3}},
-	    {"o", {128, 176, 352, rhi::Format::struct_1}}};
+	    {"n", {208, 48, 36, rhi::Format::float32_3x3}},
+	    {"o", {128, 176, 108, rhi::Format::struct_1}}};
 
 	auto entries = sb.entries_structs();
 
@@ -593,7 +593,7 @@ TEST(ShaderBuffer, std140_example4_test)
 	//	} o[2];
 	// };
 
-	EXPECT_EQ(sb.unit_size(), 480);
+	EXPECT_EQ(sb.stride(), 480);
 
 	auto output0 = sbm.to_glsl_string();
 	auto output  = sb.to_glsl_string();
@@ -650,14 +650,16 @@ TEST(ShaderBuffer, std140_example4_struct_o_test)
 	    {"k", {16, 8, 8, rhi::Format::float32_2}},
 	    {"l", {32, 16, 4, rhi::Format::float32_1}},
 	    {"m", {64, 8, 8, rhi::Format::float32_2}},
-	    {"n", {80, 48, 48, rhi::Format::float32_3x3}},
-	    {"o", {0, 176, 352, rhi::Format::struct_1}}};
+	    {"n", {80, 48, 36, rhi::Format::float32_3x3}},
+	    {"o", {0, 176, 108, rhi::Format::struct_1}}};
+
+	EXPECT_EQ(sb.stride(), 176);
 
 	auto entries = sb.entries_structs();
 
 	for (auto &e : entries)
 	{
-		std::cout << ", " << e->m_name << "=" << e->m_offset;
+		// std::cout << ", " << e->m_name << "=" << e->m_offset;
 		EXPECT_EQ(std::get<0>(var_values[e->m_name]), e->m_offset);
 		EXPECT_EQ(std::get<1>(var_values[e->m_name]), e->m_stride);
 		EXPECT_EQ(std::get<2>(var_values[e->m_name]), e->m_size);
@@ -713,7 +715,9 @@ TEST(ShaderBuffer, std140_example4_struct_o_open_test)
 	    {"k", {16, 8, 8, rhi::Format::float32_2}},
 	    {"l", {32, 16, 4, rhi::Format::float32_1}},
 	    {"m", {64, 8, 8, rhi::Format::float32_2}},
-	    {"n", {80, 48, 48, rhi::Format::float32_3x3}}};
+	    {"n", {80, 48, 36, rhi::Format::float32_3x3}}};
+
+	EXPECT_EQ(sb.stride(), 176);
 
 	auto entries = sb.entries_structs();
 
@@ -742,20 +746,25 @@ TEST(ShaderBuffer, std140_example4_struct_o_open_test)
 
 // TODO: Create std430 equvivalent of the following 3 tests
 void add_bool_entries(rhi::ShaderBufferTemplate &sb)
-{
-	sb.add_entry("a", rhi::Format::bool32_1, 1);
-	sb.add_entry("b", rhi::Format::bool32_1, 1);
-	sb.add_entry("c", rhi::Format::bool32_1, 1);
-	sb.add_entry("d", rhi::Format::bool32_1, 1);
-	sb.add_entry("e", rhi::Format::bool32_1, 1);
-	sb.add_entry("g", rhi::Format::bool32_1, 2);
-	sb.add_entry("h", rhi::Format::bool32_1, 1);
-	sb.add_entry("i", rhi::Format::bool32_1, 2);
-	sb.add_entry("j", rhi::Format::bool32_1, 1);
-	sb.add_entry("k", rhi::Format::bool32_1, 1);
-	sb.add_entry("l", rhi::Format::bool32_1, 2);
-	sb.add_entry("m", rhi::Format::bool32_1, 1);
-	sb.add_entry("n", rhi::Format::bool32_1, 1);
+{                                                // std140                 std430
+	sb.add_entry("a", rhi::Format::bool32_1, 1); // 0-3                     0-3
+	sb.add_entry("b", rhi::Format::bool32_1, 1); // 4-7                     4-7
+	sb.add_entry("c", rhi::Format::bool32_1, 1); // 8-11                    8-11
+	sb.add_entry("d", rhi::Format::bool32_1, 1); // 12-15                   12-15
+	sb.add_entry("e", rhi::Format::bool32_1, 1); // 16-19                   16-19
+	sb.add_entry("g", rhi::Format::bool32_1, 2); // 32-35, 48-51            20-23, 24-27
+	sb.add_entry("h", rhi::Format::bool32_1, 1); // 64-67                   28-31
+	sb.add_entry("i", rhi::Format::bool32_1, 2); // 80-83, 96-99            32-25, 36-39
+	sb.add_entry("j", rhi::Format::bool32_1, 1); // 112-115                 40-43
+	sb.add_entry("k", rhi::Format::bool32_1, 1); // 116-119                 44-47
+	sb.add_entry("l", rhi::Format::bool32_1, 2); // 128-131, 144-147        48-51, 52-55
+	sb.add_entry("m", rhi::Format::bool32_1, 1); // 160-163                 56-59
+	sb.add_entry("n", rhi::Format::bool32_1, 1); // 167, 168                60-64
+
+	if (sb.layout() == rhi::Layout::std140)
+		EXPECT_EQ(sb.stride(), 168);
+	else
+		EXPECT_EQ(sb.stride(), 64);
 }
 
 TEST(ShaderBuffer, bool_test_std140)
@@ -821,6 +830,11 @@ void add_double_entries(rhi::ShaderBufferTemplate &sb)
 	sb.add_entry("l", rhi::Format::float64_1, 2);
 	sb.add_entry("m", rhi::Format::float64_1, 1);
 	sb.add_entry("n", rhi::Format::float64_1, 1);
+
+	if (sb.layout() == rhi::Layout::std140)
+		EXPECT_EQ(sb.stride(), 192);
+	else
+		EXPECT_EQ(sb.stride(), 128);
 }
 
 TEST(ShaderBuffer, double_test_std140)
@@ -886,6 +900,11 @@ void add_double_vec_entries(rhi::ShaderBufferTemplate &sb)
 	sb.add_entry("l", rhi::Format::float64_1, 2);
 	sb.add_entry("m", rhi::Format::float64_3, 1);
 	sb.add_entry("n", rhi::Format::float64_1, 1);
+
+	if (sb.layout() == rhi::Layout::std140)
+		EXPECT_EQ(sb.stride(), 288);
+	else
+		EXPECT_EQ(sb.stride(), 256);
 }
 
 TEST(ShaderBuffer, double_vec_test_std140)
@@ -970,6 +989,7 @@ TEST(ShaderBuffer, std430_ssbo_example2_test)
 	    {"m", {152, 8, rhi::Format::float32_2}},
 	    {"n", {160, 48, rhi::Format::float32_3x3}}};
 
+	EXPECT_EQ(sb.stride(), 208);
 	test_entries(sb, var_values);
 }
 
@@ -1007,6 +1027,7 @@ TEST(ShaderBuffer, std430_ssbo_example3_test)
 	    {"m", {56, 4, rhi::Format::float32_1}},
 	    {"n", {64, 4, rhi::Format::float32_1}}};
 
+	EXPECT_EQ(sb.stride(), 68);
 	test_entries(sb, var_values);
 }
 
@@ -1044,6 +1065,7 @@ TEST(ShaderBuffer, std430_ssbo_example4_test)
 	    {"m", {192, 16, rhi::Format::float32_3}},
 	    {"n", {224, 12, rhi::Format::float32_3}}};
 
+	EXPECT_EQ(sb.stride(), 236);
 	test_entries(sb, var_values);
 }
 
@@ -1081,6 +1103,7 @@ TEST(ShaderBuffer, std430_ssbo_example5_test)
 	    {"m", {384, 16, rhi::Format::float32_3}},
 	    {"n", {416, 16, rhi::Format::float32_3}}};
 
+	EXPECT_EQ(sb.stride(), 448);
 	test_entries(sb, var_values);
 }
 
@@ -1118,6 +1141,7 @@ TEST(ShaderBuffer, std430_ssbo_example6_test)
 	    {"m", {448, 32, rhi::Format::float32_2x3}},
 	    {"n", {480, 32, rhi::Format::float32_2x3}}};
 
+	EXPECT_EQ(sb.stride(), 512);
 	test_entries(sb, var_values);
 }
 
@@ -1155,6 +1179,7 @@ TEST(ShaderBuffer, std430_ssbo_example7_test)
 	    {"m", {432, 32, rhi::Format::float32_2x3}},
 	    {"n", {464, 32, rhi::Format::float32_2x3}}};
 
+	EXPECT_EQ(sb.stride(), 496);
 	test_entries(sb, var_values);
 }
 
@@ -1192,6 +1217,7 @@ TEST(ShaderBuffer, std430_ssbo_example8_test)
 	    {"m", {336, 24, rhi::Format::float32_3x2}},
 	    {"n", {360, 24, rhi::Format::float32_3x2}}};
 
+	EXPECT_EQ(sb.stride(), 384);
 	test_entries(sb, var_values);
 }
 
@@ -1227,6 +1253,7 @@ void test_double_matrix_entries(rhi::ShaderBufferTemplate &sb)
 	    {"m", {448, 32, rhi::Format::float64_2x2}},
 	    {"n", {480, 32, rhi::Format::float64_2x2}}};
 
+	EXPECT_EQ(sb.stride(), 512);
 	test_entries(sb, var_values);
 }
 
@@ -1445,23 +1472,23 @@ TEST(ShaderBuffer, std140_joint_transforms_test)
 	{
 		rhi::ShaderBufferTemplate sb{"joints", rhi::ShaderBufferType::ubo, rhi::Layout::std140};
 		sb.add_entry("rotation", rhi::Format::float32_4, 1);
-		EXPECT_EQ(sb.unit_size(), 16);
+		EXPECT_EQ(sb.stride(), 16);
 	}
 	{
 		rhi::ShaderBufferTemplate sb{"joints", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
-		sb.add_entry("rotation", rhi::Format::float32_4, 1);
-		EXPECT_EQ(sb.unit_size(), 16);
+		sb.add_entry("rotation", rhi::Format::float32_3, 1);
+		EXPECT_EQ(sb.stride(), 12);
 	}
 	{
 		rhi::ShaderBufferTemplate sb{"joints", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0};
 		sb.add_entry("rotation", rhi::Format::float32_3, 30);
-		EXPECT_EQ(sb.unit_size(), 16);
+		EXPECT_EQ(sb.stride(), 16);
 	}
 	{
 		rhi::ShaderBufferTemplate sb{"joints", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0};
 		sb.add_entry("rotation", rhi::Format::float32_3, 3);
 		sb.add_entry("translation", rhi::Format::float32_3, 3);
-		EXPECT_EQ(sb.unit_size(), 96);
+		EXPECT_EQ(sb.stride(), 96);
 	}
 }
 

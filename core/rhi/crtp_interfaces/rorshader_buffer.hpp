@@ -149,15 +149,15 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	}
 
 	template <typename _data_type>
-	FORCE_INLINE constexpr void update(const std::string &a_variable, const _data_type &a_value, uint32_t a_index)
+	FORCE_INLINE constexpr void update(const std::string &a_variable, const _data_type &a_value, uint32_t a_index, uint32_t a_stride)
 	{
-		this->update(a_variable, reinterpret_cast<const uint8_t *>(&a_value), a_index);
+		this->update(a_variable, reinterpret_cast<const uint8_t *>(&a_value), a_index, a_stride);
 	}
 
-	FORCE_INLINE constexpr void update(const std::string &a_variable, const uint8_t *a_value, uint32_t a_index)
+	FORCE_INLINE constexpr void update(const std::string &a_variable, const uint8_t *a_value, uint32_t a_index, uint32_t a_stride)
 	{
 		auto entry = this->m_variables[a_variable];
-		this->buffer_copy(a_value, entry->m_size, (this->m_shader_buffer_template.unit_size() * a_index) + entry->m_offset);
+		this->buffer_copy(a_value, entry->m_size, (a_stride * a_index) + entry->m_offset);
 	}
 
 	template <typename _data_type>
@@ -168,11 +168,11 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 
 	FORCE_INLINE constexpr void update(const std::string &a_variable, const uint8_t *a_value)
 	{
-		auto entry   = this->m_variables[a_variable];
+		auto entry = this->m_variables[a_variable];
 		this->buffer_copy(a_value, entry->m_size, entry->m_offset);
 	}
 
-	// TODO: Remove me later 
+	// TODO: Remove me later
 	FORCE_INLINE constexpr void update_by_entry_explicitly()
 	{
 		auto        mapping  = this->buffer_map();

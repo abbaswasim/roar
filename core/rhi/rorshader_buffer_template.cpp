@@ -26,7 +26,6 @@
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
-#include <cctype>
 #include <string>
 
 namespace rhi
@@ -160,8 +159,7 @@ constexpr bool is_matrix_type(Format a_type)
 		return false;
 }
 
-// A bit of a hack but glsl aligns some matrix dimensions to vec4
-// This fixes those from the C++ size of matrices
+// glsl aligns some matrix dimensions to vec4
 constexpr uint32_t glsl_size(Format a_type)
 {
 	auto size = rhi::vertex_format_to_bytes(a_type);
@@ -182,7 +180,7 @@ constexpr uint32_t glsl_size(Format a_type)
 		return size;
 }
 
-// A bit of a hack but glsl aligns vec3 to vec4 in arrays
+// glsl aligns vec3 to vec4 in arrays
 constexpr uint32_t glsl_size_vec3_correction(Format a_type, uint32_t a_size)
 {
 	if (a_type == Format::float32_3 ||
@@ -204,28 +202,27 @@ void ShaderBufferTemplate::Struct::add_entry(const std::string &a_name, Format a
 {
 	const uint32_t base_alignment = format_base_alignment(a_type);
 	const uint32_t aligned_offset = ror::align(this->m_offset, (a_count != 1 && a_layout == Layout::std140 ? 16 : base_alignment));        // a_count != 1 means either 0, unbounded array or > 1 a sized array
-	const uint32_t size           = glsl_size(a_type);
-	const uint32_t size_in_array  = glsl_size_vec3_correction(a_type, size);
-	const uint32_t stride         = (a_count != 1 ? (a_layout == Layout::std140 ? std::max(16u, size_in_array) : size_in_array) : size);
+	const uint32_t size           = rhi::vertex_format_to_bytes(a_type);
+	const uint32_t gl_size        = glsl_size(a_type);
+	const uint32_t size_in_array  = glsl_size_vec3_correction(a_type, gl_size);
+	const uint32_t stride         = (a_count != 1 ? (a_layout == Layout::std140 ? std::max(16u, size_in_array) : size_in_array) : gl_size);
 
 	this->m_entries.emplace_back(std::in_place_type<Entry>, a_name, a_type, a_count, stride, aligned_offset, size);
 
 	// Now lets calculate next entry offset
 	this->m_offset = aligned_offset + (stride * std::max(a_count, 1u));
 
-	// Update struct alignment
-	this->m_alignment = ror::align(std::max(this->m_alignment, size), base_alignment);
+	// Update struct alignment, will be required when adding the struct, if we are in a struct
+	this->m_alignment = ror::align16(std::max(this->m_alignment, base_alignment));
 
 	// Next item after array alignment or matrix needs to be aligned to base_alignment, valid for std140 and std430
 	if (a_count != 1 || (is_matrix_type(a_type) && a_layout == Layout::std140))
 		this->m_offset = ror::align(this->m_offset, base_alignment);
 
-	if (this->m_unit_size == 0)
-		this->m_unit_size = stride;
+	if (this->m_stride == 0)
+		this->m_stride = stride;
 	else
-		this->m_unit_size = this->m_offset;
-
-	// std::cout << "add_entry(): Unit size = " << m_unit_size << std::endl;
+		this->m_stride = this->m_offset;
 }
 
 void ShaderBufferTemplate::Struct::add_struct(Struct a_struct)
@@ -238,23 +235,24 @@ void ShaderBufferTemplate::Struct::add_struct(Struct a_struct)
 	for (auto &e : a_struct.m_entries)
 	{
 		if (Entry *pentry = std::get_if<Entry>(&e))
+		{
 			pentry->m_offset += this->m_offset;
+			a_struct.m_size += pentry->m_size * std::max(pentry->m_count, 1u);
+		}
 	}
 
-	const auto struct_stride = ror::align16(a_struct.m_offset);
+	const auto struct_stride = ror::align(a_struct.m_offset, a_struct.m_alignment);
 	a_struct.m_stride        = struct_stride;
-
-	this->m_offset    = ror::align16(this->m_offset + struct_stride * std::max(a_struct.m_count, 1u));
-	a_struct.m_size   = this->m_offset;
-	a_struct.m_offset = struct_offset;
+	a_struct.m_offset        = struct_offset;
 
 	this->m_entries.emplace_back(a_struct);
 
-	this->m_unit_size = ror::align16((struct_stride * std::max(a_struct.m_count, 1u)) + struct_offset);
-	// std::cout << "add_struct(): Unit size = " << m_unit_size << std::endl;
+	this->m_offset    = ror::align16(this->m_offset + struct_stride * std::max(a_struct.m_count, 1u));
 
-	// this->m_unit_size =  a_struct.m_unit_size * std::max(a_struct.m_count, 1u);
-	// this->m_unit_size = this->m_offset;
+	if (this->m_stride == 0)
+		this->m_stride = struct_stride;
+	else
+		this->m_stride = this->m_offset;
 }
 
 std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries()
