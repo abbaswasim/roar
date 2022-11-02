@@ -29,6 +29,7 @@
 #include "rhi/crtp_interfaces/rorbuffer.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include <Metal/MTLBuffer.hpp>
+#include <Metal/MTLRenderCommandEncoder.hpp>
 
 namespace rhi
 {
@@ -46,12 +47,18 @@ class ROAR_ENGINE_ITEM BufferMetal : public BufferCrtp<BufferMetal<_type>, _type
 	FORCE_INLINE BufferMetal &operator=(BufferMetal &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~BufferMetal() noexcept override                 = default;        //! Destructor
 
-	void release();
-	void upload(rhi::Device &a_device);
-	void partial_upload(rhi::Device &a_device, size_t a_offset, size_t a_length);
+	FORCE_INLINE void           release();
+	FORCE_INLINE void           upload(rhi::Device &a_device);
+	FORCE_INLINE void           reupload();
+	FORCE_INLINE void           partial_upload(size_t a_offset, size_t a_length);
+	FORCE_INLINE void           init(rhi::Device &a_device, size_t a_size_in_bytes);
+	FORCE_INLINE constexpr auto map() noexcept;
+	FORCE_INLINE constexpr void unmap() noexcept;
+	FORCE_INLINE constexpr void unmap_partial(std::uintptr_t a_from, std::uintptr_t a_to) noexcept;
+	FORCE_INLINE constexpr void bind(MTL::RenderCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept;
 
 	// clang-format off
-	FORCE_INLINE constexpr auto* platform_buffer()  noexcept { return this->m_buffer; }
+	FORCE_INLINE constexpr auto platform_buffer()  noexcept { return this->m_buffer; }
 	// clang-format on
 
   protected:

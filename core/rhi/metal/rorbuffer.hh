@@ -86,7 +86,7 @@ FORCE_INLINE void BufferMetal<_type>::init(rhi::Device &a_device, size_t a_size_
 }
 
 template <typename _type>
-FORCE_INLINE constexpr uint8_t *BufferMetal<_type>::map() noexcept
+FORCE_INLINE constexpr auto BufferMetal<_type>::map() noexcept
 {
 	return static_cast<uint8_t *>(this->platform_buffer()->contents());
 }
