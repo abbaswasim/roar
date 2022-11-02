@@ -125,29 +125,20 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	{}
 
 	// clang-format off
-	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset) noexcept //! Copys contents a_size bytes from data into the buffer at a_offset
-                                                                                         { this->underlying().buffer_copy(a_data, a_size, a_offset);      }
-	FORCE_INLINE           void  buffer_init(rhi::Device& a_device, uint32_t a_size)     { this->underlying().buffer_init(a_device, a_size);              }
-	FORCE_INLINE           void  buffer_update()                                         { this->underlying().buffer_update();                            }
-	FORCE_INLINE           void  buffer_resize()                                         { this->buffer_resize(this->m_shader_buffer_template.size());    }
-	FORCE_INLINE           void  buffer_resize(ptrdiff_t a_size)                         { this->underlying().buffer_resize(a_size);                      }
-	FORCE_INLINE           void  buffer_unmap()                                          { this->underlying().buffer_unmap();                             }
-	FORCE_INLINE auto            buffer_map()                                            { return this->underlying().buffer_map();                        }
-	FORCE_INLINE auto           &buffer_data()                    noexcept               { return this->underlying().buffer_data();                       }
-	FORCE_INLINE constexpr auto &shader_buffer()                  noexcept               { return this->m_shader_buffer_template;                         }
-	FORCE_INLINE constexpr auto  to_glsl_string()           const                        { return this->m_shader_buffer_template.to_glsl_string();        }
+	FORCE_INLINE constexpr auto &shader_buffer()          noexcept  { return this->m_shader_buffer_template;                         }
+	FORCE_INLINE constexpr auto  to_glsl_string()   const           { return this->m_shader_buffer_template.to_glsl_string();        }
 	// clang-format on
 
 	FORCE_INLINE constexpr auto stride(const std::string &a_name)
 	{
 		auto entry = this->m_variables[a_name];
 		assert(entry && "Entry is null");
-		return  entry->m_stride;
+		return entry->m_stride;
 	}
 
 	FORCE_INLINE constexpr auto stride()
 	{
-		return  this->m_shader_buffer_template.stride();
+		return this->m_shader_buffer_template.stride();
 	}
 
 	FORCE_INLINE constexpr void add_entry(const std::string &a_name, Format a_type, uint32_t a_count = 1)
@@ -173,9 +164,9 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	}
 
 	template <typename _data_type>
-	FORCE_INLINE constexpr void update(const std::string &a_variable, const _data_type &a_value)
+	FORCE_INLINE constexpr void update(const std::string &a_variable, const _data_type *a_value)
 	{
-		this->update(a_variable, reinterpret_cast<const uint8_t *>(&a_value));
+		this->update(a_variable, reinterpret_cast<const uint8_t *>(a_value));
 	}
 
 	FORCE_INLINE constexpr void update(const std::string &a_variable, const uint8_t *a_value)
@@ -184,29 +175,29 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 		this->buffer_copy(a_value, entry->m_size, entry->m_offset);
 	}
 
-	// TODO: Remove me later
-	FORCE_INLINE constexpr void update_by_entry_explicitly()
-	{
-		auto        mapping  = this->buffer_map();
-		const auto *data_ptr = this->buffer_data().data();
-
-		for (auto &[key, entry] : this->m_variables)
-			std::memcpy(mapping + entry->m_offset, data_ptr + entry->m_offset, entry->m_size);
-
-		this->buffer_unmap();
-	}
-
 	void shader_buffer_upload(rhi::Device &a_device)
 	{
-		this->buffer_resize();
+		this->buffer_allocate();
 		this->update_variables();
-		this->buffer_init(a_device, ror::static_cast_safe<uint32_t>(this->m_shader_buffer_template.size()));
+		this->buffer_init(a_device, ror::static_cast_safe<uint32_t>(ror::align16(this->m_shader_buffer_template.size())));        // Alignment on size is Metal requirement but won't hurt in Vulkan either
 		this->buffer_update();
 	}
 
   protected:
 	FORCE_INLINE ShaderBufferCrtp() = default;        //! Default constructor
   private:
+	// clang-format off
+	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset) noexcept //! Copys contents a_size bytes from data into the buffer at a_offset
+                                                                                         { this->underlying().buffer_copy(a_data, a_size, a_offset);      }
+	FORCE_INLINE           void  buffer_init(rhi::Device& a_device, uint32_t a_size)     { this->underlying().buffer_init(a_device, a_size);              }
+	FORCE_INLINE           void  buffer_update()                                         { this->underlying().buffer_update();                            }
+	FORCE_INLINE           void  buffer_allocate()                                       { this->buffer_allocate(this->m_shader_buffer_template.size());  }
+	FORCE_INLINE           void  buffer_allocate(ptrdiff_t a_size)                       { this->underlying().buffer_allocate(a_size);                    }
+	FORCE_INLINE           void  buffer_unmap()                                          { this->underlying().buffer_unmap();                             }
+	FORCE_INLINE auto            buffer_map()                                            { return this->underlying().buffer_map();                        }
+	FORCE_INLINE auto           &buffer_data()                                 noexcept  { return this->underlying().buffer_data();                       }
+	// clang-format on
+
 	FORCE_INLINE Entry get_entry(const entry_variant_vector &a_data, size_t &a_index, bool &a_in_struct)
 	{
 		Entry e;

@@ -53,16 +53,16 @@ class ROAR_ENGINE_ITEM Skin
 
 	void update()
 	{
-		auto mapping = this->m_joint_transform_shader_buffer.map();
+		auto stride = this->m_joint_transform_shader_buffer.stride("joint_transforms");
 		for (size_t joint_id = 0; joint_id < this->m_joint_transforms.size(); ++joint_id)
 		{
-			auto &xform         = this->m_joint_transforms[joint_id];
-			auto  joint_mapping = mapping + (joint_id * this->m_joint_trasform_stride);
-			std::memcpy(joint_mapping + m_translation_offset, &xform.m_translation.x, sizeof(Vector3f));
-			std::memcpy(joint_mapping + m_rotation_offset, &xform.m_rotation.x, sizeof(Quaternionf));
-			std::memcpy(joint_mapping + m_scale_offset, &xform.m_scale.x, sizeof(Vector3f));
+			auto &xform = this->m_joint_transforms[joint_id];
+			this->m_joint_transform_shader_buffer.update("rotation", &xform.m_rotation.x, static_cast<uint32_t>(joint_id), stride);
+			this->m_joint_transform_shader_buffer.update("translation", &xform.m_translation.x, static_cast<uint32_t>(joint_id), stride);
+			this->m_joint_transform_shader_buffer.update("scale", &xform.m_scale.x, static_cast<uint32_t>(joint_id), stride);
 		}
-		this->m_joint_transform_shader_buffer.unmap();
+
+		this->m_joint_transform_shader_buffer.buffer_update();
 	}
 
 	void upload(rhi::Device &a_device)
@@ -86,23 +86,9 @@ class ROAR_ENGINE_ITEM Skin
 		trs_transform.add_entry("translation", rhi::Format::float32_3, rhi::Layout::std140, 1);
 		trs_transform.add_entry("scale", rhi::Format::float32_3, rhi::Layout::std140, 1);
 
-		auto &shader_buffer = this->m_joint_transform_shader_buffer.shader_buffer();
-		shader_buffer.add_struct(trs_transform);
+		this->m_joint_transform_shader_buffer.add_struct(trs_transform);
 
-		this->m_joint_transform_shader_buffer.init(a_device, sizeof(Vector4f) * 3 * static_cast_safe<uint32_t>(this->joints_count()));
-
-		auto entries = shader_buffer.entries_structs();
-		for (auto entry : entries)
-		{
-			if (entry->m_name == "joint_transforms")
-				this->m_joint_trasform_stride = entry->m_stride;
-			else if (entry->m_name == "translation")
-				this->m_translation_offset = entry->m_offset;
-			else if (entry->m_name == "rotation")
-				this->m_rotation_offset = entry->m_offset;
-			else if (entry->m_name == "scale")
-				this->m_scale_offset = entry->m_offset;
-		}
+		this->m_joint_transform_shader_buffer.shader_buffer_upload(a_device);
 
 		this->update();
 	}
@@ -110,13 +96,9 @@ class ROAR_ENGINE_ITEM Skin
 	std::vector<uint32_t, rhi::BufferAllocator<uint32_t>>     m_joints{};                               //! All the joints in this skeleton
 	std::vector<Matrix4f, rhi::BufferAllocator<Matrix4f>>     m_inverse_bind_matrices{};                //! Inverse bind matrices for each joint in an array
 	std::vector<Transformf, rhi::BufferAllocator<Transformf>> m_joint_transforms{};                     //! Scratch space for array of calculated transforms every frame
-	rhi::ShaderBuffer                                         m_joint_transform_shader_buffer{};        //! ShaderBuffers for joint_transforms within the skinning shader
 	int32_t                                                   m_root{-1};                               //! Node index of each skin, should be init with -1
 	int32_t                                                   m_node_index{-1};                         //! Node index as well where the each skin is attached, should be init with -1
-	uint32_t                                                  m_translation_offset{0};                  //! Offset of translation in the UBO
-	uint32_t                                                  m_rotation_offset{0};                     //! Offset of rotation in the UBO
-	uint32_t                                                  m_scale_offset{0};                        //! Offset of scale in the UBO
-	uint32_t                                                  m_joint_trasform_stride{0};               //! Offset of scale in the UBO
+	rhi::ShaderBuffer                                         m_joint_transform_shader_buffer{};        //! ShaderBuffers for joint_transforms within the skinning shader
 };
 
 }        // namespace ror

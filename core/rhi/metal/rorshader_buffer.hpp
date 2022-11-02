@@ -58,26 +58,16 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public Buf
 	    ShaderBufferCrtp(a_buffer_name, a_type, a_layout, a_set, a_binding)
 	{}
 
-	// FORCE_INLINE constexpr void add_entry(const std::string &a_name, Format a_type, uint32_t a_count = 1)
-	// {
-	// 	ShaderBufferCrtp::add_entry(a_name, a_type, a_count);
-	// }
-
-	// FORCE_INLINE constexpr void add_struct(rhi::ShaderBufferTemplate::Struct &a_struct)
-	// {
-	// 	ShaderBufferCrtp::add_struct(a_struct);
-	// }
-
 	declare_translation_unit_vtable() override;
 
 	// clang-format off
-	FORCE_INLINE constexpr void  buffer_resize(ptrdiff_t a_size)                                                 { this->size(a_size);                   }
-	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept { this->unmap();                        }
-	FORCE_INLINE constexpr auto  buffer_map()                                                           noexcept { return this->map();                   }
-	FORCE_INLINE constexpr auto &buffer_data()                                                          noexcept { return this->data();                  }
-	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size)                             { this->init(a_device, a_size);         }
-	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset)  noexcept { this->copy(a_data, a_size, a_offset); }
-	FORCE_INLINE constexpr void  buffer_update()                                                        noexcept { this->reupload();                     }
+	FORCE_INLINE constexpr void  buffer_allocate(ptrdiff_t a_size)                                               { this->size(a_size); this->offset(a_size);  }
+	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept { this->unmap();                             }
+	FORCE_INLINE constexpr auto  buffer_map()                                                           noexcept { return this->map();                        }
+	FORCE_INLINE constexpr auto &buffer_data()                                                          noexcept { return this->data();                       }
+	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size)                             { this->init(a_device, a_size);              }
+	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset)  noexcept { this->copy(a_data, a_size, a_offset);      }
+	FORCE_INLINE constexpr void  buffer_update()                                                        noexcept { this->reupload();                          }
 	// clang-format on
 
   protected:

@@ -62,7 +62,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE              OrbitCamera(const OrbitCamera &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE              OrbitCamera(OrbitCamera &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE OrbitCamera &operator=(const OrbitCamera &a_other)       = delete;         //! Copy assignment operator
-	FORCE_INLINE OrbitCamera &operator=(OrbitCamera &&a_other) noexcept   = default;        //! Move assignment operator
+	FORCE_INLINE OrbitCamera &operator=(OrbitCamera &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~OrbitCamera() noexcept                                  = default;        //! Destructor
 
 	FORCE_INLINE void       set_bounds(uint32_t a_width, uint32_t a_height);
@@ -106,48 +106,39 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 
 	FORCE_INLINE void look_at();
 
-	Matrix4f                     m_model{};                                       //! Model matrix
-	Matrix4f                     m_view{};                                        //! View matrix
-	Matrix4f                     m_projection{};                                  //! Projection matrix
-	Matrix4f                     m_view_projection{};                             //! View projection matrix
-	Matrix4f                     m_model_view_projection{};                       //! Model view projection matrix
-	Matrix4f                     m_inverse_projection{};                          //! Inverse of Projection matrix
-	Matrix4f                     m_inverse_view_projection{};                     //! Inverse of View projection matrix
-	Matrix4f                     m_normal{};                                      //! Normal matrix
-	Vector3f                     m_to{0.0f, 0.0f, 0.0f};                          //! Looking to direction
-	Vector3f                     m_from{0.0f, 0.0f, -10.0f};                      //! From position
-	Vector3f                     m_up{0.0f, 1.0f, 0.0f};                          //! Up vector to orient itself
-	Vector3f                     m_minimum{0.0f, 0.0f, 0.0f};                     //! Minimum bound of the bounding volume that the camera will always make sure to see fully
-	Vector3f                     m_maximum{100.0f, 100.0f, 100.0f};               //! Maximum bound of the bounding volume that the camera will always make sure to see fully
-	float32_t                    m_bounding_sphere_radius{100.0f};                //! Could also describe volume as a sphere with a radius
-	double64_t                   m_camera_depth{25.0f};                           //! How far does the camera see
-	double64_t                   m_zooming_depth{0.0f};                           //! How far does the camera move
-	float32_t                    m_x_rotation{0.0f};                              //! Euler angle of rotation around x-axis
-	float32_t                    m_z_rotation{0.0f};                              //! Euler angle of rotation around z-axis
-	float32_t                    m_x_translation{0.0f};                           //! Translation in x-coordinates
-	float32_t                    m_y_translation{0.0f};                           //! Translation in y-coordinates
-	float32_t                    m_y_fov{60.0f};                                  //! Y-FOV of the camera
-	float32_t                    m_z_near{0.1f};                                  //! z-near of the camera
-	float32_t                    m_z_far{1000.0f};                                //! z-far of the camera
-	float32_t                    m_aspect_ratio{1.0f};                            //! Aspect ratio of the camera
-	uint32_t                     m_width{800};                                    //! Width of the rectangle it needs to fill
-	uint32_t                     m_height{600};                                   //! Height of the rectangle it needs to fill
-	CameraType                   m_type{CameraType::perspective};                 //! Default perspective camera
-	EventSystem                 *m_event_system{nullptr};                         //! A non-owning alias of the event system to not have to keep moving this around
-	std::function<void(Event &)> m_drag_callback{};                               //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
-	std::function<void(Event &)> m_resize_callback{};                             //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	std::function<void(Event &)> m_zoom_callback{};                               //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
-	std::function<void(Event &)> m_frambuffer_resize_callback{};                  //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	uint32_t                     m_mvp_mat4_offset{0};                            // Offset in UBO for m_model_view_projection
-	uint32_t                     m_model_mat4_offset{0};                          // Offset in UBO for m_model
-	uint32_t                     m_view_mat4_offset{0};                           // Offset in UBO for m_view
-	uint32_t                     m_projection_mat4_offset{0};                     // Offset in UBO for m_projection
-	uint32_t                     m_view_projection_mat4_offset{0};                // Offset in UBO for m_view_projection
-	uint32_t                     m_inverse_projection_mat4_offset{0};             // Offset in UBO for m_inverse_projection
-	uint32_t                     m_inverse_view_projection_mat4_offset{0};        // Offset in UBO for m_inverse_view_projection
-	uint32_t                     m_normal_mat4_offset{0};                         // Offset in UBO for m_normal
-	uint32_t                     m_camera_position_offset{0};                     // Offset in UBO for m_from
-	rhi::ShaderBuffer            m_shader_buffer{};                               //! Shader buffer for per_view_uniform UBO
+	Matrix4f                     m_model{};                                //! Model matrix
+	Matrix4f                     m_view{};                                 //! View matrix
+	Matrix4f                     m_projection{};                           //! Projection matrix
+	Matrix4f                     m_view_projection{};                      //! View projection matrix
+	Matrix4f                     m_model_view_projection{};                //! Model view projection matrix
+	Matrix4f                     m_inverse_projection{};                   //! Inverse of Projection matrix
+	Matrix4f                     m_inverse_view_projection{};              //! Inverse of View projection matrix
+	Matrix4f                     m_normal{};                               //! Normal matrix
+	Vector3f                     m_to{0.0f, 0.0f, 0.0f};                   //! Looking to direction
+	Vector3f                     m_from{0.0f, 0.0f, -10.0f};               //! From position
+	Vector3f                     m_up{0.0f, 1.0f, 0.0f};                   //! Up vector to orient itself
+	Vector3f                     m_minimum{0.0f, 0.0f, 0.0f};              //! Minimum bound of the bounding volume that the camera will always make sure to see fully
+	Vector3f                     m_maximum{100.0f, 100.0f, 100.0f};        //! Maximum bound of the bounding volume that the camera will always make sure to see fully
+	float32_t                    m_bounding_sphere_radius{100.0f};         //! Could also describe volume as a sphere with a radius
+	double64_t                   m_camera_depth{25.0f};                    //! How far does the camera see
+	double64_t                   m_zooming_depth{0.0f};                    //! How far does the camera move
+	float32_t                    m_x_rotation{0.0f};                       //! Euler angle of rotation around x-axis
+	float32_t                    m_z_rotation{0.0f};                       //! Euler angle of rotation around z-axis
+	float32_t                    m_x_translation{0.0f};                    //! Translation in x-coordinates
+	float32_t                    m_y_translation{0.0f};                    //! Translation in y-coordinates
+	float32_t                    m_y_fov{60.0f};                           //! Y-FOV of the camera
+	float32_t                    m_z_near{0.1f};                           //! z-near of the camera
+	float32_t                    m_z_far{1000.0f};                         //! z-far of the camera
+	float32_t                    m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
+	uint32_t                     m_width{800};                             //! Width of the rectangle it needs to fill
+	uint32_t                     m_height{600};                            //! Height of the rectangle it needs to fill
+	CameraType                   m_type{CameraType::perspective};          //! Default perspective camera
+	EventSystem                 *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around
+	std::function<void(Event &)> m_drag_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
+	std::function<void(Event &)> m_resize_callback{};                      //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	std::function<void(Event &)> m_zoom_callback{};                        //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
+	std::function<void(Event &)> m_frambuffer_resize_callback{};           //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	rhi::ShaderBuffer            m_shader_buffer{};                        //! Shader buffer for per_view_uniform UBO
 };
 }        // namespace ror
 

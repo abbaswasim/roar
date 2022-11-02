@@ -53,6 +53,9 @@ ptrdiff_t BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 	this->m_filled_size += a_bytes;
 	this->m_filled_size = static_cast<ptrdiff_t>(ror::align8(static_cast<uint64_t>(this->m_filled_size)));        // Aligning next offset for the most common denominator, other types are fine
 
+	if (this->m_filled_size > this->m_size_in_bytes)
+		this->m_filled_size = this->m_size_in_bytes;
+
 	return offset;
 }
 
@@ -76,6 +79,9 @@ ptrdiff_t BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 
 	this->m_filled_size += a_bytes;
 	this->m_filled_size = static_cast<ptrdiff_t>(ror::align8(static_cast<uint64_t>(this->m_filled_size)));        // Aligning next offset for the most common denominator, other types are fine
+
+	if (this->m_filled_size > this->m_size_in_bytes)
+		this->m_filled_size = this->m_size_in_bytes;
 
 	return offset;
 }

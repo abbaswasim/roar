@@ -26,6 +26,7 @@
 #include "camera/rorcamera.hpp"
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
+#include "math/rorvector3.hpp"
 
 namespace ror
 {
@@ -122,34 +123,31 @@ void OrbitCamera::disable()
 
 void OrbitCamera::fill_shader_buffer()
 {
-	auto &per_view_uniform = this->m_shader_buffer.shader_buffer();
-
-	per_view_uniform.add_entry("mvp_mat4", rhi::Format::float32_4x4, 1);
-	per_view_uniform.add_entry("model_mat4", rhi::Format::float32_4x4, 1);
-	per_view_uniform.add_entry("view_mat4", rhi::Format::float32_4x4, 1);
-	per_view_uniform.add_entry("projection_mat4", rhi::Format::float32_4x4, 1);
-	per_view_uniform.add_entry("view_projection_mat4", rhi::Format::float32_4x4, 1);
-	per_view_uniform.add_entry("inverse_projection_mat4", rhi::Format::float32_4x4, 1);
-	per_view_uniform.add_entry("inverse_view_projection_mat4", rhi::Format::float32_4x4, 1);
-	per_view_uniform.add_entry("normal_mat3", rhi::Format::float32_3x3, 1);
-	per_view_uniform.add_entry("camera_position", rhi::Format::float32_3, 1);
+	// This creates the per_view_uniforms UBO with variable name of in_per_view_uniforms
+	this->m_shader_buffer.add_entry("mvp_mat4", rhi::Format::float32_4x4, 1);
+	this->m_shader_buffer.add_entry("model_mat4", rhi::Format::float32_4x4, 1);
+	this->m_shader_buffer.add_entry("view_mat4", rhi::Format::float32_4x4, 1);
+	this->m_shader_buffer.add_entry("projection_mat4", rhi::Format::float32_4x4, 1);
+	this->m_shader_buffer.add_entry("view_projection_mat4", rhi::Format::float32_4x4, 1);
+	this->m_shader_buffer.add_entry("inverse_projection_mat4", rhi::Format::float32_4x4, 1);
+	this->m_shader_buffer.add_entry("inverse_view_projection_mat4", rhi::Format::float32_4x4, 1);
+	this->m_shader_buffer.add_entry("normal_mat3", rhi::Format::float32_3x3, 1);
+	this->m_shader_buffer.add_entry("camera_position", rhi::Format::float32_3, 1);
 }
 
 void OrbitCamera::update()
 {
-	auto mapping = this->m_shader_buffer.map();
+	this->m_shader_buffer.update("mvp_mat4", &this->m_model_view_projection.m_values);
+	this->m_shader_buffer.update("model_mat4", &this->m_model.m_values);
+	this->m_shader_buffer.update("view_mat4", &this->m_view.m_values);
+	this->m_shader_buffer.update("projection_mat4", &this->m_projection.m_values);
+	this->m_shader_buffer.update("view_projection_mat4", &this->m_view_projection.m_values);
+	this->m_shader_buffer.update("inverse_projection_mat4", &this->m_inverse_projection.m_values);
+	this->m_shader_buffer.update("inverse_view_projection_mat4", &this->m_inverse_view_projection.m_values);
+	this->m_shader_buffer.update("normal_mat3", &this->m_normal.m_values);
+	this->m_shader_buffer.update("camera_position", &this->m_from.x);
 
-	std::memcpy(mapping + this->m_mvp_mat4_offset, &this->m_model_view_projection.m_values, sizeof(decltype(this->m_model_view_projection)));
-	std::memcpy(mapping + this->m_model_mat4_offset, &this->m_model.m_values, sizeof(decltype(this->m_model)));
-	std::memcpy(mapping + this->m_view_mat4_offset, &this->m_view.m_values, sizeof(decltype(this->m_view)));
-	std::memcpy(mapping + this->m_projection_mat4_offset, &this->m_projection.m_values, sizeof(decltype(this->m_projection)));
-	std::memcpy(mapping + this->m_view_projection_mat4_offset, &this->m_view_projection.m_values, sizeof(decltype(this->m_view_projection)));
-	std::memcpy(mapping + this->m_inverse_projection_mat4_offset, &this->m_inverse_projection.m_values, sizeof(decltype(this->m_inverse_projection)));
-	std::memcpy(mapping + this->m_inverse_view_projection_mat4_offset, &this->m_inverse_view_projection.m_values, sizeof(decltype(this->m_inverse_view_projection)));
-	std::memcpy(mapping + this->m_normal_mat4_offset, &this->m_normal.m_values, sizeof(decltype(this->m_normal)));
-	std::memcpy(mapping + this->m_camera_position_offset, &this->m_from, sizeof(decltype(this->m_from)));
-
-	this->m_shader_buffer.unmap();
+	this->m_shader_buffer.buffer_update();
 }
 
 void OrbitCamera::upload(rhi::Device &a_device)
@@ -171,27 +169,7 @@ void OrbitCamera::upload(rhi::Device &a_device)
 	  } in_directional_light_uniforms;
 	*/
 	this->fill_shader_buffer();
-	auto &shader_buffer = this->m_shader_buffer.shader_buffer();
-	auto  entries       = shader_buffer.entries_structs();
-
-	auto size = 528u;        // TODO: Get this from shader buffer
-	for (auto entry : entries)
-	{
-		// clang-format off
-		if      (entry->m_name == "mvp_mat4")                      this->m_mvp_mat4_offset                     = entry->m_offset;
-		else if (entry->m_name == "model_mat4")                    this->m_model_mat4_offset                   = entry->m_offset;
-		else if (entry->m_name == "view_mat4")                     this->m_view_mat4_offset                    = entry->m_offset;
-		else if (entry->m_name == "projection_mat4")               this->m_projection_mat4_offset              = entry->m_offset;
-		else if (entry->m_name == "view_projection_mat4")          this->m_view_projection_mat4_offset         = entry->m_offset;
-		else if (entry->m_name == "inverse_projection_mat4")       this->m_inverse_projection_mat4_offset      = entry->m_offset;
-		else if (entry->m_name == "inverse_view_projection_mat4")  this->m_inverse_view_projection_mat4_offset = entry->m_offset;
-		else if (entry->m_name == "normal_mat4")                   this->m_normal_mat4_offset                  = entry->m_offset;
-		else if (entry->m_name == "camera_position")               this->m_camera_position_offset              = entry->m_offset;
-		// clang-format on
-	}
-
-	assert(size != 0 && "Couldn't determine per_view_uniform struct size in the UBO");
-	this->m_shader_buffer.init(a_device, size);
+	this->m_shader_buffer.shader_buffer_upload(a_device);
 
 	this->update();
 }

@@ -56,7 +56,7 @@ class ROAR_ENGINE_ITEM Material final
 	FORCE_INLINE           Material(const Material &a_other)      = delete;         //! Copy constructor
 	FORCE_INLINE           Material(Material &&a_other) noexcept  = default;        //! Move constructor
 	FORCE_INLINE Material &operator=(const Material &a_other)     = delete;         //! Copy assignment operator
-	FORCE_INLINE Material &operator=(Material &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE Material &operator=(Material &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~Material() noexcept                             = default;        //! Destructor
 
 	enum class MaterialType
