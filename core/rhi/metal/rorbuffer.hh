@@ -31,6 +31,7 @@
 #include "rhi/metal/rormetal_common.hpp"
 #include "rhi/rortypes.hpp"
 #include <Metal/MTLRenderCommandEncoder.hpp>
+#include <cassert>
 
 namespace rhi
 {
@@ -91,7 +92,6 @@ FORCE_INLINE constexpr void BufferMetal::unmap() noexcept
 	this->unmap(0, this->m_buffer->length());
 }
 
-// TODO: Find all call sites and init before upload
 void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes)
 {
 	/*
@@ -141,20 +141,19 @@ void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, s
 	}
 }
 
-// void BufferMetal::update(uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
-// {
-// 	// Some sanity checks first
-// 	assert(a_offset < a_length);
-// 	assert(a_offset < this->m_buffer->length());
-// 	assert(this->m_buffer->length() >= a_length && "Not enough space in the buffer being copied into");
-// 	assert(this->m_buffer->length() >= a_offset + a_length && "Not enough space in the buffer being copied into");
+void BufferMetal::upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
+{
+	// Some sanity checks first
+	assert(a_offset < this->m_buffer->length());
+	assert(this->m_buffer->length() >= a_length && "Not enough space in the buffer being copied into");
+	assert(this->m_buffer->length() >= a_offset + a_length && "Not enough space in the buffer being copied into");
 
-// 	assert(this->storage_mode() == rhi::ResourceStorageOption::exclusive && "Can't update private/exclusive buffer data, its expensive, if really needed call upload() instead");
-// 	assert(this->storage_mode() == rhi::ResourceStorageOption::memory_less && "Can't update memory less buffer data");
+	assert(this->storage_mode() == rhi::ResourceStorageOption::exclusive && "Can't update private/exclusive buffer data, its expensive, if really needed call upload(a_device) instead");
+	assert(this->storage_mode() == rhi::ResourceStorageOption::memory_less && "Can't update memory less buffer data");
 
-// 	std::memcpy(this->map() + a_offset, a_data_pointer + a_offset, a_length);
-// 	this->unmap(a_offset, a_length);
-// }
+	std::memcpy(this->map() + a_offset, a_data_pointer + a_offset, a_length);
+	this->unmap(a_offset, a_length);
+}
 
 FORCE_INLINE constexpr void BufferMetal::bind(MTL::RenderCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset) const noexcept
 {

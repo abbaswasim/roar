@@ -38,6 +38,7 @@
 namespace rhi
 {
 
+	/*
 class ROAR_ENGINE_ITEM ShaderInput final
 {
   public:
@@ -83,33 +84,35 @@ class ROAR_ENGINE_ITEM ShaderInput final
 
 	void update(std::string a_variable, const uint8_t *a_value)
 	{
-		auto &variable = this->m_variables[a_variable];
-		auto *data_ptr = this->m_data.data();
-		auto  bytes    = format_to_bytes(variable.m_format);
+		(void) a_variable;
+		(void) a_value;
+		// auto &variable = this->m_variables[a_variable];
+		// auto *data_ptr = this->m_data.data();
+		// auto  bytes    = format_to_bytes(variable.m_format);
 
-		auto mapping = this->m_shader_buffer.map();
+		// auto mapping = this->m_shader_buffer.map();
 
-		std::memcpy(data_ptr + variable.m_data_offset, a_value, bytes);
-		std::memcpy(mapping + variable.m_buffer_offset, data_ptr + variable.m_data_offset, bytes);
+		// std::memcpy(data_ptr + variable.m_data_offset, a_value, bytes);
+		// std::memcpy(mapping + variable.m_buffer_offset, data_ptr + variable.m_data_offset, bytes);
 
-		this->m_shader_buffer.unmap();
+		// this->m_shader_buffer.unmap();
 	}
 
 	void update()
 	{
-		auto mapping = this->m_shader_buffer.map();
+		// auto mapping = this->m_shader_buffer.map();
 
-		for (auto &[variable_name, variable_data] : this->m_variables)
-			std::memcpy(mapping + variable_data.m_buffer_offset, this->m_data.data() + variable_data.m_data_offset, format_to_bytes(variable_data.m_format));
+		// for (auto &[variable_name, variable_data] : this->m_variables)
+		// 	std::memcpy(mapping + variable_data.m_buffer_offset, this->m_data.data() + variable_data.m_data_offset, format_to_bytes(variable_data.m_format));
 
-		this->m_shader_buffer.unmap();
+		// this->m_shader_buffer.unmap();
 	}
 
 	void upload(rhi::Device &a_device)
 	{
 		this->fill();
 		this->offsets();
-		this->m_shader_buffer.init(a_device, ror::static_cast_safe<uint32_t>(this->m_data.size()));
+		this->m_shader_buffer.init(a_device, ror::static_cast_safe<uint32_t>(this->m_data.size()), rhi::ResourceStorageOption::shared);
 		this->update();
 	}
 
@@ -158,5 +161,6 @@ class ROAR_ENGINE_ITEM ShaderInput final
 	ror::bytes_vector m_data{};                 //! This is where all the data for the input buffer is
 	VariableType      m_variables{};            //! All the variables in this input buffer
 };
+	*/
 
 }        // namespace rhi

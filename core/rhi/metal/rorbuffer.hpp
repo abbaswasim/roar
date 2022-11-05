@@ -49,18 +49,19 @@ class ROAR_ENGINE_ITEM BufferMetal
 	FORCE_INLINE BufferMetal &operator=(BufferMetal &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~BufferMetal() noexcept                          = default;        //! Destructor
 
+	[[nodiscard]] FORCE_INLINE constexpr auto map() noexcept;
+
 	FORCE_INLINE void           release();
 	FORCE_INLINE void           init(rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption = rhi::ResourceStorageOption::shared);
 	FORCE_INLINE void           init(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::shared);
 	FORCE_INLINE void           upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes);
 	FORCE_INLINE void           upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
-	FORCE_INLINE constexpr auto map() noexcept;
 	FORCE_INLINE constexpr void unmap() noexcept;
 	FORCE_INLINE constexpr void unmap(std::uintptr_t a_from, std::uintptr_t a_to) noexcept;
 	FORCE_INLINE constexpr void bind(MTL::RenderCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept;
 	FORCE_INLINE constexpr void bind(MTL::ComputeCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept;
 
-	// FORCE_INLINE void           update(uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
+	FORCE_INLINE void upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
 	// FORCE_INLINE constexpr auto size()               const noexcept { return this->m_buffer->length(); }
 
 	// clang-format off
@@ -81,6 +82,12 @@ class ROAR_ENGINE_ITEM BufferMetal
 	bool                       m_ready{false};                                            //! Keeps track of whether the buffer is ready to be used or not
 };
 
+/**
+ * This type of buffer has both a CPU side copy and a GPU uploaded buffer
+ * Ideally the CPU side copy is also kept up to date with every update to the GPU
+ * This might not be required for some GPU only side buffer for that case
+ * Use BufferMetal/BufferVulkan instead
+ */
 template <typename _type = Static>
 class ROAR_ENGINE_ITEM BufferHybrid : public BufferCrtp<_type>, public BufferMetal
 {

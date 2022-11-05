@@ -119,6 +119,8 @@ void Material::fill_shader_buffer()
 
 void Material::update()
 {
+	this->m_shader_buffer.buffer_map();
+
 	if (this->m_base_color.m_type == ror::Material::ComponentType::factor || this->m_base_color.m_type == ror::Material::ComponentType::factor_texture)
 		this->m_shader_buffer.update("base_color_factor", &this->m_base_color.m_factor);
 	if (this->m_diffuse_color.m_type == ror::Material::ComponentType::factor || this->m_diffuse_color.m_type == ror::Material::ComponentType::factor_texture)
@@ -159,7 +161,7 @@ void Material::update()
 	// Unconditional factor of reflectance needs to be there
 	this->m_shader_buffer.update("reflectance_factor", &this->m_reflectance);
 
-	this->m_shader_buffer.buffer_update();
+	this->m_shader_buffer.buffer_unmap();
 }
 
 void Material::upload(rhi::Device &a_device)

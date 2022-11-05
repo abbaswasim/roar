@@ -160,7 +160,7 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	FORCE_INLINE constexpr void update(const std::string &a_variable, const uint8_t *a_value, uint32_t a_index, uint32_t a_stride)
 	{
 		auto entry = this->m_variables[a_variable];
-		this->buffer_copy(a_value, entry->m_size, (a_stride * a_index) + entry->m_offset);
+		this->buffer_copy(a_value, (a_stride * a_index) + entry->m_offset, entry->m_size);
 	}
 
 	template <typename _data_type>
@@ -172,32 +172,23 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	FORCE_INLINE constexpr void update(const std::string &a_variable, const uint8_t *a_value)
 	{
 		auto entry = this->m_variables[a_variable];
-		this->buffer_copy(a_value, entry->m_size, entry->m_offset);
+		this->buffer_copy(a_value, entry->m_offset, entry->m_size);
 	}
 
-	void shader_buffer_upload(rhi::Device &a_device)
+	void shader_buffer_upload(rhi::Device &a_device, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::managed)
 	{
 		// Alignment on size is Metal requirement but won't hurt in Vulkan either (https://github.com/gpuweb/gpuweb/issues/425)
 		auto aligned_size = ror::static_cast_safe<uint32_t>(ror::align16(this->m_shader_buffer_template.size()));
-		this->buffer_allocate();
 		this->update_variables();
-		this->buffer_init(a_device, aligned_size);
-		this->buffer_update();
+		this->buffer_init(a_device, aligned_size, a_mode);
 	}
 
   protected:
 	FORCE_INLINE ShaderBufferCrtp() = default;        //! Default constructor
   private:
 	// clang-format off
-	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset) noexcept //! Copys contents a_size bytes from data into the buffer at a_offset
-                                                                                         { this->underlying().buffer_copy(a_data, a_size, a_offset);      }
-	FORCE_INLINE           void  buffer_init(rhi::Device& a_device, uint32_t a_size)     { this->underlying().buffer_init(a_device, a_size);              }
-	FORCE_INLINE           void  buffer_update()                                         { this->underlying().buffer_update();                            }
-	FORCE_INLINE           void  buffer_allocate()                                       { this->buffer_allocate(this->m_shader_buffer_template.size());  }
-	FORCE_INLINE           void  buffer_allocate(ptrdiff_t a_size)                       { this->underlying().buffer_allocate(a_size);                    }
-	FORCE_INLINE           void  buffer_unmap()                                          { this->underlying().buffer_unmap();                             }
-	FORCE_INLINE auto            buffer_map()                                            { return this->underlying().buffer_map();                        }
-	FORCE_INLINE auto           &buffer_data()                                 noexcept  { return this->underlying().buffer_data();                       }
+	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_offset, size_t a_length) noexcept          { this->underlying().buffer_copy(a_data, a_offset, a_length);    }
+	FORCE_INLINE           void  buffer_init(rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->underlying().buffer_init(a_device, a_size, a_mode);      }
 	// clang-format on
 
 	FORCE_INLINE Entry get_entry(const entry_variant_vector &a_data, size_t &a_index, bool &a_in_struct)

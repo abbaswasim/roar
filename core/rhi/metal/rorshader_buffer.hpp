@@ -29,6 +29,7 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorshader_buffer.hpp"
 #include "rhi/metal/rorbuffer.hpp"
+#include "rhi/metal/rortypes.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
@@ -39,7 +40,7 @@
 
 namespace rhi
 {
-class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public BufferMetal<>        // Defaul _Static type BufferMetal base class
+class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public BufferMetal
 {
   public:
 	FORCE_INLINE                    ShaderBufferMetal()                                     = default;        //! Default constructor
@@ -61,17 +62,24 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public Buf
 	declare_translation_unit_vtable() override;
 
 	// clang-format off
-	FORCE_INLINE constexpr void  buffer_allocate(ptrdiff_t a_size)                                               { this->size(a_size); this->offset(a_size);  }
-	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept { this->unmap();                             }
-	FORCE_INLINE constexpr auto  buffer_map()                                                           noexcept { return this->map();                        }
-	FORCE_INLINE constexpr auto &buffer_data()                                                          noexcept { return this->data();                       }
-	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size)                             { this->init(a_device, a_size);              }
-	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset)  noexcept { this->copy(a_data, a_size, a_offset);      }
-	FORCE_INLINE constexpr void  buffer_update()                                                        noexcept { this->reupload();                          }
+	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept        { this->unmap(); this->m_mapped_address = nullptr;         }
+	FORCE_INLINE constexpr void  buffer_map()                                                           noexcept        { this->m_mapped_address = this->map();                    }
+	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->init(a_device, a_size, a_mode);                    }
 	// clang-format on
+
+	FORCE_INLINE void buffer_copy(const uint8_t *a_data, size_t a_offset, size_t a_length)
+	{
+		// if (this->m_mapped_address == nullptr)
+		// 	this->m_mapped_address = this->map();
+		assert(this->m_mapped_address && "Need to map the shader buffer first before copy is called");
+		assert(a_data && "Need to map the shader buffer first before copy is called");
+
+		std::memcpy(this->m_mapped_address + a_offset, a_data, a_length);
+	}
 
   protected:
   private:
+	uint8_t *m_mapped_address{nullptr};        //! For batch copy the buffer will be mapped once in here and unmapped once
 };
 
 using ShaderBuffer = ShaderBufferMetal;

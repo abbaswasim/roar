@@ -153,6 +153,8 @@ void OrbitCamera::fill_shader_buffer()
 
 void OrbitCamera::update()
 {
+	this->m_shader_buffer.buffer_map();
+
 	this->m_shader_buffer.update("mvp_mat4", &this->m_model_view_projection.m_values);
 	this->m_shader_buffer.update("model_mat4", &this->m_model.m_values);
 	this->m_shader_buffer.update("view_mat4", &this->m_view.m_values);
@@ -163,7 +165,7 @@ void OrbitCamera::update()
 	this->m_shader_buffer.update("normal_mat3", &this->m_normal.m_values);
 	this->m_shader_buffer.update("camera_position", &this->m_from.x);
 
-	this->m_shader_buffer.buffer_update();
+	this->m_shader_buffer.buffer_unmap();
 }
 
 void OrbitCamera::upload(rhi::Device &a_device)

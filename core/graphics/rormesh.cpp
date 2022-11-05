@@ -25,6 +25,7 @@
 
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
+#include "rhi/rortypes.hpp"
 
 namespace ror
 {

@@ -93,7 +93,7 @@ class Renderer final : public Configuration<Renderer>
 
 	using InputRenderTargets = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
 	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
-	using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderInput>;
+	using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderBuffer*>;
 
   protected:
   private:

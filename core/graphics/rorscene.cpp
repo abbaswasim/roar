@@ -86,33 +86,56 @@ void Light::fill_shader_buffer()
 		light_type.add_entry("outer_angle", rhi::Format::float32_1, rhi::Layout::std140, 1);
 	}
 
-	auto &shader_buffer = this->m_shader_buffer.shader_buffer();
-	shader_buffer.add_struct(light_type);
+	this->m_shader_buffer.add_struct(light_type);
 }
 
 void Light::update()
 {
-	auto mapping = this->m_shader_buffer.map();
+	this->m_shader_buffer.buffer_map();
 
-	std::memcpy(mapping + this->m_mvp_offset, &this->m_mvp.m_values, sizeof(decltype(this->m_mvp)));
-	std::memcpy(mapping + this->m_color_offset, &this->m_color, sizeof(decltype(this->m_color)));
+	// TODO: Find out why the array version doesn't work
+#if 0
+	auto     stride      = this->m_shader_buffer.stride("lights");
+	uint32_t light_index = 0;
+
+	this->m_shader_buffer.update("mvp", &this->m_mvp.m_values, light_index, stride);
+	this->m_shader_buffer.update("color", &this->m_color, light_index, stride);
 
 	if (this->m_type != ror::Light::LightType::directional)
-		std::memcpy(mapping + this->m_position_offset, &this->m_position, sizeof(decltype(this->m_position)));
+		this->m_shader_buffer.update("position", &this->m_position, light_index, stride);
 
 	if (this->m_type != ror::Light::LightType::point)
-		std::memcpy(mapping + this->m_direction_offset, &this->m_direction, sizeof(decltype(this->m_direction)));
+		this->m_shader_buffer.update("direction", &this->m_direction, light_index, stride);
 
-	std::memcpy(mapping + this->m_intensity_offset, &this->m_intensity, sizeof(decltype(this->m_intensity)));
-	std::memcpy(mapping + this->m_range_offset, &this->m_range, sizeof(decltype(this->m_range)));
+	this->m_shader_buffer.update("intensity", &this->m_intensity, light_index, stride);
+	this->m_shader_buffer.update("range", &this->m_range, light_index, stride);
 
 	if (this->m_type == ror::Light::LightType::spot)
 	{
-		std::memcpy(mapping + this->m_inner_angle_offset, &this->m_inner_angle, sizeof(decltype(this->m_inner_angle)));
-		std::memcpy(mapping + this->m_outer_angle_offset, &this->m_outer_angle, sizeof(decltype(this->m_outer_angle)));
+		this->m_shader_buffer.update("inner_angle", &this->m_inner_angle, light_index, stride);
+		this->m_shader_buffer.update("outer_angle", &this->m_outer_angle, light_index, stride);
 	}
+#else
+	this->m_shader_buffer.update("mvp", &this->m_mvp.m_values);
+	this->m_shader_buffer.update("color", &this->m_color);
 
-	this->m_shader_buffer.unmap();
+	if (this->m_type != ror::Light::LightType::directional)
+		this->m_shader_buffer.update("position", &this->m_position);
+
+	if (this->m_type != ror::Light::LightType::point)
+		this->m_shader_buffer.update("direction", &this->m_direction);
+
+	this->m_shader_buffer.update("intensity", &this->m_intensity);
+	this->m_shader_buffer.update("range", &this->m_range);
+
+	if (this->m_type == ror::Light::LightType::spot)
+	{
+		this->m_shader_buffer.update("inner_angle", &this->m_inner_angle);
+		this->m_shader_buffer.update("outer_angle", &this->m_outer_angle);
+	}
+#endif
+
+	this->m_shader_buffer.buffer_unmap();
 }
 
 void Light::upload(rhi::Device &a_device)
@@ -134,8 +157,7 @@ void Light::upload(rhi::Device &a_device)
 	  } in_directional_light_uniforms;
 	*/
 	this->fill_shader_buffer();
-	auto &shader_buffer = this->m_shader_buffer.shader_buffer();
-	auto  entries       = shader_buffer.entries_structs();
+	this->m_shader_buffer.shader_buffer_upload(a_device);
 
 	auto size = 0u;
 	for (auto entry : entries)

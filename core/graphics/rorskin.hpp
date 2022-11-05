@@ -62,7 +62,7 @@ class ROAR_ENGINE_ITEM Skin
 			this->m_joint_transform_shader_buffer.update("scale", &xform.m_scale.x, static_cast<uint32_t>(joint_id), stride);
 		}
 
-		this->m_joint_transform_shader_buffer.buffer_update();
+		this->m_joint_transform_shader_buffer.buffer_unmap();
 	}
 
 	void upload(rhi::Device &a_device)

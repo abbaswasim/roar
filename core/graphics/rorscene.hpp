@@ -90,15 +90,6 @@ class ROAR_ENGINE_ITEM Light
 	float32_t m_inner_angle{0.0f};                                   //! Spot light inner angle
 	float32_t m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle
 
-	uint32_t m_mvp_offset{0};                //! Offset in UBO of Model view projection of the light, used in shadow mapping
-	uint32_t m_color_offset{0};              //! Offset in UBO of Light color
-	uint32_t m_position_offset{0};           //! Offset in UBO of Position of point and spot lights
-	uint32_t m_direction_offset{0};          //! Offset in UBO of Direction of directional and spot lights
-	uint32_t m_intensity_offset{0};          //! Offset in UBO of Light intensity
-	uint32_t m_range_offset{0};              //! Offset in UBO of Light range after which light attenuates
-	uint32_t m_inner_angle_offset{0};        //! Offset in UBO of Spot light inner angle
-	uint32_t m_outer_angle_offset{0};        //! Offset in UBO of Spot light outter angle
-
 	rhi::ShaderBuffer m_shader_buffer{};        //! Shader buffer for a specific type of light UBO
 };
 
