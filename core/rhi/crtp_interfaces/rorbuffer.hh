@@ -25,6 +25,7 @@
 
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorbuffer.hpp"
+#include "rhi/rortypes.hpp"
 
 namespace rhi
 {
@@ -37,7 +38,7 @@ BufferCrtp<_type, _derived>::BufferCrtp()
 
 template <typename _type, typename _derived>
 template <typename U, std::enable_if_t<std::is_same<U, Static>::value, bool>>
-ptrdiff_t BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
+auto BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 {
 	assert(a_bytes > 0 && "Requested bytes must be positive");
 
@@ -61,7 +62,7 @@ ptrdiff_t BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 
 template <typename _type, typename _derived>
 template <typename U, std::enable_if_t<std::is_same<U, Dynamic>::value, bool>>
-ptrdiff_t BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
+auto BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 {
 	assert(a_bytes > 0 && "Requested bytes must be positive");
 
@@ -87,7 +88,7 @@ ptrdiff_t BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 }
 
 template <typename _type, typename _derived>
-ptrdiff_t BufferCrtp<_type, _derived>::offset(ptrdiff_t a_bytes)
+auto BufferCrtp<_type, _derived>::offset(ptrdiff_t a_bytes)
 {
 	// Do the allocation
 	return this->_offset(a_bytes);
@@ -96,7 +97,7 @@ ptrdiff_t BufferCrtp<_type, _derived>::offset(ptrdiff_t a_bytes)
 // Request is only defined for Static buffer, we can't return a pointer of a dynamic buffer
 template <typename _type, typename _derived>
 template <typename U, std::enable_if_t<std::is_same<U, Static>::value, bool>>
-uint8_t *BufferCrtp<_type, _derived>::request(ptrdiff_t a_bytes)
+auto *BufferCrtp<_type, _derived>::request(ptrdiff_t a_bytes)
 {
 	// This is only defined for Static buffers because this->m_data.data() might be invalid when _offset returns with a different size
 	return this->m_data.data() + this->_offset(a_bytes);
@@ -121,12 +122,6 @@ void BufferCrtp<_type, _derived>::copy(const std::vector<uint8_t> &a_data, ptrdi
 }
 
 template <typename _type, typename _derived>
-uint32_t BufferCrtp<_type, _derived>::handle() noexcept
-{
-	return 0;
-}
-
-template <typename _type, typename _derived>
 void BufferCrtp<_type, _derived>::size(ptrdiff_t a_size) noexcept
 {
 	assert(a_size > 0 && "Buffer size must be positive");
@@ -138,13 +133,25 @@ void BufferCrtp<_type, _derived>::size(ptrdiff_t a_size) noexcept
 }
 
 template <typename _type, typename _derived>
-ptrdiff_t BufferCrtp<_type, _derived>::size() const noexcept
+auto BufferCrtp<_type, _derived>::storage_mode() const noexcept
+{
+	return this->m_storage_mode;
+}
+
+template <typename _type, typename _derived>
+void BufferCrtp<_type, _derived>::storage_mode(rhi::ResourceStorageMode a_mode) noexcept
+{
+	this->m_storage_mode = a_mode;
+}
+
+template <typename _type, typename _derived>
+auto BufferCrtp<_type, _derived>::size() const noexcept
 {
 	return this->m_size_in_bytes;
 }
 
 template <typename _type, typename _derived>
-ptrdiff_t BufferCrtp<_type, _derived>::filled_size() const noexcept
+auto BufferCrtp<_type, _derived>::filled_size() const noexcept
 {
 	return this->m_filled_size;
 }
@@ -156,7 +163,7 @@ void BufferCrtp<_type, _derived>::interleaved(bool a_interleaved) noexcept
 }
 
 template <typename _type, typename _derived>
-bool BufferCrtp<_type, _derived>::interleaved() const noexcept
+auto BufferCrtp<_type, _derived>::interleaved() const noexcept
 {
 	return this->m_interleaved;
 }
@@ -168,7 +175,7 @@ void BufferCrtp<_type, _derived>::ready(bool a_ready) noexcept
 }
 
 template <typename _type, typename _derived>
-bool BufferCrtp<_type, _derived>::ready() const noexcept
+auto BufferCrtp<_type, _derived>::ready() const noexcept
 {
 	return this->m_ready;
 }
@@ -180,7 +187,7 @@ void BufferCrtp<_type, _derived>::emplace_semantic(std::pair<rhi::BufferSemantic
 }
 
 template <typename _type, typename _derived>
-std::pair<rhi::BufferSemantic, uint64_t> BufferCrtp<_type, _derived>::semantic(size_t a_index) const noexcept
+auto BufferCrtp<_type, _derived>::semantic(size_t a_index) const noexcept
 {
 	assert(a_index < this->m_semantics.size());
 
@@ -188,13 +195,13 @@ std::pair<rhi::BufferSemantic, uint64_t> BufferCrtp<_type, _derived>::semantic(s
 }
 
 template <typename _type, typename _derived>
-const std::vector<std::pair<rhi::BufferSemantic, uint64_t>> &BufferCrtp<_type, _derived>::semantics() const noexcept
+const auto &BufferCrtp<_type, _derived>::semantics() const noexcept
 {
 	return this->m_semantics;
 }
 
 template <typename _type, typename _derived>
-const std::vector<uint8_t> &BufferCrtp<_type, _derived>::data() const
+const auto &BufferCrtp<_type, _derived>::data() const
 {
 	return this->m_data;
 }

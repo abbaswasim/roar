@@ -177,9 +177,11 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 
 	void shader_buffer_upload(rhi::Device &a_device)
 	{
+		// Alignment on size is Metal requirement but won't hurt in Vulkan either (https://github.com/gpuweb/gpuweb/issues/425)
+		auto aligned_size = ror::static_cast_safe<uint32_t>(ror::align16(this->m_shader_buffer_template.size()));
 		this->buffer_allocate();
 		this->update_variables();
-		this->buffer_init(a_device, ror::static_cast_safe<uint32_t>(ror::align16(this->m_shader_buffer_template.size())));        // Alignment on size is Metal requirement but won't hurt in Vulkan either
+		this->buffer_init(a_device, aligned_size);
 		this->buffer_update();
 	}
 

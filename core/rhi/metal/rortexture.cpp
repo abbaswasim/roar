@@ -129,52 +129,30 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 		needs_upload = false;
 	}
 
-#if 1
-	// Enable the managed route for now because of bug in BigSur
-	if (is_pixel_format_depth_format(this->format()))
-		texture_descriptor->setStorageMode(MTL::StorageModePrivate);
-	else
-		texture_descriptor->setStorageMode(MTL::StorageModeManaged);
-
-	this->m_texture = device->newTexture(texture_descriptor);
-
-	if (needs_upload)
-	{
-		MTL::Region region{0, 0, 0, this->width(), this->height(), 1};
-		this->m_texture->replaceRegion(region, 0, this->data(), bytes_per_row);
-	}
-	this->ready(true);
-#else // Make sure you call this->ready(true); somewhere when done in the else case
-
 	texture_descriptor->setStorageMode(MTL::StorageModePrivate);
 
 	this->m_texture = device->newTexture(texture_descriptor);
 
 	if (needs_upload)
 	{
-		MTL::CommandQueue *queue = rhi_device->platform_queue();
-		assert(queue);
-
 		assert(this->data());
 		assert(this->size() == this->width() * this->height() * this->bytes_per_pixel());
 
-		MTL::Buffer *source_buffer = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);
-		(void) source_buffer;
-
-		MTL::CommandBuffer *command_buffer = queue->commandBuffer();
-
+		MTL::CommandQueue       *queue                = a_device.platform_queue();
+		MTL::Buffer             *source_buffer        = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);
+		MTL::CommandBuffer      *command_buffer       = queue->commandBuffer();
 		MTL::BlitCommandEncoder *blit_command_encoder = command_buffer->blitCommandEncoder();
 
-		// copyFromBuffer is hanging the whole System and rebooting the machine
-		// This is a bug in BigSur it works fine on Monterey M1
+		assert(queue);
+
 		blit_command_encoder->copyFromBuffer(source_buffer, 0, bytes_per_row, this->width() * this->height() * this->bytes_per_pixel(), size, this->m_texture, 0, 0, texture_origin);
 		blit_command_encoder->endEncoding();
 
 		command_buffer->addCompletedHandler([this](MTL::CommandBuffer *) { this->ready(true); });
 		command_buffer->commit();
 	}
-
-#endif
+	else
+		this->ready(true);
 
 	texture_descriptor->release();
 }
