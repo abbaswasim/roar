@@ -96,8 +96,10 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	void                    fill_shader_buffer();
 
 	// clang-format off
-	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; }
+	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this instead
 	// clang-format on
+
+	FORCE_INLINE void look_at();
 
   private:
 	FORCE_INLINE void update_position_function(double64_t &a_x_delta, double64_t &a_y_delta);
@@ -105,8 +107,6 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE void left_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
 	FORCE_INLINE void middle_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
 	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
-
-	FORCE_INLINE void look_at();
 
 	Matrix4f                     m_model{};                                //! Model matrix
 	Matrix4f                     m_view{};                                 //! View matrix

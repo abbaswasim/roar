@@ -79,7 +79,7 @@ class ROAR_ENGINE_ITEM BuffersPack final
 		return this->m_attribute_indices.at(a_semantic);
 	}
 
-	FORCE_INLINE ptrdiff_t attribute_buffer_offset(BufferSemantic a_semantic, ptrdiff_t a_bytes)
+	FORCE_INLINE size_t attribute_buffer_offset(BufferSemantic a_semantic, size_t a_bytes)
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
 
@@ -95,13 +95,13 @@ class ROAR_ENGINE_ITEM BuffersPack final
 	 * Returns a pair with buffer index and the offsets in that buffer where the data is copied
 	 */
 	// This will be contentious amongst threads, Since Buffer is thread safe this works asynchronously
-	FORCE_INLINE void copy(BufferSemantic a_semantic, const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
+	FORCE_INLINE void copy(BufferSemantic a_semantic, const std::vector<uint8_t> &a_data, size_t a_offset)
 	{
 		const uint32_t index = this->attribute_buffer_index(a_semantic);
 		this->m_buffers[index].copy(a_data, a_offset);
 	}
 
-	FORCE_INLINE void copy(size_t a_index, const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
+	FORCE_INLINE void copy(size_t a_index, const std::vector<uint8_t> &a_data, size_t a_offset)
 	{
 		this->m_buffers[a_index].copy(a_data, a_offset);
 	}

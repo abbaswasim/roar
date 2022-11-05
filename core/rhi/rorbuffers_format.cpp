@@ -60,7 +60,7 @@ void BuffersFormatConfig::load_specific()
 		{
 			rhi::Buffer<rhi::Static> buffer;        // Only valid for static buffers
 			assert(b.contains("size") && "Each buffer should specifiy a size");
-			ptrdiff_t size = b["size"];
+			size_t size = b["size"];
 			size *= this->m_buffers_format.m_unit;
 			buffer.size(size);
 
@@ -131,7 +131,7 @@ void BuffersFormatConfig::load_remaining_buffers()
 		assert(empty_buffer != nullptr && "Buffer pack doesn't provide an empty buffer for remaining buffers");
 
 		// In the empty buffer find place for the remaining semantics
-		auto result = std::accumulate(std::begin(remaining), std::end(remaining), 0LL,
+		auto result = std::accumulate(std::begin(remaining), std::end(remaining), 0UL,
 		                              [](const size_t previous, const std::pair<rhi::BufferSemantic, bool> &p) {
 			                              return previous + (p.second ? 0 : 1);
 		                              });

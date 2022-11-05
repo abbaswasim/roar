@@ -23,22 +23,24 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorbuffer.hpp"
 #include "rhi/rortypes.hpp"
+#include <cstddef>
 
 namespace rhi
 {
-template <typename _type, typename _derived>
-BufferCrtp<_type, _derived>::BufferCrtp()
+template <typename _type>
+BufferCrtp<_type>::BufferCrtp()
 {
 	this->m_semantics.reserve(32);        // About enough for now, ror::ShaderSemantic is about 28 entries, if it grows in the future it doens't matter much
 	this->m_mutex = std::make_shared<std::mutex>();
 }
 
-template <typename _type, typename _derived>
+template <typename _type>
 template <typename U, std::enable_if_t<std::is_same<U, Static>::value, bool>>
-auto BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
+auto BufferCrtp<_type>::_offset(size_t a_bytes)
 {
 	assert(a_bytes > 0 && "Requested bytes must be positive");
 
@@ -52,7 +54,7 @@ auto BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 	auto offset = this->m_filled_size;
 
 	this->m_filled_size += a_bytes;
-	this->m_filled_size = static_cast<ptrdiff_t>(ror::align8(static_cast<uint64_t>(this->m_filled_size)));        // Aligning next offset for the most common denominator, other types are fine
+	this->m_filled_size = ror::align8(this->m_filled_size);        // Aligning next offset for the most common denominator, other types are fine
 
 	if (this->m_filled_size > this->m_size_in_bytes)
 		this->m_filled_size = this->m_size_in_bytes;
@@ -60,9 +62,9 @@ auto BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 	return offset;
 }
 
-template <typename _type, typename _derived>
+template <typename _type>
 template <typename U, std::enable_if_t<std::is_same<U, Dynamic>::value, bool>>
-auto BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
+auto BufferCrtp<_type>::_offset(size_t a_bytes)
 {
 	assert(a_bytes > 0 && "Requested bytes must be positive");
 
@@ -73,13 +75,13 @@ auto BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 		const size_t buffer_increment = ror::settings().m_buffer_increment;
 		assert(buffer_increment > 0 && "Setting doesn't contain valid buffer_increment");
 		this->m_data.resize(this->m_data.size() + buffer_increment);
-		this->m_size_in_bytes = ror::static_cast_safe<ptrdiff_t>(this->m_data.size());
+		this->m_size_in_bytes = this->m_data.size();
 	}
 
 	auto offset = this->m_filled_size;
 
 	this->m_filled_size += a_bytes;
-	this->m_filled_size = static_cast<ptrdiff_t>(ror::align8(static_cast<uint64_t>(this->m_filled_size)));        // Aligning next offset for the most common denominator, other types are fine
+	this->m_filled_size = ror::align8(this->m_filled_size);        // Aligning next offset for the most common denominator, other types are fine
 
 	if (this->m_filled_size > this->m_size_in_bytes)
 		this->m_filled_size = this->m_size_in_bytes;
@@ -87,33 +89,33 @@ auto BufferCrtp<_type, _derived>::_offset(ptrdiff_t a_bytes)
 	return offset;
 }
 
-template <typename _type, typename _derived>
-auto BufferCrtp<_type, _derived>::offset(ptrdiff_t a_bytes)
+template <typename _type>
+auto BufferCrtp<_type>::offset(size_t a_bytes)
 {
 	// Do the allocation
 	return this->_offset(a_bytes);
 }
 
 // Request is only defined for Static buffer, we can't return a pointer of a dynamic buffer
-template <typename _type, typename _derived>
+template <typename _type>
 template <typename U, std::enable_if_t<std::is_same<U, Static>::value, bool>>
-auto *BufferCrtp<_type, _derived>::request(ptrdiff_t a_bytes)
+auto *BufferCrtp<_type>::request(size_t a_bytes)
 {
 	// This is only defined for Static buffers because this->m_data.data() might be invalid when _offset returns with a different size
 	return this->m_data.data() + this->_offset(a_bytes);
 }
 
 // Assumes data space is already allocated in this buffer so do request()/offset() and then multiple uploads() or request_upload() for bulk allocation and upload
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::copy(const uint8_t *a_data, size_t a_size, ptrdiff_t a_offset)
+template <typename _type>
+void BufferCrtp<_type>::copy(const uint8_t *a_data, size_t a_size, size_t a_offset)
 {
 	assert(a_size <= std::numeric_limits<size_t>::max() && "Buffer data too big for diff calculations");
 
 	std::copy(a_data, a_data + a_size, this->m_data.data() + a_offset);
 }
 
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::copy(const std::vector<uint8_t> &a_data, ptrdiff_t a_offset)
+template <typename _type>
+void BufferCrtp<_type>::copy(const std::vector<uint8_t> &a_data, size_t a_offset)
 {
 	// Do the allocation
 	assert(a_data.size() <= std::numeric_limits<size_t>::max() && "Buffer data too big for diff calculations");
@@ -121,87 +123,63 @@ void BufferCrtp<_type, _derived>::copy(const std::vector<uint8_t> &a_data, ptrdi
 	std::copy(a_data.begin(), a_data.end(), this->m_data.begin() + a_offset);
 }
 
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::size(ptrdiff_t a_size) noexcept
+template <typename _type>
+void BufferCrtp<_type>::size(size_t a_size) noexcept
 {
 	assert(a_size > 0 && "Buffer size must be positive");
-	assert(this->m_size_in_bytes == 0 && "BufferCrtp<_type, _derived>::resize is called again, this needs synchronising if this is happening for good reason");
+	assert(this->m_size_in_bytes == 0 && "BufferCrtp<_type>::resize is called again, this needs synchronising if this is happening for good reason");
 
 	// Probably better to make this lazy allocated, perhaps on first _offset() call
-	this->m_data.resize(static_cast<size_t>(a_size));
+	this->m_data.resize(a_size);
 	this->m_size_in_bytes = a_size;
 }
 
-template <typename _type, typename _derived>
-auto BufferCrtp<_type, _derived>::storage_mode() const noexcept
-{
-	return this->m_storage_mode;
-}
-
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::storage_mode(rhi::ResourceStorageMode a_mode) noexcept
-{
-	this->m_storage_mode = a_mode;
-}
-
-template <typename _type, typename _derived>
-auto BufferCrtp<_type, _derived>::size() const noexcept
+template <typename _type>
+auto BufferCrtp<_type>::size() const noexcept
 {
 	return this->m_size_in_bytes;
 }
 
-template <typename _type, typename _derived>
-auto BufferCrtp<_type, _derived>::filled_size() const noexcept
+template <typename _type>
+auto BufferCrtp<_type>::filled_size() const noexcept
 {
 	return this->m_filled_size;
 }
 
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::interleaved(bool a_interleaved) noexcept
+template <typename _type>
+void BufferCrtp<_type>::interleaved(bool a_interleaved) noexcept
 {
 	this->m_interleaved = a_interleaved;
 }
 
-template <typename _type, typename _derived>
-auto BufferCrtp<_type, _derived>::interleaved() const noexcept
+template <typename _type>
+auto BufferCrtp<_type>::interleaved() const noexcept
 {
 	return this->m_interleaved;
 }
 
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::ready(bool a_ready) noexcept
-{
-	this->m_ready = a_ready;
-}
-
-template <typename _type, typename _derived>
-auto BufferCrtp<_type, _derived>::ready() const noexcept
-{
-	return this->m_ready;
-}
-
-template <typename _type, typename _derived>
-void BufferCrtp<_type, _derived>::emplace_semantic(std::pair<rhi::BufferSemantic, uint64_t> &&a_pair)
+template <typename _type>
+void BufferCrtp<_type>::emplace_semantic(std::pair<rhi::BufferSemantic, uint64_t> &&a_pair)
 {
 	this->m_semantics.emplace_back(std::move(a_pair));
 }
 
-template <typename _type, typename _derived>
-auto BufferCrtp<_type, _derived>::semantic(size_t a_index) const noexcept
+template <typename _type>
+auto BufferCrtp<_type>::semantic(size_t a_index) const noexcept
 {
 	assert(a_index < this->m_semantics.size());
 
 	return this->m_semantics[a_index];
 }
 
-template <typename _type, typename _derived>
-const auto &BufferCrtp<_type, _derived>::semantics() const noexcept
+template <typename _type>
+const auto &BufferCrtp<_type>::semantics() const noexcept
 {
 	return this->m_semantics;
 }
 
-template <typename _type, typename _derived>
-const auto &BufferCrtp<_type, _derived>::data() const
+template <typename _type>
+const auto &BufferCrtp<_type>::data() const
 {
 	return this->m_data;
 }

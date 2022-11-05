@@ -68,7 +68,7 @@ void VertexDescriptor::add(std::vector<VertexAttribute> a_attribute, std::vector
 void VertexDescriptor::upload(const std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> &a_attrib_data, rhi::BuffersPack *a_buffers_pack)
 {
 	assert(a_attrib_data.size() == this->m_attributes.size() && "Uploading partial attributes not supported");
-	std::unordered_map<size_t, ptrdiff_t> buffer_to_size_map{};
+	std::unordered_map<size_t, size_t> buffer_to_size_map{};
 
 	// First calculate the total allocation size required for each buffer from the different attributes it can have
 	for (const auto &attrib_data : a_attrib_data)
@@ -97,7 +97,7 @@ void VertexDescriptor::upload(const std::unordered_map<rhi::BufferSemantic, std:
 		auto  format_bytes = rhi::format_to_bytes(attribute.format()) * layout.format_multiplier();
 		auto &buffer       = a_buffers_pack->buffer(buffer_index);
 		auto &real_offset  = buffer_to_size_map[buffer_index];
-		auto  attrib_offset{0L};
+		auto  attrib_offset{0UL};
 
 		auto [buffer_pointer, buffer_size, buffer_stride] = attrib_data.second;
 
@@ -119,7 +119,7 @@ void VertexDescriptor::upload(const std::unordered_map<rhi::BufferSemantic, std:
 			// Case 4: Both destination and source stride means they are interleaved
 			// Thats why lets do element by element upload
 			for (size_t i = 0; i < element_count; ++i)
-				buffer.copy(buffer_pointer + i * buffer_stride, format_bytes, attrib_offset + stride * static_cast<ptrdiff_t>(i));
+				buffer.copy(buffer_pointer + i * buffer_stride, format_bytes, attrib_offset + stride * i);
 		}
 
 		attribute.count(element_count);

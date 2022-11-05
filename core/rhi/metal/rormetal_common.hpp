@@ -26,9 +26,9 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
-#include "rhi/crtp_interfaces/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 
+#include <Metal/MTLResource.hpp>
 #include <Metal/MTLSampler.hpp>
 #include <Metal/MTLStageInputOutputDescriptor.hpp>
 #include <Metal/MTLTexture.hpp>
@@ -41,18 +41,18 @@
 
 namespace rhi
 {
-constexpr FORCE_INLINE MTL::PixelFormat to_metal_pixelformat(rhi::PixelFormat a_pixelformat)
+constexpr FORCE_INLINE auto to_metal_pixelformat(rhi::PixelFormat a_pixelformat)
 {
 	return static_cast<MTL::PixelFormat>(a_pixelformat);
 }
 
-constexpr FORCE_INLINE MTL::VertexFormat to_metal_vertexformat(rhi::VertexFormat a_vertexformat)
+constexpr FORCE_INLINE auto to_metal_vertexformat(rhi::VertexFormat a_vertexformat)
 {
 	assert(a_vertexformat < rhi::VertexFormat::bool32_1 && "Unsupported vertex format");
 	return static_cast<MTL::VertexFormat>(a_vertexformat);
 }
 
-constexpr FORCE_INLINE MTL::VertexStepFunction to_metal_step_function(rhi::StepFunction a_function)
+constexpr FORCE_INLINE auto to_metal_step_function(rhi::StepFunction a_function)
 {
 	switch (a_function)
 	{
@@ -65,4 +65,10 @@ constexpr FORCE_INLINE MTL::VertexStepFunction to_metal_step_function(rhi::StepF
 		// clang-format on
 	}
 }
+
+constexpr FORCE_INLINE auto to_metal_resource_option(rhi::ResourceStorageOption a_mode)
+{
+	return static_cast<MTL::ResourceOptions>(a_mode);
+}
+
 }        // namespace rhi

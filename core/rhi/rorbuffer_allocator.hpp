@@ -80,7 +80,7 @@ class ROAR_ENGINE_ITEM BufferAllocator
 
 		// This is thread safe because Buffer is thread safe
 		// This is only valid for Static Buffers, b.request will change if its dynamic and this won't work
-		return reinterpret_cast<_type *>(b.request(static_cast<ptrdiff_t>(a_count * sizeof(_type))));
+		return reinterpret_cast<_type *>(b.request(a_count * sizeof(_type)));
 	}
 
 	FORCE_INLINE void deallocate(_type *a_pointer, std::size_t a_count) noexcept

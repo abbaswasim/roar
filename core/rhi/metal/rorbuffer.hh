@@ -23,90 +23,141 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rormacros.hpp"
+#include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/metal/rorbuffer.hpp"
 #include "rhi/metal/rordevice.hpp"
+#include "rhi/metal/rormetal_common.hpp"
+#include "rhi/rortypes.hpp"
 #include <Metal/MTLRenderCommandEncoder.hpp>
 
 namespace rhi
 {
-template <typename _type>
-void BufferMetal<_type>::_temp_virtual()
-{}
 
-template <typename _type>
-void BufferMetal<_type>::release()
+void BufferMetal::release()
 {
 	if (this->m_buffer)
-		this->m_buffer->release;
+		this->m_buffer->release();
 }
 
-template <typename _type>
-void BufferMetal<_type>::upload(rhi::Device &a_device)
-{
-	/*
-	For buffers in the device address space, align the offset to the data type consumed by the vertex function (which is always less than or equal to 16 bytes).
-	For buffers in the constant address space, align the offset to 256 bytes in macOS. In iOS, align the offset to the maximum of either the data type consumed by the vertex function, or 4 bytes. A 16-byte alignment is safe in iOS if you don't need to consider the data type.
-	 */
-
-	// Create the buffer once. but can be uploaded many times with updates
-	if (this->m_buffer == nullptr)
-		this->init(a_device, static_cast<size_t>(this->filled_size()));
-
-	this->partial_upload(0, static_cast<size_t>(this->filled_size()));
-
-	this->ready(true);
-}
-
-template <typename _type>
-void BufferMetal<_type>::reupload()
-{
-	assert(this->m_buffer && "Update called on null buffer");
-	this->partial_upload(0, static_cast<size_t>(this->filled_size()));
-	this->ready(true);
-}
-
-template <typename _type>
-void BufferMetal<_type>::partial_upload(size_t a_offset, size_t a_length)
-{
-	std::memcpy(this->m_buffer->contents(), this->data().data() + a_offset, a_length);
-
-	// Only need those for ResourceStorageModeManaged resources
-	this->m_buffer->didModifyRange(NS::Range::Make(a_offset, this->m_buffer->length()));
-}
-
-template <typename _type>
-FORCE_INLINE void BufferMetal<_type>::init(rhi::Device &a_device, size_t a_size_in_bytes)
+FORCE_INLINE void BufferMetal::init(rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
 {
 	if (a_size_in_bytes == 0)
 		ror::log_warn("Create a buffer of size {}", a_size_in_bytes);
 
+	assert(this->m_buffer == nullptr && "Calling init on already created buffer");
+
+	this->storage_mode(a_mode);
+
 	MTL::Device *device = a_device.platform_device();
-	this->m_buffer      = device->newBuffer(std::max(1ul, a_size_in_bytes), MTL::ResourceStorageModeManaged);        // TODO: Add other modes
+	this->m_buffer      = device->newBuffer(std::max(1ul, a_size_in_bytes), rhi::to_metal_resource_option(this->storage_mode()));
 }
 
-template <typename _type>
-FORCE_INLINE constexpr auto BufferMetal<_type>::map() noexcept
+FORCE_INLINE void BufferMetal::init(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
 {
-	return static_cast<uint8_t *>(this->platform_buffer()->contents());
+	this->init(a_device, a_size_in_bytes, a_mode);
+	this->upload(a_device, a_data_pointer, a_size_in_bytes);
 }
 
-template <typename _type>
-FORCE_INLINE constexpr void BufferMetal<_type>::unmap() noexcept
+FORCE_INLINE constexpr void BufferMetal::unmap(std::uintptr_t a_offset, std::uintptr_t a_length) noexcept
 {
-	this->m_buffer->didModifyRange(NS::Range::Make(0, this->m_buffer->length()));        // Remember this is only valid for Managed mode, shared doesn't require this
+	if (this->storage_mode() == rhi::ResourceStorageOption::managed)
+	{
+		this->m_buffer->didModifyRange(NS::Range::Make(a_offset, a_length));        // only valid for Managed mode, shared and other doesn't require this
+	}
+	else if (this->storage_mode() == rhi::ResourceStorageOption::shared)
+	{}        // Do nothing already unmapped
+	else
+		ror::log_critical("Can't unmap private or memory less buffer");
 }
 
-template <typename _type>
-FORCE_INLINE constexpr void BufferMetal<_type>::unmap_partial(std::uintptr_t a_from, std::uintptr_t a_to) noexcept
+FORCE_INLINE constexpr auto BufferMetal::map() noexcept
 {
-	this->m_buffer->didModifyRange(NS::Range::Make(a_from, a_to));        // Remember this is only valid for Managed mode, shared doesn't require this
+	if (this->storage_mode() == rhi::ResourceStorageOption::shared ||
+	    this->storage_mode() == rhi::ResourceStorageOption::managed)
+	{
+		return static_cast<uint8_t *>(this->m_buffer->contents());
+	}
+	else
+	{
+		ror::log_critical("Can't map private or memory less buffer");
+		return static_cast<uint8_t *>(nullptr);
+	}
 }
 
-template <typename _type>
-FORCE_INLINE constexpr void BufferMetal<_type>::bind(MTL::RenderCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset) const noexcept
+FORCE_INLINE constexpr void BufferMetal::unmap() noexcept
 {
-	// auto &shader_buffer = this->shader_buffer();
+	this->unmap(0, this->m_buffer->length());
+}
+
+// TODO: Find all call sites and init before upload
+void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes)
+{
+	/*
+	For buffers in the device address space, align the offset to the data type consumed by the vertex function (which is always less than or equal to 16 bytes).
+	For buffers in the constant address space, align the offset to 256 bytes in macOS. In iOS, align the offset to the maximum of either the data type consumed
+	by the vertex function, or 4 bytes. A 16-byte alignment is safe in iOS if you don't need to consider the data type.
+	*/
+
+	this->upload(a_device, a_data_pointer, 0, a_size_in_bytes);
+}
+
+void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
+{
+	// Some sanity checks first
+	assert(this->m_buffer && "Called upload on uninitialized buffer, call init() first");
+	assert(a_offset <= a_length);
+	assert(a_offset <= this->m_buffer->length());
+	assert(this->m_buffer->length() >= a_length && "Not enough space in the buffer being copied into");
+	assert(this->m_buffer->length() >= a_offset + a_length && "Not enough space in the buffer being copied into");
+
+	if (this->storage_mode() == rhi::ResourceStorageOption::exclusive)
+	{
+		MTL::Device             *device               = a_device.platform_device();
+		MTL::CommandQueue       *queue                = a_device.platform_queue();
+		MTL::Buffer             *source_buffer        = device->newBuffer(a_data_pointer + a_offset, a_length, MTL::ResourceStorageModeShared);
+		MTL::CommandBuffer      *command_buffer       = queue->commandBuffer();
+		MTL::BlitCommandEncoder *blit_command_encoder = command_buffer->blitCommandEncoder();
+
+		blit_command_encoder->copyFromBuffer(source_buffer, a_offset, this->m_buffer, a_offset, a_length);
+		blit_command_encoder->endEncoding();
+
+		command_buffer->addCompletedHandler([this](MTL::CommandBuffer *) { this->ready(true); });
+		command_buffer->commit();
+	}
+	else if (this->storage_mode() == rhi::ResourceStorageOption::shared ||
+	         this->storage_mode() == rhi::ResourceStorageOption::managed)
+	{
+		uint8_t *ptr = this->map() + a_offset;
+		std::memcpy(ptr, a_data_pointer + a_offset, a_length);
+		this->unmap(a_offset, a_length);
+		this->ready(true);
+	}
+	else
+	{
+		assert(this->storage_mode() == rhi::ResourceStorageOption::memory_less);
+		assert(0 && "Can't upload into a memory less buffer");
+	}
+}
+
+// void BufferMetal::update(uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
+// {
+// 	// Some sanity checks first
+// 	assert(a_offset < a_length);
+// 	assert(a_offset < this->m_buffer->length());
+// 	assert(this->m_buffer->length() >= a_length && "Not enough space in the buffer being copied into");
+// 	assert(this->m_buffer->length() >= a_offset + a_length && "Not enough space in the buffer being copied into");
+
+// 	assert(this->storage_mode() == rhi::ResourceStorageOption::exclusive && "Can't update private/exclusive buffer data, its expensive, if really needed call upload() instead");
+// 	assert(this->storage_mode() == rhi::ResourceStorageOption::memory_less && "Can't update memory less buffer data");
+
+// 	std::memcpy(this->map() + a_offset, a_data_pointer + a_offset, a_length);
+// 	this->unmap(a_offset, a_length);
+// }
+
+FORCE_INLINE constexpr void BufferMetal::bind(MTL::RenderCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset) const noexcept
+{
 	switch (a_shader_stage)
 	{
 		case rhi::ShaderType::vertex:
@@ -116,8 +167,29 @@ FORCE_INLINE constexpr void BufferMetal<_type>::bind(MTL::RenderCommandEncoder *
 			a_cmd_encoder->setFragmentBuffer(this->m_buffer, a_offset, a_index);
 			break;
 		case rhi::ShaderType::compute:
-			// a_cmd_encoder->setBuffer(this->m_buffer, a_offset, a_index);
-			// break;
+		case rhi::ShaderType::none:
+		case rhi::ShaderType::mesh:
+		case rhi::ShaderType::task:
+		case rhi::ShaderType::tile:
+		case rhi::ShaderType::ray_miss:
+		case rhi::ShaderType::ray_any_hit:
+		case rhi::ShaderType::ray_closest_hit:
+		case rhi::ShaderType::ray_intersection:
+		case rhi::ShaderType::ray_generation:
+			ror::log_critical("Binding buffer to unsupported shader stage");
+			break;
+	}
+}
+
+FORCE_INLINE constexpr void BufferMetal::bind(MTL::ComputeCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset) const noexcept
+{
+	switch (a_shader_stage)
+	{
+		case rhi::ShaderType::compute:
+			a_cmd_encoder->setBuffer(this->m_buffer, a_offset, a_index);
+			break;
+		case rhi::ShaderType::vertex:
+		case rhi::ShaderType::fragment:
 		case rhi::ShaderType::none:
 		case rhi::ShaderType::mesh:
 		case rhi::ShaderType::task:

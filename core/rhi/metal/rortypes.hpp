@@ -26,6 +26,7 @@
 #pragma once
 
 #include <Metal/MTLPixelFormat.hpp>
+#include <Metal/MTLResource.hpp>
 #include <Metal/MTLSampler.hpp>
 #include <Metal/MTLVertexDescriptor.hpp>
 
@@ -243,5 +244,10 @@ constexpr auto PlatformTextureFilterLinear  = MTL::SamplerMinMagFilterLinear;
 constexpr auto PlatformTextureMipFilterNotMipmapped = MTL::SamplerMipFilterNotMipmapped;
 constexpr auto PlatformTextureMipFilterNearest      = MTL::SamplerMipFilterNearest;
 constexpr auto PlatformTextureMipFilterLinear       = MTL::SamplerMipFilterLinear;
+
+constexpr auto PlatformStorageModeManaged    = MTL::ResourceStorageModeManaged;        // MTL::StorageModeManaged;
+constexpr auto PlatformStorageModeShared     = MTL::ResourceStorageModeShared;
+constexpr auto PlatformStorageModePrivate    = MTL::ResourceStorageModePrivate;
+constexpr auto PlatformStorageModeMemoryLess = MTL::ResourceStorageModeMemoryless;
 
 }        // namespace rhi

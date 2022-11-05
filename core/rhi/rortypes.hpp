@@ -336,11 +336,12 @@ enum class StepFunction
 	patch_control_point
 };
 
-struct BufferRange
+enum class ResourceStorageOption
 {
-	uint32_t m_location;        // Which buffer is returned
-	uint64_t m_offset;          // Which offset I can use
-	uint64_t m_length;          // How many bytes are available
+	shared      = PlatformStorageModeShared,
+	managed     = PlatformStorageModeManaged,
+	exclusive   = PlatformStorageModePrivate,
+	memory_less = PlatformStorageModeMemoryLess
 };
 
 // If new types are required make sure to change in rormodel.hpp
