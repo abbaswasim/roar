@@ -62,11 +62,70 @@
 	"buffers":[
 		{
 			"name":"node_transform_output",
-			"format":"r32_float32"
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"binding":0,
+			"entries":[
+				{
+					"struct":{
+						"name":"node_transform",
+						"count":0,
+						"entries":[
+							{
+								"name":"rotation",
+								"format":"float32_4"
+							},
+							{
+								"name":"translation",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale_inverse",
+								"format":"float32_3"
+							}
+						]
+					}
+				}
+			]
 		},
 		{
 			"name":"node_transform_input",
-			"format":"r32_float32"
+			"layout":"std140",
+			"type":"ssbo",
+			"count":0,
+			"set":0,
+			"binding":1,
+			"entries":[
+				{
+					"struct":{
+						"name":"node_transform_in",
+						"count":0,
+						"entries":[
+							{
+								"name":"rotation",
+								"format":"float32_4"
+							},
+							{
+								"name":"translation",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale_inverse",
+								"format":"float32_3"
+							}
+						]
+					}
+				}
+			]
 		}
 	],
 	"frame_graph":{

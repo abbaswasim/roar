@@ -51,7 +51,7 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 
 	struct Entry
 	{
-		std::string       m_name{};
+		std::string       m_name{"empty_entry"};
 		rhi::VertexFormat m_format{rhi::VertexFormat::float32_4};
 		uint32_t          m_count{1};
 
@@ -152,9 +152,9 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	}
 
 	template <typename _data_type>
-	FORCE_INLINE constexpr void update(const std::string &a_variable, const _data_type &a_value, uint32_t a_index, uint32_t a_stride)
+	FORCE_INLINE constexpr void update(const std::string &a_variable, const _data_type *a_value, uint32_t a_index, uint32_t a_stride)
 	{
-		this->update(a_variable, reinterpret_cast<const uint8_t *>(&a_value), a_index, a_stride);
+		this->update(a_variable, reinterpret_cast<const uint8_t *>(a_value), a_index, a_stride);
 	}
 
 	FORCE_INLINE constexpr void update(const std::string &a_variable, const uint8_t *a_value, uint32_t a_index, uint32_t a_stride)
@@ -175,12 +175,17 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 		this->buffer_copy(a_value, entry->m_offset, entry->m_size);
 	}
 
-	void shader_buffer_upload(rhi::Device &a_device, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::managed)
+	void upload(rhi::Device &a_device, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::managed)
 	{
 		// Alignment on size is Metal requirement but won't hurt in Vulkan either (https://github.com/gpuweb/gpuweb/issues/425)
 		auto aligned_size = ror::static_cast_safe<uint32_t>(ror::align16(this->m_shader_buffer_template.size()));
 		this->update_variables();
 		this->buffer_init(a_device, aligned_size, a_mode);
+	}
+
+	FORCE_INLINE auto &top_level() 
+	{
+		return this->m_shader_buffer_template.top_level();
 	}
 
   protected:

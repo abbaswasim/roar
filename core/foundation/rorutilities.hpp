@@ -278,15 +278,19 @@ FORCE_INLINE void vector_remove_duplicates(std::vector<_type> &a_vector, _predic
 	a_vector.erase(last, a_vector.end());
 }
 
-// Not safe for unsigned to signed conversion but the compiler will complain about that
 template <class _type_to,
           class _type_from,
           class _type_big = typename std::conditional<std::is_integral<_type_from>::value, unsigned long long, long double>::type>
 constexpr FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
 {
 	if constexpr (get_build() == BuildType::build_debug)
+	{
+		if (a_value < static_cast<_type_from>(0))
+			throw std::runtime_error("Safe casting from negative values is undefined.\n");
+
 		if (static_cast<_type_big>(a_value) > static_cast<_type_big>(std::numeric_limits<_type_to>::max()))
 			throw std::runtime_error("Loss of data doing safe casting.\n");
+	}
 
 	return static_cast<_type_to>(a_value);
 }

@@ -187,7 +187,7 @@ void OrbitCamera::upload(rhi::Device &a_device)
 	  } in_directional_light_uniforms;
 	*/
 	this->fill_shader_buffer();
-	this->m_shader_buffer.shader_buffer_upload(a_device);
+	this->m_shader_buffer.upload(a_device);
 
 	this->update();
 }

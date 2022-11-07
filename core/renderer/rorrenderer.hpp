@@ -93,7 +93,7 @@ class Renderer final : public Configuration<Renderer>
 
 	using InputRenderTargets = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
 	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
-	using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderBuffer*>;
+	using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderBuffer *>;
 
   protected:
   private:
@@ -109,18 +109,18 @@ class Renderer final : public Configuration<Renderer>
 	void load_buffers();
 	void setup_references();
 
-	std::vector<rhi::Shader>              m_shaders{};                           //! All the global shaders
-	std::vector<rhi::Program>             m_programs{};                          //! All the global shader programs
-	std::vector<rhi::TextureImage>        m_textures{};                          //! All the textures some render passes might want to write into
-	std::vector<rhi::Buffer<rhi::Static>> m_buffers{};                           //! All the buffers some render passes might want to write into
-	ror::Vector2ui                        m_dimensions{1024, 768};               //! Dimensions of the renderer framebuffers, if not provided will use from window, overriden by renderer.json
-	ror::Vector4i                         m_viewport{0, 0, 1024, 768};           //! Viewport to use to render into the render targets, RTs can override it
-	FrameGraph                            m_frame_graphs{};                      //! Frame graph for all techniques like forward, deferred etc
-	std::vector<rhi::Renderpass>         *m_current_frame_graph{nullptr};        //! Non-owning raw pointer alias that Points to the active technique in the framegraphs
-	rhi::Renderstate                      m_render_state{};                      //! Almost all the render state that the renderer requires will be stored here
-	InputRenderTargets                    m_input_render_targets{};              //! Render targets that are not directly associated with any render pass but required to be filled in before rendering starts
-	InputBufferTargets                    m_input_render_buffers{};              //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
-	ShaderBufferMap                       m_global_shader_buffers{};             //! All the global Shader buffers (UBO/SSBO) that can be used in different passes
+	std::vector<rhi::Shader>       m_shaders{};                           //! All the global shaders
+	std::vector<rhi::Program>      m_programs{};                          //! All the global shader programs
+	std::vector<rhi::TextureImage> m_textures{};                          //! All the textures some render passes might want to write into
+	std::vector<rhi::ShaderBuffer> m_buffers{};                           //! All the buffers some render passes might want to write into
+	ror::Vector2ui                 m_dimensions{1024, 768};               //! Dimensions of the renderer framebuffers, if not provided will use from window, overriden by renderer.json
+	ror::Vector4i                  m_viewport{0, 0, 1024, 768};           //! Viewport to use to render into the render targets, RTs can override it
+	FrameGraph                     m_frame_graphs{};                      //! Frame graph for all techniques like forward, deferred etc
+	std::vector<rhi::Renderpass>  *m_current_frame_graph{nullptr};        //! Non-owning raw pointer alias that Points to the active technique in the framegraphs
+	rhi::Renderstate               m_render_state{};                      //! Almost all the render state that the renderer requires will be stored here
+	InputRenderTargets             m_input_render_targets{};              //! Render targets that are not directly associated with any render pass but required to be filled in before rendering starts
+	InputBufferTargets             m_input_render_buffers{};              //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
+	ShaderBufferMap                m_global_shader_buffers{};             //! All the global Shader buffers (UBO/SSBO) that can be used in different passes
 };
 
 }        // namespace ror

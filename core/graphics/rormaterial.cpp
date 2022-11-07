@@ -27,6 +27,7 @@
 #include "foundation/rortypes.hpp"
 #include "graphics/rormaterial.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
+#include "rhi/rortypes.hpp"
 
 namespace ror
 {

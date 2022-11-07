@@ -32,6 +32,7 @@
 #include "math/rorvector4.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorshader_buffer.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include <cstddef>
 
 namespace ror
@@ -53,7 +54,10 @@ class ROAR_ENGINE_ITEM Skin
 
 	void update()
 	{
+		this->m_joint_transform_shader_buffer.buffer_map();
+
 		auto stride = this->m_joint_transform_shader_buffer.stride("joint_transforms");
+
 		for (size_t joint_id = 0; joint_id < this->m_joint_transforms.size(); ++joint_id)
 		{
 			auto &xform = this->m_joint_transforms[joint_id];
@@ -88,7 +92,7 @@ class ROAR_ENGINE_ITEM Skin
 
 		this->m_joint_transform_shader_buffer.add_struct(trs_transform);
 
-		this->m_joint_transform_shader_buffer.shader_buffer_upload(a_device);
+		this->m_joint_transform_shader_buffer.upload(a_device);
 
 		this->update();
 	}
@@ -98,7 +102,7 @@ class ROAR_ENGINE_ITEM Skin
 	std::vector<Transformf, rhi::BufferAllocator<Transformf>> m_joint_transforms{};                     //! Scratch space for array of calculated transforms every frame
 	int32_t                                                   m_root{-1};                               //! Node index of each skin, should be init with -1
 	int32_t                                                   m_node_index{-1};                         //! Node index as well where the each skin is attached, should be init with -1
-	rhi::ShaderBuffer                                         m_joint_transform_shader_buffer{};        //! ShaderBuffers for joint_transforms within the skinning shader
+	rhi::ShaderBuffer                                         m_joint_transform_shader_buffer{"joint_transforms_uniform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 1};        //! ShaderBuffers for joint_transforms within the skinning shader
 };
 
 }        // namespace ror

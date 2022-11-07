@@ -144,6 +144,41 @@ void Renderer::load_textures()
 	}
 }
 
+void read_entry(nlohmann::json a_json_entry, rhi::ShaderBufferTemplate::Struct &a_struct, rhi::Layout a_layout)
+{
+	if (a_json_entry.contains("struct"))
+	{
+		rhi::ShaderBufferTemplate::Struct shb_struct;
+		auto                              json_struct = a_json_entry["struct"];
+
+		assert(json_struct.contains("name") && "Struct must provide a name");
+		shb_struct.m_name = json_struct["name"];
+		if (json_struct.contains("count"))
+			shb_struct.m_count = json_struct["count"];
+
+		auto entries = json_struct["entries"];
+		for (auto &entry : entries)
+			read_entry(entry, shb_struct, a_layout);
+
+		a_struct.add_struct(std::move(shb_struct));
+	}
+	else
+	{
+		std::string name{};
+		rhi::Format format{rhi::Format::float32_4};
+		uint32_t    count{1};
+
+		assert(a_json_entry.contains("name") && "Entry must provide a name");
+		name = a_json_entry["name"];
+		if (a_json_entry.contains("format"))
+			format = rhi::string_to_vertex_format(a_json_entry["format"]);
+		if (a_json_entry.contains("count"))
+			count = a_json_entry["count"];
+
+		a_struct.add_entry(name, format, a_layout, count);
+	}
+}
+
 void Renderer::load_buffers()
 {
 	if (this->m_json_file.contains("buffers"))
@@ -151,11 +186,36 @@ void Renderer::load_buffers()
 		auto buffers = this->m_json_file["buffers"];
 		for (auto &buffer : buffers)
 		{
-			// Unused properties name and format
-			if (buffer.contains("name")) {}
-			if (buffer.contains("format")) {}
+			std::string           name{};
+			rhi::Layout           layout{rhi::Layout::std140};
+			rhi::ShaderBufferType type{rhi::ShaderBufferType::ubo};
+			uint32_t              set{0};
+			uint32_t              binding{0};
 
-			this->m_buffers.emplace_back();
+			assert(buffer.contains("name") && "Buffer must provide a name");
+			name = buffer["name"];
+
+			if (buffer.contains("layout"))
+				layout = rhi::string_to_layout(buffer["layout"]);
+			if (buffer.contains("type"))
+				type = rhi::string_to_shader_buffer_type(buffer["type"]);
+			if (buffer.contains("set"))
+				set = buffer["set"];
+			if (buffer.contains("binding"))
+				binding = buffer["binding"];
+
+			rhi::ShaderBuffer shader_buffer{name, type, layout, set, binding};
+
+			assert(buffer.contains("entries") && "Buffer description must contain entries");
+			{
+				auto entries = buffer["entries"];
+				for (auto &entry : entries)
+				{
+					read_entry(entry, shader_buffer.top_level(), layout);
+				}
+			}
+
+			this->m_buffers.emplace_back(std::move(shader_buffer));
 		}
 	}
 }
@@ -174,12 +234,12 @@ rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
 	else if (a_type == "post_process")       return rhi::RenderpassType::post_process;
 	else if (a_type == "tone_mapping")       return rhi::RenderpassType::tone_mapping;
 	else if (a_type == "forward_light")      return rhi::RenderpassType::forward_light;
-	else if (a_type == "node_transform")      return rhi::RenderpassType::node_transform;
+	else if (a_type == "node_transform")     return rhi::RenderpassType::node_transform;
 	else if (a_type == "deferred_gbuffer")   return rhi::RenderpassType::deferred_gbuffer;
 	else if (a_type == "reflection_probes")  return rhi::RenderpassType::reflection_probes;
 	else if (a_type == "image_based_light")  return rhi::RenderpassType::image_based_light;
 	else if (a_type == "ambient_occlusion")  return rhi::RenderpassType::ambient_occlusion;
-	else if (a_type == "skeletal_transform")  return rhi::RenderpassType::skeletal_transform;
+	else if (a_type == "skeletal_transform") return rhi::RenderpassType::skeletal_transform;
 	else if (a_type == "deferred_clustered") return rhi::RenderpassType::deferred_clustered;
 	// clang-format on
 
@@ -218,8 +278,8 @@ rhi::StoreAction to_store_action(nlohmann::json a_storeaction)
 }
 
 void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame_graph, ror::Vector4i a_viewport, ror::Vector2ui a_dimensions,
-                      std::vector<rhi::TextureImage>        &a_textures,
-                      std::vector<rhi::Buffer<rhi::Static>> &a_buffers)
+                      std::vector<rhi::TextureImage> &a_textures,
+                      std::vector<rhi::ShaderBuffer> &a_buffers)
 {
 	rhi::Renderpass render_pass;
 
@@ -315,7 +375,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			rhi::StoreAction store_action = to_store_action(storeaction);
 
 			// Emplaces a RenderTarget
-			assert(index < a_buffers.size() && "Index is out of bound for render targets provided");
+			assert(index < a_buffers.size() && "Index is out of bound for render buffers provided");
 
 			rbs.emplace_back(index, a_buffers[index], load_action, store_action);
 		}
@@ -602,7 +662,10 @@ void Renderer::upload(rhi::Device &a_device)
 		render_target.m_target_reference.get().upload(a_device);
 
 	for (auto &render_buffer : this->m_input_render_buffers)
-		render_buffer.m_target_reference.get().upload(a_device);
+	{
+		render_buffer.m_target_reference.get().upload(a_device);        // This doesn't make it ready so it will be re-created later again unless ready is explicitly called on it
+		render_buffer.m_target_reference.get().ready(true);
+	}
 
 	for (auto &graph : this->m_frame_graphs)
 	{
@@ -632,7 +695,8 @@ void Renderer::upload(rhi::Device &a_device)
 				auto &buffer = render_buffer.m_target_reference.get();
 				if (!buffer.ready())
 				{
-					buffer.upload(a_device);        // Creates a gpu buffer with 1 byte size, which can be released and uploaded later with proper size
+					buffer.upload(a_device);        // this will still not make it ready, have to be done later before first use, unless ready is called next
+					buffer.ready(true);
 				}
 				else
 				{
@@ -659,7 +723,7 @@ void Renderer::upload(rhi::Device &a_device)
 			{
 				auto &buffer = render_buffer.m_target_reference.get();
 				(void) buffer;
-				assert(buffer.ready() && "Required buffers are not ready");
+				assert(buffer.ready() && "Required buffers are not ready"); // Don't need this because buffers will be filled later and marked ready before use
 			}
 		}
 	}

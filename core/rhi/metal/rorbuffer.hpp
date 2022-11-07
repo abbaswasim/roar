@@ -56,12 +56,12 @@ class ROAR_ENGINE_ITEM BufferMetal
 	FORCE_INLINE void           init(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::shared);
 	FORCE_INLINE void           upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes);
 	FORCE_INLINE void           upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
+	FORCE_INLINE void           upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
 	FORCE_INLINE constexpr void unmap() noexcept;
 	FORCE_INLINE constexpr void unmap(std::uintptr_t a_from, std::uintptr_t a_to) noexcept;
 	FORCE_INLINE constexpr void bind(MTL::RenderCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept;
 	FORCE_INLINE constexpr void bind(MTL::ComputeCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept;
 
-	FORCE_INLINE void upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
 	// FORCE_INLINE constexpr auto size()               const noexcept { return this->m_buffer->length(); }
 
 	// clang-format off

@@ -39,6 +39,7 @@
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rorshader_buffer.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
 #include <any>
 #include <filesystem>

@@ -43,7 +43,7 @@ namespace rhi
 class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public BufferMetal
 {
   public:
-	FORCE_INLINE                    ShaderBufferMetal()                                     = default;        //! Default constructor
+	FORCE_INLINE                    ShaderBufferMetal()                                     = delete;        //! Default constructor
 	FORCE_INLINE                    ShaderBufferMetal(const ShaderBufferMetal &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE                    ShaderBufferMetal(ShaderBufferMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ShaderBufferMetal &operator=(const ShaderBufferMetal &a_other)             = delete;         //! Copy assignment operator
@@ -76,6 +76,9 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public Buf
 
 		std::memcpy(this->m_mapped_address + a_offset, a_data, a_length);
 	}
+
+	// Forbids using uploads from BufferMetal
+	using ShaderBufferCrtp<ShaderBufferMetal>::upload;
 
   protected:
   private:

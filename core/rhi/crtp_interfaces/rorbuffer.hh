@@ -120,7 +120,8 @@ void BufferCrtp<_type>::copy(const std::vector<uint8_t> &a_data, size_t a_offset
 	// Do the allocation
 	assert(a_data.size() <= std::numeric_limits<size_t>::max() && "Buffer data too big for diff calculations");
 
-	std::copy(a_data.begin(), a_data.end(), this->m_data.begin() + a_offset);
+	ptrdiff_t offset = ror::static_cast_safe<ptrdiff_t>(a_offset);
+	std::copy(a_data.begin(), a_data.end(), this->m_data.begin() + offset);
 }
 
 template <typename _type>

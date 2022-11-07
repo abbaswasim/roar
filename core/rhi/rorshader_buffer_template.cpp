@@ -30,6 +30,29 @@
 
 namespace rhi
 {
+
+Layout string_to_layout(const std::string &a_layout)
+{
+	// clang-format off
+	if (a_layout == "std140" ) return Layout::std140;
+	else if (a_layout == "std430" ) return Layout::std140;
+	// clang-format on
+
+	assert(0 && "Shouldn't reach here");
+	return Layout::std140;
+}
+
+ShaderBufferType string_to_shader_buffer_type(const std::string &a_type)
+{
+	// clang-format off
+	if (a_type == "ubo" ) return ShaderBufferType::ubo;
+	else if (a_type == "ssbo" ) return ShaderBufferType::ssbo;
+	// clang-format on
+
+	assert(0 && "Shouldn't reach here");
+	return ShaderBufferType::ubo;
+}
+
 constexpr uint32_t format_base_alignment_count(Format a_format)
 {
 	switch (a_format)
@@ -247,7 +270,7 @@ void ShaderBufferTemplate::Struct::add_struct(Struct a_struct)
 
 	this->m_entries.emplace_back(a_struct);
 
-	this->m_offset    = ror::align16(this->m_offset + struct_stride * std::max(a_struct.m_count, 1u));
+	this->m_offset = ror::align16(this->m_offset + struct_stride * std::max(a_struct.m_count, 1u));
 
 	if (this->m_stride == 0)
 		this->m_stride = struct_stride;

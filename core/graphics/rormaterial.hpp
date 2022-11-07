@@ -35,6 +35,7 @@
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rorshader_buffer.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
 #include <bitset>
 #include <cstddef>

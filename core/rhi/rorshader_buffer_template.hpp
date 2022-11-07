@@ -28,6 +28,7 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorutilities.hpp"
 #include "rhi/rortypes.hpp"
+#include <cassert>
 #include <cstddef>
 #include <string>
 #include <unordered_map>
@@ -47,6 +48,9 @@ enum class ShaderBufferType : uint32_t
 	ubo,
 	ssbo
 };
+
+Layout           string_to_layout(const std::string &a_layout);
+ShaderBufferType string_to_shader_buffer_type(const std::string &a_type);
 
 /**
  * Shader input Buffer encapsulation
@@ -143,6 +147,11 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	{
 		assert(this->m_type == ShaderBufferType::ubo || this->m_type == ShaderBufferType::ssbo && "Requesting invalid type");
 		return this->m_type == ShaderBufferType::ubo ? "uniform" : "buffer";
+	}
+
+	FORCE_INLINE auto &top_level() 
+	{
+		return this->m_toplevel;
 	}
 
 	/**

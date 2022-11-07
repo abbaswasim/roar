@@ -610,6 +610,105 @@ rhi::PixelFormat string_to_pixel_format(const std::string &a_format)
 	return rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb;
 }
 
+rhi::VertexFormat string_to_vertex_format(const std::string &a_format)
+{
+	// clang-format off
+	if      (a_format == "invalid"              ) return rhi::VertexFormat::invalid;
+	else if (a_format == "int8_1"               ) return rhi::VertexFormat::int8_1;
+	else if (a_format == "int8_2"               ) return rhi::VertexFormat::int8_2;
+	else if (a_format == "int8_3"               ) return rhi::VertexFormat::int8_3;
+	else if (a_format == "int8_4"               ) return rhi::VertexFormat::int8_4;
+	else if (a_format == "int16_1"              ) return rhi::VertexFormat::int16_1;
+	else if (a_format == "int16_2"              ) return rhi::VertexFormat::int16_2;
+	else if (a_format == "int16_3"              ) return rhi::VertexFormat::int16_3;
+	else if (a_format == "int16_4"              ) return rhi::VertexFormat::int16_4;
+	else if (a_format == "int32_1"              ) return rhi::VertexFormat::int32_1;
+	else if (a_format == "int32_2"              ) return rhi::VertexFormat::int32_2;
+	else if (a_format == "int32_3"              ) return rhi::VertexFormat::int32_3;
+	else if (a_format == "int32_4"              ) return rhi::VertexFormat::int32_4;
+	else if (a_format == "half16_1"             ) return rhi::VertexFormat::half16_1;
+	else if (a_format == "half16_2"             ) return rhi::VertexFormat::half16_2;
+	else if (a_format == "half16_3"             ) return rhi::VertexFormat::half16_3;
+	else if (a_format == "half16_4"             ) return rhi::VertexFormat::half16_4;
+	else if (a_format == "float32_1"            ) return rhi::VertexFormat::float32_1;
+	else if (a_format == "float32_2"            ) return rhi::VertexFormat::float32_2;
+	else if (a_format == "float32_3"            ) return rhi::VertexFormat::float32_3;
+	else if (a_format == "float32_4"            ) return rhi::VertexFormat::float32_4;
+	else if (a_format == "uint8_1"              ) return rhi::VertexFormat::uint8_1;
+	else if (a_format == "uint8_2"              ) return rhi::VertexFormat::uint8_2;
+	else if (a_format == "uint8_3"              ) return rhi::VertexFormat::uint8_3;
+	else if (a_format == "uint8_4"              ) return rhi::VertexFormat::uint8_4;
+	else if (a_format == "uint16_1"             ) return rhi::VertexFormat::uint16_1;
+	else if (a_format == "uint16_2"             ) return rhi::VertexFormat::uint16_2;
+	else if (a_format == "uint16_3"             ) return rhi::VertexFormat::uint16_3;
+	else if (a_format == "uint16_4"             ) return rhi::VertexFormat::uint16_4;
+	else if (a_format == "uint32_1"             ) return rhi::VertexFormat::uint32_1;
+	else if (a_format == "uint32_2"             ) return rhi::VertexFormat::uint32_2;
+	else if (a_format == "uint32_3"             ) return rhi::VertexFormat::uint32_3;
+	else if (a_format == "uint32_4"             ) return rhi::VertexFormat::uint32_4;
+	else if (a_format == "int8_1_norm"          ) return rhi::VertexFormat::int8_1_norm;
+	else if (a_format == "int8_2_norm"          ) return rhi::VertexFormat::int8_2_norm;
+	else if (a_format == "int8_3_norm"          ) return rhi::VertexFormat::int8_3_norm;
+	else if (a_format == "int8_4_norm"          ) return rhi::VertexFormat::int8_4_norm;
+	else if (a_format == "int16_1_norm"         ) return rhi::VertexFormat::int16_1_norm;
+	else if (a_format == "int16_2_norm"         ) return rhi::VertexFormat::int16_2_norm;
+	else if (a_format == "int16_3_norm"         ) return rhi::VertexFormat::int16_3_norm;
+	else if (a_format == "int16_4_norm"         ) return rhi::VertexFormat::int16_4_norm;
+	else if (a_format == "uint8_1_norm"         ) return rhi::VertexFormat::uint8_1_norm;
+	else if (a_format == "uint8_2_norm"         ) return rhi::VertexFormat::uint8_2_norm;
+	else if (a_format == "uint8_3_norm"         ) return rhi::VertexFormat::uint8_3_norm;
+	else if (a_format == "uint8_4_norm"         ) return rhi::VertexFormat::uint8_4_norm;
+	else if (a_format == "uint16_1_norm"        ) return rhi::VertexFormat::uint16_1_norm;
+	else if (a_format == "uint16_2_norm"        ) return rhi::VertexFormat::uint16_2_norm;
+	else if (a_format == "uint16_3_norm"        ) return rhi::VertexFormat::uint16_3_norm;
+	else if (a_format == "uint16_4_norm"        ) return rhi::VertexFormat::uint16_4_norm;
+	else if (a_format == "int1010102_norm"      ) return rhi::VertexFormat::int1010102_norm;
+	else if (a_format == "uint1010102_norm"     ) return rhi::VertexFormat::uint1010102_norm;
+	else if (a_format == "uint8_4_norm_bgra"    ) return rhi::VertexFormat::uint8_4_norm_bgra;
+	else if (a_format == "bool32_1"             ) return rhi::VertexFormat::bool32_1;
+	else if (a_format == "bool32_2"             ) return rhi::VertexFormat::bool32_2;
+	else if (a_format == "bool32_3"             ) return rhi::VertexFormat::bool32_3;
+	else if (a_format == "bool32_4"             ) return rhi::VertexFormat::bool32_4;
+	else if (a_format == "uint64_1"             ) return rhi::VertexFormat::uint64_1;
+	else if (a_format == "uint64_2"             ) return rhi::VertexFormat::uint64_2;
+	else if (a_format == "uint64_3"             ) return rhi::VertexFormat::uint64_3;
+	else if (a_format == "uint64_4"             ) return rhi::VertexFormat::uint64_4;
+	else if (a_format == "float64_1"            ) return rhi::VertexFormat::float64_1;
+	else if (a_format == "float64_2"            ) return rhi::VertexFormat::float64_2;
+	else if (a_format == "float64_3"            ) return rhi::VertexFormat::float64_3;
+	else if (a_format == "float64_4"            ) return rhi::VertexFormat::float64_4;
+	else if (a_format == "float32_2x2"          ) return rhi::VertexFormat::float32_2x2;
+	else if (a_format == "float32_2x3"          ) return rhi::VertexFormat::float32_2x3;
+	else if (a_format == "float32_2x4"          ) return rhi::VertexFormat::float32_2x4;
+	else if (a_format == "float32_3x2"          ) return rhi::VertexFormat::float32_3x2;
+	else if (a_format == "float32_3x3"          ) return rhi::VertexFormat::float32_3x3;
+	else if (a_format == "float32_3x4"          ) return rhi::VertexFormat::float32_3x4;
+	else if (a_format == "float32_4x2"          ) return rhi::VertexFormat::float32_4x2;
+	else if (a_format == "float32_4x3"          ) return rhi::VertexFormat::float32_4x3;
+	else if (a_format == "float32_4x4"          ) return rhi::VertexFormat::float32_4x4;
+	else if (a_format == "float64_2x2"          ) return rhi::VertexFormat::float64_2x2;
+	else if (a_format == "float64_2x3"          ) return rhi::VertexFormat::float64_2x3;
+	else if (a_format == "float64_2x4"          ) return rhi::VertexFormat::float64_2x4;
+	else if (a_format == "float64_3x2"          ) return rhi::VertexFormat::float64_3x2;
+	else if (a_format == "float64_3x3"          ) return rhi::VertexFormat::float64_3x3;
+	else if (a_format == "float64_3x4"          ) return rhi::VertexFormat::float64_3x4;
+	else if (a_format == "float64_4x2"          ) return rhi::VertexFormat::float64_4x2;
+	else if (a_format == "float64_4x3"          ) return rhi::VertexFormat::float64_4x3;
+	else if (a_format == "float64_4x4"          ) return rhi::VertexFormat::float64_4x4;
+	else if (a_format == "uint8_custom"         ) return rhi::VertexFormat::uint8_custom;
+	else if (a_format == "uint16_custom"        ) return rhi::VertexFormat::uint16_custom;
+	else if (a_format == "uint32_custom"        ) return rhi::VertexFormat::uint32_custom;
+	else if (a_format == "float32_custom"       ) return rhi::VertexFormat::float32_custom;
+	else if (a_format == "int101111_norm"       ) return rhi::VertexFormat::int101111_norm;
+	else if (a_format == "uint101111_norm"      ) return rhi::VertexFormat::uint101111_norm;
+	else if (a_format == "struct_1"             ) return rhi::VertexFormat::struct_1;
+	else if (a_format == "struct_0"             ) return rhi::VertexFormat::struct_0;
+	// clang-format on
+
+	assert(0);        // Not a recongnised format
+	return rhi::VertexFormat::float32_4;
+}
+
 rhi::ShaderType string_to_shader_type(const std::string &a_extension)
 {
 	auto type{rhi::ShaderType::vertex};

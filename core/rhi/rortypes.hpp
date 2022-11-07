@@ -1191,12 +1191,13 @@ constexpr bool has_semantic(uint64_t a_type, BufferSemantic a_semantic)
 	return ((a_type & ror::enum_to_type_cast(a_semantic)) == ror::enum_to_type_cast(a_semantic));
 }
 
-BufferSemantic   get_format_semantic(const std::string &a_format);
-std::string      get_format_semantic(const BufferSemantic &a_semantic);
-rhi::PixelFormat string_to_pixel_format(const std::string &a_format);
-rhi::ShaderType  string_to_shader_type(const std::string &a_extension);
-bool             is_pixel_format_depth_format(const rhi::PixelFormat a_format);
-std::string      renderpass_type_to_string(const rhi::RenderpassType &a_type);
+BufferSemantic    get_format_semantic(const std::string &a_format);
+std::string       get_format_semantic(const BufferSemantic &a_semantic);
+rhi::PixelFormat  string_to_pixel_format(const std::string &a_format);
+rhi::VertexFormat string_to_vertex_format(const std::string &a_format);
+rhi::ShaderType   string_to_shader_type(const std::string &a_extension);
+bool              is_pixel_format_depth_format(const rhi::PixelFormat a_format);
+std::string       renderpass_type_to_string(const rhi::RenderpassType &a_type);
 
 const auto format_to_bytes = vertex_format_to_bytes;
 

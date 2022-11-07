@@ -30,6 +30,7 @@
 #include "math/rorvector2.hpp"
 #include "math/rorvector4.hpp"
 #include "rhi/rorbuffer.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <functional>
@@ -91,7 +92,7 @@ define_type_to_shader_semantics(RenderTarget)
 class RenderBuffer final : public RenderOutput
 {
   public:
-	using BufferReference = std::reference_wrapper<rhi::Buffer<rhi::Static>>;
+	using ShaderBufferReference = std::reference_wrapper<ShaderBuffer>;
 
 	FORCE_INLINE               RenderBuffer()                                = delete;         //! Default constructor
 	FORCE_INLINE               RenderBuffer(const RenderBuffer &a_other)     = default;        //! Copy constructor
@@ -100,11 +101,11 @@ class RenderBuffer final : public RenderOutput
 	FORCE_INLINE RenderBuffer &operator=(RenderBuffer &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE ~RenderBuffer() noexcept override                           = default;        //! Destructor
 
-	FORCE_INLINE RenderBuffer(uint32_t a_target, rhi::Buffer<rhi::Static> &a_target_reference, LoadAction a_load_action, StoreAction a_store_action) :
+	FORCE_INLINE RenderBuffer(uint32_t a_target, ShaderBuffer &a_target_reference, LoadAction a_load_action, StoreAction a_store_action) :
 	    RenderOutput(a_target, a_load_action, a_store_action), m_target_reference(a_target_reference)
 	{}
 
-	BufferReference m_target_reference;        //! Reference to buffer
+	ShaderBufferReference m_target_reference;        //! Reference to buffer
 
   protected:
   private:

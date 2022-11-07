@@ -46,20 +46,20 @@ void example0_test(rhi::Layout a_layout)
 
 	EXPECT_EQ(sb.stride(), 176);
 
-	rhi::ShaderBufferMetal sbm{"Example0", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
-	                           "a", rhi::VertexFormat::float32_1, 1u,
-	                           "b", rhi::VertexFormat::float32_2, 1u,
-	                           "c", rhi::VertexFormat::float32_3, 1u,
-	                           "d", rhi::VertexFormat::int32_1, 1u,
-	                           "e", rhi::VertexFormat::bool32_2, 1u,
-	                           "g", rhi::VertexFormat::float32_1, 1u,
-	                           "h", rhi::VertexFormat::float32_1, 1u,
-	                           "i", rhi::VertexFormat::float32_2x3, 1u,
-	                           "j", rhi::VertexFormat::uint32_3, 1u,
-	                           "k", rhi::VertexFormat::float32_2, 1u,
-	                           "l", rhi::VertexFormat::float32_1, 1u,
-	                           "m", rhi::VertexFormat::float32_2, 1u,
-	                           "n", rhi::VertexFormat::float32_3x3, 1u};
+	rhi::ShaderBuffer sbm{"Example0", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
+	                      "a", rhi::VertexFormat::float32_1, 1u,
+	                      "b", rhi::VertexFormat::float32_2, 1u,
+	                      "c", rhi::VertexFormat::float32_3, 1u,
+	                      "d", rhi::VertexFormat::int32_1, 1u,
+	                      "e", rhi::VertexFormat::bool32_2, 1u,
+	                      "g", rhi::VertexFormat::float32_1, 1u,
+	                      "h", rhi::VertexFormat::float32_1, 1u,
+	                      "i", rhi::VertexFormat::float32_2x3, 1u,
+	                      "j", rhi::VertexFormat::uint32_3, 1u,
+	                      "k", rhi::VertexFormat::float32_2, 1u,
+	                      "l", rhi::VertexFormat::float32_1, 1u,
+	                      "m", rhi::VertexFormat::float32_2, 1u,
+	                      "n", rhi::VertexFormat::float32_3x3, 1u};
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
@@ -168,20 +168,20 @@ void example1_test(rhi::Layout a_layout)
 
 	EXPECT_EQ(sb.stride(), 160);
 
-	rhi::ShaderBufferMetal sbm{"Example1", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
-	                           "a", rhi::VertexFormat::float32_1, 1u,
-	                           "b", rhi::VertexFormat::float32_2, 1u,
-	                           "c", rhi::VertexFormat::float32_3, 1u,
-	                           "d", rhi::VertexFormat::int32_1, 1u,
-	                           "e", rhi::VertexFormat::bool32_2, 1u,
-	                           "g", rhi::VertexFormat::float32_1, 1u,
-	                           "h", rhi::VertexFormat::float32_1, 1u,
-	                           "i", rhi::VertexFormat::float32_2x3, 1u,
-	                           "j", rhi::VertexFormat::uint32_1, 1u,
-	                           "k", rhi::VertexFormat::float32_2, 1u,
-	                           "l", rhi::VertexFormat::float32_1, 1u,
-	                           "m", rhi::VertexFormat::float32_2, 1u,
-	                           "n", rhi::VertexFormat::float32_3x3, 1u};
+	rhi::ShaderBuffer sbm{"Example1", rhi::ShaderBufferType::ubo, a_layout, 0u, 0u,
+	                      "a", rhi::VertexFormat::float32_1, 1u,
+	                      "b", rhi::VertexFormat::float32_2, 1u,
+	                      "c", rhi::VertexFormat::float32_3, 1u,
+	                      "d", rhi::VertexFormat::int32_1, 1u,
+	                      "e", rhi::VertexFormat::bool32_2, 1u,
+	                      "g", rhi::VertexFormat::float32_1, 1u,
+	                      "h", rhi::VertexFormat::float32_1, 1u,
+	                      "i", rhi::VertexFormat::float32_2x3, 1u,
+	                      "j", rhi::VertexFormat::uint32_1, 1u,
+	                      "k", rhi::VertexFormat::float32_2, 1u,
+	                      "l", rhi::VertexFormat::float32_1, 1u,
+	                      "m", rhi::VertexFormat::float32_2, 1u,
+	                      "n", rhi::VertexFormat::float32_3x3, 1u};
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
@@ -290,20 +290,20 @@ TEST(ShaderBuffer, std140_example2_test)
 
 	EXPECT_EQ(sb.stride(), 240);
 
-	rhi::ShaderBufferMetal sbm{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
-	                           "a", rhi::VertexFormat::float32_1, 1u,
-	                           "b", rhi::VertexFormat::float32_2, 1u,
-	                           "c", rhi::VertexFormat::float32_3, 1u,
-	                           "d", rhi::VertexFormat::int32_1, 1u,
-	                           "e", rhi::VertexFormat::bool32_2, 1u,
-	                           "g", rhi::VertexFormat::float32_1, 2u,
-	                           "h", rhi::VertexFormat::float32_1, 1u,
-	                           "i", rhi::VertexFormat::float32_2x3, 1u,
-	                           "j", rhi::VertexFormat::uint32_1, 1u,
-	                           "k", rhi::VertexFormat::float32_2, 1u,
-	                           "l", rhi::VertexFormat::float32_1, 2u,
-	                           "m", rhi::VertexFormat::float32_2, 1u,
-	                           "n", rhi::VertexFormat::float32_3x3, 1u};
+	rhi::ShaderBuffer sbm{"Example2", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
+	                      "a", rhi::VertexFormat::float32_1, 1u,
+	                      "b", rhi::VertexFormat::float32_2, 1u,
+	                      "c", rhi::VertexFormat::float32_3, 1u,
+	                      "d", rhi::VertexFormat::int32_1, 1u,
+	                      "e", rhi::VertexFormat::bool32_2, 1u,
+	                      "g", rhi::VertexFormat::float32_1, 2u,
+	                      "h", rhi::VertexFormat::float32_1, 1u,
+	                      "i", rhi::VertexFormat::float32_2x3, 1u,
+	                      "j", rhi::VertexFormat::uint32_1, 1u,
+	                      "k", rhi::VertexFormat::float32_2, 1u,
+	                      "l", rhi::VertexFormat::float32_1, 2u,
+	                      "m", rhi::VertexFormat::float32_2, 1u,
+	                      "n", rhi::VertexFormat::float32_3x3, 1u};
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
@@ -396,20 +396,20 @@ TEST(ShaderBuffer, std140_example3_test)
 	sb.add_entry("m", rhi::Format::float32_2, 1);
 	sb.add_entry("n", rhi::Format::float32_3x3, 1);
 
-	rhi::ShaderBufferMetal sbm{"Example3", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
-	                           "a", rhi::VertexFormat::float32_1, 1u,
-	                           "b", rhi::VertexFormat::float32_2, 1u,
-	                           "c", rhi::VertexFormat::float32_3, 1u,
-	                           "d", rhi::VertexFormat::int32_1, 1u,
-	                           "e", rhi::VertexFormat::bool32_2, 1u,
-	                           "g", rhi::VertexFormat::float32_1, 2u,
-	                           "h", rhi::VertexFormat::float32_1, 1u,
-	                           "i", rhi::VertexFormat::float32_2x3, 2u,
-	                           "j", rhi::VertexFormat::uint32_1, 1u,
-	                           "k", rhi::VertexFormat::float32_2, 1u,
-	                           "l", rhi::VertexFormat::float32_1, 2u,
-	                           "m", rhi::VertexFormat::float32_2, 1u,
-	                           "n", rhi::VertexFormat::float32_3x3, 1u};
+	rhi::ShaderBuffer sbm{"Example3", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
+	                      "a", rhi::VertexFormat::float32_1, 1u,
+	                      "b", rhi::VertexFormat::float32_2, 1u,
+	                      "c", rhi::VertexFormat::float32_3, 1u,
+	                      "d", rhi::VertexFormat::int32_1, 1u,
+	                      "e", rhi::VertexFormat::bool32_2, 1u,
+	                      "g", rhi::VertexFormat::float32_1, 2u,
+	                      "h", rhi::VertexFormat::float32_1, 1u,
+	                      "i", rhi::VertexFormat::float32_2x3, 2u,
+	                      "j", rhi::VertexFormat::uint32_1, 1u,
+	                      "k", rhi::VertexFormat::float32_2, 1u,
+	                      "l", rhi::VertexFormat::float32_1, 2u,
+	                      "m", rhi::VertexFormat::float32_2, 1u,
+	                      "n", rhi::VertexFormat::float32_3x3, 1u};
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{
@@ -484,30 +484,30 @@ TEST(ShaderBuffer, std140_example4_test)
 
 	sb.add_struct(o);
 
-	rhi::ShaderBufferMetal sbm{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
-	                           "a", rhi::VertexFormat::float32_1, 1u,
-	                           "b", rhi::VertexFormat::float32_2, 1u,
-	                           "c", rhi::VertexFormat::float32_3, 1u,
+	rhi::ShaderBuffer sbm{"Example4", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0u, 0u,
+	                      "a", rhi::VertexFormat::float32_1, 1u,
+	                      "b", rhi::VertexFormat::float32_2, 1u,
+	                      "c", rhi::VertexFormat::float32_3, 1u,
 
-	                           "f", rhi::VertexFormat::struct_1, 1u,
+	                      "f", rhi::VertexFormat::struct_1, 1u,
 
-	                           "d", rhi::VertexFormat::int32_1, 1u,
-	                           "e", rhi::VertexFormat::bool32_2, 1u,
+	                      "d", rhi::VertexFormat::int32_1, 1u,
+	                      "e", rhi::VertexFormat::bool32_2, 1u,
 
-	                           "f_end", rhi::VertexFormat::struct_0, 1u,
+	                      "f_end", rhi::VertexFormat::struct_0, 1u,
 
-	                           "g", rhi::VertexFormat::float32_1, 1u,
-	                           "h", rhi::VertexFormat::float32_1, 2u,
+	                      "g", rhi::VertexFormat::float32_1, 1u,
+	                      "h", rhi::VertexFormat::float32_1, 2u,
 
-	                           "i", rhi::VertexFormat::float32_2x3, 1u,
+	                      "i", rhi::VertexFormat::float32_2x3, 1u,
 
-	                           "o", rhi::VertexFormat::struct_1, 2u,
-	                           "j", rhi::VertexFormat::uint32_3, 1u,
-	                           "k", rhi::VertexFormat::float32_2, 1u,
-	                           "l", rhi::VertexFormat::float32_1, 2u,
-	                           "m", rhi::VertexFormat::float32_2, 1u,
-	                           "n", rhi::VertexFormat::float32_3x3, 2u,
-	                           "o_end", rhi::VertexFormat::struct_0};
+	                      "o", rhi::VertexFormat::struct_1, 2u,
+	                      "j", rhi::VertexFormat::uint32_3, 1u,
+	                      "k", rhi::VertexFormat::float32_2, 1u,
+	                      "l", rhi::VertexFormat::float32_1, 2u,
+	                      "m", rhi::VertexFormat::float32_2, 1u,
+	                      "n", rhi::VertexFormat::float32_3x3, 2u,
+	                      "o_end", rhi::VertexFormat::struct_0};
 
 	// Index of offset, stride, size, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, uint32_t, rhi::Format>> var_values{
@@ -746,20 +746,20 @@ TEST(ShaderBuffer, std140_example4_struct_o_open_test)
 
 // TODO: Create std430 equvivalent of the following 3 tests
 void add_bool_entries(rhi::ShaderBufferTemplate &sb)
-{                                                // std140                 std430
-	sb.add_entry("a", rhi::Format::bool32_1, 1); // 0-3                     0-3
-	sb.add_entry("b", rhi::Format::bool32_1, 1); // 4-7                     4-7
-	sb.add_entry("c", rhi::Format::bool32_1, 1); // 8-11                    8-11
-	sb.add_entry("d", rhi::Format::bool32_1, 1); // 12-15                   12-15
-	sb.add_entry("e", rhi::Format::bool32_1, 1); // 16-19                   16-19
-	sb.add_entry("g", rhi::Format::bool32_1, 2); // 32-35, 48-51            20-23, 24-27
-	sb.add_entry("h", rhi::Format::bool32_1, 1); // 64-67                   28-31
-	sb.add_entry("i", rhi::Format::bool32_1, 2); // 80-83, 96-99            32-25, 36-39
-	sb.add_entry("j", rhi::Format::bool32_1, 1); // 112-115                 40-43
-	sb.add_entry("k", rhi::Format::bool32_1, 1); // 116-119                 44-47
-	sb.add_entry("l", rhi::Format::bool32_1, 2); // 128-131, 144-147        48-51, 52-55
-	sb.add_entry("m", rhi::Format::bool32_1, 1); // 160-163                 56-59
-	sb.add_entry("n", rhi::Format::bool32_1, 1); // 167, 168                60-64
+{                                                       // std140                 std430
+	sb.add_entry("a", rhi::Format::bool32_1, 1);        // 0-3                     0-3
+	sb.add_entry("b", rhi::Format::bool32_1, 1);        // 4-7                     4-7
+	sb.add_entry("c", rhi::Format::bool32_1, 1);        // 8-11                    8-11
+	sb.add_entry("d", rhi::Format::bool32_1, 1);        // 12-15                   12-15
+	sb.add_entry("e", rhi::Format::bool32_1, 1);        // 16-19                   16-19
+	sb.add_entry("g", rhi::Format::bool32_1, 2);        // 32-35, 48-51            20-23, 24-27
+	sb.add_entry("h", rhi::Format::bool32_1, 1);        // 64-67                   28-31
+	sb.add_entry("i", rhi::Format::bool32_1, 2);        // 80-83, 96-99            32-25, 36-39
+	sb.add_entry("j", rhi::Format::bool32_1, 1);        // 112-115                 40-43
+	sb.add_entry("k", rhi::Format::bool32_1, 1);        // 116-119                 44-47
+	sb.add_entry("l", rhi::Format::bool32_1, 2);        // 128-131, 144-147        48-51, 52-55
+	sb.add_entry("m", rhi::Format::bool32_1, 1);        // 160-163                 56-59
+	sb.add_entry("n", rhi::Format::bool32_1, 1);        // 167, 168                60-64
 
 	if (sb.layout() == rhi::Layout::std140)
 		EXPECT_EQ(sb.stride(), 168);
@@ -1423,11 +1423,11 @@ void joint_transforms_test(uint32_t joints_count)
 
 	joint_transform.add_struct(trs_transform);
 
-	rhi::ShaderBufferMetal joint_transform_sbm{"joint_transform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 2u, 0u,
-	                                           "joint_transforms", rhi::VertexFormat::struct_1, joints_count,
-	                                           "rotation", rhi::VertexFormat::float32_4, 1u,
-	                                           "translation", rhi::VertexFormat::float32_3, 1u,
-	                                           "scale", rhi::VertexFormat::float32_3, 1u};
+	rhi::ShaderBuffer joint_transform_sbm{"joint_transform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 2u, 0u,
+	                                      "joint_transforms", rhi::VertexFormat::struct_1, joints_count,
+	                                      "rotation", rhi::VertexFormat::float32_4, 1u,
+	                                      "translation", rhi::VertexFormat::float32_3, 1u,
+	                                      "scale", rhi::VertexFormat::float32_3, 1u};
 
 	// Index of offset, stride, type
 	std::unordered_map<std::string, std::tuple<uint32_t, uint32_t, rhi::Format>> var_values{

@@ -35,6 +35,7 @@
 #include "math/rorvector4.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorshader_buffer.hpp"
+#include "rhi/rorshader_buffer_template.hpp"
 #include <functional>
 
 /*  OrbitCamera usage
