@@ -177,6 +177,8 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 			log_info("Loading model {}", node.m_model_path.c_str());
 			Model &model = this->m_models[a_index];
 			model.load_from_gltf_file(node.m_model_path, this->m_cameras);
+			this->m_bounding_box.add_bounding(model.bounding_box());
+
 			return true;
 		};
 

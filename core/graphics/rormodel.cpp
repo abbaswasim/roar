@@ -1274,6 +1274,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 					// TODO: Do a bulk copy please once tested and it works
 					for (size_t m = 0; m < cmesh.weights_count; ++m)
 						mesh.m_morph_weights[m] = cmesh.weights[m];
+
+					// Add mesh primitive bounding box to the model bounding box
+					this->m_bounding_box.add_bounding(mesh.m_bounding_boxes[j]);
 				}
 
 				mesh_to_index.emplace(&cmesh, i);

@@ -61,7 +61,7 @@ class ROAR_ENGINE_ITEM Model
 	// Populates data from a gltf file loaded as a resource.
 	// Takes scene cameras and lights as parameter and fills it up with this model cameras and lights
 	// If this or any other load functions are called before, data needs to be appended
-	void load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera>& a_cameras);
+	void load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras);
 	void upload(rhi::Device &a_device);
 
 	// clang-format off
@@ -79,6 +79,7 @@ class ROAR_ENGINE_ITEM Model
 	FORCE_INLINE constexpr auto &nodes()            const noexcept  {  return this->m_nodes;           }
 	FORCE_INLINE constexpr auto &nodes_side_data()  const noexcept  {  return this->m_nodes_side_data; }
 	FORCE_INLINE constexpr auto &animations()       const noexcept  {  return this->m_animations;      }
+	FORCE_INLINE constexpr auto &bounding_box()     const noexcept  {  return this->m_bounding_box;    }
 	// clang-format on
 
 	void update_mesh_program(uint32_t a_mesh_index, uint32_t a_primitive_index, int32_t a_program_index);
@@ -97,6 +98,7 @@ class ROAR_ENGINE_ITEM Model
 	std::vector<ror::NodeData, rhi::BufferAllocator<ror::NodeData>>             m_nodes_side_data{};        //! All the nodes parallel data that needs to be maintained
 	std::vector<ror::Animation, rhi::BufferAllocator<ror::Animation>>           m_animations{};             //! All the animations in this asset
 	BinBuffer_Vector_Vector                                                     m_buffers{};                //! All the buffers provided in gltf, only required temporarily
+	ror::BoundingBoxf                                                           m_bounding_box{};           //! Model bounding box, a combination of its mesh in object space
 };
 
 }        // namespace ror

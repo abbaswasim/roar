@@ -182,16 +182,17 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void load_specific();
 
 	// clang-format off
-	FORCE_INLINE const auto &models()           const noexcept   {  return this->m_models;          }
-	FORCE_INLINE const auto &nodes()            const noexcept   {  return this->m_nodes;           }
-	FORCE_INLINE const auto &nodes_side_data()  const noexcept   {  return this->m_nodes_data;      }
-	FORCE_INLINE const auto &particles()        const noexcept   {  return this->m_particles;       }
-	FORCE_INLINE const auto &programs()         const noexcept   {  return this->m_programs;        }
-    FORCE_INLINE const auto &shaders()          const noexcept   {  return this->m_shaders;         }
-    FORCE_INLINE const auto &global_shaders()   const noexcept   {  return this->m_global_shaders;  }
-	FORCE_INLINE const auto &global_programs()  const noexcept   {  return this->m_global_programs; }
-	FORCE_INLINE       auto &cameras()                noexcept   {  return this->m_cameras;         }
-	FORCE_INLINE const auto &lights()           const noexcept   {  return this->m_lights;          }
+	FORCE_INLINE constexpr const auto &models()           const noexcept   {  return this->m_models;          }
+	FORCE_INLINE constexpr const auto &nodes()            const noexcept   {  return this->m_nodes;           }
+	FORCE_INLINE constexpr const auto &nodes_side_data()  const noexcept   {  return this->m_nodes_data;      }
+	FORCE_INLINE constexpr const auto &particles()        const noexcept   {  return this->m_particles;       }
+	FORCE_INLINE constexpr const auto &programs()         const noexcept   {  return this->m_programs;        }
+    FORCE_INLINE constexpr const auto &shaders()          const noexcept   {  return this->m_shaders;         }
+    FORCE_INLINE constexpr const auto &global_shaders()   const noexcept   {  return this->m_global_shaders;  }
+	FORCE_INLINE constexpr const auto &global_programs()  const noexcept   {  return this->m_global_programs; }
+	FORCE_INLINE                 auto &cameras()                noexcept   {  return this->m_cameras;         }
+	FORCE_INLINE constexpr const auto &lights()           const noexcept   {  return this->m_lights;          }
+	FORCE_INLINE constexpr const auto &bounding_box()     const noexcept   {  return this->m_bounding_box;    }
 	// clang-format on
 
 	void upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system);
@@ -218,6 +219,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	std::vector<ror::OrbitCamera>    m_cameras{};                //! All the cameras in the scene
 	std::vector<ror::Light>          m_lights{};                 //! All the lights in the scene
 	std::vector<EnvironmentProbe>    m_probes{};                 //! All the environment probes
+	ror::BoundingBoxf                m_bounding_box{};           //! Scene bounding box, a combination of its models in object space
 };
 
 }        // namespace ror
