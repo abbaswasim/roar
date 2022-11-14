@@ -94,7 +94,6 @@ void Light::update()
 	this->m_shader_buffer.buffer_map();
 
 	// TODO: Find out why the array version doesn't work
-#if 0
 	auto     stride      = this->m_shader_buffer.stride("lights");
 	uint32_t light_index = 0;
 
@@ -115,25 +114,8 @@ void Light::update()
 		this->m_shader_buffer.update("inner_angle", &this->m_inner_angle, light_index, stride);
 		this->m_shader_buffer.update("outer_angle", &this->m_outer_angle, light_index, stride);
 	}
-#else
-	this->m_shader_buffer.update("mvp", &this->m_mvp.m_values);
-	this->m_shader_buffer.update("color", &this->m_color);
-
-	if (this->m_type != ror::Light::LightType::directional)
-		this->m_shader_buffer.update("position", &this->m_position);
-
-	if (this->m_type != ror::Light::LightType::point)
-		this->m_shader_buffer.update("direction", &this->m_direction);
-
-	this->m_shader_buffer.update("intensity", &this->m_intensity);
-	this->m_shader_buffer.update("range", &this->m_range);
-
-	if (this->m_type == ror::Light::LightType::spot)
-	{
-		this->m_shader_buffer.update("inner_angle", &this->m_inner_angle);
-		this->m_shader_buffer.update("outer_angle", &this->m_outer_angle);
-	}
-#endif
+	std::cout << "Her is the glsl string for light type = " << (m_type == ror::Light::LightType::directional ? "directional" : (m_type == ror::Light::LightType::point ? "point" : "spot")) << "\n"
+	          << this->m_shader_buffer.to_glsl_string();
 
 	this->m_shader_buffer.buffer_unmap();
 }
@@ -157,33 +139,7 @@ void Light::upload(rhi::Device &a_device)
 	  } in_directional_light_uniforms;
 	*/
 	this->fill_shader_buffer();
-	this->m_shader_buffer.shader_buffer_upload(a_device);
-
-	auto size = 0u;
-	for (auto entry : entries)
-	{
-		if (entry->m_name == "lights")
-			size = entry->m_stride;
-		else if (entry->m_name == "mvp")
-			this->m_mvp_offset = entry->m_offset;
-		else if (entry->m_name == "color")
-			this->m_color_offset = entry->m_offset;
-		else if (entry->m_name == "position")
-			this->m_position_offset = entry->m_offset;
-		else if (entry->m_name == "direction")
-			this->m_direction_offset = entry->m_offset;
-		else if (entry->m_name == "intensity")
-			this->m_intensity_offset = entry->m_offset;
-		else if (entry->m_name == "range")
-			this->m_range_offset = entry->m_offset;
-		else if (entry->m_name == "inner_angle")
-			this->m_inner_angle_offset = entry->m_offset;
-		else if (entry->m_name == "outer_angle")
-			this->m_outer_angle_offset = entry->m_offset;
-	}
-
-	assert(size != 0 && "Couldn't determine lights struct size in the UBO");
-	this->m_shader_buffer.init(a_device, size);
+	this->m_shader_buffer.upload(a_device);
 
 	this->update();
 }
@@ -574,7 +530,7 @@ void Scene::read_nodes()
 		this->m_nodes_data.emplace_back(std::move(nod_data));
 	}
 
-	// Now lets since all nodes are loaded lets set the parent ids
+	// Since all nodes are loaded lets set the parent ids
 	for (size_t i = 0; i < this->m_nodes_data.size(); ++i)
 	{
 		auto &node_data = this->m_nodes_data[i];

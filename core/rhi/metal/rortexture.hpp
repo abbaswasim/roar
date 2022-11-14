@@ -28,18 +28,24 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rortexture.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/rortypes.hpp"
 
 #include <Metal/MTLSampler.hpp>
 #include <Metal/MTLTexture.hpp>
 
 namespace rhi
 {
+declare_rhi_render_type(RenderCommandEncoder);
+declare_rhi_render_type(ComputeCommandEncoder);
+
 class ROAR_ENGINE_ITEM TextureImageMetal : public TextureImageCrtp<TextureImageMetal>
 {
   public:
-	void upload(rhi::Device& a_device);
+	void upload(rhi::Device &a_device);
 
 	FORCE_INLINE constexpr auto platform_handle() const noexcept;
+	void bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+	void bind(rhi::ComputeCommandEncoder *a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
 
   protected:
   private:
@@ -51,9 +57,13 @@ class ROAR_ENGINE_ITEM TextureImageMetal : public TextureImageCrtp<TextureImageM
 class ROAR_ENGINE_ITEM TextureSamplerMetal : public TextureSamplerCrtp<TextureSamplerMetal>
 {
   public:
-	void upload(rhi::Device& a_device);
+	void upload(rhi::Device &a_device);
 
 	FORCE_INLINE constexpr auto platform_handle() const noexcept;
+
+	void bind(rhi::RenderCommandEncoder *a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+	void bind(rhi::ComputeCommandEncoder *a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+
   protected:
   private:
 	declare_translation_unit_vtable();

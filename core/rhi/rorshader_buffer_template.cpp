@@ -329,6 +329,56 @@ std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries_s
 	return es;
 }
 
+void ShaderBufferTemplate::update_count(const std::string &a_entry_name, uint32_t a_new_count)
+{
+	ShaderBufferTemplate temp_entry(this->m_toplevel.m_name, this->m_type, this->m_layout, this->m_set, this->m_binding);
+
+	for (auto &e : this->m_toplevel.m_entries)
+	{
+		if (const rhi::ShaderBufferTemplate::Entry *pentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&e))
+		{
+			uint32_t count = pentry->m_count;
+
+			if (a_entry_name == pentry->m_name)
+				count = a_new_count;
+
+			temp_entry.add_entry(pentry->m_name, pentry->m_type, count);
+		}
+		else
+		{
+			auto &s = std::get<rhi::ShaderBufferTemplate::Struct>(e);
+
+			uint32_t count = s.m_count;
+
+			if (a_entry_name == s.m_name)
+				count = a_new_count;
+
+			ShaderBufferTemplate::Struct temp_struct{s.m_name, count};
+
+			for (auto &se : s.m_entries)
+			{
+				if (const rhi::ShaderBufferTemplate::Entry *spentry = std::get_if<rhi::ShaderBufferTemplate::Entry>(&se))
+				{
+					count = spentry->m_count;
+
+					if (a_entry_name == spentry->m_name)
+						count = a_new_count;
+
+					temp_struct.add_entry(spentry->m_name, spentry->m_type, this->m_layout, count);
+				}
+				else
+				{
+					assert(0 && "Don't support more than 1 level nested structs in shader buffer template");
+				}
+			}
+
+			temp_entry.add_struct(temp_struct);
+		}
+	}
+
+	*this = std::move(temp_entry);
+}
+
 static void create_variable_entry(std::string &a_output, const std::string &a_type, const std::string &a_name, uint32_t a_count)
 {
 	a_output.append("\t");

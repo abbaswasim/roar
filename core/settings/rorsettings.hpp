@@ -102,6 +102,11 @@ class ROAR_ENGINE_ITEM Settings final
 
 		this->m_viewport = this->m_window_dimensions;
 
+		auto winding = setting.get<std::string>("winding");
+
+		if (winding != "")
+			this->m_primitive_winding = rhi::string_to_primitive_winding(winding);
+
 		auto color_format         = setting.get<std::string>("window:color_format");
 		auto depth_stencil_format = setting.get<std::string>("window:depth_stencil_format");
 
@@ -179,6 +184,8 @@ class ROAR_ENGINE_ITEM Settings final
 
 	rhi::PixelFormat m_pixel_format{rhi::PixelFormat::r8g8b8a8_uint32_norm};
 	rhi::PixelFormat m_depth_stencil_format{rhi::PixelFormat::depth24_norm_stencil8_uint32};
+
+	rhi::PrimitiveWinding m_primitive_winding{rhi::PrimitiveWinding::counter_clockwise};
 
 	struct Options
 	{

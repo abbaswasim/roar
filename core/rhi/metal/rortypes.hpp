@@ -26,6 +26,7 @@
 #pragma once
 
 #include <Metal/MTLPixelFormat.hpp>
+#include <Metal/MTLRenderCommandEncoder.hpp>
 #include <Metal/MTLResource.hpp>
 #include <Metal/MTLSampler.hpp>
 #include <Metal/MTLVertexDescriptor.hpp>
@@ -249,5 +250,18 @@ constexpr auto PlatformStorageModeManaged    = MTL::ResourceStorageModeManaged; 
 constexpr auto PlatformStorageModeShared     = MTL::ResourceStorageModeShared;
 constexpr auto PlatformStorageModePrivate    = MTL::ResourceStorageModePrivate;
 constexpr auto PlatformStorageModeMemoryLess = MTL::ResourceStorageModeMemoryless;
+
+constexpr auto PlatformPrimitiveCullModeNone  = MTL::CullModeNone;
+constexpr auto PlatformPrimitiveCullModeFront = MTL::CullModeFront;
+constexpr auto PlatformPrimitiveCullModeBack  = MTL::CullModeBack;
+
+constexpr auto PlatformPrimitiveWindingClockWise        = MTL::WindingClockwise;
+constexpr auto PlatformPrimitiveWindingCounterClockWise = MTL::WindingCounterClockwise;
+
+constexpr auto PlatformPrimitiveTopologyPoint         = MTL::PrimitiveTypePoint;
+constexpr auto PlatformPrimitiveTopologyLine          = MTL::PrimitiveTypeLine;
+constexpr auto PlatformPrimitiveTopologyLineStrip     = MTL::PrimitiveTypeLineStrip;
+constexpr auto PlatformPrimitiveTopologyTriangle      = MTL::PrimitiveTypeTriangle;
+constexpr auto PlatformPrimitiveTopologyTriangleStrip = MTL::PrimitiveTypeTriangleStrip;
 
 }        // namespace rhi

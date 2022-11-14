@@ -65,25 +65,29 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 		auto &buffer_pack  = this->buffer_pack();
 		auto &device       = this->device();
 		auto &renderer     = this->renderer();
+		auto &timer        = this->timer();
 
-		(void) job_system;
-		(void) event_system;
-		(void) scene;
-		(void) buffer_pack;
-		(void) device;
-		(void) renderer;
+		auto &camera = scene.cameras()[0];
 
-		// Setup uniforms
-		/*
-		Uniforms *uniform = reinterpret_cast<Uniforms *>(mvp->contents());
+		static bool enable_camera = true;
 
-		// Update uniforms here
+		if (enable_camera)
+		{
+			auto dims = renderer.dimensions();
+			camera.enable();
+			camera.set_bounds(dims.x, dims.y);
 
-		memcpy(uniform->joints_matrices[0].m_values, skinning_matrices[0].m_values, 44 * sizeof(float) * 16);
+			auto &model = scene.models()[0];
+			auto &mesh  = model.meshes()[0];
+			auto  bbox  = mesh.m_bounding_boxes[0];
+			camera.set_visual_volume(bbox.minimum(), bbox.maximum());
+			enable_camera = false;
+			camera.look_at();
+		}
 
-		// Only for ResourceStorageModeManaged resources
-		mvp->didModifyRange(NS::Range::Make(0, mvp->length()));
-		*/
+		camera.update();
+
+		renderer.render(scene, job_system, event_system, buffer_pack, device, timer);
 	}
 
   protected:

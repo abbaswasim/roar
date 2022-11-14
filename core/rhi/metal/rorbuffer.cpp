@@ -24,6 +24,8 @@
 // Version: 1.0.0
 
 #include "rhi/metal/rorbuffer.hpp"
+#include "rhi/metal/rorcompute_command_encoder.hpp"
+#include "rhi/metal/rorrender_command_encoder.hpp"
 
 namespace rhi
 {
@@ -31,4 +33,25 @@ namespace rhi
 define_translation_unit_vtable(BufferMetal)
 {}
 
+void BufferMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_offset, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.fragment_buffer(*this, a_offset, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::vertex || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.vertex_buffer(*this, a_offset, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::tile)
+		a_command_encoder.tile_buffer(*this, a_offset, a_index);
+}
+
+void BufferMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_offset, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.buffer(*this, a_offset, a_index);
+	else
+	{
+		assert(0 && "Can't bind texture image to this shader stage");
+	}
+}
 }        // namespace rhi

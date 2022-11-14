@@ -79,6 +79,7 @@ class ROAR_ENGINE_ITEM Light
 
 	// clang-format off
 	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; }
+	FORCE_INLINE constexpr auto& shader_buffer()       noexcept  { return this->m_shader_buffer; }
 	// clang-format on
 
 	LightType m_type{LightType::directional};                        //! Light type
@@ -207,7 +208,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	// All of these can be buffer allocated but for now leave them as is
 	std::vector<ror::Model>          m_models{};                 //! All the assets loaded as 3D models
-	std::vector<ror::SceneNode>      m_nodes{};                  //! All the nodes in this scene
+	std::vector<ror::SceneNode>      m_nodes{};                  //! All the nodes in this scene, must be in the parent order, parent first then children
 	std::vector<ror::SceneNodeData>  m_nodes_data{};             //! All the nodes parallel data that needs to be maintained
 	std::vector<ror::ParticleSystem> m_particles{};              //! All the particle emittors
 	RenderpassPrograms               m_programs{};               //! All the shader programs per render pass for all the models

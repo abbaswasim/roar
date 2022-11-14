@@ -24,8 +24,10 @@
 // Version: 1.0.0
 
 #include "rhi/crtp_interfaces/rortexture.hpp"
+#include "rhi/metal/rorcompute_command_encoder.hpp"
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/metal/rormetal_common.hpp"
+#include "rhi/metal/rorrender_command_encoder.hpp"
 #include "rhi/metal/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 
@@ -39,10 +41,12 @@
 #include <Metal/MTLSampler.hpp>
 #include <Metal/MTLTexture.hpp>
 #include <Metal/MTLTypes.hpp>
+#include <cassert>
 
 namespace rhi
 {
-constexpr FORCE_INLINE MTL::TextureType to_metal_texture_target(rhi::TextureTarget a_target)
+
+FORCE_INLINE constexpr MTL::TextureType to_metal_texture_target(rhi::TextureTarget a_target)
 {
 	switch (a_target)
 	{
@@ -67,24 +71,68 @@ constexpr FORCE_INLINE MTL::TextureType to_metal_texture_target(rhi::TextureTarg
 	}
 }
 
-constexpr FORCE_INLINE MTL::SamplerMinMagFilter to_metal_texture_filter(rhi::TextureFilter a_filter)
+FORCE_INLINE constexpr MTL::SamplerMinMagFilter to_metal_texture_filter(rhi::TextureFilter a_filter)
 {
 	return static_cast<MTL::SamplerMinMagFilter>(a_filter);
 }
 
-constexpr FORCE_INLINE MTL::SamplerMipFilter to_metal_texture_mip_filter(rhi::TextureMipFilter a_filter)
+FORCE_INLINE constexpr MTL::SamplerMipFilter to_metal_texture_mip_filter(rhi::TextureMipFilter a_filter)
 {
 	return static_cast<MTL::SamplerMipFilter>(a_filter);
 }
 
-constexpr FORCE_INLINE MTL::SamplerBorderColor to_metal_texture_border(rhi::TextureBorder a_color)
+FORCE_INLINE constexpr MTL::SamplerBorderColor to_metal_texture_border(rhi::TextureBorder a_color)
 {
 	return static_cast<MTL::SamplerBorderColor>(a_color);
 }
 
-constexpr FORCE_INLINE MTL::SamplerAddressMode to_metal_texture_address_mode(rhi::TextureAddressMode a_mode)
+FORCE_INLINE constexpr MTL::SamplerAddressMode to_metal_texture_address_mode(rhi::TextureAddressMode a_mode)
 {
 	return static_cast<MTL::SamplerAddressMode>(a_mode);
+}
+
+void TextureImageMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.fragment_texture(*this, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::vertex || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.vertex_texture(*this, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::tile)
+		a_command_encoder.tile_texture(*this, a_index);
+}
+
+void TextureImageMetal::bind(rhi::ComputeCommandEncoder *a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder->texture(*this, a_index);
+	else
+	{
+		assert(0 && "Can't bind texture image to this shader stage");
+	}
+}
+
+void TextureSamplerMetal::bind(rhi::RenderCommandEncoder *a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder->fragment_sampler(*this, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::vertex || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder->vertex_sampler(*this, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::tile)
+		a_command_encoder->tile_sampler(*this, a_index);
+}
+
+void TextureSamplerMetal::bind(rhi::ComputeCommandEncoder *a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder->sampler(*this, a_index);
+	else
+	{
+		assert(0 && "Can't bind texture image to this shader stage");
+	}
 }
 
 void TextureImageMetal::upload(rhi::Device &a_device)

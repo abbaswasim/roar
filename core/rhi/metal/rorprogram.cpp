@@ -30,6 +30,7 @@
 #include "rhi/metal/rormetal_common.hpp"
 #include "rhi/metal/rorprogram.hpp"
 #include "rhi/rorshader.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
 #include "rhi/rorvertex_description.hpp"

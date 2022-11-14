@@ -12,7 +12,7 @@
 	"default_scene": "default_scene.json",
 	"roar_cache": ".roar_cache",
 	"buffer_increment": 10000000,
-	"background" : [0.14, 0.14, 0.14, 1.0],
+	"background" : [0.15, 0.14, 0.12, 1.0],
 	"depth" : 1.0,
 	"fullscreen" : false,
 	"resizable" : false,
@@ -23,6 +23,7 @@
 	"print_generated_shaders" : false,
 	"write_generated_shaders" : false,
 	"clean_on_boot" : true,
+	"winding" : "counter_clockwise",
 	"metal" :
 	{
 		"version_major" : 3,

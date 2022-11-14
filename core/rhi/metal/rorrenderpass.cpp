@@ -26,10 +26,17 @@
 
 #include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
-#include "rhi/metal/rorrenderpass.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
+#include "rhi/rorrender_command_encoder.hpp"
+#include "rhi/rorcompute_command_encoder.hpp"
+
+#include <Metal/MTLPixelFormat.hpp>
 #include <Metal/MTLRenderPass.hpp>
+#include <Metal/MTLResource.hpp>
+#include <Metal/MTLTexture.hpp>
+#include <variant>
 
 namespace rhi
 {
@@ -128,7 +135,7 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 	}
 }
 
-MTL::RenderCommandEncoder *RenderpassMetal::encoder(MTL::CommandBuffer *a_command_buffer)
+MTL::RenderCommandEncoder *RenderpassMetal::render_encoder(MTL::CommandBuffer *a_command_buffer)
 {
 	// Hack to get the main pass
 	ror::log_critical("All render passes are of size {}", this->m_render_passes.size());

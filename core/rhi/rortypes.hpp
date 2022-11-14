@@ -347,13 +347,24 @@ enum class ResourceStorageOption
 // If new types are required make sure to change in rormodel.hpp
 enum class PrimitiveTopology
 {
-	points,
-	lines,
-	lines_loop,
-	lines_strip,
-	triangles,
-	triangles_strip,
-	triangles_fan
+	points          = PlatformPrimitiveTopologyPoint,
+	lines           = PlatformPrimitiveTopologyLine,
+	lines_strip     = PlatformPrimitiveTopologyLineStrip,
+	triangles       = PlatformPrimitiveTopologyTriangle,
+	triangles_strip = PlatformPrimitiveTopologyTriangleStrip
+};
+
+enum class PrimitiveWinding
+{
+	clockwise         = PlatformPrimitiveWindingClockWise,
+	counter_clockwise = PlatformPrimitiveWindingCounterClockWise
+};
+
+enum class PrimitiveCullMode
+{
+	none  = PlatformPrimitiveCullModeNone,
+	front = PlatformPrimitiveCullModeFront,
+	back  = PlatformPrimitiveCullModeBack,
 };
 
 enum class FormatType
@@ -533,6 +544,27 @@ enum class ShaderType
 	ray_closest_hit,
 	ray_intersection,
 	ray_generation
+};
+
+enum class ShaderStage
+{
+
+	none                    = 1 << 0,
+	mesh                    = 1 << 1,
+	task                    = 1 << 2,
+	tile                    = 1 << 3,
+	vertex                  = 1 << 4,
+	compute                 = 1 << 5,
+	fragment                = 1 << 6,
+	ray_miss                = 1 << 7,
+	ray_any_hit             = 1 << 8,
+	ray_closest_hit         = 1 << 9,
+	ray_intersection        = 1 << 10,
+	ray_generation          = 1 << 11,
+	vertex_fragment         = ShaderStage::vertex | ShaderStage::fragment,
+	compute_vertex          = ShaderStage::compute | ShaderStage::vertex,
+	compute_fragment        = ShaderStage::compute | ShaderStage::fragment,
+	compute_vertex_fragment = ShaderStage::compute | ShaderStage::vertex | ShaderStage::fragment
 };
 
 enum class LoadAction
@@ -1191,13 +1223,16 @@ constexpr bool has_semantic(uint64_t a_type, BufferSemantic a_semantic)
 	return ((a_type & ror::enum_to_type_cast(a_semantic)) == ror::enum_to_type_cast(a_semantic));
 }
 
-BufferSemantic    get_format_semantic(const std::string &a_format);
-std::string       get_format_semantic(const BufferSemantic &a_semantic);
-rhi::PixelFormat  string_to_pixel_format(const std::string &a_format);
-rhi::VertexFormat string_to_vertex_format(const std::string &a_format);
-rhi::ShaderType   string_to_shader_type(const std::string &a_extension);
-bool              is_pixel_format_depth_format(const rhi::PixelFormat a_format);
-std::string       renderpass_type_to_string(const rhi::RenderpassType &a_type);
+BufferSemantic         get_format_semantic(const std::string &a_format);
+std::string            get_format_semantic(const BufferSemantic &a_semantic);
+rhi::PixelFormat       string_to_pixel_format(const std::string &a_format);
+rhi::VertexFormat      string_to_vertex_format(const std::string &a_format);
+rhi::ShaderType        string_to_shader_type(const std::string &a_extension);
+rhi::ShaderStage       string_to_shader_stage(const std::string &a_stage);
+rhi::PrimitiveWinding  string_to_primitive_winding(const std::string &a_winding);
+rhi::PrimitiveCullMode string_to_cull_mode(const std::string &a_cull_mode);
+bool                   is_pixel_format_depth_format(const rhi::PixelFormat a_format);
+std::string            renderpass_type_to_string(const rhi::RenderpassType &a_type);
 
 const auto format_to_bytes = vertex_format_to_bytes;
 

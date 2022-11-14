@@ -87,6 +87,7 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 	FORCE_INLINE void init(std::any a_window);
 	FORCE_INLINE MTL::Device *platform_device();
 	FORCE_INLINE MTL::CommandQueue *platform_queue();
+	FORCE_INLINE MTL::CommandBuffer *platform_command_buffer();
 	FORCE_INLINE CA::MetalDrawable *platform_swapchain();
 
   protected:
@@ -98,6 +99,8 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 
 	declare_translation_unit_vtable();
 };
+
+using Swapchain = CA::MetalDrawable *;
 
 declare_rhi_render_type(Device);
 

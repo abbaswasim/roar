@@ -709,6 +709,36 @@ rhi::VertexFormat string_to_vertex_format(const std::string &a_format)
 	return rhi::VertexFormat::float32_4;
 }
 
+rhi::PrimitiveWinding string_to_primitive_winding(const std::string &a_winding)
+{
+	auto winding{rhi::PrimitiveWinding::counter_clockwise};
+
+	if (a_winding == "clockwise")
+		winding = rhi::PrimitiveWinding::clockwise;
+	else
+	{
+		assert(a_winding == "counter_clockwise");
+	}
+
+	return winding;
+}
+
+rhi::PrimitiveCullMode string_to_cull_mode(const std::string &a_cull_mode)
+{
+	auto cull_mode{rhi::PrimitiveCullMode::back};
+
+	if (a_cull_mode == "front")
+		cull_mode = rhi::PrimitiveCullMode::front;
+	else if (a_cull_mode == "none")
+		cull_mode = rhi::PrimitiveCullMode::none;
+	else
+	{
+		assert(a_cull_mode == "back" && "Invalid cull_mode");
+	}
+
+	return cull_mode;
+}
+
 rhi::ShaderType string_to_shader_type(const std::string &a_extension)
 {
 	auto type{rhi::ShaderType::vertex};
@@ -726,6 +756,29 @@ rhi::ShaderType string_to_shader_type(const std::string &a_extension)
 		assert(0 && "Implement more types");
 
 	return type;
+}
+
+rhi::ShaderStage string_to_shader_stage(const std::string &a_stage)
+{
+	auto stage{rhi::ShaderStage::vertex};
+	if (a_stage == "vertex")
+		stage = rhi::ShaderStage::vertex;
+	else if (a_stage == "fragment")
+		stage = rhi::ShaderStage::fragment;
+	else if (a_stage == "compute")
+		stage = rhi::ShaderStage::compute;
+	else if (a_stage == "vertex_fragment")
+		stage = rhi::ShaderStage::vertex_fragment;
+	else if (a_stage == "compute_vertex")
+		stage = rhi::ShaderStage::compute_vertex;
+	else if (a_stage == "compute_fragment")
+		stage = rhi::ShaderStage::compute_fragment;
+	else if (a_stage == "compute_vertex_fragment")
+		stage = rhi::ShaderStage::compute_vertex_fragment;
+	else
+		assert(0 && "Implement more types");
+
+	return stage;
 }
 
 bool is_pixel_format_depth_format(const rhi::PixelFormat a_format)

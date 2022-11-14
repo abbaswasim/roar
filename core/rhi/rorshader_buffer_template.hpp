@@ -154,6 +154,8 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		return this->m_toplevel;
 	}
 
+	void update_count(const std::string &a_entry_name, uint32_t a_new_count);
+
 	/**
 	 * Returns the string representation of this shader buffer template
 	 * Something like:

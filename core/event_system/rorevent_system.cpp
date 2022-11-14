@@ -79,7 +79,7 @@ void EventSystem::init()
 	auto subscribers_count = event_type_max * event_modifier_max * event_state_max;
 	this->m_subscribers.reserve(subscribers_count);
 
-	// This will create some invalid handle combinations like mouse + a + right + move buts thats ok
+	// This will create some invalid handle combinations like mouse + a + right + move but thats ok
 	for (size_t i = 0; i < event_type_max; ++i)
 		for (size_t j = 0; j < event_code_max; ++j)
 			for (size_t k = 0; k < event_modifier_max; ++k)

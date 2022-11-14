@@ -39,6 +39,9 @@ namespace rhi
 class DeviceMetal;
 using Device = DeviceMetal;
 
+declare_rhi_render_type(RenderCommandEncoder);
+declare_rhi_render_type(ComputeCommandEncoder);
+
 class ROAR_ENGINE_ITEM BufferMetal
 {
   public:
@@ -59,8 +62,12 @@ class ROAR_ENGINE_ITEM BufferMetal
 	FORCE_INLINE void           upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
 	FORCE_INLINE constexpr void unmap() noexcept;
 	FORCE_INLINE constexpr void unmap(std::uintptr_t a_from, std::uintptr_t a_to) noexcept;
+
 	FORCE_INLINE constexpr void bind(MTL::RenderCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept;
 	FORCE_INLINE constexpr void bind(MTL::ComputeCommandEncoder *a_cmd_encoder, rhi::ShaderType a_shader_stage, uint32_t a_index, uint32_t a_offset = 0) const noexcept;
+
+	void bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_offset, uint32_t a_index) noexcept;
+	void bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_offset, uint32_t a_index) noexcept;
 
 	// FORCE_INLINE constexpr auto size()               const noexcept { return this->m_buffer->length(); }
 
@@ -114,8 +121,7 @@ template <class _type>
 BufferHybrid(_type) -> BufferHybrid<Static>;
 
 // I am doing this so the rest of the system can use the CRTP implementation directly as "Buffer"
-template <typename _type>
-using Buffer = BufferHybrid<_type>;
+using Buffer = BufferMetal;
 
 }        // namespace rhi
 

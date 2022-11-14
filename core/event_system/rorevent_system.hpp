@@ -52,6 +52,7 @@ class EventHandleHash
 enum class EventType : uint32_t
 {
 	mouse = 0,
+	application,
 	keyboard,
 	gamepad,
 	window,
@@ -119,7 +120,7 @@ struct Event
 {
 	EventHandle m_handle{0};         //! Handle to the event containing, type, code, modifier and state
 	bool        m_live{true};        //! Is the event still live or consumed by some subscriber
-	std::any    m_payload{0};        //! Payload of the event containing a user data to something the user knows
+	std::any    m_payload{0};        //! Payload of the event containing a user data to something the user knows // TODO: Get rid of std::any
 
 	FORCE_INLINE Event()
 	{}

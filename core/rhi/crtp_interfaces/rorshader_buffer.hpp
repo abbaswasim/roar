@@ -183,9 +183,14 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 		this->buffer_init(a_device, aligned_size, a_mode);
 	}
 
-	FORCE_INLINE auto &top_level() 
+	FORCE_INLINE auto &top_level()
 	{
 		return this->m_shader_buffer_template.top_level();
+	}
+
+	FORCE_INLINE void update_count(const std::string &a_entry_name, uint32_t a_new_count)
+	{
+		this->m_shader_buffer_template.update_count(a_entry_name, a_new_count);
 	}
 
   protected:

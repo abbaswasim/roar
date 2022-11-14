@@ -98,6 +98,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 
 	// clang-format off
 	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this instead
+	FORCE_INLINE constexpr auto& shader_buffer()       noexcept  { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this instead
 	// clang-format on
 
 	FORCE_INLINE void look_at();

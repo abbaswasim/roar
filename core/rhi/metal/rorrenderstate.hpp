@@ -29,6 +29,7 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rorrenderstate.hpp"
 #include "rhi/rordevice.hpp"
+#include "rhi/rorrender_command_encoder.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
 #include <Metal/MTLDepthStencil.hpp>
@@ -54,6 +55,11 @@ class RenderstateMetal : public RenderstateCrtp<RenderstateMetal>
 	FORCE_INLINE constexpr auto depth_state_always_no_write() const noexcept     { return this->m_depth_state_always_no_write; }
 	FORCE_INLINE constexpr auto depth_state_less_no_write()   const noexcept     { return this->m_depth_state_less_no_write;   }
 	// clang-format on
+
+	FORCE_INLINE constexpr void bind(rhi::RenderCommandEncoder &a_encoder, MTL::DepthStencilState *a_depth_state) const noexcept
+	{
+		a_encoder.platform_encoder()->setDepthStencilState(a_depth_state);
+	}
 
   protected:
   private:

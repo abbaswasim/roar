@@ -29,6 +29,8 @@
 
 namespace ror
 {
+static const auto application_event                       = create_event_handle(EventType::application, EventCode::none, EventModifier::none, EventState::max);
+
 static const auto mouse_click                             = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::click);
 static const auto mouse_repeat                            = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::repeat);
 static const auto mouse_down                              = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::down);

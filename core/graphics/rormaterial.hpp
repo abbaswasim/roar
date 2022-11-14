@@ -139,6 +139,7 @@ class ROAR_ENGINE_ITEM Material final
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &shader_buffer() const noexcept  { return this->m_shader_buffer; }
+	FORCE_INLINE constexpr auto &shader_buffer()       noexcept  { return this->m_shader_buffer; }
 	// clang-format on
 };
 

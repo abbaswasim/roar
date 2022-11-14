@@ -180,7 +180,7 @@ void Material::upload(rhi::Device &a_device)
 	*/
 
 	this->fill_shader_buffer();
-	this->m_shader_buffer.shader_buffer_upload(a_device);
+	this->m_shader_buffer.upload(a_device, rhi::ResourceStorageOption::managed);
 
 	this->update();
 }

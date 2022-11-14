@@ -76,13 +76,13 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE void   tick()             {    this->underlying().tick_derived();         }
 	FORCE_INLINE void   post_tick()        {    this->underlying().post_tick_derived();    }
 
-	FORCE_INLINE auto  &job_system()       {    return this->m_job_system;                 }
-	FORCE_INLINE auto  &event_system()     {    return this->m_event_system;               }
-	FORCE_INLINE auto  &scene()            {    return this->m_scene;                      }
-	FORCE_INLINE auto  &buffer_pack()      {    return *this->m_buffer_pack;               }
-	FORCE_INLINE auto  &device()           {    return *this->m_current_device;            }
-	FORCE_INLINE auto  &renderer()         {    return this->m_renderer;                   }
-	FORCE_INLINE auto  &timer()            {    return this->m_timer;                      }
+	FORCE_INLINE constexpr auto  &job_system()     noexcept  {    return *this->m_job_system;                }
+	FORCE_INLINE constexpr auto  &event_system()   noexcept  {    return this->m_event_system;               }
+	FORCE_INLINE constexpr auto  &scene()          noexcept  {    return this->m_scene;                      }
+	FORCE_INLINE constexpr auto  &buffer_pack()    noexcept  {    return *this->m_buffer_pack;               }
+	FORCE_INLINE constexpr auto  &device()         noexcept  {    return *this->m_current_device;            }
+	FORCE_INLINE constexpr auto  &renderer()       noexcept  {    return this->m_renderer;                   }
+	FORCE_INLINE constexpr auto  &timer()          noexcept  {    return this->m_timer;                      }
 	// clang-format on
 
 	FORCE_INLINE void shutdown()

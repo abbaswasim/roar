@@ -28,6 +28,7 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/rortypes.hpp"
 
+#include <Metal/MTLRenderCommandEncoder.hpp>
 #include <Metal/MTLResource.hpp>
 #include <Metal/MTLSampler.hpp>
 #include <Metal/MTLStageInputOutputDescriptor.hpp>
@@ -52,6 +53,16 @@ constexpr FORCE_INLINE auto to_metal_vertexformat(rhi::VertexFormat a_vertexform
 	return static_cast<MTL::VertexFormat>(a_vertexformat);
 }
 
+constexpr FORCE_INLINE auto to_metal_indexformat(rhi::Format a_format)
+{
+	assert((a_format == rhi::Format::uint32_1 || a_format == rhi::Format::uint16_1) && "Unsupported metal index format");
+
+	if (a_format == rhi::Format::uint16_1)
+		return MTL::IndexTypeUInt16;
+	else
+		return MTL::IndexTypeUInt32;
+}
+
 constexpr FORCE_INLINE auto to_metal_step_function(rhi::StepFunction a_function)
 {
 	switch (a_function)
@@ -69,6 +80,21 @@ constexpr FORCE_INLINE auto to_metal_step_function(rhi::StepFunction a_function)
 constexpr FORCE_INLINE auto to_metal_resource_option(rhi::ResourceStorageOption a_mode)
 {
 	return static_cast<MTL::ResourceOptions>(a_mode);
+}
+
+constexpr FORCE_INLINE auto to_metal_primitive_topoloy(rhi::PrimitiveTopology a_topology)
+{
+	return static_cast<MTL::PrimitiveType>(a_topology);
+}
+
+constexpr FORCE_INLINE auto to_metal_cull_mode(rhi::PrimitiveCullMode a_cull_mode)
+{
+	return static_cast<MTL::CullMode>(a_cull_mode);
+}
+
+constexpr FORCE_INLINE auto to_metal_winding(rhi::PrimitiveWinding a_winding)
+{
+	return static_cast<MTL::Winding>(a_winding);
 }
 
 }        // namespace rhi

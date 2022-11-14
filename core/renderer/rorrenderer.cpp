@@ -322,6 +322,12 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		render_pass.parent_ids(parents);
 	}
 
+	if (a_render_pass.contains("cull_mode"))
+	{
+		auto cull_mode = a_render_pass["cull_mode"];
+		render_pass.cull_mode(rhi::string_to_cull_mode(cull_mode));
+	}
+
 	if (a_render_pass.contains("background"))
 	{
 		auto color = a_render_pass["background"];
@@ -412,40 +418,72 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		if (subpass.contains("program"))
 			rsp.program_id(subpass["program"]);
 
-		std::vector<rhi::RenderTarget> input_attachments{};
-		std::vector<rhi::RenderTarget> output_attachments{};
-
 		if (subpass.contains("rendered_inputs"))
 		{
-			std::vector<uint32_t> rendered_inputs = subpass["rendered_inputs"];
-			for (auto &rt_index : rendered_inputs)
+			rhi::Rendersubpass::RenderTargets render_inputs_temp;
+
+			auto rendered_inputs = subpass["rendered_inputs"];
+			render_inputs_temp.reserve(rendered_inputs.size());
+
+			for (auto &rt_input : rendered_inputs)
 			{
+				assert(rt_input.contains("index") && "render_input must have an index");
+				auto rt_index = rt_input["index"];
 				assert(rt_index < a_textures.size() && "This rendered input doesn't exist in the render targets");
+				rhi::ShaderStage stage{rhi::ShaderStage::fragment};
+				if (rt_input.contains("stage"))
+					stage = rhi::string_to_shader_stage(rt_input["stage"]);
+
+				render_inputs_temp.emplace_back(nullptr, rt_index, stage);
+
 				a_textures[rt_index].usage(rhi::TextureUsage::render_target_read);
 			}
-			rsp.rendered_input_ids(std::move(rendered_inputs));
+			rsp.rendered_inputs(std::move(render_inputs_temp));
 		}
 
 		if (subpass.contains("buffer_inputs"))
 		{
-			std::vector<uint32_t> buffer_inputs = subpass["buffer_inputs"];
-			for (auto &bi_index : buffer_inputs)
+			rhi::Rendersubpass::BufferTargets buffer_inputs_temp;
+
+			auto buffer_inputs = subpass["buffer_inputs"];
+			buffer_inputs_temp.reserve(buffer_inputs.size());
+
+			for (auto &buffer_input : buffer_inputs)
 			{
+				assert(buffer_input.contains("index") && "buffer_input must have an index");
+				auto bi_index = buffer_input["index"];
 				assert(bi_index < a_buffers.size() && "This buffer input doesn't exist in the buffer targets");
-				// a_render_buffers[bi_index].usage(rhi::TextureUsage::render_target_read);
+				rhi::ShaderStage stage{rhi::ShaderStage::vertex};
+				if (buffer_input.contains("stage"))
+					stage = rhi::string_to_shader_stage(buffer_input["stage"]);
+
+				buffer_inputs_temp.emplace_back(nullptr, bi_index, stage);
 			}
-			rsp.buffer_input_ids(std::move(buffer_inputs));
+
+			rsp.buffer_inputs(std::move(buffer_inputs_temp));
 		}
 
 		if (subpass.contains("subpass_inputs"))
 		{
-			std::vector<uint32_t> subpass_inputs = subpass["subpass_inputs"];
-			for (auto &rt_index : subpass_inputs)
+			rhi::Rendersubpass::RenderTargets render_inputs_temp;
+
+			auto rendered_inputs = subpass["subpass_inputs"];
+			render_inputs_temp.reserve(rendered_inputs.size());
+
+			for (auto &rt_input : rendered_inputs)
 			{
+				assert(rt_input.contains("index") && "subpass_input must have an index");
+				auto rt_index = rt_input["index"];
 				assert(rt_index < a_textures.size() && "This subpass input doesn't exist in the render targets");
+				rhi::ShaderStage stage{rhi::ShaderStage::fragment};
+				if (rt_input.contains("stage"))
+					stage = rhi::string_to_shader_stage(rt_input["stage"]);
+
+				render_inputs_temp.emplace_back(nullptr, rt_index, stage);
+
 				a_textures[rt_index].usage(rhi::TextureUsage::render_target_read);
 			}
-			rsp.input_attachment_ids(std::move(subpass_inputs));
+			rsp.rendered_inputs(std::move(render_inputs_temp));
 		}
 
 		rsps.emplace_back(std::move(rsp));
@@ -511,14 +549,14 @@ void Renderer::load_frame_graphs()
 	}
 }
 
-std::reference_wrapper<const rhi::RenderTarget> Renderer::find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index)
+const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index)
 {
 	for (auto &pass : a_renderpasses)
 	{
 		for (auto &rts : pass.render_targets())
 		{
 			if (a_index == rts.m_target_index)
-				return std::ref(rts);
+				return &rts;
 		}
 	}
 
@@ -532,17 +570,17 @@ std::reference_wrapper<const rhi::RenderTarget> Renderer::find_rendertarget_refe
 
 	this->m_input_render_targets.emplace_back(a_index, this->m_textures[a_index], load_action, store_action);
 
-	return std::ref(this->m_input_render_targets.back());        // back is ok here because this vector can't be reallocated
+	return &this->m_input_render_targets.back();        // back is ok here because this vector can't be reallocated
 }
 
-std::reference_wrapper<const rhi::RenderBuffer> Renderer::find_renderbuffer_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index)
+const rhi::RenderBuffer *Renderer::find_renderbuffer_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index)
 {
 	for (auto &pass : a_renderpasses)
 	{
 		for (auto &rts : pass.render_buffers())
 		{
 			if (a_index == rts.m_target_index)
-				return std::ref(rts);
+				return &rts;
 		}
 	}
 
@@ -556,7 +594,7 @@ std::reference_wrapper<const rhi::RenderBuffer> Renderer::find_renderbuffer_refe
 
 	this->m_input_render_buffers.emplace_back(a_index, this->m_buffers[a_index], load_action, store_action);
 
-	return std::ref(this->m_input_render_buffers.back());        // back is ok here because this vector can't be reallocated
+	return &this->m_input_render_buffers.back();        // back is ok here because this vector can't be reallocated
 }
 
 void Renderer::setup_references()
@@ -588,49 +626,37 @@ void Renderer::setup_references()
 			{
 				// All the render input ids into render input references
 				{
-					auto &rids = subpass.rendered_input_ids();
+					auto &inputs = subpass.rendered_inputs();
 
-					rhi::Rendersubpass::RenderTargets rts{};
+					assert(inputs.size() <= this->m_textures.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
 
-					assert(rids.size() <= this->m_textures.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
-
-					for (auto rid : rids)
+					for (auto &input : inputs)
 					{
-						assert(rid < this->m_textures.size() && "Render input Id is out of bound");
-						rts.emplace_back(find_rendertarget_reference(graph.second, rid));
+						assert(input.m_index < this->m_textures.size() && "Render input Id is out of bound");
+						input.m_render_output = find_rendertarget_reference(graph.second, input.m_index);
 					}
-
-					subpass.rendered_inputs(std::move(rts));
 				}
 				// All the subpass input ids into subpass input references
 				{
-					auto &iads = subpass.input_attachment_ids();
-
-					rhi::Rendersubpass::RenderTargets rsps{};
+					auto &iads = subpass.input_attachments();
 
 					assert(iads.size() <= this->m_textures.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
 
-					for (auto rid : iads)
+					for (auto &rid : iads)
 					{
-						assert(rid < this->m_textures.size() && "Input attachment Id is out of bound");
-						rsps.emplace_back(find_rendertarget_reference(graph.second, rid));
+						assert(rid.m_index < this->m_textures.size() && "Input attachment Id is out of bound");
+						rid.m_render_output = find_rendertarget_reference(graph.second, rid.m_index);
 					}
-
-					subpass.input_attachments(std::move(rsps));
 				}
 				// All the buffer input ids into buffer input references
 				{
-					auto &biid = subpass.buffer_input_ids();
+					auto &biid = subpass.buffer_inputs();
 
-					rhi::Rendersubpass::BufferTargets bfts{};
-
-					for (auto bid : biid)
+					for (auto &bid : biid)
 					{
-						assert(bid < this->m_buffers.size() && "Input attachment Id is out of bound");
-						bfts.emplace_back(find_renderbuffer_reference(graph.second, bid));
+						assert(bid.m_index < this->m_buffers.size() && "Input attachment Id is out of bound");
+						bid.m_render_output = find_renderbuffer_reference(graph.second, bid.m_index);
 					}
-
-					subpass.buffer_inputs(std::move(bfts));
 				}
 			}
 		}
@@ -647,6 +673,70 @@ void Renderer::load_specific()
 	this->setup_references();
 }
 
+void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer)
+{
+	(void) a_scene;
+	(void) a_job_system;
+	(void) a_event_system;
+	(void) a_scene;
+	(void) a_buffer_pack;
+	(void) a_device;
+	(void) a_timer;
+
+	rhi::Swapchain surface = a_device.platform_swapchain();
+
+	if (surface)
+	{
+		// TODO: Create a command_buffer per render_pass
+		rhi::CommandBuffer command_buffer{a_device};
+		auto              &render_passes = this->current_frame_graph();
+		for (auto &render_pass : render_passes)
+			render_pass.execute(command_buffer, a_scene, surface, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, *this);
+
+		command_buffer.present_drawable(surface);
+		command_buffer.commit();
+		command_buffer.release();
+	}
+}
+
+void Renderer::deffered_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene)
+{
+	(void) a_scene;
+
+	auto &output = this->m_buffers[0];        // Hack: FIXME: remove the 0, I know this one is node_transform_output
+	auto &input  = this->m_buffers[0];        // Hack: FIXME: remove the 0, I know this one is node_transform_input
+
+	uint32_t nodes_count = static_cast_safe<uint32_t>(a_scene.nodes().size());
+	for (auto &model : a_scene.models())
+		nodes_count += model.nodes().size();
+
+	std::cout << "Node output and input before\n"
+	          << input.to_glsl_string() << std::endl
+	          << input.to_glsl_string() << std::endl;
+
+	input.update_count("node_transform", nodes_count);
+	output.update_count("node_transform", nodes_count);
+
+	std::cout << "Node output and input and after\n"
+	          << input.to_glsl_string() << std::endl
+	          << input.to_glsl_string() << std::endl;
+
+	for (auto &render_buffer : this->m_input_render_buffers)
+	{
+		render_buffer.m_target_reference.get().upload(a_device);        // This doesn't make it ready so it will be re-created later again unless ready is explicitly called on it
+		render_buffer.m_target_reference.get().ready(true);
+	}
+
+	for (auto &render_buffer : this->m_buffers)
+	{
+		if (!render_buffer.ready())
+		{
+			render_buffer.upload(a_device);        // this will still not make it ready, have to be done later before first use, unless ready is called next
+			render_buffer.ready(true);
+		}
+	}
+}
+
 void Renderer::upload(rhi::Device &a_device)
 {
 	for (auto &shader : this->m_shaders)
@@ -658,14 +748,9 @@ void Renderer::upload(rhi::Device &a_device)
 	for (auto &program : this->m_programs)
 		program.upload(a_device, this->m_shaders);
 
+	// Upload all render targets now, render buffers are deffered after scenes are loaded
 	for (auto &render_target : this->m_input_render_targets)
 		render_target.m_target_reference.get().upload(a_device);
-
-	for (auto &render_buffer : this->m_input_render_buffers)
-	{
-		render_buffer.m_target_reference.get().upload(a_device);        // This doesn't make it ready so it will be re-created later again unless ready is explicitly called on it
-		render_buffer.m_target_reference.get().ready(true);
-	}
 
 	for (auto &graph : this->m_frame_graphs)
 	{
@@ -689,29 +774,13 @@ void Renderer::upload(rhi::Device &a_device)
 				}
 			}
 
-			auto pass_render_buffers = pass.render_buffers();
-			for (auto &render_buffer : pass_render_buffers)
-			{
-				auto &buffer = render_buffer.m_target_reference.get();
-				if (!buffer.ready())
-				{
-					buffer.upload(a_device);        // this will still not make it ready, have to be done later before first use, unless ready is called next
-					buffer.ready(true);
-				}
-				else
-				{
-					ror::log_critical("Reusing buffer target with different size");
-				}
-			}
-
 			pass.upload(a_device);
 		}
 
-		// Make sure all the rendered_inputs and buffer_inputs are ready
+		// Make sure all the rendered_inputs are ready
 		for (auto &pass : graph.second)
 		{
 			auto pass_render_targets = pass.render_targets();
-			auto pass_render_buffers = pass.render_buffers();
 
 			for (auto &render_target : pass_render_targets)
 			{
@@ -719,16 +788,12 @@ void Renderer::upload(rhi::Device &a_device)
 				(void) texture;
 				assert(texture.ready() && "Required textures are not ready");
 			}
-			for (auto &render_buffer : pass_render_buffers)
-			{
-				auto &buffer = render_buffer.m_target_reference.get();
-				(void) buffer;
-				assert(buffer.ready() && "Required buffers are not ready"); // Don't need this because buffers will be filled later and marked ready before use
-			}
 		}
 	}
 
 	this->m_render_state.upload(a_device);
+
+	this->init_global_shader_buffers(a_device);
 }
 
 std::vector<rhi::RenderpassType> Renderer::render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const

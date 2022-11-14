@@ -548,11 +548,13 @@ rhi::PrimitiveTopology cglf_primitive_to_primitive_topology(cgltf_primitive_type
 	{
 		case cgltf_primitive_type_points:            return rhi::PrimitiveTopology::points;
 		case cgltf_primitive_type_lines:             return rhi::PrimitiveTopology::lines;
-		case cgltf_primitive_type_line_loop:         return rhi::PrimitiveTopology::lines_loop;
 		case cgltf_primitive_type_line_strip:        return rhi::PrimitiveTopology::lines_strip;
 		case cgltf_primitive_type_triangles:         return rhi::PrimitiveTopology::triangles;
 		case cgltf_primitive_type_triangle_strip:    return rhi::PrimitiveTopology::triangles_strip;
-		case cgltf_primitive_type_triangle_fan:      return rhi::PrimitiveTopology::triangles_fan;
+
+		case cgltf_primitive_type_line_loop:
+		case cgltf_primitive_type_triangle_fan:
+			assert(0 && "Unsupported primitive type foudn in gltf");
 	}
 	// clang-format on
 

@@ -30,6 +30,7 @@
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/metal/rormetal_common.hpp"
 #include "settings/rorsettings.hpp"
+#include <Metal/MTLCommandBuffer.hpp>
 #include <any>
 
 #include <Metal/MTLCommandQueue.hpp>
@@ -84,6 +85,11 @@ FORCE_INLINE MTL::CommandQueue *DeviceMetal::platform_queue()
 {
 	assert(this->m_command_queue && "Metal device requested is null");
 	return this->m_command_queue;
+}
+
+FORCE_INLINE MTL::CommandBuffer *DeviceMetal::platform_command_buffer()
+{
+	return this->platform_queue()->commandBuffer();
 }
 
 FORCE_INLINE CA::MetalDrawable *DeviceMetal::platform_swapchain()

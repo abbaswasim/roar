@@ -39,8 +39,8 @@ namespace ror
 
 struct BufferPack
 {
-	std::string                           m_name{};
-	std::vector<rhi::Buffer<rhi::Static>> m_buffers{};
+	std::string                                 m_name{};
+	std::vector<rhi::BufferHybrid<rhi::Static>> m_buffers{};
 };
 
 struct BuffersFormat

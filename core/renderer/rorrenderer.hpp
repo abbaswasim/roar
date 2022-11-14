@@ -1,4 +1,3 @@
-
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
@@ -49,6 +48,8 @@
 
 namespace ror
 {
+class Scene;
+
 class Renderer final : public Configuration<Renderer>
 {
   public:
@@ -62,12 +63,14 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE virtual ~Renderer() noexcept override            = default;        //! Destructor
 
 	FORCE_INLINE                     Renderer();        //! Default constructor
+	void                             render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer);
 	void                             load_specific();
 	void                             upload(rhi::Device &);
 	std::vector<rhi::RenderpassType> render_pass_types() const;
 	std::vector<rhi::RenderpassType> all_render_pass_types() const;
 
 	// clang-format off
+	FORCE_INLINE constexpr auto& buffers()                      noexcept { return this->m_buffers;                 }
 	FORCE_INLINE constexpr auto& shaders()                const noexcept { return this->m_shaders;                 }
 	FORCE_INLINE constexpr auto& programs()               const noexcept { return this->m_programs;                }
 	FORCE_INLINE constexpr auto& textures()               const noexcept { return this->m_textures;                }
@@ -99,14 +102,15 @@ class Renderer final : public Configuration<Renderer>
   private:
 	declare_translation_unit_vtable();
 
-	std::vector<rhi::RenderpassType>                render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const;
-	std::reference_wrapper<const rhi::RenderTarget> find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
-	std::reference_wrapper<const rhi::RenderBuffer> find_renderbuffer_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
+	std::vector<rhi::RenderpassType> render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const;
+	const rhi::RenderTarget         *find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
+	const rhi::RenderBuffer         *find_renderbuffer_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
 
 	void load_programs();
 	void load_frame_graphs();
 	void load_textures();
 	void load_buffers();
+	void load_buffer_templates();
 	void setup_references();
 
 	std::vector<rhi::Shader>       m_shaders{};                           //! All the global shaders

@@ -31,7 +31,6 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
 #include "rhi/rordevice.hpp"
-#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"
@@ -41,6 +40,8 @@
 
 namespace rhi
 {
+class Rendersubpass;
+
 class ProgramMetal : public ProgramCrtp<ProgramMetal>
 {
   public:

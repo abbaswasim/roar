@@ -63,7 +63,7 @@
 		{
 			"name":"node_transform_output",
 			"layout":"std140",
-			"type":"ubo",
+			"type":"ssbo",
 			"set":0,
 			"binding":0,
 			"entries":[
@@ -96,8 +96,7 @@
 		{
 			"name":"node_transform_input",
 			"layout":"std140",
-			"type":"ssbo",
-			"count":0,
+			"type":"ubo",
 			"set":0,
 			"binding":1,
 			"entries":[
@@ -121,9 +120,41 @@
 							{
 								"name":"scale_inverse",
 								"format":"float32_3"
+							},
+							{
+								"name":"parent_index",
+								"format":"int32_4"
 							}
+
 						]
 					}
+				}
+			]
+		},
+		{
+			"name":"nodes_model",
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"binding":25,
+			"entries":[
+				{
+					"name":"node_model_mat4",
+					"format":"float32_4x4",
+					"count":50
+				}
+			]
+		},
+		{
+			"name":"nodes_index",
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"binding":26,
+			"entries":[
+				{
+					"name":"node_index",
+					"format":"uint32_1"
 				}
 			]
 		}
@@ -183,7 +214,10 @@
 						"state":"transient",
 						"debug_output":true,
 						"buffer_inputs":[
-							0
+							{
+								"index" : 1,
+								"stage" : "compute"
+							}
 						],
 						"program":0
 					}
@@ -203,14 +237,15 @@
 					}
 				],
 				"background":[
+					0.15,
 					0.14,
-					0.14,
-					0.14,
+					0.12,
 					1.0
 				],
 				"depends_on":[
 					0
 				],
+				"cull_mode" : "back",
 				"subpasses":[
 					{
 						"name":"forward_lighting",
@@ -218,10 +253,16 @@
 						"state":"transient",
 						"debug_output":true,
 						"rendered_inputs":[
-							2
+							{
+								"index" : 2,
+								"stage" : "fragment"
+							}
 						],
 						"buffer_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "vertex"
+							}
 						],
 						"program":1
 					},
@@ -231,7 +272,10 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							}
 						],
 						"program":0
 					}
@@ -381,7 +425,10 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							}
 						],
 						"program":1
 					},
@@ -391,7 +438,10 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							}
 						],
 						"program":1
 					},
@@ -403,7 +453,10 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							}
 						],
 						"program":0
 					}
@@ -431,7 +484,10 @@
 						"type":"post_process",
 						"state":"transient",
 						"subpass_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							}
 						],
 						"program":1
 					}
@@ -459,7 +515,10 @@
 						"type":"post_process",
 						"state":"transient",
 						"subpass_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							}
 						],
 						"program":1
 					}

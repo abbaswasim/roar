@@ -1,4 +1,3 @@
-
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
@@ -28,6 +27,7 @@
 
 #include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
+#include "rhi/metal/rorcommand_buffer.hpp"
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
@@ -35,6 +35,9 @@
 
 namespace rhi
 {
+declare_rhi_render_type(RenderCommandEncoder);
+declare_rhi_render_type(ComputeCommandEncoder);
+
 class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 {
   public:
@@ -47,8 +50,21 @@ class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 
 	declare_translation_unit_vtable();
 
-	void                       upload(rhi::Device &a_device);
-	MTL::RenderCommandEncoder *encoder(MTL::CommandBuffer *a_command_buffer);
+	void                        upload(rhi::Device &a_device);
+	MTL::ComputeCommandEncoder *compute_encoder(MTL::CommandBuffer *a_command_buffer);
+	MTL::RenderCommandEncoder  *render_encoder(MTL::CommandBuffer *a_command_buffer);
+	MTL::RenderPassDescriptor  *platform_renderpass(uint32_t a_index);
+	MTL::ComputePassDescriptor *platform_computepass(uint32_t a_index);
+
+	size_t                     platform_renderpass_count();
+	rhi::RenderCommandEncoder  render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
+	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
+
+	FORCE_INLINE constexpr void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
+	{
+		auto rp = this->platform_renderpass(a_index);
+		rp->colorAttachments()->object(0)->setTexture(a_surface->texture());
+	}
 
   protected:
   private:
