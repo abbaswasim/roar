@@ -57,6 +57,9 @@ void Rendersubpass::setup(rhi::ComputeCommandEncoder &a_command_encoder, ror::Re
 	(void) a_renderer;
 
 	// do compute setup
+	this->bind_render_inputs(a_command_encoder);
+	this->bind_buffer_inputs(a_command_encoder);
+	this->bind_input_attachments(a_command_encoder);
 }
 
 void render_scene(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system,

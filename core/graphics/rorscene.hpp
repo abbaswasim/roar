@@ -41,6 +41,7 @@
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
+#include "settings/rorsettings.hpp"
 #include <any>
 #include <filesystem>
 #include <limits>
@@ -92,7 +93,11 @@ class ROAR_ENGINE_ITEM Light
 	float32_t m_inner_angle{0.0f};                                   //! Spot light inner angle
 	float32_t m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle
 
-	rhi::ShaderBuffer m_shader_buffer{};        //! Shader buffer for a specific type of light UBO
+	rhi::ShaderBuffer m_shader_buffer{"Light",
+		rhi::ShaderBufferType::ubo,
+		rhi::Layout::std140,
+		settings().directional_light_set(),
+		settings().directional_light_binding()};        //! Shader buffer for a specific type of light UBO
 };
 
 class ROAR_ENGINE_ITEM EnvironmentProbe final

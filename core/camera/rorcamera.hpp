@@ -36,6 +36,7 @@
 #include "rhi/rordevice.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
+#include "settings/rorsettings.hpp"
 #include <functional>
 
 /*  OrbitCamera usage
@@ -145,7 +146,12 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	std::function<void(Event &)> m_resize_callback{};                      //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	std::function<void(Event &)> m_zoom_callback{};                        //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
 	std::function<void(Event &)> m_frambuffer_resize_callback{};           //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	rhi::ShaderBuffer            m_shader_buffer{};                        //! Shader buffer for per_view_uniform UBO
+
+	rhi::ShaderBuffer m_shader_buffer{"per_view_uniforms",
+	                                  rhi::ShaderBufferType::ubo,
+	                                  rhi::Layout::std140,
+	                                  settings().per_view_uniform_set(),
+	                                  settings().per_view_uniform_binding()};        //! Shader buffer for per_view_uniform UBO
 };
 }        // namespace ror
 

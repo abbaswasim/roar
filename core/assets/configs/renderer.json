@@ -176,6 +176,11 @@
 						"index":0,
 						"load_action":"clear",
 						"store_action":"store"
+					},
+					{
+						"index":2,
+						"load_action":"clear",
+						"store_action":"store"
 					}
 				],
 				"subpasses":[
@@ -185,41 +190,12 @@
 						"type":"node_transform",
 						"state":"transient",
 						"buffer_inputs":[
-							1
-						],
-						"program":2
-					}
-				]
-			},
-			{
-				"disabled": true,
-				"render_targets":[
-					{
-						"index":2,
-						"load_action":"clear",
-						"store_action":"store"
-					}
-				],
-				"viewport":{
-					"x":0,
-					"y":0,
-					"w":1024,
-					"h":768
-				},
-				"subpasses":[
-					{
-						"name":"shadowing",
-						"technique":"fragment",
-						"type":"shadow",
-						"state":"transient",
-						"debug_output":true,
-						"buffer_inputs":[
 							{
 								"index" : 1,
 								"stage" : "compute"
 							}
 						],
-						"program":0
+						"program":2
 					}
 				]
 			},

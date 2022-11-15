@@ -33,6 +33,7 @@
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
+#include "settings/rorsettings.hpp"
 #include <cstddef>
 
 namespace ror
@@ -97,12 +98,17 @@ class ROAR_ENGINE_ITEM Skin
 		this->update();
 	}
 
-	std::vector<uint32_t, rhi::BufferAllocator<uint32_t>>     m_joints{};                               //! All the joints in this skeleton
-	std::vector<Matrix4f, rhi::BufferAllocator<Matrix4f>>     m_inverse_bind_matrices{};                //! Inverse bind matrices for each joint in an array
-	std::vector<Transformf, rhi::BufferAllocator<Transformf>> m_joint_transforms{};                     //! Scratch space for array of calculated transforms every frame
-	int32_t                                                   m_root{-1};                               //! Node index of each skin, should be init with -1
-	int32_t                                                   m_node_index{-1};                         //! Node index as well where the each skin is attached, should be init with -1
-	rhi::ShaderBuffer                                         m_joint_transform_shader_buffer{"joint_transforms_uniform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 1};        //! ShaderBuffers for joint_transforms within the skinning shader
+	std::vector<uint32_t, rhi::BufferAllocator<uint32_t>>     m_joints{};                       //! All the joints in this skeleton
+	std::vector<Matrix4f, rhi::BufferAllocator<Matrix4f>>     m_inverse_bind_matrices{};        //! Inverse bind matrices for each joint in an array
+	std::vector<Transformf, rhi::BufferAllocator<Transformf>> m_joint_transforms{};             //! Scratch space for array of calculated transforms every frame
+	int32_t                                                   m_root{-1};                       //! Node index of each skin, should be init with -1
+	int32_t                                                   m_node_index{-1};                 //! Node index as well where the each skin is attached, should be init with -1
+
+	rhi::ShaderBuffer m_joint_transform_shader_buffer{"joint_transforms_uniform",
+	                                                  rhi::ShaderBufferType::ubo,
+	                                                  rhi::Layout::std140,
+	                                                  settings().skin_joints_set(),
+	                                                  settings().skin_joints_binding()};        //! ShaderBuffers for joint_transforms within the skinning shader
 };
 
 }        // namespace ror

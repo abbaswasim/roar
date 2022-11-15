@@ -125,6 +125,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	FORCE_INLINE constexpr auto binding()      const noexcept   {   return this->m_binding;              }
 	FORCE_INLINE constexpr auto size()         const noexcept   {   return this->m_toplevel.m_offset;    } // Offset of the struct is moved along for the next entry, which is also the size
 	FORCE_INLINE constexpr auto stride()       const noexcept   {   return this->m_toplevel.m_stride;    }
+	FORCE_INLINE constexpr auto offset()       const noexcept   {   return 0u;                           } // Always zero because we have our own buffer, should be changed if sharing buffers
 	// clang-format on
 
 	FORCE_INLINE constexpr void add_entry(const std::string &a_name, Format a_type, uint32_t a_count = 1)

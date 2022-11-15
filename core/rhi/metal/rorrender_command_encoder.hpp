@@ -58,12 +58,12 @@ class RenderCommandEncoderMetal final
 	FORCE_INLINE constexpr void depth_stencil_state(rhi::PrimitiveWinding a_winding) noexcept;
 	FORCE_INLINE constexpr void cull_mode(rhi::PrimitiveCullMode a_cull_mode) noexcept;
 	FORCE_INLINE constexpr void render_pipeline_state(const rhi::Program &a_render_pipeline_state) noexcept;
-	FORCE_INLINE constexpr void vertex_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uint32_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void fragment_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uint32_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void tile_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uint32_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void vertex_buffer(rhi::Buffer &a_buffer, uint32_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void fragment_buffer(rhi::Buffer &a_buffer, uint32_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void tile_buffer(rhi::Buffer &a_buffer, uint32_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void vertex_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void fragment_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void tile_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void vertex_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void fragment_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void tile_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void fragment_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void vertex_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void tile_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
@@ -72,8 +72,8 @@ class RenderCommandEncoderMetal final
 	FORCE_INLINE constexpr void tile_sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void draw_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count);
 	FORCE_INLINE constexpr void draw_primitives_instanced(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count, uint32_t a_instance_count);
-	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uint32_t a_offset) noexcept;
-	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Static> &a_indices, uint32_t a_offset) noexcept;
+	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uintptr_t a_offset) noexcept;
+	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Static> &a_indices, uintptr_t a_offset) noexcept;
 	FORCE_INLINE constexpr void end_encoding() noexcept;
 
 	// clang-format off

@@ -49,17 +49,17 @@ FORCE_INLINE ComputeCommandEncoder::ComputeCommandEncoderMetal(MTL::ComputeComma
     m_encoder(a_encoder)
 {}
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::compute_pipeline_state(rhi::Program &a_compute_pipeline_state) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept
 {
 	this->m_encoder->setComputePipelineState(a_compute_pipeline_state.compute_pipeline_state());
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uint32_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::Buffer &a_buffer, uint32_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
@@ -74,12 +74,17 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::sampler(rhi::TextureSampler &
 	this->m_encoder->setSamplerState(a_sampler.platform_handle(), a_index);
 }
 
-	FORCE_INLINE constexpr void ComputeCommandEncoder::dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept
 {
 	MTL::Size threads_per_grid        = MTL::Size::Make(a_threads_per_grid.x, a_threads_per_grid.y, a_threads_per_grid.z);
 	MTL::Size threads_per_threadgroup = MTL::Size::Make(a_threads_per_threadgroup.x, a_threads_per_threadgroup.y, a_threads_per_threadgroup.z);
 
 	this->m_encoder->dispatchThreads(threads_per_grid, threads_per_threadgroup);
+}
+
+FORCE_INLINE constexpr void ComputeCommandEncoder::end_encoding() noexcept
+{
+	this->m_encoder->endEncoding();
 }
 
 }        // namespace rhi

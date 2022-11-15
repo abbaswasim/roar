@@ -24,6 +24,23 @@
 	"write_generated_shaders" : false,
 	"clean_on_boot" : true,
 	"winding" : "counter_clockwise",
+	"sets_bindings" :
+	{
+		"material_factors" : [0, 0],
+		"per_frame_uniform" : [0, 1],
+		"per_view_uniform" : [0, 2],
+		"directional_light" : [0, 3],
+		"point_light" : [0, 4],
+		"spot_light" : [0, 5],
+		"area_light" : [0, 6],
+		"skin_joints" : [0, 7],
+		"morph_weights" : [0, 8],
+		"node_transform_output" : [0, 9],
+		"node_transform_input" : [0, 10],
+		"nodes_model" : [0, 11],
+		"nodes_index" : [0, 12],
+		"max_attributes" : 17 
+	},
 	"metal" :
 	{
 		"version_major" : 3,

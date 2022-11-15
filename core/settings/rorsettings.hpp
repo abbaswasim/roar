@@ -36,6 +36,9 @@
 namespace ror
 {
 
+static const auto bits_shift = 16u;
+static const auto bits_mask  = 0x0000FFFF;
+
 class ROAR_ENGINE_ITEM Settings final
 {
   public:
@@ -128,6 +131,66 @@ class ROAR_ENGINE_ITEM Settings final
 				this->m_viewport = ror::Vector4i(static_cast<int32_t>(x), static_cast<int32_t>(y), static_cast<int32_t>(w), static_cast<int32_t>(h));
 		}
 
+		auto bs_material_factors      = setting.get<std::vector<uint32_t>>("sets_bindings:material_factors");
+		auto bs_per_frame_uniform     = setting.get<std::vector<uint32_t>>("sets_bindings:per_frame_uniform");
+		auto bs_per_view_uniform      = setting.get<std::vector<uint32_t>>("sets_bindings:per_view_uniform");
+		auto bs_directional_light     = setting.get<std::vector<uint32_t>>("sets_bindings:directional_light");
+		auto bs_point_light           = setting.get<std::vector<uint32_t>>("sets_bindings:point_light");
+		auto bs_spot_light            = setting.get<std::vector<uint32_t>>("sets_bindings:spot_light");
+		auto bs_area_light            = setting.get<std::vector<uint32_t>>("sets_bindings:area_light");
+		auto bs_skin_joints           = setting.get<std::vector<uint32_t>>("sets_bindings:skin_joints");
+		auto bs_morph_weights         = setting.get<std::vector<uint32_t>>("sets_bindings:morph_weights");
+		auto bs_node_transform_output = setting.get<std::vector<uint32_t>>("sets_bindings:node_transform_output");
+		auto bs_node_transform_input  = setting.get<std::vector<uint32_t>>("sets_bindings:node_transform_input");
+		auto bs_nodes_model           = setting.get<std::vector<uint32_t>>("sets_bindings:nodes_model");
+		auto bs_nodes_index           = setting.get<std::vector<uint32_t>>("sets_bindings:nodes_index");
+
+		this->m_bindings.m_max_attributes = setting.get<uint32_t>("sets_bindings:max_attributes");
+
+		// clang-format off
+		this->m_bindings.m_material_factors      = 	bs_material_factors[0] << bits_shift;
+		this->m_bindings.m_material_factors      |=	bs_material_factors[1];
+		this->m_bindings.m_per_frame_uniform     = 	bs_per_frame_uniform[0] << bits_shift;
+		this->m_bindings.m_per_frame_uniform     |=	bs_per_frame_uniform[1];
+		this->m_bindings.m_per_view_uniform      = 	bs_per_view_uniform[0] << bits_shift;
+		this->m_bindings.m_per_view_uniform      |=	bs_per_view_uniform[1];
+		this->m_bindings.m_directional_light     = 	bs_directional_light[0] << bits_shift;
+		this->m_bindings.m_directional_light     |=	bs_directional_light[1];
+		this->m_bindings.m_point_light           = 	bs_point_light[0] << bits_shift;
+		this->m_bindings.m_point_light           |=	bs_point_light[1];
+		this->m_bindings.m_spot_light            = 	bs_spot_light[0] << bits_shift;
+		this->m_bindings.m_spot_light            |=	bs_spot_light[1];
+		this->m_bindings.m_area_light            = 	bs_area_light[0] << bits_shift;
+		this->m_bindings.m_area_light            |=	bs_area_light[1];
+		this->m_bindings.m_skin_joints           = 	bs_skin_joints[0] << bits_shift;
+		this->m_bindings.m_skin_joints           |=	bs_skin_joints[1];
+		this->m_bindings.m_morph_weights         = 	bs_morph_weights[0] << bits_shift;
+		this->m_bindings.m_morph_weights         |=	bs_morph_weights[1];
+		this->m_bindings.m_node_transform_output = 	bs_node_transform_output[0] << bits_shift;
+		this->m_bindings.m_node_transform_output |=	bs_node_transform_output[1];
+		this->m_bindings.m_node_transform_input  = 	bs_node_transform_input[0] << bits_shift;
+		this->m_bindings.m_node_transform_input  |=	bs_node_transform_input[1];
+		this->m_bindings.m_nodes_model           = 	bs_nodes_model[0] << bits_shift;
+		this->m_bindings.m_nodes_model           |=	bs_nodes_model[1];
+		this->m_bindings.m_nodes_index           = 	bs_nodes_index[0] << bits_shift;
+		this->m_bindings.m_nodes_index           |=	bs_nodes_index[1];
+		// clang-format on
+
+		// assert(this->m_bindings.m_material_factors != 0 && "m_material_factors wasn't read properly");
+		assert(this->m_bindings.m_per_frame_uniform != 0 && "m_per_frame_uniform wasn't read properly");
+		assert(this->m_bindings.m_per_view_uniform != 0 && "m_per_view_uniform wasn't read properly");
+		assert(this->m_bindings.m_directional_light != 0 && "m_directional_light wasn't read properly");
+		assert(this->m_bindings.m_point_light != 0 && "m_point_light wasn't read properly");
+		assert(this->m_bindings.m_spot_light != 0 && "m_spot_light wasn't read properly");
+		assert(this->m_bindings.m_area_light != 0 && "m_area_light wasn't read properly");
+		assert(this->m_bindings.m_skin_joints != 0 && "m_skin_joints wasn't read properly");
+		assert(this->m_bindings.m_morph_weights != 0 && "m_morph_weights wasn't read properly");
+		assert(this->m_bindings.m_node_transform_output != 0 && "m_node_transform_output wasn't read properly");
+		assert(this->m_bindings.m_node_transform_input != 0 && "m_node_transform_input wasn't read properly");
+		assert(this->m_bindings.m_nodes_model != 0 && "m_nodes_model wasn't read properly");
+		assert(this->m_bindings.m_nodes_index != 0 && "m_nodes_index wasn't read properly");
+		assert(this->m_bindings.m_max_attributes != 0 && "m_max_attributes wasn't read properly");
+
 		this->m_metal.version_major            = setting.get<uint32_t>("metal:version_major");
 		this->m_metal.version_minor            = setting.get<uint32_t>("metal:version_minor");
 		this->m_metal.argument_buffers         = setting.get<bool>("metal:argument_buffers");
@@ -142,6 +205,38 @@ class ROAR_ENGINE_ITEM Settings final
 
 		this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
 	}
+
+	// clang-format off
+	FORCE_INLINE constexpr auto max_attributes()                  const noexcept { return this->m_bindings.m_max_attributes + 1;                                             }
+
+	FORCE_INLINE constexpr auto material_factors_binding()        const noexcept { return (this->m_bindings.m_material_factors & bits_mask) + this->max_attributes();        }
+	FORCE_INLINE constexpr auto per_frame_uniform_binding()       const noexcept { return (this->m_bindings.m_per_frame_uniform & bits_mask) + this->max_attributes();       }
+	FORCE_INLINE constexpr auto per_view_uniform_binding()        const noexcept { return (this->m_bindings.m_per_view_uniform & bits_mask) + this->max_attributes();        }
+	FORCE_INLINE constexpr auto directional_light_binding()       const noexcept { return (this->m_bindings.m_directional_light & bits_mask) + this->max_attributes();       }
+	FORCE_INLINE constexpr auto point_light_binding()             const noexcept { return (this->m_bindings.m_point_light & bits_mask) + this->max_attributes();             }
+	FORCE_INLINE constexpr auto spot_light_binding()              const noexcept { return (this->m_bindings.m_spot_light & bits_mask) + this->max_attributes();              }
+	FORCE_INLINE constexpr auto area_light_binding()              const noexcept { return (this->m_bindings.m_area_light & bits_mask) + this->max_attributes();              }
+	FORCE_INLINE constexpr auto skin_joints_binding()             const noexcept { return (this->m_bindings.m_skin_joints & bits_mask) + this->max_attributes();             }
+	FORCE_INLINE constexpr auto morph_weights_binding()           const noexcept { return (this->m_bindings.m_morph_weights & bits_mask) + this->max_attributes();           }
+	FORCE_INLINE constexpr auto node_transform_output_binding()   const noexcept { return (this->m_bindings.m_node_transform_output & bits_mask) + this->max_attributes();   }
+	FORCE_INLINE constexpr auto node_transform_input_binding()    const noexcept { return (this->m_bindings.m_node_transform_input & bits_mask) + this->max_attributes();    }
+	FORCE_INLINE constexpr auto nodes_model_binding()             const noexcept { return (this->m_bindings.m_nodes_model & bits_mask) + this->max_attributes();             }
+	FORCE_INLINE constexpr auto nodes_index_binding()             const noexcept { return (this->m_bindings.m_nodes_index & bits_mask) + this->max_attributes();             }
+
+	FORCE_INLINE constexpr auto material_factors_set()            const noexcept { return (this->m_bindings.m_material_factors >> bits_shift) + this->max_attributes();      }
+	FORCE_INLINE constexpr auto per_frame_uniform_set()           const noexcept { return (this->m_bindings.m_per_frame_uniform >> bits_shift) + this->max_attributes();     }
+	FORCE_INLINE constexpr auto per_view_uniform_set()            const noexcept { return (this->m_bindings.m_per_view_uniform >> bits_shift) + this->max_attributes();      }
+	FORCE_INLINE constexpr auto directional_light_set()           const noexcept { return (this->m_bindings.m_directional_light >> bits_shift) + this->max_attributes();     }
+	FORCE_INLINE constexpr auto point_light_set()                 const noexcept { return (this->m_bindings.m_point_light >> bits_shift) + this->max_attributes();           }
+	FORCE_INLINE constexpr auto spot_light_set()                  const noexcept { return (this->m_bindings.m_spot_light >> bits_shift) + this->max_attributes();            }
+	FORCE_INLINE constexpr auto area_light_set()                  const noexcept { return (this->m_bindings.m_area_light >> bits_shift) + this->max_attributes();            }
+	FORCE_INLINE constexpr auto skin_joints_set()                 const noexcept { return (this->m_bindings.m_skin_joints >> bits_shift) + this->max_attributes();           }
+	FORCE_INLINE constexpr auto morph_weights_set()               const noexcept { return (this->m_bindings.m_morph_weights >> bits_shift) + this->max_attributes();         }
+	FORCE_INLINE constexpr auto node_transform_output_set()       const noexcept { return (this->m_bindings.m_node_transform_output >> bits_shift) + this->max_attributes(); }
+	FORCE_INLINE constexpr auto node_transform_input_set()        const noexcept { return (this->m_bindings.m_node_transform_input >> bits_shift) + this->max_attributes();  }
+	FORCE_INLINE constexpr auto nodes_model_set()                 const noexcept { return (this->m_bindings.m_nodes_model >> bits_shift) + this->max_attributes();           }
+	FORCE_INLINE constexpr auto nodes_index_set()                 const noexcept { return (this->m_bindings.m_nodes_index >> bits_shift) + this->max_attributes();           }
+	// clang-format on
 
 	std::string m_roar_title{};
 	std::string m_roar_cache{};
@@ -187,6 +282,25 @@ class ROAR_ENGINE_ITEM Settings final
 
 	rhi::PrimitiveWinding m_primitive_winding{rhi::PrimitiveWinding::counter_clockwise};
 
+	struct BindingsSets
+	{
+		// assumes set is 0 for all of the following
+		uint32_t m_material_factors{0};
+		uint32_t m_per_frame_uniform{1};
+		uint32_t m_per_view_uniform{2};
+		uint32_t m_directional_light{3};
+		uint32_t m_point_light{4};
+		uint32_t m_spot_light{5};
+		uint32_t m_area_light{6};
+		uint32_t m_skin_joints{7};
+		uint32_t m_morph_weights{8};
+		uint32_t m_node_transform_output{9};
+		uint32_t m_node_transform_input{10};
+		uint32_t m_nodes_model{11};
+		uint32_t m_nodes_index{12};
+		uint32_t m_max_attributes{17};
+	};
+
 	struct Options
 	{
 		uint32_t version_major{3};
@@ -208,6 +322,7 @@ class ROAR_ENGINE_ITEM Settings final
 
   protected:
   private:
+	BindingsSets m_bindings{};
 };
 
 FORCE_INLINE Settings &settings() noexcept

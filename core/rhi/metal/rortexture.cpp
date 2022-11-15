@@ -103,32 +103,32 @@ void TextureImageMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::
 		a_command_encoder.tile_texture(*this, a_index);
 }
 
-void TextureImageMetal::bind(rhi::ComputeCommandEncoder *a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureImageMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
-		a_command_encoder->texture(*this, a_index);
+		a_command_encoder.texture(*this, a_index);
 	else
 	{
 		assert(0 && "Can't bind texture image to this shader stage");
 	}
 }
 
-void TextureSamplerMetal::bind(rhi::RenderCommandEncoder *a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureSamplerMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
-		a_command_encoder->fragment_sampler(*this, a_index);
+		a_command_encoder.fragment_sampler(*this, a_index);
 
 	if (a_shader_stage == rhi::ShaderStage::vertex || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
-		a_command_encoder->vertex_sampler(*this, a_index);
+		a_command_encoder.vertex_sampler(*this, a_index);
 
 	if (a_shader_stage == rhi::ShaderStage::tile)
-		a_command_encoder->tile_sampler(*this, a_index);
+		a_command_encoder.tile_sampler(*this, a_index);
 }
 
-void TextureSamplerMetal::bind(rhi::ComputeCommandEncoder *a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureSamplerMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
-		a_command_encoder->sampler(*this, a_index);
+		a_command_encoder.sampler(*this, a_index);
 	else
 	{
 		assert(0 && "Can't bind texture image to this shader stage");

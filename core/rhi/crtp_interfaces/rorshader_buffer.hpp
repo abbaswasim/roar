@@ -127,6 +127,9 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	// clang-format off
 	FORCE_INLINE constexpr auto &shader_buffer()          noexcept  { return this->m_shader_buffer_template;                         }
 	FORCE_INLINE constexpr auto  to_glsl_string()   const           { return this->m_shader_buffer_template.to_glsl_string();        }
+	FORCE_INLINE constexpr auto  set()              const noexcept  { return this->m_shader_buffer_template.set();                   }
+	FORCE_INLINE constexpr auto  binding()          const noexcept  { return this->m_shader_buffer_template.binding();               }
+	FORCE_INLINE constexpr auto  offset()           const noexcept  { return this->m_shader_buffer_template.offset();                }
 	// clang-format on
 
 	FORCE_INLINE constexpr auto stride(const std::string &a_name)

@@ -33,7 +33,7 @@ namespace rhi
 define_translation_unit_vtable(BufferMetal)
 {}
 
-void BufferMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_offset, uint32_t a_index) noexcept
+void BufferMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.fragment_buffer(*this, a_offset, a_index);
@@ -45,7 +45,7 @@ void BufferMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::Shader
 		a_command_encoder.tile_buffer(*this, a_offset, a_index);
 }
 
-void BufferMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_offset, uint32_t a_index) noexcept
+void BufferMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.buffer(*this, a_offset, a_index);

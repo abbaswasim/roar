@@ -43,7 +43,7 @@ namespace rhi
 class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public BufferMetal
 {
   public:
-	FORCE_INLINE                    ShaderBufferMetal()                                     = delete;        //! Default constructor
+	FORCE_INLINE                    ShaderBufferMetal()                                     = delete;         //! Default constructor
 	FORCE_INLINE                    ShaderBufferMetal(const ShaderBufferMetal &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE                    ShaderBufferMetal(ShaderBufferMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ShaderBufferMetal &operator=(const ShaderBufferMetal &a_other)             = delete;         //! Copy assignment operator
@@ -62,9 +62,11 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public Buf
 	declare_translation_unit_vtable() override;
 
 	// clang-format off
-	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept        { this->unmap(); this->m_mapped_address = nullptr;         }
-	FORCE_INLINE constexpr void  buffer_map()                                                           noexcept        { this->m_mapped_address = this->map();                    }
-	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->init(a_device, a_size, a_mode);                    }
+	template<typename _encoder_type>
+	FORCE_INLINE constexpr void  buffer_bind(_encoder_type& a_encoder, rhi::ShaderStage a_stage)                        { this->bind(a_encoder, a_stage, this->offset(), this->binding());  }
+	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept        { this->unmap(); this->m_mapped_address = nullptr;                  }
+	FORCE_INLINE constexpr void  buffer_map()                                                           noexcept        { this->m_mapped_address = this->map();                             }
+	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->init(a_device, a_size, a_mode);                             }
 	// clang-format on
 
 	FORCE_INLINE void buffer_copy(const uint8_t *a_data, size_t a_offset, size_t a_length)

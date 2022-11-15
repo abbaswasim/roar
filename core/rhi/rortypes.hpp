@@ -604,6 +604,7 @@ enum class StoreAction
 //  ...
 // };
 
+// NOTE: If any more vertex attribute types are added, change the max attribute binding/location in settings.json
 // All this gross dance is required to not have to define the enum values and strings twice, basically defines the one above
 // Position is usually x,y,z translation
 // Rotation is usually a quaternion

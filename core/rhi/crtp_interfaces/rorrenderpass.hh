@@ -39,7 +39,8 @@
 namespace rhi
 {
 
-FORCE_INLINE constexpr void bind_input_textures(rhi::RenderCommandEncoder &a_encoder, rhi::Rendersubpass::RenderTargets &a_render_inputs, uint32_t a_starting_index)
+template <class _type>
+FORCE_INLINE constexpr void bind_input_textures(_type &a_encoder, rhi::Rendersubpass::RenderTargets &a_render_inputs, uint32_t a_starting_index)
 {
 	for (auto &render_input : a_render_inputs)
 	{
@@ -49,30 +50,43 @@ FORCE_INLINE constexpr void bind_input_textures(rhi::RenderCommandEncoder &a_enc
 	}
 }
 
-FORCE_INLINE void Rendersubpass::bind_render_inputs(rhi::RenderCommandEncoder &a_encoder)
+template <class _type>
+FORCE_INLINE void Rendersubpass::bind_render_inputs(_type &a_encoder)
 {
 	auto     render_inputs  = this->rendered_inputs();
 	uint32_t starting_index = 20;        // TODO: Abstract out this starting index
 	bind_input_textures(a_encoder, render_inputs, starting_index);
 }
 
-FORCE_INLINE void Rendersubpass::bind_input_attachments(rhi::RenderCommandEncoder &a_encoder)
+template <class _type>
+FORCE_INLINE void Rendersubpass::bind_input_attachments(_type &a_encoder)
 {
 	auto     render_inputs  = this->input_attachments();
-	uint32_t starting_index = 25;        // TODO: Abstract out this starting index
+	uint32_t starting_index = 21;        // TODO: Abstract out this starting index
 	bind_input_textures(a_encoder, render_inputs, starting_index);
 }
 
-FORCE_INLINE void Rendersubpass::bind_buffer_inputs(rhi::RenderCommandEncoder &a_encoder)
+template <class _type>
+FORCE_INLINE void Rendersubpass::bind_buffer_inputs(_type &a_encoder) // _type can be rhi::RenderCommandEncoder or rhi::ComputeCommandEncoder
 {
-	(void) a_encoder;
 	auto     buffer_inputs  = this->buffer_inputs();
-	uint32_t starting_index = 30;        // TODO: Abstract out this starting index
 	for (auto &buffer_input : buffer_inputs)
 	{
 		assert(buffer_input.m_render_output && "Render reference shouldn't be null");
 		auto &br = buffer_input.m_render_output->m_target_reference.get();
-		br.bind(a_encoder, buffer_input.m_stage, 0, starting_index++);        // TODO: Maybe abstract away the offset, at the moment it bind the whole buffer
+		br.buffer_bind(a_encoder, buffer_input.m_stage);
+	}
+}
+
+// Looks like at least metal doesn't support render_buffers from non-compute and compute requires these to be enabled here, not in renderpass creation time
+template <class _type>
+FORCE_INLINE void RenderpassCrtp<_type>::bind_render_buffers(rhi::ComputeCommandEncoder &a_encoder)
+{
+	auto     buffer_inputs  = this->render_buffers();
+	for (auto &buffer_input : buffer_inputs)
+	{
+		auto &br = buffer_input.m_target_reference.get();
+		br.buffer_bind(a_encoder, rhi::ShaderStage::compute);
 	}
 }
 
@@ -119,6 +133,8 @@ void RenderpassCrtp<_type>::setup(rhi::ComputeCommandEncoder &a_command_encoder)
 
 	(void) setting;
 	(void) a_command_encoder;
+
+	this->bind_render_buffers(a_command_encoder);
 
 	// Do compute setup here
 }
@@ -259,13 +275,14 @@ void RenderpassCrtp<_type>::execute(rhi::CommandBuffer &a_command_buffer, ror::S
 		}
 		else
 		{
-			render_pass_index++;
-			// rhi::ComputeCommandEncoder command_encoder{this->compute_encoder(a_command_buffer, render_pass_index++)};
+			rhi::ComputeCommandEncoder command_encoder{this->compute_encoder(a_command_buffer, render_pass_index++)};
 
-			// this->setup(command_encoder);
-			// subpass.setup(command_encoder, a_renderer);
+			this->setup(command_encoder);
+			subpass.setup(command_encoder, a_renderer);
 
-			// pass_by_type(command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, subpass);
+			pass_by_type(command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, subpass);
+
+			command_encoder.end_encoding();
 		}
 	}
 }

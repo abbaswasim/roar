@@ -31,6 +31,9 @@
 #include "foundation/rormacros.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector4.hpp"
+#include "profiling/rortimer.hpp"
+#include "rhi/rorcommand_buffer.hpp"
+#include "rhi/rordevice.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorshader_buffer.hpp"
@@ -129,7 +132,7 @@ define_type_to_shader_semantics(RenderBuffer)
 template <class _type>
 struct RenderOutputRef
 {
-	const _type     *m_render_output{nullptr};                 //! Non-Owning point to the reference object, could be a render_texture or render_buffer
+	const _type     *m_render_output{nullptr};                 //! Non-Owning pointer to the reference object, could be a render_texture or render_buffer
 	uint32_t         m_index{0};                               //! Index of the render output in the array of outputs (temporary untill we find a reference)
 	rhi::ShaderStage m_stage{rhi::ShaderStage::vertex};        //! Which stage(s) it will be bound to
 
@@ -187,9 +190,12 @@ class Rendersubpass final
 
   protected:
   private:
-	FORCE_INLINE void bind_render_inputs(rhi::RenderCommandEncoder &a_encoder);
-	FORCE_INLINE void bind_input_attachments(rhi::RenderCommandEncoder &a_encoder);
-	FORCE_INLINE void bind_buffer_inputs(rhi::RenderCommandEncoder &a_encoder);
+	template<class _type>
+	FORCE_INLINE void bind_render_inputs(_type &a_encoder);
+	template<class _type>
+	FORCE_INLINE void bind_input_attachments(_type &a_encoder);
+	template<class _type>
+	FORCE_INLINE void bind_buffer_inputs(_type &a_encoder);
 
 	std::string              m_name{};                                               //! Debug name of this render pass
 	rhi::RenderpassTechnique m_technique{rhi::RenderpassTechnique::fragment};        //! Will this render pass be excuted in fragment or compute
@@ -258,6 +264,8 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 
   protected:
   private:
+	void bind_render_buffers(rhi::ComputeCommandEncoder &a_command_encoder);
+
 	std::vector<Rendersubpass> m_subpasses{};                                    //! All the subpasses in this render pass
 	std::vector<RenderTarget>  m_render_targets{};                               //! Output attachments (images)
 	std::vector<RenderBuffer>  m_render_buffers{};                               //! Output attachments (buffers)
