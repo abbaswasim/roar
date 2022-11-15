@@ -52,7 +52,7 @@ class ComputeCommandEncoderMetal final
 	FORCE_INLINE ComputeCommandEncoderMetal &operator=(const ComputeCommandEncoderMetal &a_other)                      = default;        //! Copy assignment operator
 	FORCE_INLINE ComputeCommandEncoderMetal &operator=(ComputeCommandEncoderMetal &&a_other) noexcept                  = default;        //! Move assignment operator
 	FORCE_INLINE ~ComputeCommandEncoderMetal() noexcept;
-	FORCE_INLINE ComputeCommandEncoderMetal(MTL::ComputeCommandEncoder *a_encoder);
+	FORCE_INLINE explicit ComputeCommandEncoderMetal(MTL::ComputeCommandEncoder *a_encoder);
 
 	FORCE_INLINE constexpr void compute_pipeline_state(rhi::Program &a_compute_pipeline_state) noexcept;
 	FORCE_INLINE constexpr void buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uint32_t a_offset, uint32_t a_index) noexcept;

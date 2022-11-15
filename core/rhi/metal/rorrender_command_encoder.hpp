@@ -51,7 +51,7 @@ class RenderCommandEncoderMetal final
 	FORCE_INLINE RenderCommandEncoderMetal &operator=(const RenderCommandEncoderMetal &a_other)                     = default;        //! Copy assignment operator
 	FORCE_INLINE RenderCommandEncoderMetal &operator=(RenderCommandEncoderMetal &&a_other) noexcept                 = default;        //! Move assignment operator
 	FORCE_INLINE ~RenderCommandEncoderMetal() noexcept;
-	FORCE_INLINE RenderCommandEncoderMetal(MTL::RenderCommandEncoder *a_encoder);
+	FORCE_INLINE explicit RenderCommandEncoderMetal(MTL::RenderCommandEncoder *a_encoder);
 
 	FORCE_INLINE constexpr void viewport(ror::Vector4d a_viewport_rectangle, ror::Vector2d a_near_far) noexcept;
 	FORCE_INLINE constexpr void front_facing_winding(rhi::PrimitiveWinding a_winding) noexcept;

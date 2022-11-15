@@ -48,7 +48,7 @@ class CommandBufferMetal final
 	FORCE_INLINE CommandBufferMetal &operator=(CommandBufferMetal &&a_other) noexcept          = default;        //! Move assignment operator
 	FORCE_INLINE ~CommandBufferMetal() noexcept                                                = default;        //! Destructor
 
-	FORCE_INLINE CommandBufferMetal(rhi::Device &a_device)
+	FORCE_INLINE explicit CommandBufferMetal(rhi::Device &a_device)
 	{
 		this->m_buffer = a_device.platform_command_buffer();
 	}

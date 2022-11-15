@@ -35,12 +35,12 @@ namespace rhi
 
 FORCE_INLINE rhi::RenderCommandEncoder CommandBuffer::render_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index)
 {
-	return {this->m_buffer->renderCommandEncoder(a_render_pass.platform_renderpass(a_index))};
+	return rhi::RenderCommandEncoder{this->m_buffer->renderCommandEncoder(a_render_pass.platform_renderpass(a_index))};
 }
 
 FORCE_INLINE rhi::ComputeCommandEncoder CommandBuffer::compute_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index)
 {
-	return {this->m_buffer->computeCommandEncoder(a_render_pass.platform_computepass(a_index))};
+	return rhi::ComputeCommandEncoder{this->m_buffer->computeCommandEncoder(a_render_pass.platform_computepass(a_index))};
 }
 
 }        // namespace rhi
