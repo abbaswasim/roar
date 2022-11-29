@@ -96,6 +96,12 @@ class ROAR_ENGINE_ITEM NodeData
 	// Node suplimentary data, should probably be combined with Node at some point
 	std::string           m_name{};
 	std::vector<uint32_t> m_children{};        //! All the list of childrens for each node
+
+	rhi::ShaderBuffer m_shader_buffer{"nodes_offsets",
+	                                  rhi::ShaderBufferType::ubo,
+	                                  rhi::Layout::std140,
+	                                  settings().nodes_index_set(),
+	                                  settings().nodes_index_binding()};        //! Model specific shader buffer, currently only contains node_index
 };
 
 }        // namespace ror
