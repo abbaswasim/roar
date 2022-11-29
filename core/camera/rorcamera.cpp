@@ -51,10 +51,10 @@ void OrbitCamera::init(EventSystem &a_event_system)
 					this->left_key_drag(vec2.x, vec2.y);
 					break;
 				case EventModifier::middle_mouse:
-					this->middle_key_drag(vec2.x, vec2.y);
+					this->right_key_drag(vec2.x, vec2.y);
 					break;
 				case EventModifier::right_mouse:
-					this->right_key_drag(vec2.x, vec2.y);
+					this->middle_key_drag(vec2.x, vec2.y);
 					break;
 				case EventModifier::none:
 				case EventModifier::shift:
@@ -76,7 +76,7 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		if (e.is_compatible<ror::Vector2ui>())
 		{
 			auto vec2 = std::any_cast<ror::Vector2ui>(e.m_payload);
-			this->set_bounds(vec2.x, vec2.y);
+			this->bounds(vec2.x, vec2.y);
 
 			// Now update the MVP and the likes
 			this->look_at();
@@ -91,7 +91,7 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		if (e.is_compatible<ror::Vector2d>())
 		{
 			auto vec2 = std::any_cast<ror::Vector2d>(e.m_payload);
-			this->zoom_by(-vec2.y);
+			this->zoom(-vec2.y);
 
 			// Now update the MVP and the likes
 			this->look_at();
@@ -170,22 +170,6 @@ void OrbitCamera::update()
 
 void OrbitCamera::upload(rhi::Device &a_device)
 {
-	// Looking to create a UBO for directional light like below
-	/*
-	  const uint directional_lights_count = @;
-	  struct light_type
-	  {
-	      vec3  color;
-	      vec3  direction;
-	      float intensity;
-	      mat4  mvp;
-	  };
-
-	  layout(std140, set = @, binding = @) uniform directional_light_uniform
-	  {
-	      light_type lights[directional_lights_count];
-	  } in_directional_light_uniforms;
-	*/
 	this->fill_shader_buffer();
 	this->m_shader_buffer.upload(a_device);
 

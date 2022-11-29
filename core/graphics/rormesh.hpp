@@ -98,7 +98,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	std::vector<rhi::PrimitiveTopology>                     m_primitive_types{};                         //! Should be init with rhi::PrimitiveTopology::triangle
 	std::vector<bool>                                       m_has_indices_states{};                      //! Should be init with false
 	std::vector<float32_t, rhi::BufferAllocator<float32_t>> m_morph_weights{};                           //! Optional morph weights provided per mesh
-	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>    m_bounding_boxes{};                          //! This is per part
+	std::vector<ror::BoundingBoxf, BoundingBoxAllocator>    m_bounding_boxes{};                          //! Bounding box of each mesh part
 	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Should be init with -1 and might not have valid values after load, Maybe add a default material
 	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_program_indices{};                         //! Should be init with -1 but should have valid values when fully loaded
 	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1

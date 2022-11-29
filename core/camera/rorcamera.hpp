@@ -67,15 +67,15 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE OrbitCamera &operator=(OrbitCamera &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~OrbitCamera() noexcept                                  = default;        //! Destructor
 
-	FORCE_INLINE void       set_bounds(uint32_t a_width, uint32_t a_height);
+	FORCE_INLINE void       bounds(uint32_t a_width, uint32_t a_height);
 	FORCE_INLINE void       get_bounds(uint32_t &a_width, uint32_t &a_height);
-	FORCE_INLINE void       set_visual_volume(Vector3f a_minimum, Vector3f a_maximum);
-	FORCE_INLINE Matrix4f   get_model_view_projection();
-	FORCE_INLINE Matrix4f   get_view_projection();
-	FORCE_INLINE Matrix4f   get_model();
-	FORCE_INLINE Matrix4f   get_normal();
-	FORCE_INLINE Vector3f   get_from();
-	FORCE_INLINE void       zoom_by(double64_t a_zoom_delta);
+	FORCE_INLINE void       visual_volume(Vector3f a_minimum, Vector3f a_maximum);
+	FORCE_INLINE Matrix4f   model_view_projection();
+	FORCE_INLINE Matrix4f   view_projection();
+	FORCE_INLINE Matrix4f   model();
+	FORCE_INLINE Matrix4f   normal();
+	FORCE_INLINE Vector3f   from();
+	FORCE_INLINE void       zoom(double64_t a_zoom_delta);
 	FORCE_INLINE void       type(CameraType a_type);
 	FORCE_INLINE CameraType type();
 	FORCE_INLINE void       z_near(float32_t a_near);

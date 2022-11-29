@@ -47,8 +47,11 @@
 #include <cstddef>
 #include <cstring>
 #include <filesystem>
+#include <set>
 #include <stack>
+#include <stdexcept>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #define CGLTF_IMPLEMENTATION
@@ -1105,6 +1108,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						auto        stride           = attrib_accessor->buffer_view->stride;
 						auto        offset           = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
 
+						if (stride == 0)
+							stride = attrib_byte_size;
+
 						if (attrib_accessor->normalized)
 							ror::log_critical("Attribute accessor data is normalised but there is no support at the moment for normalised data");
 
@@ -1141,6 +1147,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						auto indices_byte_size = cgltf_calc_size(attrib_accessor->type, attrib_accessor->component_type);
 						auto offset            = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
 						auto stride            = cprim.indices->stride;
+
+						if (stride == 0)
+							stride = indices_byte_size;
 
 						if (attrib_accessor->normalized)
 							ror::log_critical("Attribute Index data is normalised but there is no support at the moment for normalised data");
@@ -1221,6 +1230,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 							auto        stride           = attrib_accessor->buffer_view->stride;
 							auto        offset           = attrib_accessor->buffer_view->offset + attrib_accessor->offset;
 
+							if (stride == 0)
+								stride = attrib_byte_size;
+
 							if (attrib_accessor->normalized)
 								ror::log_critical("Attribute morph taget data is normalised but there is no support at the moment for normalised data");
 
@@ -1285,10 +1297,40 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 			// Read all the nodes
 			this->m_nodes.resize(data->nodes_count);                  // Will fill the empty Node just created later
 			this->m_nodes_side_data.resize(data->nodes_count);        // Will fill the empty Node side data just created later
+
+			// This bit of code reorders these nodes by their parent, each parent is first in the index order
+			// This is necessary for how I traverse the node graph, each parent is calculated first before its child
+			std::vector<const cgltf_node *> temp_nodes;
+			temp_nodes.reserve(data->nodes_count);
+			auto node_in_children = [](const cgltf_node *a_present_node, const cgltf_node *a_current_node) {
+				for (size_t ci = 0; ci < a_current_node->children_count; ++ci)
+				{
+					const cgltf_node *child = a_current_node->children[ci];
+					if (child == a_present_node)
+						return true;
+				}
+				return false;
+			};
+
+			auto find_suitable_index = [&node_in_children](size_t &a_new_index, std::vector<const cgltf_node *> &a_temp_nodes, const cgltf_node *a_cnode) {
+				while (a_new_index < a_temp_nodes.size() && !node_in_children(a_temp_nodes[a_new_index], a_cnode))
+				{
+					a_new_index++;
+				}
+			};
+
 			for (size_t i = 0; i < data->nodes_count; ++i)
 			{
-				const cgltf_node &cnode = data->nodes[i];
-				node_to_index.emplace(&cnode, i);
+				const cgltf_node &cnode     = data->nodes[i];
+				size_t            new_index = 0;
+				find_suitable_index(new_index, temp_nodes, &cnode);
+				temp_nodes.insert(std::next(temp_nodes.begin(), static_cast_safe<long>(new_index)), &cnode);
+			}
+
+			uint32_t indexx = 0;
+			for (auto &temp : temp_nodes)
+			{
+				node_to_index.emplace(temp, indexx++);
 			}
 
 			// Read the skins
@@ -1353,6 +1395,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 					node.m_skin_index = find_safe_index(skin_to_index, cnode->skin);
 					node.m_parent     = find_safe_index(node_to_index, cnode->parent);
 
+					assert(node_index.second == node.m_parent);
+					assert(node.m_parent < ni && "Nodes are not in parent order");
+
 					// Lets update Mesh skin_index as well
 					if (node.m_mesh_index > -1)
 						this->m_meshes[static_cast<size_t>(node.m_mesh_index)].m_skin_index = node.m_skin_index;
@@ -1398,6 +1443,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 						uint32_t child_index = static_cast<uint32_t>(node_to_index[cnode->children[k]]);
 
+						assert(static_cast<uint32_t>(ni) < child_index && "Nodes are not in parent order");        // Static cast is ok because at this point ni is not negative
+
 						node_side_data.m_children.push_back(child_index);
 					}
 				}
@@ -1440,7 +1487,11 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 							(void) attrib_byte_size;
 						}
 
+						assert(anim_sampler_accessor->has_min && anim_sampler_accessor->has_max && "Animation input sampler must provide min and max");
+
 						animation_sampler.m_input.resize(anim_sampler_accessor->count);        // Don't need to multiply attrib_byte_size because m_input is float32_t
+						animation_sampler.m_minimum.m_value = anim_sampler_accessor->min[0];
+						animation_sampler.m_maximum.m_value = anim_sampler_accessor->max[0];
 						cgltf_accessor_unpack_floats(anim_sampler_accessor,
 						                             reinterpret_cast<cgltf_float *>(animation_sampler.m_input.data()),
 						                             animation_sampler.m_input.size());
@@ -1466,6 +1517,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 						if (anim_sampler_accessor->component_type < cgltf_component_type_r_32f)
 						{
+							assert(0);
+							// TODO: Don't cast to uint, use the provided precision
 							animation_sampler.m_output_format = int_format_to_int32_format_bit(format);        // Since we are casting everyting to uint lets adjust format accordingly
 							uint32_t *ptr_to_data             = reinterpret_cast<uint32_t *>(animation_sampler.m_output.data());
 							for (size_t index = 0; index < anim_sampler_accessor->count; ++index)
@@ -1479,7 +1532,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 							animation_sampler.m_output_format = format;
 							cgltf_accessor_unpack_floats(anim_sampler_accessor,
 							                             reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
-							                             animation_sampler.m_output.size());
+							                             animation_sampler.m_output.size() / sizeof (float32_t));
 						}
 					}
 

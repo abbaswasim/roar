@@ -29,11 +29,23 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "profiling/rorlog.hpp"
+#include "renderer/rorrenderer.hpp"
 #include "rhi/crtp_interfaces/rorcontext.hpp"
+#include "rhi/metal/rorcommand_buffer.hpp"
+#include "rhi/metal/rordevice.hpp"
+#include "rhi/metal/rorrenderpass.hpp"
+#include "rhi/metal/rorshader_buffer.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/rortypes.hpp"
 
+#include <Metal/MTLBuffer.hpp>
+#include <Metal/MTLCommandBuffer.hpp>
+#include <Metal/MTLCommandQueue.hpp>
+#include <Metal/MTLComputePipeline.hpp>
+#include <Metal/MTLLibrary.hpp>
+#include <Metal/MTLResource.hpp>
 #include <QuartzCore/CAMetalDrawable.hpp>
+#include <cstddef>
 
 namespace rhi
 {
@@ -75,12 +87,16 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 		{
 			auto dims = renderer.dimensions();
 			camera.enable();
-			camera.set_bounds(dims.x, dims.y);
+			camera.bounds(dims.x, dims.y);
 
+#if 1
 			auto &model = scene.models()[0];
 			auto &mesh  = model.meshes()[0];
 			auto  bbox  = mesh.m_bounding_boxes[0];
-			camera.set_visual_volume(bbox.minimum(), bbox.maximum());
+#else
+			auto bbox = scene.bounding_box();
+#endif
+			camera.visual_volume(bbox.minimum(), bbox.maximum());
 			enable_camera = false;
 			camera.look_at();
 		}

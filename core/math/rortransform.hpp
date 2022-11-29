@@ -76,6 +76,9 @@ static_assert(sizeof(Transform<float32_t>) == sizeof(float32_t) * 10, "Size of t
 using Transformf = Transform<float32_t>;
 using Transformd = Transform<double64_t>;
 
+template <class _type>
+FORCE_INLINE Transform<_type> operator*(const Transform<_type> &a_lhs, const Transform<_type> &a_rhs);
+
 }        // namespace ror
 
 #include "rortransform.hh"

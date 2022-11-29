@@ -33,6 +33,7 @@
 #include "resources/rorresource.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
+#include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include <array>
 #include <cstddef>
@@ -204,6 +205,7 @@ void append_count_times(uint32_t a_count, uint32_t a_ats_count,
 	}
 }
 
+// TODO: Take out these into renderer common shader buffers
 const std::string vs_morph_common_str = R"coms(
 const uint weights_count = @;
 
@@ -255,6 +257,7 @@ std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_nam
 // There should be per_view vs per_renderable uniforms, view requires many more matrices while renderable only needs MVP, Normal matrices
 // TODO: Separate this by view and renderable
 const std::string per_view_common_str = R"com(
+
 layout(std140, set = @, binding = @) uniform per_view_uniform
 {
 	mat4 mvp_mat4;
@@ -267,6 +270,16 @@ layout(std140, set = @, binding = @) uniform per_view_uniform
 	mat3 normal_mat4;
 	vec3 camera_position;
 } in_per_view_uniforms;
+
+layout(std140, set = 0, binding = 27) uniform nodes_model
+{
+    mat4 node_model_mat4[50];
+} in_nodes_model;
+
+layout(std140, set = 0, binding = 28) uniform nodes_index
+{
+	uvec4 node_index;
+} in_nodes_index;
 )com";
 
 std::string per_view_common(uint32_t a_set, uint32_t a_binding)
@@ -314,21 +327,27 @@ struct trs_transform
 	vec3 scale;
 @
 
-layout(std140, set = @, binding = @) uniform joint_transform
+layout(std140, set = @, binding = @) uniform joint_offset_uniform
 {
-	trs_transform joint_transforms[joints_count];
-} in_joint_transforms;
+	uint joint_redirect[joints_count];
+} in_joint_redirects;
+
+layout(std140, set = 0, binding = 29) uniform joint_inverse_bind_matrices
+{
+	mat4 joint_inverse_matrix[24];
+} in_joint_inverse_bind_matrices;
+
 )scom";
 
 const std::string vs_skin_common_normal_str = R"scomn(
 // Source filament shaders from https://google.github.io/filament/Filament.html
 vec3 skin_normal(vec3 normal, uint index)
 {
-	vec4 rotation      = in_joint_transforms.joint_transforms[index].rotation;
-	vec3 scale_inverse = in_joint_transforms.joint_transforms[index].scale_inverse;
+	// vec4 rotation      = in_joint_redirects.joint_redirect[index].rotation;
+	// vec3 scale_inverse = in_joint_redirects.joint_redirect[index].scale_inverse;
 
-	normal *= scale_inverse;                                                                       // apply the inverse of the non-uniform scales
-	normal += 2.0 * cross(rotation.xyz, cross(rotation.xyz, normal) + rotation.w * normal);        // apply the rigid transform (valid only for unit quaternions)
+	// normal *= scale_inverse;                                                                       // apply the inverse of the non-uniform scales
+	// normal += 2.0 * cross(rotation.xyz, cross(rotation.xyz, normal) + rotation.w * normal);        // apply the rigid transform (valid only for unit quaternions)
 
 	return normal;
 }
@@ -337,15 +356,23 @@ vec3 skin_normal(vec3 normal, uint index)
 const std::string vs_skin_common_position_str = R"scomp(
 vec3 skin_position(vec3 vertex, uint index)
 {
-	vec4 rotation    = in_joint_transforms.joint_transforms[index].rotation;
-	vec3 translation = in_joint_transforms.joint_transforms[index].translation;
-	vec3 scale       = in_joint_transforms.joint_transforms[index].scale;
+	// vec4 rotation    = in_joint_redirects.joint_redirect[index].rotation;
+	// vec3 translation = in_joint_redirects.joint_redirect[index].translation;
+	// vec3 scale       = in_joint_redirects.joint_redirect[index].scale;
 
-	vertex *= scale;                                                                               // apply the non-uniform scales
-	vertex += 2.0 * cross(rotation.xyz, cross(rotation.xyz, vertex) + rotation.w * vertex);        // apply the rigid transform (valid only for unit quaternions)
-	vertex += translation;                                                                         // apply the translation
+	// vertex *= scale;                                                                               // apply the non-uniform scales
+	// vertex += 2.0 * cross(rotation.xyz, cross(rotation.xyz, vertex) + rotation.w * vertex);        // apply the rigid transform (valid only for unit quaternions)
+	// vertex += translation;                                                                         // apply the translation
 
-	return vertex;
+    uvec4 node_index = in_nodes_index.node_index;
+
+	mat4 inverse_transform  = inverse(in_nodes_model.node_model_mat4[node_index.x]);
+	mat4 joint_inverse_bind = in_joint_inverse_bind_matrices.joint_inverse_matrix[index];
+	mat4 joint_transform    = in_nodes_model.node_model_mat4[in_joint_redirects.joint_redirect[index] + node_index.y];
+
+    joint_transform = inverse_transform * joint_transform * joint_inverse_bind;
+
+	return (joint_transform  * vec4(vertex, 1.0)).xyz;
 }
 )scomp";
 
@@ -412,8 +439,15 @@ std::string vs_skin_position(uint32_t a_joints_weights_count)
 const std::string vs_set_position_str = R"spos(
 void world_transform_position(inout vec4 vertex_position)
 {
-	// vertex_position = model * view * projection * vertex_position;
-	vertex_position = in_per_view_uniforms.mvp_mat4 * vertex_position;
+    // TODO: Check if I have skin then can't use this model matrix, need to make it identity because its joints hierarchy brings its own matrix
+    uint node_index = in_nodes_index.node_index.x;
+    mat4 model = in_per_view_uniforms.model_mat4;
+
+    model = model * in_nodes_model.node_model_mat4[node_index];
+
+	// vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * in_per_view_uniforms.model_mat4 * vertex_position;
+	vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * model * vertex_position;
+	// vertex_position = in_per_view_uniforms.mvp_mat4 * vertex_position;
 }
 
 void set_position()
@@ -675,12 +709,14 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		}
 	}
 
+	auto &setting = settings();
+
 	// Write out common methods
-	result.append(per_view_common(0, 0));        // TODO: Abstract out set and binding
+	result.append(per_view_common(setting.per_view_uniform_set(), setting.per_view_uniform_binding()));
 
 	// Only add morph common if mesh has weights and has morph targets
 	if (has_morphs)
-		result.append(vs_morph_common(mesh.m_morph_weights.size(), 0, 1));        // TODO: Abstract out set and binding
+		result.append(vs_morph_common(mesh.m_morph_weights.size(), setting.morph_weights_set(), setting.morph_weights_binding()));
 
 	// Write out common morph target functions
 	for (auto &tc : targets_count)
@@ -703,7 +739,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		const auto &skin = a_model.skins()[static_cast<size_t>(mesh.m_skin_index)];
 		assert(skin.m_joints.size() > 0 && "No joints available in this skin");
 
-		result.append(vs_skin_common(static_cast<uint32_t>(skin.m_joints.size()), 2, 0, has_normal));        // TODO: Abstract out set and binding
+		result.append(vs_skin_common(static_cast<uint32_t>(skin.m_joints.size()), settings().skin_joints_set(), settings().skin_joints_binding(), has_normal));
 	}
 
 	auto joint_sets{0u};
@@ -802,7 +838,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 const std::string fs_directional_light_common_str = R"com(
 const uint directional_lights_count = @;
 
-struct DirectionalLight
+struct Directional_lights
 {
 	mat4  mvp;
 	vec3  color;
@@ -813,14 +849,14 @@ struct DirectionalLight
 
 layout(std140, set = @, binding = @) uniform directional_light_uniform
 {
-	DirectionalLight lights[directional_lights_count];
+	Directional_lights directional_lights[directional_lights_count];
 } in_directional_light_uniforms;
 )com";
 
 const std::string fs_point_light_common_str = R"com(
 const uint point_lights_count = @;
 
-struct PointLight
+struct Point_lights
 {
 	mat4  mvp;
 	vec3  color;
@@ -831,14 +867,14 @@ struct PointLight
 
 layout(std140, set = @, binding = @) uniform point_light_uniform
 {
-	PointLight lights[point_lights_count];
+	Point_lights point_lights[point_lights_count];
 } in_point_light_uniforms;
 )com";
 
 const std::string fs_spot_light_common_str = R"com(
 const uint spot_lights_count = @;
 
-struct SpotLight
+struct Spot_lights
 {
 	mat4  mvp;
 	vec3  color;
@@ -852,7 +888,7 @@ struct SpotLight
 
 layout(std140, set = @, binding = @) uniform spot_light_uniform
 {
-	SpotLight lights[spot_lights_count];
+	Spot_lights spot_lights[spot_lights_count];
 } in_spot_light_uniforms;
 )com";
 
@@ -1065,6 +1101,7 @@ std::string texture_lookups(const ror::Material &a_material)
 
 std::string material_samplers(const ror::Material &a_material, bool a_add_shadow_map)
 {
+	// TODO: Understand how does samplers gets to have the same bindings as other things
 	std::string       output{"\n"};
 	const std::string set_binding{"layout(set = 0, binding = "};           // TODO: Abstract out the set and binding for all of the below
 	const std::string type_precision{") uniform highp sampler2D "};        // TODO: Abstract out precision
@@ -1117,7 +1154,13 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 
 std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBufferTemplate &a_shader_buffer)
 {
-	std::string result{"\nlayout(" + a_shader_buffer.layout_string() + ", set = 1, binding = 0) uniform factors\n{\n\t"};        // TODO: Abstract out the set and binding
+	std::string result{"\nlayout(" +
+	                   a_shader_buffer.layout_string() +
+	                   ", set = " +
+	                   std::to_string(settings().material_factors_set()) +
+	                   ", binding = " +
+	                   std::to_string(settings().material_factors_binding()) +
+	                   ") uniform factors\n{\n\t"};
 	std::string output{};
 
 #define create_component(name, format, count, var)      \
@@ -1359,18 +1402,19 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	}
 
 	rhi::ShaderBufferTemplate sb{"factors", rhi::ShaderBufferType::ubo, rhi::Layout::std140};        // TODO: Move this out, or remove
+	auto                     &setting = settings();
 
 	// write out inputs from fragment shader
 	output.append(ror::fragment_shader_input_output(vertex_descriptor));
-	output.append(per_view_common(0, 0));
-	output.append(per_frame_common(0, 1));
-	output.append(material_samplers(material, a_has_shadow));
-	output.append(material_factors_ubo(material, sb));
-	output.append(fs_light_common(1, 2, 0, fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count, set and bindings
-	output.append(fs_light_common(1, 2, 1, fs_point_light_common_str));              // TODO: Make conditional, and abstract out lights_count, set and bindings
-	output.append(fs_light_common(1, 2, 2, fs_spot_light_common_str));               // TODO: Make conditional, and abstract out lights_count, set and bindings
-	output.append(texture_lookups(material));
-	output.append(fs_set_main(material, a_has_shadow));
+	output.append(per_view_common(setting.per_view_uniform_set(), setting.per_view_uniform_binding()));
+	output.append(per_frame_common(setting.per_frame_uniform_set(), setting.per_frame_uniform_binding()));
+	output.append(material_samplers(*material, a_has_shadow));
+	output.append(material_factors_ubo(*material, sb));
+	output.append(fs_light_common(1, setting.directional_light_set(), setting.directional_light_binding(), fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count
+	output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
+	output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
+	output.append(texture_lookups(*material));
+	output.append(fs_set_main(*material, a_has_shadow));
 
 	return output;
 }

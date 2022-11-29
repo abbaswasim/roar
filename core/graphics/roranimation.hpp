@@ -30,6 +30,7 @@
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
+#include <limits>
 
 namespace ror
 {
@@ -74,8 +75,11 @@ class ROAR_ENGINE_ITEM Animation
 		AnimationInterpolation m_interpolation{AnimationInterpolation::linear};        //! Interpolation of this sampler values
 		rhi::VertexFormat      m_output_format{rhi::VertexFormat::float32_1};          //! Format of the output, could be float32_t1/2/3/4, uint_t1/2/3/4 etc
 
+		AnimationInput m_minimum{0.0f};                                         //! Minimum starting time of the animation
+		AnimationInput m_maximum{std::numeric_limits<float32_t>::max()};        //! Maximum ending time of the animation
+
 		std::vector<AnimationInput, rhi::BufferAllocator<AnimationInput>>   m_input{};         //! Input of type float, these are keyframe times
-		std::vector<AnimationOutput, rhi::BufferAllocator<AnimationOutput>> m_output{};        //! Output of type float[3-4], these are keyframe TRS values
+		std::vector<AnimationOutput, rhi::BufferAllocator<AnimationOutput>> m_output{};        //! Output of type float[1-4], these are keyframe TRS values or scalar weights
 	};
 
 	struct AnimationChannel

@@ -83,21 +83,21 @@ class ROAR_ENGINE_ITEM Light
 	FORCE_INLINE constexpr auto& shader_buffer()       noexcept  { return this->m_shader_buffer; }
 	// clang-format on
 
-	LightType m_type{LightType::directional};                        //! Light type
-	Matrix4f  m_mvp{};                                               //! Model view projection of the light, used in shadow mapping
-	Vector3f  m_color{};                                             //! Light color
-	Vector3f  m_position{};                                          //! Position of point and spot lights
-	Vector3f  m_direction{};                                         //! Direction of directional and spot lights
-	float32_t m_intensity{1.0f};                                     //! Light intensity
-	float32_t m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
-	float32_t m_inner_angle{0.0f};                                   //! Spot light inner angle
-	float32_t m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle
-
+	LightType         m_type{LightType::directional};                        //! Light type
+	Matrix4f          m_mvp{};                                               //! Model view projection of the light, used in shadow mapping
+	Vector3f          m_color{};                                             //! Light color
+	Vector3f          m_position{};                                          //! Position of point and spot lights
+	Vector3f          m_direction{};                                         //! Direction of directional and spot lights
+	float32_t         m_intensity{1.0f};                                     //! Light intensity
+	float32_t         m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
+	float32_t         m_inner_angle{0.0f};                                   //! Spot light inner angle
+	float32_t         m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle
+	std::string       m_light_struct_name{};                                 //! Light struct name cache
 	rhi::ShaderBuffer m_shader_buffer{"Light",
-		rhi::ShaderBufferType::ubo,
-		rhi::Layout::std140,
-		settings().directional_light_set(),
-		settings().directional_light_binding()};        //! Shader buffer for a specific type of light UBO
+	                                  rhi::ShaderBufferType::ubo,
+	                                  rhi::Layout::std140,
+	                                  settings().directional_light_set(),
+	                                  settings().directional_light_binding()};        //! Shader buffer for a specific type of light UBO
 };
 
 class ROAR_ENGINE_ITEM EnvironmentProbe final
@@ -145,13 +145,15 @@ class ROAR_ENGINE_ITEM SceneNodeData : public NodeData
 {
   public:
 	FORCE_INLINE                SceneNodeData()                                 = default;        //! Default constructors
-	FORCE_INLINE                SceneNodeData(const SceneNodeData &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                SceneNodeData(const SceneNodeData &a_other)     = delete;         //! Copy constructor
 	FORCE_INLINE                SceneNodeData(SceneNodeData &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE SceneNodeData &operator=(const SceneNodeData &a_other)         = default;        //! Copy assignment operator
-	FORCE_INLINE SceneNodeData &operator=(SceneNodeData &&a_other) noexcept     = default;        //! Move assignment operator
+	FORCE_INLINE SceneNodeData &operator=(const SceneNodeData &a_other)         = delete;         //! Copy assignment operator
+	FORCE_INLINE SceneNodeData &operator=(SceneNodeData &&a_other) noexcept     = delete;         //! Move assignment operator
 	FORCE_INLINE ~SceneNodeData() noexcept                                      = default;        //! Destructor
 
+	int32_t     m_model{-1};              //! Model index should be init with -1 if no models in this node
 	int32_t     m_program_id{-1};         //! Which program does this node require to render
+	uint32_t    m_animation{0};           //! Which animation clip should be used if any
 	int32_t     m_light_id{-1};           //! Which light is linked to this node
 	int32_t     m_camera_id{-1};          //! Which camera is used to render this scene from this node
 	int32_t     m_particle_id{-1};        //! Which particle emitter is attached to the node
@@ -180,14 +182,19 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	declare_translation_unit_vtable();
 
-	void render(const RenderDevice *a_rendering_device);
+	void render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass);
+	void pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass);
+	void compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
+
 	void update(double64_t a_milli_seconds);
 	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer);
 	void unload();
 	void load_specific();
 
 	// clang-format off
-	FORCE_INLINE constexpr const auto &models()           const noexcept   {  return this->m_models;          }
+	FORCE_INLINE constexpr auto &models()                       noexcept   {  return this->m_models;          }
+	FORCE_INLINE constexpr auto &nodes()                        noexcept   {  return this->m_nodes;           }
+	FORCE_INLINE constexpr auto &models()                 const noexcept   {  return this->m_models;          }
 	FORCE_INLINE constexpr const auto &nodes()            const noexcept   {  return this->m_nodes;           }
 	FORCE_INLINE constexpr const auto &nodes_side_data()  const noexcept   {  return this->m_nodes_data;      }
 	FORCE_INLINE constexpr const auto &particles()        const noexcept   {  return this->m_particles;       }
@@ -213,18 +220,21 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	using RenderpassPrograms = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;
 
 	// All of these can be buffer allocated but for now leave them as is
-	std::vector<ror::Model>          m_models{};                 //! All the assets loaded as 3D models
-	std::vector<ror::SceneNode>      m_nodes{};                  //! All the nodes in this scene, must be in the parent order, parent first then children
-	std::vector<ror::SceneNodeData>  m_nodes_data{};             //! All the nodes parallel data that needs to be maintained
-	std::vector<ror::ParticleSystem> m_particles{};              //! All the particle emittors
-	RenderpassPrograms               m_programs{};               //! All the shader programs per render pass for all the models
-	std::vector<rhi::Shader>         m_shaders{};                //! All the shaders for all meshes in each model
-	std::vector<rhi::Shader>         m_global_shaders{};         //! All the global shaders that are used in global programs
-	std::vector<rhi::Program>        m_global_programs{};        //! All the global shader programs that overrides per mesh/model programs
-	std::vector<ror::OrbitCamera>    m_cameras{};                //! All the cameras in the scene
-	std::vector<ror::Light>          m_lights{};                 //! All the lights in the scene
-	std::vector<EnvironmentProbe>    m_probes{};                 //! All the environment probes
-	ror::BoundingBoxf                m_bounding_box{};           //! Scene bounding box, a combination of its models in object space
+	std::vector<ror::Model>          m_models{};                   //! All the assets loaded as 3D models
+	std::vector<ror::SceneNode>      m_nodes{};                    //! All the nodes in this scene, must be in the parent order, parent first then children
+	std::vector<ror::SceneNodeData>  m_nodes_data{};               //! All the nodes parallel data that needs to be maintained
+	std::vector<ror::ParticleSystem> m_particles{};                //! All the particle emittors
+	RenderpassPrograms               m_programs{};                 //! All the shader programs per render pass for all the models
+	std::vector<rhi::Shader>         m_shaders{};                  //! All the shaders for all meshes in each model
+	std::vector<rhi::Shader>         m_global_shaders{};           //! All the global shaders that are used in global programs
+	std::vector<rhi::Program>        m_global_programs{};          //! All the global shader programs that overrides per mesh/model programs
+	std::vector<ror::OrbitCamera>    m_cameras{};                  //! All the cameras in the scene
+	std::vector<ror::Light>          m_lights{};                   //! All the lights in the scene
+	std::vector<EnvironmentProbe>    m_probes{};                   //! All the environment probes
+	ror::BoundingBoxf                m_bounding_box{};             //! Scene bounding box, a combination of its models in object space
+	bool                             m_indices_dirty{true};        //! If the scene graph indicies are direty and not uploaded yet
 };
+
+void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size);
 
 }        // namespace ror

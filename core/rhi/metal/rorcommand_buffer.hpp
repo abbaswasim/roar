@@ -68,6 +68,11 @@ class CommandBufferMetal final
 		this->m_buffer->commit();
 	}
 
+	FORCE_INLINE constexpr void wait_until_completed() noexcept
+	{
+		this->m_buffer->waitUntilCompleted();
+	}
+
 	FORCE_INLINE constexpr void release() noexcept
 	{
 		this->m_buffer->release();

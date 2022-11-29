@@ -76,8 +76,11 @@ class ROAR_ENGINE_ITEM Model
 	FORCE_INLINE constexpr auto &materials()        const noexcept  {  return this->m_materials;       }
 	FORCE_INLINE constexpr auto &meshes()           const noexcept  {  return this->m_meshes;          }
 	FORCE_INLINE constexpr auto &skins()            const noexcept  {  return this->m_skins;           }
+	FORCE_INLINE constexpr auto &skins()                  noexcept  {  return this->m_skins;           }
 	FORCE_INLINE constexpr auto &nodes()            const noexcept  {  return this->m_nodes;           }
+	FORCE_INLINE constexpr auto &nodes()                  noexcept  {  return this->m_nodes;           }
 	FORCE_INLINE constexpr auto &nodes_side_data()  const noexcept  {  return this->m_nodes_side_data; }
+	FORCE_INLINE constexpr auto &nodes_side_data()        noexcept  {  return this->m_nodes_side_data; }
 	FORCE_INLINE constexpr auto &animations()       const noexcept  {  return this->m_animations;      }
 	FORCE_INLINE constexpr auto &bounding_box()     const noexcept  {  return this->m_bounding_box;    }
 	// clang-format on

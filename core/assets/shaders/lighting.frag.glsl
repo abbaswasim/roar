@@ -1,7 +1,7 @@
 Light get_directional_light(const Material material, const Fragment fragment, const uint index)
 {
 	Light            light;
-	DirectionalLight directional = in_directional_light_uniforms.lights[index];
+	Directional_lights directional = in_directional_light_uniforms.directional_lights[index];
 
 	// Do direction setup here
 	light.color                = directional.color.rgb;
@@ -24,7 +24,7 @@ float point_light_attenuation(float light_distance, float light_radius)
 Light get_point_light(const Material material, const Fragment fragment, const uint index)
 {
 	Light      light;
-	PointLight point = in_point_light_uniforms.lights[index];
+	Point_lights point = in_point_light_uniforms.point_lights[index];
 
 	light.color                = point.color;
 	light.position             = point.position;
@@ -39,7 +39,7 @@ Light get_point_light(const Material material, const Fragment fragment, const ui
 	return light;
 }
 
-float spot_angle_attenuation(const Fragment fragment, SpotLight spot, float light_angle_offset, float light_angle_scale)
+float spot_angle_attenuation(const Fragment fragment, Spot_lights spot, float light_angle_offset, float light_angle_scale)
 {
 	// From gltf punctual lights spec
 	float cd                  = dot(spot.direction, normalize(spot.position - fragment.position));
@@ -53,14 +53,14 @@ float spot_angle_attenuation(const Fragment fragment, SpotLight spot, float ligh
 Light get_spot_light(const Material material, const Fragment fragment, const uint index)
 {
 	Light     light;
-	SpotLight spot = in_spot_light_uniforms.lights[index];
+	Spot_lights spot = in_spot_light_uniforms.spot_lights[index];
 
 	light.color                = spot.color;
 	light.position             = spot.position;
 	light.direction            = spot.direction;
 	light.shadow               = @;
 	light.intensity            = spot.intensity;
-	light.attenuation          = point_light_attenuation(length(light.direction), 0.01);
+	light.attenuation          = point_light_attenuation(length(light.direction), 0.01); // TODO: Check if this should be spot_angle_attenuation
 	light.normal_dot_direction = saturate(dot(material.normal, light.direction));
 
 	light.direction = normalize(light.direction);

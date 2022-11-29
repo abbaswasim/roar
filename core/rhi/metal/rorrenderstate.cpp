@@ -38,7 +38,6 @@ void RenderstateMetal::upload(rhi::Device& a_device)
 {
 	MTL::Device                 *device                   = a_device.platform_device();
 	MTL::DepthStencilDescriptor *depth_stencil_descriptor = MTL::DepthStencilDescriptor::alloc()->init();
-	depth_stencil_descriptor->init();
 
 	depth_stencil_descriptor->setDepthCompareFunction(MTL::CompareFunctionLess);
 	depth_stencil_descriptor->setDepthWriteEnabled(true);

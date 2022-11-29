@@ -64,8 +64,8 @@ void test_render_pass(const rhi::Renderpass                 rdps,
 		auto state             = rsps.state();
 		auto program_id        = rsps.program_id();
 		auto debug_output      = rsps.debug_output();
-		auto input_attachments = rsps.input_attachment_ids();
-		auto rendered_inputs   = rsps.rendered_input_ids();
+		auto input_attachments = rsps.input_attachments();
+		auto rendered_inputs   = rsps.rendered_inputs();
 
 		EXPECT_EQ(name, a_names[iai]);
 		EXPECT_EQ(technique, a_techniques[iai]);

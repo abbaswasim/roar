@@ -35,10 +35,13 @@
 		"area_light" : [0, 6],
 		"skin_joints" : [0, 7],
 		"morph_weights" : [0, 8],
+		"nodes_model" : [0, 9],
+		"nodes_index" : [0, 10],
+		"joint_inverse_bind" : [0, 11],
+
 		"node_transform_output" : [0, 9],
 		"node_transform_input" : [0, 10],
-		"nodes_model" : [0, 11],
-		"nodes_index" : [0, 12],
+
 		"max_attributes" : 17 
 	},
 	"metal" :

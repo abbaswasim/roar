@@ -61,11 +61,12 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 
 		this->m_renderer.dimensions(a_dimensions);
 		this->m_renderer.upload(*this->m_current_device);
-		this->m_renderer.init_global_shader_buffers(*this->m_current_device);
 
 		// Load all the models now in a deferred way
 		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer);
 		this->m_scene.upload(this->m_renderer, *this->m_current_device, this->m_event_system);
+
+		this->m_renderer.deferred_buffer_upload(*this->m_current_device, this->m_scene);
 
 		this->underlying().init_derived();
 	}

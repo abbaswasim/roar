@@ -62,7 +62,7 @@
 	"buffers":[
 		{
 			"name":"node_transform_output",
-			"layout":"std140",
+			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
 			"binding":0,
@@ -96,7 +96,7 @@
 		{
 			"name":"node_transform_input",
 			"layout":"std140",
-			"type":"ubo",
+			"type":"ssbo",
 			"set":0,
 			"binding":1,
 			"entries":[
@@ -120,12 +120,7 @@
 							{
 								"name":"scale_inverse",
 								"format":"float32_3"
-							},
-							{
-								"name":"parent_index",
-								"format":"int32_4"
 							}
-
 						]
 					}
 				}
@@ -133,15 +128,15 @@
 		},
 		{
 			"name":"nodes_model",
-			"layout":"std140",
-			"type":"ubo",
+			"layout":"std430",
+			"type":"ssbo",
 			"set":0,
-			"binding":25,
+			"binding":27,
 			"entries":[
 				{
 					"name":"node_model_mat4",
 					"format":"float32_4x4",
-					"count":50
+					"count":0
 				}
 			]
 		},
@@ -150,11 +145,78 @@
 			"layout":"std140",
 			"type":"ubo",
 			"set":0,
-			"binding":26,
+			"binding":28,
 			"entries":[
 				{
 					"name":"node_index",
-					"format":"uint32_1"
+					"format":"uint32_4"
+				}
+			]
+		},
+		{
+			"name":"animations",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"binding":4,
+			"entries":[
+				{
+					"struct":{
+						"name":"animation",
+						"count":0,
+						"entries":[
+							{
+								"name":"animation_channel",
+								"format":"uint32_4"
+							},
+							{
+								"name":"animation_sampler",
+								"format":"uint32_4"
+							}
+						]
+					}
+				}
+			]
+		},
+		{
+			"name":"animations_sampler_input",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"binding":5,
+			"entries":[
+				{
+					"name":"inputs",
+					"format":"float32_1",
+					"count":0
+				}
+			]
+		},
+		{
+			"name":"animations_sampler_output",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"binding":6,
+			"entries":[
+				{
+					"name":"outputs",
+					"format":"float32_1",
+					"count":0
+				}
+			]
+		},
+		{
+			"name":"current_animations",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"binding":7,
+			"entries":[
+				{
+					"name":"animation",
+					"format":"uint32_2",
+					"count":0
 				}
 			]
 		}
@@ -192,6 +254,22 @@
 						"buffer_inputs":[
 							{
 								"index" : 1,
+								"stage" : "compute"
+							},
+							{
+								"index" : 4,
+								"stage" : "compute"
+							},
+							{
+								"index" : 5,
+								"stage" : "compute"
+							},
+							{
+								"index" : 6,
+								"stage" : "compute"
+							},
+							{
+								"index" : 7,
 								"stage" : "compute"
 							}
 						],
@@ -236,7 +314,11 @@
 						],
 						"buffer_inputs":[
 							{
-								"index" : 0,
+								"index" : 2,
+								"stage" : "vertex"
+							},
+							{
+								"index" : 3,
 								"stage" : "vertex"
 							}
 						],

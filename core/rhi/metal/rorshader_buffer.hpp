@@ -64,6 +64,8 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public Buf
 	// clang-format off
 	template<typename _encoder_type>
 	FORCE_INLINE constexpr void  buffer_bind(_encoder_type& a_encoder, rhi::ShaderStage a_stage)                        { this->bind(a_encoder, a_stage, this->offset(), this->binding());  }
+	template<typename _encoder_type>
+	FORCE_INLINE constexpr void  buffer_bind(_encoder_type& a_encoder, rhi::ShaderStage a_stage, uintptr_t a_binding)   { this->bind(a_encoder, a_stage, this->offset(), a_binding);        }
 	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept        { this->unmap(); this->m_mapped_address = nullptr;                  }
 	FORCE_INLINE constexpr void  buffer_map()                                                           noexcept        { this->m_mapped_address = this->map();                             }
 	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->init(a_device, a_size, a_mode);                             }
@@ -71,8 +73,6 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public Buf
 
 	FORCE_INLINE void buffer_copy(const uint8_t *a_data, size_t a_offset, size_t a_length)
 	{
-		// if (this->m_mapped_address == nullptr)
-		// 	this->m_mapped_address = this->map();
 		assert(this->m_mapped_address && "Need to map the shader buffer first before copy is called");
 		assert(a_data && "Need to map the shader buffer first before copy is called");
 

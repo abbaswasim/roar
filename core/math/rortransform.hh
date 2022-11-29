@@ -137,4 +137,18 @@ FORCE_INLINE void Transform<_type>::scale(const Vector3<_type> &a_scale) noexcep
 	this->m_scale = a_scale;
 }
 
+template <class _type>
+FORCE_INLINE Transform<_type> operator*(const Transform<_type> &a_lhs, const Transform<_type> &a_rhs)
+{
+	Transform<_type> result;
+
+	// Source https://gamedev.stackexchange.com/questions/167287/combine-two-translation-rotation-scale-triplets-without-matrices/181895#181895
+	// The scale from the source doesn't seem to work, just multiplying them out works fine, find out why
+	result.m_rotation    = a_lhs.m_rotation * a_rhs.m_rotation;
+	result.m_scale       = a_lhs.m_scale * a_rhs.m_scale;
+	result.m_translation = a_lhs.m_translation + (a_lhs.m_rotation * (a_lhs.m_scale * a_rhs.m_translation));
+
+	return result;
+}
+
 }        // namespace ror

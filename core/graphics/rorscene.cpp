@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "camera/rorcamera.hpp"
+#include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rorjobsystem.hpp"
@@ -38,6 +39,7 @@
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
 #include "math/rorvector3.hpp"
+#include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
@@ -45,11 +47,15 @@
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rorrenderpass.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortypes.hpp"
+#include "graphics/roranimation.hpp"
+#include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include <array>
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -66,7 +72,35 @@ void Light::fill_shader_buffer()
 	const uint32_t fixed_light_count = 2;        // TODO: needs to be moved out of here, at least 2 so we make an array
 	assert(this->m_type != ror::Light::LightType::area && "Area lights not supported yet");
 
-	rhi::ShaderBufferTemplate::Struct light_type("lights", static_cast_safe<uint32_t>(fixed_light_count));
+	switch (this->m_type)
+	{
+		case ror::Light::LightType::directional:
+			this->m_shader_buffer.top_level().m_name = "directional_light_uniform";
+			this->m_shader_buffer.binding(settings().directional_light_binding());
+			this->m_shader_buffer.set(settings().directional_light_set());
+			this->m_light_struct_name = "directional_lights";
+			break;
+		case ror::Light::LightType::point:
+			this->m_shader_buffer.top_level().m_name = "point_light_uniform";
+			this->m_shader_buffer.binding(settings().point_light_binding());
+			this->m_shader_buffer.set(settings().point_light_set());
+			this->m_light_struct_name = "point_lights";
+			break;
+		case ror::Light::LightType::spot:
+			this->m_shader_buffer.top_level().m_name = "spot_light_uniform";
+			this->m_shader_buffer.binding(settings().spot_light_binding());
+			this->m_shader_buffer.set(settings().spot_light_set());
+			this->m_light_struct_name = "spot_lights";
+			break;
+		case ror::Light::LightType::area:
+			this->m_shader_buffer.top_level().m_name = "area_light_uniform";
+			this->m_shader_buffer.binding(settings().area_light_binding());
+			this->m_shader_buffer.set(settings().area_light_set());
+			this->m_light_struct_name = "area_lights";
+			break;
+	}
+
+	rhi::ShaderBufferTemplate::Struct light_type(this->m_light_struct_name, static_cast_safe<uint32_t>(fixed_light_count));
 
 	light_type.add_entry("mvp", rhi::Format::float32_4x4, rhi::Layout::std140, 1);
 	light_type.add_entry("color", rhi::Format::float32_3, rhi::Layout::std140, 1);
@@ -93,8 +127,7 @@ void Light::update()
 {
 	this->m_shader_buffer.buffer_map();
 
-	// TODO: Find out why the array version doesn't work
-	auto     stride      = this->m_shader_buffer.stride("lights");
+	auto     stride      = this->m_shader_buffer.stride(this->m_light_struct_name);
 	uint32_t light_index = 0;
 
 	this->m_shader_buffer.update("mvp", &this->m_mvp.m_values, light_index, stride);
@@ -114,7 +147,7 @@ void Light::update()
 		this->m_shader_buffer.update("inner_angle", &this->m_inner_angle, light_index, stride);
 		this->m_shader_buffer.update("outer_angle", &this->m_outer_angle, light_index, stride);
 	}
-	std::cout << "Her is the glsl string for light type = " << (m_type == ror::Light::LightType::directional ? "directional" : (m_type == ror::Light::LightType::point ? "point" : "spot")) << "\n"
+	std::cout << "Her is the glsl string for light type = " << this->m_light_struct_name << "\n"
 	          << this->m_shader_buffer.to_glsl_string();
 
 	this->m_shader_buffer.buffer_unmap();
@@ -149,9 +182,649 @@ Scene::Scene(std::filesystem::path a_level)
 	this->load(a_level, ResourceSemantic::scenes);
 }
 
-void Scene::render(const RenderDevice *a_rendering_device)
+template <typename _node_type>
+FORCE_INLINE constexpr void copy_node(_node_type a_node, rhi::ShaderBuffer &a_shader_buffer, uint32_t a_node_index, uint32_t a_stride, size_t a_parent_offset, int32_t a_parent)
 {
-	(void) a_rendering_device;
+	a_shader_buffer.update("rotation", &a_node.m_trs_transform.m_rotation.x, a_node_index, a_stride);
+	a_shader_buffer.update("translation", &a_node.m_trs_transform.m_translation.x, a_node_index, a_stride);
+	a_shader_buffer.update("scale", &a_node.m_trs_transform.m_scale.x, a_node_index, a_stride);
+	a_shader_buffer.update("scale_inverse", &a_node.m_trs_transform.m_scale.x, a_node_index, a_stride);
+
+	ror::Vector4i parent_index{a_node.m_parent, 0, 0, 0};
+
+	if (parent_index.x != -1)
+		parent_index.x += static_cast_safe<int32_t>(a_parent_offset);
+	else if (a_parent_offset != 0)
+		parent_index.x = a_parent;
+
+	a_shader_buffer.update("parent_index", &parent_index.x, a_node_index, a_stride);
+}
+
+auto copy_node_transforms(ror::Scene &a_scene, rhi::ShaderBuffer &a_input_buffer)
+{
+	auto &nodes      = a_scene.nodes();
+	auto &nodes_data = a_scene.nodes_side_data();
+
+	a_input_buffer.buffer_map();
+
+	auto stride = a_input_buffer.stride("node_transform_in");
+
+	uint32_t node_index    = 0;
+	uint32_t parent_offset = 0;
+	for (auto &node : nodes)
+	{
+		copy_node(node, a_input_buffer, node_index, stride, parent_offset, -1);
+		node_index++;
+	}
+
+	int32_t parent_index = 0;
+	for (auto &node : nodes_data)
+	{
+		if (node.m_model != -1)
+		{
+			parent_offset = node_index;
+
+			auto &model_nodes = a_scene.models()[static_cast_safe<size_t>(node.m_model)].nodes();
+
+			for (uint32_t model_node_index = 0; model_node_index < model_nodes.size(); ++model_node_index)
+			{
+				auto &n = model_nodes[model_node_index];
+				copy_node(n, a_input_buffer, node_index, stride, parent_offset, parent_index);
+				node_index++;
+			}
+		}
+
+		parent_index++;
+	}
+
+	a_input_buffer.buffer_unmap();
+	return node_index;
+}
+
+void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder,
+                                    rhi::Device                &a_device,
+                                    rhi::BuffersPack           &a_buffers_pack,
+                                    ror::Renderer              &a_renderer,
+                                    const rhi::Rendersubpass   &a_subpass,
+                                    Timer                      &a_timer,
+                                    ror::EventSystem           &a_event_system)
+{
+	(void) a_device;
+	(void) a_buffers_pack;
+	(void) a_command_encoder;
+	(void) a_subpass;
+	(void) a_timer;
+	(void) a_event_system;
+
+	auto &compute_pso       = a_renderer.programs()[0];
+	auto &input_buffers     = a_subpass.buffer_inputs();
+	auto &trs_buffer        = input_buffers[0].m_render_output->m_target_reference.get();
+	auto &per_frame_uniform = a_renderer.shader_buffer("per_frame_uniform");
+
+	uint32_t ncount = static_cast_safe<uint32_t>(copy_node_transforms(*this, trs_buffer));
+
+	uint32_t animation_size{0u};
+	uint32_t animation_count{0u};
+	uint32_t sampler_input_size{0u};
+	uint32_t sampler_output_size{0u};
+
+	get_animation_sizes(*this, animation_size, animation_count, sampler_input_size, sampler_output_size);
+
+	static float32_t seconds{0.0f};
+	seconds += static_cast<float32_t>(a_timer.tick_seconds());
+
+	// TODO: After some time recent the seconds
+	if (seconds > 1000.0f)        // TODO: Move the 1000 to settings
+		seconds = static_cast<float32_t>(static_cast<int32_t>(seconds));
+
+	per_frame_uniform->buffer_map();
+	per_frame_uniform->update("delta_time", &seconds);
+	per_frame_uniform->update("nodes_count", &ncount);
+	per_frame_uniform->update("animations_count", &animation_count);
+	per_frame_uniform->buffer_unmap();
+
+	uint32_t node_matrices_size = static_cast_safe<uint32_t>(this->m_nodes.size());
+
+	// Encode the pipeline state object and its parameters.
+	a_command_encoder.compute_pipeline_state(compute_pso);
+	trs_buffer.buffer_bind(a_command_encoder, rhi::ShaderStage::compute);
+	per_frame_uniform->buffer_bind(a_command_encoder, rhi::ShaderStage::compute);
+
+	// Calculate a threadgroup size.
+	NS::UInteger max_thread_group_size = 1024;        // compute_pso->maxTotalThreadsPerThreadgroup();
+
+	if (max_thread_group_size > node_matrices_size)
+		max_thread_group_size = node_matrices_size;
+
+	// Encode the compute command.
+	a_command_encoder.dispatch_threads({node_matrices_size, 1, 1}, {static_cast<uint32_t>(max_thread_group_size), 1, 1});
+}
+
+struct DrawData
+{
+	rhi::BufferHybrid<rhi::Static> *positions{nullptr};
+	rhi::BufferHybrid<rhi::Static> *texture_coords0{nullptr};
+	rhi::BufferHybrid<rhi::Static> *texture_coords1{nullptr};
+	rhi::BufferHybrid<rhi::Static> *texture_coords2{nullptr};
+	rhi::BufferHybrid<rhi::Static> *normals{nullptr};
+	rhi::BufferHybrid<rhi::Static> *bent_normals{nullptr};
+	rhi::BufferHybrid<rhi::Static> *weights0{nullptr};
+	rhi::BufferHybrid<rhi::Static> *weights1{nullptr};
+	rhi::BufferHybrid<rhi::Static> *joint_ids0{nullptr};
+	rhi::BufferHybrid<rhi::Static> *joint_ids1{nullptr};
+	rhi::BufferHybrid<rhi::Static> *tangents{nullptr};
+	rhi::BufferHybrid<rhi::Static> *colors0{nullptr};
+	rhi::BufferHybrid<rhi::Static> *colors1{nullptr};
+	rhi::BufferHybrid<rhi::Static> *morph_target{nullptr};
+	rhi::BufferHybrid<rhi::Static> *morph_weights{nullptr};
+	rhi::BufferHybrid<rhi::Static> *indices{nullptr};
+	rhi::RenderCommandEncoder      *encoder{nullptr};
+};
+
+template <typename _type>
+void enable_material_component(const Material::Component<_type>                                            &a_component,
+                               std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               &a_textures,
+                               std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     &a_images,
+                               std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> &a_samplers, DrawData &a_dd)
+{
+	if (a_component.m_texture != -1)
+	{
+		auto &texture = a_textures[static_cast_safe<size_t>(a_component.m_texture)];
+		assert(texture.texture_image() != -1);
+		auto &image   = a_images[static_cast_safe<size_t>(texture.texture_image())];
+		auto &sampler = a_samplers[texture.texture_sampler()];
+
+		a_dd.encoder->fragment_texture(image, 0);
+		a_dd.encoder->fragment_sampler(sampler, 0);
+	}
+};
+
+void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const ror::Renderer &a_renderer, ror::Scene &a_scene, const rhi::Rendersubpass &subpass)
+{
+	(void) a_renderer;
+	(void) subpass;
+	(void) a_scene;
+
+	auto &programs      = a_scene.programs();
+	auto &pass_programs = programs.at(subpass.type());
+
+	for (size_t prim_id = 0; prim_id < a_mesh.primitives_count(); ++prim_id)
+	{
+		auto &program = pass_programs[static_cast<size_t>(a_mesh.m_program_indices[prim_id])];
+		assert(a_mesh.m_material_indices[prim_id] != -1);
+		auto &material         = a_model.materials()[static_cast<uint32_t>(a_mesh.m_material_indices[prim_id])];
+		auto &material_factors = material.shader_buffer();
+		// material_factors.bind(a_encoder, rhi::ShaderType::fragment, buffer_index_offset);
+		material_factors.buffer_bind(*a_dd.encoder, rhi::ShaderStage::fragment);
+
+		if (a_mesh.weights_count() > 0)
+		{
+			auto &morph_weights_uniforms = a_mesh.shader_buffer();
+			morph_weights_uniforms.buffer_bind(*a_dd.encoder, rhi::ShaderStage::vertex);
+		}
+
+		a_dd.encoder->render_pipeline_state(program);
+		// TODO: Add joint_transforms trs_transforms UBO for skinned characters
+
+		// Bind standard vertex attributes
+		auto &vertex_attributes = a_mesh.m_attribute_vertex_descriptors[prim_id];
+		for (auto &va : vertex_attributes.attributes())
+		{
+			rhi::Buffer *va_buffer{nullptr};
+			if (va.semantics() == rhi::BufferSemantic::vertex_position)
+				va_buffer = a_dd.positions;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_texture_coord_0)
+				va_buffer = a_dd.texture_coords0;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_texture_coord_1)
+				va_buffer = a_dd.texture_coords1;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_texture_coord_2)
+				va_buffer = a_dd.texture_coords2;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_normal)
+				va_buffer = a_dd.normals;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_bent_normal)
+				va_buffer = a_dd.bent_normals;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_tangent)
+				va_buffer = a_dd.tangents;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_color_0)
+				va_buffer = a_dd.colors0;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_color_1)
+				va_buffer = a_dd.colors1;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_bone_id_0)
+				va_buffer = a_dd.joint_ids0;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_bone_id_1)
+				va_buffer = a_dd.joint_ids1;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_weight_0)
+				va_buffer = a_dd.weights0;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_weight_1)
+				va_buffer = a_dd.weights1;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_index)
+			{}
+			else
+				assert(0 && "Shouldn't reach here");
+
+			if (va_buffer)
+			{
+				// Offset is 0 here because we have provided attribute offset in attribute descriptor
+				a_dd.encoder->vertex_buffer(*va_buffer, 0, va.location());
+			}
+			else
+			{
+				assert(va.semantics() == rhi::BufferSemantic::vertex_index && "Attribute buffer is null for non-index buffer");
+			}
+		}
+
+		// Bind morph targets vertex attributes
+		auto &morph_target_vertex_descriptors = a_mesh.m_morph_targets_vertex_descriptors[prim_id];
+		for (auto &morph_descriptor : morph_target_vertex_descriptors)
+		{
+			for (auto &va : morph_descriptor.attributes())
+			{
+				rhi::Buffer *va_buffer{nullptr};
+				if (va.semantics() == rhi::BufferSemantic::vertex_position)
+					va_buffer = a_dd.positions;
+				else if (va.semantics() == rhi::BufferSemantic::vertex_normal)
+					va_buffer = a_dd.normals;
+				else if (va.semantics() == rhi::BufferSemantic::vertex_tangent)
+					va_buffer = a_dd.tangents;
+				else
+				{
+					assert(0 && "Shouldn't reach here. don't support any other morph target");
+				}
+
+				if (va_buffer)
+				{
+					a_dd.encoder->vertex_buffer(*va_buffer, 0, va.location());
+				}
+				else
+				{
+					assert(va.semantics() == rhi::BufferSemantic::vertex_index && "Attribute buffer is null for non-index buffer");
+				}
+			}
+		}
+
+		auto &textures = a_model.textures();
+		auto &images   = a_model.images();
+		auto &samplers = a_model.samplers();
+
+		enable_material_component(material.m_base_color, textures, images, samplers, a_dd);
+		enable_material_component(material.m_diffuse_color, textures, images, samplers, a_dd);
+		enable_material_component(material.m_specular_glossyness, textures, images, samplers, a_dd);
+		enable_material_component(material.m_emissive, textures, images, samplers, a_dd);
+		enable_material_component(material.m_anisotropy, textures, images, samplers, a_dd);
+		enable_material_component(material.m_transmission, textures, images, samplers, a_dd);
+		enable_material_component(material.m_sheen_color, textures, images, samplers, a_dd);
+		enable_material_component(material.m_sheen_roughness, textures, images, samplers, a_dd);
+		enable_material_component(material.m_clearcoat_normal, textures, images, samplers, a_dd);
+		enable_material_component(material.m_clearcoat, textures, images, samplers, a_dd);
+		enable_material_component(material.m_clearcoat_roughness, textures, images, samplers, a_dd);
+		enable_material_component(material.m_metallic, textures, images, samplers, a_dd);
+		enable_material_component(material.m_roughness, textures, images, samplers, a_dd);
+		enable_material_component(material.m_occlusion, textures, images, samplers, a_dd);
+		enable_material_component(material.m_normal, textures, images, samplers, a_dd);
+		enable_material_component(material.m_bent_normal, textures, images, samplers, a_dd);
+		enable_material_component(material.m_height, textures, images, samplers, a_dd);
+		enable_material_component(material.m_opacity, textures, images, samplers, a_dd);
+		enable_material_component(material.m_subsurface_color, textures, images, samplers, a_dd);
+
+		if (a_mesh.m_has_indices_states[prim_id])
+		{
+			auto &index_buffer_attribute = vertex_attributes.attribute(rhi::BufferSemantic::vertex_index);
+
+			a_dd.encoder->draw_indexed_primitives(rhi::PrimitiveTopology::triangles,
+			                                      index_buffer_attribute.count(),
+			                                      index_buffer_attribute.format(),
+			                                      *a_dd.indices,
+			                                      static_cast_safe<uint32_t>(index_buffer_attribute.buffer_offset() + index_buffer_attribute.offset()));
+		}
+		else
+		{
+			auto &vertex_buffer_attribute = vertex_attributes.attribute(rhi::BufferSemantic::vertex_position);
+			a_dd.encoder->draw_primitives(rhi::PrimitiveTopology::triangles, 0, vertex_buffer_attribute.count());
+		}
+	}
+}
+
+uint32_t animation_sampler_type(rhi::VertexFormat a_format)
+{
+	assert(a_format == rhi::VertexFormat::float32_4 ||
+	       a_format == rhi::VertexFormat::float32_3 ||
+	       a_format == rhi::VertexFormat::float32_1 ||
+	       a_format == rhi::VertexFormat::int32_1 ||
+	       a_format == rhi::VertexFormat::uint32_1 ||
+	       a_format == rhi::VertexFormat::int16_1 ||
+	       a_format == rhi::VertexFormat::uint16_1 ||
+	       a_format == rhi::VertexFormat::int8_1 ||
+	       a_format == rhi::VertexFormat::uint8_1 && "sampler format is not in the right format");
+
+	if (a_format == rhi::VertexFormat::float32_4)
+		return 0;
+	else if (a_format == rhi::VertexFormat::float32_3)
+		return 1;
+	else if (a_format == rhi::VertexFormat::float32_1)
+		return 2;
+	else if (a_format == rhi::VertexFormat::int32_1)
+		return 3;
+	else if (a_format == rhi::VertexFormat::uint32_1)
+		return 4;
+	else if (a_format == rhi::VertexFormat::int16_1)
+		return 5;
+	else if (a_format == rhi::VertexFormat::uint16_1)
+		return 6;
+	else if (a_format == rhi::VertexFormat::int8_1)
+		return 7;
+	else if (a_format == rhi::VertexFormat::uint8_1)
+		return 8;
+
+	assert(0 && "Shouldn't reach here");
+
+	return 0;
+}
+
+void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size)
+{
+	// Lets upload animations data
+	for (auto &node : a_scene.nodes_side_data())
+	{
+		if (node.m_model != -1)
+		{
+			auto &model = a_scene.models()[static_cast_safe<size_t>(node.m_model)];
+			auto  current_anim{0u};
+			for (auto &anim : model.animations())
+			{
+				a_animation_size += anim.m_channels.size();
+
+				if (current_anim == node.m_animation)
+					a_animation_count++;
+
+				current_anim++;
+
+				for (auto &sampler : anim.m_samplers)
+				{
+					a_sampler_input_size += sampler.m_input.size();
+					a_sampler_output_size += sampler.m_output.size() / sizeof(float32_t);
+					// a_sampler_output_size = ror::align16(a_sampler_output_size); // TODO: Fix me when other types are supported their start should be aligned
+				}
+			}
+		}
+	}
+}
+
+void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
+{
+	// TODO: Abstract out
+	auto &animation_buffer         = a_renderer.buffers()[4];
+	auto &sampler_input_buffer     = a_renderer.buffers()[5];
+	auto &sampler_output_buffer    = a_renderer.buffers()[6];
+	auto &current_animation_buffer = a_renderer.buffers()[7];
+
+	auto anim_size = sizeof(ror::Vector4ui) * 2;
+	auto animation_size{0u};
+	auto animation_count{0u};
+	auto sampler_input_size{0u};
+	auto sampler_output_size{0u};
+
+	// This returns amounts of floats in input and output, output might still be float[1-3]
+	get_animation_sizes(a_scene, animation_size, animation_count, sampler_input_size, sampler_output_size);
+
+	std::vector<uint8_t>        anim_data;
+	std::vector<ror::Vector2ui> current_anim_data;
+	std::vector<float32_t>      sampler_input_data;
+	std::vector<float32_t>      sampler_output_data;
+
+	anim_data.resize(animation_size * anim_size);        // For all animations, the animation struct has 2 uvec4s
+	current_anim_data.reserve(animation_size);           // Very conservative, reserve for all animatoins
+	sampler_input_data.resize(sampler_input_size);
+	sampler_output_data.resize(sampler_output_size);
+
+	auto anim_data_ptr           = anim_data.data();
+	auto sampler_input_data_ptr  = reinterpret_cast<uint8_t *>(sampler_input_data.data());
+	auto sampler_output_data_ptr = reinterpret_cast<uint8_t *>(sampler_output_data.data());
+
+	auto     sampler_input_offset{0u};
+	auto     sampler_output_offset{0u};
+	uint32_t model_anim_index{0u};
+
+	uint32_t node_offset{static_cast_safe<uint32_t>(a_scene.nodes().size())};
+
+	for (auto &node : a_scene.nodes_side_data())
+	{
+		if (node.m_model != -1)
+		{
+			auto &model = a_scene.models()[static_cast_safe<size_t>(node.m_model)];
+			auto current_anim{0u};
+			for (auto &anim : model.animations())
+			{
+				if (current_anim == node.m_animation)
+					current_anim_data.emplace_back(model_anim_index, static_cast<uint32_t>(anim.m_channels.size()));
+
+				model_anim_index += anim.m_channels.size();
+				for (auto &chanl : anim.m_channels)
+				{
+					auto &anim_sampler = anim.m_samplers[chanl.m_sampler_index];
+
+					// Encode channel for the compute shader
+					ror::Vector4ui channel{sampler_input_offset,
+					                       sampler_output_offset,
+					                       chanl.m_target_node_index + node_offset,
+					                       ror::enum_to_type_cast(chanl.m_target_node_path)};
+
+					// Lets advance the offset
+					sampler_input_offset += anim_sampler.m_input.size();
+					sampler_output_offset += anim_sampler.m_output.size() / sizeof(float32_t);
+
+					// Encode sampler for the compute shader
+					ror::Vector4ui sampler{*reinterpret_cast<const uint32_t *>(&anim_sampler.m_minimum),
+					                       *reinterpret_cast<const uint32_t *>(&anim_sampler.m_maximum),
+					                       animation_sampler_type(anim_sampler.m_output_format),
+					                       // ror::enum_to_type_cast(anim_sampler.m_interpolation)};
+					                       static_cast_safe<uint32_t>(anim_sampler.m_input.size())};
+
+					std::memcpy(anim_data_ptr, &channel.x, sizeof(ror::Vector4ui));
+					anim_data_ptr += sizeof(ror::Vector4ui);
+
+					std::memcpy(anim_data_ptr, &sampler.x, sizeof(ror::Vector4ui));
+					anim_data_ptr += sizeof(ror::Vector4ui);
+
+					// Lets copy its sampler as well
+					auto input_size  = anim_sampler.m_input.size() * sizeof(float32_t);
+					auto output_size = anim_sampler.m_output.size();
+
+					std::memcpy(sampler_input_data_ptr, anim_sampler.m_input.data(), input_size);
+					std::memcpy(sampler_output_data_ptr, anim_sampler.m_output.data(), output_size);
+
+					sampler_input_data_ptr += input_size;
+					sampler_output_data_ptr += output_size;
+				}
+				current_anim++;
+			}
+			node_offset += static_cast_safe<uint32_t>(model.nodes().size());
+		}
+	}
+
+	{
+		auto stride = animation_buffer.stride("animation");
+
+		anim_data_ptr = anim_data.data();
+
+		animation_buffer.buffer_map();
+		for (uint32_t i = 0; i < animation_size; ++i)
+		{
+			auto anim_data_offset = i * anim_size;
+			auto anim_ptr         = anim_data_ptr + anim_data_offset;
+
+			animation_buffer.update("animation_channel", anim_ptr, i, stride);
+
+			anim_ptr += sizeof(ror::Vector4ui);
+			animation_buffer.update("animation_sampler", anim_ptr, i, stride);
+		}
+		animation_buffer.buffer_unmap();
+	}
+
+	{
+		// TODO: Fix std430 stride for arrays, its coming out to be wrong
+		auto stride = current_animation_buffer.stride("animation");
+		assert(animation_count == current_anim_data.size() && "Animations not fully collected");
+		(void) stride;
+		current_animation_buffer.buffer_map();
+		auto i{0u};
+		for (auto &canim : current_anim_data)
+		{
+			std::cout << "Adding canim " << canim.x << "," << canim.y << std::endl;
+
+			current_animation_buffer.update("animation", &canim.x, i, 8);
+			i++;
+		}
+		current_animation_buffer.buffer_unmap();
+	}
+
+	{
+		sampler_input_data_ptr = reinterpret_cast<uint8_t *>(sampler_input_data.data());
+
+		sampler_input_buffer.buffer_map();
+		sampler_input_buffer.update("inputs", sampler_input_data_ptr, static_cast_safe<uint32_t>(sampler_input_data.size() * sizeof(float32_t)));
+		sampler_input_buffer.buffer_unmap();
+	}
+
+	{
+		sampler_output_data_ptr = reinterpret_cast<uint8_t *>(sampler_output_data.data());
+
+		sampler_output_buffer.buffer_map();
+		sampler_output_buffer.update("outputs", sampler_output_data_ptr, static_cast_safe<uint32_t>(sampler_output_data.size() * sizeof(float32_t)));
+		sampler_output_buffer.buffer_unmap();
+	}
+}
+
+void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass)
+{
+	(void) a_buffers_pack;
+	(void) a_subpass;
+	(void) a_renderer;
+	(void) a_encoder;
+
+	if (this->m_indices_dirty)
+	{
+		ror::Vector4ui node_index{0};        // Index contains index of the node in the resolved matrix array, and index offset for other things like joints
+		for (auto &node : this->m_nodes_data)
+		{
+			node.update_index(node_index);
+			node_index.x++;
+		}
+
+		for (auto &node : this->m_nodes_data)
+		{
+			if (node.m_model != -1)
+			{
+				node_index.y = node_index.x;
+
+				auto &model       = this->m_models[static_cast_safe<size_t>(node.m_model)];
+				auto &model_nodes = model.nodes_side_data();
+
+				for (uint32_t model_node_index = 0; model_node_index < model_nodes.size(); ++model_node_index)
+				{
+					model_nodes[model_node_index].update_index(node_index);
+					node_index.x++;
+				}
+			}
+		}
+		this->m_indices_dirty = false;
+	}
+
+	static bool first_time = true;        // TODO: Remove and add somewhere else
+	if (first_time)
+	{
+		fill_animation_buffers(*this, a_renderer);
+		first_time = false;
+	}
+}
+
+void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &subpass)
+{
+	DrawData dd;
+
+	dd.positions       = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_position);
+	dd.texture_coords0 = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_texture_coord_0);
+	dd.texture_coords1 = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_texture_coord_1);
+	dd.texture_coords2 = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_texture_coord_2);
+	dd.normals         = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_normal);
+	dd.bent_normals    = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_bent_normal);
+	dd.weights0        = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_weight_0);
+	dd.weights1        = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_weight_1);
+	dd.joint_ids0      = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_bone_id_0);
+	dd.joint_ids1      = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_bone_id_1);
+	dd.tangents        = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_tangent);
+	dd.colors0         = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_color_0);
+	dd.colors1         = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_color_1);
+	dd.morph_target    = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_morph_target);
+	dd.morph_weights   = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_morph_weight);
+	dd.indices         = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_index);
+
+	assert(dd.positions);
+	assert(dd.texture_coords0);
+	assert(dd.texture_coords1);
+	assert(dd.texture_coords2);
+	assert(dd.normals);
+	assert(dd.bent_normals);
+	assert(dd.weights0);
+	assert(dd.weights1);
+	assert(dd.joint_ids0);
+	assert(dd.joint_ids1);
+	assert(dd.tangents);
+	assert(dd.colors0);
+	assert(dd.colors1);
+	assert(dd.morph_target);
+	assert(dd.morph_weights);
+	assert(dd.indices);
+
+	dd.encoder = &a_encoder;
+
+	// TODO: Abstract out these buffers and magic numbers
+	auto &per_view_uniforms          = this->m_cameras[0].shader_buffer();
+	auto &directional_light_uniforms = this->m_lights[0].shader_buffer();
+	auto &spot_light_uniforms        = this->m_lights[1].shader_buffer();
+	auto &point_light_uniforms       = this->m_lights[2].shader_buffer();
+
+	// Vertex shader bindings
+	per_view_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+
+	// Fragment shader bindings
+	per_view_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+	directional_light_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+	point_light_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+	spot_light_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+
+	auto &index_buffer_out = a_renderer.buffers()[3];
+	index_buffer_out.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+
+	this->pre_render(a_encoder, a_buffers_pack, a_renderer, subpass);
+
+	// Render the scene graph
+	for (auto &node : this->m_nodes_data)
+	{
+		if (node.m_model != -1)
+		{
+			auto &model            = this->m_models[static_cast_safe<size_t>(node.m_model)];
+			auto &meshes           = model.meshes();
+			auto &model_nodes_data = model.nodes_side_data();
+
+			size_t node_data_index = 0;
+			for (auto &model_node : model.nodes())
+			{
+				if (model_node.m_mesh_index != -1)
+				{
+					auto &mesh = meshes[static_cast<size_t>(model_node.m_mesh_index)];
+					model_nodes_data[node_data_index].bind(a_encoder, rhi::ShaderStage::vertex);
+					if (mesh.m_skin_index != -1 && model_node.m_skin_index != -1)
+					{
+						auto &skin = model.skins()[static_cast<size_t>(model_node.m_skin_index)];
+						skin.m_joint_offset_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+						skin.m_inverse_bind_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+					}
+					render_mesh(model, mesh, dd, a_renderer, *this, subpass);
+				}
+				node_data_index++;
+			}
+		}
+	}
 }
 
 void Scene::update(double64_t a_milli_seconds)
@@ -172,11 +845,11 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		std::vector<ror::JobHandle<bool>> job_handles;
 		job_handles.reserve(model_nodes * 2);        // Multiplied by 2 because I am creating two jobs, load and upload per model
 
-		auto model_load_job = [this](SceneNodeData & node, size_t a_index) -> auto
+		auto model_load_job = [this](const std::string &node_model_path, size_t a_model_index) -> auto
 		{
-			log_info("Loading model {}", node.m_model_path.c_str());
-			Model &model = this->m_models[a_index];
-			model.load_from_gltf_file(node.m_model_path, this->m_cameras);
+			log_info("Loading model {}", node_model_path.c_str());
+			Model &model = this->m_models[a_model_index];
+			model.load_from_gltf_file(node_model_path, this->m_cameras);
 			this->m_bounding_box.add_bounding(model.bounding_box());
 
 			return true;
@@ -194,7 +867,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		{
 			if (node.m_model_path != "")
 			{
-				auto load_job_handle   = a_job_system.push_job(model_load_job, node, model_index);
+				auto load_job_handle   = a_job_system.push_job(model_load_job, node.m_model_path, model_index);
 				auto upload_job_handle = a_job_system.push_job(model_upload_job, load_job_handle.job(), model_index);
 				job_handles.emplace_back(std::move(load_job_handle));
 				job_handles.emplace_back(std::move(upload_job_handle));
@@ -203,7 +876,6 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		}
 
 		assert(model_index == model_nodes && "Models count vs how many are loaded doesn't match");
-		(void) model_index;
 
 		// Wait for all jobs to finish
 		for (auto &jh : job_handles)
@@ -474,6 +1146,14 @@ void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::
 		camera.init(a_event_system);
 		camera.upload(a_device);
 	}
+
+	// Upload all nodes shader buffers
+	for (auto &node : this->m_nodes_data)
+		node.upload(a_device);
+
+	for (auto &model : this->m_models)
+		for (auto &node : model.nodes_side_data())
+			node.upload(a_device);
 }
 
 void Scene::read_nodes()
@@ -481,7 +1161,8 @@ void Scene::read_nodes()
 	assert(this->m_json_file.contains("nodes") && "Provided scene file is not a roar scene.");
 
 	// Read all the nodes
-	auto nodes = this->m_json_file["nodes"];
+	auto    nodes = this->m_json_file["nodes"];
+	int32_t model_index{0u};
 	for (auto &node : nodes)
 	{
 		SceneNode     nod;
@@ -511,10 +1192,17 @@ void Scene::read_nodes()
 		}
 
 		if (node.contains("path"))
+		{
 			nod_data.m_model_path = node["path"];
+			nod_data.m_model      = model_index;
+			model_index++;
+		}
 
-		if (node.contains("shader"))
-			nod_data.m_program_id = node["shader"];
+		if (node.contains("program"))
+			nod_data.m_program_id = node["program"];
+
+		if (node.contains("animation"))
+			nod_data.m_animation = node["animation"];
 
 		if (node.contains("bvh"))
 			nod_data.m_has_bvh = node["bvh"];

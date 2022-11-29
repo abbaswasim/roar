@@ -39,9 +39,10 @@ void OrbitCamera::look_at()
 	this->m_to   = this->m_minimum + ((this->m_maximum - this->m_minimum) / 2.0f);
 	this->m_from = this->m_to;
 
-	this->m_camera_depth = this->m_to.z - (this->m_bounding_sphere_radius / sin(ror::to_radians(this->m_y_fov / 2)));
+	this->m_camera_depth = this->m_to.z - (this->m_bounding_sphere_radius / std::tan(ror::to_radians(this->m_y_fov / 2)));
 
 	this->m_from.z = static_cast<float32_t>(-(this->m_camera_depth + this->m_zooming_depth));        // Truncation happening here, make sure it doesn't matter
+	this->m_from.y = this->m_bounding_sphere_radius;
 
 	this->m_view = ror::make_look_at(this->m_from, this->m_to, this->m_up);
 
@@ -70,22 +71,22 @@ void OrbitCamera::look_at()
 
 	translation0 = ror::matrix4_translation(min_to);
 	rotation_x   = ror::matrix4_rotation_around_x(this->m_x_rotation / 4.0f);
-	rotation_z   = ror::matrix4_rotation_around_z(this->m_z_rotation / 4.0f);
+	rotation_z   = ror::matrix4_rotation_around_y(this->m_z_rotation / 4.0f);
 	translation1 = ror::matrix4_translation(this->m_to);
 
-	translation = ror::matrix4_translation(this->m_x_translation, this->m_y_translation, 0.0f);
+	translation = ror::matrix4_translation(-this->m_x_translation, -this->m_y_translation, 0.0f);
 
 	transformation = (translation1 * rotation_x * rotation_z * translation0);
 
-	this->m_view_projection       = this->m_projection * this->m_view * translation;
-	this->m_model                 = transformation;
+	this->m_view_projection       = this->m_projection * this->m_view;
+	this->m_model                 = transformation * translation;        // FIXME: This should be done in view space not worldspace
 	this->m_model_view_projection = this->m_view_projection * this->m_model;
 
 	// Also calculate normal matrix
 	// TODO: Create normal matrix for xforming normals from transpose of inverse of model-view (top 3x3) without translations Transpose and Inverse removes non-uniform scale from it
 }
 
-void OrbitCamera::set_bounds(uint32_t a_width, uint32_t a_height)
+void OrbitCamera::bounds(uint32_t a_width, uint32_t a_height)
 {
 	this->m_width  = a_width;
 	this->m_height = a_height;
@@ -97,32 +98,32 @@ void OrbitCamera::get_bounds(uint32_t &a_width, uint32_t &a_height)
 	a_height = this->m_height;
 }
 
-Matrix4f OrbitCamera::get_model()
+Matrix4f OrbitCamera::model()
 {
 	return this->m_model;
 }
 
-Matrix4f OrbitCamera::get_normal()
+Matrix4f OrbitCamera::normal()
 {
 	return this->m_normal;
 }
 
-Vector3f OrbitCamera::get_from()
+Vector3f OrbitCamera::from()
 {
 	return this->m_from;
 }
 
-Matrix4f OrbitCamera::get_view_projection()
+Matrix4f OrbitCamera::view_projection()
 {
 	return this->m_view_projection;
 }
 
-Matrix4f OrbitCamera::get_model_view_projection()
+Matrix4f OrbitCamera::model_view_projection()
 {
 	return this->m_model_view_projection;
 }
 
-void OrbitCamera::zoom_by(double64_t a_zoom_delta)
+void OrbitCamera::zoom(double64_t a_zoom_delta)
 {
 	this->m_zooming_depth += a_zoom_delta;
 
@@ -179,7 +180,7 @@ void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_n
 		this->m_zooming_depth = abs_camera_depth;
 }
 
-void OrbitCamera::set_visual_volume(Vector3f a_minimum, Vector3f a_maximum)
+void OrbitCamera::visual_volume(Vector3f a_minimum, Vector3f a_maximum)
 {
 	this->m_minimum = a_minimum;
 	this->m_maximum = a_maximum;

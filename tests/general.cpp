@@ -493,4 +493,19 @@ TEST(RoarGeneral, auto_type_verfication)
 	EXPECT_EQ(n0, n1);
 }
 
+TEST(RoarGeneral, quaternion_vs_cross)
+{
+	ror::Quaternionf q{2, 3, 5, 7};
+	ror::Vector3f v{34, 65, 28};
+
+	q.normalize();
+
+	auto res1 = v + ror::Vector3f(q.x, q.y, q.z).cross_product(ror::Vector3f(q.x, q.y, q.z).cross_product(v) + (v * q.w)) * 2.0; // Filament way of quaternion transform
+	auto res2 = q * v;
+
+	EXPECT_NEAR(res1.x, res2.x, ror::ror_epsilon);
+	EXPECT_NEAR(res1.y, res2.y, ror::ror_epsilon);
+	EXPECT_NEAR(res1.z, res2.z, ror::ror_epsilon);
+}
+
 }        // namespace ror_test

@@ -72,12 +72,75 @@
 	],
 	"buffers":[
 		{
-			"name":"compute_buffer0",
-			"format":"r8_uint8"
+			"name":"node_transform_output",
+			"layout":"std140",
+			"type":"ssbo",
+			"set":0,
+			"binding":0,
+			"entries":[
+				{
+					"struct":{
+						"name":"node_transform",
+						"count":0,
+						"entries":[
+							{
+								"name":"rotation",
+								"format":"float32_4"
+							},
+							{
+								"name":"translation",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale_inverse",
+								"format":"float32_3"
+							}
+						]
+					}
+				}
+			]
 		},
 		{
-			"name":"compute_buffer1",
-			"format":"r32_float32"
+			"name":"node_transform_input",
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"binding":1,
+			"entries":[
+				{
+					"struct":{
+						"name":"node_transform_in",
+						"count":0,
+						"entries":[
+							{
+								"name":"rotation",
+								"format":"float32_4"
+							},
+							{
+								"name":"translation",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale_inverse",
+								"format":"float32_3"
+							},
+							{
+								"name":"parent_index",
+								"format":"int32_4"
+							}
+
+						]
+					}
+				}
+			]
 		}
 	],
 	"frame_graph":{
@@ -140,7 +203,10 @@
 						"state":"transient",
 						"debug_output":true,
 						"rendered_inputs":[
-							2
+							{
+								"index" : 2,
+								"stage" : "fragment"
+							}
 						],
 						"program":1
 					},
@@ -150,7 +216,10 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							}
 						],
 						"program":0
 					}
@@ -300,8 +369,14 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0,
-							1
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							},
+							{
+								"index" : 1,
+								"stage" : "fragment"
+							}
 						],
 						"program":1
 					},
@@ -311,8 +386,14 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0,
-							1
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							},
+							{
+								"index" : 1,
+								"stage" : "fragment"
+							}
 						],
 						"program":1
 					},
@@ -324,8 +405,14 @@
 						"state":"transient",
 						"debug_output":true,
 						"subpass_inputs":[
-							0,
-							1
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							},
+							{
+								"index" : 1,
+								"stage" : "fragment"
+							}
 						],
 						"program":0
 					}
@@ -353,7 +440,10 @@
 						"type":"post_process",
 						"state":"transient",
 						"subpass_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							}
 						],
 						"program":1
 					}
@@ -381,7 +471,10 @@
 						"type":"post_process",
 						"state":"transient",
 						"subpass_inputs":[
-							0
+							{
+								"index" : 0,
+								"stage" : "fragment"
+							}
 						],
 						"program":1
 					}
