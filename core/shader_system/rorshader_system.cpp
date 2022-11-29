@@ -276,10 +276,10 @@ layout(std140, set = 0, binding = 27) uniform nodes_model
     mat4 node_model_mat4[50];
 } in_nodes_model;
 
-layout(std140, set = 0, binding = 28) uniform nodes_index
+layout(std140, set = 0, binding = 28) uniform nodes_offsets
 {
-	uvec4 node_index;
-} in_nodes_index;
+	uvec4 node_offsets;
+} in_nodes_offsets;
 )com";
 
 std::string per_view_common(uint32_t a_set, uint32_t a_binding)
@@ -364,11 +364,11 @@ vec3 skin_position(vec3 vertex, uint index)
 	// vertex += 2.0 * cross(rotation.xyz, cross(rotation.xyz, vertex) + rotation.w * vertex);        // apply the rigid transform (valid only for unit quaternions)
 	// vertex += translation;                                                                         // apply the translation
 
-    uvec4 node_index = in_nodes_index.node_index;
+    uvec4 node_offset = in_nodes_offsets.node_offsets;
 
-	mat4 inverse_transform  = inverse(in_nodes_model.node_model_mat4[node_index.x]);
+	mat4 inverse_transform  = inverse(in_nodes_model.node_model_mat4[node_offset.x]);
 	mat4 joint_inverse_bind = in_joint_inverse_bind_matrices.joint_inverse_matrix[index];
-	mat4 joint_transform    = in_nodes_model.node_model_mat4[in_joint_redirects.joint_redirect[index] + node_index.y];
+	mat4 joint_transform    = in_nodes_model.node_model_mat4[in_joint_redirects.joint_redirect[index] + node_offset.y];
 
     joint_transform = inverse_transform * joint_transform * joint_inverse_bind;
 
@@ -439,8 +439,7 @@ std::string vs_skin_position(uint32_t a_joints_weights_count)
 const std::string vs_set_position_str = R"spos(
 void world_transform_position(inout vec4 vertex_position)
 {
-    // TODO: Check if I have skin then can't use this model matrix, need to make it identity because its joints hierarchy brings its own matrix
-    uint node_index = in_nodes_index.node_index.x;
+    uint node_index = in_nodes_offsets.node_offsets.x;
     mat4 model = in_per_view_uniforms.model_mat4;
 
     model = model * in_nodes_model.node_model_mat4[node_index];

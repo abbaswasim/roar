@@ -26,11 +26,12 @@
 
 #include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
+#include "rhi/metal/rorcommand_buffer.hpp"
+#include "rhi/rorcompute_command_encoder.hpp"
+#include "rhi/rorrender_command_encoder.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
-#include "rhi/rorrender_command_encoder.hpp"
-#include "rhi/rorcompute_command_encoder.hpp"
 
 #include <Metal/MTLPixelFormat.hpp>
 #include <Metal/MTLRenderPass.hpp>
@@ -78,68 +79,105 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 	auto &render_targets = this->render_targets();
 
 	// There is no concept of subpass in metal so we create a render pass for each subpass, PLS and Merging is done via single encoder instead
-	auto render_supasses = this->subpasses();
+	auto &render_supasses = this->subpasses();
 	this->m_render_passes.reserve(render_supasses.size());
 
 	for (auto &subpass : render_supasses)
 	{
-		auto mtl_render_pass = MTL::RenderPassDescriptor::alloc()->init();
-		assert(mtl_render_pass && "Can't create MTL::RenderPassDescriptor");
-
-		mtl_render_pass->setRenderTargetWidth(this->dimensions().x);
-		mtl_render_pass->setRenderTargetHeight(this->dimensions().y);
-
-		(void) subpass;
-
-		auto   &render_target_attachments = this->render_targets();
-		int32_t depth_index               = -1;
-		for (size_t i = 0; i < render_target_attachments.size(); ++i)
+		if (subpass.technique() != rhi::RenderpassTechnique::compute)
 		{
-			if (is_pixel_format_depth_format(render_targets[i].m_target_reference.get().format()))
+			auto mtl_render_pass = MTL::RenderPassDescriptor::alloc()->init();
+			assert(mtl_render_pass && "Can't create MTL::RenderPassDescriptor");
+
+			mtl_render_pass->setRenderTargetWidth(this->dimensions().x);
+			mtl_render_pass->setRenderTargetHeight(this->dimensions().y);
+
+			int32_t  depth_index = -1;
+			uint32_t color_index = 0;
+			for (size_t i = 0; i < render_targets.size(); ++i)
 			{
-				if (depth_index == -1)
+				if (is_pixel_format_depth_format(render_targets[i].m_target_reference.get().format()))
 				{
-					depth_index = ror::static_cast_safe<int32_t>(i);
-					continue;
+					if (depth_index == -1)
+					{
+						depth_index = ror::static_cast_safe<int32_t>(i);
+						continue;
+					}
+					else
+					{
+						assert(0 && "Too many depth render targets provided");
+					}
 				}
-				else
-				{
-					assert(0 && "Too many depth render targets provided");
-				}
+
+				auto color_attachment = mtl_render_pass->colorAttachments()->object(color_index++);
+
+				color_attachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
+				color_attachment->setLoadAction(to_metal_load_action(render_targets[i].m_load_action));
+				color_attachment->setStoreAction(to_metal_store_action(render_targets[i].m_store_action));
+				color_attachment->setTexture(render_targets[i].m_target_reference.get().platform_handle());
 			}
 
-			auto color_attachment = mtl_render_pass->colorAttachments()->object(i);
+			if (depth_index != -1)
+			{
+				auto depth = mtl_render_pass->depthAttachment();
 
-			color_attachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
-			color_attachment->setLoadAction(to_metal_load_action(render_targets[i].m_load_action));
-			color_attachment->setStoreAction(to_metal_store_action(render_targets[i].m_store_action));
-			color_attachment->setTexture(render_targets[i].m_target_reference.get().platform_handle());
-		}
+				depth->setTexture(render_targets[static_cast<uint32_t>(depth_index)].m_target_reference.get().platform_handle());
+				depth->setClearDepth(ror::settings().m_depth_clear);
+				depth->setLoadAction(to_metal_load_action(render_targets[static_cast<uint32_t>(depth_index)].m_load_action));
+				depth->setStoreAction(to_metal_store_action(render_targets[static_cast<uint32_t>(depth_index)].m_store_action));
 
-		if (depth_index != -1)
-		{
-			auto depth = mtl_render_pass->depthAttachment();
-			depth->setClearDepth(ror::settings().m_depth_clear);
-			depth->clearDepth();
-			depth->setLoadAction(to_metal_load_action(render_targets[static_cast<uint32_t>(depth_index)].m_load_action));
-			depth->setStoreAction(to_metal_store_action(render_targets[static_cast<uint32_t>(depth_index)].m_store_action));
+				subpass.has_depth(true);
+			}
+			else
+			{
+				ror::log_info("No depth textures created for this renderpass {}", subpass.name().c_str());
+			}
 
-			subpass.has_depth(true);
+			this->m_render_passes.emplace_back(mtl_render_pass);
 		}
 		else
 		{
-			ror::log_info("No depth textures created for this renderpass {}", subpass.name().c_str());
-		}
+			auto mtl_compute_pass = MTL::ComputePassDescriptor::alloc()->init();
+			assert(mtl_compute_pass && "Can't create MTL::ComputePassDescriptor");
 
-		this->m_render_passes.emplace_back(mtl_render_pass);
+			mtl_compute_pass->setDispatchType(MTL::DispatchType::DispatchTypeConcurrent);
+
+			// Can't attach render_targets to compute and can't attach render_buffers here, needs to be done in PSO generation time
+
+			this->m_render_passes.emplace_back(mtl_compute_pass);
+		}
 	}
 }
 
-MTL::RenderCommandEncoder *RenderpassMetal::render_encoder(MTL::CommandBuffer *a_command_buffer)
+size_t RenderpassMetal::platform_renderpass_count()
 {
-	// Hack to get the main pass
-	ror::log_critical("All render passes are of size {}", this->m_render_passes.size());
-	return a_command_buffer->renderCommandEncoder(this->m_render_passes[0]);
+	return this->m_render_passes.size();
+}
+
+MTL::RenderPassDescriptor *RenderpassMetal::platform_renderpass(uint32_t a_index)
+{
+	if (std::holds_alternative<MTL::RenderPassDescriptor *>(this->m_render_passes[a_index]))
+		return std::get<MTL::RenderPassDescriptor *>(this->m_render_passes[a_index]);
+
+	return nullptr;
+}
+
+MTL::ComputePassDescriptor *RenderpassMetal::platform_computepass(uint32_t a_index)
+{
+	if (std::holds_alternative<MTL::ComputePassDescriptor *>(this->m_render_passes[a_index]))
+		return std::get<MTL::ComputePassDescriptor *>(this->m_render_passes[a_index]);
+
+	return nullptr;
+}
+
+rhi::RenderCommandEncoder RenderpassMetal::render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index)
+{
+	return rhi::RenderCommandEncoder{a_command_buffer.platform_command_buffer()->renderCommandEncoder(this->platform_renderpass(a_index))};
+}
+
+rhi::ComputeCommandEncoder RenderpassMetal::compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index)
+{
+	return rhi::ComputeCommandEncoder{a_command_buffer.platform_command_buffer()->computeCommandEncoder(this->platform_computepass(a_index))};
 }
 
 }        // namespace rhi

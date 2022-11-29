@@ -706,7 +706,7 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 		ror::Vector4ui node_index{0};        // Index contains index of the node in the resolved matrix array, and index offset for other things like joints
 		for (auto &node : this->m_nodes_data)
 		{
-			node.update_index(node_index);
+			node.update_offsets(node_index);
 			node_index.x++;
 		}
 
@@ -721,7 +721,7 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 
 				for (uint32_t model_node_index = 0; model_node_index < model_nodes.size(); ++model_node_index)
 				{
-					model_nodes[model_node_index].update_index(node_index);
+					model_nodes[model_node_index].update_offsets(node_index);
 					node_index.x++;
 				}
 			}

@@ -51,8 +51,6 @@ class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 	declare_translation_unit_vtable();
 
 	void                        upload(rhi::Device &a_device);
-	MTL::ComputeCommandEncoder *compute_encoder(MTL::CommandBuffer *a_command_buffer);
-	MTL::RenderCommandEncoder  *render_encoder(MTL::CommandBuffer *a_command_buffer);
 	MTL::RenderPassDescriptor  *platform_renderpass(uint32_t a_index);
 	MTL::ComputePassDescriptor *platform_computepass(uint32_t a_index);
 

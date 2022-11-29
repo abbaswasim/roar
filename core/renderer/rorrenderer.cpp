@@ -25,24 +25,33 @@
 // Version: 1.0.0
 
 #include "configuration/rorconfiguration.hpp"
+#include "event_system/rorevent_handles.hpp"
+#include "event_system/rorevent_system.hpp"
+#include "foundation/rorcompiler_workarounds.hpp"
 #include "foundation/rorhash.hpp"
+#include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
+#include "foundation/rorutilities.hpp"
+#include "graphics/rorscene.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorbuffer.hpp"
+#include "rhi/rorbuffers_pack.hpp"
+#include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrenderpass.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rorshader_input.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
 #include <filesystem>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -394,6 +403,8 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 	auto subpasses = a_render_pass["subpasses"];
 
 	std::vector<rhi::Rendersubpass> rsps;
+	rsps.reserve(subpasses.size());
+
 	for (auto &subpass : subpasses)
 	{
 		rhi::Rendersubpass rsp{};
@@ -483,7 +494,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 
 				a_textures[rt_index].usage(rhi::TextureUsage::render_target_read);
 			}
-			rsp.rendered_inputs(std::move(render_inputs_temp));
+			rsp.input_attachments(std::move(render_inputs_temp));
 		}
 
 		rsps.emplace_back(std::move(rsp));
@@ -687,39 +698,62 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 	if (surface)
 	{
-		// TODO: Create a command_buffer per render_pass
+		// TODO: Create a command_buffer per render_pass,
+		// also need to move this inside execute to be able to stop and restart another command buffer because of compute passes
 		rhi::CommandBuffer command_buffer{a_device};
 		auto              &render_passes = this->current_frame_graph();
+
 		for (auto &render_pass : render_passes)
 			render_pass.execute(command_buffer, a_scene, surface, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, *this);
 
 		command_buffer.present_drawable(surface);
 		command_buffer.commit();
+
+		// TODO: Pipeline the render passes and remove this
+		command_buffer.wait_until_completed();
 		command_buffer.release();
 	}
 }
 
-void Renderer::deffered_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene)
+void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene)
 {
 	(void) a_scene;
 
-	auto &output = this->m_buffers[0];        // Hack: FIXME: remove the 0, I know this one is node_transform_output
-	auto &input  = this->m_buffers[0];        // Hack: FIXME: remove the 0, I know this one is node_transform_input
+	auto &output_ubo = this->m_buffers[0];        // Hack: FIXME: remove the 0, I know this one is node_transform_output
+	auto &input_ubo  = this->m_buffers[1];        // Hack: FIXME: remove the 1, I know this one is node_transform_input
+	auto &model_ubo  = this->m_buffers[2];        // Hack: FIXME: remove the 2, I know this one is nodes_model
+
+	auto &animations_ubo                = this->m_buffers[4];        // Hack: FIXME: remove the 4, I know this one is animations
+	auto &animations_sampler_input_ubo  = this->m_buffers[5];        // Hack: FIXME: remove the 5, I know this one is sampler input
+	auto &animations_sampler_output_ubo = this->m_buffers[6];        // Hack: FIXME: remove the 6, I know this one is sampler output
+
+	(void) animations_ubo;
+	(void) animations_sampler_input_ubo;
+	(void) animations_sampler_output_ubo;
 
 	uint32_t nodes_count = static_cast_safe<uint32_t>(a_scene.nodes().size());
 	for (auto &model : a_scene.models())
 		nodes_count += model.nodes().size();
 
-	std::cout << "Node output and input before\n"
-	          << input.to_glsl_string() << std::endl
-	          << input.to_glsl_string() << std::endl;
+	model_ubo.update_count("node_model_mat4", nodes_count);
+	input_ubo.update_count("node_transform_in", nodes_count);
+	output_ubo.update_count("node_transform", nodes_count);
 
-	input.update_count("node_transform", nodes_count);
-	output.update_count("node_transform", nodes_count);
+	uint32_t animation_size{0u};
+	uint32_t animation_count{0u};
+	uint32_t sampler_input_size{0u};
+	uint32_t sampler_output_size{0u};
 
-	std::cout << "Node output and input and after\n"
-	          << input.to_glsl_string() << std::endl
-	          << input.to_glsl_string() << std::endl;
+	get_animation_sizes(a_scene, animation_size, animation_count, sampler_input_size, sampler_output_size);
+
+	// std::cout << "Animation output and input and after\n"
+	//           << animations_ubo.to_glsl_string() << std::endl
+	//           << animations_sampler_input_ubo.to_glsl_string() << std::endl
+	//           << animations_sampler_output_ubo.to_glsl_string() << std::endl;
+
+	animations_ubo.update_count("animation", animation_size);
+	animations_sampler_input_ubo.update_count("inputs", sampler_input_size);
+	animations_sampler_output_ubo.update_count("outputs", sampler_output_size);
 
 	for (auto &render_buffer : this->m_input_render_buffers)
 	{
@@ -827,6 +861,33 @@ std::vector<rhi::RenderpassType> Renderer::all_render_pass_types() const
 	}
 
 	return passes;
+}
+
+// void Renderer::add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer)
+// {
+// 	// TODO: Check if already exists
+// 	this->m_global_shader_buffers.emplace(std::move(a_name), std::move(a_shader_buffer));
+// }
+
+void Renderer::init_global_shader_buffers(rhi::Device &a_device)
+{
+	rhi::ShaderBuffer *per_frame_uniform = new rhi::ShaderBuffer{"per_frame_uniform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 3,
+	                                                             "delta_time", rhi::Format::float32_1,
+	                                                             "nodes_count", rhi::Format::uint32_1,
+	                                                             "animations_count", rhi::Format::uint32_1,
+	                                                             "force_opaque", rhi::Format::bool32_1,
+	                                                             "debug_all", rhi::Format::bool32_1,
+	                                                             "debug_normals", rhi::Format::bool32_1,
+	                                                             "debug_positions", rhi::Format::bool32_1,
+	                                                             "debug_tangents", rhi::Format::bool32_1,
+	                                                             "debug_base_color", rhi::Format::bool32_1,
+	                                                             "debug_brdf_visibility", rhi::Format::bool32_1,
+	                                                             "debug_brdf_occlusion", rhi::Format::bool32_1,
+	                                                             "debug_brdf_fresnel", rhi::Format::bool32_1};
+
+	per_frame_uniform->upload(a_device);
+
+	this->m_global_shader_buffers.emplace("per_frame_uniform", std::move(per_frame_uniform));
 }
 
 }        // namespace ror

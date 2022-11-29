@@ -29,8 +29,8 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/metal/rormetal_common.hpp"
 #include "rhi/metal/rorprogram.hpp"
-#include "rhi/rorshader.hpp"
 #include "rhi/rorrenderpass.hpp"
+#include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
 #include "rhi/rorvertex_description.hpp"
@@ -169,6 +169,8 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 
 	render_pipeline_descriptor->setSupportIndirectCommandBuffers(setting.m_metal.indirect_command_buffers);
 
+	// Why there are colorAttachments in MTLRenderPipelineDescriptors as well as MTLRenderPassDescriptor the explanation is
+	// https://stackoverflow.com/questions/44118942/what-is-colorattachmentn-in-metal but it boils down to how expensive these are to change
 	// TODO: Add support for how ever many attachments we might have which is driven by render pass type
 	auto colorAttachment = render_pipeline_descriptor->colorAttachments()->object(0);
 

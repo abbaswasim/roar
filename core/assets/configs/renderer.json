@@ -145,14 +145,14 @@
 			]
 		},
 		{
-			"name":"nodes_index",
+			"name":"nodes_offsets",
 			"layout":"std140",
 			"type":"ubo",
 			"set":0,
 			"binding":28,
 			"entries":[
 				{
-					"name":"node_index",
+					"name":"node_offsets",
 					"format":"uint32_4"
 				}
 			]

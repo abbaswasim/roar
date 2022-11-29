@@ -27,15 +27,17 @@
 
 #include "configuration/rorconfiguration.hpp"
 #include "core/foundation/rorcrtp.hpp"
+#include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "math/rorvector2.hpp"
-#include "rhi/rorrenderpass.hpp"
+#include "profiling/rortimer.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorrenderstate.hpp"
 #include "rhi/rorshader.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rorshader_input.hpp"
 #include "rhi/rortexture.hpp"
@@ -68,6 +70,9 @@ class Renderer final : public Configuration<Renderer>
 	void                             upload(rhi::Device &);
 	std::vector<rhi::RenderpassType> render_pass_types() const;
 	std::vector<rhi::RenderpassType> all_render_pass_types() const;
+	void                             init_global_shader_buffers(rhi::Device &a_device);
+	void                             deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene);
+	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto& buffers()                      noexcept { return this->m_buffers;                 }

@@ -25,10 +25,14 @@
 
 #pragma once
 
+#include "foundation/rormacros.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
+#include "math/rorvector4.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
+#include "rhi/rorshader_buffer.hpp"
+#include "rhi/rortypes.hpp"
 
 namespace ror
 {
@@ -59,15 +63,37 @@ class ROAR_ENGINE_ITEM Node
 class ROAR_ENGINE_ITEM NodeData
 {
   public:
-	FORCE_INLINE           NodeData()                             = default;        //! Default constructors
-	FORCE_INLINE           NodeData(const NodeData &a_other)      = default;        //! Copy constructor
+	// FORCE_INLINE           NodeData()                             = default;        //! Default constructors
+	FORCE_INLINE           NodeData(const NodeData &a_other)      = delete;         //! Copy constructor
 	FORCE_INLINE           NodeData(NodeData &&a_other) noexcept  = default;        //! Move constructor
-	FORCE_INLINE NodeData &operator=(const NodeData &a_other)     = default;        //! Copy assignment operator
-	FORCE_INLINE NodeData &operator=(NodeData &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE NodeData &operator=(const NodeData &a_other)     = delete;         //! Copy assignment operator
+	FORCE_INLINE NodeData &operator=(NodeData &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~NodeData() noexcept                             = default;        //! Destructor
 
-	// Editor only and for debugging purposes
-	// NOTE: Using std::vectors
+	FORCE_INLINE NodeData()
+	{
+		this->m_shader_buffer.add_entry("node_offsets", rhi::Format::uint32_4);
+	}
+
+	FORCE_INLINE constexpr void upload(rhi::Device &a_device)
+	{
+		this->m_shader_buffer.upload(a_device);
+	}
+
+	FORCE_INLINE void update_offsets(ror::Vector4ui a_index)
+	{
+		this->m_shader_buffer.buffer_map();
+		this->m_shader_buffer.update("node_offsets", &a_index.x);
+		this->m_shader_buffer.buffer_unmap();
+	}
+
+	template <typename _encoder>
+	FORCE_INLINE constexpr void bind(_encoder a_encoder, rhi::ShaderStage a_stage)
+	{
+		this->m_shader_buffer.buffer_bind(a_encoder, a_stage);
+	}
+
+	// Node suplimentary data, should probably be combined with Node at some point
 	std::string           m_name{};
 	std::vector<uint32_t> m_children{};        //! All the list of childrens for each node
 };

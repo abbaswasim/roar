@@ -67,9 +67,9 @@ FORCE_INLINE void Rendersubpass::bind_input_attachments(_type &a_encoder)
 }
 
 template <class _type>
-FORCE_INLINE void Rendersubpass::bind_buffer_inputs(_type &a_encoder) // _type can be rhi::RenderCommandEncoder or rhi::ComputeCommandEncoder
+FORCE_INLINE void Rendersubpass::bind_buffer_inputs(_type &a_encoder)        // _type can be rhi::RenderCommandEncoder or rhi::ComputeCommandEncoder
 {
-	auto     buffer_inputs  = this->buffer_inputs();
+	auto buffer_inputs = this->buffer_inputs();
 	for (auto &buffer_input : buffer_inputs)
 	{
 		assert(buffer_input.m_render_output && "Render reference shouldn't be null");
@@ -82,7 +82,7 @@ FORCE_INLINE void Rendersubpass::bind_buffer_inputs(_type &a_encoder) // _type c
 template <class _type>
 FORCE_INLINE void RenderpassCrtp<_type>::bind_render_buffers(rhi::ComputeCommandEncoder &a_encoder)
 {
-	auto     buffer_inputs  = this->render_buffers();
+	auto buffer_inputs = this->render_buffers();
 	for (auto &buffer_input : buffer_inputs)
 	{
 		auto &br = buffer_input.m_target_reference.get();
