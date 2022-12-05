@@ -69,67 +69,67 @@ std::string attribute_format(rhi::VertexFormat a_format)
 	// clang-format off
 	switch (a_format)
 	{
-		case rhi::VertexFormat::struct_0:			return " ";
-		case rhi::VertexFormat::struct_1:			return " ";
-		case rhi::VertexFormat::bool32_1:			return " bool";
-		case rhi::VertexFormat::bool32_2:			return " bvec2";
-		case rhi::VertexFormat::bool32_3:			return " bvec3";
-		case rhi::VertexFormat::bool32_4:			return " bvec4";
-		case rhi::VertexFormat::int8_1:				return " int";
-		case rhi::VertexFormat::int8_2:				return " ivec2";
-		case rhi::VertexFormat::int8_3:				return " ivec3";
-		case rhi::VertexFormat::int8_4:				return " ivec4";
-		case rhi::VertexFormat::int16_1:				return " int";
-		case rhi::VertexFormat::int16_2:				return " ivec2";
-		case rhi::VertexFormat::int16_3:				return " ivec3";
-		case rhi::VertexFormat::int16_4:				return " ivec4";
-		case rhi::VertexFormat::int32_1:				return " int";
-		case rhi::VertexFormat::int32_2:				return " ivec2";
-		case rhi::VertexFormat::int32_3:				return " ivec3";
-		case rhi::VertexFormat::int32_4:				return " ivec4";
-		case rhi::VertexFormat::half16_1:			return " int";
-		case rhi::VertexFormat::half16_2:			return " ivec2";
-		case rhi::VertexFormat::half16_3:			return " ivec3";
-		case rhi::VertexFormat::half16_4:			return " ivec4";
+		case rhi::VertexFormat::struct_0:        return " ";
+		case rhi::VertexFormat::struct_1:        return " ";
+		case rhi::VertexFormat::bool32_1:        return " bool";
+		case rhi::VertexFormat::bool32_2:        return " bvec2";
+		case rhi::VertexFormat::bool32_3:        return " bvec3";
+		case rhi::VertexFormat::bool32_4:        return " bvec4";
+		case rhi::VertexFormat::int8_1:          return " int";
+		case rhi::VertexFormat::int8_2:          return " ivec2";
+		case rhi::VertexFormat::int8_3:          return " ivec3";
+		case rhi::VertexFormat::int8_4:          return " ivec4";
+		case rhi::VertexFormat::int16_1:         return " int";
+		case rhi::VertexFormat::int16_2:         return " ivec2";
+		case rhi::VertexFormat::int16_3:         return " ivec3";
+		case rhi::VertexFormat::int16_4:         return " ivec4";
+		case rhi::VertexFormat::int32_1:         return " int";
+		case rhi::VertexFormat::int32_2:         return " ivec2";
+		case rhi::VertexFormat::int32_3:         return " ivec3";
+		case rhi::VertexFormat::int32_4:         return " ivec4";
+		case rhi::VertexFormat::half16_1:        return " int";
+		case rhi::VertexFormat::half16_2:        return " ivec2";
+		case rhi::VertexFormat::half16_3:        return " ivec3";
+		case rhi::VertexFormat::half16_4:        return " ivec4";
 
-		case rhi::VertexFormat::float32_1:			return " float";
-		case rhi::VertexFormat::float32_2:			return " vec2";
-		case rhi::VertexFormat::float32_3:			return " vec3";
-		case rhi::VertexFormat::float32_4:			return " vec4";
-		case rhi::VertexFormat::uint8_1:				return " uint";
-		case rhi::VertexFormat::uint8_2:				return " uvec2";
-		case rhi::VertexFormat::uint8_3:				return " uvec3";
-		case rhi::VertexFormat::uint8_4:				return " uvec4";
-		case rhi::VertexFormat::uint16_1:			return " uint";
-		case rhi::VertexFormat::uint16_2:			return " uvec2";
-		case rhi::VertexFormat::uint16_3:			return " uvec3";
-		case rhi::VertexFormat::uint16_4:			return " uvec4";
-		case rhi::VertexFormat::uint32_1:			return " uint";
-		case rhi::VertexFormat::uint32_2:			return " uvec2";
-		case rhi::VertexFormat::uint32_3:			return " uvec3";
-		case rhi::VertexFormat::uint32_4:			return " uvec4";
+		case rhi::VertexFormat::float32_1:       return " float";
+		case rhi::VertexFormat::float32_2:       return " vec2";
+		case rhi::VertexFormat::float32_3:       return " vec3";
+		case rhi::VertexFormat::float32_4:       return " vec4";
+		case rhi::VertexFormat::uint8_1:         return " uint";
+		case rhi::VertexFormat::uint8_2:         return " uvec2";
+		case rhi::VertexFormat::uint8_3:         return " uvec3";
+		case rhi::VertexFormat::uint8_4:         return " uvec4";
+		case rhi::VertexFormat::uint16_1:        return " uint";
+		case rhi::VertexFormat::uint16_2:        return " uvec2";
+		case rhi::VertexFormat::uint16_3:        return " uvec3";
+		case rhi::VertexFormat::uint16_4:        return " uvec4";
+		case rhi::VertexFormat::uint32_1:        return " uint";
+		case rhi::VertexFormat::uint32_2:        return " uvec2";
+		case rhi::VertexFormat::uint32_3:        return " uvec3";
+		case rhi::VertexFormat::uint32_4:        return " uvec4";
 
-		case rhi::VertexFormat::int8_1_norm:			return " int";
-		case rhi::VertexFormat::int8_2_norm:			return " ivec2";
-		case rhi::VertexFormat::int8_3_norm:			return " ivec3";
-		case rhi::VertexFormat::int8_4_norm:			return " ivec4";
-		case rhi::VertexFormat::int16_1_norm:		return " int";
-		case rhi::VertexFormat::int16_2_norm:		return " ivec2";
-		case rhi::VertexFormat::int16_3_norm:		return " ivec3";
-		case rhi::VertexFormat::int16_4_norm:		return " ivec4";
-		case rhi::VertexFormat::uint8_1_norm:		return " uint";
-		case rhi::VertexFormat::uint8_2_norm:		return " uvec2";
-		case rhi::VertexFormat::uint8_3_norm:		return " uvec3";
-		case rhi::VertexFormat::uint8_4_norm:		return " uvec4";
-		case rhi::VertexFormat::uint16_1_norm:		return " uint";
-		case rhi::VertexFormat::uint16_2_norm:		return " uvec2";
-		case rhi::VertexFormat::uint16_3_norm:		return " uvec3";
-		case rhi::VertexFormat::uint16_4_norm:		return " uvec4";
+		case rhi::VertexFormat::int8_1_norm:     return " int";
+		case rhi::VertexFormat::int8_2_norm:     return " ivec2";
+		case rhi::VertexFormat::int8_3_norm:     return " ivec3";
+		case rhi::VertexFormat::int8_4_norm:     return " ivec4";
+		case rhi::VertexFormat::int16_1_norm:    return " int";
+		case rhi::VertexFormat::int16_2_norm:    return " ivec2";
+		case rhi::VertexFormat::int16_3_norm:    return " ivec3";
+		case rhi::VertexFormat::int16_4_norm:    return " ivec4";
+		case rhi::VertexFormat::uint8_1_norm:    return " uint";
+		case rhi::VertexFormat::uint8_2_norm:    return " uvec2";
+		case rhi::VertexFormat::uint8_3_norm:    return " uvec3";
+		case rhi::VertexFormat::uint8_4_norm:    return " uvec4";
+		case rhi::VertexFormat::uint16_1_norm:   return " uint";
+		case rhi::VertexFormat::uint16_2_norm:   return " uvec2";
+		case rhi::VertexFormat::uint16_3_norm:   return " uvec3";
+		case rhi::VertexFormat::uint16_4_norm:   return " uvec4";
 
-		case rhi::VertexFormat::uint8_custom:		return " uint";
-		case rhi::VertexFormat::uint16_custom:		return " uint";
-		case rhi::VertexFormat::uint32_custom:		return " uint";
-		case rhi::VertexFormat::float32_custom:		return " float";
+		case rhi::VertexFormat::uint8_custom:    return " uint";
+		case rhi::VertexFormat::uint16_custom:   return " uint";
+		case rhi::VertexFormat::uint32_custom:   return " uint";
+		case rhi::VertexFormat::float32_custom:  return " float";
 
 		case rhi::VertexFormat::invalid:
 		case rhi::VertexFormat::float32_2x2:
@@ -209,10 +209,10 @@ void append_count_times(uint32_t a_count, uint32_t a_ats_count,
 const std::string vs_morph_common_str = R"coms(
 const uint weights_count = @;
 
-layout(set = @, binding = @) uniform morph_weight
+layout(std430, set = @, binding = @) readonly buffer morphs_weights
 {
-	float morph_weights[weights_count];
-} in_morph_weights;
+	float morph_weights[];
+} in_morphs_weights;
 
 )coms";
 
@@ -227,8 +227,8 @@ std::string vs_morph_common(size_t a_weights_count, uint32_t a_morph_set, uint32
 	return str;
 }
 
-const std::string vs_morph_stuff_header_str{"\nvoid morph_@(inout @ @)\n{\n"};
-const std::string vs_morph_stuff_line_str{"\t@ += in_morph_weights.morph_weights[@] * in_target_@@;\n"};
+const std::string vs_morph_stuff_header_str{"\nvoid morph_@(inout @ @)\n{\n\tuint weight_offset = in_nodes_offsets.node_offsets.z;\n"};
+const std::string vs_morph_stuff_line_str{"\t@ += in_morphs_weights.morph_weights[weight_offset + @] * in_target_@@;\n"};
 
 std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_name, const std::string &a_type)
 {
@@ -271,9 +271,9 @@ layout(std140, set = @, binding = @) uniform per_view_uniform
 	vec3 camera_position;
 } in_per_view_uniforms;
 
-layout(std140, set = 0, binding = 27) uniform nodes_model
+layout(std430, set = 0, binding = 27) readonly buffer nodes_model
 {
-    mat4 node_model_mat4[50];
+    mat4 node_model_mat4[];
 } in_nodes_model;
 
 layout(std140, set = 0, binding = 28) uniform nodes_offsets
@@ -332,9 +332,9 @@ layout(std140, set = @, binding = @) uniform joint_offset_uniform
 	uint joint_redirect[joints_count];
 } in_joint_redirects;
 
-layout(std140, set = 0, binding = 29) uniform joint_inverse_bind_matrices
+layout(std140, set = 0, binding = 29) readonly buffer joint_inverse_bind_matrices
 {
-	mat4 joint_inverse_matrix[24];
+	mat4 joint_inverse_matrix[];
 } in_joint_inverse_bind_matrices;
 
 )scom";
@@ -444,9 +444,11 @@ void world_transform_position(inout vec4 vertex_position)
 
     model = model * in_nodes_model.node_model_mat4[node_index];
 
-	// vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * in_per_view_uniforms.model_mat4 * vertex_position;
-	vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * model * vertex_position;
-	// vertex_position = in_per_view_uniforms.mvp_mat4 * vertex_position;
+    // You need to retain 'w' only after perspective transform for fixed function "prespective division"
+    // hence reseting w=1.0 to make sure skinning or morphing hasn't messed it up
+	// vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * in_per_view_uniforms.model_mat4 * vec4(vertex_position.xyz, 1.0);
+	vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * model * vec4(vertex_position.xyz, 1.0);
+	// vertex_position = in_per_view_uniforms.mvp_mat4 * vec4(vertex_position.xyz, 1.0);
 }
 
 void set_position()
@@ -676,7 +678,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	auto        has_uv_2                 = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_2)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_2);
 	auto        has_color_0              = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0);
 	auto        has_color_1              = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1);
-	auto        has_morphs               = (mesh.m_morph_weights.size() > 0 && vertex_target_descriptor.size() > 0);
+	auto        has_morphs               = mesh.has_morphs();
 	auto        is_depth_shadow          = (a_renderpass_type == rhi::RenderpassType::depth || a_renderpass_type == rhi::RenderpassType::shadow);
 
 	std::unordered_map<rhi::BufferSemantic, std::pair<uint32_t, bool>> targets_count{

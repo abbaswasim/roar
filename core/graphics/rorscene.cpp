@@ -32,6 +32,7 @@
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "graphics/roranimation.hpp"
 #include "graphics/rormesh.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
@@ -49,7 +50,6 @@
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortypes.hpp"
-#include "graphics/roranimation.hpp"
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include <array>
@@ -322,10 +322,12 @@ struct DrawData
 };
 
 template <typename _type>
-void enable_material_component(const Material::Component<_type>                                            &a_component,
-                               std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               &a_textures,
-                               std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     &a_images,
-                               std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> &a_samplers, DrawData &a_dd)
+FORCE_INLINE void enable_material_component(const Material::Component<_type>                                            &a_component,
+                                            std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               &a_textures,
+                                            std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     &a_images,
+                                            std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> &a_samplers,
+                                            uint32_t                                                                    &a_index,
+                                            DrawData                                                                    &a_dd)
 {
 	if (a_component.m_texture != -1)
 	{
@@ -334,8 +336,8 @@ void enable_material_component(const Material::Component<_type>                 
 		auto &image   = a_images[static_cast_safe<size_t>(texture.texture_image())];
 		auto &sampler = a_samplers[texture.texture_sampler()];
 
-		a_dd.encoder->fragment_texture(image, 0);
-		a_dd.encoder->fragment_sampler(sampler, 0);
+		a_dd.encoder->fragment_texture(image, a_index);
+		a_dd.encoder->fragment_sampler(sampler, a_index++);        // This behaviour matches what's in the shader_system.cpp
 	}
 };
 
@@ -348,6 +350,12 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 	auto &programs      = a_scene.programs();
 	auto &pass_programs = programs.at(subpass.type());
 
+	if (a_mesh.weights_count() > 0)
+	{
+		auto &morph_weights_uniforms = a_mesh.shader_buffer();
+		morph_weights_uniforms.buffer_bind(*a_dd.encoder, rhi::ShaderStage::vertex);
+	}
+
 	for (size_t prim_id = 0; prim_id < a_mesh.primitives_count(); ++prim_id)
 	{
 		auto &program = pass_programs[static_cast<size_t>(a_mesh.m_program_indices[prim_id])];
@@ -356,12 +364,6 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		auto &material_factors = material.shader_buffer();
 		// material_factors.bind(a_encoder, rhi::ShaderType::fragment, buffer_index_offset);
 		material_factors.buffer_bind(*a_dd.encoder, rhi::ShaderStage::fragment);
-
-		if (a_mesh.weights_count() > 0)
-		{
-			auto &morph_weights_uniforms = a_mesh.shader_buffer();
-			morph_weights_uniforms.buffer_bind(*a_dd.encoder, rhi::ShaderStage::vertex);
-		}
 
 		a_dd.encoder->render_pipeline_state(program);
 		// TODO: Add joint_transforms trs_transforms UBO for skinned characters
@@ -445,26 +447,27 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		auto &textures = a_model.textures();
 		auto &images   = a_model.images();
 		auto &samplers = a_model.samplers();
+		auto  binding_index{0u};
 
-		enable_material_component(material.m_base_color, textures, images, samplers, a_dd);
-		enable_material_component(material.m_diffuse_color, textures, images, samplers, a_dd);
-		enable_material_component(material.m_specular_glossyness, textures, images, samplers, a_dd);
-		enable_material_component(material.m_emissive, textures, images, samplers, a_dd);
-		enable_material_component(material.m_anisotropy, textures, images, samplers, a_dd);
-		enable_material_component(material.m_transmission, textures, images, samplers, a_dd);
-		enable_material_component(material.m_sheen_color, textures, images, samplers, a_dd);
-		enable_material_component(material.m_sheen_roughness, textures, images, samplers, a_dd);
-		enable_material_component(material.m_clearcoat_normal, textures, images, samplers, a_dd);
-		enable_material_component(material.m_clearcoat, textures, images, samplers, a_dd);
-		enable_material_component(material.m_clearcoat_roughness, textures, images, samplers, a_dd);
-		enable_material_component(material.m_metallic, textures, images, samplers, a_dd);
-		enable_material_component(material.m_roughness, textures, images, samplers, a_dd);
-		enable_material_component(material.m_occlusion, textures, images, samplers, a_dd);
-		enable_material_component(material.m_normal, textures, images, samplers, a_dd);
-		enable_material_component(material.m_bent_normal, textures, images, samplers, a_dd);
-		enable_material_component(material.m_height, textures, images, samplers, a_dd);
-		enable_material_component(material.m_opacity, textures, images, samplers, a_dd);
-		enable_material_component(material.m_subsurface_color, textures, images, samplers, a_dd);
+		enable_material_component(material.m_base_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_diffuse_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_specular_glossyness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_emissive, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_anisotropy, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_transmission, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_sheen_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_sheen_roughness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_clearcoat_normal, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_clearcoat, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_clearcoat_roughness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_metallic, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_roughness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_occlusion, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_normal, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_bent_normal, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_height, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_opacity, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
 		if (a_mesh.m_has_indices_states[prim_id])
 		{
@@ -591,7 +594,7 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 		if (node.m_model != -1)
 		{
 			auto &model = a_scene.models()[static_cast_safe<size_t>(node.m_model)];
-			auto current_anim{0u};
+			auto  current_anim{0u};
 			for (auto &anim : model.animations())
 			{
 				if (current_anim == node.m_animation)
@@ -666,17 +669,15 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 		assert(animation_count == current_anim_data.size() && "Animations not fully collected");
 		(void) stride;
 		current_animation_buffer.buffer_map();
+
 		auto i{0u};
 		for (auto &canim : current_anim_data)
-		{
-			std::cout << "Adding canim " << canim.x << "," << canim.y << std::endl;
+			current_animation_buffer.update("animation", &canim.x, i++, 8);
 
-			current_animation_buffer.update("animation", &canim.x, i, 8);
-			i++;
-		}
 		current_animation_buffer.buffer_unmap();
 	}
 
+	if (animation_size)
 	{
 		sampler_input_data_ptr = reinterpret_cast<uint8_t *>(sampler_input_data.data());
 
@@ -685,6 +686,7 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 		sampler_input_buffer.buffer_unmap();
 	}
 
+	if (animation_size)
 	{
 		sampler_output_data_ptr = reinterpret_cast<uint8_t *>(sampler_output_data.data());
 

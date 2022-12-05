@@ -1060,7 +1060,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 								break;
 							case cgltf_attribute_type_tangent:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
-								       (attrib.data->type == cgltf_type_vec4 || attrib.data->type == cgltf_type_vec3) && "Tangent not in the right format, float4 required");
+								       (attrib.data->type == cgltf_type_vec4) && "Tangent not in the right format, float4 required");        // If its 3D only need to add w=[+1, -1] to denote handedness
 								assert(attrib.index == 0 && "Don't suport more than 1 tangent");
 								current_index = rhi::BufferSemantic::vertex_tangent;
 								break;
@@ -1099,7 +1099,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						// If buffer_view does not have a stride or its zero. accessor->stride is calculated from format byte size * number of components
 						// What this means is that if (buffer_view->stride == 0) it means tightly packed data, use accessor->stride as stride from one element to another
 						// If buffer->view->stride != 0 that means not-tightly packed data, stride is accessor->stride which is equal to buffer_view->stride
-						// This buffer_view->stride is only valid for attributes of if enabled by extensions
+						// This buffer_view->stride is only valid for attributes or if enabled by extensions
 
 						const auto *attrib_accessor  = attrib.data;
 						auto        attrib_format    = get_format_from_gltf_type_format(attrib_accessor->type, attrib_accessor->component_type);
@@ -1532,7 +1532,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 							animation_sampler.m_output_format = format;
 							cgltf_accessor_unpack_floats(anim_sampler_accessor,
 							                             reinterpret_cast<cgltf_float *>(animation_sampler.m_output.data()),
-							                             animation_sampler.m_output.size() / sizeof (float32_t));
+							                             animation_sampler.m_output.size() / sizeof(float32_t));
 						}
 					}
 

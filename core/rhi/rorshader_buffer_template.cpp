@@ -35,7 +35,7 @@ Layout string_to_layout(const std::string &a_layout)
 {
 	// clang-format off
 	if (a_layout == "std140" ) return Layout::std140;
-	else if (a_layout == "std430" ) return Layout::std140;
+	else if (a_layout == "std430" ) return Layout::std430;
 	// clang-format on
 
 	assert(0 && "Shouldn't reach here");

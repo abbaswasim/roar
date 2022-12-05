@@ -49,66 +49,67 @@ class ROAR_ENGINE_ITEM Skin
 	FORCE_INLINE ~Skin() noexcept                         = default;        //! Destructor
 
 	// clang-format off
-	FORCE_INLINE constexpr auto  joints_count() const noexcept   { return this->m_joints.size();                 }
-	FORCE_INLINE constexpr auto &shader_buffer() const noexcept  { return this->m_joint_transform_shader_buffer; }
+	FORCE_INLINE constexpr auto joints_count()               const noexcept { return this->m_joints.size();         }
+	FORCE_INLINE constexpr auto root()                       const noexcept { return this->m_root;                  }
+	FORCE_INLINE constexpr auto node_index()                 const noexcept { return this->m_node_index;            }
+	FORCE_INLINE constexpr auto root(int32_t a_root)               noexcept { this->m_root = a_root;                }
+	FORCE_INLINE constexpr auto node_index(int32_t a_index)        noexcept { this->m_node_index = a_index;         }
+	FORCE_INLINE constexpr auto &inverse_bind_matrices()           noexcept { return this->m_inverse_bind_matrices; }
+	FORCE_INLINE constexpr auto &joints()                    const noexcept { return this->m_joints;                }
+	FORCE_INLINE constexpr auto &joints()                          noexcept { return this->m_joints;                }
+
+	template<typename _encoder_type>
+	FORCE_INLINE constexpr void bind_joint_offset_buffer( _encoder_type& a_encoder, rhi::ShaderStage a_stage)
+		                                                { this->m_joint_offset_shader_buffer.buffer_bind(a_encoder, a_stage); }
+	template<typename _encoder_type>
+	FORCE_INLINE constexpr void bind_inverse_bind_buffer( _encoder_type& a_encoder, rhi::ShaderStage a_stage)
+		                                                { this->m_inverse_bind_shader_buffer.buffer_bind(a_encoder, a_stage); }
 	// clang-format on
 
 	void update()
 	{
-		this->m_joint_transform_shader_buffer.buffer_map();
+		auto stride = this->m_joint_offset_shader_buffer.stride("joint_redirect");
+		this->m_joint_offset_shader_buffer.buffer_map();
+		for (size_t joint_id = 0; joint_id < this->m_joints.size(); ++joint_id)
+			this->m_joint_offset_shader_buffer.update("joint_redirect", &this->m_joints[joint_id], static_cast<uint32_t>(joint_id), stride);
+		this->m_joint_offset_shader_buffer.buffer_unmap();
 
-		auto stride = this->m_joint_transform_shader_buffer.stride("joint_transforms");
-
-		for (size_t joint_id = 0; joint_id < this->m_joint_transforms.size(); ++joint_id)
-		{
-			auto &xform = this->m_joint_transforms[joint_id];
-			this->m_joint_transform_shader_buffer.update("rotation", &xform.m_rotation.x, static_cast<uint32_t>(joint_id), stride);
-			this->m_joint_transform_shader_buffer.update("translation", &xform.m_translation.x, static_cast<uint32_t>(joint_id), stride);
-			this->m_joint_transform_shader_buffer.update("scale", &xform.m_scale.x, static_cast<uint32_t>(joint_id), stride);
-		}
-
-		this->m_joint_transform_shader_buffer.buffer_unmap();
+		this->m_inverse_bind_shader_buffer.buffer_map();
+		this->m_inverse_bind_shader_buffer.update("joint_inverse_matrix", &this->m_inverse_bind_matrices[0].m_values, static_cast_safe<uint32_t>(this->m_joints.size() * sizeof(ror::Matrix4f)));
+		this->m_inverse_bind_shader_buffer.buffer_unmap();
 	}
 
 	void upload(rhi::Device &a_device)
 	{
-		// Needs to create something like the following
-		/*
-		  const uint joints_count = 24;
-		  struct trs_transform
-		  {
-		      vec4 rotation;
-		      vec3 translation;
-		      vec3 scale;
-		  };
-		  layout(std140, set = 2, binding = 0) uniform joint_transform
-		  {
-		      trs_transform joint_transforms[joints_count];
-		  } in_joint_transforms;
-		*/
-		rhi::ShaderBufferTemplate::Struct trs_transform("joint_transforms", static_cast_safe<uint32_t>(this->joints_count()));
-		trs_transform.add_entry("rotation", rhi::Format::float32_4, rhi::Layout::std140, 1);
-		trs_transform.add_entry("translation", rhi::Format::float32_3, rhi::Layout::std140, 1);
-		trs_transform.add_entry("scale", rhi::Format::float32_3, rhi::Layout::std140, 1);
+		this->m_joint_offset_shader_buffer.add_entry("joint_redirect", rhi::Format::uint32_1, static_cast_safe<uint32_t>(this->m_joints.size()));
+		this->m_joint_offset_shader_buffer.upload(a_device);
 
-		this->m_joint_transform_shader_buffer.add_struct(trs_transform);
-
-		this->m_joint_transform_shader_buffer.upload(a_device);
+		this->m_inverse_bind_shader_buffer.add_entry("joint_inverse_matrix", rhi::Format::float32_4x4, static_cast_safe<uint32_t>(this->m_joints.size()));
+		this->m_inverse_bind_shader_buffer.upload(a_device);
 
 		this->update();
 	}
 
-	std::vector<uint32_t, rhi::BufferAllocator<uint32_t>>     m_joints{};                       //! All the joints in this skeleton
-	std::vector<Matrix4f, rhi::BufferAllocator<Matrix4f>>     m_inverse_bind_matrices{};        //! Inverse bind matrices for each joint in an array
-	std::vector<Transformf, rhi::BufferAllocator<Transformf>> m_joint_transforms{};             //! Scratch space for array of calculated transforms every frame
-	int32_t                                                   m_root{-1};                       //! Node index of each skin, should be init with -1
-	int32_t                                                   m_node_index{-1};                 //! Node index as well where the each skin is attached, should be init with -1
+  private:
+	std::vector<uint32_t, rhi::BufferAllocator<uint32_t>> m_joints{};                       //! All the joints in this skeleton
+	std::vector<Matrix4f, rhi::BufferAllocator<Matrix4f>> m_inverse_bind_matrices{};        //! Inverse bind matrices for each joint in an array
+	int32_t                                               m_root{-1};                       //! Node index of each skin, should be init with -1
+	int32_t                                               m_node_index{-1};                 //! Node index as well where the each skin is attached, should be init with -1
 
-	rhi::ShaderBuffer m_joint_transform_shader_buffer{"joint_transforms_uniform",
-	                                                  rhi::ShaderBufferType::ubo,
-	                                                  rhi::Layout::std140,
-	                                                  settings().skin_joints_set(),
-	                                                  settings().skin_joints_binding()};        //! ShaderBuffers for joint_transforms within the skinning shader
+	// TODO: Remove the use of matrices and bring back TRS instead
+	// TRS is currently unused, only matrices are used
+
+	rhi::ShaderBuffer m_joint_offset_shader_buffer{"joint_offset_uniform",
+	                                               rhi::ShaderBufferType::ubo,
+	                                               rhi::Layout::std140,
+	                                               settings().skin_joints_set(),
+	                                               settings().skin_joints_binding()};        //! ShaderBuffers for joint_offsets within the skinning shader
+
+	rhi::ShaderBuffer m_inverse_bind_shader_buffer{"joint_inverse_bind_matrices",
+	                                               rhi::ShaderBufferType::ubo,
+	                                               rhi::Layout::std140,
+	                                               settings().joint_inverse_bind_set(),
+	                                               settings().joint_inverse_bind_binding()};        //! ShaderBuffers for inverse_bind_transforms within the skinning shader
 };
 
 }        // namespace ror

@@ -32,8 +32,6 @@
 #include "foundation/rorutilities.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorbuffer_view.hpp"
-#include "rhi/rorshader_buffer.hpp"
-#include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
 #include "settings/rorsettings.hpp"
@@ -78,9 +76,9 @@ class ROAR_ENGINE_ITEM Mesh final
 	void      upload(rhi::Device &a_device);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto  weights_count() const noexcept  { return this->m_morph_weights.size();        }
-	FORCE_INLINE constexpr auto &shader_buffer() const noexcept  { return this->m_morph_weights_shader_buffer; }
-	FORCE_INLINE constexpr auto &shader_buffer()       noexcept  { return this->m_morph_weights_shader_buffer; }
+	FORCE_INLINE constexpr auto  weights_count() const noexcept  { return this->m_morph_weights.size();                          }
+	FORCE_INLINE constexpr bool  has_morphs()    const noexcept  { return (this->m_morph_weights.size() > 0 &&
+																		   this->m_morph_targets_vertex_descriptors.size() > 0); }
 	// clang-format on
 
 	// TODO: Flatten this into 'Mesh' into 'Models' etc to see if I get cache locallity
@@ -104,12 +102,6 @@ class ROAR_ENGINE_ITEM Mesh final
 	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1
 	uint64_t                                                m_hash{0};                                   //! Hash of this mesh depending on most of its properties
 	std::string                                             m_name{"generic_mesh"};                      //! Name of this mesh
-
-	rhi::ShaderBuffer m_morph_weights_shader_buffer{"morph_weights_ubo",
-	                                                rhi::ShaderBufferType::ubo,
-	                                                rhi::Layout::std140,
-	                                                settings().morph_weights_set(),
-	                                                settings().morph_weights_binding()};        //! ShaderBuffers for joint_transforms within the skinning shader
 };
 
 }        // namespace ror
