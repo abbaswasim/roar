@@ -446,6 +446,7 @@ void world_transform_position(inout vec4 vertex_position)
 
     // You need to retain 'w' only after perspective transform for fixed function "prespective division"
     // hence reseting w=1.0 to make sure skinning or morphing hasn't messed it up
+    // Details https://www.tomdalling.com/blog/modern-opengl/explaining-homogenous-coordinates-and-projective-geometry/
 	// vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * in_per_view_uniforms.model_mat4 * vec4(vertex_position.xyz, 1.0);
 	vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * model * vec4(vertex_position.xyz, 1.0);
 	// vertex_position = in_per_view_uniforms.mvp_mat4 * vec4(vertex_position.xyz, 1.0);
@@ -666,8 +667,8 @@ std::string vertex_shader_input_output(const rhi::VertexDescriptor &a_vertex_des
 std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_primitive_index, rhi::RenderpassType a_renderpass_type)
 {
 	const auto &mesh                     = a_model.meshes()[a_mesh_index];
-	auto       &vertex_descriptor        = mesh.m_attribute_vertex_descriptors[a_primitive_index];
-	auto       &vertex_target_descriptor = mesh.m_morph_targets_vertex_descriptors[a_primitive_index];
+	auto       &vertex_descriptor        = mesh.vertex_descriptor(a_primitive_index);
+	auto       &vertex_target_descriptor = mesh.target_descriptor(a_primitive_index);
 	auto        type                     = vertex_descriptor.type();
 	auto        has_bone_id_0            = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0);
 	auto        has_bone_id_1            = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_1)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_1);
@@ -717,7 +718,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 
 	// Only add morph common if mesh has weights and has morph targets
 	if (has_morphs)
-		result.append(vs_morph_common(mesh.m_morph_weights.size(), setting.morph_weights_set(), setting.morph_weights_binding()));
+		result.append(vs_morph_common(mesh.weights_count(), setting.morph_weights_set(), setting.morph_weights_binding()));
 
 	// Write out common morph target functions
 	for (auto &tc : targets_count)
@@ -736,11 +737,11 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 
 	if (has_bone_id_0)
 	{
-		assert(mesh.m_skin_index > -1 && "Skin isn't valid in the mesh");
-		const auto &skin = a_model.skins()[static_cast<size_t>(mesh.m_skin_index)];
-		assert(skin.m_joints.size() > 0 && "No joints available in this skin");
+		assert(mesh.skin_index() > -1 && "Skin isn't valid in the mesh");
+		const auto &skin = a_model.skins()[static_cast<size_t>(mesh.skin_index())];
+		assert(skin.joints_count() > 0 && "No joints available in this skin");
 
-		result.append(vs_skin_common(static_cast<uint32_t>(skin.m_joints.size()), settings().skin_joints_set(), settings().skin_joints_binding(), has_normal));
+		result.append(vs_skin_common(static_cast<uint32_t>(skin.joints_count()), settings().skin_joints_set(), settings().skin_joints_binding(), has_normal));
 	}
 
 	auto joint_sets{0u};
@@ -1386,12 +1387,12 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow)
 std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const materials_vector &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, bool a_has_shadow)
 {
 	auto                 is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
-	const auto          &vertex_descriptor = a_mesh.m_attribute_vertex_descriptors[a_primitive_index];
+	const auto          &vertex_descriptor = a_mesh.vertex_descriptor(a_primitive_index);
 	ror::Material        default_material{};                 // Default material if no material available for this mesh primitive
 	const ror::Material *material{&default_material};        // Default material if no material available for this mesh primitive
 
-	if (a_mesh.m_material_indices[a_primitive_index] != -1)
-		material = &a_materials[ror::static_cast_safe<size_t>(a_mesh.m_material_indices[a_primitive_index])];
+	if (a_mesh.material(a_primitive_index) != -1)
+		material = &a_materials[ror::static_cast_safe<size_t>(a_mesh.material(a_primitive_index))];
 
 	std::string output{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 

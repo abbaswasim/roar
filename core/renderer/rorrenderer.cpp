@@ -726,6 +726,7 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 	auto &animations_ubo                = this->m_buffers[4];        // Hack: FIXME: remove the 4, I know this one is animations
 	auto &animations_sampler_input_ubo  = this->m_buffers[5];        // Hack: FIXME: remove the 5, I know this one is sampler input
 	auto &animations_sampler_output_ubo = this->m_buffers[6];        // Hack: FIXME: remove the 6, I know this one is sampler output
+	auto &weights_ubo                   = this->m_buffers[8];        // Hack: FIXME: remove the 8, I know this one is sampler output
 
 	(void) animations_ubo;
 	(void) animations_sampler_input_ubo;
@@ -743,8 +744,9 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 	uint32_t animation_count{0u};
 	uint32_t sampler_input_size{0u};
 	uint32_t sampler_output_size{0u};
+	uint32_t weights_output_size{0u};
 
-	get_animation_sizes(a_scene, animation_size, animation_count, sampler_input_size, sampler_output_size);
+	get_animation_sizes(a_scene, animation_size, animation_count, sampler_input_size, sampler_output_size, weights_output_size);
 
 	// std::cout << "Animation output and input and after\n"
 	//           << animations_ubo.to_glsl_string() << std::endl
@@ -754,6 +756,7 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 	animations_ubo.update_count("animation", animation_size);
 	animations_sampler_input_ubo.update_count("inputs", sampler_input_size);
 	animations_sampler_output_ubo.update_count("outputs", sampler_output_size);
+	weights_ubo.update_count("morph_weights", weights_output_size);
 
 	for (auto &render_buffer : this->m_input_render_buffers)
 	{
@@ -769,6 +772,9 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 			render_buffer.ready(true);
 		}
 	}
+
+	// Special treatment of weights UBO that needs filling up from mesh static weights unlike other ones, although these might get animated later
+	fill_morph_weights(a_scene, weights_ubo, weights_output_size);
 }
 
 void Renderer::upload(rhi::Device &a_device)
@@ -827,7 +833,7 @@ void Renderer::upload(rhi::Device &a_device)
 
 	this->m_render_state.upload(a_device);
 
-	this->init_global_shader_buffers(a_device);
+	this->generate_shader_buffers_mapping();
 }
 
 std::vector<rhi::RenderpassType> Renderer::render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const
@@ -869,25 +875,10 @@ std::vector<rhi::RenderpassType> Renderer::all_render_pass_types() const
 // 	this->m_global_shader_buffers.emplace(std::move(a_name), std::move(a_shader_buffer));
 // }
 
-void Renderer::init_global_shader_buffers(rhi::Device &a_device)
+void Renderer::generate_shader_buffers_mapping()
 {
-	rhi::ShaderBuffer *per_frame_uniform = new rhi::ShaderBuffer{"per_frame_uniform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 3,
-	                                                             "delta_time", rhi::Format::float32_1,
-	                                                             "nodes_count", rhi::Format::uint32_1,
-	                                                             "animations_count", rhi::Format::uint32_1,
-	                                                             "force_opaque", rhi::Format::bool32_1,
-	                                                             "debug_all", rhi::Format::bool32_1,
-	                                                             "debug_normals", rhi::Format::bool32_1,
-	                                                             "debug_positions", rhi::Format::bool32_1,
-	                                                             "debug_tangents", rhi::Format::bool32_1,
-	                                                             "debug_base_color", rhi::Format::bool32_1,
-	                                                             "debug_brdf_visibility", rhi::Format::bool32_1,
-	                                                             "debug_brdf_occlusion", rhi::Format::bool32_1,
-	                                                             "debug_brdf_fresnel", rhi::Format::bool32_1};
-
-	per_frame_uniform->upload(a_device);
-
-	this->m_global_shader_buffers.emplace("per_frame_uniform", std::move(per_frame_uniform));
+	for (auto &buffer : this->m_buffers)
+		this->m_buffers_mapping.emplace(buffer.top_level().m_name, &buffer);
 }
 
 }        // namespace ror

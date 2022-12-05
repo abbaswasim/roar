@@ -92,7 +92,7 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 #if 1
 			auto &model = scene.models()[0];
 			auto &mesh  = model.meshes()[0];
-			auto  bbox  = mesh.m_bounding_boxes[0];
+			auto  bbox  = mesh.bounding_box(0);
 #else
 			auto bbox = scene.bounding_box();
 #endif

@@ -23,30 +23,61 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rortypes.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
 #include "rhi/rortypes.hpp"
 
 namespace ror
 {
-hash_64_t Mesh::hash() const
+void Mesh::update_primitive_hash(size_t a_primitive_id, size_t a_skin_count, hash_64_t a_material_hash)
 {
-	return this->m_hash;
+	auto &vertex_attribute_descriptor              = this->m_attribute_vertex_descriptors[a_primitive_id];
+	auto &morph_target_vertex_attribute_descriptor = this->m_morph_targets_vertex_descriptors[a_primitive_id];
+	auto &vertex_hash                              = this->m_vertex_hashes[a_primitive_id];
+	auto &fragment_hash                            = this->m_fragment_hashes[a_primitive_id];
+	auto &program_hash                             = this->m_program_hashes[a_primitive_id];
+
+	// Setup vertex hash
+	vertex_hash = vertex_attribute_descriptor.hash_64();
+
+	for (auto &attrib : morph_target_vertex_attribute_descriptor)
+		hash_combine_64(vertex_hash, attrib.hash_64());
+
+	// Only check if we have weights
+	auto weights_count = this->m_morph_weights.size();
+
+	if (weights_count > 0)
+		hash_combine_64(vertex_hash, hash_64(&weights_count, sizeof(weights_count)));
+
+	if (this->m_skin_index != -1)
+		hash_combine_64(vertex_hash, a_skin_count);
+
+	// Setup material hash
+	// Adding material index here because if material is the same for specific vertex attributes then we use the same shader
+	fragment_hash = vertex_hash;
+	if (this->m_material_indices[a_primitive_id] != -1)
+		hash_combine_64(fragment_hash, a_material_hash);
+
+	// Setup program hash
+	program_hash = vertex_hash;
+	hash_combine_64(program_hash, fragment_hash);
 }
 
-hash_64_t Mesh::vertex_hash(size_t a_primitive_index) const noexcept
+void Mesh::resize(size_t a_primitives_count)
 {
-	return this->m_vertex_hashes[a_primitive_index];
-}
+	this->m_attribute_vertex_descriptors.resize(a_primitives_count);
+	this->m_morph_targets_vertex_descriptors.resize(a_primitives_count);
+	this->m_primitive_types.resize(a_primitives_count);
+	this->m_has_indices_states.resize(a_primitives_count);
+	this->m_vertex_hashes.resize(a_primitives_count);
+	this->m_fragment_hashes.resize(a_primitives_count);
+	this->m_program_hashes.resize(a_primitives_count);
 
-hash_64_t Mesh::fragment_hash(size_t a_primitive_index) const noexcept
-{
-	return this->m_fragment_hashes[a_primitive_index];
-}
-
-hash_64_t Mesh::program_hash(size_t a_primitive_index) const noexcept
-{
-	return this->m_program_hashes[a_primitive_index];
+	// The last 2 are important and definitely needs reserving because these are BufferAllocated
+	this->m_bounding_boxes.resize(a_primitives_count);
+	this->m_material_indices.resize(a_primitives_count);
+	this->m_program_indices.resize(a_primitives_count);
 }
 
 void Mesh::generate_hash()
@@ -59,11 +90,6 @@ void Mesh::generate_hash()
 
 	for (size_t i = 0; i < this->m_program_hashes.size(); ++i)
 		hash_combine_64(this->m_hash, this->program_hash(i));
-}
-
-size_t Mesh::primitives_count() const noexcept
-{
-	return this->m_attribute_vertex_descriptors.size();
 }
 
 void Mesh::update()

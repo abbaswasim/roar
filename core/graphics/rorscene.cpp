@@ -267,8 +267,9 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	uint32_t animation_count{0u};
 	uint32_t sampler_input_size{0u};
 	uint32_t sampler_output_size{0u};
+	uint32_t weights_output_size{0u};
 
-	get_animation_sizes(*this, animation_size, animation_count, sampler_input_size, sampler_output_size);
+	get_animation_sizes(*this, animation_size, animation_count, sampler_input_size, sampler_output_size, weights_output_size);
 
 	static float32_t seconds{0.0f};
 	seconds += static_cast<float32_t>(a_timer.tick_seconds());
@@ -350,17 +351,11 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 	auto &programs      = a_scene.programs();
 	auto &pass_programs = programs.at(subpass.type());
 
-	if (a_mesh.weights_count() > 0)
-	{
-		auto &morph_weights_uniforms = a_mesh.shader_buffer();
-		morph_weights_uniforms.buffer_bind(*a_dd.encoder, rhi::ShaderStage::vertex);
-	}
-
 	for (size_t prim_id = 0; prim_id < a_mesh.primitives_count(); ++prim_id)
 	{
-		auto &program = pass_programs[static_cast<size_t>(a_mesh.m_program_indices[prim_id])];
-		assert(a_mesh.m_material_indices[prim_id] != -1);
-		auto &material         = a_model.materials()[static_cast<uint32_t>(a_mesh.m_material_indices[prim_id])];
+		auto &program = pass_programs[static_cast<size_t>(a_mesh.program(prim_id))];
+		assert(a_mesh.material(prim_id) != -1);
+		auto &material         = a_model.materials()[static_cast<uint32_t>(a_mesh.material(prim_id))];
 		auto &material_factors = material.shader_buffer();
 		// material_factors.bind(a_encoder, rhi::ShaderType::fragment, buffer_index_offset);
 		material_factors.buffer_bind(*a_dd.encoder, rhi::ShaderStage::fragment);
@@ -369,7 +364,7 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		// TODO: Add joint_transforms trs_transforms UBO for skinned characters
 
 		// Bind standard vertex attributes
-		auto &vertex_attributes = a_mesh.m_attribute_vertex_descriptors[prim_id];
+		auto &vertex_attributes = a_mesh.vertex_descriptor(prim_id);
 		for (auto &va : vertex_attributes.attributes())
 		{
 			rhi::Buffer *va_buffer{nullptr};
@@ -416,7 +411,7 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		}
 
 		// Bind morph targets vertex attributes
-		auto &morph_target_vertex_descriptors = a_mesh.m_morph_targets_vertex_descriptors[prim_id];
+		auto &morph_target_vertex_descriptors = a_mesh.target_descriptor(prim_id);
 		for (auto &morph_descriptor : morph_target_vertex_descriptors)
 		{
 			for (auto &va : morph_descriptor.attributes())
@@ -469,7 +464,7 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		enable_material_component(material.m_opacity, textures, images, samplers, binding_index, a_dd);
 		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
-		if (a_mesh.m_has_indices_states[prim_id])
+		if (a_mesh.has_indices(prim_id))
 		{
 			auto &index_buffer_attribute = vertex_attributes.attribute(rhi::BufferSemantic::vertex_index);
 
@@ -523,7 +518,12 @@ uint32_t animation_sampler_type(rhi::VertexFormat a_format)
 	return 0;
 }
 
-void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size)
+void get_animation_sizes(ror::Scene &a_scene,
+                         uint32_t   &a_animation_size,
+                         uint32_t   &a_animation_count,
+                         uint32_t   &a_sampler_input_size,
+                         uint32_t   &a_sampler_output_size,
+                         uint32_t   &a_weights_output_size)
 {
 	// Lets upload animations data
 	for (auto &node : a_scene.nodes_side_data())
@@ -531,7 +531,17 @@ void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32
 		if (node.m_model != -1)
 		{
 			auto &model = a_scene.models()[static_cast_safe<size_t>(node.m_model)];
-			auto  current_anim{0u};
+			for (auto &model_node : model.nodes())
+			{
+				if (model_node.m_mesh_index != -1)
+				{
+					auto &mesh = model.meshes()[static_cast<size_t>(model_node.m_mesh_index)];
+					if (mesh.has_morphs())
+						a_weights_output_size += mesh.weights_count();
+				}
+			}
+
+			auto current_anim{0u};
 			for (auto &anim : model.animations())
 			{
 				a_animation_size += anim.m_channels.size();
@@ -560,24 +570,27 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 	auto &sampler_output_buffer    = a_renderer.buffers()[6];
 	auto &current_animation_buffer = a_renderer.buffers()[7];
 
-	auto anim_size = sizeof(ror::Vector4ui) * 2;
+	auto anim_size = sizeof(ror::Vector4ui) * 3;
 	auto animation_size{0u};
 	auto animation_count{0u};
 	auto sampler_input_size{0u};
 	auto sampler_output_size{0u};
+	auto weights_output_size{0u};
 
 	// This returns amounts of floats in input and output, output might still be float[1-3]
-	get_animation_sizes(a_scene, animation_size, animation_count, sampler_input_size, sampler_output_size);
+	get_animation_sizes(a_scene, animation_size, animation_count, sampler_input_size, sampler_output_size, weights_output_size);
 
 	std::vector<uint8_t>        anim_data;
 	std::vector<ror::Vector2ui> current_anim_data;
 	std::vector<float32_t>      sampler_input_data;
 	std::vector<float32_t>      sampler_output_data;
+	std::vector<float32_t>      weights_output_data;
 
 	anim_data.resize(animation_size * anim_size);        // For all animations, the animation struct has 2 uvec4s
 	current_anim_data.reserve(animation_size);           // Very conservative, reserve for all animatoins
 	sampler_input_data.resize(sampler_input_size);
 	sampler_output_data.resize(sampler_output_size);
+	weights_output_data.reserve(weights_output_size);
 
 	auto anim_data_ptr           = anim_data.data();
 	auto sampler_input_data_ptr  = reinterpret_cast<uint8_t *>(sampler_input_data.data());
@@ -628,6 +641,9 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 					std::memcpy(anim_data_ptr, &sampler.x, sizeof(ror::Vector4ui));
 					anim_data_ptr += sizeof(ror::Vector4ui);
 
+					std::memcpy(anim_data_ptr, &offsets.x, sizeof(ror::Vector4ui));
+					anim_data_ptr += sizeof(ror::Vector4ui);
+
 					// Lets copy its sampler as well
 					auto input_size  = anim_sampler.m_input.size() * sizeof(float32_t);
 					auto output_size = anim_sampler.m_output.size();
@@ -659,20 +675,23 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 
 			anim_ptr += sizeof(ror::Vector4ui);
 			animation_buffer.update("animation_sampler", anim_ptr, i, stride);
+
+			anim_ptr += sizeof(ror::Vector4ui);
+			animation_buffer.update("node_offsets", anim_ptr, i, stride);
 		}
 		animation_buffer.buffer_unmap();
 	}
 
 	{
-		// TODO: Fix std430 stride for arrays, its coming out to be wrong
 		auto stride = current_animation_buffer.stride("animation");
 		assert(animation_count == current_anim_data.size() && "Animations not fully collected");
+		assert(stride == sizeof(ror::Vector2ui) && "Stride is wrong");
 		(void) stride;
 		current_animation_buffer.buffer_map();
 
 		auto i{0u};
 		for (auto &canim : current_anim_data)
-			current_animation_buffer.update("animation", &canim.x, i++, 8);
+			current_animation_buffer.update("animation", &canim.x, i++, stride);
 
 		current_animation_buffer.buffer_unmap();
 	}
@@ -712,6 +731,7 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 			node_index.x++;
 		}
 
+		auto morph_offset{0u};
 		for (auto &node : this->m_nodes_data)
 		{
 			if (node.m_model != -1)
@@ -723,6 +743,20 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 
 				for (uint32_t model_node_index = 0; model_node_index < model_nodes.size(); ++model_node_index)
 				{
+					auto &model_node = model.nodes()[model_node_index];
+					if (model_node.m_mesh_index != -1)
+					{
+						auto &mesh = model.meshes()[static_cast<size_t>(model_node.m_mesh_index)];
+						if (mesh.has_morphs())
+						{
+							node_index.z = morph_offset;
+							morph_offset += mesh.weights_count();
+						}
+						else
+						{
+							node_index.z = 0;
+						}
+					}
 					model_nodes[model_node_index].update_offsets(node_index);
 					node_index.x++;
 				}
@@ -785,6 +819,8 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 	auto &spot_light_uniforms        = this->m_lights[1].shader_buffer();
 	auto &point_light_uniforms       = this->m_lights[2].shader_buffer();
 
+	auto &weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
+
 	// Vertex shader bindings
 	per_view_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 
@@ -815,12 +851,18 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 				{
 					auto &mesh = meshes[static_cast<size_t>(model_node.m_mesh_index)];
 					model_nodes_data[node_data_index].bind(a_encoder, rhi::ShaderStage::vertex);
-					if (mesh.m_skin_index != -1 && model_node.m_skin_index != -1)
+					if (mesh.skin_index() != -1 && model_node.m_skin_index != -1)
 					{
 						auto &skin = model.skins()[static_cast<size_t>(model_node.m_skin_index)];
-						skin.m_joint_offset_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
-						skin.m_inverse_bind_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+						skin.bind_joint_offset_buffer(a_encoder, rhi::ShaderStage::vertex);
+						skin.bind_inverse_bind_buffer(a_encoder, rhi::ShaderStage::vertex);
 					}
+
+					if (mesh.has_morphs())
+					{
+						weights_shader_buffer->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+					}
+
 					render_mesh(model, mesh, dd, a_renderer, *this, subpass);
 				}
 				node_data_index++;
@@ -903,8 +945,8 @@ hash_64_t pass_aware_vertex_hash(rhi::RenderpassType a_passtype, const ror::Mesh
 	// Ideally it should be abstracted out
 	hash_64_t vertex_hash{};
 
-	auto &vertex_attribute_descriptor              = a_mesh.m_attribute_vertex_descriptors[a_prim_index];
-	auto &morph_target_vertex_attribute_descriptor = a_mesh.m_morph_targets_vertex_descriptors[a_prim_index];
+	auto &vertex_attribute_descriptor              = a_mesh.vertex_descriptor(a_prim_index);
+	auto &morph_target_vertex_attribute_descriptor = a_mesh.target_descriptor(a_prim_index);
 
 	// Setup vertex hash
 	vertex_hash = vertex_attribute_descriptor.hash_64_pass_aware(a_passtype);
@@ -913,16 +955,16 @@ hash_64_t pass_aware_vertex_hash(rhi::RenderpassType a_passtype, const ror::Mesh
 		hash_combine_64(vertex_hash, attrib.hash_64_pass_aware(a_passtype));
 
 	// Only check if we have weights
-	auto weights_count = a_mesh.m_morph_weights.size();
+	auto weights_count = a_mesh.weights_count();
 
 	if (weights_count > 0)
 		hash_combine_64(vertex_hash, hash_64(&weights_count, sizeof(weights_count)));
 
-	auto skin_index = a_mesh.m_skin_index;
+	auto skin_index = a_mesh.skin_index();
 	if (skin_index != -1)
 	{
 		const auto &skin = a_skins[ror::static_cast_safe<size_t>(skin_index)];
-		hash_combine_64(vertex_hash, skin.m_joints.size());
+		hash_combine_64(vertex_hash, skin.joints_count());
 	}
 
 	return vertex_hash;
@@ -1004,7 +1046,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 					pass_programs.emplace_back(shader_hash_to_index[vs_hash], shader_hash_to_index[fs_hash]);
 
 					// This is set once for the first render pass but it must stay the same for all of the rest because every pass must contain the same amount of shaders
-					if (mesh.m_program_indices[prim_index] == -1)
+					if (mesh.program(prim_index) == -1)
 						model.update_mesh_program(mesh_index, static_cast_safe<uint32_t>(prim_index), static_cast_safe<int32_t>(pass_programs.size()) - 1);
 				}
 				++mesh_index;

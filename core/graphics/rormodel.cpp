@@ -997,38 +997,28 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				Mesh             &mesh  = this->m_meshes[i];
 				const cgltf_mesh &cmesh = data->meshes[i];
 
-				mesh.m_attribute_vertex_descriptors.resize(cmesh.primitives_count);
-				mesh.m_morph_targets_vertex_descriptors.resize(cmesh.primitives_count);
-				mesh.m_primitive_types.resize(cmesh.primitives_count);
-				mesh.m_has_indices_states.resize(cmesh.primitives_count);
-				mesh.m_vertex_hashes.resize(cmesh.primitives_count);
-				mesh.m_fragment_hashes.resize(cmesh.primitives_count);
-				mesh.m_program_hashes.resize(cmesh.primitives_count);
-				// The last 2 are important and definitely needs reserving because these are BufferAllocated
-				mesh.m_bounding_boxes.resize(cmesh.primitives_count);
-				mesh.m_material_indices.resize(cmesh.primitives_count);
-				mesh.m_program_indices.resize(cmesh.primitives_count);
+				mesh.resize(cmesh.primitives_count);
 
 				for (size_t j = 0; j < cmesh.primitives_count; ++j)
 				{
 					const cgltf_primitive &cprim                                    = cmesh.primitives[j];
-					auto                  &vertex_attribute_descriptor              = mesh.m_attribute_vertex_descriptors[j];
-					auto                  &morph_target_vertex_attribute_descriptor = mesh.m_morph_targets_vertex_descriptors[j];
+					auto                  &vertex_attribute_descriptor              = mesh.vertex_descriptor(j);
+					auto                  &morph_target_vertex_attribute_descriptor = mesh.target_descriptor(j);
 
 					std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> attribs_data;
 
 					assert(cprim.type == cgltf_primitive_type_triangles && "Mesh primitive type is not triangles which is the only supported type at the moment");
-					mesh.m_primitive_types[j] = cglf_primitive_to_primitive_topology(cprim.type);
+					mesh.primitive_type(j, cglf_primitive_to_primitive_topology(cprim.type));
 
 					if (cprim.has_draco_mesh_compression)
 						ror::log_critical("Mesh has draco mesh compression but its not supported");
 
 					if (cprim.material)
-						mesh.m_material_indices[j] = find_safe_index(material_to_index, cprim.material);
+						mesh.material(j, find_safe_index(material_to_index, cprim.material));
 					else
-						mesh.m_material_indices[j] = -1;
+						mesh.material(j, -1);
 
-					mesh.m_program_indices[j] = -1;
+					mesh.program(j, -1);
 
 					// Read all other vertex attributes
 					for (size_t k = 0; k < cprim.attributes_count; ++k)
@@ -1049,8 +1039,11 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 								assert(attrib.index == 0 && "Don't suport more than 1 position");
 
 								current_index = rhi::BufferSemantic::vertex_position;
-								mesh.m_bounding_boxes[j].create_from_min_max({attrib.data->min[0], attrib.data->min[1], attrib.data->min[2]},
-								                                             {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
+								{
+									auto &mesh_bbox = mesh.bounding_box(j);
+									mesh_bbox.create_from_min_max({attrib.data->min[0], attrib.data->min[1], attrib.data->min[2]},
+									                              {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
+								}
 								break;
 							case cgltf_attribute_type_normal:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
@@ -1136,8 +1129,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						if (cprim.indices->buffer_view->has_meshopt_compression)
 							ror::log_critical("Mesh has meshopt_compression but its not supported");
 
-						mesh.m_has_indices_states[j] = true;
-						auto index_format            = get_format_from_gltf_type_format(cprim.indices->type, cprim.indices->component_type);
+						mesh.has_indices(j, true);
+
+						auto index_format = get_format_from_gltf_type_format(cprim.indices->type, cprim.indices->component_type);
 
 						// TODO: GL expects stride to be zero if data is tightly packed
 						assert(!cprim.indices->is_sparse && "Sparse index buffers not supported");
@@ -1163,7 +1157,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						vertex_attribute_descriptor.add(rhi::BufferSemantic::vertex_index, index_format, &bp);
 					}
 					else
-						mesh.m_has_indices_states[j] = false;
+						mesh.has_indices(j, false);
 
 					// Now upload data from all the attributes into vertex_attribute_descriptor
 					vertex_attribute_descriptor.upload(attribs_data, &bp);
@@ -1199,7 +1193,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 										                               {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
 
 										// Not actually precise bounding box will do for now
-										mesh.m_bounding_boxes[j].add_bounding(total_bbox);
+										auto &mesh_bbox = mesh.bounding_box(j);
+										mesh_bbox.add_bounding(total_bbox);
 									}
 									break;
 								case cgltf_attribute_type_normal:
@@ -1281,14 +1276,15 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 					// Save Morph target weights
 					assert(cmesh.weights_count == cprim.targets_count && "Targets count and weights don't match data error");
-					mesh.m_morph_weights.resize(cmesh.weights_count);
+					auto &mesh_weights = mesh.weights();
+					mesh_weights.resize(cmesh.weights_count);
 
 					// TODO: Do a bulk copy please once tested and it works
 					for (size_t m = 0; m < cmesh.weights_count; ++m)
-						mesh.m_morph_weights[m] = cmesh.weights[m];
+						mesh_weights[m] = cmesh.weights[m];
 
 					// Add mesh primitive bounding box to the model bounding box
-					this->m_bounding_box.add_bounding(mesh.m_bounding_boxes[j]);
+					this->m_bounding_box.add_bounding(mesh.bounding_box(j));
 				}
 
 				mesh_to_index.emplace(&cmesh, i);
@@ -1342,7 +1338,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 				Skin skin;
 				if (cskin.skeleton)
-					skin.m_root = find_safe_index(node_to_index, cskin.skeleton);
+					skin.root(find_safe_index(node_to_index, cskin.skeleton));
 
 				// Important: skin.m_node_index is set when we read the scene in the next section
 
@@ -1352,18 +1348,18 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 					assert(cskin.inverse_bind_matrices->type == cgltf_type_mat4 && "Inverse bind matrix must be 4x4 matrices");
 
 					auto *inverse_bind_matrices_accessor = cskin.inverse_bind_matrices;
-					skin.m_inverse_bind_matrices.resize(cskin.inverse_bind_matrices->count);
+					auto &bind_matrices                  = skin.inverse_bind_matrices();
+					bind_matrices.resize(cskin.inverse_bind_matrices->count);
 					// TODO: Do this unpacking manually, there is a lot of overhead of doing it this way
 					cgltf_accessor_unpack_floats(inverse_bind_matrices_accessor,
-					                             reinterpret_cast<cgltf_float *>(skin.m_inverse_bind_matrices.data()),
-					                             skin.m_inverse_bind_matrices.size() * 16);
+					                             reinterpret_cast<cgltf_float *>(bind_matrices.data()),
+					                             bind_matrices.size() * 16);
 				}
 
-				skin.m_joints.reserve(cskin.joints_count);
+				auto &joints = skin.joints();
+				joints.reserve(cskin.joints_count);
 				for (size_t j = 0; j < cskin.joints_count; ++j)
-					skin.m_joints.emplace_back(find_safe_index(node_to_index, cskin.joints[j]));
-
-				skin.m_joint_transforms.resize(cskin.joints_count);
+					joints.emplace_back(find_safe_index(node_to_index, cskin.joints[j]));
 
 				skin_to_index.emplace(&cskin, i);
 				this->m_skins.emplace_back(std::move(skin));
@@ -1400,13 +1396,13 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 					// Lets update Mesh skin_index as well
 					if (node.m_mesh_index > -1)
-						this->m_meshes[static_cast<size_t>(node.m_mesh_index)].m_skin_index = node.m_skin_index;
+						this->m_meshes[static_cast<size_t>(node.m_mesh_index)].skin_index(node.m_skin_index);
 
 					if (cnode->name)
 						node_side_data.m_name = cnode->name;
 
 					if (node.m_skin_index != -1)
-						this->m_skins[static_cast<size_t>(node.m_skin_index)].m_node_index = node_to_index[cnode];        // Cast ok again, index not negative
+						this->m_skins[static_cast<size_t>(node.m_skin_index)].node_index(node_to_index[cnode]);        // Cast ok again, index not negative
 
 					if (node.m_camera_index != -1)
 					{
@@ -1599,48 +1595,27 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				const cgltf_mesh &cmesh = data->meshes[i];
 
 				if (cmesh.name)
-					mesh.m_name = cmesh.name;
+					mesh.name(cmesh.name);
 
 				for (size_t j = 0; j < cmesh.primitives_count; ++j)
 				{
-					auto &vertex_attribute_descriptor              = mesh.m_attribute_vertex_descriptors[j];
-					auto &morph_target_vertex_attribute_descriptor = mesh.m_morph_targets_vertex_descriptors[j];
-					auto &vertex_hash                              = mesh.m_vertex_hashes[j];
-					auto &fragment_hash                            = mesh.m_fragment_hashes[j];
-					auto &program_hash                             = mesh.m_program_hashes[j];
-
-					// Setup vertex hash
-					vertex_hash = vertex_attribute_descriptor.hash_64();
-
-					for (auto &attrib : morph_target_vertex_attribute_descriptor)
-						hash_combine_64(vertex_hash, attrib.hash_64());
-
-					// Only check if we have weights
-					auto weights_count = mesh.m_morph_weights.size();
-
-					if (weights_count > 0)
-						hash_combine_64(vertex_hash, hash_64(&weights_count, sizeof(weights_count)));
-
-					auto skin_index = mesh.m_skin_index;
+					auto   skin_index   = mesh.skin_index();
+					size_t joints_count = 0;
 					if (skin_index != -1)
 					{
-						auto &skin = this->m_skins[ror::static_cast_safe<size_t>(skin_index)];
-						hash_combine_64(vertex_hash, skin.m_joints.size());
+						auto &skin   = this->m_skins[ror::static_cast_safe<size_t>(skin_index)];
+						joints_count = skin.joints_count();
 					}
 
-					// Setup material hash
-					// Adding material index here because if material is the same for specific vertex attributes then we use the same shader
-					auto material_index = mesh.m_material_indices[j];
-					fragment_hash       = vertex_hash;
+					auto      material_index = mesh.material(j);
+					hash_64_t material_hash  = 0;
 					if (material_index != -1)
 					{
 						auto &material = this->m_materials[ror::static_cast_safe<size_t>(material_index)];
-						hash_combine_64(fragment_hash, material.m_hash);
+						material_hash  = material.m_hash;
 					}
 
-					// Setup program hash
-					program_hash = vertex_hash;
-					hash_combine_64(program_hash, fragment_hash);
+					mesh.update_primitive_hash(j, joints_count, material_hash);
 				}
 
 				// Lets update the mesh hash
@@ -1706,7 +1681,7 @@ void Model::upload(rhi::Device &a_device)
 
 void Model::update_mesh_program(uint32_t a_mesh_index, uint32_t a_primitive_index, int32_t a_program_index)
 {
-	this->m_meshes[a_mesh_index].m_program_indices[a_primitive_index] = a_program_index;
+	this->m_meshes[a_mesh_index].program(a_primitive_index, a_program_index);
 }
 
 }        // namespace ror

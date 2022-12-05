@@ -80,8 +80,8 @@ The order of attribute and layout in vertex attribute descriptor specification t
 static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>> &a_meshes, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_depth_shadow)
 {
 	const auto &mesh                     = a_meshes[a_mesh_index];
-	const auto &vertex_descriptor        = mesh.m_attribute_vertex_descriptors[a_prim_index];
-	const auto &morph_vertex_descriptors = mesh.m_morph_targets_vertex_descriptors[a_prim_index];
+	const auto &vertex_descriptor        = mesh.vertex_descriptor(a_prim_index);
+	const auto &morph_vertex_descriptors = mesh.target_descriptor(a_prim_index);
 
 	auto *mtl_vertex_descriptor = MTL::VertexDescriptor::alloc()->init();
 
@@ -184,7 +184,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 
 	colorAttachment->setBlendingEnabled(false);        // TODO: get from setting or material
 
-	render_pipeline_descriptor->setLabel(NS::String::string(a_model.meshes()[a_mesh_index].m_name.c_str(), NS::StringEncoding::UTF8StringEncoding));
+	render_pipeline_descriptor->setLabel(NS::String::string(a_model.meshes()[a_mesh_index].name().c_str(), NS::StringEncoding::UTF8StringEncoding));
 	// render_pipeline_descriptor->setRasterSampleCount(setting.m_multisample_count);
 	render_pipeline_descriptor->setRasterizationEnabled(true);
 	render_pipeline_descriptor->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassTriangle);

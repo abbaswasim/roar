@@ -180,6 +180,7 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 		this->buffer_copy(a_value, entry->m_offset, entry->m_size);
 	}
 
+	// The following 4 are bulk update options, use with care
 	template <typename _data_type>
 	FORCE_INLINE constexpr void update(const std::string &a_variable, const _data_type *a_value, uint32_t a_size)
 	{
@@ -190,6 +191,18 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	{
 		auto entry = this->m_variables[a_variable];
 		this->buffer_copy(a_value, entry->m_offset, a_size);
+	}
+
+	template <typename _data_type>
+	FORCE_INLINE constexpr void update(const std::string &a_variable, uint32_t a_offset, const _data_type *a_value, uint32_t a_size)
+	{
+		this->update(a_variable, a_offset, reinterpret_cast<const uint8_t *>(a_value), a_size);
+	}
+
+	FORCE_INLINE constexpr void update(const std::string &a_variable, uint32_t a_offset, const uint8_t *a_value, uint32_t a_size)
+	{
+		auto entry = this->m_variables[a_variable];
+		this->buffer_copy(a_value, entry->m_offset + a_offset, a_size);
 	}
 
 	void upload(rhi::Device &a_device, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::managed)

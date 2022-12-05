@@ -47,9 +47,6 @@
 #include <limits>
 #include <unordered_map>
 
-// TODO: Remove me
-#include <Metal/MTLRenderCommandEncoder.hpp>
-
 namespace ror
 {
 // TODO: Define properly somewhere
@@ -235,6 +232,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	bool                             m_indices_dirty{true};        //! If the scene graph indicies are direty and not uploaded yet
 };
 
-void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size);
+void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);
+void fill_morph_weights(ror::Scene &a_scene, rhi::ShaderBuffer &a_shader_buffer, uint32_t a_weights_size);
 
 }        // namespace ror

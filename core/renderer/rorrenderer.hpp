@@ -70,26 +70,26 @@ class Renderer final : public Configuration<Renderer>
 	void                             upload(rhi::Device &);
 	std::vector<rhi::RenderpassType> render_pass_types() const;
 	std::vector<rhi::RenderpassType> all_render_pass_types() const;
-	void                             init_global_shader_buffers(rhi::Device &a_device);
+	void                             generate_shader_buffers_mapping();
 	void                             deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene);
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto& buffers()                      noexcept { return this->m_buffers;                 }
-	FORCE_INLINE constexpr auto& shaders()                const noexcept { return this->m_shaders;                 }
-	FORCE_INLINE constexpr auto& programs()               const noexcept { return this->m_programs;                }
-	FORCE_INLINE constexpr auto& textures()               const noexcept { return this->m_textures;                }
-	FORCE_INLINE constexpr auto& buffers()                const noexcept { return this->m_buffers;                 }
-	FORCE_INLINE constexpr auto& input_render_targets()   const noexcept { return this->m_input_render_targets;    }
-	FORCE_INLINE constexpr auto& input_render_buffers()   const noexcept { return this->m_input_render_buffers;    }
-	FORCE_INLINE constexpr auto& render_state()           const noexcept { return this->m_render_state;            }
-	FORCE_INLINE constexpr auto& dimensions()             const noexcept { return this->m_dimensions;              }
-	FORCE_INLINE constexpr auto& viewport()               const noexcept { return this->m_viewport;                }
-	FORCE_INLINE constexpr auto& frame_graphs()           const noexcept { return this->m_frame_graphs;            }
-	FORCE_INLINE constexpr auto& current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
-	FORCE_INLINE constexpr auto& shader_buffers()         const noexcept { return this->m_global_shader_buffers;   }
+	FORCE_INLINE constexpr auto &buffers()                      noexcept { return this->m_buffers;                 }
+	FORCE_INLINE constexpr auto &shaders()                const noexcept { return this->m_shaders;                 }
+	FORCE_INLINE constexpr auto &programs()               const noexcept { return this->m_programs;                }
+	FORCE_INLINE constexpr auto &textures()               const noexcept { return this->m_textures;                }
+	FORCE_INLINE constexpr auto &buffers()                const noexcept { return this->m_buffers;                 }
+	FORCE_INLINE constexpr auto &input_render_targets()   const noexcept { return this->m_input_render_targets;    }
+	FORCE_INLINE constexpr auto &input_render_buffers()   const noexcept { return this->m_input_render_buffers;    }
+	FORCE_INLINE constexpr auto &render_state()           const noexcept { return this->m_render_state;            }
+	FORCE_INLINE constexpr auto &dimensions()             const noexcept { return this->m_dimensions;              }
+	FORCE_INLINE constexpr auto &viewport()               const noexcept { return this->m_viewport;                }
+	FORCE_INLINE constexpr auto &frame_graphs()           const noexcept { return this->m_frame_graphs;            }
+	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
+	// FORCE_INLINE constexpr auto &shader_buffers()         const noexcept { return this->m_buffers_mapping;           }
 
-	FORCE_INLINE           auto& shader_buffer(const std::string& a_name) { return this->m_global_shader_buffers.at(a_name);   }
+	FORCE_INLINE           auto &shader_buffer(const std::string& a_name) const { return this->m_buffers_mapping.at(a_name);   }
 
 	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
 	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }
@@ -129,7 +129,7 @@ class Renderer final : public Configuration<Renderer>
 	rhi::Renderstate               m_render_state{};                      //! Almost all the render state that the renderer requires will be stored here
 	InputRenderTargets             m_input_render_targets{};              //! Render targets that are not directly associated with any render pass but required to be filled in before rendering starts
 	InputBufferTargets             m_input_render_buffers{};              //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
-	ShaderBufferMap                m_global_shader_buffers{};             //! All the global Shader buffers (UBO/SSBO) that can be used in different passes
+	ShaderBufferMap                m_buffers_mapping{};                   //! All the Shader buffers in m_buffers are now name accessible
 };
 
 }        // namespace ror

@@ -66,19 +66,43 @@ class ROAR_ENGINE_ITEM Mesh final
 	FORCE_INLINE ~Mesh() noexcept                         = default;        //! Destructor
 
 	// Provides hash for a specific part of the mesh
-	hash_64_t hash() const;
-	hash_64_t vertex_hash(size_t a_primitive_index) const noexcept;
-	hash_64_t fragment_hash(size_t a_primitive_index) const noexcept;
-	hash_64_t program_hash(size_t a_primitive_index) const noexcept;
-	void      generate_hash();
-	size_t    primitives_count() const noexcept;
-	void      update();
-	void      upload(rhi::Device &a_device);
+	void resize(size_t a_primitive_index);
+	void generate_hash();
+	void update();
+	void upload(rhi::Device &a_device);
+	void update_primitive_hash(size_t a_primitive_id, size_t a_skin_count, hash_64_t a_material_hash);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto  weights_count() const noexcept  { return this->m_morph_weights.size();                          }
-	FORCE_INLINE constexpr bool  has_morphs()    const noexcept  { return (this->m_morph_weights.size() > 0 &&
-																		   this->m_morph_targets_vertex_descriptors.size() > 0); }
+	FORCE_INLINE constexpr auto  weights_count()                              const noexcept { return this->m_morph_weights.size();                                }
+	FORCE_INLINE constexpr auto  primitives_count()                           const noexcept { return this->m_attribute_vertex_descriptors.size();                 }
+	FORCE_INLINE constexpr auto  vertex_hash(size_t a_primitive_index)        const noexcept { return this->m_vertex_hashes[a_primitive_index];                    }
+	FORCE_INLINE constexpr auto  fragment_hash(size_t a_primitive_index)      const noexcept { return this->m_fragment_hashes[a_primitive_index];                  }
+	FORCE_INLINE constexpr auto  program_hash(size_t a_primitive_index)       const noexcept { return this->m_program_hashes[a_primitive_index];                   }
+	FORCE_INLINE constexpr auto &vertex_descriptor(size_t a_primitive_index)  const noexcept { return this->m_attribute_vertex_descriptors[a_primitive_index];     }
+	FORCE_INLINE constexpr auto &target_descriptor(size_t a_primitive_index)  const noexcept { return this->m_morph_targets_vertex_descriptors[a_primitive_index]; }
+	FORCE_INLINE constexpr auto  primitive_type(size_t a_primitive_index)     const noexcept { return this->m_primitive_types[a_primitive_index];                  }
+	FORCE_INLINE constexpr auto  has_indices(size_t a_primitive_index)        const noexcept { return this->m_has_indices_states[a_primitive_index];               }
+	FORCE_INLINE constexpr auto &bounding_box(size_t a_primitive_index)       const noexcept { return this->m_bounding_boxes[a_primitive_index];                   }
+	FORCE_INLINE constexpr auto  material(size_t a_primitive_index)           const noexcept { return this->m_material_indices[a_primitive_index];                 }
+	FORCE_INLINE constexpr auto  program(size_t a_primitive_index)            const noexcept { return this->m_program_indices[a_primitive_index];                  }
+	FORCE_INLINE constexpr auto  skin_index()                                 const noexcept { return this->m_skin_index;                                          }
+	FORCE_INLINE constexpr auto  hash()                                       const noexcept { return this->m_hash;                                                }
+	FORCE_INLINE constexpr auto &name()                                       const noexcept { return this->m_name;                                                }
+	FORCE_INLINE constexpr auto  has_morphs()                                 const noexcept { return (this->m_morph_weights.size() > 0 &&
+																									   this->m_morph_targets_vertex_descriptors.size() > 0);       }
+	FORCE_INLINE constexpr auto &weights()                                          noexcept { return this->m_morph_weights;                                       }
+	FORCE_INLINE constexpr auto &bounding_box(size_t a_primitive_index)             noexcept { return this->m_bounding_boxes[a_primitive_index];                   }
+	FORCE_INLINE constexpr auto &vertex_descriptor(size_t a_primitive_index)        noexcept { return this->m_attribute_vertex_descriptors[a_primitive_index];     }
+	FORCE_INLINE constexpr auto &target_descriptor(size_t a_primitive_index)        noexcept { return this->m_morph_targets_vertex_descriptors[a_primitive_index]; }
+
+
+	FORCE_INLINE constexpr void  skin_index(int32_t a_index)                                                     noexcept { this->m_skin_index = a_index;                                    }
+	FORCE_INLINE constexpr void  primitive_type(size_t a_primitive_index, rhi::PrimitiveTopology a_topology)     noexcept { this->m_primitive_types[a_primitive_index] = a_topology;         }
+	FORCE_INLINE constexpr void  material(size_t a_primitive_index, int32_t a_material_index)                    noexcept { this->m_material_indices[a_primitive_index] = a_material_index;  }
+	FORCE_INLINE constexpr void  program(size_t a_primitive_index, int32_t a_program_index)                      noexcept { this->m_program_indices[a_primitive_index] = a_program_index;    }
+	FORCE_INLINE constexpr void  has_indices(size_t a_primitive_index, bool a_has)                               noexcept { this->m_has_indices_states[a_primitive_index] = a_has;           }
+
+	FORCE_INLINE           void  name(std::string a_name)                                                        noexcept { this->m_name = a_name;                                           }
 	// clang-format on
 
 	// TODO: Flatten this into 'Mesh' into 'Models' etc to see if I get cache locallity
@@ -88,6 +112,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	// because they will not be sent into the GPU, so don't need them in a big buffer
 	// TODO: Although to save on its allocation costs, one can BufferAllocate those as well
 
+  private:
 	std::vector<hash_64_t>                                  m_vertex_hashes{};                           //! All the parts has a specific hash of its vertex shaders due to its VertexDescriptors etc
 	std::vector<hash_64_t>                                  m_fragment_hashes{};                         //! All the parts has a specific hash of its fragment shaders due to its VertexDescriptors + Material etc
 	std::vector<hash_64_t>                                  m_program_hashes{};                          //! All the parts has a specific hash of its program due to a combination of vertex and fragment hashes
@@ -100,7 +125,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_material_indices{};                        //! Should be init with -1 and might not have valid values after load, Maybe add a default material
 	std::vector<int32_t, rhi::BufferAllocator<int32_t>>     m_program_indices{};                         //! Should be init with -1 but should have valid values when fully loaded
 	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1
-	uint64_t                                                m_hash{0};                                   //! Hash of this mesh depending on most of its properties
+	hash_64_t                                               m_hash{0};                                   //! Hash of this mesh depending on most of its properties
 	std::string                                             m_name{"generic_mesh"};                      //! Name of this mesh
 };
 
