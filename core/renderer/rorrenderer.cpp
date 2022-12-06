@@ -774,6 +774,7 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 	}
 
 	// Special treatment of weights UBO that needs filling up from mesh static weights unlike other ones, although these might get animated later
+	// This is here and not in scene because it requires morph_weights shader buffer to be uploaded first
 	fill_morph_weights(a_scene, weights_ubo, weights_output_size);
 }
 

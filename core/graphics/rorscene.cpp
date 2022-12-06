@@ -562,13 +562,78 @@ void get_animation_sizes(ror::Scene &a_scene,
 	}
 }
 
+void fill_morph_weights(ror::Scene &a_scene, rhi::ShaderBuffer &a_shader_buffer, uint32_t a_weights_size)
+{
+	a_shader_buffer.buffer_map();
+
+	auto stride = a_shader_buffer.stride("morph_weights");
+	assert(stride == sizeof(float32_t) && "morph_weights are not packed");
+	(void) stride;
+
+	auto morph_offset{0u};
+	for (auto &node : a_scene.nodes_side_data())
+	{
+		if (node.m_model != -1)
+		{
+			auto &model = a_scene.models()[static_cast_safe<size_t>(node.m_model)];
+			for (auto &model_node : model.nodes())
+			{
+				if (model_node.m_mesh_index != -1)
+				{
+					auto &mesh = model.meshes()[static_cast<size_t>(model_node.m_mesh_index)];
+					if (mesh.has_morphs())
+					{
+						a_shader_buffer.update("morph_weights", morph_offset * sizeof(float32_t), mesh.weights().data(), static_cast_safe<uint32_t>(mesh.weights().size() * sizeof(float32_t)));
+						morph_offset += mesh.weights_count();
+					}
+				}
+			}
+		}
+	}
+
+	a_shader_buffer.buffer_unmap();
+
+	(void) a_weights_size;
+	assert(a_weights_size == morph_offset && "Not all of the weights are copied");
+}
+
+std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> morph_weights_offsets_count(ror::Scene &a_scene)
+{
+	std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> output;
+
+	uint32_t node_offset{static_cast_safe<uint32_t>(a_scene.nodes().size())};
+
+	auto morph_offset{0u};
+	for (auto &node : a_scene.nodes_side_data())
+	{
+		if (node.m_model != -1)
+		{
+			auto &model = a_scene.models()[static_cast_safe<size_t>(node.m_model)];
+			for (auto &model_node : model.nodes())
+			{
+				if (model_node.m_mesh_index != -1)
+				{
+					auto &mesh = model.meshes()[static_cast<size_t>(model_node.m_mesh_index)];
+					if (mesh.has_morphs())
+					{
+						output[node_offset] = std::make_pair(morph_offset, mesh.weights_count());
+						morph_offset += mesh.weights_count();
+					}
+				}
+				node_offset++;
+			}
+		}
+	}
+
+	return output;
+}
+
 void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 {
-	// TODO: Abstract out
-	auto &animation_buffer         = a_renderer.buffers()[4];
-	auto &sampler_input_buffer     = a_renderer.buffers()[5];
-	auto &sampler_output_buffer    = a_renderer.buffers()[6];
-	auto &current_animation_buffer = a_renderer.buffers()[7];
+	auto animation_buffer         = a_renderer.shader_buffer("animations");
+	auto sampler_input_buffer     = a_renderer.shader_buffer("animations_sampler_input");
+	auto sampler_output_buffer    = a_renderer.shader_buffer("animations_sampler_output");
+	auto current_animation_buffer = a_renderer.shader_buffer("current_animations");
 
 	auto anim_size = sizeof(ror::Vector4ui) * 3;
 	auto animation_size{0u};
@@ -602,6 +667,10 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 
 	uint32_t node_offset{static_cast_safe<uint32_t>(a_scene.nodes().size())};
 
+	auto node_to_offset{morph_weights_offsets_count(a_scene)};
+
+	auto weights_offset{0u};
+	auto weights_count{0u};
 	for (auto &node : a_scene.nodes_side_data())
 	{
 		if (node.m_model != -1)
@@ -619,21 +688,38 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 					auto &anim_sampler = anim.m_samplers[chanl.m_sampler_index];
 
 					// Encode channel for the compute shader
-					ror::Vector4ui channel{sampler_input_offset,
-					                       sampler_output_offset,
+					ror::Vector4ui channel{chanl.m_sampler_index,
+					                       static_cast_safe<uint32_t>(anim_sampler.m_input.size()),
 					                       chanl.m_target_node_index + node_offset,
 					                       ror::enum_to_type_cast(chanl.m_target_node_path)};
-
-					// Lets advance the offset
-					sampler_input_offset += anim_sampler.m_input.size();
-					sampler_output_offset += anim_sampler.m_output.size() / sizeof(float32_t);
 
 					// Encode sampler for the compute shader
 					ror::Vector4ui sampler{*reinterpret_cast<const uint32_t *>(&anim_sampler.m_minimum),
 					                       *reinterpret_cast<const uint32_t *>(&anim_sampler.m_maximum),
 					                       animation_sampler_type(anim_sampler.m_output_format),
-					                       // ror::enum_to_type_cast(anim_sampler.m_interpolation)};
-					                       static_cast_safe<uint32_t>(anim_sampler.m_input.size())};
+					                       ror::enum_to_type_cast(anim_sampler.m_interpolation)};
+
+					auto i = node_to_offset.find(chanl.m_target_node_index + node_offset);
+					if (i != node_to_offset.end())
+					{
+						weights_offset = i->second.first;
+						weights_count  = i->second.second;
+					}
+					else
+					{
+						weights_offset = 0u;
+						weights_count  = 0u;
+					}
+
+					// Encode offets
+					ror::Vector4ui offsets{sampler_input_offset,
+					                       sampler_output_offset,
+					                       weights_offset,
+					                       weights_count};
+
+					// Lets advance the offset
+					sampler_input_offset += anim_sampler.m_input.size();
+					sampler_output_offset += anim_sampler.m_output.size() / sizeof(float32_t);
 
 					std::memcpy(anim_data_ptr, &channel.x, sizeof(ror::Vector4ui));
 					anim_data_ptr += sizeof(ror::Vector4ui);
@@ -661,57 +747,57 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 	}
 
 	{
-		auto stride = animation_buffer.stride("animation");
+		auto stride = animation_buffer->stride("animation");
 
 		anim_data_ptr = anim_data.data();
 
-		animation_buffer.buffer_map();
+		animation_buffer->buffer_map();
 		for (uint32_t i = 0; i < animation_size; ++i)
 		{
 			auto anim_data_offset = i * anim_size;
 			auto anim_ptr         = anim_data_ptr + anim_data_offset;
 
-			animation_buffer.update("animation_channel", anim_ptr, i, stride);
+			animation_buffer->update("animation_channel", anim_ptr, i, stride);
 
 			anim_ptr += sizeof(ror::Vector4ui);
-			animation_buffer.update("animation_sampler", anim_ptr, i, stride);
+			animation_buffer->update("animation_sampler", anim_ptr, i, stride);
 
 			anim_ptr += sizeof(ror::Vector4ui);
-			animation_buffer.update("node_offsets", anim_ptr, i, stride);
+			animation_buffer->update("node_offsets", anim_ptr, i, stride);
 		}
-		animation_buffer.buffer_unmap();
+		animation_buffer->buffer_unmap();
 	}
 
 	{
-		auto stride = current_animation_buffer.stride("animation");
+		auto stride = current_animation_buffer->stride("animation");
 		assert(animation_count == current_anim_data.size() && "Animations not fully collected");
 		assert(stride == sizeof(ror::Vector2ui) && "Stride is wrong");
 		(void) stride;
-		current_animation_buffer.buffer_map();
+		current_animation_buffer->buffer_map();
 
 		auto i{0u};
 		for (auto &canim : current_anim_data)
-			current_animation_buffer.update("animation", &canim.x, i++, stride);
+			current_animation_buffer->update("animation", &canim.x, i++, stride);
 
-		current_animation_buffer.buffer_unmap();
+		current_animation_buffer->buffer_unmap();
 	}
 
 	if (animation_size)
 	{
 		sampler_input_data_ptr = reinterpret_cast<uint8_t *>(sampler_input_data.data());
 
-		sampler_input_buffer.buffer_map();
-		sampler_input_buffer.update("inputs", sampler_input_data_ptr, static_cast_safe<uint32_t>(sampler_input_data.size() * sizeof(float32_t)));
-		sampler_input_buffer.buffer_unmap();
+		sampler_input_buffer->buffer_map();
+		sampler_input_buffer->update("inputs", sampler_input_data_ptr, static_cast_safe<uint32_t>(sampler_input_data.size() * sizeof(float32_t)));
+		sampler_input_buffer->buffer_unmap();
 	}
 
 	if (animation_size)
 	{
 		sampler_output_data_ptr = reinterpret_cast<uint8_t *>(sampler_output_data.data());
 
-		sampler_output_buffer.buffer_map();
-		sampler_output_buffer.update("outputs", sampler_output_data_ptr, static_cast_safe<uint32_t>(sampler_output_data.size() * sizeof(float32_t)));
-		sampler_output_buffer.buffer_unmap();
+		sampler_output_buffer->buffer_map();
+		sampler_output_buffer->update("outputs", sampler_output_data_ptr, static_cast_safe<uint32_t>(sampler_output_data.size() * sizeof(float32_t)));
+		sampler_output_buffer->buffer_unmap();
 	}
 }
 
