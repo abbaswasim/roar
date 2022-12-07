@@ -1080,7 +1080,6 @@ std::string texture_lookups(const ror::Material &a_material)
 	// output.append(texture_lookup(a_material.m_tangent, "tangent", "vec3", ".xyz"));
 	output.append(texture_lookup(a_material.m_bent_normal, "bent_normal", "vec3", ".xyz"));
 	output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));        // Alpha component of MRO[H] texture
-	output.append(texture_lookup(a_material.m_opacity, "opacity", "float", ".x"));
 
 	// If we have a normal map, lets add code to generate tangent frame in the shader
 	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
@@ -1095,6 +1094,9 @@ std::string texture_lookups(const ror::Material &a_material)
 	{
 		output.append("vec3 get_normal(const in vec3 N, const in vec3 V)\n{\n\treturn N;\n}\n");
 	}
+
+	if (a_material.m_blend_mode == rhi::BlendMode::mask)
+		output.append("\nfloat get_opacity()\n{\n\treturn in_factors.opacity_factor;\n}\n");
 
 	output.append("\nfloat get_reflectance()\n{\n\treturn in_factors.reflectance_factor;\n}\n");
 
@@ -1145,8 +1147,6 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 		output_append("bent_normal_sampler;\n");
 	if (a_material.m_height.m_texture != -1)
 		output_append("height_sampler;\n");
-	if (a_material.m_opacity.m_texture != -1)
-		output_append("opacity_sampler;\n");
 
 	if (a_add_shadow_map)
 		output_append("shadow_map_sampler;\n");
@@ -1207,9 +1207,10 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 		create_component("bent_normal_factor", rhi::Format::float32_1, 1, "float bent_normal_factor;\n\t");
 	if (a_material.m_height.m_type == ror::Material::ComponentType::factor || a_material.m_height.m_type == ror::Material::ComponentType::factor_texture)
 		create_component("height_factor", rhi::Format::float32_1, 1, "float height_factor;\n\t");
-	if (a_material.m_opacity.m_type == ror::Material::ComponentType::factor || a_material.m_opacity.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("opacity_factor", rhi::Format::float32_1, 1, "float opacity_factor;\n\t");
 	// clang-format on
+
+	if (a_material.m_blend_mode == rhi::BlendMode::mask)
+		create_component("opacity_factor", rhi::Format::float32_1, 1, "float opacity_factor;\n\t");
 
 	// Unconditional factor of reflectance needs to be there
 	create_component("reflectance_factor", rhi::Format::float32_1, 1, "float reflectance_factor;\n");
@@ -1242,12 +1243,15 @@ std::string get_material(const ror::Material &a_material)
 	else                                                                                \
 		output.append("\tmaterial." stringify(name) " = " stringify(default_value) ";\n")
 
-	(void) a_material;
 	std::string output{"Material get_material()\n{\n\tMaterial material;\n\n"};
 
 	// Defaults values for Material copied from Filament's defaults
 	get_material_component(base_color, vec4(1.0));
-	get_material_component(emissive, vec4(0.0));
+
+	if (a_material.m_blend_mode == rhi::BlendMode::mask)
+		output.append("\tresolve_alpha(material.base_color.a);\n");
+
+	get_material_component(emissive, vec4(0.0));        // when adding emissive support, If there is valid emissive make sure its alpha is 0, so blending works, a in emissive must be ignored according to gltf spec
 	get_material_component(bent_normal, vec3(0.0, 0.0, 1.0));
 	get_material_component(roughness, 1.0);
 	get_material_component(metallic, 0.0);
@@ -1302,12 +1306,19 @@ std::string get_material(const ror::Material &a_material)
 	}
 
 	output.append("\tmaterial.height = 0.0;\n");
-	output.append("\tmaterial.opacity = 1.0;\n");
-
 	output.append("\n\treturn material;\n}\n");
 
 	return output;
 }
+
+static const std::string resolve_alpha_code{R"alp(
+void resolve_alpha(float alpha)
+{
+	float opacity = get_opacity();
+
+	if (alpha < opacity)
+		discard;
+})alp"};
 
 std::string fs_set_output(const ror::Material &a_material)
 {
@@ -1316,6 +1327,9 @@ std::string fs_set_output(const ror::Material &a_material)
 	// Read getters.frag.glsl resource and create a string_view
 	auto            &getters_resource = ror::load_resource("shaders/getters.frag.glsl", ror::ResourceSemantic::shaders);
 	std::string_view getters_code{reinterpret_cast<const char *>(getters_resource.data().data()), getters_resource.data().size()};
+
+	if (a_material.m_blend_mode == rhi::BlendMode::mask)
+		result.append(resolve_alpha_code);
 
 	result.append(get_material(a_material));
 	result.append("\n");

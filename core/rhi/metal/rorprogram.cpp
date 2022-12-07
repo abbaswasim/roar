@@ -119,11 +119,13 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 
 void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass)
 {
-	auto       is_depth_shadow            = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
-	auto      &setting                    = ror::settings();
-	auto      *device                     = a_device.platform_device();
-	NS::Error *pError                     = nullptr;
-	auto      *render_pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
+	auto        is_depth_shadow            = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
+	auto       &setting                    = ror::settings();
+	auto       *device                     = a_device.platform_device();
+	NS::Error  *pError                     = nullptr;
+	auto       *render_pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
+	const auto &mesh                       = a_model.meshes()[a_mesh_index];
+	const auto &materials                  = a_model.materials();
 
 	assert(device);
 	assert(render_pipeline_descriptor && "Can't allocate metal render pipeline descriptor");
@@ -182,7 +184,15 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
 	colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
 
-	colorAttachment->setBlendingEnabled(false);        // TODO: get from setting or material
+	colorAttachment->setBlendingEnabled(false);
+
+	auto material_index = mesh.material(a_prim_index);
+	if (material_index != -1)
+	{
+		auto &material = materials[static_cast<size_t>(mesh.material(a_prim_index))];
+		if (material.m_blend_mode == rhi::BlendMode::blend)
+			colorAttachment->setBlendingEnabled(true);
+	}
 
 	render_pipeline_descriptor->setLabel(NS::String::string(a_model.meshes()[a_mesh_index].name().c_str(), NS::StringEncoding::UTF8StringEncoding));
 	// render_pipeline_descriptor->setRasterSampleCount(setting.m_multisample_count);

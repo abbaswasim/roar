@@ -27,7 +27,6 @@ struct Material
 	float clearcoat;
 	float clearcoat_roughness;
 	float height;
-	float opacity;
 };
 
 struct Light
@@ -53,5 +52,4 @@ struct Fragment
 	float metallic;
 	float occlusion;
 	float height;
-	float opacity;
 };

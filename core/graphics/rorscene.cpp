@@ -59,6 +59,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 namespace ror
@@ -274,9 +275,9 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	static float32_t seconds{0.0f};
 	seconds += static_cast<float32_t>(a_timer.tick_seconds());
 
-	// TODO: After some time recent the seconds
+	// TODO: After some time reset the seconds
 	if (seconds > 1000.0f)        // TODO: Move the 1000 to settings
-		seconds = static_cast<float32_t>(static_cast<int32_t>(seconds));
+		seconds = seconds - static_cast<float32_t>(static_cast<int32_t>(seconds));
 
 	per_frame_uniform->buffer_map();
 	per_frame_uniform->update("delta_time", &seconds);
@@ -354,7 +355,7 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 	for (size_t prim_id = 0; prim_id < a_mesh.primitives_count(); ++prim_id)
 	{
 		auto &program = pass_programs[static_cast<size_t>(a_mesh.program(prim_id))];
-		assert(a_mesh.material(prim_id) != -1);
+		assert(a_mesh.material(prim_id) != -1);        // TODO: This is going to crash for meshes with no material, use default material like in shader system
 		auto &material         = a_model.materials()[static_cast<uint32_t>(a_mesh.material(prim_id))];
 		auto &material_factors = material.shader_buffer();
 		// material_factors.bind(a_encoder, rhi::ShaderType::fragment, buffer_index_offset);
@@ -461,7 +462,6 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		enable_material_component(material.m_normal, textures, images, samplers, binding_index, a_dd);
 		enable_material_component(material.m_bent_normal, textures, images, samplers, binding_index, a_dd);
 		enable_material_component(material.m_height, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_opacity, textures, images, samplers, binding_index, a_dd);
 		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
 		if (a_mesh.has_indices(prim_id))

@@ -22,12 +22,11 @@ void main()
 {
 	Material material = get_material();
 	Fragment fragment = get_fragment(material);
-	float    alpha    = get_alpha(material);
 
 	vec4 diffuse_specular_color = get_lit_color(material, fragment);
 	vec4 emissive_color         = get_emissive_color(material);
 
-	diffuse_specular_color.a = alpha;
+	diffuse_specular_color.a = material.base_color.a;
 
 	out_color = diffuse_specular_color + emissive_color;
 }

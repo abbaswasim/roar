@@ -52,7 +52,6 @@ void Material::generate_hash()
 	hash_combine_64(this->m_hash, this->m_normal.hash());
 	hash_combine_64(this->m_hash, this->m_bent_normal.hash());
 	hash_combine_64(this->m_hash, this->m_height.hash());
-	hash_combine_64(this->m_hash, this->m_opacity.hash());
 	hash_combine_64(this->m_hash, this->m_subsurface_color.hash());
 
 	// TODO: The following needs some condition, add that later for subsurface scattering support
@@ -63,6 +62,9 @@ void Material::generate_hash()
 	hash_combine_64(this->m_hash, hash_64(&this->m_type, sizeof(this->m_type)));
 	hash_combine_64(this->m_hash, hash_64(&this->m_double_sided, sizeof(this->m_double_sided)));
 	hash_combine_64(this->m_hash, hash_64(&this->m_layered, sizeof(this->m_layered)));
+
+	if (this->m_blend_mode == rhi::BlendMode::mask)
+		hash_combine_64(this->m_hash, hash_64(&this->m_opacity, sizeof(this->m_opacity)));
 
 	// Not using material_name and reflectance because there are not part of shader generated for this material
 }
@@ -103,7 +105,8 @@ void Material::fill_shader_buffer()
 		this->m_shader_buffer.add_entry("bent_normal_factor", rhi::Format::float32_1, 1);
 	if (this->m_height.m_type == ror::Material::ComponentType::factor || this->m_height.m_type == ror::Material::ComponentType::factor_texture)
 		this->m_shader_buffer.add_entry("height_factor", rhi::Format::float32_1, 1);
-	if (this->m_opacity.m_type == ror::Material::ComponentType::factor || this->m_opacity.m_type == ror::Material::ComponentType::factor_texture)
+
+	if (this->m_blend_mode == rhi::BlendMode::mask)
 		this->m_shader_buffer.add_entry("opacity_factor", rhi::Format::float32_1, 1);
 
 	// Unconditional factor of reflectance needs to be there
@@ -156,8 +159,9 @@ void Material::update()
 		this->m_shader_buffer.update("bent_normal_factor", &this->m_bent_normal.m_factor);
 	if (this->m_height.m_type == ror::Material::ComponentType::factor || this->m_height.m_type == ror::Material::ComponentType::factor_texture)
 		this->m_shader_buffer.update("height_factor", &this->m_height.m_factor);
-	if (this->m_opacity.m_type == ror::Material::ComponentType::factor || this->m_opacity.m_type == ror::Material::ComponentType::factor_texture)
-		this->m_shader_buffer.update("opacity_factor", &this->m_opacity.m_factor);
+
+	if (this->m_blend_mode == rhi::BlendMode::mask)
+		this->m_shader_buffer.update("opacity_factor", &this->m_opacity);
 
 	// Unconditional factor of reflectance needs to be there
 	this->m_shader_buffer.update("reflectance_factor", &this->m_reflectance);

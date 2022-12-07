@@ -901,9 +901,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				const cgltf_material &mat = data->materials[i];
 
 				Material material;
-				material.m_double_sided     = mat.double_sided;
-				material.m_opacity.m_factor = mat.alpha_cutoff;        // TODO: Check if there is a texture instead
-				material.m_opacity.m_type   = Material::ComponentType::factor;
+				material.m_double_sided = mat.double_sided;
+				material.m_opacity      = mat.alpha_cutoff;        // only valid if alpha_mode == MASK
 
 				if (mat.has_pbr_metallic_roughness)
 				{

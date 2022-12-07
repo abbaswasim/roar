@@ -11,13 +11,6 @@ Fragment get_fragment(const Material material)
 	fragment.metallic      = material.metallic;
 	fragment.occlusion     = material.occlusion;
 	fragment.height        = material.height;
-	fragment.opacity       = material.opacity;
 
 	return fragment;
-}
-
-// TODO: this one needs to be created via code
-float get_alpha(const Material material)
-{
-	return 1.0;
 }

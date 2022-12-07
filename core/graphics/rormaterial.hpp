@@ -118,7 +118,6 @@ class ROAR_ENGINE_ITEM Material final
 	Component<float32_t>    m_normal{};                                       //! Normal map, Used for normal mapping and bump mapping, factor is the normal scale
 	Component<float32_t>    m_bent_normal{};                                  //! Map of median rays of un-occluded normal of a hemisphere around a texel, can be used for AO etc
 	Component<float32_t>    m_height{};                                       //! Height map that can be used for bump mapping, factor is the scale
-	Component<float32_t>    m_opacity{};                                      //! Map to create cutouts, or a constant factor as alpha_cutoff_threshold of {0.5} default, also called Mask texture
 	Component<ror::Color4f> m_subsurface_color{};                             //! Whats the color of scattering, could also be a texture map
 	ror::Color4f            m_subsurface{0.0f};                               //! Reach in each component, red is higher compared to blue and green (1.0, 0.2, 0.1) for human skin, w is scattering like how much SSS do we want
 	rhi::MaterialModel      m_material_model{rhi::MaterialModel::lit};        //! Is it lit, hair or eyes material etc
@@ -128,6 +127,7 @@ class ROAR_ENGINE_ITEM Material final
 	bool                    m_layered{false};                                 //! Is this material part of a layerd material chain
 	uint8_t                 m_material_name[30];                              //! Can't use string here otherwise not trivially_copyable
 	uint32_t                m_reflectance_offset{0};                          //! Reflectance offset for reflectance factor in the UBO
+	float32_t               m_opacity{0.5f};                                  //! Constant factor as alpha_cutoff_threshold of {0.5} default, Only valid if m_blend_mode == rhi::BlendMode::mask
 	float32_t               m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, we use only F0 from F0=((ior − 1) / (ior + 1))²
 	                                                                          //! Note we don't need F90 coz Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
 	hash_64_t         m_hash{};                                               //! Material hash to make sure we don't create duplicate shaders
