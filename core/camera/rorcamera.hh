@@ -78,7 +78,7 @@ void OrbitCamera::middle_key_drag(double64_t &a_x_new_position, double64_t &a_y_
 	auto delta_x = this->m_right * (0.05f * static_cast<float32_t>(-x_delta));
 	auto delta_y = this->m_up * (0.05f * static_cast<float32_t>(y_delta));
 
-	auto translation = ror::matrix4_translation(delta_x) * ror::matrix4_translation(delta_y);
+	auto translation = ror::matrix4_translation(delta_x + delta_y);
 
 	this->m_view *= translation;
 

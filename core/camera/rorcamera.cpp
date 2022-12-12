@@ -139,11 +139,11 @@ void OrbitCamera::update_normal()
 {
 	// TODO: Simplify me
 	// Also calculate normal matrix, for xforming normals, from transpose of inverse of model-view (top 3x3) without translations Transpose and Inverse removes non-uniform scale from it
-	Matrix4f inverse_matrix;
-	bool     invertable = this->m_view.inverse(inverse_matrix);
+	this->m_normal = Matrix3f{this->m_view};
+	bool invertable  = this->m_normal.invert();
 	assert(invertable);
-	inverse_matrix.transpose();
-	this->m_normal = Matrix3f{inverse_matrix};
+	(void) invertable;
+	this->m_normal.transpose();
 }
 
 void OrbitCamera::update_vectors()
@@ -207,6 +207,7 @@ void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 	this->m_view *= translation1 * rotation_y * rotation_x * translation0;
 
 	this->update_vectors();
+	this->update_normal();
 }
 
 void OrbitCamera::enable()
