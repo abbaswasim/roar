@@ -60,6 +60,9 @@ class ROAR_ENGINE_ITEM AxisAngle final
   private:
 };
 
+using AxisAnglef = AxisAngle<float32_t>;
+using AxisAngled = AxisAngle<double64_t>;
+
 }        // namespace ror
 
 #include "roraxis_angle.hh"

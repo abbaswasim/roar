@@ -7,7 +7,7 @@ Roar is my personal rendering engine. Hopefully it will support GL/GLES, Vulkan 
 
 ## What is this about
 
-This is my personal playground, where I have freedom of getting dirty and creative. I hope others can find it useful.
+A playground, where I have freedom of getting dirty and creative.
 
 ## Platforms
 
@@ -30,6 +30,11 @@ make -j8
 ## Roar conventions
 
 Roar uses colum major matrices this means the following Matrix4 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] has 0, 1, 2, 3 as the first colum of the matrix and 3, 4, 5, 6 as the second. Origin of the matrix is at 12, 13, 14 which is also translation.
+
+| 0 | 4 | 8  | 12 |
+| 1 | 5 | 9  | 13 |
+| 2 | 6 | 10 | 14 |
+| 3 | 7 | 11 | 15 |
 
 To transform a vector using this matrix you have to post-multiply it
 

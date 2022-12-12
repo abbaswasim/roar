@@ -267,7 +267,7 @@ layout(std140, set = @, binding = @) uniform per_view_uniform
 	mat4 view_projection_mat4;
 	mat4 inverse_projection_mat4;
 	mat4 inverse_view_projection_mat4;
-	mat3 normal_mat4;
+	mat3 normal_mat3;
 	vec3 camera_position;
 } in_per_view_uniforms;
 
@@ -469,7 +469,7 @@ void set_position()
 const std::string vs_set_normal_str = R"snor(
 void world_transform_normal(inout vec3 vertex_normal)
 {
-	vertex_normal = in_per_view_uniforms.normal_mat4 * vertex_normal;
+	vertex_normal = in_per_view_uniforms.normal_mat3 * vertex_normal;
 }
 
 void set_normal()
@@ -1042,7 +1042,7 @@ std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_c
 				if (a_comp_name == "normal" || a_comp_name == "bent_normal")
 				{
 					auto tmp{"in_factors." + a_comp_name + "_factor"};
-					output_lookup.append("vec3(" + tmp + ", " + tmp + ", 1.0)");
+					output_lookup.append("vec3(" + tmp + ", " + tmp + ", 1.0)");        // This scale only scale X and Y not Z hence 1.0 in Z according to gltf spec
 				}
 				else
 					output_lookup.append(factor_cast_str);
@@ -1232,7 +1232,7 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 	return result;
 }
 
-std::string get_material(const ror::Material &a_material)
+std::string get_material(const ror::Material &a_material, bool a_has_normal)
 {
 #define stringify_helper(x) #x
 #define stringify(x) stringify_helper(x)
@@ -1270,12 +1270,17 @@ std::string get_material(const ror::Material &a_material)
 	// This works around having to call get_normal() twice
 	output.append("\tmaterial.view = normalize(in_per_view_uniforms.camera_position - in_vertex_position.xyz);\n");
 
-	// If we have a normal map use the overloaded get_normal(N, V)
+	// If we have a normal map use the overloaded get_normal(N, V) which uses get_normal() internally, there must be vertex normal available
 	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
 	    a_material.m_normal.m_type == ror::Material::ComponentType::texture)
+	{
+		assert(a_has_normal && "Model with a normal map doens't bring vertex normals, generate these");
 		output.append("\tmaterial.normal = get_normal(in_vertex_normal, material.view);\n");
-	else        // otherwise use the standard get_normal()
-		get_material_component(normal, vec3(0.0, 0.0, 1.0));
+	}
+	else if (a_has_normal)        // otherwise use the standard vertex_normal()
+		output.append("\tmaterial.normal = normalize(in_vertex_normal);\n");
+	else
+		output.append("\tmaterial.normal = vec3(0.0, 0.0, 1.0);\n");
 
 	// Can't use the following because reflectance is not a Component
 	if (a_material.m_metallic.m_type != ror::Material::ComponentType::none)
@@ -1320,7 +1325,7 @@ void resolve_alpha(float alpha)
 		discard;
 })alp"};
 
-std::string fs_set_output(const ror::Material &a_material)
+std::string fs_set_output(const ror::Material &a_material, bool a_has_normal)
 {
 	std::string result{};
 
@@ -1331,7 +1336,7 @@ std::string fs_set_output(const ror::Material &a_material)
 	if (a_material.m_blend_mode == rhi::BlendMode::mask)
 		result.append(resolve_alpha_code);
 
-	result.append(get_material(a_material));
+	result.append(get_material(a_material, a_has_normal));
 	result.append("\n");
 	result.append(getters_code);
 	result.append("\n");
@@ -1339,7 +1344,7 @@ std::string fs_set_output(const ror::Material &a_material)
 	return result;
 }
 
-std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow)
+std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool a_has_normal)
 {
 	// Read all the shader snippets
 	// Read brdf.frag.glsl resource and create a string_view
@@ -1373,7 +1378,7 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow)
 	output.append("\n");
 	output.append(temporary_structs_code);
 	output.append("\n");
-	output.append(fs_set_output(a_material));
+	output.append(fs_set_output(a_material, a_has_normal));
 	output.append("\n");
 	if (a_has_shadow)
 	{
@@ -1400,8 +1405,10 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow)
 
 std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const materials_vector &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, bool a_has_shadow)
 {
-	auto                 is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
+	const auto           is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
 	const auto          &vertex_descriptor = a_mesh.vertex_descriptor(a_primitive_index);
+	const auto           type              = vertex_descriptor.type();
+	const auto           has_normal        = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal);
 	ror::Material        default_material{};                 // Default material if no material available for this mesh primitive
 	const ror::Material *material{&default_material};        // Default material if no material available for this mesh primitive
 
@@ -1430,7 +1437,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
 	output.append(texture_lookups(*material));
-	output.append(fs_set_main(*material, a_has_shadow));
+	output.append(fs_set_main(*material, a_has_shadow, has_normal));
 
 	return output;
 }

@@ -67,72 +67,59 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE OrbitCamera &operator=(OrbitCamera &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~OrbitCamera() noexcept                                  = default;        //! Destructor
 
-	FORCE_INLINE void       bounds(uint32_t a_width, uint32_t a_height);
-	FORCE_INLINE void       get_bounds(uint32_t &a_width, uint32_t &a_height);
-	FORCE_INLINE void       visual_volume(Vector3f a_minimum, Vector3f a_maximum);
-	FORCE_INLINE Matrix4f   model_view_projection();
-	FORCE_INLINE Matrix4f   view_projection();
-	FORCE_INLINE Matrix4f   model();
-	FORCE_INLINE Matrix4f   normal();
-	FORCE_INLINE Vector3f   from();
-	FORCE_INLINE void       zoom(double64_t a_zoom_delta);
-	FORCE_INLINE void       type(CameraType a_type);
-	FORCE_INLINE CameraType type();
-	FORCE_INLINE void       z_near(float32_t a_near);
-	FORCE_INLINE float32_t  z_near();
-	FORCE_INLINE void       z_far(float32_t a_far);
-	FORCE_INLINE float32_t  z_far();
-	FORCE_INLINE void       y_fov(float32_t a_far);
-	FORCE_INLINE float32_t  y_fov();
-	FORCE_INLINE void       aspect_ratio(float32_t a_far);
-	FORCE_INLINE float32_t  aspect_ratio();
-	FORCE_INLINE void       width(uint32_t a_far);
-	FORCE_INLINE uint32_t   width();
-	FORCE_INLINE void       height(uint32_t a_far);
-	FORCE_INLINE uint32_t   height();
-	void                    init(EventSystem &a_event_system);
-	void                    enable();
-	void                    disable();
-	void                    update();
-	void                    upload(rhi::Device &a_device);
-	void                    fill_shader_buffer();
+	FORCE_INLINE void bounds(uint32_t a_width, uint32_t a_height);
+	FORCE_INLINE void volume(Vector3f a_minimum, Vector3f a_maximum);
+	FORCE_INLINE void zoom(double64_t a_zoom_delta);
+	FORCE_INLINE void type(CameraType a_type);
+	FORCE_INLINE void near(float32_t a_near);
+	FORCE_INLINE void far(float32_t a_far);
+	FORCE_INLINE void fov(float32_t a_far);
+	FORCE_INLINE void ratio(float32_t a_far);
+	FORCE_INLINE void width(uint32_t a_far);
+	FORCE_INLINE void height(uint32_t a_far);
+	void              init(EventSystem &a_event_system);
+	void              enable();
+	void              disable();
+	void              update();
+	void              upload(rhi::Device &a_device);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this instead
 	FORCE_INLINE constexpr auto& shader_buffer()       noexcept  { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this instead
 	// clang-format on
 
-	FORCE_INLINE void look_at();
-
   private:
-	FORCE_INLINE void update_position_function(double64_t &a_x_delta, double64_t &a_y_delta);
+	void fill_shader_buffer();
+	void setup();
+	void update_vectors();
+	void update_view();
+	void update_normal();
+	void update_perspective();
+	void rotate(float32_t a_x_rotation, float32_t a_y_rotation);
 
+	FORCE_INLINE void update_position_function(double64_t &a_x_delta, double64_t &a_y_delta);
 	FORCE_INLINE void left_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
 	FORCE_INLINE void middle_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
 	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
 
-	Matrix4f                     m_model{};                                //! Model matrix
+	Matrix4f                     m_model{};                                //! Model matrix TODO: Remove me
 	Matrix4f                     m_view{};                                 //! View matrix
-	Matrix4f                     m_projection{};                           //! Projection matrix
-	Matrix4f                     m_view_projection{};                      //! View projection matrix
+	Matrix4f                     m_projection{};                           //! Projection matrix TODO: Remove me
+	Matrix4f                     m_model_view{};                           //! Model view matrix
+	Matrix4f                     m_view_projection{};                      //! View projection matrix TODO: Remove me
 	Matrix4f                     m_model_view_projection{};                //! Model view projection matrix
 	Matrix4f                     m_inverse_projection{};                   //! Inverse of Projection matrix
 	Matrix4f                     m_inverse_view_projection{};              //! Inverse of View projection matrix
-	Matrix4f                     m_normal{};                               //! Normal matrix
-	Vector3f                     m_to{0.0f, 0.0f, 0.0f};                   //! Looking to direction
-	Vector3f                     m_from{0.0f, 0.0f, -10.0f};               //! From position
-	Vector3f                     m_up{0.0f, 1.0f, 0.0f};                   //! Up vector to orient itself
-	Vector3f                     m_minimum{0.0f, 0.0f, 0.0f};              //! Minimum bound of the bounding volume that the camera will always make sure to see fully
-	Vector3f                     m_maximum{100.0f, 100.0f, 100.0f};        //! Maximum bound of the bounding volume that the camera will always make sure to see fully
-	float32_t                    m_bounding_sphere_radius{100.0f};         //! Could also describe volume as a sphere with a radius
-	double64_t                   m_camera_depth{25.0f};                    //! How far does the camera see
-	double64_t                   m_zooming_depth{0.0f};                    //! How far does the camera move
+	Matrix3f                     m_normal{};                               //! Normal matrix
+	Vector3f                     m_center{0.0f, 0.0f, 0.0f};               //! Target position in worldspace
+	Vector3f                     m_eye{0.0f, 0.0f, 1.0f};                  //! Eye position in worldspace
+	Vector3f                     m_right{1.0f, 0.0f, 0.0f};                //! Right vector in camera's frame of reference
+	Vector3f                     m_up{0.0f, 1.0f, 0.0f};                   //! Up vector in camera's frame of reference
+	Vector3f                     m_forward{0.0f, 0.0f, -1.0f};             //! Forward vector in camera's frame of reference
+	Vector3f                     m_minimum{-50.0f, -50.0f, -50.0f};        //! Minimum bound of the bounding volume that the camera will always make sure to see fully
+	Vector3f                     m_maximum{50.0f, 50.0f, 50.0f};           //! Maximum bound of the bounding volume that the camera will always make sure to see fully
 	float32_t                    m_x_position{0.0f};                       //! Previous cusor position of the mouse pointer
 	float32_t                    m_y_position{0.0f};                       //! Previous cusor position of the mouse pointer
-	float32_t                    m_x_rotation{0.0f};                       //! Euler angle of rotation around x-axis
-	float32_t                    m_z_rotation{0.0f};                       //! Euler angle of rotation around z-axis
-	float32_t                    m_x_translation{0.0f};                    //! Translation in x-coordinates
-	float32_t                    m_y_translation{0.0f};                    //! Translation in y-coordinates
 	float32_t                    m_y_fov{60.0f};                           //! Y-FOV of the camera
 	float32_t                    m_z_near{0.1f};                           //! z-near of the camera
 	float32_t                    m_z_far{1000.0f};                         //! z-far of the camera

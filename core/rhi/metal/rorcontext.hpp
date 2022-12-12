@@ -96,9 +96,8 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 #else
 			auto bbox = scene.bounding_box();
 #endif
-			camera.visual_volume(bbox.minimum(), bbox.maximum());
+			camera.volume(bbox.minimum(), bbox.maximum());
 			enable_camera = false;
-			camera.look_at();
 		}
 
 		camera.update();

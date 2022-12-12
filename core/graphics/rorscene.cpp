@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "bounds/rorbounding.hpp"
 #include "camera/rorcamera.hpp"
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
@@ -354,10 +355,15 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 
 	for (size_t prim_id = 0; prim_id < a_mesh.primitives_count(); ++prim_id)
 	{
+		ror::Material  default_material{};                 // Default material if no material available for this mesh primitive
+		ror::Material *material{&default_material};        // Default material if no material available for this mesh primitive
+
 		auto &program = pass_programs[static_cast<size_t>(a_mesh.program(prim_id))];
-		assert(a_mesh.material(prim_id) != -1);        // TODO: This is going to crash for meshes with no material, use default material like in shader system
-		auto &material         = a_model.materials()[static_cast<uint32_t>(a_mesh.material(prim_id))];
-		auto &material_factors = material.shader_buffer();
+		// assert(a_mesh.material(prim_id) != -1);        // TODO: This is going to crash for meshes with no material, use default material like in shader system
+		if (a_mesh.material(prim_id) != -1)
+			material = &a_model.materials()[static_cast<uint32_t>(a_mesh.material(prim_id))];
+
+		auto &material_factors = material->shader_buffer();
 		// material_factors.bind(a_encoder, rhi::ShaderType::fragment, buffer_index_offset);
 		material_factors.buffer_bind(*a_dd.encoder, rhi::ShaderStage::fragment);
 
@@ -445,24 +451,24 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		auto &samplers = a_model.samplers();
 		auto  binding_index{0u};
 
-		enable_material_component(material.m_base_color, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_diffuse_color, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_specular_glossyness, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_emissive, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_anisotropy, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_transmission, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_sheen_color, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_sheen_roughness, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_clearcoat_normal, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_clearcoat, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_clearcoat_roughness, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_metallic, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_roughness, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_occlusion, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_normal, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_bent_normal, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_height, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_base_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_diffuse_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_specular_glossyness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_emissive, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_anisotropy, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_transmission, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_sheen_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_sheen_roughness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_clearcoat_normal, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_clearcoat, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_clearcoat_roughness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_metallic, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_roughness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_occlusion, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_normal, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_bent_normal, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_height, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material->m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
 		if (a_mesh.has_indices(prim_id))
 		{
@@ -962,6 +968,29 @@ void Scene::update(double64_t a_milli_seconds)
 	(void) a_milli_seconds;
 }
 
+void Scene::update_bounding_box()
+{
+	size_t node_id = 0;
+	for (auto &node : this->nodes_side_data())
+	{
+		if (node.m_model != -1)
+		{
+			auto &model       = this->m_models[static_cast_safe<size_t>(node.m_model)];
+			auto &bbox        = model.bounding_box();
+			auto &translation = this->m_nodes[node_id].m_trs_transform.m_translation;
+			auto &rotation    = this->m_nodes[node_id].m_trs_transform.m_rotation;
+			auto &scale       = this->m_nodes[node_id].m_trs_transform.m_scale;
+			auto  min         = bbox.minimum();
+			auto  max         = bbox.maximum();
+			auto  min_res     = translation + (rotation * (scale * min));
+			auto  max_res     = translation + (rotation * (scale * max));
+			auto  box         = ror::BoundingBoxf(min_res, max_res);
+			this->m_bounding_box.add_bounding(box);
+		}
+		node_id++;
+	}
+}
+
 void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer)
 {
 	auto model_nodes{0u};
@@ -980,7 +1009,6 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 			log_info("Loading model {}", node_model_path.c_str());
 			Model &model = this->m_models[a_model_index];
 			model.load_from_gltf_file(node_model_path, this->m_cameras);
-			this->m_bounding_box.add_bounding(model.bounding_box());
 
 			return true;
 		};
@@ -1023,6 +1051,8 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 	if (!shader_gen_job_handle.data())
 		ror::log_critical("Can't generate model shaders.");
+
+	this->update_bounding_box();
 }
 
 hash_64_t pass_aware_vertex_hash(rhi::RenderpassType a_passtype, const ror::Mesh &a_mesh, size_t a_prim_index, const std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>> &a_skins)
@@ -1076,6 +1106,8 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 			shaders_count += mesh.primitives_count();
 
 	// For each render pass in the framegraph create programs the model meshes can use
+
+	// The has_shadows variable is used to tell any fragment shaders for any pass generated to use shadow mapping, this is NOT about shadow pass itself
 	bool has_shadows = false;
 
 	for (auto &passtype : render_pass_types)
@@ -1384,19 +1416,19 @@ void Scene::read_cameras()
 					{
 						if (key == "aspectRatio")
 						{
-							cam.aspect_ratio(value);
+							cam.ratio(value);
 						}
 						if (key == "yfov")
 						{
-							cam.y_fov(value);
+							cam.fov(value);
 						}
 						if (key == "znear")
 						{
-							cam.z_near(value);
+							cam.near(value);
 						}
 						if (key == "zfar")
 						{
-							cam.z_far(value);
+							cam.far(value);
 						}
 					}
 				}
@@ -1416,11 +1448,11 @@ void Scene::read_cameras()
 						}
 						if (key == "znear")
 						{
-							cam.z_near(value);
+							cam.near(value);
 						}
 						if (key == "zfar")
 						{
-							cam.z_far(value);
+							cam.far(value);
 						}
 					}
 				}

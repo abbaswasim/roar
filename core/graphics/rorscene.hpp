@@ -213,6 +213,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void read_programs();
 	void read_probes();
 	void generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_job_system);
+	void update_bounding_box();
 
 	using RenderpassPrograms = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;
 
