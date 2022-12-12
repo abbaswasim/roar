@@ -260,8 +260,6 @@ const std::string per_view_common_str = R"com(
 
 layout(std140, set = @, binding = @) uniform per_view_uniform
 {
-	mat4 mvp_mat4;
-	mat4 model_mat4;
 	mat4 view_mat4;
 	mat4 projection_mat4;
 	mat4 view_projection_mat4;

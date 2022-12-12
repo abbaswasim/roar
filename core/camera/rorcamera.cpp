@@ -102,46 +102,20 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		}
 	};
 
+	this->m_mode_callback = [this](ror::Event &e) {
+		(void) e;
+		this->m_mode = this->m_mode == CameraMode::orbit ? CameraMode::fps : CameraMode::orbit;
+	};
+
 	this->m_event_system = &a_event_system;
-}
-
-static ror::Matrix4f camera_look_at(const Vector3f &a_view, const Vector3f &a_target, const Vector3f &a_world_up, Vector3f &a_forward, Vector3f &a_right, Vector3f &a_up)
-{
-	a_forward = a_target - a_view;
-	a_forward.normalize();
-
-	a_right = a_forward.cross_product(a_world_up);
-	a_right.normalize();
-
-	a_up = a_right.cross_product(a_forward);
-
-	Matrix4f matrix;
-
-	// set rotation part, inverse rotation matrix: M^-1 = M^T for Euclidean transform
-	matrix.m_values[0]  = a_right.x;
-	matrix.m_values[4]  = a_right.y;
-	matrix.m_values[8]  = a_right.z;
-	matrix.m_values[1]  = a_up.x;
-	matrix.m_values[5]  = a_up.y;
-	matrix.m_values[9]  = a_up.z;
-	matrix.m_values[2]  = -a_forward.x;
-	matrix.m_values[6]  = -a_forward.y;
-	matrix.m_values[10] = -a_forward.z;
-
-	// set translation part
-	matrix.m_values[12] = -a_right.x * a_view.x - a_right.y * a_view.y - a_right.z * a_view.z;
-	matrix.m_values[13] = -a_up.x * a_view.x - a_up.y * a_view.y - a_up.z * a_view.z;
-	matrix.m_values[14] = a_forward.x * a_view.x + a_forward.y * a_view.y + a_forward.z * a_view.z;
-
-	return matrix;
 }
 
 void OrbitCamera::update_normal()
 {
 	// TODO: Simplify me
 	// Also calculate normal matrix, for xforming normals, from transpose of inverse of model-view (top 3x3) without translations Transpose and Inverse removes non-uniform scale from it
-	this->m_normal = Matrix3f{this->m_view};
-	bool invertable  = this->m_normal.invert();
+	this->m_normal  = Matrix3f{this->m_view};
+	bool invertable = this->m_normal.invert();
 	assert(invertable);
 	(void) invertable;
 	this->m_normal.transpose();
@@ -158,14 +132,13 @@ void OrbitCamera::update_vectors()
 	this->m_forward.x = -this->m_view.m_values[2];
 	this->m_forward.y = -this->m_view.m_values[6];
 	this->m_forward.z = -this->m_view.m_values[10];
-
-	this->m_eye = -this->m_view.origin();
 }
 
 void OrbitCamera::update_view()
 {
 	static const Vector3f up{0.0f, 1.0f, 0.0f};        //! World Up vector to orient itself
-	this->m_view = camera_look_at(this->m_eye, this->m_center, up, this->m_forward, this->m_right, this->m_up);
+	this->m_view = ror::make_look_at(this->m_eye, this->m_center, up);
+
 	this->update_vectors();
 }
 
@@ -202,12 +175,25 @@ void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 {
 	ror::AxisAnglef yinput{this->m_right, ror::to_radians(-a_y_delta)};
 
-	auto translation0 = ror::matrix4_translation(-this->m_center);
-	auto translation1 = ror::matrix4_translation(this->m_center);
+	auto origin = this->m_mode == CameraMode::orbit ? this->m_center : this->m_eye;
+
+	auto translation0 = ror::matrix4_translation(-origin);
+	auto translation1 = ror::matrix4_translation(origin);
 	auto rotation_x   = ror::matrix4_rotation(yinput);
 	auto rotation_y   = ror::matrix4_rotation_around_y(ror::to_radians(-a_x_delta));
 
+	// Rotate the view matrix directly instead of reacreating it from Euler angles
 	this->m_view *= translation1 * rotation_y * rotation_x * translation0;
+
+	// Create inverse transformation of the view matrix delta to transform eye and center
+	yinput     = ror::AxisAnglef{this->m_right, ror::to_radians(a_y_delta)};
+	rotation_x = ror::matrix4_rotation(yinput);
+	rotation_y = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
+
+	if (this->m_mode == CameraMode::orbit)
+		this->m_eye = translation1 * rotation_y * rotation_x * translation0 * this->m_eye;
+	else
+		this->m_center = translation1 * rotation_y * rotation_x * translation0 * this->m_center;
 
 	this->update_vectors();
 	this->update_normal();
@@ -227,6 +213,8 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(buffer_resize, this->m_resize_callback);
 
 	this->m_event_system->subscribe(mouse_scroll, this->m_zoom_callback);
+
+	this->m_event_system->subscribe(keyboard_space_click, this->m_mode_callback);
 }
 
 void OrbitCamera::disable()
@@ -243,13 +231,13 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(buffer_resize, this->m_resize_callback);
 
 	this->m_event_system->unsubscribe(mouse_scroll, this->m_zoom_callback);
+
+	this->m_event_system->unsubscribe(keyboard_space_click, this->m_mode_callback);
 }
 
 void OrbitCamera::fill_shader_buffer()
 {
 	// This creates the per_view_uniforms UBO with variable name of in_per_view_uniforms
-	this->m_shader_buffer.add_entry("mvp_mat4", rhi::Format::float32_4x4, 1);
-	this->m_shader_buffer.add_entry("model_mat4", rhi::Format::float32_4x4, 1);
 	this->m_shader_buffer.add_entry("view_mat4", rhi::Format::float32_4x4, 1);
 	this->m_shader_buffer.add_entry("projection_mat4", rhi::Format::float32_4x4, 1);
 	this->m_shader_buffer.add_entry("view_projection_mat4", rhi::Format::float32_4x4, 1);
@@ -264,8 +252,6 @@ void OrbitCamera::update()
 	// TODO: Don't update me if nothing has changed
 	this->m_shader_buffer.buffer_map();
 
-	this->m_shader_buffer.update("mvp_mat4", &this->m_model_view_projection.m_values);
-	this->m_shader_buffer.update("model_mat4", &this->m_model.m_values);
 	this->m_shader_buffer.update("view_mat4", &this->m_view.m_values);
 	this->m_shader_buffer.update("projection_mat4", &this->m_projection.m_values);
 	this->m_shader_buffer.update("view_projection_mat4", &this->m_view_projection.m_values);

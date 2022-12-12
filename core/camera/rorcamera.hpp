@@ -51,10 +51,19 @@
 namespace ror
 {
 
+const float32_t camera_sensitivity = 0.05f;
+const float32_t camera_speed       = 1.0f;
+
 enum class CameraType
 {
 	perspective,
 	orthographic
+};
+
+enum class CameraMode
+{
+	fps,
+	orbit
 };
 
 class ROAR_ENGINE_ITEM OrbitCamera final
@@ -70,6 +79,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE void bounds(uint32_t a_width, uint32_t a_height);
 	FORCE_INLINE void volume(Vector3f a_minimum, Vector3f a_maximum);
 	FORCE_INLINE void zoom(double64_t a_zoom_delta);
+	FORCE_INLINE void mode(CameraMode a_mode);
 	FORCE_INLINE void type(CameraType a_type);
 	FORCE_INLINE void near(float32_t a_near);
 	FORCE_INLINE void far(float32_t a_far);
@@ -89,6 +99,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	// clang-format on
 
   private:
+	using EventCallback = std::function<void(Event &)>;
+
 	void fill_shader_buffer();
 	void setup();
 	void update_vectors();
@@ -103,37 +115,36 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
 	FORCE_INLINE void forward(double64_t a_zoom_delta);
 
-	Matrix4f                     m_model{};                                //! Model matrix TODO: Remove me
-	Matrix4f                     m_view{};                                 //! View matrix
-	Matrix4f                     m_projection{};                           //! Projection matrix TODO: Remove me
-	Matrix4f                     m_model_view{};                           //! Model view matrix
-	Matrix4f                     m_view_projection{};                      //! View projection matrix TODO: Remove me
-	Matrix4f                     m_model_view_projection{};                //! Model view projection matrix
-	Matrix4f                     m_inverse_projection{};                   //! Inverse of Projection matrix
-	Matrix4f                     m_inverse_view_projection{};              //! Inverse of View projection matrix
-	Matrix3f                     m_normal{};                               //! Normal matrix
-	Vector3f                     m_center{0.0f, 0.0f, 0.0f};               //! Target position in worldspace
-	Vector3f                     m_eye{0.0f, 0.0f, 1.0f};                  //! Eye position in worldspace
-	Vector3f                     m_right{1.0f, 0.0f, 0.0f};                //! Right vector in camera's frame of reference
-	Vector3f                     m_up{0.0f, 1.0f, 0.0f};                   //! Up vector in camera's frame of reference
-	Vector3f                     m_forward{0.0f, 0.0f, -1.0f};             //! Forward vector in camera's frame of reference
-	Vector3f                     m_minimum{-50.0f, -50.0f, -50.0f};        //! Minimum bound of the bounding volume that the camera will always make sure to see fully
-	Vector3f                     m_maximum{50.0f, 50.0f, 50.0f};           //! Maximum bound of the bounding volume that the camera will always make sure to see fully
-	float32_t                    m_x_position{0.0f};                       //! Previous cusor position of the mouse pointer
-	float32_t                    m_y_position{0.0f};                       //! Previous cusor position of the mouse pointer
-	float32_t                    m_y_fov{60.0f};                           //! Y-FOV of the camera
-	float32_t                    m_z_near{0.1f};                           //! z-near of the camera
-	float32_t                    m_z_far{1000.0f};                         //! z-far of the camera
-	float32_t                    m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
-	uint32_t                     m_width{800};                             //! Width of the rectangle it needs to fill
-	uint32_t                     m_height{600};                            //! Height of the rectangle it needs to fill
-	CameraType                   m_type{CameraType::perspective};          //! Default perspective camera
-	EventSystem                 *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around
-	std::function<void(Event &)> m_move_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
-	std::function<void(Event &)> m_drag_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
-	std::function<void(Event &)> m_resize_callback{};                      //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	std::function<void(Event &)> m_zoom_callback{};                        //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
-	std::function<void(Event &)> m_frambuffer_resize_callback{};           //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	Matrix4f      m_view{};                                 //! View matrix
+	Matrix4f      m_projection{};                           //! Projection matrix
+	Matrix4f      m_view_projection{};                      //! View projection matrix
+	Matrix4f      m_inverse_projection{};                   //! Inverse of Projection matrix
+	Matrix4f      m_inverse_view_projection{};              //! Inverse of View projection matrix
+	Matrix3f      m_normal{};                               //! Normal matrix
+	Vector3f      m_center{0.0f, 0.0f, 0.0f};               //! Target position in worldspace
+	Vector3f      m_eye{0.0f, 0.0f, 1.0f};                  //! Eye position in worldspace
+	Vector3f      m_right{1.0f, 0.0f, 0.0f};                //! Right vector in camera's frame of reference
+	Vector3f      m_up{0.0f, 1.0f, 0.0f};                   //! Up vector in camera's frame of reference
+	Vector3f      m_forward{0.0f, 0.0f, -1.0f};             //! Forward vector in camera's frame of reference
+	Vector3f      m_minimum{-50.0f, -50.0f, -50.0f};        //! Minimum bound of the bounding volume that the camera will always make sure to see fully
+	Vector3f      m_maximum{50.0f, 50.0f, 50.0f};           //! Maximum bound of the bounding volume that the camera will always make sure to see fully
+	float32_t     m_x_position{0.0f};                       //! Previous cusor position of the mouse pointer
+	float32_t     m_y_position{0.0f};                       //! Previous cusor position of the mouse pointer
+	float32_t     m_y_fov{60.0f};                           //! Y-FOV of the camera
+	float32_t     m_z_near{0.1f};                           //! z-near of the camera
+	float32_t     m_z_far{1000.0f};                         //! z-far of the camera
+	float32_t     m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
+	uint32_t      m_width{800};                             //! Width of the rectangle it needs to fill
+	uint32_t      m_height{600};                            //! Height of the rectangle it needs to fill
+	CameraMode    m_mode{CameraMode::orbit};                //! Default orbit camera
+	CameraType    m_type{CameraType::perspective};          //! Default perspective camera
+	EventSystem  *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around
+	EventCallback m_move_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_drag_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_resize_callback{};                      //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_zoom_callback{};                        //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_frambuffer_resize_callback{};           //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_mode_callback{};                        //! Mode flipt lambda function that will be used to subscribe and unsubscribe this camera with event system
 
 	rhi::ShaderBuffer m_shader_buffer{"per_view_uniforms",
 	                                  rhi::ShaderBufferType::ubo,

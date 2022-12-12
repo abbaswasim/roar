@@ -41,7 +41,7 @@ void OrbitCamera::bounds(uint32_t a_width, uint32_t a_height)
 
 void OrbitCamera::zoom(double64_t a_zoom_delta)
 {
-	auto delta = (0.5f * static_cast<float32_t>(a_zoom_delta));
+	auto delta = (camera_sensitivity * 10.0f * static_cast<float32_t>(a_zoom_delta));
 
 	this->m_y_fov += delta;
 
@@ -55,10 +55,12 @@ void OrbitCamera::zoom(double64_t a_zoom_delta)
 
 void OrbitCamera::forward(double64_t a_zoom_delta)
 {
-	auto delta       = (0.5f * static_cast<float32_t>(a_zoom_delta));
+	auto delta       = (camera_sensitivity * 10.0f * static_cast<float32_t>(a_zoom_delta));
 	auto translation = ror::matrix4_translation(this->m_forward * delta);
-
 	this->m_view *= translation;
+
+	translation = ror::matrix4_translation(this->m_forward * -delta);
+	this->m_eye = translation * this->m_eye;
 
 	this->update_vectors();
 }
@@ -88,15 +90,17 @@ void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_n
 	this->m_x_position = static_cast<float>(a_x_new_position);
 	this->m_y_position = static_cast<float>(a_y_new_position);
 
-	auto delta_x = this->m_right * (0.05f * static_cast<float32_t>(-x_delta));
-	auto delta_y = this->m_up * (0.05f * static_cast<float32_t>(y_delta));
+	auto delta_x = this->m_right * (camera_sensitivity * static_cast<float32_t>(-x_delta));
+	auto delta_y = this->m_up * (camera_sensitivity * static_cast<float32_t>(y_delta));
 
 	auto translation = ror::matrix4_translation(delta_x + delta_y);
-
 	this->m_view *= translation;
 
-	this->m_center -= delta_x;
-	this->m_center += delta_y;
+	translation = ror::matrix4_translation(-delta_x - delta_y);
+	this->m_eye = translation * this->m_eye;
+
+	translation = ror::matrix4_translation(-delta_x - delta_y);
+	this->m_center = translation * this->m_center;
 
 	this->update_vectors();
 }
@@ -113,6 +117,11 @@ void OrbitCamera::volume(Vector3f a_minimum, Vector3f a_maximum)
 	this->m_maximum = a_maximum;
 
 	this->setup();
+}
+
+void OrbitCamera::mode(CameraMode a_mode)
+{
+	this->m_mode = a_mode;
 }
 
 void OrbitCamera::type(CameraType a_type)
