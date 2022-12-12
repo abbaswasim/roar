@@ -41,13 +41,26 @@ void OrbitCamera::bounds(uint32_t a_width, uint32_t a_height)
 
 void OrbitCamera::zoom(double64_t a_zoom_delta)
 {
+	auto delta = (0.5f * static_cast<float32_t>(a_zoom_delta));
+
+	this->m_y_fov += delta;
+
+	if (this->m_y_fov < 1.0f)
+		this->m_y_fov = 1.0f;
+	else if (this->m_y_fov > 90.0f)
+		this->m_y_fov = 90.0f;
+
+	this->update_perspective();
+}
+
+void OrbitCamera::forward(double64_t a_zoom_delta)
+{
 	auto delta       = (0.5f * static_cast<float32_t>(a_zoom_delta));
 	auto translation = ror::matrix4_translation(this->m_forward * delta);
 
 	this->m_view *= translation;
 
 	this->update_vectors();
-	// this->update_perspective(); // TODO: Do an FOV based zoom as well
 }
 
 void OrbitCamera::update_position_function(double64_t &a_x_new_position, double64_t &a_y_new_position)
@@ -67,7 +80,7 @@ void OrbitCamera::left_key_drag(double64_t &a_x_new_position, double64_t &a_y_ne
 	this->rotate(static_cast<float32_t>(x_delta), static_cast<float32_t>(y_delta));
 }
 
-void OrbitCamera::middle_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
+void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
 {
 	auto x_delta = this->m_x_position - a_x_new_position;
 	auto y_delta = this->m_y_position - a_y_new_position;
@@ -88,14 +101,10 @@ void OrbitCamera::middle_key_drag(double64_t &a_x_new_position, double64_t &a_y_
 	this->update_vectors();
 }
 
-void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
+void OrbitCamera::middle_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
 {
+	(void) a_x_new_position;
 	(void) a_y_new_position;
-
-	auto x_delta       = this->m_x_position - a_x_new_position;
-	this->m_x_position = static_cast<float>(a_x_new_position);
-
-	this->zoom(x_delta);
 }
 
 void OrbitCamera::volume(Vector3f a_minimum, Vector3f a_maximum)

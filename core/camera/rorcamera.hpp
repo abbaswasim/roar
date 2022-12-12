@@ -101,6 +101,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE void left_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
 	FORCE_INLINE void middle_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
 	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta);
+	FORCE_INLINE void forward(double64_t a_zoom_delta);
 
 	Matrix4f                     m_model{};                                //! Model matrix TODO: Remove me
 	Matrix4f                     m_view{};                                 //! View matrix

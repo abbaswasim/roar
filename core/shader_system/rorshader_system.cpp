@@ -439,17 +439,11 @@ std::string vs_skin_position(uint32_t a_joints_weights_count)
 const std::string vs_set_position_str = R"spos(
 void world_transform_position(inout vec4 vertex_position)
 {
-    uint node_index = in_nodes_offsets.node_offsets.x;
-    mat4 model = in_per_view_uniforms.model_mat4;
-
-    model = model * in_nodes_model.node_model_mat4[node_index];
-
     // You need to retain 'w' only after perspective transform for fixed function "prespective division"
     // hence reseting w=1.0 to make sure skinning or morphing hasn't messed it up
     // Details https://www.tomdalling.com/blog/modern-opengl/explaining-homogenous-coordinates-and-projective-geometry/
-	// vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * in_per_view_uniforms.model_mat4 * vec4(vertex_position.xyz, 1.0);
-	vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * model * vec4(vertex_position.xyz, 1.0);
-	// vertex_position = in_per_view_uniforms.mvp_mat4 * vec4(vertex_position.xyz, 1.0);
+    uint node_index = in_nodes_offsets.node_offsets.x;
+	vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * in_nodes_model.node_model_mat4[node_index] * vec4(vertex_position.xyz, 1.0);
 }
 
 void set_position()

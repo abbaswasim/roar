@@ -59,10 +59,10 @@ void OrbitCamera::init(EventSystem &a_event_system)
 					this->left_key_drag(vec2.x, vec2.y);
 					break;
 				case EventModifier::middle_mouse:
-					this->right_key_drag(vec2.x, vec2.y);
+					this->middle_key_drag(vec2.x, vec2.y);
 					break;
 				case EventModifier::right_mouse:
-					this->middle_key_drag(vec2.x, vec2.y);
+					this->right_key_drag(vec2.x, vec2.y);
 					break;
 				case EventModifier::none:
 				case EventModifier::shift:
@@ -93,7 +93,8 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		if (e.is_compatible<ror::Vector2d>())
 		{
 			auto vec2 = std::any_cast<ror::Vector2d>(e.m_payload);
-			this->zoom(-vec2.y);
+			this->zoom(vec2.x);
+			this->forward(-vec2.y);
 		}
 		else
 		{
@@ -157,6 +158,8 @@ void OrbitCamera::update_vectors()
 	this->m_forward.x = -this->m_view.m_values[2];
 	this->m_forward.y = -this->m_view.m_values[6];
 	this->m_forward.z = -this->m_view.m_values[10];
+
+	this->m_eye = -this->m_view.origin();
 }
 
 void OrbitCamera::update_view()
@@ -258,6 +261,7 @@ void OrbitCamera::fill_shader_buffer()
 
 void OrbitCamera::update()
 {
+	// TODO: Don't update me if nothing has changed
 	this->m_shader_buffer.buffer_map();
 
 	this->m_shader_buffer.update("mvp_mat4", &this->m_model_view_projection.m_values);
