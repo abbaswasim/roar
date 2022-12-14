@@ -35,10 +35,20 @@ TYPED_TEST(UtilitiesTest, functions_test)
 		float32_t v1 = 0.0001f;
 		float32_t v2 = 0.0001f;
 		float32_t v3 = 0.0002f;
+		float32_t v4 = -0.0002f;
+		float32_t v5 = -4.0f;
+		float32_t v6 = 4.0f;
+		float32_t v7 = 4.000000001f;
 
 		EXPECT_TRUE(ror::decimal_equal(v1, v2));
 		EXPECT_FALSE(ror::decimal_equal(v1, v3));
 		EXPECT_FALSE(ror::decimal_equal(v2, v3));
+		EXPECT_FALSE(ror::decimal_equal(v3, v4));
+		EXPECT_FALSE(ror::decimal_equal(v4, v3));
+		EXPECT_FALSE(ror::decimal_equal(v5, v6));
+		EXPECT_FALSE(ror::decimal_equal(v6, v5));
+		EXPECT_TRUE(ror::decimal_equal(v6, v7));
+		EXPECT_TRUE(ror::decimal_equal(v7, v6));
 
 		EXPECT_TRUE(ror::equal_zero(v0));
 		EXPECT_FALSE(ror::equal_zero(v1));
