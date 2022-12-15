@@ -102,6 +102,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	using EventCallback = std::function<void(Event &)>;
 
 	void fill_shader_buffer();
+	void reset();
 	void setup();
 	void update_vectors();
 	void update_view();
@@ -144,7 +145,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	EventCallback m_resize_callback{};                      //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_zoom_callback{};                        //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_frambuffer_resize_callback{};           //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_mode_callback{};                        //! Mode flipt lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_mode_callback{};                        //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_reset_callback{};                       //! Reset lambda function that will be used to subscribe and unsubscribe this camera with event system
 
 	rhi::ShaderBuffer m_shader_buffer{"per_view_uniforms",
 	                                  rhi::ShaderBufferType::ubo,

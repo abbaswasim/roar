@@ -107,13 +107,24 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		this->m_mode = this->m_mode == CameraMode::orbit ? CameraMode::fps : CameraMode::orbit;
 	};
 
+	this->m_reset_callback = [this](ror::Event &e) {
+		(void) e;
+		this->reset();
+	};
+
 	this->m_event_system = &a_event_system;
+}
+
+void OrbitCamera::reset()
+{
+	this->update_view();
 }
 
 void OrbitCamera::update_normal()
 {
-	// TODO: Simplify me
-	// Also calculate normal matrix, for xforming normals, from transpose of inverse of model-view (top 3x3) without translations Transpose and Inverse removes non-uniform scale from it
+	// TODO: This is wrong, I don't have model matrix here, its somewhere in the compute shader world
+	// Also remember if a tranpose of a matrix is possible then the order doesn't matter, transpose first then inverse or inverse first then transpose
+	// Also calculate normal matrix, for xforming normals, from transpose of inverse of model (top 3x3) without translations Transpose and Inverse removes non-uniform scale from it
 	this->m_normal  = Matrix3f{this->m_view};
 	bool invertable = this->m_normal.invert();
 	assert(invertable);
@@ -215,6 +226,7 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(mouse_scroll, this->m_zoom_callback);
 
 	this->m_event_system->subscribe(keyboard_space_click, this->m_mode_callback);
+	this->m_event_system->subscribe(keyboard_r_click, this->m_reset_callback);
 }
 
 void OrbitCamera::disable()
@@ -233,6 +245,7 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_scroll, this->m_zoom_callback);
 
 	this->m_event_system->unsubscribe(keyboard_space_click, this->m_mode_callback);
+	this->m_event_system->unsubscribe(keyboard_r_click, this->m_reset_callback);
 }
 
 void OrbitCamera::fill_shader_buffer()

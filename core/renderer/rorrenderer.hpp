@@ -87,9 +87,8 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &viewport()               const noexcept { return this->m_viewport;                }
 	FORCE_INLINE constexpr auto &frame_graphs()           const noexcept { return this->m_frame_graphs;            }
 	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
-	// FORCE_INLINE constexpr auto &shader_buffers()         const noexcept { return this->m_buffers_mapping;           }
 
-	FORCE_INLINE           auto &shader_buffer(const std::string& a_name) const { return this->m_buffers_mapping.at(a_name);   }
+	FORCE_INLINE           auto shader_buffer(const std::string& a_name)                           const           { return this->m_buffers_mapping.at(a_name);   }
 
 	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
 	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }

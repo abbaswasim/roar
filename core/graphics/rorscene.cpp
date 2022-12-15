@@ -261,7 +261,7 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	auto &compute_pso       = a_renderer.programs()[0];
 	auto &input_buffers     = a_subpass.buffer_inputs();
 	auto &trs_buffer        = input_buffers[0].m_render_output->m_target_reference.get();
-	auto &per_frame_uniform = a_renderer.shader_buffer("per_frame_uniform");
+	auto  per_frame_uniform = a_renderer.shader_buffer("per_frame_uniform");
 
 	uint32_t ncount = static_cast_safe<uint32_t>(copy_node_transforms(*this, trs_buffer));
 
@@ -911,7 +911,7 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 	auto &spot_light_uniforms        = this->m_lights[1].shader_buffer();
 	auto &point_light_uniforms       = this->m_lights[2].shader_buffer();
 
-	auto &weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
+	auto weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
 
 	// Vertex shader bindings
 	per_view_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
