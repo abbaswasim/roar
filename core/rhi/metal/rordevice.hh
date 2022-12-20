@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "foundation/rormacros.hpp"
+#include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
@@ -35,7 +36,6 @@
 
 #include <Metal/MTLCommandQueue.hpp>
 #include <QuartzCore/CAMetalDrawable.hpp>
-
 
 namespace rhi
 {
@@ -89,7 +89,24 @@ FORCE_INLINE MTL::CommandQueue *DeviceMetal::platform_queue()
 
 FORCE_INLINE MTL::CommandBuffer *DeviceMetal::platform_command_buffer()
 {
-	return this->platform_queue()->commandBuffer();
+	MTL::CommandBuffer *buffer{nullptr};
+
+	if constexpr (ror::get_build() == ror::BuildType::build_debug)
+	{
+		auto *command_buffer_descriptor = MTL::CommandBufferDescriptor::alloc()->init();
+
+		command_buffer_descriptor->setErrorOptions(MTL::CommandBufferErrorOptionEncoderExecutionStatus);
+
+		buffer = this->platform_queue()->commandBuffer(command_buffer_descriptor);
+
+		command_buffer_descriptor->release();
+	}
+	else
+	{
+		buffer = this->platform_queue()->commandBuffer();
+	}
+
+	return buffer;
 }
 
 FORCE_INLINE CA::MetalDrawable *DeviceMetal::platform_swapchain()

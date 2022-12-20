@@ -43,8 +43,10 @@
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
+#include <array>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <set>
@@ -716,6 +718,62 @@ std::vector<uint16_t> unpack_uint8_to_uint16(cgltf_accessor *a_accessor)
 	return temp;
 }
 
+// clang-format off
+template <typename> constexpr float32_t type_max()            noexcept { ror::log_critical("Can't normalize unsupported weights"); return 1.0f; }
+template <>         constexpr float32_t type_max<float32_t>() noexcept { return 1.0f;                                                           }
+template <>         constexpr float32_t type_max<uint8_t>()   noexcept { return static_cast<uint32_t>(255);                                     }
+template <>         constexpr float32_t type_max<uint16_t>()  noexcept { return static_cast<uint32_t>(65535);                                   }
+// clang-format on
+
+template <typename _type>
+std::vector<_type> unpack_normalized(const cgltf_accessor *a_accessor)
+{
+	std::vector<_type> temp;
+
+	auto component_count = cgltf_num_components(a_accessor->type);        // vec2, vec3
+	auto byte_size       = cgltf_calc_size(a_accessor->type, a_accessor->component_type);
+	auto offset          = a_accessor->buffer_view->offset + a_accessor->offset;
+	auto stride          = a_accessor->stride;
+
+	assert(component_count == 4 && "Can only unpack weights having 4 components");
+
+	if (stride == 0)
+		stride = byte_size;
+
+	temp.reserve(a_accessor->count);
+
+	auto     data_pointer = a_accessor->buffer_view->buffer->data;
+	uint8_t *ptr          = reinterpret_cast<uint8_t *>(data_pointer) + offset;
+	for (size_t i = 0; i < a_accessor->count; ++i)
+	{
+		auto x = (reinterpret_cast<_type *>(ptr))[0];
+		auto y = (reinterpret_cast<_type *>(ptr))[1];
+		auto z = (reinterpret_cast<_type *>(ptr))[2];
+		auto w = (reinterpret_cast<_type *>(ptr))[3];
+
+		float32_t sum = x + y + z + w;
+
+		if (sum > 0.0f && (sum < type_max<_type>() || sum > type_max<_type>()))
+		{
+			sum = type_max<_type>() / sum;
+
+			x = static_cast<_type>(static_cast<float32_t>(x) * sum);
+			y = static_cast<_type>(static_cast<float32_t>(y) * sum);
+			z = static_cast<_type>(static_cast<float32_t>(z) * sum);
+			w = static_cast<_type>(static_cast<float32_t>(w) * sum);
+		}
+
+		temp.emplace_back(x);
+		temp.emplace_back(y);
+		temp.emplace_back(z);
+		temp.emplace_back(w);
+
+		ptr += stride;
+	}
+
+	return temp;
+}
+
 void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras)
 {
 	// Lets start by reading a_filename via resource cache
@@ -813,18 +871,22 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				}
 				else        // Assumes its a path otherwise
 				{
-					std::string texture_path = filename.parent_path() / uri;
-					size_t      path_size    = texture_path.size();
-					char       *decoded_path = new char[path_size + 1];        // +1 for cgltf_decode_uri
+					std::string       texture_path = filename.parent_path() / uri;
+					size_t            path_size    = texture_path.size();
+					std::vector<char> decoded_path{};
 
-					std::copy(texture_path.begin(), texture_path.end(), decoded_path);
-					decoded_path[path_size] = '\0';
-					cgltf_decode_uri(decoded_path);
+					decoded_path.resize(path_size + 1);        // +1 for cgltf_decode_uri
+					std::copy(texture_path.begin(), texture_path.end(), decoded_path.data());
+					decoded_path.back() = '\0';
+
+					auto decoded_size = cgltf_decode_uri(decoded_path.data());
+					assert(decoded_size == path_size && "Decoding from URI into path failed");
+					(void) decoded_size;
 
 #if defined(USE_JS)
-					future_texures.emplace_back(js.push_job(from_file_lambda, decoded_path));        // vector of job_handles
+					future_texures.emplace_back(js.push_job(from_file_lambda, std::filesystem::path{decoded_path.data()}));        // vector of job_handles
 #else
-					this->m_images.emplace_back(from_file_lambda(texture_path));
+					this->m_images.emplace_back(from_file_function(std::filesystem::path{decoded_path.data()}));
 #endif
 				}
 			}
@@ -1049,6 +1111,10 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 					mesh.program(j, -1);
 
+					std::array<std::vector<uint8_t>, 2>   weights_uint8_pointer{};
+					std::array<std::vector<uint16_t>, 2>  weights_uint16_pointer{};
+					std::array<std::vector<float32_t>, 2> weights_float32_pointer{};
+
 					// Read all other vertex attributes
 					for (size_t k = 0; k < cprim.attributes_count; ++k)
 					{
@@ -1138,6 +1204,35 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 						assert(buffer_index >= 0 && "Not a valid buffer index returned, possibly no buffer associated with this attribute");
 						uint8_t *data_pointer = reinterpret_cast<uint8_t *>(this->m_buffers[static_cast<size_t>(buffer_index)].data());
+
+						// Special consideration to weights, here we are normalizing them
+						if (attrib.type == cgltf_attribute_type_weights)
+						{
+							assert(attrib.index >= 0 && attrib.index < 2 && "Attribute index out of bounds");
+							offset     = 0;
+							stride     = attrib_byte_size;
+							auto index = static_cast<size_t>(attrib.index);
+
+							if (attrib_format == rhi::Format::float32_4)
+							{
+								weights_float32_pointer[index] = unpack_normalized<float32_t>(attrib_accessor);
+								data_pointer                   = reinterpret_cast<uint8_t *>(weights_float32_pointer[index].data());
+							}
+							else if (attrib_format == rhi::Format::uint16_4)
+							{
+								weights_uint16_pointer[index] = unpack_normalized<uint16_t>(attrib_accessor);
+								data_pointer                  = reinterpret_cast<uint8_t *>(weights_uint16_pointer[index].data());
+							}
+							else if (attrib_format == rhi::Format::uint8_4)
+							{
+								weights_uint8_pointer[index] = unpack_normalized<uint8_t>(attrib_accessor);
+								data_pointer                 = reinterpret_cast<uint8_t *>(weights_uint8_pointer[index].data());
+							}
+							else
+							{
+								assert(0 && "Shouldn't reach here, can't have any other type of weights");
+							}
+						}
 
 						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * attrib_byte_size, stride};
 						attribs_data.emplace(current_index, std::move(data_tuple));
@@ -1469,6 +1564,17 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						else
 							ror::log_critical("Node has transformation as well as a matrix leaving TRS unchanged");
 					}
+
+					// lets see what windwing this node need
+					ror::Matrix4f T = ror::matrix4_translation(node.m_trs_transform.translation());
+					ror::Matrix4f R = ror::matrix4_rotation(node.m_trs_transform.rotation());
+					ror::Matrix4f S = ror::matrix4_scaling(node.m_trs_transform.scale());
+
+					auto M = T * R * S;
+					auto d = M.determinant();
+
+					if (d < 0)
+						node.m_winding = rhi::PrimitiveWinding::clockwise;
 
 					for (size_t k = 0; k < cnode->children_count; ++k)
 					{

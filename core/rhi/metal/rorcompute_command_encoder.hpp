@@ -61,6 +61,7 @@ class ComputeCommandEncoderMetal final
 	FORCE_INLINE constexpr void sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept;
 	FORCE_INLINE constexpr void end_encoding() noexcept;
+	FORCE_INLINE constexpr void release() noexcept;
 
   protected:
   private:

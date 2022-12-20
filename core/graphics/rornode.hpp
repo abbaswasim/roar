@@ -47,11 +47,12 @@ class ROAR_ENGINE_ITEM Node
 	FORCE_INLINE Node &operator=(Node &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Node() noexcept                         = default;        //! Destructor
 
-	int32_t    m_parent{-1};              //! Parent of the nodes, should be init with -1
-	int32_t    m_mesh_index{-1};          //! Mesh index of the nodes, should be init with -1
-	int32_t    m_skin_index{-1};          //! Skin index, not node index, should be init with -1
-	int32_t    m_camera_index{-1};        //! Camera index should be init with -1
-	Transformf m_trs_transform{};         //! Contains translation vec3, Rotation quaternion and scale vec3
+	int32_t               m_parent{-1};                                               //! Parent of the nodes, should be init with -1
+	int32_t               m_mesh_index{-1};                                           //! Mesh index of the nodes, should be init with -1
+	int32_t               m_skin_index{-1};                                           //! Skin index, not node index, should be init with -1
+	int32_t               m_camera_index{-1};                                         //! Camera index should be init with -1
+	rhi::PrimitiveWinding m_winding{rhi::PrimitiveWinding::counter_clockwise};        //! Camera index should be init with -1
+	Transformf            m_trs_transform{};                                          //! Contains translation vec3, Rotation quaternion and scale vec3
 };
 
 /**

@@ -153,4 +153,8 @@ FORCE_INLINE constexpr void RenderCommandEncoder::end_encoding() noexcept
 	this->m_encoder->endEncoding();
 }
 
+FORCE_INLINE constexpr void RenderCommandEncoder::release() noexcept
+{
+	this->m_encoder->release();
+}
 }        // namespace rhi

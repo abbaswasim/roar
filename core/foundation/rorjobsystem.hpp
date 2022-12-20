@@ -29,6 +29,7 @@
 #include "foundation/rorrandom.hpp"
 #include "profiling/rorlog.hpp"
 #include "roar.hpp"
+#include "settings/rorsettings.hpp"
 #include <atomic>
 #include <cassert>
 #include <condition_variable>
@@ -54,7 +55,12 @@ namespace ror
 FORCE_INLINE uint32_t get_hardware_threads()
 {
 	// TODO: Check what does different number of threads mean for performance and contention
-	return std::max(1u, std::thread::hardware_concurrency() - 1);
+	// With some quick and dirty testing its shown that more threads than cores is not too bad for performance
+	auto    &setting = ror::settings();
+	uint32_t tcount  = std::max(1u, std::thread::hardware_concurrency() - 1) * setting.m_threads_multiplier;
+	ror::log_info("JobSystem::Creating {} worker threads", tcount);
+
+	return tcount;
 }
 
 // TODO: Make all the allocations go away to see if that brings it back to as fast as it can be
@@ -485,6 +491,8 @@ class ROAR_ENGINE_ITEM JobSystem final
 				{
 					if (job->ready())
 					{
+						// If this is blocking and there are no more threads available to run jobs (especially child jobs of the blocking function) we will hang, current solution is more threads
+						// TODO: Find a better solution. Should be mostly handled in client code not spwaning multiple jobs and then waiting in the same job
 						(*job)();        // Execute the job
 						job->finish();
 					}

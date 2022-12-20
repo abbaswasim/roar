@@ -355,8 +355,8 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 
 	for (size_t prim_id = 0; prim_id < a_mesh.primitives_count(); ++prim_id)
 	{
-		ror::Material  default_material{};                 // Default material if no material available for this mesh primitive
-		ror::Material *material{&default_material};        // Default material if no material available for this mesh primitive
+		static ror::Material default_material{};        // Default material if no material available for this mesh primitive
+		ror::Material       *material{&default_material};
 
 		auto &program = pass_programs[static_cast<size_t>(a_mesh.program(prim_id))];
 		// assert(a_mesh.material(prim_id) != -1);        // TODO: This is going to crash for meshes with no material, use default material like in shader system
@@ -955,6 +955,8 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 						weights_shader_buffer->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 					}
 
+					a_encoder.front_facing_winding(model_node.m_winding);
+
 					render_mesh(model, mesh, dd, a_renderer, *this, subpass);
 				}
 				node_data_index++;
@@ -1016,7 +1018,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		auto model_upload_job = [this, &a_device](size_t a_index) -> auto
 		{
 			Model &model = this->m_models[a_index];
-			model.upload(a_device);
+			model.upload(a_device);        // I can't confirm if doing this in multiple threads is defined behaviour or not. But https://developer.apple.com/forums/thread/93346 seems to suggest its ok
 			return true;
 		};
 

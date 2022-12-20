@@ -258,7 +258,7 @@ rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
 
 rhi::LoadAction to_load_action(nlohmann::json a_loadaction)
 {
-	rhi::LoadAction load_action;
+	rhi::LoadAction load_action{rhi::LoadAction::clear};
 	if (a_loadaction == "load")
 		load_action = rhi::LoadAction::load;
 	else if (a_loadaction == "clear")
@@ -273,7 +273,7 @@ rhi::LoadAction to_load_action(nlohmann::json a_loadaction)
 
 rhi::StoreAction to_store_action(nlohmann::json a_storeaction)
 {
-	rhi::StoreAction store_action;
+	rhi::StoreAction store_action{rhi::LoadAction::clear};
 	if (a_storeaction == "store")
 		store_action = rhi::StoreAction::store;
 	else if (a_storeaction == "discard")
@@ -712,6 +712,7 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 		// TODO: Pipeline the render passes and remove this
 		command_buffer.wait_until_completed();
 		command_buffer.release();
+		surface->release();
 	}
 }
 

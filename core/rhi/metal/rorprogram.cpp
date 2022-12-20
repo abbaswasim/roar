@@ -203,6 +203,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 
 	if (!this->render_pipeline_state())
 	{
+        assert(pError != nullptr && "Failed render pipeline creation didn't bring any errors");
 		ror::log_critical("Metal render program creation failed with error: {}", pError->localizedDescription()->utf8String());
 		return;
 	}
@@ -210,7 +211,8 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	mtl_vertex_descriptor->release();
 	render_pipeline_descriptor->release();
 
-	pError->release();
+    if (pError != nullptr)
+        pError->release();
 
 	// Other setting functions that can be called on RPD
 	/*

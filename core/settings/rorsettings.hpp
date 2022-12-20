@@ -62,9 +62,10 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_zoom_speed  = setting.get<float32_t>("zoom_speed");
 		this->m_depth_clear = setting.get<float32_t>("depth");
 
-		this->m_unit              = setting.get<uint32_t>("unit");
-		this->m_buffer_increment  = setting.get<uint32_t>("buffer_increment");
-		this->m_multisample_count = setting.get<uint32_t>("multisample_count");
+		this->m_unit               = setting.get<uint32_t>("unit");
+		this->m_threads_multiplier = setting.get<uint32_t>("threads_multiplier");
+		this->m_buffer_increment   = setting.get<uint32_t>("buffer_increment");
+		this->m_multisample_count  = setting.get<uint32_t>("multisample_count");
 
 		this->m_clean_on_boot        = setting.get<bool>("clean_on_boot");
 		this->m_visualise_mipmaps    = setting.get<bool>("visualise_mipmaps");
@@ -259,7 +260,8 @@ class ROAR_ENGINE_ITEM Settings final
 	float32_t m_fog_end{500.0f};
 	float32_t m_depth_clear{1.0f};
 
-	uint32_t m_unit{1};        //! 1 == meter, 1000 == km etc, to use the unit multiply it with your quantities
+	uint32_t m_unit{1};                      //! 1 == meter, 1000 == km etc, to use the unit multiply it with your quantities
+	uint32_t m_threads_multiplier{2};        //! How many more threads should the job system create on top of available cores. Remember this is a multiplier
 	uint32_t m_buffer_increment{1};
 	uint32_t m_multisample_count{8};
 
