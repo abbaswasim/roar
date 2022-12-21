@@ -80,6 +80,7 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 
 	// There is no concept of subpass in metal so we create a render pass for each subpass, PLS and Merging is done via single encoder instead
 	auto &render_supasses = this->subpasses();
+	this->m_render_passes.clear();
 	this->m_render_passes.reserve(render_supasses.size());
 
 	for (auto &subpass : render_supasses)

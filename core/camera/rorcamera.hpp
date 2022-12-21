@@ -107,7 +107,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	void update_vectors();
 	void update_view();
 	void update_normal();
-	void update_perspective();
+	void update_projection();
 	void rotate(float32_t a_x_rotation, float32_t a_y_rotation);
 
 	FORCE_INLINE void update_position_function(double64_t &a_x_delta, double64_t &a_y_delta);
@@ -135,8 +135,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t     m_z_near{0.1f};                           //! z-near of the camera
 	float32_t     m_z_far{1000.0f};                         //! z-far of the camera
 	float32_t     m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
-	uint32_t      m_width{800};                             //! Width of the rectangle it needs to fill
-	uint32_t      m_height{600};                            //! Height of the rectangle it needs to fill
+	uint32_t      m_width{1024};                            //! Width of the rectangle it needs to fill
+	uint32_t      m_height{768};                            //! Height of the rectangle it needs to fill
 	CameraMode    m_mode{CameraMode::orbit};                //! Default orbit camera
 	CameraType    m_type{CameraType::perspective};          //! Default perspective camera
 	EventSystem  *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around

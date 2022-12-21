@@ -36,6 +36,7 @@ void OrbitCamera::bounds(uint32_t a_width, uint32_t a_height)
 	this->m_width  = a_width;
 	this->m_height = a_height;
 
+	this->update_projection();
 	this->update_view();
 }
 
@@ -50,7 +51,7 @@ void OrbitCamera::zoom(double64_t a_zoom_delta)
 	else if (this->m_y_fov > 90.0f)
 		this->m_y_fov = 90.0f;
 
-	this->update_perspective();
+	this->update_projection();
 }
 
 void OrbitCamera::forward(double64_t a_zoom_delta)
@@ -128,49 +129,49 @@ void OrbitCamera::type(CameraType a_type)
 {
 	this->m_type = a_type;
 
-	this->update_perspective();
+	this->update_projection();
 }
 
 void OrbitCamera::near(float32_t a_near)
 {
 	this->m_z_near = a_near;
 
-	this->update_perspective();
+	this->update_projection();
 }
 
 void OrbitCamera::far(float32_t a_far)
 {
 	this->m_z_far = a_far;
 
-	this->update_perspective();
+	this->update_projection();
 }
 
 void OrbitCamera::fov(float32_t a_y_fov)
 {
 	this->m_y_fov = a_y_fov;
 
-	this->update_perspective();
+	this->update_projection();
 }
 
 void OrbitCamera::ratio(float32_t a_aspect_ratio)
 {
 	this->m_aspect_ratio = a_aspect_ratio;
 
-	this->update_perspective();
+	this->update_projection();
 }
 
 void OrbitCamera::width(uint32_t a_width)
 {
 	this->m_width = a_width;
 
-	this->update_perspective();
+	this->update_projection();
 }
 
 void OrbitCamera::height(uint32_t a_height)
 {
 	this->m_height = a_height;
 
-	this->update_perspective();
+	this->update_projection();
 }
 
 }        // namespace ror

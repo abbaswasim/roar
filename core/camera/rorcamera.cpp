@@ -153,11 +153,12 @@ void OrbitCamera::update_view()
 	this->update_vectors();
 }
 
-void OrbitCamera::update_perspective()
+void OrbitCamera::update_projection()
 {
 	// Setup perspective projection matrix
 	if (this->m_type == CameraType::perspective)
 	{
+		// assumes square pixels, if ever there is evidence of non-square pixels, provided by windowing system i.e. glfw use it here instead
 		this->m_projection = ror::make_perspective(ror::to_radians(this->m_y_fov), static_cast<float>(this->m_width) / static_cast<float>(this->m_height), this->m_z_near, this->m_z_far);
 
 		// Make infinite projections matrix

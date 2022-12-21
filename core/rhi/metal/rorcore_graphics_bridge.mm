@@ -64,4 +64,11 @@ void *next_drawable(void *a_layer)
 	return [metalLayer nextDrawable];
 }
 
+void release_layer(void *a_layer)
+{
+	CAMetalLayer *layer = (__bridge static_cast<CAMetalLayer *>(a_layer));
+	if (layer)
+		[layer release];
+}
+
 }

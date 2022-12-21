@@ -68,10 +68,12 @@ class Renderer final : public Configuration<Renderer>
 	void                             render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer);
 	void                             load_specific();
 	void                             upload(rhi::Device &);
+	void                             upload_frame_graphs(rhi::Device &);
 	std::vector<rhi::RenderpassType> render_pass_types() const;
 	std::vector<rhi::RenderpassType> all_render_pass_types() const;
 	void                             generate_shader_buffers_mapping();
 	void                             deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene);
+	void                             dimensions(const ror::Vector2ui &a_dimensions, rhi::Device &a_device);
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off
@@ -92,7 +94,6 @@ class Renderer final : public Configuration<Renderer>
 
 	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
 	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }
-	FORCE_INLINE constexpr void dimensions(const ror::Vector2ui                   &a_dimensions)          noexcept { this->m_dimensions = a_dimensions;                   }
 	FORCE_INLINE constexpr void viewport(const ror::Vector4i                      &a_viewport)            noexcept { this->m_viewport = a_viewport;                       }
 	FORCE_INLINE constexpr void frame_graphs(const FrameGraph                     &a_frame_graphs)        noexcept { this->m_frame_graphs = a_frame_graphs;               }
 	FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }

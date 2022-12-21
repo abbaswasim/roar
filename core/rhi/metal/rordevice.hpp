@@ -25,7 +25,9 @@
 
 #pragma once
 
+#include "event_system/rorevent_system.hpp"
 #include "foundation/rormacros.hpp"
+#include "math/rorvector2.hpp"
 #include "rhi/crtp_interfaces/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include <any>
@@ -44,6 +46,9 @@ void *get_metal_layer(std::any     a_window,               // NSWindow
                       unsigned int a_pixel_format);        // MTLPixelFormat, usually BGRA8Unorm
 // Utility function to get next drawable from Objective-C code
 void *next_drawable(void *layer);
+
+// Utility function to release the a CAMetalLayer
+void release_layer(void *layer);
 
 /*
   There are two ways of multi-threading your work in Metal
@@ -84,7 +89,7 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 	FORCE_INLINE DeviceMetal &operator=(DeviceMetal &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~DeviceMetal() noexcept override                 = default;        //! Destructor
 
-	FORCE_INLINE void init(std::any a_window);
+	FORCE_INLINE void init(std::any a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
 	FORCE_INLINE MTL::Device *platform_device();
 	FORCE_INLINE MTL::CommandQueue *platform_queue();
 	FORCE_INLINE MTL::CommandBuffer *platform_command_buffer();

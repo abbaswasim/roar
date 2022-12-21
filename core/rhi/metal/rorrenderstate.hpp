@@ -47,6 +47,7 @@ class RenderstateMetal : public RenderstateCrtp<RenderstateMetal>
 	FORCE_INLINE virtual ~RenderstateMetal() noexcept override;                                            //! Destructor
 
 	void upload(rhi::Device &a_device);
+	void release();
 
 	// clang-format off
 	FORCE_INLINE constexpr auto depth_state()                 const noexcept     { return this->m_depth_state;                 }

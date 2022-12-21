@@ -510,12 +510,6 @@
 						"store_action":"store"
 					}
 				],
-				"viewport":{
-					"x":0,
-					"y":0,
-					"w":1024,
-					"h":768
-				},
 				"depends_on":[
 					1
 				],
@@ -542,12 +536,6 @@
 						"store_action":"store"
 					}
 				],
-				"viewport":{
-					"x":0,
-					"y":0,
-					"w":1024,
-					"h":768
-				},
 				"depends_on":[
 					0,
 					1

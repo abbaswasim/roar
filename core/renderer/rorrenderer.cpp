@@ -286,7 +286,7 @@ rhi::StoreAction to_store_action(nlohmann::json a_storeaction)
 	return store_action;
 }
 
-void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame_graph, ror::Vector4i a_viewport, ror::Vector2ui a_dimensions,
+void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame_graph, ror::Vector2ui a_dimensions,
                       std::vector<rhi::TextureImage> &a_textures,
                       std::vector<rhi::ShaderBuffer> &a_buffers)
 {
@@ -298,7 +298,6 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		render_pass.enabled(!disabled);
 	}
 
-	render_pass.viewport(a_viewport);
 	render_pass.dimensions(a_dimensions);
 
 	ror::Vector2ui dims = render_pass.dimensions();
@@ -310,20 +309,6 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		dims.y = (a_render_pass["height"]);
 
 	render_pass.dimensions(dims);
-
-	if (a_render_pass.contains("viewport"))
-	{
-		auto vip = a_render_pass["viewport"];
-
-		ror::Vector4i viewport;
-
-		viewport.x = vip["x"];
-		viewport.y = vip["y"];
-		viewport.z = vip["w"];
-		viewport.w = vip["h"];
-
-		render_pass.viewport(viewport);
-	}
 
 	if (a_render_pass.contains("depends_on"))
 	{
@@ -536,7 +521,7 @@ void Renderer::load_frame_graphs()
 		auto forward_passes = frame_graph["forward"];
 		for (auto &forward_pass : forward_passes)
 		{
-			read_render_pass(forward_pass, this->m_frame_graphs["forward"], this->m_viewport, this->m_dimensions, this->m_textures, this->m_buffers);
+			read_render_pass(forward_pass, this->m_frame_graphs["forward"], this->m_dimensions, this->m_textures, this->m_buffers);
 		}
 	}
 
@@ -545,7 +530,7 @@ void Renderer::load_frame_graphs()
 		auto deferred_passes = frame_graph["deferred"];
 		for (auto &deferred_pass : deferred_passes)
 		{
-			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], this->m_viewport, this->m_dimensions, this->m_textures, this->m_buffers);
+			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], this->m_dimensions, this->m_textures, this->m_buffers);
 		}
 	}
 
@@ -783,21 +768,33 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 	fill_morph_weights(a_scene, *weights_ubo, weights_output_size);
 }
 
-void Renderer::upload(rhi::Device &a_device)
+void Renderer::dimensions(const ror::Vector2ui &a_dimensions, rhi::Device &a_device)
 {
-	for (auto &shader : this->m_shaders)
+	this->m_dimensions = a_dimensions;
+
+	auto render_passes = this->m_current_frame_graph;
+	for (auto &pass : *render_passes)
 	{
-		shader.compile();
-		shader.upload(a_device);
+		auto &render_supasses = pass.subpasses();
+		for (auto &subpass : render_supasses)
+		{
+			if (subpass.technique() == rhi::RenderpassTechnique::fragment)
+			{
+				// Update dimensions for those render passes that I think rely on framebuffer/window size. These would usually be swapchains
+				if (subpass.type() == rhi::RenderpassType::forward_light ||
+				    subpass.type() == rhi::RenderpassType::main)
+				{
+					pass.dimensions(a_dimensions);
+				}
+			}
+		}
 	}
 
-	for (auto &program : this->m_programs)
-		program.upload(a_device, this->m_shaders);
+	this->upload_frame_graphs(a_device);
+}
 
-	// Upload all render targets now, render buffers are deffered after scenes are loaded
-	for (auto &render_target : this->m_input_render_targets)
-		render_target.m_target_reference.get().upload(a_device);
-
+void Renderer::upload_frame_graphs(rhi::Device &a_device)
+{
 	for (auto &graph : this->m_frame_graphs)
 	{
 		for (auto &pass : graph.second)
@@ -807,16 +804,11 @@ void Renderer::upload(rhi::Device &a_device)
 			for (auto &render_target : pass_render_targets)
 			{
 				auto &texture = render_target.m_target_reference.get();
-				if (!texture.ready())
+				if (!texture.ready() || ((texture.width() != pass.dimensions().x) || (texture.height() != pass.dimensions().y)))
 				{
 					texture.width(pass.dimensions().x);
 					texture.height(pass.dimensions().y);
 					texture.upload(a_device);        // Doesn't necessarily upload a texture to the GPU but creates the texture in the GPU for later use
-				}
-				else
-				{
-					if ((texture.width() != pass.dimensions().x) || (texture.height() != pass.dimensions().y))
-						ror::log_critical("Reusing render target with different dimensions");
 				}
 			}
 
@@ -836,6 +828,24 @@ void Renderer::upload(rhi::Device &a_device)
 			}
 		}
 	}
+}
+
+void Renderer::upload(rhi::Device &a_device)
+{
+	for (auto &shader : this->m_shaders)
+	{
+		shader.compile();
+		shader.upload(a_device);
+	}
+
+	for (auto &program : this->m_programs)
+		program.upload(a_device, this->m_shaders);
+
+	// Upload all render targets now, render buffers are deffered after scenes are loaded
+	for (auto &render_target : this->m_input_render_targets)
+		render_target.m_target_reference.get().upload(a_device);
+
+	this->upload_frame_graphs(a_device);
 
 	this->m_render_state.upload(a_device);
 

@@ -61,6 +61,14 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	FORCE_INLINE EventSystem &event_system()                             {     return this->m_context.event_system();            }
 	// clang-format on
 
+	FORCE_INLINE ror::Vector2f framebuffer_scaling()
+	{
+		auto dimensions = this->dimensions();
+
+		return ror::Vector2f{static_cast<float32_t>(dimensions.x) / static_cast<float32_t>(dimensions.z),
+		                     static_cast<float32_t>(dimensions.y) / static_cast<float32_t>(dimensions.w)};
+	}
+
 	// This is called from underlying loop
 	FORCE_INLINE void update()
 	{
@@ -82,7 +90,7 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	{
 		auto renderer_resize = [this](Event &a_event) {
 			auto &renderer = this->m_context.renderer();
-			renderer.dimensions(a_event.get_payload<ror::Vector2ui>());
+			renderer.dimensions(a_event.get_payload<ror::Vector2ui>(), this->m_context.device());
 		};
 
 		auto &event_system = this->m_context.event_system();

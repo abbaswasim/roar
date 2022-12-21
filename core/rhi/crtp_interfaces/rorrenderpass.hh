@@ -26,19 +26,18 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "math/rorvector4.hpp"
-#include "rhi/crtp_interfaces/rorrenderpass.hpp"
-#include "rhi/metal/rorbuffer.hpp"
-#include "rhi/metal/rordevice.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorcompute_command_encoder.hpp"
+#include "rhi/rordevice.hpp"
 #include "rhi/rorrender_command_encoder.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 #include <cassert>
 
 namespace rhi
 {
-
 template <class _type>
 FORCE_INLINE constexpr void bind_input_textures(_type &a_encoder, rhi::Rendersubpass::RenderTargets &a_render_inputs, uint32_t a_starting_index)
 {
@@ -93,9 +92,10 @@ FORCE_INLINE void RenderpassCrtp<_type>::bind_render_buffers(rhi::ComputeCommand
 template <class _type>
 void RenderpassCrtp<_type>::setup(rhi::RenderCommandEncoder &a_command_encoder)
 {
-	auto &setting = ror::settings();
+	auto         &setting = ror::settings();
+	ror::Vector4d viewport{0, 0, static_cast<double64_t>(this->m_dimensions.x), static_cast<double64_t>(this->m_dimensions.y)};
 
-	a_command_encoder.viewport(ror::Vector4d{this->m_viewport}, {0.0, 1.0});        // TODO: Understand what does the near and far mean for metal render passes
+	a_command_encoder.viewport(viewport, {0.0, 1.0});        // TODO: Understand what does the near and far mean for metal render passes
 	a_command_encoder.cull_mode(this->m_cull_mode);
 	a_command_encoder.front_facing_winding(setting.m_primitive_winding);
 

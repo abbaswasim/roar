@@ -51,7 +51,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 
 	FORCE_INLINE void init(std::any a_window, ror::Vector2ui a_dimensions)
 	{
-		this->m_current_device->init(a_window);
+		this->m_current_device->init(a_window, this->m_event_system, a_dimensions);
 
 		// Should only be called once per execution, TODO: check if this could be used in MT environment
 		basist::basisu_transcoder_init();
@@ -59,7 +59,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		// Initialize glslang library via our wrapper, calling glslang directly means we need to link it with editor which creates all kinds of issues
 		glslang_wrapper_initialize_process();
 
-		this->m_renderer.dimensions(a_dimensions);
+		this->m_renderer.dimensions(a_dimensions, *this->m_current_device);
 		this->m_renderer.upload(*this->m_current_device);
 
 		// Load all the models now in a deferred way

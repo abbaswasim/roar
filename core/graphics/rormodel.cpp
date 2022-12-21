@@ -688,29 +688,39 @@ ror::OrbitCamera read_node_camera(cgltf_camera *a_camera)
 	return camera;
 }
 
-std::vector<uint16_t> unpack_uint8_to_uint16(cgltf_accessor *a_accessor)
+void get_accessor_info(const cgltf_accessor *a_accessor, size_t &a_component_count, size_t &a_byte_size, size_t &a_offset, size_t &a_stride, uint8_t **a_ptr)
+{
+	a_component_count = cgltf_num_components(a_accessor->type);        // could be vec2, vec3 etc and returning 2, 3 respectively
+	a_byte_size       = cgltf_calc_size(a_accessor->type, a_accessor->component_type);
+	a_offset          = a_accessor->buffer_view->offset + a_accessor->offset;
+	a_stride          = a_accessor->stride;
+
+	if (a_stride == 0)
+		a_stride = a_byte_size;
+
+	*a_ptr = reinterpret_cast<uint8_t *>(a_accessor->buffer_view->buffer->data) + a_offset;
+}
+
+std::vector<uint16_t> unpack_uint8_to_uint16(const cgltf_accessor *a_accessor)
 {
 	std::vector<uint16_t> temp;
 
-	auto component_count = cgltf_num_components(a_accessor->type);        // vec2, vec3
-	auto byte_size       = cgltf_calc_size(a_accessor->type, a_accessor->component_type);
-	auto offset          = a_accessor->buffer_view->offset + a_accessor->offset;
-	auto stride          = a_accessor->stride;
+	size_t   component_count;
+	size_t   byte_size;
+	size_t   offset;
+	size_t   stride;
+	uint8_t *ptr{nullptr};
+
+	get_accessor_info(a_accessor, component_count, byte_size, offset, stride, &ptr);
 
 	assert(byte_size == sizeof(uint8_t) && "Can't unpack from non-uint8_t");
 	assert(component_count == 1 && "Can only unpack single component accessors");
 
-	if (stride == 0)
-		stride = byte_size;
-
 	temp.reserve(a_accessor->count);
 
-	auto     data_pointer = a_accessor->buffer_view->buffer->data;
-	uint8_t *ptr          = reinterpret_cast<uint8_t *>(data_pointer) + offset;
 	for (size_t i = 0; i < a_accessor->count; ++i)
 	{
-		for (size_t j = 0; j < component_count; ++j)
-			temp.emplace_back((reinterpret_cast<uint8_t *>(ptr))[j]);
+		temp.emplace_back((reinterpret_cast<uint8_t *>(ptr))[0]);
 
 		ptr += stride;
 	}
@@ -730,20 +740,18 @@ std::vector<_type> unpack_normalized(const cgltf_accessor *a_accessor)
 {
 	std::vector<_type> temp;
 
-	auto component_count = cgltf_num_components(a_accessor->type);        // vec2, vec3
-	auto byte_size       = cgltf_calc_size(a_accessor->type, a_accessor->component_type);
-	auto offset          = a_accessor->buffer_view->offset + a_accessor->offset;
-	auto stride          = a_accessor->stride;
+	size_t   component_count;
+	size_t   byte_size;
+	size_t   offset;
+	size_t   stride;
+	uint8_t *ptr{nullptr};
+
+	get_accessor_info(a_accessor, component_count, byte_size, offset, stride, &ptr);
 
 	assert(component_count == 4 && "Can only unpack weights having 4 components");
 
-	if (stride == 0)
-		stride = byte_size;
-
 	temp.reserve(a_accessor->count);
 
-	auto     data_pointer = a_accessor->buffer_view->buffer->data;
-	uint8_t *ptr          = reinterpret_cast<uint8_t *>(data_pointer) + offset;
 	for (size_t i = 0; i < a_accessor->count; ++i)
 	{
 		auto x = (reinterpret_cast<_type *>(ptr))[0];

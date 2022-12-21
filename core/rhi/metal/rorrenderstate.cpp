@@ -34,7 +34,7 @@ namespace rhi
 define_translation_unit_vtable(RenderstateMetal)
 {}
 
-void RenderstateMetal::upload(rhi::Device& a_device)
+void RenderstateMetal::upload(rhi::Device &a_device)
 {
 	MTL::Device                 *device                   = a_device.platform_device();
 	MTL::DepthStencilDescriptor *depth_stencil_descriptor = MTL::DepthStencilDescriptor::alloc()->init();
@@ -60,6 +60,24 @@ void RenderstateMetal::upload(rhi::Device& a_device)
 	this->m_depth_state_less_no_write = device->newDepthStencilState(depth_stencil_descriptor);
 
 	depth_stencil_descriptor->release();
+}
+
+void RenderstateMetal::release()
+{
+	if (this->m_depth_state)
+		this->m_depth_state->release();
+
+	if (this->m_depth_state_less_equal)
+		this->m_depth_state_less_equal->release();
+
+	if (this->m_depth_state_equal_no_write)
+		this->m_depth_state_equal_no_write->release();
+
+	if (this->m_depth_state_always_no_write)
+		this->m_depth_state_always_no_write->release();
+
+	if (this->m_depth_state_less_no_write)
+		this->m_depth_state_less_no_write->release();
 }
 
 }        // namespace rhi

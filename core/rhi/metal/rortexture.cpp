@@ -179,6 +179,9 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 
 	texture_descriptor->setStorageMode(MTL::StorageModePrivate);
 
+	if (this->m_texture)
+		this->m_texture->release();
+
 	this->m_texture = device->newTexture(texture_descriptor);
 
 	if (needs_upload)
@@ -196,7 +199,7 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 		blit_command_encoder->copyFromBuffer(source_buffer, 0, bytes_per_row, this->width() * this->height() * this->bytes_per_pixel(), size, this->m_texture, 0, 0, texture_origin);
 		blit_command_encoder->endEncoding();
 
-		command_buffer->addCompletedHandler([this](MTL::CommandBuffer *) { this->ready(true); });
+		command_buffer->addCompletedHandler([this, source_buffer](MTL::CommandBuffer *) {this->ready(true); source_buffer->release(); });
 		command_buffer->commit();
 	}
 	else

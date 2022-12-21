@@ -30,20 +30,7 @@ namespace rhi
 {
 FORCE_INLINE RenderstateMetal::~RenderstateMetal() noexcept
 {
-	if (this->m_depth_state)
-		this->m_depth_state->release();
-
-	if (this->m_depth_state_less_equal)
-		this->m_depth_state_less_equal->release();
-
-	if (this->m_depth_state_equal_no_write)
-		this->m_depth_state_equal_no_write->release();
-
-	if (this->m_depth_state_always_no_write)
-		this->m_depth_state_always_no_write->release();
-
-	if (this->m_depth_state_less_no_write)
-		this->m_depth_state_less_no_write->release();
+	this->release();
 }
 
 }        // namespace rhi

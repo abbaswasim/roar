@@ -25,6 +25,7 @@
 
 #pragma once
 #include "core/foundation/rorcrtp.hpp"
+#include "event_system/rorevent_system.hpp"
 #include "rhi/rortypes.hpp"
 #include <any>
 
@@ -41,7 +42,7 @@ class DeviceCrtp : public ror::Crtp<_type, DeviceCrtp>
 	FORCE_INLINE virtual ~DeviceCrtp() noexcept override               = default;        //! Destructor
 
 	// clang-format off
-	FORCE_INLINE void  init(std::any a_window)  { this->underlying().init(a_window); }
+	FORCE_INLINE void  init(std::any a_window, ror::EventSystem &a_event_system)  { this->underlying().init(a_window, a_event_system); }
 	// clang-format on
 
   protected:

@@ -32,10 +32,9 @@
 #include "math/rorvector2.hpp"
 #include "math/rorvector4.hpp"
 #include "profiling/rortimer.hpp"
-#include "rhi/rorcommand_buffer.hpp"
-#include "rhi/rordevice.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorcommand_buffer.hpp"
+#include "rhi/rordevice.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
@@ -190,11 +189,11 @@ class Rendersubpass final
 
   protected:
   private:
-	template<class _type>
+	template <class _type>
 	FORCE_INLINE void bind_render_inputs(_type &a_encoder);
-	template<class _type>
+	template <class _type>
 	FORCE_INLINE void bind_input_attachments(_type &a_encoder);
-	template<class _type>
+	template <class _type>
 	FORCE_INLINE void bind_buffer_inputs(_type &a_encoder);
 
 	std::string              m_name{};                                               //! Debug name of this render pass
@@ -220,7 +219,7 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE                 RenderpassCrtp(RenderpassCrtp &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE RenderpassCrtp &operator=(const RenderpassCrtp &a_other)          = default;        //! Copy assignment operator
 	FORCE_INLINE RenderpassCrtp &operator=(RenderpassCrtp &&a_other) noexcept      = default;        //! Move assignment operator
-	FORCE_INLINE ~RenderpassCrtp() noexcept override                               = default;        //! Destructor
+	FORCE_INLINE virtual ~RenderpassCrtp() noexcept override                       = default;        //! Destructor
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &subpasses()                 noexcept { return this->m_subpasses;          }
@@ -228,7 +227,6 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE constexpr auto &render_targets()      const noexcept { return this->m_render_targets;     }
 	FORCE_INLINE constexpr auto &render_buffers()      const noexcept { return this->m_render_buffers;     }
 	FORCE_INLINE constexpr auto  dimensions()          const noexcept { return this->m_dimensions;         }
-	FORCE_INLINE constexpr auto  viewport()            const noexcept { return this->m_viewport;           }
 	FORCE_INLINE constexpr auto  cull_mode()           const noexcept { return this->m_cull_mode;          }
 	FORCE_INLINE constexpr auto &parent_ids()          const noexcept { return this->m_parent_ids;         }
 	FORCE_INLINE constexpr auto &parents()             const noexcept { return this->m_parents;            }
@@ -237,7 +235,6 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 
 	FORCE_INLINE constexpr void subpasses(const std::vector<Rendersubpass>& a_passes)                    { this->m_subpasses = a_passes;                 }
 	FORCE_INLINE constexpr void dimensions(ror::Vector2ui a_dimensions)                                  { this->m_dimensions = a_dimensions;            }
-	FORCE_INLINE constexpr void viewport(ror::Vector4i a_viewport)                                       { this->m_viewport = a_viewport;                }
 	FORCE_INLINE constexpr void parent_ids(const std::vector<uint32_t>& a_parents)                       { this->m_parent_ids = a_parents;               }
 	FORCE_INLINE constexpr void cull_mode(const rhi::PrimitiveCullMode a_cull_mode)                      { this->m_cull_mode = a_cull_mode;              }
 	FORCE_INLINE constexpr void parents(const Renderpasses& a_parents)                                   { this->m_parents = a_parents;                  }
@@ -271,7 +268,6 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	std::vector<RenderBuffer>  m_render_buffers{};                               //! Output attachments (buffers)
 	ror::Vector4f              m_background{0.14f, 0.14f, 0.14f, 1.0f};          //! Background color of this render pass we will use to clear it with
 	ror::Vector2ui             m_dimensions{1024, 768};                          //! Dimensions for this renderpass if provided will override frame graph dimensions
-	ror::Vector4i              m_viewport{0, 0, 1024, 768};                      //! Viewport for this renderpass if provided will override frame graph viewport
 	std::vector<uint32_t>      m_parent_ids{};                                   //! All passes that need to complete before this can run
 	Renderpasses               m_parents{};                                      //! All passes that need to complete before this can run
 	rhi::PrimitiveCullMode     m_cull_mode{rhi::PrimitiveCullMode::back};        //! Enabled by default unless a "disabled":true is found in the config
