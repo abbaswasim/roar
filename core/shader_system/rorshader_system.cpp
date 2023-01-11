@@ -674,13 +674,6 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	auto        has_morphs               = mesh.has_morphs();
 	auto        is_depth_shadow          = (a_renderpass_type == rhi::RenderpassType::depth || a_renderpass_type == rhi::RenderpassType::shadow);
 
-	auto material_index = mesh.material(a_primitive_index);
-	assert(material_index != -1 && "Material index can't be -1");
-	auto &material       = a_model.materials()[ror::static_cast_safe<size_t>(material_index)];
-	auto  has_normal_map = material.m_normal.m_type == ror::Material::ComponentType::texture || material.m_normal.m_type == ror::Material::ComponentType::factor_texture;
-
-	(void) has_normal_map;
-
 	std::unordered_map<rhi::BufferSemantic, std::pair<uint32_t, bool>> targets_count{
 	    {rhi::BufferSemantic::vertex_position, {0, true}},
 	    {rhi::BufferSemantic::vertex_normal, {0, has_normal}},
@@ -999,6 +992,7 @@ std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_c
 		std::string output_coords{};
 		std::string output_lookup{"\n" + a_retrun_type + " get_" + a_comp_name + "()\n{\n\t"};
 		std::string factor_cast_str{factor_type + "(in_factors." + a_comp_name + "_factor)"};
+		bool        needs_normalize = a_comp_name == "normal" || a_comp_name == "bent_normal";
 
 		if (a_mat_comp.m_type == ror::Material::ComponentType::factor)
 			output_lookup.append("return " + factor_cast_str);
@@ -1030,15 +1024,15 @@ std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_c
 			output_lookup.append({"vec2 " + a_comp_name + "_uv = get_" + a_comp_name + "_uvs();\n\t"});
 
 			// Third check if we need to apply _factor and what's the type
-			if (a_comp_name == "normal" || a_comp_name == "bent_normal")
-				output_lookup.append("return (normalize(texture(" + a_comp_name + "_sampler, " + a_comp_name + "_uv)" + a_swizzle + ") * 2.0 - 1.0)");
+			if (needs_normalize)
+				output_lookup.append("return normalize((texture(" + a_comp_name + "_sampler, " + a_comp_name + "_uv)" + a_swizzle + " * 2.0 - vec3(1.0))");
 			else
 				output_lookup.append("return texture(" + a_comp_name + "_sampler, " + a_comp_name + "_uv)" + a_swizzle);
 
 			if (a_mat_comp.m_type == ror::Material::ComponentType::factor_texture)
 			{
 				output_lookup.append(" * ");
-				if (a_comp_name == "normal" || a_comp_name == "bent_normal")
+				if (needs_normalize)
 				{
 					auto tmp{"in_factors." + a_comp_name + "_factor"};
 					output_lookup.append("vec3(" + tmp + ", " + tmp + ", 1.0)");        // This scale only scale X and Y not Z hence 1.0 in Z according to gltf spec
@@ -1046,6 +1040,9 @@ std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_c
 				else
 					output_lookup.append(factor_cast_str);
 			}
+
+			if (needs_normalize)
+				output_lookup.append(")");
 		}
 
 		output_lookup.append(";\n}\n");
@@ -1057,7 +1054,7 @@ std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_c
 }
 
 // Calls texture_lookup for all material components if it has textures
-std::string texture_lookups(const ror::Material &a_material)
+std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
 {
 	std::string output{""};
 
@@ -1085,13 +1082,23 @@ std::string texture_lookups(const ror::Material &a_material)
 	    a_material.m_normal.m_type == ror::Material::ComponentType::texture)
 	{
 		// Read tbn.frag.glsl resource and create a string_view
-		auto            &tbn_resource = ror::load_resource("shaders/tbn.frag.glsl", ror::ResourceSemantic::shaders);
-		std::string_view tbn_code{reinterpret_cast<const char *>(tbn_resource.data().data()), tbn_resource.data().size()};
+		auto       &tbn_resource = ror::load_resource("shaders/tbn.frag.glsl", ror::ResourceSemantic::shaders);
+		std::string tbn_code{reinterpret_cast<const char *>(tbn_resource.data().data()), tbn_resource.data().size()};
+		if (a_has_tangent)
+		{
+			replace_next_at("//", tbn_code);
+			replace_next_at("", tbn_code);
+		}
+		else
+		{
+			replace_next_at("", tbn_code);
+			replace_next_at("//", tbn_code);
+		}
 		output.append(tbn_code);
 	}
 	else        // Otherwise add a simple normal map overloaded getter
 	{
-		output.append("vec3 get_normal(const in vec3 N, const in vec3 V)\n{\n\treturn N;\n}\n");
+		output.append("vec3 get_normal(const in vec3 N)\n{\n\treturn normalize(N);\n}\n");
 	}
 
 	if (a_material.m_blend_mode == rhi::BlendMode::mask)
@@ -1271,15 +1278,14 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal)
 
 	// If we have a normal map use the overloaded get_normal(N, V) which uses get_normal() internally, there must be vertex normal available
 	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
-	    a_material.m_normal.m_type == ror::Material::ComponentType::texture)
+	    a_material.m_normal.m_type == ror::Material::ComponentType::texture ||
+	    a_has_normal)
 	{
-		assert(a_has_normal && "Model with a normal map doens't bring vertex normals, generate these");
-		output.append("\tmaterial.normal = get_normal(in_vertex_normal, material.view);\n");
+		assert(a_has_normal && "Model with a normal map doens't bring vertex normals, generate these");        // If this asserts just use the else part to generate the normals
+		output.append("\tmaterial.normal = get_normal(in_vertex_normal);\n");
 	}
-	else if (a_has_normal)        // otherwise use the standard vertex_normal()
-		output.append("\tmaterial.normal = normalize(in_vertex_normal);\n");
-	else
-		output.append("\tmaterial.normal = vec3(0.0, 0.0, 1.0);\n");
+	else        // otherwise lets generate a normal
+		output.append("\tmaterial.normal = normalize(cross(dFdx(in_vertex_position.xyz), dFdy(in_vertex_position.xyz)));\n");
 
 	// Can't use the following because reflectance is not a Component
 	if (a_material.m_metallic.m_type != ror::Material::ComponentType::none)
@@ -1408,6 +1414,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	const auto &vertex_descriptor = a_mesh.vertex_descriptor(a_primitive_index);
 	const auto  type              = vertex_descriptor.type();
 	const auto  has_normal        = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal);
+	const auto  has_tangent       = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_tangent)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_tangent);
 
 	auto material_index = a_mesh.material(a_primitive_index);
 	assert(material_index != -1 && "Material index can't be -1");
@@ -1434,7 +1441,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	output.append(fs_light_common(1, setting.directional_light_set(), setting.directional_light_binding(), fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
-	output.append(texture_lookups(material));
+	output.append(texture_lookups(material, has_tangent));
 	output.append(fs_set_main(material, a_has_shadow, has_normal));
 
 	return output;

@@ -1,42 +1,47 @@
-// From http://www.thetenthplanet.de/archives/1180
+// From https://github.com/KhronosGroup/glTF-Sample-Viewer/blob/master/source/Renderer/shaders/material_info.glsl#L97
+// Generate tangent from normalized geometric normal, world position and texture coordinate using derivatives
 
-mat3 cotangent_frame(const in vec3 N, const in vec3 p, const in vec2 uv)
+vec3 get_tangent(const in vec3 n, const in vec3 p, const in vec2 uv)
 {
-	// get edge vectors of the pixel triangle
-	vec3 dp1  = dFdx(p);
-	vec3 dp2  = dFdy(p);
-	vec2 duv1 = dFdx(uv);
-	vec2 duv2 = dFdy(uv);
+	vec3 uv_dx = dFdx(vec3(uv, 0.0));
+	vec3 uv_dy = dFdy(vec3(uv, 0.0));
 
-	// solve the linear system
-	vec3 dp2perp = cross(dp2, N);
-	vec3 dp1perp = cross(N, dp1);
-	vec3 T       = dp2perp * duv1.x + dp1perp * duv2.x;
-	vec3 B       = dp2perp * duv1.y + dp1perp * duv2.y;
+	if (length(uv_dx) + length(uv_dy) <= 1e-6)
+	{
+		uv_dx = vec3(1.0, 0.0, 0.0);
+		uv_dy = vec3(0.0, 1.0, 0.0);
+	}
 
-	// construct a scale-invariant frame
-	float invmax = inversesqrt(max(dot(T, T), dot(B, B)));
-	return mat3(T * invmax, B * invmax, N);
+	vec3 t = (uv_dy.t * dFdx(p) - uv_dx.t * dFdy(p)) / (uv_dx.s * uv_dy.t - uv_dy.s * uv_dx.t);
+
+	return normalize(t - n * dot(n, t));
 }
 
-// assume N, the interpolated vertex normal and
-// V, the view vector (vertex to eye)
-// map is the normal map value usually via get_normal();
-
-vec3 perturb_normal(const in vec3 N, const in vec3 V, const in vec2 texcoord, const in vec3 map)
+vec4 get_tangent()
 {
-	mat3 TBN = cotangent_frame(N, -V, texcoord);
-
-	return normalize(TBN * map);
+	// Only of the following will be enabled at a time
+	@return vec4(get_tangent(in_vertex_normal, in_vertex_position.xyz, get_normal_uvs()), 1.0);
+	@return in_vertex_tangent;
 }
 
-vec3 get_normal(const in vec3 N, const in vec3 V)
+vec3 get_bitangent(const in vec3 n, const in vec4 t)
 {
-	vec3 pn   = perturb_normal(N, V, get_normal_uvs(), get_normal());
+	return cross(n, t.xyz) * t.w;
+}
+
+// gn is the geometric normal of the vertex interpolated for the face
+vec3 get_normal(const in vec3 gn)
+{
+	vec3 map = get_normal();
+
+	vec4 gt = get_tangent();
+	vec3 gb = get_bitangent(gn, gt);
+
+	vec3 n = normalize(mat3(gt.xyz, gb, gn) * map);
 
 	// // If double sided do the following
 	// if (!gl_FrontFacing)
-	//	pn *= -1.0;
+	//	n *= -1.0;
 
-	return pn;
+	return n;
 }
