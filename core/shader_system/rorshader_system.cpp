@@ -674,6 +674,13 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	auto        has_morphs               = mesh.has_morphs();
 	auto        is_depth_shadow          = (a_renderpass_type == rhi::RenderpassType::depth || a_renderpass_type == rhi::RenderpassType::shadow);
 
+	auto material_index = mesh.material(a_primitive_index);
+	assert(material_index != -1 && "Material index can't be -1");
+	auto &material       = a_model.materials()[ror::static_cast_safe<size_t>(material_index)];
+	auto  has_normal_map = material.m_normal.m_type == ror::Material::ComponentType::texture || material.m_normal.m_type == ror::Material::ComponentType::factor_texture;
+
+	(void) has_normal_map;
+
 	std::unordered_map<rhi::BufferSemantic, std::pair<uint32_t, bool>> targets_count{
 	    {rhi::BufferSemantic::vertex_position, {0, true}},
 	    {rhi::BufferSemantic::vertex_normal, {0, has_normal}},
@@ -1065,13 +1072,13 @@ std::string texture_lookups(const ror::Material &a_material)
 	output.append(texture_lookup(a_material.m_clearcoat_normal, "clearcoat_normal", "vec3", ".xyz"));
 	output.append(texture_lookup(a_material.m_clearcoat, "clearcoat", "float", ".x"));
 	output.append(texture_lookup(a_material.m_clearcoat_roughness, "clearcoat_roughness", "float", ".x"));
-	output.append(texture_lookup(a_material.m_metallic, "metallic", "float", ".x"));          // Red component of MRO[H] texture
-	output.append(texture_lookup(a_material.m_roughness, "roughness", "float", ".y"));        // Green component of MRO[H] texture
-	output.append(texture_lookup(a_material.m_occlusion, "occlusion", "float", ".z"));        // Blue component of MRO[H] texture
+	output.append(texture_lookup(a_material.m_occlusion, "occlusion", "float", ".x"));        // Red component of ORM[H] texture
+	output.append(texture_lookup(a_material.m_roughness, "roughness", "float", ".y"));        // Green component of ORM[H] texture
+	output.append(texture_lookup(a_material.m_metallic, "metallic", "float", ".z"));          // Blue component of ORM[H] texture
+	output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));              // Alpha component of ORM[H] texture
 	output.append(texture_lookup(a_material.m_normal, "normal", "vec3", ".xyz"));
 	// output.append(texture_lookup(a_material.m_tangent, "tangent", "vec3", ".xyz"));
 	output.append(texture_lookup(a_material.m_bent_normal, "bent_normal", "vec3", ".xyz"));
-	output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));        // Alpha component of MRO[H] texture
 
 	// If we have a normal map, lets add code to generate tangent frame in the shader
 	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
@@ -1397,15 +1404,14 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 
 std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const materials_vector &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, bool a_has_shadow)
 {
-	const auto           is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
-	const auto          &vertex_descriptor = a_mesh.vertex_descriptor(a_primitive_index);
-	const auto           type              = vertex_descriptor.type();
-	const auto           has_normal        = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal);
-	ror::Material        default_material{};                 // Default material if no material available for this mesh primitive
-	const ror::Material *material{&default_material};        // Default material if no material available for this mesh primitive
+	const auto  is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
+	const auto &vertex_descriptor = a_mesh.vertex_descriptor(a_primitive_index);
+	const auto  type              = vertex_descriptor.type();
+	const auto  has_normal        = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal);
 
-	if (a_mesh.material(a_primitive_index) != -1)
-		material = &a_materials[ror::static_cast_safe<size_t>(a_mesh.material(a_primitive_index))];
+	auto material_index = a_mesh.material(a_primitive_index);
+	assert(material_index != -1 && "Material index can't be -1");
+	auto &material = a_materials[ror::static_cast_safe<size_t>(material_index)];
 
 	std::string output{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 
@@ -1423,13 +1429,13 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	output.append(ror::fragment_shader_input_output(vertex_descriptor));
 	output.append(per_view_common(setting.per_view_uniform_set(), setting.per_view_uniform_binding()));
 	output.append(per_frame_common(setting.per_frame_uniform_set(), setting.per_frame_uniform_binding()));
-	output.append(material_samplers(*material, a_has_shadow));
-	output.append(material_factors_ubo(*material, sb));
+	output.append(material_samplers(material, a_has_shadow));
+	output.append(material_factors_ubo(material, sb));
 	output.append(fs_light_common(1, setting.directional_light_set(), setting.directional_light_binding(), fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
-	output.append(texture_lookups(*material));
-	output.append(fs_set_main(*material, a_has_shadow, has_normal));
+	output.append(texture_lookups(material));
+	output.append(fs_set_main(material, a_has_shadow, has_normal));
 
 	return output;
 }

@@ -377,4 +377,15 @@ struct MemoryLayout
 	// clang-format on
 };
 
+template <typename _type, std::enable_if_t<std::is_floating_point<_type>::value, bool> = true>
+constexpr _type srgb_to_linear(_type a_srgb)
+{
+	if (a_srgb < static_cast<_type>(0.04045f))
+		a_srgb = a_srgb / static_cast<_type>(12.92f);
+	else
+		a_srgb = std::pow((a_srgb + static_cast<_type>(0.055f)) / static_cast<_type>(1.055f), static_cast<_type>(2.4f));
+
+	return a_srgb;
+}
+
 }        // namespace ror

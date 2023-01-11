@@ -9,8 +9,8 @@
 	],
 	"textures":[
 		{
-			"name":"swapchain",
-			"format":"b8g8r8a8_uint32_norm_srgb"
+			"name":"before_swapchain",
+			"format":"b8g8r8a8_uint32_norm"
 		},
 		{
 			"name":"renderable",
@@ -48,7 +48,7 @@
 		},
 		{
 			"name":"Texture6",
-			"format":"r8g8b8a8_uint32_norm_srgb"
+			"format":"r8g8b8a8_uint32_norm"
 		},
 		{
 			"name":"Texture8",
@@ -374,9 +374,9 @@
 					}
 				],
 				"background":[
-					0.15,
-					0.14,
-					0.12,
+					0.152,
+					0.137,
+					0.122,
 					1.0
 				],
 				"depends_on":[
@@ -488,9 +488,9 @@
 					}
 				],
 				"background":[
-					0.14,
-					0.14,
-					0.14,
+					0.53,
+					0.37,
+					0.22,
 					1.0
 				],
 				"subpasses":[

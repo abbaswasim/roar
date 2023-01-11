@@ -15,165 +15,8 @@
 			"name":"root"
 		},
 		{
-			"name":"BabaYagas",
-			"translation":[
-				0.0,
-				0.0,
-				0.0
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"scale":[
-				1.0,
-				1.0,
-				1.0
-			],
-			"path":"baba_yagas_hut/scene.gltf",
-			"program":0,
-			"bvh":true
-		},
-		{
-			"name":"boy",
-			"path":"astro_boy_gltf/astro_boy.gltf",
-			"animation":2,
-			"translation":[
-				1.4,
-				0.0,
-				-1.5
-			],
-			"rotation":[
-				0,
-				-0.8509035,
-				0,
-				0.525322 
-			],
-			"scale":[
-				0.08,
-				0.08,
-				0.08
-			]
-		},
-		{
-			"name":"fox",
-			"path":"Fox/Fox.gltf",
-			"translation":[
-				0.0,
-				0.02,
-				0.0
-			],
-			"scale":[
-				0.01,
-				0.01,
-				0.01
-			]
-		},
-		{
-			"name":"Brainstem",
-			"path":"brainstem/BrainStem.gltf",
-			"translation":[
-				1.0,
-				0.22,
-				2.0
-			],
-			"rotation":[
-				0,
-				-0.8509035,
-				0,
-				0.525322 
-			],
-			"scale":[
-				0.8,
-				0.8,
-				0.8
-			]
-		},
-		{
-			"name":"BoomBoxAxis",
-			"path":"boom_box_with_axes/glTF/BoomBoxWithAxes.gltf",
-			"translation":[
-				0.0,
-				0.0,
-				0.0
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"scale":[
-				10.0,
-				10.0,
-				10.0
-			]
-		},
-		{
 			"name":"damaged_helmet",
 			"path":"damaged_helmet/glTF/DamagedHelmet.gltf",
-			"translation":[
-				-2.0,
-				0.5,
-				2.0
-			],
-			"rotation":[
-				0.0,
-				1.0,
-				0.0,
-				0.0
-			],
-			"scale":[
-				0.5,
-				0.5,
-				0.5
-			]
-		},
-		{
-			"name":"lantern",
-			"path":"lantern/glTF/Lantern.gltf",
-			"translation":[
-				-2.5,
-				-0.15,
-				-4.0
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"scale":[
-				0.1,
-				0.1,
-				0.1
-			]
-		},
-		{
-			"name":"orientation_test",
-			"path":"orientation_test/glTF/OrientationTest.gltf",
-			"translation":[
-				0.0,
-				0.25,
-				-3.0
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"scale":[
-				0.05,
-				0.05,
-				0.05
-			]
-		},
-		{
-			"name":"unit_cube",
-			"path":"unit_cube/unit_cube.gltf",
 			"translation":[
 				0.0,
 				0.0,
@@ -255,9 +98,9 @@
 				5.0
 			],
 			"color":[
-				0.9,
-				0.5,
-				0.3
+				1.0,
+				1.0,
+				1.0
 			],
 			"intensity":1.0
 		},
@@ -265,7 +108,7 @@
 			"type": "spot",
 			"innerAngle": 0.8,
 			"outerAngle": 1.6,
-			"intensity":1.0,
+			"intensity":0.0,
 			"position":[
 				5.0,
 				10.0,
@@ -284,7 +127,7 @@
 		},
 		{
 			"type": "point",
-			"intensity":1.0,
+			"intensity":0.0,
 			"range":20.0,
 			"position":[
 				0.0,
@@ -293,8 +136,8 @@
 			],
 			"color": [
 				1.0,
-				0.0,
-				0.0
+				1.0,
+				1.0
 			]
 		},
 		{

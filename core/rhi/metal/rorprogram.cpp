@@ -187,12 +187,10 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	colorAttachment->setBlendingEnabled(false);
 
 	auto material_index = mesh.material(a_prim_index);
-	if (material_index != -1)
-	{
-		auto &material = materials[static_cast<size_t>(mesh.material(a_prim_index))];
-		if (material.m_blend_mode == rhi::BlendMode::blend)
-			colorAttachment->setBlendingEnabled(true);
-	}
+	assert(material_index != -1 && "Material index can't be -1");
+	auto &material = materials[static_cast<size_t>(material_index)];
+	if (material.m_blend_mode == rhi::BlendMode::blend)
+		colorAttachment->setBlendingEnabled(true);
 
 	render_pipeline_descriptor->setLabel(NS::String::string(a_model.meshes()[a_mesh_index].name().c_str(), NS::StringEncoding::UTF8StringEncoding));
 	// render_pipeline_descriptor->setRasterSampleCount(setting.m_multisample_count);
@@ -203,7 +201,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 
 	if (!this->render_pipeline_state())
 	{
-        assert(pError != nullptr && "Failed render pipeline creation didn't bring any errors");
+		assert(pError != nullptr && "Failed render pipeline creation didn't bring any errors");
 		ror::log_critical("Metal render program creation failed with error: {}", pError->localizedDescription()->utf8String());
 		return;
 	}
@@ -211,8 +209,8 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	mtl_vertex_descriptor->release();
 	render_pipeline_descriptor->release();
 
-    if (pError != nullptr)
-        pError->release();
+	if (pError != nullptr)
+		pError->release();
 
 	// Other setting functions that can be called on RPD
 	/*

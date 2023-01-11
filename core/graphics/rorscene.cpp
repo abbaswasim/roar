@@ -38,6 +38,8 @@
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
 #include "graphics/rorscene.hpp"
+#include "math/rormatrix4.hpp"
+#include "math/rormatrix4_functions.hpp"
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
 #include "math/rorvector3.hpp"
@@ -355,15 +357,12 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 
 	for (size_t prim_id = 0; prim_id < a_mesh.primitives_count(); ++prim_id)
 	{
-		static ror::Material default_material{};        // Default material if no material available for this mesh primitive
-		ror::Material       *material{&default_material};
-
 		auto &program = pass_programs[static_cast<size_t>(a_mesh.program(prim_id))];
-		// assert(a_mesh.material(prim_id) != -1);        // TODO: This is going to crash for meshes with no material, use default material like in shader system
-		if (a_mesh.material(prim_id) != -1)
-			material = &a_model.materials()[static_cast<uint32_t>(a_mesh.material(prim_id))];
+		auto material_index = a_mesh.material(prim_id);
+		assert(material_index != -1 && "Material index can't be -1");
+		auto &material = a_model.materials()[static_cast<uint32_t>(material_index)];
 
-		auto &material_factors = material->shader_buffer();
+		auto &material_factors = material.shader_buffer();
 		// material_factors.bind(a_encoder, rhi::ShaderType::fragment, buffer_index_offset);
 		material_factors.buffer_bind(*a_dd.encoder, rhi::ShaderStage::fragment);
 
@@ -451,24 +450,24 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		auto &samplers = a_model.samplers();
 		auto  binding_index{0u};
 
-		enable_material_component(material->m_base_color, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_diffuse_color, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_specular_glossyness, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_emissive, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_anisotropy, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_transmission, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_sheen_color, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_sheen_roughness, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_clearcoat_normal, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_clearcoat, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_clearcoat_roughness, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_metallic, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_roughness, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_occlusion, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_normal, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_bent_normal, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_height, textures, images, samplers, binding_index, a_dd);
-		enable_material_component(material->m_subsurface_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_base_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_diffuse_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_specular_glossyness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_emissive, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_anisotropy, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_transmission, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_sheen_color, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_sheen_roughness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_clearcoat_normal, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_clearcoat, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_clearcoat_roughness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_metallic, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_roughness, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_occlusion, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_normal, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_bent_normal, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_height, textures, images, samplers, binding_index, a_dd);
+		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
 		if (a_mesh.has_indices(prim_id))
 		{

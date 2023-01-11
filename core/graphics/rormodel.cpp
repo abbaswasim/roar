@@ -26,6 +26,7 @@
 #include "camera/rorcamera.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rorjobsystem.hpp"
+#include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
@@ -35,6 +36,7 @@
 #include "graphics/rornode.hpp"
 #include "math/rormatrix.hpp"
 #include "math/rorvector.hpp"
+#include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffer_view.hpp"
@@ -782,6 +784,112 @@ std::vector<_type> unpack_normalized(const cgltf_accessor *a_accessor)
 	return temp;
 }
 
+// Only support packing from and into a 4-channel texture at the moment
+void pack_into_channel(ror::Material::Component<float32_t>                                     &a_destination,
+                       ror::Material::Component<float32_t>                                     &a_source,
+                       std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>           &a_textures,
+                       std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>> &a_images,
+                       uint32_t a_destination_channel, uint32_t a_source_channel)
+{
+	auto &d_texture = a_textures[static_cast_safe<size_t>(a_destination.m_texture)];
+	auto &s_texture = a_textures[static_cast_safe<size_t>(a_source.m_texture)];
+	assert(d_texture.texture_image() != -1);
+	assert(s_texture.texture_image() != -1);
+	auto &d_image = a_images[static_cast_safe<size_t>(d_texture.texture_image())];
+	auto &s_image = a_images[static_cast_safe<size_t>(s_texture.texture_image())];
+
+	auto d_width  = d_image.width();
+	auto d_height = d_image.height();
+	auto d_depth  = d_image.depth();
+	auto d_bpp    = d_image.bytes_per_pixel();
+
+	auto s_width  = s_image.width();
+	auto s_height = s_image.height();
+	auto s_depth  = s_image.depth();
+	auto s_bpp    = s_image.bytes_per_pixel();
+
+	assert(d_bpp == 4 && s_bpp == 4 && "Packing only supports 4 bpp destination and source textures");
+	assert(a_destination_channel < 4 && a_source_channel < 4 && "Channel indices out of bound");
+	assert(d_width == s_width && d_height == s_height && d_depth == s_depth && "Width, height and depth of both textures is not the same");
+
+	auto d_data = d_image.data();
+	auto s_data = s_image.data();
+
+	for (size_t i = 0; i < d_width * d_height * d_bpp; i += d_bpp)
+		d_data[i + a_destination_channel] = s_data[i + a_source_channel];
+
+	// Now reset the destination texture image index
+	// At this point the o_texture_image will be unreferenced (thats ok) or referenced by someone else for something else
+	// This doesn't help much on its own unless we do the shader work of saving sampler and texture bindings
+	// TODO: Fix shaders to reuse the samplers and textures for AO
+	s_texture.texture_image(d_texture.texture_image());
+	s_texture.texture_sampler(d_texture.texture_sampler());
+}
+
+void pack_materials_textures(std::vector<ror::Material, rhi::BufferAllocator<ror::Material>>         &a_materials,
+                             std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>           &a_textures,
+                             std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>> &a_images)
+{
+	for (auto &material : a_materials)
+	{
+		assert(material.m_roughness.m_texture == material.m_metallic.m_texture && "Material roughness and metallic should be the same texture");
+		// Lets pack occlusion into roughness Red
+		if (material.m_occlusion.m_texture != -1 && material.m_roughness.m_texture != material.m_occlusion.m_texture)
+			pack_into_channel(material.m_roughness, material.m_occlusion, a_textures, a_images, 0, 0);        // Pack into Red channel
+
+		// and height into Alpha if exists
+		if (material.m_height.m_texture != -1 && material.m_roughness.m_texture != material.m_height.m_texture)
+			pack_into_channel(material.m_roughness, material.m_height, a_textures, a_images, 3, 0);        // Pack into Alpha channel
+	}
+}
+
+template <typename _component_type>
+FORCE_INLINE void set_image_to_linear(_component_type &a_material, const char *a_name,
+                                      std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>           &a_textures,
+                                      std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>> &a_images)
+{
+	if (a_material.m_texture != -1)
+	{
+		auto &texture = a_textures[static_cast_safe<size_t>(a_material.m_texture)];
+		assert(texture.texture_image() != -1);
+		auto &image = a_images[static_cast<size_t>(texture.texture_image())];
+
+		if (image.format() == rhi::PixelFormat::r8g8b8a8_uint32_norm)
+			ror::log_info("{} texture has already been modified", a_name);
+
+		image.format(rhi::PixelFormat::r8g8b8a8_uint32_norm);
+	}
+}
+void update_materials_textures_to_linear(std::vector<ror::Material, rhi::BufferAllocator<ror::Material>>         &a_materials,
+                                         std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>           &a_textures,
+                                         std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>> &a_images)
+{
+	for (auto &material : a_materials)
+	{
+		// These ones are suppose to be in sRGB which is default texture format
+		// set_image_to_srgb(material.m_base_color, "Base color", a_textures, a_images);
+		// set_image_to_srgb(material.m_emissive, "Emissive color", a_textures, a_images);
+		// set_image_to_linear(material.m_sheen_color, "Sheen", a_textures, a_images);
+		// set_image_to_linear(material.m_specular_glossyness, "Specular glossyness", a_textures, a_images);
+
+		// These ones needs to be reset to linear
+		set_image_to_linear(material.m_diffuse_color, "Diffuse", a_textures, a_images);
+		set_image_to_linear(material.m_anisotropy, "Anisotropy", a_textures, a_images);
+		set_image_to_linear(material.m_transmission, "Transmission", a_textures, a_images);
+		set_image_to_linear(material.m_sheen_roughness, "Sheen roughness", a_textures, a_images);
+		set_image_to_linear(material.m_clearcoat_normal, "Clearcoat normal", a_textures, a_images);
+		set_image_to_linear(material.m_clearcoat, "Clearcoat", a_textures, a_images);
+		set_image_to_linear(material.m_clearcoat_roughness, "Clearcoat roughness", a_textures, a_images);
+		set_image_to_linear(material.m_metallic, "Metallic", a_textures, a_images);
+		set_image_to_linear(material.m_roughness, "Roughness", a_textures, a_images);
+		set_image_to_linear(material.m_occlusion, "Occlusion", a_textures, a_images);
+		set_image_to_linear(material.m_normal, "Normal", a_textures, a_images);
+		set_image_to_linear(material.m_bent_normal, "Bent normal", a_textures, a_images);
+		set_image_to_linear(material.m_height, "Height", a_textures, a_images);
+		set_image_to_linear(material.m_subsurface_color, "Subsurface", a_textures, a_images);
+	}
+}
+
 void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras)
 {
 	// Lets start by reading a_filename via resource cache
@@ -962,7 +1070,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 			}
 
 			// Read all the materials
-			this->m_materials.reserve(data->materials_count);
+			this->m_materials.reserve(data->materials_count + 1);
+			// Lets have a default material at index 0
+			this->m_materials.emplace_back();
 			for (size_t i = 0; i < data->materials_count; ++i)
 			{
 				// Using calculations from https://google.github.io/filament/Filament.html#toc4.8.3.2 to calculate f0 from ior
@@ -1086,7 +1196,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 				this->m_materials.emplace_back(std::move(material));
 
-				material_to_index.emplace(&mat, i);
+				material_to_index.emplace(&mat, i + 1);        // Index 0 is default hence the +1
 			}
 
 			// Read all the meshes
@@ -1115,7 +1225,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 					if (cprim.material)
 						mesh.material(j, find_safe_index(material_to_index, cprim.material));
 					else
-						mesh.material(j, -1);
+						mesh.material(j, 0);
 
 					mesh.program(j, -1);
 
@@ -1760,13 +1870,11 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						joints_count = skin.joints_count();
 					}
 
-					auto      material_index = mesh.material(j);
-					hash_64_t material_hash  = 0;
-					if (material_index != -1)
-					{
-						auto &material = this->m_materials[ror::static_cast_safe<size_t>(material_index)];
-						material_hash  = material.m_hash;
-					}
+					auto material_index = mesh.material(j);
+					assert(material_index != -1 && "Material index can't be -1");
+					hash_64_t material_hash = 0;
+					auto     &material      = this->m_materials[ror::static_cast_safe<size_t>(material_index)];
+					material_hash           = material.m_hash;
 
 					mesh.update_primitive_hash(j, joints_count, material_hash);
 				}
@@ -1796,6 +1904,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 		{
 			ror::log_critical("Loading glTF data failed, this is highly unlikely so IO error must have happened {}", filename.c_str());
 		}
+
+		// Pack textures when possible ORM[H] texture as well as other SpecGloss workflow textures
+		pack_materials_textures(this->m_materials, this->m_textures, this->m_images);
+
+		// Finally force update base color and emissive textures format to be sRGB according to the glTF spec
+		update_materials_textures_to_linear(this->m_materials, this->m_textures, this->m_images);
 
 #endif
 

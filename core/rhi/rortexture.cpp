@@ -36,6 +36,7 @@ namespace rhi
 
 void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::TextureImage &a_texture, const std::string &a_name)
 {
+	// If req_comp is ever changed from 4 to bpp, make sure ORM[H] texture is swizzled accordingly or separated
 	int32_t w = 0, h = 0, bpp = 0, req_comp = 4;
 
 	if (!ror::settings().m_force_rgba_textures)
@@ -43,10 +44,17 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 
 	auto *new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
 
-    bpp = req_comp;
+	bpp = req_comp;
 
 	a_texture.push_empty_mip();
-	a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);        // TODO: How do I read this via STB or gltf?
+
+	// By default consider everything sRGB.
+	// glTF base color and emissive needs to be sRGB because of that everything else needs to be explicitly set to linear
+	if (ror::settings().m_force_linear_textures)
+		a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm);
+	else
+		a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);
+
 	a_texture.reset(new_data, static_cast<uint64_t>(w * h * bpp));        // a_texture now owns the new_data pointer returned by stbi
 	a_texture.width(static_cast<uint32_t>(w));
 	a_texture.height(static_cast<uint32_t>(h));

@@ -67,19 +67,17 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_buffer_increment   = setting.get<uint32_t>("buffer_increment");
 		this->m_multisample_count  = setting.get<uint32_t>("multisample_count");
 
-		this->m_clean_on_boot        = setting.get<bool>("clean_on_boot");
-		this->m_visualise_mipmaps    = setting.get<bool>("visualise_mipmaps");
-		this->m_vertical_sync        = setting.get<bool>("vsync");
-		this->m_window_transparent   = setting.get<bool>("window_transparent");
-		this->m_window_premultiplied = setting.get<bool>("window_premultiplied");
-		this->m_window_prerotated    = setting.get<bool>("window_prerotated");
-		this->m_fullscreen           = setting.get<bool>("fullscreen");
-		this->m_resizable            = setting.get<bool>("resizable");
-		this->m_force_rgba_textures  = setting.get<bool>("force_rgba_textures");
-
-		auto bgc = setting.get<std::vector<float32_t>>("background");
-		if (bgc.size() >= 4)
-			this->m_background_color = ror::Vector4f(bgc[0], bgc[1], bgc[2], bgc[3]);
+		this->m_clean_on_boot             = setting.get<bool>("clean_on_boot");
+		this->m_visualise_mipmaps         = setting.get<bool>("visualise_mipmaps");
+		this->m_vertical_sync             = setting.get<bool>("vsync");
+		this->m_window_transparent        = setting.get<bool>("window_transparent");
+		this->m_window_premultiplied      = setting.get<bool>("window_premultiplied");
+		this->m_window_prerotated         = setting.get<bool>("window_prerotated");
+		this->m_fullscreen                = setting.get<bool>("fullscreen");
+		this->m_resizable                 = setting.get<bool>("resizable");
+		this->m_force_rgba_textures       = setting.get<bool>("force_rgba_textures");
+		this->m_background_srgb_to_linear = setting.get<bool>("background_to_srgb");
+		this->m_force_linear_textures     = setting.get<bool>("force_linear_textures");
 
 		auto alc = setting.get<std::vector<float32_t>>("ambient_light_color");
 		if (alc.size() >= 4)
@@ -277,8 +275,9 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_force_rgba_textures{false};
 	bool m_print_generated_shaders{false};
 	bool m_write_generated_shaders{false};
+	bool m_background_srgb_to_linear{false};
+	bool m_force_linear_textures{false};
 
-	ror::Vector4f m_background_color{0.19f, 0.04f, 0.14f, 1.0f};
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
 	ror::Vector4f m_fog_color{0.5f, 0.5f, 0.5f, 1.0f};
 

@@ -25,6 +25,8 @@
 
 #pragma once
 
+#include "foundation/rormacros.hpp"
+#include "foundation/rortypes.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
@@ -192,6 +194,15 @@ FORCE_INLINE _type vector_clamp_safe(const _type &a_vector, const _type &a_first
 
 template <class _type>
 FORCE_INLINE _type vector_select(const vector_type<_type, uint32_t> &a_vector, const _type &a_first, const _type &a_second);
+
+template <typename _type,
+		  std::enable_if_t<std::is_same<_type, ror::Vector3<float>>::value || std::is_same<_type, ror::Vector4<float>>::value, bool> = true>
+constexpr void srgb_to_linear(_type &a_srgb)
+{
+	a_srgb.x = srgb_to_linear(a_srgb.x);
+	a_srgb.y = srgb_to_linear(a_srgb.y);
+	a_srgb.z = srgb_to_linear(a_srgb.z);
+}
 
 }        // namespace ror
 

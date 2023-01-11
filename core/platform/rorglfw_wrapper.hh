@@ -122,6 +122,18 @@ FORCE_INLINE GLFWwindow *GLFWwindowWrapper<_type>::window()
 template <class _type>
 FORCE_INLINE ror::Vector4ui GLFWwindowWrapper<_type>::dimensions()
 {
+	/*
+	  Almost all positions and sizes in GLFW are measured in screen coordinates relative to one of the two origins above.
+	  This includes cursor positions, window positions and sizes, window frame sizes, monitor positions and video mode resolutions.
+
+	  Two exceptions are the monitor physical size, which is measured in millimetres, and framebuffer size, which is measured in pixels.
+
+	  if dimensions() is only used for calculing scale, that can also be retried from glfw directly:
+	  float xscale, yscale;
+	  GLFWmonitor* primary = glfwGetPrimaryMonitor();
+	  glfwGetMonitorContentScale(primary, &xscale, &yscale);
+	*/
+
 	ror::Vector4i dimensions;
 
 	glfwGetFramebufferSize(this->m_window, &dimensions.x, &dimensions.y);

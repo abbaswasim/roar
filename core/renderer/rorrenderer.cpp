@@ -34,8 +34,7 @@
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "graphics/rorscene.hpp"
-#include "math/rorvector2.hpp"
-#include "math/rorvector4.hpp"
+#include "math/rorvector_functions.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
@@ -49,6 +48,7 @@
 #include "rhi/rorshader_input.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
+#include "settings/rorsettings.hpp"
 #include <cassert>
 #include <filesystem>
 #include <stdexcept>
@@ -326,7 +326,12 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 	{
 		auto color = a_render_pass["background"];
 		assert(color.size() == 4 && "Renderpass background color is not correctly defined");
-		render_pass.background({color[0], color[1], color[2], color[3]});
+
+		ror::Vector4f bc{color[0], color[1], color[2], color[3]};
+		if (ror::settings().m_background_srgb_to_linear)
+			ror::srgb_to_linear(bc);
+
+		render_pass.background(bc);
 	}
 
 	assert((a_render_pass.contains("render_targets") || a_render_pass.contains("render_buffers")) && "Render pass must have render targets");
