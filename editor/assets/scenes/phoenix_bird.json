@@ -1,25 +1,25 @@
 {
 	"nodes":[
 		{
-			"name":"BabaYagas",
+			"name":"phoenix_bird",
+			"path":"phoenix_bird/scene.gltf",
+			"animation":0,
 			"translation":[
 				0.0,
 				0.0,
 				0.0
 			],
 			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
+				0,
+				0,
+				0,
+				1
 			],
 			"scale":[
 				1.0,
 				1.0,
 				1.0
-			],
-			"path":"baba_yagas_hut/scene.gltf",
-			"program":0
+			]
 		}
 	],
 	"lights":[
@@ -74,8 +74,8 @@
 			],
 			"color": [
 				1.0,
-				0.0,
-				0.0
+				1.0,
+				1.0
 			]
 		},
 		{
