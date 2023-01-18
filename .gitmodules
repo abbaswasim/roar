@@ -43,3 +43,6 @@
 [submodule "thirdparty/glslang"]
 	path = thirdparty/glslang
 	url = https://github.com/KhronosGroup/glslang.git
+[submodule "thirdparty/par"]
+	path = thirdparty/par
+	url = https://github.com/prideout/par.git
