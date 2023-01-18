@@ -1261,7 +1261,7 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal)
 	get_material_component(emissive, vec4(0.0));        // when adding emissive support, If there is valid emissive make sure its alpha is 0, so blending works, a in emissive must be ignored according to gltf spec
 	get_material_component(bent_normal, vec3(0.0, 0.0, 1.0));
 	// get_material_component(roughness, 1.0);
-	get_material_component(metallic, 0.0);
+	// get_material_component(metallic, 0.0);
 	get_material_component(occlusion, 1.0);
 	get_material_component(anisotropy, 0.0);
 	get_material_component(clearcoat, 1.0);
@@ -1281,6 +1281,15 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal)
 			output.append("\tmaterial.roughness = get_roughness();\n");
 	else
 		output.append("\tmaterial.roughness = 1.0;\n");
+
+	// Not using macro for metallic because I need to clamp it
+	if (a_material.m_metallic.m_type != ror::Material::ComponentType::none)
+		if (ror::settings().m_clamp_material_metallic)
+			output.append("\tmaterial.metallic = clamp(get_metallic(), 0.0, 1.0);\n");
+		else
+			output.append("\tmaterial.metallic = get_metallic();\n");
+	else
+		output.append("\tmaterial.metallic = 0.0;\n");
 
 	// TODO: View doesn't fit in material, this belongs in fragment but its a hack for now
 	// This works around having to call get_normal() twice

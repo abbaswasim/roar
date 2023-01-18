@@ -26,6 +26,7 @@
 	"print_generated_shaders" : false,
 	"write_generated_shaders" : false,
 	"clamp_material_roughness" : true,
+	"clamp_material_metallic" : true,
 	"clean_on_boot" : true,
 	"winding" : "counter_clockwise",
 	"sets_bindings" :
