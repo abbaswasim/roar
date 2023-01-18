@@ -325,9 +325,9 @@ struct trs_transform
 	vec3 scale;
 @
 
-layout(std140, set = @, binding = @) uniform joint_offset_uniform
+layout(std430, set = @, binding = @) buffer joint_offset_uniform
 {
-	uint joint_redirect[joints_count];
+	uint16_t joint_redirect[joints_count];
 } in_joint_redirects;
 
 layout(std140, set = 0, binding = 29) readonly buffer joint_inverse_bind_matrices
@@ -366,7 +366,7 @@ vec3 skin_position(vec3 vertex, uint index)
 
 	mat4 inverse_transform  = inverse(in_nodes_model.node_model_mat4[node_offset.x]);
 	mat4 joint_inverse_bind = in_joint_inverse_bind_matrices.joint_inverse_matrix[index];
-	mat4 joint_transform    = in_nodes_model.node_model_mat4[in_joint_redirects.joint_redirect[index] + node_offset.y];
+	mat4 joint_transform    = in_nodes_model.node_model_mat4[uint(in_joint_redirects.joint_redirect[index]) + node_offset.y];
 
     joint_transform = inverse_transform * joint_transform * joint_inverse_bind;
 
@@ -684,7 +684,8 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	    {rhi::BufferSemantic::vertex_color_0, {0, has_color_0}},
 	    {rhi::BufferSemantic::vertex_color_1, {0, has_color_1}}};
 
-	std::string result{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
+	std::string result{"#version 450\n\n#extension GL_EXT_shader_16bit_storage : require\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
+
 
 	// Write out vertex shader input output
 	result.append(ror::vertex_shader_input_output(vertex_descriptor, 0, "", true, is_depth_shadow));

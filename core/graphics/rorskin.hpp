@@ -81,7 +81,7 @@ class ROAR_ENGINE_ITEM Skin
 
 	void upload(rhi::Device &a_device)
 	{
-		this->m_joint_offset_shader_buffer.add_entry("joint_redirect", rhi::Format::uint32_1, static_cast_safe<uint32_t>(this->m_joints.size()));
+		this->m_joint_offset_shader_buffer.add_entry("joint_redirect", rhi::Format::uint16_1, static_cast_safe<uint32_t>(this->m_joints.size()));
 		this->m_joint_offset_shader_buffer.upload(a_device);
 
 		this->m_inverse_bind_shader_buffer.add_entry("joint_inverse_matrix", rhi::Format::float32_4x4, static_cast_safe<uint32_t>(this->m_joints.size()));
@@ -91,7 +91,7 @@ class ROAR_ENGINE_ITEM Skin
 	}
 
   private:
-	std::vector<uint32_t, rhi::BufferAllocator<uint32_t>> m_joints{};                       //! All the joints in this skeleton
+	std::vector<uint16_t, rhi::BufferAllocator<uint16_t>> m_joints{};                       //! All the joints in this skeleton
 	std::vector<Matrix4f, rhi::BufferAllocator<Matrix4f>> m_inverse_bind_matrices{};        //! Inverse bind matrices for each joint in an array
 	int32_t                                               m_root{-1};                       //! Node index of each skin, should be init with -1
 	int32_t                                               m_node_index{-1};                 //! Node index as well where the each skin is attached, should be init with -1
@@ -100,8 +100,8 @@ class ROAR_ENGINE_ITEM Skin
 	// TRS is currently unused, only matrices are used
 
 	rhi::ShaderBuffer m_joint_offset_shader_buffer{"joint_offset_uniform",
-	                                               rhi::ShaderBufferType::ubo,
-	                                               rhi::Layout::std140,
+	                                               rhi::ShaderBufferType::ssbo,
+	                                               rhi::Layout::std430,
 	                                               settings().skin_joints_set(),
 	                                               settings().skin_joints_binding()};        //! ShaderBuffers for joint_offsets within the skinning shader
 
@@ -122,7 +122,7 @@ define_type_to_shader_semantics(ror::Skin)
 	return rhi::BufferSemantic::skin_data;
 }
 
-define_type_to_shader_semantics(uint32_t)
+define_type_to_shader_semantics(uint16_t)
 {
 	return rhi::BufferSemantic::joint_index_data;
 }

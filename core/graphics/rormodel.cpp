@@ -1611,7 +1611,11 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				auto &joints = skin.joints();
 				joints.reserve(cskin.joints_count);
 				for (size_t j = 0; j < cskin.joints_count; ++j)
-					joints.emplace_back(find_safe_index(node_to_index, cskin.joints[j]));
+				{
+					auto ji = find_safe_index(node_to_index, cskin.joints[j]);
+					assert(ji != -1 && "Can't find a joint that is suppose to be there");
+					joints.emplace_back(static_cast_safe<uint16_t>(ji));
+				}
 
 				skin_to_index.emplace(&cskin, i);
 				this->m_skins.emplace_back(std::move(skin));
