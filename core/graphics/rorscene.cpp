@@ -282,6 +282,20 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	if (seconds > 1000.0f)        // TODO: Move the 1000 to settings
 		seconds = seconds - static_cast<float32_t>(static_cast<int32_t>(seconds));
 
+	static bool first_run = true;
+	if (first_run)
+	{
+		auto anim_handler = [this](Event) {
+			this->m_pause_animation = !this->m_pause_animation;
+		};
+
+		a_event_system.subscribe(ror::keyboard_p_down, anim_handler);
+		first_run = false;
+	}
+
+	if (this->m_pause_animation)
+		animation_count = 0;
+
 	per_frame_uniform->buffer_map();
 	per_frame_uniform->update("delta_time", &seconds);
 	per_frame_uniform->update("nodes_count", &ncount);
