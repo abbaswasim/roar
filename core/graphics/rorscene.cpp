@@ -1630,4 +1630,247 @@ void Scene::load_specific()
 void Scene::unload()
 {}
 
+/*
+// Code for testing CPU walk, only works for one model at a time
+auto node_has_animation(ror::Model &a_model, uint32_t a_node_index, uint32_t a_animation_index)
+{
+	auto &model = a_model;
+	auto  current_anim{0u};
+	for (auto &anim : model.animations())
+	{
+		if (current_anim == a_animation_index)
+			for (auto &chanl : anim.m_channels)
+				if (chanl.m_target_node_index == a_node_index)
+					return true;
+		current_anim++;
+	}
+
+	return false;
+}
+
+auto get_animated_trs(ror::Model &a_model, ror::Node &a_node, float32_t a_seconds, uint32_t a_node_index, uint32_t a_animation_index, size_t a_frame)
+{
+	ror::Transformf trs;
+	(void) a_seconds;
+
+	auto &model = a_model;
+	auto  current_anim{0u};
+	for (auto &anim : model.animations())
+	{
+		if (current_anim == a_animation_index)
+		{
+			const Animation::AnimationChannel *tc{nullptr};
+			const Animation::AnimationChannel *rc{nullptr};
+			const Animation::AnimationChannel *sc{nullptr};
+
+			for (auto &chanl : anim.m_channels)
+			{
+				if (chanl.m_target_node_index == a_node_index)
+				{
+					if (chanl.m_target_node_path == AnimationTarget::translation)
+					{
+						assert(tc == nullptr);
+						tc = &chanl;
+					}
+					else if (chanl.m_target_node_path == AnimationTarget::rotation)
+					{
+						assert(rc == nullptr);
+						rc = &chanl;
+					}
+					else if (chanl.m_target_node_path == AnimationTarget::scale)
+					{
+						assert(sc == nullptr);
+						sc = &chanl;
+					}
+				}
+			}
+
+			if (tc != nullptr)
+			{
+				auto &anim_sampler = anim.m_samplers[tc->m_sampler_index];
+
+				size_t input_time_start = 0;
+				// size_t input_time_end   = anim_sampler.m_input.size();
+
+				// float time = std::fmodf(a_seconds, (anim_sampler.m_maximum.m_value - anim_sampler.m_minimum.m_value));
+
+				// while (input_time_start < input_time_end && anim_sampler.m_input[input_time_start].m_value < time)
+				// 	input_time_start++;
+
+				input_time_start++;
+
+				input_time_start = a_frame;
+				input_time_start = input_time_start % anim_sampler.m_input.size();
+
+				// input_time_start = 0;
+				size_t    cin = input_time_start * 3;
+				float32_t sx  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 0];
+				float32_t sy  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 1];
+				float32_t sz  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 2];
+
+				trs.translation({sx, sy, sz});
+			}
+			if (rc != nullptr)
+			{
+				auto &anim_sampler = anim.m_samplers[rc->m_sampler_index];
+
+				size_t input_time_start = 0;
+				input_time_start = a_frame;
+				input_time_start = input_time_start % anim_sampler.m_input.size();
+
+				// input_time_start = 0;
+				size_t    cin = input_time_start * 4;
+				float32_t rx  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 0];
+				float32_t ry  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 1];
+				float32_t rz  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 2];
+				float32_t rw  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 3];
+
+				trs.rotation({rx, ry, rz, rw});
+			}
+			if (sc != nullptr)
+			{
+				auto &anim_sampler = anim.m_samplers[sc->m_sampler_index];
+
+				size_t input_time_start = 0;
+				input_time_start++;
+
+				input_time_start = a_frame;
+				input_time_start = input_time_start % anim_sampler.m_input.size();
+				// input_time_start = 0;
+				size_t    cin = input_time_start * 3;
+				float32_t sx  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 0];
+				float32_t sy  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 1];
+				float32_t sz  = reinterpret_cast<const float32_t *>(anim_sampler.m_output.data())[cin + 2];
+
+				trs.scale({sx, sy, sz});
+			}
+			break;
+		}
+		current_anim++;
+	}
+
+	(void) a_node;
+
+	return trs;
+}
+
+auto trs_to_matrix4(ror::Transformf& a_trs)
+{
+	ror::Matrix4f translation = ror::matrix4_translation(a_trs.translation());
+	ror::Matrix4f rotation    = ror::matrix4_rotation(a_trs.rotation());
+	ror::Matrix4f scale       = ror::matrix4_scaling(a_trs.scale());
+
+	return translation * rotation * scale;
+}
+
+auto get_node_global_transform(ror::Model &a_model, ror::Node &a_node, const ror::SceneNodeData &a_scene_node_data, float32_t a_seconds, uint32_t a_node_index, size_t a_frame)
+{
+	(void) a_scene_node_data;
+	(void) a_seconds;
+	(void) a_node_index;
+	(void) a_frame;
+
+	ror::Matrix4f node_matrix{};
+	auto         &model_nodes = a_model.nodes();
+
+	// uint32_t        animation_index = a_scene_node_data.m_animation;
+	ror::Transformf trs{};
+	// if (node_has_animation(a_model, a_node_index, animation_index))
+	// 	trs = get_animated_trs(a_model, a_node, a_seconds, a_node_index, animation_index, a_frame);
+	// else
+	trs = a_node.m_trs_transform;
+
+	node_matrix = trs_to_matrix4(trs);
+
+	ror::Node *node = &a_node;
+
+	while (node->m_parent != -1)
+	{
+		auto           &p = model_nodes[static_cast<size_t>(node->m_parent)];
+		ror::Transformf ptrs{};
+		// if (node_has_animation(a_model, static_cast<uint32_t>(node->m_parent), animation_index))
+		// 	ptrs = get_animated_trs(a_model, a_node, a_seconds, static_cast<uint32_t>(node->m_parent), animation_index, a_frame);
+		// else
+		ptrs = p.m_trs_transform;
+
+		node_matrix = trs_to_matrix4(ptrs) * node_matrix;
+
+		node = &p;
+	}
+
+	return node_matrix;
+}
+
+auto get_node_transforms(ror::Scene &a_scene, float32_t a_seconds)
+{
+	auto &nodes_data = a_scene.nodes_side_data();
+
+	std::vector<ror::Matrix4f> node_matrices{};
+
+	for (auto &node : a_scene.nodes())
+		node_matrices.emplace_back(trs_to_matrix4(node.m_trs_transform));
+
+	static size_t    frame          = 0;
+	static float32_t frame_fraction = 0.0f;
+
+	bool found_one = false;
+	for (auto &node : nodes_data)
+	{
+		if (node.m_model != -1)
+		{
+			assert(found_one == false);
+			found_one = true;
+
+			auto &model       = a_scene.models()[ror::static_cast_safe<size_t>(node.m_model)];
+			auto &model_nodes = model.nodes();
+
+			node_matrices.reserve(node_matrices.size() + model_nodes.size());
+
+			for (uint32_t model_node_index = 0; model_node_index < model_nodes.size(); ++model_node_index)
+			{
+				auto &n = model_nodes[model_node_index];
+				node_matrices.emplace_back(get_node_global_transform(model, n, node, a_seconds, model_node_index, frame));
+			}
+		}
+	}
+
+	frame_fraction += 0.5f;
+
+	frame = static_cast_safe<size_t>(frame_fraction);
+
+	return node_matrices;
+}
+
+void Scene::cpu_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder,
+                           rhi::Device                &a_device,
+                           rhi::BuffersPack           &a_buffers_pack,
+                           ror::Renderer              &a_renderer,
+                           const rhi::Rendersubpass   &a_subpass,
+                           Timer                      &a_timer,
+                           ror::EventSystem           &a_event_system)
+{
+	(void) a_device;
+	(void) a_buffers_pack;
+	(void) a_command_encoder;
+	(void) a_subpass;
+	(void) a_timer;
+	(void) a_event_system;
+	(void) a_renderer;
+
+	static float32_t seconds{0.0f};
+	seconds += static_cast<float32_t>(a_timer.tick_seconds());
+
+	// TODO: After some time reset the seconds
+	if (seconds > 1000.0f)        // TODO: Move the 1000 to settings
+		seconds = seconds - static_cast<float32_t>(static_cast<int32_t>(seconds));
+
+	auto matrices  = get_node_transforms(*this, seconds);
+	auto model_ubo = a_renderer.shader_buffer("nodes_model");
+
+	model_ubo->buffer_map();
+	model_ubo->update("node_model_mat4", &matrices[0].m_values, static_cast_safe<uint32_t>(matrices.size() * sizeof(ror::Matrix4f)));
+	model_ubo->buffer_unmap();
+}
+*/
+
 }        // namespace ror

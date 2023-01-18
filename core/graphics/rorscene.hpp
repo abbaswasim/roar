@@ -182,6 +182,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass);
 	void pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass);
 	void compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
+	// void cpu_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
 
 	void update(double64_t a_milli_seconds);
 	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer);

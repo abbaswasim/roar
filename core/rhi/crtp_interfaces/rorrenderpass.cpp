@@ -371,6 +371,9 @@ void node_transform_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Sce
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
+	// if (ror::settings().m_animate_cpu)
+	// 	a_scene.cpu_walk_scene(a_command_encoder, a_device, a_buffer_pack, a_renderer, a_subpass, a_timer, a_event_system);
+	// else
 	a_scene.compute_pass_walk_scene(a_command_encoder, a_device, a_buffer_pack, a_renderer, a_subpass, a_timer, a_event_system);
 }
 
