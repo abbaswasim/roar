@@ -231,6 +231,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	std::vector<EnvironmentProbe>    m_probes{};                   //! All the environment probes
 	ror::BoundingBoxf                m_bounding_box{};             //! Scene bounding box, a combination of its models in object space
 	bool                             m_indices_dirty{true};        //! If the scene graph indicies are direty and not uploaded yet
+	bool                             m_pause_animation{false};        //! Should the animation be running or not
 };
 
 void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);

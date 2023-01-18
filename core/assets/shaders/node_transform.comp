@@ -211,6 +211,7 @@ void main()
 					float32_t output_translationy = in_animation_output.outputs[cin + 1];
 					float32_t output_translationz = in_animation_output.outputs[cin + 2];
 
+					// These should be in out_nodes_transforms
 					in_nodes_transforms.node_transforms[node_index].translation.x = output_translationx;
 					in_nodes_transforms.node_transforms[node_index].translation.y = output_translationy;
 					in_nodes_transforms.node_transforms[node_index].translation.z = output_translationz;
@@ -265,30 +266,14 @@ void main()
 			vec3 scale_inverse = in_trs.scale_inverse;
 			int  parent_id     = in_trs.parent_index.x;
 
-			vec3 parent_translation = vec3(0.0, 0.0, 0.0);
-			vec4 parent_rotation    = vec4(0.0, 0.0, 0.0, 1.0);
-			vec3 parent_scale       = vec3(1.0, 1.0, 1.0);
+			mat4 node_matrix = get_TRS(translation, rotation, scale);
 
 			if (parent_id != -1)
 			{
-				trs_transform_output parent_trs = out_nodes_transforms.node_transforms[parent_id];
-
-				parent_translation = parent_trs.translation;
-				parent_rotation    = parent_trs.rotation;
-				parent_scale       = parent_trs.scale;
+				node_matrix = out_nodes_model.node_model_mat4[parent_id] * node_matrix;
 			}
 
-			// Source https://gamedev.stackexchange.com/questions/167287/combine-two-translation-rotation-scale-triplets-without-matrices/181895#181895
-			// The scale from the source doesn't seem to work, just multiplying them out works fine, find out why
-			trs_transform_output result;
-
-			result.rotation    = quaternion_multiply(parent_rotation, rotation);
-			result.scale       = parent_scale * scale;
-			result.translation = parent_translation + quaternion_transform(parent_rotation, parent_scale * translation);
-
-			out_nodes_transforms.node_transforms[id] = result;
-
-			out_nodes_model.node_model_mat4[id] = get_TRS(result.translation, result.rotation, result.scale);
+			out_nodes_model.node_model_mat4[id] = node_matrix;
 		}
 	}
 }

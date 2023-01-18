@@ -944,4 +944,29 @@ TYPED_TEST(Matrix4TestSigned, perspective_transform)
 	test_vector3_equal(v3_res, res);
 }
 
+TYPED_TEST(Matrix4TestSigned, matrix_assosiative)
+{
+	ror::Matrix4<TypeParam> m0{};
+	ror::Matrix4<TypeParam> m1{};
+	ror::Matrix4<TypeParam> m2{};
+	ror::Matrix4<TypeParam> m3{};
+
+	for (size_t j = 0; j < 16; ++j)
+	{
+		m0.m_values[j] = ror::random<TypeParam>(-10.0f, 10.0f);
+		m1.m_values[j] = ror::random<TypeParam>(-10.0f, 10.0f);
+		m2.m_values[j] = ror::random<TypeParam>(-10.0f, 10.0f);
+		m3.m_values[j] = ror::random<TypeParam>(-10.0f, 10.0f);
+	}
+
+	ror::Matrix4f res0{};
+	ror::Matrix4f res1{};
+
+	res0 = m0 * (m1 * (m2 * m3));
+	res1 = ((m0 * m1) * m2) * m3;
+
+	test_matrix4_equal(res0, res1);
+}
+
+
 }        // namespace ror_test

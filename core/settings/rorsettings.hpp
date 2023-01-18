@@ -27,17 +27,21 @@
 
 #include "configuration/rorconfiguration.hpp"
 #include "configuration/rorsettings_configuration.hpp"
+#include "event_system/rorevent_system.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
+#include "foundation/rorutilities.hpp"
 #include "math/rorvector4.hpp"
 #include "rhi/rortypes.hpp"
+#include <cstdint>
 #include <string>
 
 namespace ror
 {
 
-static const auto bits_shift = 16u;
-static const auto bits_mask  = 0x0000FFFF;
+static const auto bits_shift            = 16u;
+static const auto bits_mask             = 0x0000FFFF;
+static const auto generic_numbers_count = 10;
 
 class ROAR_ENGINE_ITEM Settings final
 {
@@ -67,6 +71,9 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_buffer_increment   = setting.get<uint32_t>("buffer_increment");
 		this->m_multisample_count  = setting.get<uint32_t>("multisample_count");
 
+		for (size_t i = 0; i < generic_numbers_count; ++i)
+			this->m_generic_numbers[i] = 0;
+
 		this->m_clean_on_boot             = setting.get<bool>("clean_on_boot");
 		this->m_visualise_mipmaps         = setting.get<bool>("visualise_mipmaps");
 		this->m_vertical_sync             = setting.get<bool>("vsync");
@@ -78,6 +85,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_force_rgba_textures       = setting.get<bool>("force_rgba_textures");
 		this->m_background_srgb_to_linear = setting.get<bool>("background_to_srgb");
 		this->m_force_linear_textures     = setting.get<bool>("force_linear_textures");
+		this->m_animate_cpu               = setting.get<bool>("animate_cpu");
 
 		auto alc = setting.get<std::vector<float32_t>>("ambient_light_color");
 		if (alc.size() >= 4)
@@ -244,6 +252,24 @@ class ROAR_ENGINE_ITEM Settings final
 	FORCE_INLINE constexpr auto joint_inverse_bind_set()          const noexcept { return (this->m_bindings.m_joint_inverse_bind >> bits_shift);                             }
 	// clang-format on
 
+	void setup_generic_numbers(EventSystem &a_event_system)
+	{
+		for (size_t i = 0; i < generic_numbers_count; ++i)
+		{
+			auto generic_increment = [this, i](Event) {
+				this->m_generic_numbers[i]++;
+			};
+			auto generic_decrement = [this, i](Event) {
+				this->m_generic_numbers[i]--;
+			};
+
+			const auto key_ni_cmd_clk = create_event_handle(EventType::keyboard, static_cast<EventCode>(ror::enum_to_type_cast(EventCode::n0) + i), EventModifier::command, EventState::click);
+			const auto key_ni_ctr_clk = create_event_handle(EventType::keyboard, static_cast<EventCode>(ror::enum_to_type_cast(EventCode::n0) + i), EventModifier::control, EventState::click);
+			a_event_system.subscribe(key_ni_cmd_clk, generic_increment);
+			a_event_system.subscribe(key_ni_ctr_clk, generic_decrement);
+		}
+	}
+
 	std::string m_roar_title{};
 	std::string m_roar_cache{};
 	std::string m_default_scene{};
@@ -262,6 +288,7 @@ class ROAR_ENGINE_ITEM Settings final
 	uint32_t m_threads_multiplier{2};        //! How many more threads should the job system create on top of available cores. Remember this is a multiplier
 	uint32_t m_buffer_increment{1};
 	uint32_t m_multisample_count{8};
+	int32_t  m_generic_numbers[generic_numbers_count];        //! This is used to limit things or render a specific node etc, each number is decremented by Ctr + N and increment by CMD + N
 
 	bool m_clean_on_boot{false};
 	bool m_visualise_mipmaps{false};
@@ -277,6 +304,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_write_generated_shaders{false};
 	bool m_background_srgb_to_linear{false};
 	bool m_force_linear_textures{false};
+	bool m_animate_cpu{false};
 
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
 	ror::Vector4f m_fog_color{0.5f, 0.5f, 0.5f, 1.0f};

@@ -15,6 +15,7 @@
 	"buffer_increment": 10000000,
 	"background_to_srgb" : true,
 	"force_linear_textures" : false,
+	"animate_cpu" : false,
 	"depth" : 1.0,
 	"fullscreen" : false,
 	"resizable" : false,

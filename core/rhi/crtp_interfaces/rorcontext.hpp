@@ -34,6 +34,7 @@
 #include "renderer/rorrenderer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rordevice.hpp"
+#include "settings/rorsettings.hpp"
 #include <any>
 
 namespace rhi
@@ -52,6 +53,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE void init(std::any a_window, ror::Vector2ui a_dimensions)
 	{
 		this->m_current_device->init(a_window, this->m_event_system, a_dimensions);
+		ror::settings().setup_generic_numbers(this->m_event_system);
 
 		// Should only be called once per execution, TODO: check if this could be used in MT environment
 		basist::basisu_transcoder_init();
