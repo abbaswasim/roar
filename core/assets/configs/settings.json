@@ -25,6 +25,7 @@
 	"force_rgba_textures" : true,
 	"print_generated_shaders" : false,
 	"write_generated_shaders" : false,
+	"clamp_material_roughness" : true,
 	"clean_on_boot" : true,
 	"winding" : "counter_clockwise",
 	"sets_bindings" :

@@ -86,6 +86,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_background_srgb_to_linear = setting.get<bool>("background_to_srgb");
 		this->m_force_linear_textures     = setting.get<bool>("force_linear_textures");
 		this->m_animate_cpu               = setting.get<bool>("animate_cpu");
+		this->m_clamp_material_roughness  = setting.get<bool>("clamp_material_roughness");
 
 		auto alc = setting.get<std::vector<float32_t>>("ambient_light_color");
 		if (alc.size() >= 4)
@@ -305,6 +306,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_background_srgb_to_linear{false};
 	bool m_force_linear_textures{false};
 	bool m_animate_cpu{false};
+	bool m_clamp_material_roughness{false};
 
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
 	ror::Vector4f m_fog_color{0.5f, 0.5f, 0.5f, 1.0f};
