@@ -101,6 +101,8 @@ class ROAR_ENGINE_ITEM Material final
 	};
 
 	// TODO: Check and verify how this can be packed better
+
+	// m_base_color defines the diffuse albedo for non-metallic material and Fresnel reflectance at normal incidence (f0) for metallic materials. This is used to calculate F0 in shaders.
 	Component<ror::Color4f> m_base_color{};                                   //! Premultiplied linear RGB like filament, loader takes care of this // TODO: Fix the pre-multiplied bit
 	Component<ror::Color4f> m_diffuse_color{};                                //! Specular Glossyness specific diffuse color, either will have a factor or texture not both default of (1.0, 1.0, 1.0, 1.0)
 	Component<ror::Color4f> m_specular_glossyness{};                          //! Specular Glossyness specific vec3 Specular and float Glossyness factors default (1.0, 1.0, 1.0) and 1.0 or provided via a texture
@@ -126,10 +128,10 @@ class ROAR_ENGINE_ITEM Material final
 	bool                    m_double_sided{false};                            //! Should this be rendered with double sided triangle state
 	bool                    m_layered{false};                                 //! Is this material part of a layerd material chain
 	uint8_t                 m_material_name[30];                              //! Can't use string here otherwise not trivially_copyable
-	uint32_t                m_reflectance_offset{0};                          //! Reflectance offset for reflectance factor in the UBO
 	float32_t               m_opacity{0.5f};                                  //! Constant factor as alpha_cutoff_threshold of {0.5} default, Only valid if m_blend_mode == rhi::BlendMode::mask
-	float32_t               m_reflectance{0.0f};                              //! Fresnel reflectance at normal incidence, used for reflections and calculating F0, we use only F0 from F0=((ior − 1) / (ior + 1))²
-	                                                                          //! Note we don't need F90 coz Schlick equation only use F0 which can be derived like vec3 f0 = 0.16 * reflectance * reflectance * (1.0 - metallic) + base_color * metallic
+	float32_t               m_f0{0.04f};                                      //! Fresnel reflectance at normal incidence (f0), used for reflections and calculating F0, f0=((ior − 1) / (ior + 1))² or default of 0.04 i.e. 4%
+	                                                                          //! Remember reflectance here is not the remapped reflecance that filament uses. This is just f0. This is also why I don't need "0.16 * reflectance * reflectance"
+	                                                                          //! Note we don't need F90 coz Schlick equation only use F0. F0 is derived like F0 = f0 * (1.0 - metallic) + base_color * metallic
 	hash_64_t         m_hash{};                                               //! Material hash to make sure we don't create duplicate shaders
 	rhi::ShaderBuffer m_shader_buffer{"material_factors",
 	                                  rhi::ShaderBufferType::ubo,

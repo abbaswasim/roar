@@ -3,7 +3,7 @@ vec3 specular_lobe(const Fragment fragment, const vec3 h, float NoV, float NoL, 
 {
 	float D = distribution(fragment.roughness, NoH, h);
 	float V = visibility(fragment.roughness, NoV, NoL);
-	vec3  F = fresnel(fragment.f0, LoH);
+	vec3  F = fresnel(fragment.F0, LoH);
 
 	return (D * V) * F;
 }

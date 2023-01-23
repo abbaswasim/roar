@@ -27,6 +27,7 @@
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
+#include "settings/rorsettings.hpp"
 
 namespace rhi
 {

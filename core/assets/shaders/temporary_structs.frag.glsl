@@ -17,7 +17,7 @@ struct Material
 	vec3  subsurface_color;
 	float roughness;
 	float metallic;
-	float reflectance;
+	float f0;
 	float occlusion;
 	float glossyness;
 	float anisotropy;
@@ -47,7 +47,7 @@ struct Fragment
 	vec3  position;
 	vec3  normal;
 	vec3  view;
-	vec3  f0;
+	vec3  F0;
 	float roughness;
 	float metallic;
 	float occlusion;

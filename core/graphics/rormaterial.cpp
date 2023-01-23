@@ -66,7 +66,7 @@ void Material::generate_hash()
 	if (this->m_blend_mode == rhi::BlendMode::mask)
 		hash_combine_64(this->m_hash, hash_64(&this->m_opacity, sizeof(this->m_opacity)));
 
-	// Not using material_name and reflectance because there are not part of shader generated for this material
+	// Not using material_name and f0 because there are not part of shader generated for this material
 }
 
 void Material::fill_shader_buffer()
@@ -109,8 +109,8 @@ void Material::fill_shader_buffer()
 	if (this->m_blend_mode == rhi::BlendMode::mask)
 		this->m_shader_buffer.add_entry("opacity_factor", rhi::Format::float32_1, 1);
 
-	// Unconditional factor of reflectance needs to be there
-	this->m_shader_buffer.add_entry("reflectance_factor", rhi::Format::float32_1, 1);
+	// Unconditional factor of f0 needs to be there
+	this->m_shader_buffer.add_entry("f0_factor", rhi::Format::float32_1, 1);
 
 	// TODO: The following needs some condition, add that later for subsurface scattering support
 	// if (this->m_subsurface_color.m_type != ror::Material::MaterialComponentType::texture_only)
@@ -163,8 +163,8 @@ void Material::update()
 	if (this->m_blend_mode == rhi::BlendMode::mask)
 		this->m_shader_buffer.update("opacity_factor", &this->m_opacity);
 
-	// Unconditional factor of reflectance needs to be there
-	this->m_shader_buffer.update("reflectance_factor", &this->m_reflectance);
+	// Unconditional factor of f0 needs to be there
+	this->m_shader_buffer.update("f0_factor", &this->m_f0);
 
 	this->m_shader_buffer.buffer_unmap();
 }
@@ -179,7 +179,7 @@ void Material::upload(rhi::Device &a_device)
 	      float metallic_factor;
 	      float roughness_factor;
 	      float opacity_factor;
-	      float reflectance_factor;
+	      float f0_factor;
 	  } in_factors;
 	*/
 

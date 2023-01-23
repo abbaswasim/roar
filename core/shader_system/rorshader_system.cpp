@@ -1105,7 +1105,7 @@ std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
 	if (a_material.m_blend_mode == rhi::BlendMode::mask)
 		output.append("\nfloat get_opacity()\n{\n\treturn in_factors.opacity_factor;\n}\n");
 
-	output.append("\nfloat get_reflectance()\n{\n\treturn in_factors.reflectance_factor;\n}\n");
+	output.append("\nfloat get_f0()\n{\n\treturn in_factors.f0_factor;\n}\n");
 
 	return output;
 }
@@ -1219,8 +1219,8 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 	if (a_material.m_blend_mode == rhi::BlendMode::mask)
 		create_component("opacity_factor", rhi::Format::float32_1, 1, "float opacity_factor;\n\t");
 
-	// Unconditional factor of reflectance needs to be there
-	create_component("reflectance_factor", rhi::Format::float32_1, 1, "float reflectance_factor;\n");
+	// Unconditional factor of f0 needs to be there
+	create_component("f0_factor", rhi::Format::float32_1, 1, "float f0_factor;\n");
 
 	// TODO: The following needs some condition, add that later for subsurface scattering support
 	// if (a_material.m_subsurface_color.m_type != ror::Material::MaterialComponentType::texture_only)
@@ -1306,11 +1306,8 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal)
 	else        // otherwise lets generate a normal
 		output.append("\tmaterial.normal = normalize(cross(dFdx(in_vertex_position.xyz), dFdy(in_vertex_position.xyz)));\n");
 
-	// Can't use the following because reflectance is not a Component
-	if (a_material.m_metallic.m_type != ror::Material::ComponentType::none)
-		output.append("\tmaterial.reflectance = get_reflectance();\n");
-	else
-		output.append("\tmaterial.reflectance = 0.5;\n");
+	// Reflecance factor is always there
+	output.append("\tmaterial.f0 = get_f0();\n");
 
 	if (a_material.m_specular_glossyness.m_type != ror::Material::ComponentType::none)
 	{

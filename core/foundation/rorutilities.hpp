@@ -112,8 +112,8 @@ template <class _type, class _type2 = float32_t>
 FORCE_INLINE _type2 interpolate(_type a_from, _type a_to, _type2 a_t)
 {
 	static_assert(std::is_same<_type2, float32_t>::value || std::is_same<_type2, double64_t>::value, "T should be single or double precisions float");
-	// return static_cast<_type2>(a_from + a_t * (static_cast<_type2>(a_to) - static_cast<_type2>(a_from)));
-	return static_cast<_type2>(((static_cast<_type2>(1) - a_t) * (static_cast<_type2>(a_from)) + (a_t * static_cast<_type2>(a_to))));
+	// return static_cast<_type2>(((static_cast<_type2>(1) - a_t) * (static_cast<_type2>(a_from)) + (a_t * static_cast<_type2>(a_to))));
+	return static_cast<_type2>(static_cast<_type2>(a_from) + ((static_cast<_type2>(a_to) - static_cast<_type2>(a_from)) * a_t));
 }
 
 template <class _type>

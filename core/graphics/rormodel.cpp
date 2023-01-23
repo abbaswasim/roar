@@ -1086,12 +1086,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 				if (mat.has_pbr_metallic_roughness)
 				{
-					// TODO: Separate textures and combine with occlusion
 					read_material_component(material.m_base_color, texture_to_index, mat.pbr_metallic_roughness.base_color_texture, mat.pbr_metallic_roughness.base_color_factor);
 					read_material_component(material.m_metallic, texture_to_index, mat.pbr_metallic_roughness.metallic_roughness_texture, &mat.pbr_metallic_roughness.metallic_factor);
 					read_material_component(material.m_roughness, texture_to_index, mat.pbr_metallic_roughness.metallic_roughness_texture, &mat.pbr_metallic_roughness.roughness_factor);
 
-					material.m_reflectance = mat.has_ior ? convert_ior_to_f0(mat.ior.ior) : 1.0f;
+					if (mat.has_ior)
+						material.m_f0 = convert_ior_to_f0(mat.ior.ior);
 
 					// TODO: Add support for texture transforms and maybe scale for other textures apart from occlusion strength(scale) and normal scale which are already handled
 					// mat.pbr_metallic_roughness.base_color_texture.scale
