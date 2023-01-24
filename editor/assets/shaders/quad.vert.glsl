@@ -1,1 +1,0 @@
-../../../core/assets/shaders/quad.vert.glsl

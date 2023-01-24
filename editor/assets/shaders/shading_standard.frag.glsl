@@ -1,1 +1,0 @@
-../../../core/assets/shaders/shading_standard.frag.glsl

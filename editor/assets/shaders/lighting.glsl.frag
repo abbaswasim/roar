@@ -1,0 +1,1 @@
+../../../core/assets/shaders/lighting.glsl.frag

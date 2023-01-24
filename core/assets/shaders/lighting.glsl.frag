@@ -55,7 +55,7 @@ Light get_spot_light(const Material material, const Fragment fragment, const uin
 
 	light.color                = spot.color;
 	light.position             = spot.position;
-	light.direction            = -normalize(spot.direction);
+	light.direction            = normalize(spot.direction);
 	light.shadow               = @;
 	light.intensity            = spot.intensity;
 	light.attenuation          = point_light_attenuation(length(light.direction), 0.01); // TODO: Check if this should be spot_angle_attenuation

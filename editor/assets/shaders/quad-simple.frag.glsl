@@ -1,1 +1,0 @@
-../../../core/assets/shaders/quad-simple.frag.glsl

@@ -1,0 +1,1 @@
+../../../core/assets/shaders/temporary_structs.glsl.frag

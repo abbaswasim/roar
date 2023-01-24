@@ -1,1 +1,0 @@
-../../../core/assets/shaders/getters.frag.glsl

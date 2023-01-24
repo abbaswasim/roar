@@ -930,7 +930,7 @@ std::string fragment_shader_input_output(const rhi::VertexDescriptor &a_vertex_d
 		}
 	}
 
-	// layout (location = 0) out vec4 out_color; is defined in main.frag.glsl
+	// layout (location = 0) out vec4 out_color; is defined in main.glsl.frag
 
 	return result;
 }
@@ -1082,8 +1082,8 @@ std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
 	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
 	    a_material.m_normal.m_type == ror::Material::ComponentType::texture)
 	{
-		// Read tbn.frag.glsl resource and create a string_view
-		auto       &tbn_resource = ror::load_resource("shaders/tbn.frag.glsl", ror::ResourceSemantic::shaders);
+		// Read tbn.glsl.frag resource and create a string_view
+		auto       &tbn_resource = ror::load_resource("shaders/tbn.glsl.frag", ror::ResourceSemantic::shaders);
 		std::string tbn_code{reinterpret_cast<const char *>(tbn_resource.data().data()), tbn_resource.data().size()};
 		if (a_has_tangent)
 		{
@@ -1350,8 +1350,8 @@ std::string fs_set_output(const ror::Material &a_material, bool a_has_normal)
 {
 	std::string result{};
 
-	// Read getters.frag.glsl resource and create a string_view
-	auto            &getters_resource = ror::load_resource("shaders/getters.frag.glsl", ror::ResourceSemantic::shaders);
+	// Read getters.glsl.frag resource and create a string_view
+	auto            &getters_resource = ror::load_resource("shaders/getters.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string_view getters_code{reinterpret_cast<const char *>(getters_resource.data().data()), getters_resource.data().size()};
 
 	if (a_material.m_blend_mode == rhi::BlendMode::mask)
@@ -1368,28 +1368,28 @@ std::string fs_set_output(const ror::Material &a_material, bool a_has_normal)
 std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool a_has_normal)
 {
 	// Read all the shader snippets
-	// Read brdf.frag.glsl resource and create a string_view
-	auto            &brdf_resource = ror::load_resource("shaders/brdf.frag.glsl", ror::ResourceSemantic::shaders);
+	// Read brdf.glsl.frag resource and create a string_view
+	auto            &brdf_resource = ror::load_resource("shaders/brdf.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string_view brdf_code{reinterpret_cast<const char *>(brdf_resource.data().data()), brdf_resource.data().size()};
 
-	// Read temporary_structs.frag.glsl resource and create a string_view
-	auto            &temporary_structs_resource = ror::load_resource("shaders/temporary_structs.frag.glsl", ror::ResourceSemantic::shaders);
+	// Read temporary_structs.glsl.frag resource and create a string_view
+	auto            &temporary_structs_resource = ror::load_resource("shaders/temporary_structs.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string_view temporary_structs_code{reinterpret_cast<const char *>(temporary_structs_resource.data().data()), temporary_structs_resource.data().size()};
 
-	// Read shadows.frag.glsl resource and create a string_view
-	auto            &shadows_resource = ror::load_resource("shaders/shadows.frag.glsl", ror::ResourceSemantic::shaders);
+	// Read shadows.glsl.frag resource and create a string_view
+	auto            &shadows_resource = ror::load_resource("shaders/shadows.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string_view shadows_code{reinterpret_cast<const char *>(shadows_resource.data().data()), shadows_resource.data().size()};
 
-	// Read shading_standard.frag.glsl resource and create a string_view
-	auto            &shading_standard_resource = ror::load_resource("shaders/shading_standard.frag.glsl", ror::ResourceSemantic::shaders);
+	// Read shading_standard.glsl.frag resource and create a string_view
+	auto            &shading_standard_resource = ror::load_resource("shaders/shading_standard.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string_view shading_standard_code{reinterpret_cast<const char *>(shading_standard_resource.data().data()), shading_standard_resource.data().size()};
 
-	// Read lighting.frag.glsl resource and create a string_view
-	auto       &lighting_resource = ror::load_resource("shaders/lighting.frag.glsl", ror::ResourceSemantic::shaders);
+	// Read lighting.glsl.frag resource and create a string_view
+	auto       &lighting_resource = ror::load_resource("shaders/lighting.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string lighting_code{reinterpret_cast<const char *>(lighting_resource.data().data()), lighting_resource.data().size()};
 
-	// Read main.frag.glsl resource and create a string_view
-	auto            &main_resource = ror::load_resource("shaders/main.frag.glsl", ror::ResourceSemantic::shaders);
+	// Read main.glsl.frag resource and create a string_view
+	auto            &main_resource = ror::load_resource("shaders/main.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string_view main_code{reinterpret_cast<const char *>(main_resource.data().data()), main_resource.data().size()};
 
 	std::string output{};
