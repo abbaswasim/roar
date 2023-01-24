@@ -266,7 +266,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	}
 
 	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_model.meshes(), a_mesh_index, a_prim_index, is_depth_shadow);
-	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, material.m_blend_mode, a_model.meshes()[a_mesh_index].name().c_str());
+	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, material.m_blend_mode, a_model.meshes()[a_mesh_index].name().c_str(), a_subpass.has_depth());
 }
 
 void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders)
