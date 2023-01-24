@@ -119,18 +119,123 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 	return mtl_vertex_descriptor;
 }
 
-void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass)
+static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device           *a_device,
+                                                                 const rhi::Shader     &a_vertex_shader,
+                                                                 const rhi::Shader     &a_fragment_shader,
+                                                                 MTL::VertexDescriptor *mtl_vertex_descriptor,
+                                                                 rhi::BlendMode         a_blend_mode,
+                                                                 const char            *a_label,
+                                                                 bool                   a_depth = true)
 {
-	auto        is_depth_shadow            = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
-	auto       &setting                    = ror::settings();
-	auto       *device                     = a_device.platform_device();
-	NS::Error  *pError                     = nullptr;
-	auto       *render_pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
-	const auto &mesh                       = a_model.meshes()[a_mesh_index];
-	const auto &materials                  = a_model.materials();
+	auto      &setting                    = ror::settings();
+	auto      *device                     = a_device;
+	NS::Error *pError                     = nullptr;
+	auto      *render_pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
 
 	assert(device);
 	assert(render_pipeline_descriptor && "Can't allocate metal render pipeline descriptor");
+
+	const auto &vs = a_vertex_shader;
+	const auto &fs = a_fragment_shader;
+
+	if (vs.function() == nullptr)
+	{
+		ror::log_critical("Vertex function can't be null or empty");
+		return nullptr;
+	}
+
+	render_pipeline_descriptor->setVertexFunction(vs.function());
+	render_pipeline_descriptor->setFragmentFunction(fs.function());
+	render_pipeline_descriptor->setVertexDescriptor(mtl_vertex_descriptor);
+
+	if (a_depth)
+		render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);
+	else
+		render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatInvalid);
+
+	render_pipeline_descriptor->setSupportIndirectCommandBuffers(setting.m_metal.indirect_command_buffers);
+
+	// Why there are colorAttachments in MTLRenderPipelineDescriptors as well as MTLRenderPassDescriptor the explanation is
+	// https://stackoverflow.com/questions/44118942/what-is-colorattachmentn-in-metal but it boils down to how expensive these are to change
+	// TODO: Add support for how ever many attachments we might have which is driven by render pass type
+	auto colorAttachment = render_pipeline_descriptor->colorAttachments()->object(0);
+
+	colorAttachment->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
+	colorAttachment->setRgbBlendOperation(MTL::BlendOperationAdd);
+	colorAttachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
+	colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
+	colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+	colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+	colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+
+	colorAttachment->setBlendingEnabled(false);
+
+	if (a_blend_mode == rhi::BlendMode::blend)
+		colorAttachment->setBlendingEnabled(true);
+
+	render_pipeline_descriptor->setLabel(NS::String::string(a_label, NS::StringEncoding::UTF8StringEncoding));
+	// render_pipeline_descriptor->setRasterSampleCount(setting.m_multisample_count);
+	render_pipeline_descriptor->setRasterizationEnabled(true);
+	render_pipeline_descriptor->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassTriangle);
+
+	MTL::RenderPipelineState *pipeline_state = device->newRenderPipelineState(render_pipeline_descriptor, &pError);
+
+	if (!pipeline_state)
+	{
+		assert(pError != nullptr && "Failed render pipeline creation didn't bring any errors");
+		ror::log_critical("Metal render program creation failed with error: {}", pError->localizedDescription()->utf8String());
+		return nullptr;
+	}
+
+	mtl_vertex_descriptor->release();
+	render_pipeline_descriptor->release();
+
+	if (pError != nullptr)
+		pError->release();
+
+	return pipeline_state;
+
+	// Other setting functions that can be called on RPD
+	/*
+	  render_pipeline_descriptor->setAlphaToCoverageEnabled();
+	  render_pipeline_descriptor->setAlphaToOneEnabled();
+	  render_pipeline_descriptor->setMaxVertexAmplificationCount();
+	  render_pipeline_descriptor->setStencilAttachmentPixelFormat();
+	  render_pipeline_descriptor->setVertexBuffers();
+	  render_pipeline_descriptor->setFragmentBuffers();
+	  render_pipeline_descriptor->setSampleCount(); // deprecated, find out how to do multisampling otherwise
+	  render_pipeline_descriptor->setTessellationPartitionMode();
+	  render_pipeline_descriptor->setMaxTessellationFactor();
+	  render_pipeline_descriptor->setTessellationFactorScaleEnabled();
+	  render_pipeline_descriptor->setTessellationFactorFormat();
+	  render_pipeline_descriptor->setTessellationControlPointIndexType();
+	  render_pipeline_descriptor->setTessellationFactorStepFunction();
+	  render_pipeline_descriptor->setTessellationOutputWindingOrder();
+	  render_pipeline_descriptor->setBinaryArchives();
+	  render_pipeline_descriptor->setVertexPreloadedLibraries();
+	  render_pipeline_descriptor->setFragmentPreloadedLibraries();
+	  render_pipeline_descriptor->setVertexLinkedFunctions();
+	  render_pipeline_descriptor->setFragmentLinkedFunctions();
+	  render_pipeline_descriptor->setSupportAddingVertexBinaryFunctions();
+	  render_pipeline_descriptor->setSupportAddingFragmentBinaryFunctions();
+	  render_pipeline_descriptor->setMaxVertexCallStackDepth();
+	  render_pipeline_descriptor->setMaxFragmentCallStackDepth();
+	*/
+}
+
+void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass)
+{
+	auto        is_depth_shadow            = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
+	auto       *device                     = a_device.platform_device();
+	auto       *render_pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
+	const auto &mesh                       = a_model.meshes()[a_mesh_index];
+	const auto &materials                  = a_model.materials();
+	auto        material_index             = mesh.material(a_prim_index);
+
+	assert(device);
+	assert(render_pipeline_descriptor && "Can't allocate metal render pipeline descriptor");
+	assert(material_index != -1 && "Material index can't be -1");
+	auto &material = materials[static_cast<size_t>(material_index)];
 
 	auto vs_id = this->vertex_id();
 	auto fs_id = this->fragment_id();
@@ -161,85 +266,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	}
 
 	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_model.meshes(), a_mesh_index, a_prim_index, is_depth_shadow);
-
-	render_pipeline_descriptor->setVertexFunction(vs.function());
-	render_pipeline_descriptor->setFragmentFunction(fs.function());
-	render_pipeline_descriptor->setVertexDescriptor(mtl_vertex_descriptor);
-
-	if (a_subpass.has_depth())
-		render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);        // TODO: Read from settings
-	else
-		render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatInvalid);
-
-	render_pipeline_descriptor->setSupportIndirectCommandBuffers(setting.m_metal.indirect_command_buffers);
-
-	// Why there are colorAttachments in MTLRenderPipelineDescriptors as well as MTLRenderPassDescriptor the explanation is
-	// https://stackoverflow.com/questions/44118942/what-is-colorattachmentn-in-metal but it boils down to how expensive these are to change
-	// TODO: Add support for how ever many attachments we might have which is driven by render pass type
-	auto colorAttachment = render_pipeline_descriptor->colorAttachments()->object(0);
-
-	colorAttachment->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
-	colorAttachment->setRgbBlendOperation(MTL::BlendOperationAdd);
-	colorAttachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
-	colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
-	colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
-	colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-	colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-
-	colorAttachment->setBlendingEnabled(false);
-
-	auto material_index = mesh.material(a_prim_index);
-	assert(material_index != -1 && "Material index can't be -1");
-	auto &material = materials[static_cast<size_t>(material_index)];
-	if (material.m_blend_mode == rhi::BlendMode::blend)
-		colorAttachment->setBlendingEnabled(true);
-
-	render_pipeline_descriptor->setLabel(NS::String::string(a_model.meshes()[a_mesh_index].name().c_str(), NS::StringEncoding::UTF8StringEncoding));
-	// render_pipeline_descriptor->setRasterSampleCount(setting.m_multisample_count);
-	render_pipeline_descriptor->setRasterizationEnabled(true);
-	render_pipeline_descriptor->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassTriangle);
-
-	this->m_pipeline_state = device->newRenderPipelineState(render_pipeline_descriptor, &pError);
-
-	if (!this->render_pipeline_state())
-	{
-		assert(pError != nullptr && "Failed render pipeline creation didn't bring any errors");
-		ror::log_critical("Metal render program creation failed with error: {}", pError->localizedDescription()->utf8String());
-		return;
-	}
-
-	mtl_vertex_descriptor->release();
-	render_pipeline_descriptor->release();
-
-	if (pError != nullptr)
-		pError->release();
-
-	// Other setting functions that can be called on RPD
-	/*
-	  render_pipeline_descriptor->setAlphaToCoverageEnabled();
-	  render_pipeline_descriptor->setAlphaToOneEnabled();
-	  render_pipeline_descriptor->setMaxVertexAmplificationCount();
-	  render_pipeline_descriptor->setStencilAttachmentPixelFormat();
-	  render_pipeline_descriptor->setVertexBuffers();
-	  render_pipeline_descriptor->setFragmentBuffers();
-	  render_pipeline_descriptor->setSampleCount(); // deprecated, find out how to do multisampling otherwise
-	  render_pipeline_descriptor->setTessellationPartitionMode();
-	  render_pipeline_descriptor->setMaxTessellationFactor();
-	  render_pipeline_descriptor->setTessellationFactorScaleEnabled();
-	  render_pipeline_descriptor->setTessellationFactorFormat();
-	  render_pipeline_descriptor->setTessellationControlPointIndexType();
-	  render_pipeline_descriptor->setTessellationFactorStepFunction();
-	  render_pipeline_descriptor->setTessellationOutputWindingOrder();
-	  render_pipeline_descriptor->setBinaryArchives();
-	  render_pipeline_descriptor->setVertexPreloadedLibraries();
-	  render_pipeline_descriptor->setFragmentPreloadedLibraries();
-	  render_pipeline_descriptor->setVertexLinkedFunctions();
-	  render_pipeline_descriptor->setFragmentLinkedFunctions();
-	  render_pipeline_descriptor->setSupportAddingVertexBinaryFunctions();
-	  render_pipeline_descriptor->setSupportAddingFragmentBinaryFunctions();
-	  render_pipeline_descriptor->setMaxVertexCallStackDepth();
-	  render_pipeline_descriptor->setMaxFragmentCallStackDepth();
-	*/
+	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, material.m_blend_mode, a_model.meshes()[a_mesh_index].name().c_str());
 }
 
 void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders)
