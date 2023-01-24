@@ -50,7 +50,6 @@ define_translation_unit_vtable(ProgramMetal)
 {}
 
 /*
-
 Metal vertex attributes to shader and buffer mapping
 
 uint32_t pos_loc = 4
@@ -77,6 +76,23 @@ The offset required for interleaved can be provided via vertex attribute or at a
 The order of attribute and layout in vertex attribute descriptor specification time doesn't matter the "index/location" matters
 */
 
+static auto append_to_metal_vertex_descriptor(MTL::VertexDescriptor *mtl_vertex_descriptor, const rhi::VertexAttribute &attrib, const rhi::VertexDescriptor &descriptor)
+{
+	auto  attribute_index             = attrib.location();        // This doesn't have to be sequential, as long as it matches for an attribute to its corresponding layout
+	auto *vertex_descriptor_attribute = mtl_vertex_descriptor->attributes()->object(attribute_index);
+	vertex_descriptor_attribute->setFormat(to_metal_vertexformat(attrib.format()));
+	vertex_descriptor_attribute->setBufferIndex(attribute_index);        // The index in the argument table for the associated vertex buffer
+	vertex_descriptor_attribute->setOffset(static_cast<unsigned long>(attrib.buffer_offset() + attrib.offset()));
+
+	auto &layout = descriptor.layout(attrib.semantics());
+
+	auto *vertex_descriptor_layout = mtl_vertex_descriptor->layouts()->object(attribute_index);
+	vertex_descriptor_layout->setStride(layout.stride());
+	vertex_descriptor_layout->setStepFunction(to_metal_step_function(layout.step_function()));
+
+	return mtl_vertex_descriptor;
+}
+
 static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>> &a_meshes, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_depth_shadow)
 {
 	const auto &mesh                     = a_meshes[a_mesh_index];
@@ -84,8 +100,6 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 	const auto &morph_vertex_descriptors = mesh.target_descriptor(a_prim_index);
 
 	auto *mtl_vertex_descriptor = MTL::VertexDescriptor::alloc()->init();
-
-	std::string att_str{};
 
 	// Lets read all the descriptors we might need to use for normal attributes + morph target attributes
 	std::vector<std::reference_wrapper<const rhi::VertexDescriptor>> descriptors{std::cref(vertex_descriptor)};
@@ -98,19 +112,7 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 		for (auto &attrib : attributes)
 		{
 			if (is_attribute_required_in_pass(attrib.semantics(), a_depth_shadow))
-			{
-				auto  attribute_index             = attrib.location();        // This doesn't have to be sequential, as long as it matches for an attribute to its corresponding layout
-				auto *vertex_descriptor_attribute = mtl_vertex_descriptor->attributes()->object(attribute_index);
-				vertex_descriptor_attribute->setFormat(to_metal_vertexformat(attrib.format()));
-				vertex_descriptor_attribute->setBufferIndex(attribute_index);        // The index in the argument table for the associated vertex buffer
-				vertex_descriptor_attribute->setOffset(static_cast<unsigned long>(attrib.buffer_offset() + attrib.offset()));
-
-				auto &layout = descriptor.get().layout(attrib.semantics());
-
-				auto *vertex_descriptor_layout = mtl_vertex_descriptor->layouts()->object(attribute_index);
-				vertex_descriptor_layout->setStride(layout.stride());
-				vertex_descriptor_layout->setStepFunction(to_metal_step_function(layout.step_function()));
-			}
+				append_to_metal_vertex_descriptor(mtl_vertex_descriptor, attrib, descriptor.get());
 		}
 	}
 
