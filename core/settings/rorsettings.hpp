@@ -218,6 +218,18 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_write_generated_shaders = setting.get<bool>("write_generated_shaders");
 
 		this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
+
+		auto attribs = setting.find("default_vertex_descriptor");
+
+		this->m_default_vertex_descriptor.attributes.reserve(attribs.size());
+
+		for (auto &att : attribs)
+		{
+			rhi::BufferSemantic semantic = rhi::get_format_semantic(att.begin().key());
+			rhi::VertexFormat format = rhi::string_to_vertex_format(att.begin().value());
+
+			this->m_default_vertex_descriptor.attributes.push_back({semantic, format});
+		}
 	}
 
 	// clang-format off
@@ -360,6 +372,13 @@ class ROAR_ENGINE_ITEM Settings final
 
 	VulkanOptions m_vulkan{};
 	MetalOptions  m_metal{};
+
+	struct DefaultVertexDescriptor
+	{
+		std::vector<std::pair<rhi::BufferSemantic, rhi::VertexFormat>> attributes{};
+	};
+
+	DefaultVertexDescriptor m_default_vertex_descriptor{};
 
   protected:
   private:

@@ -91,5 +91,20 @@
 	[
 		"generated_shaders",
 		"roar_temp"
+	],
+	"default_vertex_descriptor" :
+	[
+		{
+			"vertex_position" : "float32_3"
+		},
+		{
+			"vertex_texture_coord_0" : "float32_2"
+		},
+		{
+			"vertex_bone_id_0" : "uint16_4"
+		},
+		{
+			"vertex_weight_0" : "float32_4"
+		}
 	]
 }

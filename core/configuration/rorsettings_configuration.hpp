@@ -71,6 +71,15 @@ class ROAR_ENGINE_ITEM SettingsConfig : public Configuration<SettingsConfig>
 		this->m_generic_configs[a_key] = a_value;        // replaces it if it already exists
 	}
 
+	// Use this method if get wouldn't work otherwise. For example of the config is complex and requires manual parsing
+	auto find(std::string a_key)
+	{
+		if (this->m_json_file.contains(a_key.c_str()))
+			return this->m_json_file[a_key.c_str()];
+
+		assert(0 && "Shouldn't reach here");
+	}
+
   protected:
   private:
 	std::unordered_map<std::string, generic_config> m_generic_configs{};

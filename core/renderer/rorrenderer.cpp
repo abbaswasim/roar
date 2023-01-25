@@ -835,7 +835,7 @@ void Renderer::upload_frame_graphs(rhi::Device &a_device)
 	}
 }
 
-void Renderer::upload(rhi::Device &a_device)
+void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 {
 	for (auto &shader : this->m_shaders)
 	{
@@ -844,7 +844,7 @@ void Renderer::upload(rhi::Device &a_device)
 	}
 
 	for (auto &program : this->m_programs)
-		program.upload(a_device, this->m_shaders);
+		program.upload(a_device, this->m_shaders, a_buffer_pack);
 
 	// Upload all render targets now, render buffers are deffered after scenes are loaded
 	for (auto &render_target : this->m_input_render_targets)

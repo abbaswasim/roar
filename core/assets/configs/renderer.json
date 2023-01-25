@@ -1,10 +1,22 @@
 {
 	"shaders":[
-		"node_transform.comp"
+		"node_transform.glsl.comp",
+		"position.glsl.vert",
+		"position.glsl.frag",
+		"tonemap.glsl.vert",
+		"tonemap.glsl.frag"
 	],
 	"programs":[
 		{
 			"compute":0
+		},
+		{
+			"vertex":1,
+			"fragment":2
+		},
+		{
+			"vertex":3,
+			"fragment":4
 		}
 	],
 	"textures":[

@@ -93,6 +93,28 @@ static auto append_to_metal_vertex_descriptor(MTL::VertexDescriptor *mtl_vertex_
 	return mtl_vertex_descriptor;
 }
 
+static auto get_default_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
+{
+	auto                 &setting = ror::settings();
+	rhi::VertexDescriptor descriptor{};
+
+	for (auto att_pair : setting.m_default_vertex_descriptor.attributes)
+		descriptor.add(att_pair.first, att_pair.second, &a_buffer_pack);
+
+	return descriptor;
+}
+
+static auto get_default_mtl_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
+{
+	auto  vertex_descriptor     = get_default_vertex_descriptor(a_buffer_pack);
+	auto *mtl_vertex_descriptor = MTL::VertexDescriptor::alloc()->init();
+
+	for (auto &attrib : vertex_descriptor.attributes())
+		append_to_metal_vertex_descriptor(mtl_vertex_descriptor, attrib, vertex_descriptor);
+
+	return mtl_vertex_descriptor;
+}
+
 static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>> &a_meshes, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_depth_shadow)
 {
 	const auto &mesh                     = a_meshes[a_mesh_index];
@@ -125,7 +147,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
                                                                  MTL::VertexDescriptor *mtl_vertex_descriptor,
                                                                  rhi::BlendMode         a_blend_mode,
                                                                  const char            *a_label,
-                                                                 bool                   a_depth = true)
+                                                                 bool                   a_depth)
 {
 	auto      &setting                    = ror::settings();
 	auto      *device                     = a_device;
@@ -269,8 +291,10 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, material.m_blend_mode, a_model.meshes()[a_mesh_index].name().c_str(), a_subpass.has_depth());
 }
 
-void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders)
+void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack)
 {
+	auto *device = a_device.platform_device();
+
 	// TODO: Add support for non-mesh vertex and fragment pipelines, would require a RenderpassType as a must
 	// auto      *render_pipeline_descriptor  = MTL::RenderPipelineDescriptor::alloc()->init();
 	// assert(render_pipeline_descriptor && "Can't allocate metal render pipeline descriptor");
@@ -279,40 +303,43 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	auto fs_id = this->fragment_id();
 	auto cs_id = this->compute_id();
 
-	assert((vs_id >= 0 || cs_id >= 0) && "Invalid vs shader id");
-	assert((fs_id >= 0 || cs_id >= 0) && "Invalid fs shader id");
+	// TODO: Add support for single fragment shader programs
+	assert(((vs_id >= 0 && fs_id >= 0) || cs_id >= 0) && "Invalid vs shader id");
 
-	if (vs_id >= 0 || fs_id >= 0)
+	if (vs_id >= 0 && fs_id >= 0)
 	{
-		ror::log_critical("Only compute programs for non-mesh are supported at the moment");
-		return;
+		const auto &vs = a_shaders[static_cast<size_t>(vs_id)];
+		const auto &fs = a_shaders[static_cast<size_t>(fs_id)];
+		if (vs.function() != nullptr && fs.function() != nullptr)
+		{
+			auto *mtl_vertex_descriptor = get_default_mtl_vertex_descriptor(a_buffer_pack);
+			this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, rhi::BlendMode::blend, "GlobalRenderPassPipeline", true);
+		}
 	}
-
-	// const auto &vs = a_shaders[static_cast<size_t>(vs_id)];
-	// const auto &fs = a_shaders[static_cast<size_t>(fs_id)];
-	const auto &cs = a_shaders[static_cast<size_t>(cs_id)];
-
-	// if (vs.function() == nullptr && cs.function() == nullptr)
-	if (cs.function() == nullptr)
+	else
 	{
-		ror::log_critical("Compute function can't be null or empty");
-		return;
-	}
+		const auto &cs = a_shaders[static_cast<size_t>(cs_id)];
 
-	// Don't need a descriptor but its possible to have one and create a compute pipeline from that
-	// auto      *compute_pipeline_descriptor = MTL::ComputePipelineDescriptor::alloc()->init();
-	// assert(compute_pipeline_descriptor && "Can't allocate metal compute pipeline descriptor");
-	auto      *device = a_device.platform_device();
-	NS::Error *pError = nullptr;
+		if (cs.function() == nullptr)
+		{
+			ror::log_critical("Compute function can't be null or empty");
+			return;
+		}
 
-	assert(device);
+		// Don't need a descriptor but its possible to have one and create a compute pipeline from that
+		// auto      *compute_pipeline_descriptor = MTL::ComputePipelineDescriptor::alloc()->init();
+		// assert(compute_pipeline_descriptor && "Can't allocate metal compute pipeline descriptor");
+		NS::Error *pError = nullptr;
 
-	this->m_pipeline_state = device->newComputePipelineState(cs.function(), &pError);
+		assert(device);
 
-	if (!this->compute_pipeline_state())
-	{
-		ror::log_critical("Metal compute program creation failed with error: {}", pError->localizedDescription()->utf8String());
-		return;
+		this->m_pipeline_state = device->newComputePipelineState(cs.function(), &pError);
+
+		if (!this->compute_pipeline_state())
+		{
+			ror::log_critical("Metal compute program creation failed with error: {}", pError->localizedDescription()->utf8String());
+			return;
+		}
 	}
 }
 }        // namespace rhi

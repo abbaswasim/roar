@@ -205,7 +205,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr const auto &bounding_box()     const noexcept   {  return this->m_bounding_box;    }
 	// clang-format on
 
-	void upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack);
 
   private:
 	void read_nodes();

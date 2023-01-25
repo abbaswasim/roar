@@ -60,7 +60,7 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	{}
 
 	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass);
-	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders);
+	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack);
 
 	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept
 	{

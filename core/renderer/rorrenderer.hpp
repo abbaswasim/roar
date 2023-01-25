@@ -67,7 +67,7 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE                     Renderer();        //! Default constructor
 	void                             render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer);
 	void                             load_specific();
-	void                             upload(rhi::Device &);
+	void                             upload(rhi::Device &, rhi::BuffersPack &);
 	void                             upload_frame_graphs(rhi::Device &);
 	std::vector<rhi::RenderpassType> render_pass_types() const;
 	std::vector<rhi::RenderpassType> all_render_pass_types() const;

@@ -260,7 +260,11 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	(void) a_timer;
 	(void) a_event_system;
 
-	auto &compute_pso       = a_renderer.programs()[0];
+	auto program_id = a_subpass.program_id();
+
+	assert(program_id != -1 && "No program provided for compute pass walk scene");
+
+	auto &compute_pso       = a_renderer.programs()[static_cast<size_t>(program_id)];
 	auto &input_buffers     = a_subpass.buffer_inputs();
 	auto &trs_buffer        = input_buffers[0].m_render_output->m_target_reference.get();
 	auto  per_frame_uniform = a_renderer.shader_buffer("per_frame_uniform");
@@ -1266,7 +1270,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 	log_warn("Actual number of shaders created {} ", this->m_shaders.size());
 }
 
-void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system)
+void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack)
 {
 	auto render_passes = a_renderer.current_frame_graph();
 
@@ -1284,7 +1288,7 @@ void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::
 
 	for (auto &program : this->m_global_programs)
 	{
-		program.upload(a_device, this->m_shaders);
+		program.upload(a_device, this->m_shaders, a_buffer_pack);
 	}
 
 	// Upload all the shader programs creates pipelines in metal and vulkan cases
