@@ -29,6 +29,7 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/metal/rormetal_common.hpp"
 #include "rhi/metal/rorprogram.hpp"
+#include "rhi/metal/rorshader.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"

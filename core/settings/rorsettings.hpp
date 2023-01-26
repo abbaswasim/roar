@@ -140,6 +140,14 @@ class ROAR_ENGINE_ITEM Settings final
 				this->m_viewport = ror::Vector4i(static_cast<int32_t>(x), static_cast<int32_t>(y), static_cast<int32_t>(w), static_cast<int32_t>(h));
 		}
 
+		{
+			auto x = setting.get<uint32_t>("grid:size");
+			auto y = setting.get<uint32_t>("grid:spread");
+
+			this->m_grid.x = x;
+			this->m_grid.y = y;
+		}
+
 		auto bs_material_factors      = setting.get<std::vector<uint32_t>>("sets_bindings:material_factors");
 		auto bs_per_frame_uniform     = setting.get<std::vector<uint32_t>>("sets_bindings:per_frame_uniform");
 		auto bs_per_view_uniform      = setting.get<std::vector<uint32_t>>("sets_bindings:per_view_uniform");
@@ -226,7 +234,7 @@ class ROAR_ENGINE_ITEM Settings final
 		for (auto &att : attribs)
 		{
 			rhi::BufferSemantic semantic = rhi::get_format_semantic(att.begin().key());
-			rhi::VertexFormat format = rhi::string_to_vertex_format(att.begin().value());
+			rhi::VertexFormat   format   = rhi::string_to_vertex_format(att.begin().value());
 
 			this->m_default_vertex_descriptor.attributes.push_back({semantic, format});
 		}
@@ -325,9 +333,10 @@ class ROAR_ENGINE_ITEM Settings final
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
 	ror::Vector4f m_fog_color{0.5f, 0.5f, 0.5f, 1.0f};
 
-	ror::Vector4i m_window_dimensions{0, 0, 1024, 768};
-	ror::Vector4i m_viewport{0, 0, 1024, 768};
-	uint32_t      m_window_buffer_count{3};
+	ror::Vector4i  m_window_dimensions{0, 0, 1024, 768};
+	ror::Vector4i  m_viewport{0, 0, 1024, 768};
+	ror::Vector2ui m_grid{10, 2048};
+	uint32_t       m_window_buffer_count{3};
 
 	rhi::PixelFormat m_pixel_format{rhi::PixelFormat::r8g8b8a8_uint32_norm};
 	rhi::PixelFormat m_depth_stencil_format{rhi::PixelFormat::depth24_norm_stencil8_uint32};

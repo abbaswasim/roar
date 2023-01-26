@@ -264,4 +264,7 @@ constexpr auto PlatformPrimitiveTopologyLineStrip     = MTL::PrimitiveTypeLineSt
 constexpr auto PlatformPrimitiveTopologyTriangle      = MTL::PrimitiveTypeTriangle;
 constexpr auto PlatformPrimitiveTopologyTriangleStrip = MTL::PrimitiveTypeTriangleStrip;
 
+constexpr auto PlatformTriangleFillModeFill = MTL::TriangleFillModeFill;
+constexpr auto PlatformTriangleFillModeLine = MTL::TriangleFillModeLines;
+
 }        // namespace rhi

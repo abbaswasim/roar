@@ -97,4 +97,9 @@ constexpr FORCE_INLINE auto to_metal_winding(rhi::PrimitiveWinding a_winding)
 	return static_cast<MTL::Winding>(a_winding);
 }
 
+constexpr FORCE_INLINE auto to_metal_triangle_fill_mode(rhi::TriangleFillMode a_fill_mode)
+{
+	return static_cast<MTL::TriangleFillMode>(a_fill_mode);
+}
+
 }        // namespace rhi

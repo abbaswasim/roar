@@ -76,6 +76,7 @@ class RenderCommandEncoderMetal final
 	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Static> &a_indices, uintptr_t a_offset) noexcept;
 	FORCE_INLINE constexpr void end_encoding() noexcept;
 	FORCE_INLINE constexpr void release() noexcept;
+	FORCE_INLINE constexpr void triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) noexcept;
 
 	// clang-format off
 	FORCE_INLINE constexpr auto platform_encoder() noexcept { return this->m_encoder; }

@@ -19,7 +19,7 @@ vec3 get_tangent(const in vec3 n, const in vec3 p, const in vec2 uv)
 
 vec4 get_tangent()
 {
-	// Only of the following will be enabled at a time
+	// Only one of the following will be enabled at a time
 	@return vec4(get_tangent(in_vertex_normal, in_vertex_position.xyz, get_normal_uvs()), 1.0);
 	@return in_vertex_tangent;
 }

@@ -48,7 +48,7 @@ using BinBuffer_Allocator     = rhi::BufferAllocator<BinBuffer>;
 using BinBuffer_Vector        = std::vector<BinBuffer, BinBuffer_Allocator>;
 using BinBuffer_Vector_Vector = std::vector<BinBuffer_Vector, rhi::BufferAllocator<BinBuffer_Vector>>;
 
-class ROAR_ENGINE_ITEM Model
+class ROAR_ENGINE_ITEM Model final
 {
   public:
 	FORCE_INLINE        Model()                             = default;        //! Default constructor

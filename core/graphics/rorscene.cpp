@@ -293,7 +293,16 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 			this->m_pause_animation = !this->m_pause_animation;
 		};
 
+		auto fill_mode_handler = [this](Event) {
+			if (this->m_triangle_fill_mode == rhi::TriangleFillMode::fill)
+				this->m_triangle_fill_mode = rhi::TriangleFillMode::lines;
+			else
+				this->m_triangle_fill_mode = rhi::TriangleFillMode::fill;
+		};
+
 		a_event_system.subscribe(ror::keyboard_p_down, anim_handler);
+		a_event_system.subscribe(ror::keyboard_t_down, fill_mode_handler);
+
 		first_run = false;
 	}
 
@@ -883,6 +892,10 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 
 void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &subpass)
 {
+	// renderCommandEncoder.setTriangleFillMode(fillMode)
+
+	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
+
 	DrawData dd;
 
 	dd.positions       = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_position);

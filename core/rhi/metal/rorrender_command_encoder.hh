@@ -157,4 +157,9 @@ FORCE_INLINE constexpr void RenderCommandEncoder::release() noexcept
 {
 	this->m_encoder->release();
 }
+
+FORCE_INLINE constexpr void RenderCommandEncoder::triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) noexcept
+{
+	this->m_encoder->setTriangleFillMode(to_metal_triangle_fill_mode(a_fill_mode));
+}
 }        // namespace rhi

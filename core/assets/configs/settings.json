@@ -106,5 +106,10 @@
 		{
 			"vertex_weight_0" : "float32_4"
 		}
-	]
+	],
+	"grid" :
+	{
+		"size" : 10,
+		"spread" : 2048
+	}
 }

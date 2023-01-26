@@ -215,24 +215,26 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void read_probes();
 	void generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_job_system);
 	void update_bounding_box();
+	void create_grid(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, Model &model);
 
 	using RenderpassPrograms = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;
 
 	// All of these can be buffer allocated but for now leave them as is
-	std::vector<ror::Model>          m_models{};                   //! All the assets loaded as 3D models
-	std::vector<ror::SceneNode>      m_nodes{};                    //! All the nodes in this scene, must be in the parent order, parent first then children
-	std::vector<ror::SceneNodeData>  m_nodes_data{};               //! All the nodes parallel data that needs to be maintained
-	std::vector<ror::ParticleSystem> m_particles{};                //! All the particle emittors
-	RenderpassPrograms               m_programs{};                 //! All the shader programs per render pass for all the models
-	std::vector<rhi::Shader>         m_shaders{};                  //! All the shaders for all meshes in each model
-	std::vector<rhi::Shader>         m_global_shaders{};           //! All the global shaders that are used in global programs
-	std::vector<rhi::Program>        m_global_programs{};          //! All the global shader programs that overrides per mesh/model programs
-	std::vector<ror::OrbitCamera>    m_cameras{};                  //! All the cameras in the scene
-	std::vector<ror::Light>          m_lights{};                   //! All the lights in the scene
-	std::vector<EnvironmentProbe>    m_probes{};                   //! All the environment probes
-	ror::BoundingBoxf                m_bounding_box{};             //! Scene bounding box, a combination of its models in object space
-	bool                             m_indices_dirty{true};        //! If the scene graph indicies are direty and not uploaded yet
-	bool                             m_pause_animation{false};        //! Should the animation be running or not
+	std::vector<ror::Model>          m_models{};                                               //! All the assets loaded as 3D models
+	std::vector<ror::SceneNode>      m_nodes{};                                                //! All the nodes in this scene, must be in the parent order, parent first then children
+	std::vector<ror::SceneNodeData>  m_nodes_data{};                                           //! All the nodes parallel data that needs to be maintained
+	std::vector<ror::ParticleSystem> m_particles{};                                            //! All the particle emittors
+	RenderpassPrograms               m_programs{};                                             //! All the shader programs per render pass for all the models
+	std::vector<rhi::Shader>         m_shaders{};                                              //! All the shaders for all meshes in each model
+	std::vector<rhi::Shader>         m_global_shaders{};                                       //! All the global shaders that are used in global programs
+	std::vector<rhi::Program>        m_global_programs{};                                      //! All the global shader programs that overrides per mesh/model programs
+	std::vector<ror::OrbitCamera>    m_cameras{};                                              //! All the cameras in the scene
+	std::vector<ror::Light>          m_lights{};                                               //! All the lights in the scene
+	std::vector<EnvironmentProbe>    m_probes{};                                               //! All the environment probes
+	ror::BoundingBoxf                m_bounding_box{};                                         //! Scene bounding box, a combination of its models in object space
+	bool                             m_indices_dirty{true};                                    //! If the scene graph indicies are direty and not uploaded yet
+	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
+	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
 };
 
 void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);

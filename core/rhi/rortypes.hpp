@@ -354,6 +354,12 @@ enum class PrimitiveTopology
 	triangles_strip = PlatformPrimitiveTopologyTriangleStrip
 };
 
+enum class TriangleFillMode
+{
+	fill  = PlatformTriangleFillModeFill,
+	lines = PlatformTriangleFillModeLine
+};
+
 enum class PrimitiveWinding
 {
 	clockwise         = PlatformPrimitiveWindingClockWise,
