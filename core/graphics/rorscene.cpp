@@ -420,16 +420,21 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 
 	for (size_t prim_id = 0; prim_id < a_mesh.primitives_count(); ++prim_id)
 	{
-		auto &program        = pass_programs[static_cast<size_t>(a_mesh.program(prim_id))];
-		auto  material_index = a_mesh.material(prim_id);
+		auto material_index = a_mesh.material(prim_id);
 		assert(material_index != -1 && "Material index can't be -1");
 		auto &material         = a_model.materials()[static_cast<uint32_t>(material_index)];
 		auto &material_factors = material.shader_buffer();
 		// material_factors.bind(a_encoder, rhi::ShaderType::fragment, buffer_index_offset);
 		material_factors.buffer_bind(*a_dd.encoder, rhi::ShaderStage::fragment);
 
-		a_dd.encoder->render_pipeline_state(program);
-		// TODO: Add joint_transforms trs_transforms UBO for skinned characters
+		const rhi::Program *pso{nullptr};
+		pso = &pass_programs[static_cast<size_t>(a_mesh.program(prim_id))];
+
+		if (subpass.program_id() != -1)        // this means we have a renderer supass program that overrides what's generated for the primitive
+			pso = &a_renderer.program(static_cast<size_t>(subpass.program_id()));
+
+		assert(pso && "There should be a PSO available for the mesh primitive");
+		a_dd.encoder->render_pipeline_state(*pso);
 
 		// Bind standard vertex attributes
 		auto &vertex_attributes = a_mesh.vertex_descriptor(prim_id);
@@ -1781,7 +1786,7 @@ void Scene::read_programs()
 
 			// TODO: Need to find a way to upload these programs (Challenge is for which model/mesh/primitive?)
 		}
-		// Now lets walk the nodes who are using these progra indices and link them
+		// Now lets walk the nodes who are using these program indices and link them
 		int32_t node_index{0};
 		assert(this->m_nodes_data.size() <= std::numeric_limits<int32_t>::max() && "Too many nodes in the scene graph, it doesn't fit in int32_t");
 		for (auto &node_data : this->m_nodes_data)

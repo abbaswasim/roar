@@ -198,7 +198,6 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr const auto &particles()        const noexcept   {  return this->m_particles;       }
 	FORCE_INLINE constexpr const auto &programs()         const noexcept   {  return this->m_programs;        }
     FORCE_INLINE constexpr const auto &shaders()          const noexcept   {  return this->m_shaders;         }
-    // FORCE_INLINE constexpr const auto &global_shaders()   const noexcept   {  return this->m_global_shaders;  }
 	FORCE_INLINE constexpr const auto &global_programs()  const noexcept   {  return this->m_global_programs; }
 	FORCE_INLINE                 auto &cameras()                noexcept   {  return this->m_cameras;         }
 	FORCE_INLINE constexpr const auto &lights()           const noexcept   {  return this->m_lights;          }
@@ -249,8 +248,6 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	bool                             m_indices_dirty{true};                                    //! If the scene graph indicies are direty and not uploaded yet
 	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
-
-	// std::vector<rhi::Shader>         m_global_shaders{};                                       //! All the global shaders that are used in global programs
 };
 
 void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);

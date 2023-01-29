@@ -9,14 +9,6 @@
 	"programs":[
 		{
 			"compute":0
-		},
-		{
-			"vertex":1,
-			"fragment":2
-		},
-		{
-			"vertex":3,
-			"fragment":4
 		}
 	],
 	"textures":[
@@ -368,7 +360,7 @@
 								"stage" : "compute"
 							}
 						],
-						"program":2
+						"program":0
 					}
 				]
 			},
@@ -416,8 +408,7 @@
 								"index" : 3,
 								"stage" : "vertex"
 							}
-						],
-						"program":1
+						]
 					},
 					{
 						"name":"tonemap",
@@ -429,8 +420,7 @@
 								"index" : 0,
 								"stage" : "fragment"
 							}
-						],
-						"program":0
+						]
 					}
 				]
 			}
