@@ -354,6 +354,13 @@ enum class PrimitiveTopology
 	triangles_strip = PlatformPrimitiveTopologyTriangleStrip
 };
 
+enum class PrimitiveTopologyClass
+{
+	point    = PlatformPrimitiveTopologyClassPoint,
+	line     = PlatformPrimitiveTopologyClassLine,
+	triangle = PlatformPrimitiveTopologyClassTriangle
+};
+
 enum class TriangleFillMode
 {
 	fill  = PlatformTriangleFillModeFill,
@@ -1185,6 +1192,22 @@ constexpr auto vertex_format_to_glsl_type(rhi::VertexFormat a_format)
 	// clang-format on
 
 	return "";
+}
+
+constexpr auto primitve_toplogy_to_class(PrimitiveTopology a_toplogy)
+{
+	switch (a_toplogy)
+	{
+		// clang-format off
+		case PrimitiveTopology::points:              return PrimitiveTopologyClass::point;
+		case PrimitiveTopology::lines:
+		case PrimitiveTopology::lines_strip:         return PrimitiveTopologyClass::line;
+		case PrimitiveTopology::triangles:
+		case PrimitiveTopology::triangles_strip:     return PrimitiveTopologyClass::triangle;
+			// clang-format on
+	}
+
+	assert(0);
 }
 
 constexpr bool is_attribute_required_in_pass(rhi::BufferSemantic a_semantic, bool a_depth_shadow)

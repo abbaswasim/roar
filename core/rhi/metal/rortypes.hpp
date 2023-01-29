@@ -27,6 +27,7 @@
 
 #include <Metal/MTLPixelFormat.hpp>
 #include <Metal/MTLRenderCommandEncoder.hpp>
+#include <Metal/MTLRenderPipeline.hpp>
 #include <Metal/MTLResource.hpp>
 #include <Metal/MTLSampler.hpp>
 #include <Metal/MTLVertexDescriptor.hpp>
@@ -263,6 +264,10 @@ constexpr auto PlatformPrimitiveTopologyLine          = MTL::PrimitiveTypeLine;
 constexpr auto PlatformPrimitiveTopologyLineStrip     = MTL::PrimitiveTypeLineStrip;
 constexpr auto PlatformPrimitiveTopologyTriangle      = MTL::PrimitiveTypeTriangle;
 constexpr auto PlatformPrimitiveTopologyTriangleStrip = MTL::PrimitiveTypeTriangleStrip;
+
+constexpr auto PlatformPrimitiveTopologyClassPoint         = MTL::PrimitiveTopologyClassPoint;
+constexpr auto PlatformPrimitiveTopologyClassLine          = MTL::PrimitiveTopologyClassLine;
+constexpr auto PlatformPrimitiveTopologyClassTriangle      = MTL::PrimitiveTopologyClassTriangle;
 
 constexpr auto PlatformTriangleFillModeFill = MTL::TriangleFillModeFill;
 constexpr auto PlatformTriangleFillModeLine = MTL::TriangleFillModeLines;

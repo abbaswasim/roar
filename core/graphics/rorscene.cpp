@@ -181,6 +181,43 @@ void Light::upload(rhi::Device &a_device)
 	this->update();
 }
 
+constexpr auto to_renderpasstype(uint32_t a_index)
+{
+	// This looks like a useless method, but if other renderpass types are introduced, It will give warnings if this method is used, instead of just casting to uint32_t
+	auto rpt = static_cast<rhi::RenderpassType>(a_index);
+	switch (rpt)
+	{
+			// clang-format off
+		case rhi::RenderpassType::lut:                  return rpt;
+		case rhi::RenderpassType::main:                 return rpt;
+		case rhi::RenderpassType::depth:                return rpt;
+		case rhi::RenderpassType::shadow:               return rpt;
+		case rhi::RenderpassType::light_bin:            return rpt;
+		case rhi::RenderpassType::reflection:           return rpt;
+		case rhi::RenderpassType::refraction:           return rpt;
+		case rhi::RenderpassType::pre_process:          return rpt;
+		case rhi::RenderpassType::post_process:         return rpt;
+		case rhi::RenderpassType::tone_mapping:         return rpt;
+		case rhi::RenderpassType::forward_light:        return rpt;
+		case rhi::RenderpassType::node_transform:       return rpt;
+		case rhi::RenderpassType::deferred_gbuffer:     return rpt;
+		case rhi::RenderpassType::reflection_probes:    return rpt;
+		case rhi::RenderpassType::image_based_light:    return rpt;
+		case rhi::RenderpassType::ambient_occlusion:    return rpt;
+		case rhi::RenderpassType::skeletal_transform:   return rpt;
+		case rhi::RenderpassType::deferred_clustered:   return rpt;
+			// clang-format on
+	}
+
+	assert(0);
+};
+
+constexpr auto renderpasstype_max()
+{
+	// its not a big deal if in the future more RenderpassTypes are introduced, I will get an exception
+	return static_cast<uint32_t>(rhi::RenderpassType::deferred_clustered);
+}
+
 Scene::Scene(std::filesystem::path a_level)
 {
 	this->load(a_level, ResourceSemantic::scenes);
@@ -302,7 +339,6 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 
 		a_event_system.subscribe(ror::keyboard_p_down, anim_handler);
 		a_event_system.subscribe(ror::keyboard_t_down, fill_mode_handler);
-
 		first_run = false;
 	}
 
@@ -499,7 +535,7 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		{
 			auto &index_buffer_attribute = vertex_attributes.attribute(rhi::BufferSemantic::vertex_index);
 
-			a_dd.encoder->draw_indexed_primitives(rhi::PrimitiveTopology::triangles,
+			a_dd.encoder->draw_indexed_primitives(a_mesh.primitive_type(prim_id),
 			                                      index_buffer_attribute.count(),
 			                                      index_buffer_attribute.format(),
 			                                      *a_dd.indices,
@@ -508,7 +544,7 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		else
 		{
 			auto &vertex_buffer_attribute = vertex_attributes.attribute(rhi::BufferSemantic::vertex_position);
-			a_dd.encoder->draw_primitives(rhi::PrimitiveTopology::triangles, 0, vertex_buffer_attribute.count());
+			a_dd.encoder->draw_primitives(a_mesh.primitive_type(prim_id), 0, vertex_buffer_attribute.count());
 		}
 	}
 }
@@ -1022,12 +1058,102 @@ void Scene::update_bounding_box()
 	}
 }
 
+void Scene::add_model_node(int32_t a_model_index)
+{
+	ror::SceneNode     node;
+	ror::SceneNodeData node_data;
+	node_data.m_model = a_model_index;
+
+	this->m_nodes.emplace_back(std::move(node));
+	this->m_nodes_data.emplace_back(std::move(node_data));
+}
+
+void Scene::add_node()
+{
+	this->add_model_node(-1);
+}
+
+void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::function<bool(size_t)> &a_upload_job, std::vector<ror::JobHandle<bool>> &a_job_handles, size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
+{
+	auto grid_generation_job = [this, &a_buffer_pack](size_t model_index) -> auto
+	{
+		Model &model = this->m_models[model_index];
+		model.create_grid(false, a_buffer_pack);
+
+		// Lets load and upload its shaders
+		int32_t vid = static_cast_safe<int32_t>(this->m_shaders.size());
+		int32_t fid = vid + 1;
+
+		// This is ok here because generate_shaders hasn't been called yet
+		this->m_shaders.emplace_back(rhi::load_shader("grid.glsl.vert"));
+		this->m_shaders.back().compile();
+		this->m_shaders.emplace_back(rhi::load_shader("grid.glsl.frag"));
+		this->m_shaders.back().compile();
+
+		// Here I have node, program, model, mesh and primitive id, it will be for each passtype
+		GlobalProgram gb;
+		gb.program  = rhi::Program{vid, fid};
+		gb.model_id = static_cast_safe<int32_t>(model_index);
+		gb.node_id  = static_cast_safe<int32_t>(this->m_nodes_data.size());        // Remember I haven't added a node for this yet, so the size will be its index when I call add_model_node()
+
+		uint32_t mesh_index = 0;
+		for (auto &mesh : model.meshes())
+		{
+			gb.mesh_id = static_cast_safe<int32_t>(mesh_index);
+
+			for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+			{
+				// Don't assign the program id here, we will do it in generate_shaders
+				// assert(mesh.program(prim_index) == -1 && "Grid primitives shouldn't have a program allocated to it");
+				// mesh.program(prim_index, static_cast_safe<int32_t>(mesh_program_index));
+
+				gb.primitive_id = static_cast_safe<int32_t>(prim_index);
+
+				int32_t mesh_program_index = -1;
+				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
+				{
+					// Some sanity checks
+					if (mesh_program_index == -1)
+					{
+						mesh_program_index = static_cast_safe<int32_t>(this->m_global_programs[to_renderpasstype(i)].size());
+					}
+					else
+					{
+						assert(static_cast_safe<int32_t>(this->m_global_programs[to_renderpasstype(i)].size()) == mesh_program_index && "Some renderpass programs are not properly initialized");
+					}
+
+					this->m_global_programs[to_renderpasstype(i)].emplace_back(gb);
+				}
+			}
+			mesh_index++;
+		}
+
+		return true;
+	};
+
+	// Add scene nodes for this model
+	// NOTE: Don't change order to before gb.node_id is assigned above
+	this->add_model_node(static_cast_safe<int32_t>(a_model_index));        // Doing this outside nested jobs because its not thread safe
+
+	// kick off grid generation job
+	auto grid_job_handle   = a_job_system.push_job(grid_generation_job, a_model_index);
+	auto upload_job_handle = a_job_system.push_job(a_upload_job, grid_job_handle.job(), a_model_index);
+
+	a_job_handles.emplace_back(std::move(grid_job_handle));
+	a_job_handles.emplace_back(std::move(upload_job_handle));
+}
+
 void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer)
 {
-	auto model_nodes{0u};
+	auto &bpack = rhi::get_buffers_pack();
+	auto  model_nodes{0u};
 	for (auto &node : this->m_nodes_data)
 		if (node.m_model_path != "")
 			model_nodes++;
+
+	// Add all the procedurally created models here
+	// TODO: Add more types here
+	model_nodes++;        // for grid model
 
 	if (model_nodes > 0)
 	{
@@ -1035,11 +1161,11 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		std::vector<ror::JobHandle<bool>> job_handles;
 		job_handles.reserve(model_nodes * 2);        // Multiplied by 2 because I am creating two jobs, load and upload per model
 
-		auto model_load_job = [this](const std::string &node_model_path, size_t a_model_index) -> auto
+		auto model_load_job = [this](const std::string &node_model_path, size_t a_model_index, bool a_generate_shaders) -> auto
 		{
 			log_info("Loading model {}", node_model_path.c_str());
 			Model &model = this->m_models[a_model_index];
-			model.load_from_gltf_file(node_model_path, this->m_cameras);
+			model.load_from_gltf_file(node_model_path, this->m_cameras, a_generate_shaders);
 
 			return true;
 		};
@@ -1056,13 +1182,17 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		{
 			if (node.m_model_path != "")
 			{
-				auto load_job_handle   = a_job_system.push_job(model_load_job, node.m_model_path, model_index);
+				auto load_job_handle   = a_job_system.push_job(model_load_job, node.m_model_path, model_index, node.m_program_id == -1);
 				auto upload_job_handle = a_job_system.push_job(model_upload_job, load_job_handle.job(), model_index);
 				job_handles.emplace_back(std::move(load_job_handle));
 				job_handles.emplace_back(std::move(upload_job_handle));
 				model_index++;
 			}
 		}
+
+		// Generate grid into the grid model slot we have allocated
+		generate_grid_model(a_job_system, model_upload_job, job_handles, model_index, bpack);
+		model_index++;
 
 		assert(model_index == model_nodes && "Models count vs how many are loaded doesn't match");
 
@@ -1077,7 +1207,6 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
 	// TODO: find out this might need to be done differently for Vulkan, also should be moved to upload()
-	auto &bpack = rhi::get_buffers_pack();
 	bpack.upload(a_device);
 
 	if (!shader_gen_job_handle.data())
@@ -1124,6 +1253,25 @@ hash_64_t pass_aware_fragment_hash(hash_64_t a_fragment_hash, hash_64_t a_vertex
 	hash_combine_64(fragment_hash, a_fragment_hash);
 
 	return fragment_hash;
+}
+
+auto Scene::find_global_program(rhi::RenderpassType a_passtype, uint32_t a_model_id, uint32_t a_mesh_id, size_t a_prim_id, Scene::GlobalProgram **a_global_program)
+{
+	for (size_t i = 0; i < this->m_global_programs[a_passtype].size(); ++i)
+	{
+		auto &gb = this->m_global_programs[a_passtype][i];
+
+		if (gb.model_id == static_cast_safe<int32_t>(a_model_id) &&
+		    gb.mesh_id == static_cast_safe<int32_t>(a_mesh_id) &&
+		    gb.primitive_id == static_cast_safe<int32_t>(a_prim_id))
+		{
+			*a_global_program = &this->m_global_programs[a_passtype][i];
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_job_system)
@@ -1173,10 +1321,11 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 	{
 		this->m_programs[passtype] = {};
 		auto &pass_programs        = this->m_programs[passtype];
-		auto  pass_string          = std::string("_") + rhi::renderpass_type_to_string(passtype);
-		pass_programs.reserve(shaders_count);        // Pre-reserve so no reallocation happen under the hood while jobs are using it, times 2 for both vertex and fragment
+		auto  pass_string          = std::string("_") + rhi::renderpass_type_to_string(passtype);        // This will be the generated shader name but mostly the first pass will be dominent, because the rest won't be unique
+		pass_programs.reserve(shaders_count);                                                            // Pre-reserve so no reallocation happen under the hood while jobs are using it, times 2 for both vertex and fragment
 
 		// Create vertex and fragment shaders but don't generate sources yet
+		uint32_t model_index = 0;
 		for (auto &model : this->m_models)
 		{
 			uint32_t mesh_index = 0;
@@ -1189,17 +1338,41 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 					auto old_fs_hash = mesh.fragment_hash(prim_index);
 					auto fs_hash     = pass_aware_fragment_hash(old_fs_hash, vs_hash);
 
-					create_hash_to_index(vs_hash, rhi::ShaderType::vertex, ".vert");
-					create_hash_to_index(fs_hash, rhi::ShaderType::fragment, ".frag");
+					// At this point you either have a per render pass shader available for the model or you generate it
+					size_t program_index = pass_programs.size();
+					if (model.generate_shaders())
+					{
+						create_hash_to_index(vs_hash, rhi::ShaderType::vertex, ".vert");
+						create_hash_to_index(fs_hash, rhi::ShaderType::fragment, ".frag");
 
-					pass_programs.emplace_back(shader_hash_to_index[vs_hash], shader_hash_to_index[fs_hash]);
+						pass_programs.emplace_back(shader_hash_to_index[vs_hash], shader_hash_to_index[fs_hash]);
 
-					// This is set once for the first render pass but it must stay the same for all of the rest because every pass must contain the same amount of shaders
-					if (mesh.program(prim_index) == -1)
-						model.update_mesh_program(mesh_index, static_cast_safe<uint32_t>(prim_index), static_cast_safe<int32_t>(pass_programs.size()) - 1);
+						// This is set once for the first render pass but it must stay the same for all of the rest because every pass must contain the same amount of shaders
+						if (mesh.program(prim_index) == -1)
+							mesh.program(static_cast_safe<uint32_t>(prim_index), static_cast_safe<int32_t>(program_index));
+					}
+					else
+					{
+						shader_hash_to_flag.emplace(vs_hash, true);
+						shader_hash_to_flag.emplace(fs_hash, true);
+
+						GlobalProgram *gb{nullptr};
+						find_global_program(passtype, model_index, mesh_index, prim_index, &gb);
+
+						pass_programs.emplace_back(gb->program);
+
+						// This is set once for the first render pass but it must stay the same for all of the rest because every pass must contain the same amount of shaders
+						if (mesh.program(prim_index) == -1)
+							mesh.program(static_cast_safe<uint32_t>(prim_index), static_cast_safe<int32_t>(program_index));
+						else
+						{
+							assert(mesh.program(prim_index) == static_cast_safe<int32_t>(program_index) && "Something went wrong, these indices should be the same");
+						}
+					}
 				}
 				++mesh_index;
 			}
+			++model_index;
 		}
 	}
 
@@ -1281,9 +1454,12 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 	}
 
 	log_warn("Actual number of shaders created {} ", this->m_shaders.size());
+
+	// Just a cleanup for global programs
+	this->m_global_programs.clear();
 }
 
-void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack)
+void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system)
 {
 	auto render_passes = a_renderer.current_frame_graph();
 
@@ -1293,18 +1469,7 @@ void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::
 		shader.upload(a_device);
 	}
 
-	for (auto &shader : this->m_global_shaders)
-	{
-		shader.compile();
-		shader.upload(a_device);
-	}
-
-	for (auto &program : this->m_global_programs)
-	{
-		program.upload(a_device, this->m_shaders, a_buffer_pack);
-	}
-
-	// Upload all the shader programs creates pipelines in metal and vulkan cases
+	// Upload all the shader programs, this creates pipelines in metal and vulkan cases
 	for (auto &pass : render_passes)
 	{
 		for (auto &subpass : pass.subpasses())
@@ -1570,26 +1735,24 @@ void Scene::read_lights()
 
 void Scene::read_programs()
 {
+	assert(this->m_shaders.size() == 0 && "Pre-initialized shaders are not supported, for support requires updating vid, fid and cid below");
+
 	if (this->m_json_file.contains("shaders"))
 	{
 		// Read all the shaders
 		auto shaders = this->m_json_file["shaders"];
 		for (auto &shader : shaders)
-		{
-			auto s_path = std::filesystem::path(shader);
-			auto type   = rhi::string_to_shader_type(s_path.extension());
-			auto hash   = hash_64(s_path.c_str(), s_path.string().length());
-			this->m_global_shaders.emplace_back(shader, hash, type, ror::ResourceAction::load);
-		}
+			this->m_shaders.emplace_back(rhi::load_shader(shader));        // No need the move which prevents copy elision
 	}
+
+	for (uint32_t i = 0; i < renderpasstype_max(); ++i)
+		this->m_global_programs[to_renderpasstype(i)] = {};
 
 	if (this->m_json_file.contains("programs"))
 	{
 		auto programs = this->m_json_file["programs"];
 		for (auto &program : programs)
 		{
-			(void) program;
-
 			if (program.contains("vertex"))
 			{
 				assert(program.contains("fragment") && "Program must contain both vertex and fragment ids");
@@ -1597,7 +1760,11 @@ void Scene::read_programs()
 				int32_t vid = program["vertex"];
 				int32_t fid = program["fragment"];
 
-				this->m_global_programs.emplace_back(vid, fid);
+				GlobalProgram gb;
+				gb.program = rhi::Program(vid, fid);
+
+				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
+					this->m_global_programs[to_renderpasstype(i)].emplace_back(gb);
 			}
 			else if (program.contains("compute"))
 			{
@@ -1605,10 +1772,25 @@ void Scene::read_programs()
 
 				int32_t cid = program["compute"];
 
-				this->m_global_programs.emplace_back(cid);
+				GlobalProgram gb;
+				gb.program = rhi::Program(cid);
+
+				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
+					this->m_global_programs[to_renderpasstype(i)].emplace_back(gb);
 			}
 
 			// TODO: Need to find a way to upload these programs (Challenge is for which model/mesh/primitive?)
+		}
+		// Now lets walk the nodes who are using these progra indices and link them
+		int32_t node_index{0};
+		assert(this->m_nodes_data.size() <= std::numeric_limits<int32_t>::max() && "Too many nodes in the scene graph, it doesn't fit in int32_t");
+		for (auto &node_data : this->m_nodes_data)
+		{
+			if (node_data.m_program_id != -1)
+				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
+					this->m_global_programs[to_renderpasstype(i)][static_cast<size_t>(node_data.m_program_id)].node_id = node_index;
+
+			node_index++;
 		}
 	}
 }

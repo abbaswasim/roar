@@ -29,6 +29,7 @@
 #include "rhi/rortypes.hpp"
 
 #include <Metal/MTLRenderCommandEncoder.hpp>
+#include <Metal/MTLRenderPipeline.hpp>
 #include <Metal/MTLResource.hpp>
 #include <Metal/MTLSampler.hpp>
 #include <Metal/MTLStageInputOutputDescriptor.hpp>
@@ -67,14 +68,16 @@ constexpr FORCE_INLINE auto to_metal_step_function(rhi::StepFunction a_function)
 {
 	switch (a_function)
 	{
-		// clang-format off
+	// clang-format off
 		case rhi::StepFunction::vertex:                       return MTL::VertexStepFunctionPerVertex;
 	    case rhi::StepFunction::constant:                     return MTL::VertexStepFunctionConstant;
     	case rhi::StepFunction::instance:                     return MTL::VertexStepFunctionPerInstance;
     	case rhi::StepFunction::patch:                        return MTL::VertexStepFunctionPerPatch;
     	case rhi::StepFunction::patch_control_point:          return MTL::VertexStepFunctionPerPatchControlPoint;
-		// clang-format on
+	// clang-format on
 	}
+
+	assert(0);
 }
 
 constexpr FORCE_INLINE auto to_metal_resource_option(rhi::ResourceStorageOption a_mode)
@@ -85,6 +88,13 @@ constexpr FORCE_INLINE auto to_metal_resource_option(rhi::ResourceStorageOption 
 constexpr FORCE_INLINE auto to_metal_primitive_topoloy(rhi::PrimitiveTopology a_topology)
 {
 	return static_cast<MTL::PrimitiveType>(a_topology);
+}
+
+constexpr FORCE_INLINE auto to_metal_primitive_topoloy_class(rhi::PrimitiveTopology a_topology)
+{
+	auto topclass = primitve_toplogy_to_class(a_topology);
+
+	return static_cast<MTL::PrimitiveTopologyClass>(topclass);
 }
 
 constexpr FORCE_INLINE auto to_metal_cull_mode(rhi::PrimitiveCullMode a_cull_mode)

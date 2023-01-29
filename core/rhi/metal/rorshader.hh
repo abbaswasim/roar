@@ -38,4 +38,10 @@ FORCE_INLINE ShaderMetal::~ShaderMetal() noexcept
 		this->m_msl_Library->release();
 }
 
+FORCE_INLINE auto load_shader(const std::filesystem::path &a_shader_path)
+{
+	auto type = rhi::string_to_shader_type(a_shader_path.extension());
+	auto hash = ror::hash_64(a_shader_path.c_str(), a_shader_path.string().length());
+	return ShaderMetal{a_shader_path.string(), hash, type, ror::ResourceAction::load};
+}
 }        // namespace rhi

@@ -147,6 +147,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
                                                                  const rhi::Shader     &a_fragment_shader,
                                                                  MTL::VertexDescriptor *mtl_vertex_descriptor,
                                                                  rhi::BlendMode         a_blend_mode,
+																 rhi::PrimitiveTopology a_topology,
                                                                  const char            *a_label,
                                                                  bool                   a_depth)
 {
@@ -199,7 +200,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 	render_pipeline_descriptor->setLabel(NS::String::string(a_label, NS::StringEncoding::UTF8StringEncoding));
 	// render_pipeline_descriptor->setRasterSampleCount(setting.m_multisample_count);
 	render_pipeline_descriptor->setRasterizationEnabled(true);
-	render_pipeline_descriptor->setInputPrimitiveTopology(MTL::PrimitiveTopologyClassTriangle);
+	render_pipeline_descriptor->setInputPrimitiveTopology(to_metal_primitive_topoloy_class(a_topology));
 
 	MTL::RenderPipelineState *pipeline_state = device->newRenderPipelineState(render_pipeline_descriptor, &pError);
 
@@ -289,7 +290,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	}
 
 	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_model.meshes(), a_mesh_index, a_prim_index, is_depth_shadow);
-	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, material.m_blend_mode, a_model.meshes()[a_mesh_index].name().c_str(), a_subpass.has_depth());
+	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, material.m_blend_mode, mesh.primitive_type(a_prim_index), mesh.name().c_str(), a_subpass.has_depth());
 }
 
 void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack)
@@ -314,7 +315,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 		if (vs.function() != nullptr && fs.function() != nullptr)
 		{
 			auto *mtl_vertex_descriptor = get_default_mtl_vertex_descriptor(a_buffer_pack);
-			this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, rhi::BlendMode::blend, "GlobalRenderPassPipeline", true);
+			this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "GlobalRenderPassPipeline", true);
 		}
 	}
 	else

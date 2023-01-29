@@ -93,6 +93,7 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
 
 void glslang_wrapper_initialize_process();
 void glslang_wrapper_finalize_process();
+
 }        // namespace rhi
 
 #include "rhi/crtp_interfaces/rorshader.hh"

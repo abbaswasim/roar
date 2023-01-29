@@ -35,6 +35,8 @@
 #include "rhi/rortypes.hpp"
 #include <cstdint>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace ror
 {
@@ -144,8 +146,14 @@ class ROAR_ENGINE_ITEM Settings final
 			auto x = setting.get<uint32_t>("grid:size");
 			auto y = setting.get<uint32_t>("grid:spread");
 
-			this->m_grid.x = x;
-			this->m_grid.y = y;
+			this->m_grid.m_sizes.x = x;
+			this->m_grid.m_sizes.y = y;
+
+			auto gco = setting.get<std::vector<float32_t>>("grid:color");
+			if (gco.size() >= 4)
+				this->m_grid.m_color = ror::Vector4f(gco[0], gco[1], gco[2], gco[3]);
+
+			this->m_grid.m_show_y_axis = setting.get<bool>("grid:y_axis");
 		}
 
 		auto bs_material_factors      = setting.get<std::vector<uint32_t>>("sets_bindings:material_factors");
@@ -333,10 +341,9 @@ class ROAR_ENGINE_ITEM Settings final
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
 	ror::Vector4f m_fog_color{0.5f, 0.5f, 0.5f, 1.0f};
 
-	ror::Vector4i  m_window_dimensions{0, 0, 1024, 768};
-	ror::Vector4i  m_viewport{0, 0, 1024, 768};
-	ror::Vector2ui m_grid{10, 2048};
-	uint32_t       m_window_buffer_count{3};
+	ror::Vector4i m_window_dimensions{0, 0, 1024, 768};
+	ror::Vector4i m_viewport{0, 0, 1024, 768};
+	uint32_t      m_window_buffer_count{3};
 
 	rhi::PixelFormat m_pixel_format{rhi::PixelFormat::r8g8b8a8_uint32_norm};
 	rhi::PixelFormat m_depth_stencil_format{rhi::PixelFormat::depth24_norm_stencil8_uint32};
@@ -388,6 +395,15 @@ class ROAR_ENGINE_ITEM Settings final
 	};
 
 	DefaultVertexDescriptor m_default_vertex_descriptor{};
+
+	struct Grid
+	{
+		ror::Vector2ui m_sizes{10, 2048};
+		ror::Vector4f  m_color{0.5f, 0.5f, 0.5f, 1.0f};
+		bool           m_show_y_axis{false};
+	};
+
+	Grid m_grid{};
 
   protected:
   private:

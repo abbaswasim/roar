@@ -54,12 +54,11 @@ FORCE_INLINE void ShaderCrtp<_type>::compile()
 	std::string info_log;
 	if (!compile_to_spirv(this->source(), this->m_type, "main", this->m_spirv, info_log))
 	{
-		ror::log_critical("Shader to SPIR-V conversion failed \n{}", info_log.c_str());
+		ror::log_critical("Shader to SPIR-V conversion failed shader :{}\n \n{}", this->shader_path().c_str(), info_log.c_str());
 	}
 
 	this->platform_source();
 }
-
 
 template <class _type>
 FORCE_INLINE constexpr auto ShaderCrtp<_type>::source() const noexcept
@@ -67,4 +66,5 @@ FORCE_INLINE constexpr auto ShaderCrtp<_type>::source() const noexcept
 	assert(this->m_shader);
 	return std::string(reinterpret_cast<const char *>(this->m_shader->data().data()), this->m_shader->data().size());
 }
+
 }        // namespace rhi

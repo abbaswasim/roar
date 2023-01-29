@@ -95,21 +95,17 @@
 	"default_vertex_descriptor" :
 	[
 		{
-			"vertex_position" : "float32_3"
+			"vertex_position" : "float32_4"
 		},
 		{
-			"vertex_texture_coord_0" : "float32_2"
-		},
-		{
-			"vertex_bone_id_0" : "uint16_4"
-		},
-		{
-			"vertex_weight_0" : "float32_4"
+			"vertex_color_0" : "float32_4"
 		}
 	],
 	"grid" :
 	{
-		"size" : 10,
-		"spread" : 2048
+		"size" : 1,
+		"spread" : 2048,
+		"y_axis" : false,
+		"color" : [1.0, 1.0, 1.0, 1.0]
 	}
 }

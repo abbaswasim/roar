@@ -890,8 +890,178 @@ void update_materials_textures_to_linear(std::vector<ror::Material, rhi::BufferA
 	}
 }
 
-void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras)
+static auto generate_grid(ror::Vector2ui a_grid, ror::Vector4f a_grid_color, bool a_show_y)
 {
+	std::vector<float32_t> positions{};
+
+	auto add_point = [&positions](ror::Vector4f position, ror::Vector4f color) {
+		positions.push_back(position.x);
+		positions.push_back(position.y);
+		positions.push_back(position.z);
+		positions.push_back(0);
+
+		positions.push_back(color.x);
+		positions.push_back(color.y);
+		positions.push_back(color.z);
+		positions.push_back(position.w);
+	};
+
+	float32_t size = static_cast_safe<int32_t>(a_grid.y / 2);
+
+	for (float32_t i = static_cast_safe<float32_t>(a_grid.x); i < size; i += a_grid.x)
+	{
+		float32_t tens = 0.5f;
+
+		if (static_cast<int32_t>(i) % 1000 == 0)
+			tens = 100.0f;
+		else if (static_cast<int32_t>(i) % 100 == 0)
+			tens = 10.0f;
+		else if (static_cast<int32_t>(i) % 10 == 0)
+			tens = 1.0f;
+
+		add_point({i, 0, -size, tens}, a_grid_color);
+		add_point({i, 0, size, tens}, a_grid_color);
+
+		add_point({-size, 0, i, tens}, a_grid_color);
+		add_point({size, 0, i, tens}, a_grid_color);
+
+		add_point({-i, 0, -size, tens}, a_grid_color);
+		add_point({-i, 0, size, tens}, a_grid_color);
+
+		add_point({-size, 0, -i, tens}, a_grid_color);
+		add_point({size, 0, -i, tens}, a_grid_color);
+	}
+
+	float32_t color_intensity = 0.8f;
+	float32_t color_fade      = 0.2f;
+
+	ror::Vector4f origin_x{color_intensity, color_fade, color_fade, 1.0};
+	ror::Vector4f origin_y{color_fade, color_intensity, color_fade, 1.0};
+	ror::Vector4f origin_z{color_fade, color_fade, color_intensity, 1.0};
+
+	add_point({-size, 0, 0, 10}, origin_x);
+	add_point({size, 0, 0, 10}, origin_x);
+	add_point({0, 0, -size, 10}, origin_z);
+	add_point({0, 0, size, 10}, origin_z);
+
+	if (a_show_y)
+	{
+		add_point({0, -size, 0, 10}, origin_y);
+		add_point({0, size, 0, 10}, origin_y);
+	}
+
+	return positions;
+}
+
+void Model::update_hashes()
+{
+	for (size_t i = 0; i < this->m_meshes.size(); ++i)
+	{
+		Mesh &mesh = this->m_meshes[i];
+
+		for (size_t j = 0; j < mesh.primitives_count(); ++j)
+		{
+			auto   skin_index   = mesh.skin_index();
+			size_t joints_count = 0;
+			if (skin_index != -1)
+			{
+				auto &skin   = this->m_skins[ror::static_cast_safe<size_t>(skin_index)];
+				joints_count = skin.joints_count();
+			}
+
+			auto material_index = mesh.material(j);
+			assert(material_index != -1 && "Material index can't be -1");
+			hash_64_t material_hash = 0;
+			auto     &material      = this->m_materials[ror::static_cast_safe<size_t>(material_index)];
+			material_hash           = material.m_hash;
+
+			mesh.update_primitive_hash(j, joints_count, material_hash);
+		}
+
+		// Lets update the mesh hash
+		mesh.generate_hash();
+	}
+}
+
+void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack)
+{
+	this->m_generate_shaders = a_generate_shaders;
+
+	// All things to do for a Simple Model/Mesh, however not all apply in this case
+	// Load image
+	// Create texture using
+	// Use default sampler at 0
+	// Use default material at 0
+	// Create nodes and then
+	// Create mesh
+	// Update the bounding box
+	// Load shaders/programs that this mesh can use
+
+	ror::Node     node{};
+	ror::NodeData node_data{};
+
+	assert(this->m_meshes.size() == 0 && "Mesh is already initialized");
+	this->m_meshes.resize(1);        // Want to have 1 mesh at this time
+
+	std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> attribs_data{};
+
+	// Grid is a geometry asset that has positions and colors only
+	ror::Mesh &mesh    = this->m_meshes[0];
+	uint32_t   prim_id = 0;
+
+	node.m_mesh_index = 0;
+
+	// Lets have an unlit blendable material at index 0
+	this->m_materials.emplace_back();
+	this->m_materials.back().m_material_model = rhi::MaterialModel::unlit;
+	this->m_materials.back().m_blend_mode     = rhi::BlendMode::blend;
+
+	// Lets have a default sampler at index 0
+	this->m_samplers.emplace_back();
+
+	mesh.name("grid");
+	mesh.resize(1);        // Want to have 1 mesh primitive at this time
+	mesh.material(prim_id, 0);
+	mesh.program(prim_id, -1);
+	mesh.has_indices(prim_id, false);
+
+	mesh.primitive_type(prim_id, rhi::PrimitiveTopology::lines);
+
+	// Grid is a geometry asset that has positions and colors only
+	mesh.vertex_descriptor(prim_id).add(rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_4, &a_buffers_pack);
+	mesh.vertex_descriptor(prim_id).add(rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4, &a_buffers_pack);
+
+	auto                  &setting                   = ror::settings();
+	std::vector<float32_t> positions_float32_pointer = generate_grid(setting.m_grid.m_sizes, setting.m_grid.m_color, setting.m_grid.m_show_y_axis);
+	{
+		auto                                      data_pointer = reinterpret_cast<uint8_t *>(positions_float32_pointer.data());
+		std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, positions_float32_pointer.size() * sizeof(float32_t) / 2, sizeof(float32_t) * 8};
+		attribs_data.emplace(rhi::BufferSemantic::vertex_position, std::move(data_tuple));
+	}
+	{
+		auto                                      data_pointer = reinterpret_cast<uint8_t *>(positions_float32_pointer.data());
+		std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + sizeof(float32_t) * 4, positions_float32_pointer.size() * sizeof(float32_t) / 2, sizeof(float32_t) * 8};
+		attribs_data.emplace(rhi::BufferSemantic::vertex_color_0, std::move(data_tuple));
+	}
+
+	mesh.vertex_descriptor(prim_id).upload(attribs_data, &a_buffers_pack);
+
+	// Don't want to sit the grid bounding box correctly otherwise the camera zoom will be affected
+	ror::Vector3f min{};
+	ror::Vector3f max{};
+	auto         &mesh_bbox = mesh.bounding_box(prim_id);
+	mesh_bbox.create_from_min_max(min, max);
+
+	this->m_nodes.emplace_back(std::move(node));
+	this->m_nodes_side_data.emplace_back(std::move(node_data));
+
+	this->update_hashes();
+}
+
+void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, bool a_generate_shaders)
+{
+	this->m_generate_shaders = a_generate_shaders;
+
 	// Lets start by reading a_filename via resource cache
 	auto &resource = load_resource(a_filename, ResourceSemantic::models);
 	auto &filename = resource.absolute_path();
@@ -1205,6 +1375,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 			{
 				Mesh             &mesh  = this->m_meshes[i];
 				const cgltf_mesh &cmesh = data->meshes[i];
+
+				if (cmesh.name)
+					mesh.name(cmesh.name);
 
 				mesh.resize(cmesh.primitives_count);
 
@@ -1856,36 +2029,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 			}
 
 			// Update mesh hashes after everything is loaded
-			for (size_t i = 0; i < data->meshes_count; ++i)
-			{
-				Mesh             &mesh  = this->m_meshes[i];
-				const cgltf_mesh &cmesh = data->meshes[i];
-
-				if (cmesh.name)
-					mesh.name(cmesh.name);
-
-				for (size_t j = 0; j < cmesh.primitives_count; ++j)
-				{
-					auto   skin_index   = mesh.skin_index();
-					size_t joints_count = 0;
-					if (skin_index != -1)
-					{
-						auto &skin   = this->m_skins[ror::static_cast_safe<size_t>(skin_index)];
-						joints_count = skin.joints_count();
-					}
-
-					auto material_index = mesh.material(j);
-					assert(material_index != -1 && "Material index can't be -1");
-					hash_64_t material_hash = 0;
-					auto     &material      = this->m_materials[ror::static_cast_safe<size_t>(material_index)];
-					material_hash           = material.m_hash;
-
-					mesh.update_primitive_hash(j, joints_count, material_hash);
-				}
-
-				// Lets update the mesh hash
-				mesh.generate_hash();
-			}
+			this->update_hashes();
 
 			return true;
 		};

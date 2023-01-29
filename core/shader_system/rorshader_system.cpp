@@ -1239,7 +1239,7 @@ std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBuf
 	return result;
 }
 
-std::string get_material(const ror::Material &a_material, bool a_has_normal)
+std::string get_material(const ror::Material &a_material, bool a_has_normal, bool a_has_color_0, bool a_has_color_1)
 {
 #define stringify_helper(x) #x
 #define stringify(x) stringify_helper(x)
@@ -1252,12 +1252,26 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal)
 
 	std::string output{"Material get_material()\n{\n\tMaterial material;\n\n"};
 
-	// Defaults values for Material copied from Filament's defaults
-	get_material_component(base_color, vec4(1.0));
+	// Using the expanded version for base_color
+	if (a_material.m_base_color.m_type != ror::Material::ComponentType::none)
+		output.append("\tmaterial.base_color = get_base_color()");
+	else
+		output.append("\tmaterial.base_color = vec4(1.0)");
+
+	if(a_has_color_0)
+		output.append(" * in_vertex_color_0");
+
+	if(a_has_color_1)
+		output.append(" * in_vertex_color_1");
+
+	output.append(";\n");
+
+	// get_material_component(base_color, vec4(1.0));
 
 	if (a_material.m_blend_mode == rhi::BlendMode::mask)
 		output.append("\tresolve_alpha(material.base_color.a);\n");
 
+	// Defaults values for Material copied from Filament's defaults
 	get_material_component(emissive, vec4(0.0));        // when adding emissive support, If there is valid emissive make sure its alpha is 0, so blending works, a in emissive must be ignored according to gltf spec
 	get_material_component(bent_normal, vec3(0.0, 0.0, 1.0));
 	// get_material_component(roughness, 1.0);
@@ -1346,7 +1360,7 @@ void resolve_alpha(float alpha)
 		discard;
 })alp"};
 
-std::string fs_set_output(const ror::Material &a_material, bool a_has_normal)
+std::string fs_set_output(const ror::Material &a_material, bool a_has_normal, bool a_has_color_0, bool a_has_color_1)
 {
 	std::string result{};
 
@@ -1357,7 +1371,7 @@ std::string fs_set_output(const ror::Material &a_material, bool a_has_normal)
 	if (a_material.m_blend_mode == rhi::BlendMode::mask)
 		result.append(resolve_alpha_code);
 
-	result.append(get_material(a_material, a_has_normal));
+	result.append(get_material(a_material, a_has_normal, a_has_color_0, a_has_color_1));
 	result.append("\n");
 	result.append(getters_code);
 	result.append("\n");
@@ -1365,7 +1379,7 @@ std::string fs_set_output(const ror::Material &a_material, bool a_has_normal)
 	return result;
 }
 
-std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool a_has_normal)
+std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool a_has_normal, bool a_has_color_0, bool a_has_color_1)
 {
 	// Read all the shader snippets
 	// Read brdf.glsl.frag resource and create a string_view
@@ -1390,7 +1404,7 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 
 	// Read main.glsl.frag resource and create a string_view
 	auto            &main_resource = ror::load_resource("shaders/main.glsl.frag", ror::ResourceSemantic::shaders);
-	std::string_view main_code{reinterpret_cast<const char *>(main_resource.data().data()), main_resource.data().size()};
+	std::string main_code{reinterpret_cast<const char *>(main_resource.data().data()), main_resource.data().size()};
 
 	std::string output{};
 
@@ -1399,7 +1413,7 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	output.append("\n");
 	output.append(temporary_structs_code);
 	output.append("\n");
-	output.append(fs_set_output(a_material, a_has_normal));
+	output.append(fs_set_output(a_material, a_has_normal, a_has_color_0, a_has_color_1));
 	output.append("\n");
 	if (a_has_shadow)
 	{
@@ -1419,6 +1433,12 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	output.append("\n");
 	output.append(lighting_code);
 	output.append("\n");
+
+	if (a_material.m_material_model == rhi::MaterialModel::unlit)
+		replace_next_at("", main_code);
+	else
+		replace_next_at("//", main_code);
+
 	output.append(main_code);
 
 	return output;
@@ -1431,6 +1451,8 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	const auto  type              = vertex_descriptor.type();
 	const auto  has_normal        = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal);
 	const auto  has_tangent       = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_tangent)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_tangent);
+	const auto  has_color_0       = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0);
+	const auto  has_color_1       = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1);
 
 	auto material_index = a_mesh.material(a_primitive_index);
 	assert(material_index != -1 && "Material index can't be -1");
@@ -1458,7 +1480,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
 	output.append(texture_lookups(material, has_tangent));
-	output.append(fs_set_main(material, a_has_shadow, has_normal));
+	output.append(fs_set_main(material, a_has_shadow, has_normal, has_color_0, has_color_1));
 
 	return output;
 }
