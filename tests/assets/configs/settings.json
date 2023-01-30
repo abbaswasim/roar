@@ -1,5 +1,6 @@
 {
 	"unit": 1024,
+	"threads_multiplier": 1,
 	"visualise_mipmaps": false,
 	"multisample_count": 8,
 	"vsync": false,
@@ -22,5 +23,18 @@
 			"arg22" : 22,
 			"arg23" : "23"
 		}
+	},
+	"default_vertex_descriptor" :
+	[
+		{
+			"vertex_position" : "float32_4"
+		}
+	],
+	"grid" :
+	{
+		"size" : 1,
+		"spread" : 2048,
+		"y_axis" : false,
+		"color" : [1.0, 1.0, 1.0, 1.0]
 	}
 }

@@ -13,40 +13,56 @@
 namespace ror_test
 {
 
+using RenderTargets = std::vector<rhi::RenderOutputRef<rhi::RenderTarget>>;
+
+void test_render_target(const rhi::RenderTarget &a, const rhi::RenderTarget& b)
+{
+	EXPECT_EQ(a.m_target_index, b.m_target_index);
+	EXPECT_EQ(&a.m_target_reference.get(), &b.m_target_reference.get());
+	EXPECT_EQ(a.m_load_action, b.m_load_action);
+	EXPECT_EQ(a.m_store_action, b.m_store_action);
+}
+
 void test_render_targets(const std::vector<rhi::RenderTarget> a, std::vector<rhi::RenderTarget> b)
 {
 	EXPECT_EQ(a.size(), b.size());
 
 	for (size_t i = 0; i < b.size(); ++i)
+		test_render_target(a[i], b[i]);
+}
+
+void test_render_target_refs(const RenderTargets a, RenderTargets b)
+{
+	EXPECT_EQ(a.size(), b.size());
+
+	for (size_t i = 0; i < b.size(); ++i)
 	{
-		EXPECT_EQ(a[i].m_target_index, b[i].m_target_index);
-		EXPECT_EQ(&a[i].m_target_reference.get(), &b[i].m_target_reference.get());
-		EXPECT_EQ(a[i].m_load_action, b[i].m_load_action);
-		EXPECT_EQ(a[i].m_store_action, b[i].m_store_action);
+		EXPECT_EQ(a[i].m_index, b[i].m_index);
+		EXPECT_EQ(a[i].m_stage, b[i].m_stage);
 	}
+
+	for (size_t i = 0; i < b.size(); ++i)
+		test_render_target(*a[i].m_render_output, *b[i].m_render_output);
 }
 
 void test_render_pass(const rhi::Renderpass                 rdps,
                       std::vector<rhi::RenderTarget>        a_render_targets,
                       ror::Vector2ui                        a_dimensions,
-                      ror::Vector4ui                        a_viewport,
                       std::vector<uint32_t>                 a_parents,
                       std::vector<std::string>              a_names,
                       std::vector<rhi::RenderpassTechnique> a_techniques,
                       std::vector<rhi::RenderpassType>      a_types,
                       std::vector<rhi::RenderpassState>     a_states,
-                      std::vector<std::vector<uint32_t>>    a_rendered_inputs,
-                      std::vector<std::vector<uint32_t>>    a_input_attachments,
+                      std::vector<RenderTargets>            a_rendered_inputs,
+                      std::vector<RenderTargets>            a_input_attachments,
                       std::vector<uint32_t>                 a_program_ids,
                       std::vector<bool>                     a_debug_outputs)
 {
 	auto dimensions     = rdps.dimensions();
-	auto viewport       = rdps.viewport();
 	auto parents        = rdps.parent_ids();
 	auto render_targets = rdps.render_targets();
 
 	test_vector2f_equal(dimensions, a_dimensions);
-	test_vector4f_equal(viewport, a_viewport);
 
 	EXPECT_EQ(parents.size(), a_parents.size());
 	for (size_t i = 0; i < parents.size(); ++i)
@@ -75,12 +91,10 @@ void test_render_pass(const rhi::Renderpass                 rdps,
 		EXPECT_EQ(debug_output, a_debug_outputs[iai]);
 
 		EXPECT_EQ(input_attachments.size(), a_input_attachments[iai].size());
-		for (size_t i = 0; i < input_attachments.size(); ++i)
-			EXPECT_EQ(input_attachments[i], a_input_attachments[iai][i]);
+		test_render_target_refs(input_attachments, a_input_attachments[iai]);
 
 		EXPECT_EQ(rendered_inputs.size(), a_rendered_inputs[iai].size());
-		for (size_t i = 0; i < rendered_inputs.size(); ++i)
-			EXPECT_EQ(rendered_inputs[i], a_rendered_inputs[iai][i]);
+		test_render_target_refs(rendered_inputs, a_rendered_inputs[iai]);
 
 		iai++;
 	}
@@ -98,12 +112,19 @@ TEST(RendererTest, config_load)
 	{
 		auto rdpses = fgphs.at("forward");
 
-		ror::Vector4ui viewport{0, 0, 1024, 768};
 		ror::Vector2ui dimensions{1024, 768};
 
 		// const_cast is only allowed in tests
 		rhi::RenderTarget rt0{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store};
 		rhi::RenderTarget rt1{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store};
+
+		std::vector<RenderTargets> rirfs{};
+		rirfs.resize(2);
+		rirfs[0].emplace_back(&rt0, 2, rhi::ShaderStage::fragment);
+
+		std::vector<RenderTargets> iarfs{};
+		iarfs.resize(2);
+		iarfs[1].emplace_back(&rt1, 0, rhi::ShaderStage::fragment);
 
 		uint32_t index = 0;
 		for (auto rdps : rdpses)
@@ -114,14 +135,13 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt0},
 					                 dimensions,
-					                 viewport,
 					                 {},        // Parents
 					                 {"shadowing"},
 					                 {rhi::RenderpassTechnique::fragment},
 					                 {rhi::RenderpassType::shadow},
 					                 {rhi::RenderpassState::transient},
-					                 {{}},
-					                 {{}},
+					                 {{}},        // renderered inputs
+					                 {{}},        // input attachments
 					                 {0},
 					                 {true});
 					break;
@@ -129,14 +149,13 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt1},
 					                 dimensions,
-					                 viewport,
 					                 {0},        // Parents
 					                 {"forward_lighting", "tonemap"},
 					                 {rhi::RenderpassTechnique::fragment, rhi::RenderpassTechnique::fragment},
 					                 {rhi::RenderpassType::forward_light, rhi::RenderpassType::tone_mapping},
 					                 {rhi::RenderpassState::transient, rhi::RenderpassState::transient},
-					                 {{2}, {}},
-					                 {{}, {0}},
+					                 rirfs,
+					                 iarfs,
 					                 {1, 0},
 					                 {true, true});
 					break;
@@ -149,7 +168,6 @@ TEST(RendererTest, config_load)
 	{
 		auto rdpses = fgphs.at("deferred");
 
-		ror::Vector4ui viewport{0, 0, 1024, 768};
 		ror::Vector2ui dimensions{1024, 768};
 
 		// const_cast is only allowed in tests
@@ -158,6 +176,24 @@ TEST(RendererTest, config_load)
 		rhi::RenderTarget rt2{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store};
 		rhi::RenderTarget rt3{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::store};
 		rhi::RenderTarget rt4{4, const_cast<rhi::TextureImage &>(rtgs[4]), rhi::LoadAction::clear, rhi::StoreAction::store};
+
+
+		std::vector<RenderTargets> rirfs{};
+		rirfs.resize(2);
+		rirfs[0].emplace_back(&rt0, 2, rhi::ShaderStage::fragment);
+
+		std::vector<RenderTargets> iarfs5{};
+		iarfs5.resize(4);
+		iarfs5[1].emplace_back(&rt0, 0, rhi::ShaderStage::fragment);
+		iarfs5[1].emplace_back(&rt1, 1, rhi::ShaderStage::fragment);
+		iarfs5[2].emplace_back(&rt0, 0, rhi::ShaderStage::fragment);
+		iarfs5[2].emplace_back(&rt1, 1, rhi::ShaderStage::fragment);
+		iarfs5[3].emplace_back(&rt0, 0, rhi::ShaderStage::fragment);
+		iarfs5[3].emplace_back(&rt1, 1, rhi::ShaderStage::fragment);
+
+		std::vector<RenderTargets> iarfs67{};
+		iarfs67.resize(1);
+		iarfs67[0].emplace_back(&rt0, 0, rhi::ShaderStage::fragment);
 
 		uint32_t index = 0;
 		for (auto rdps : rdpses)
@@ -168,7 +204,6 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt3},
 					                 dimensions,
-					                 viewport,
 					                 {},        // Parents
 					                 {"lut"},
 					                 {rhi::RenderpassTechnique::compute},
@@ -183,7 +218,6 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt4},
 					                 dimensions,
-					                 viewport,
 					                 {},        // Parents
 					                 {"compute"},
 					                 {rhi::RenderpassTechnique::compute},
@@ -198,7 +232,6 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt0},
 					                 dimensions,
-					                 viewport,
 					                 {},        // Parents
 					                 {"light-bin"},
 					                 {rhi::RenderpassTechnique::compute},
@@ -213,7 +246,6 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt0},
 					                 dimensions,
-					                 viewport,
 					                 {},        // Parents
 					                 {"main"},
 					                 {rhi::RenderpassTechnique::fragment},
@@ -228,7 +260,6 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt0},
 					                 dimensions,
-					                 viewport,
 					                 {1},        // Parents
 					                 {"shadowing"},
 					                 {rhi::RenderpassTechnique::fragment},
@@ -243,14 +274,13 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt2, rt3},
 					                 dimensions,
-					                 viewport,
 					                 {0, 1},        // Parents
 					                 {"depth pre-pass", "g-buffer", "g-buffer-resolve-lighting", "render"},
 					                 {rhi::RenderpassTechnique::fragment, rhi::RenderpassTechnique::fragment, rhi::RenderpassTechnique::fragment, rhi::RenderpassTechnique::fragment},
 					                 {rhi::RenderpassType::depth, rhi::RenderpassType::deferred_gbuffer, rhi::RenderpassType::post_process, rhi::RenderpassType::main},
 					                 {rhi::RenderpassState::transient, rhi::RenderpassState::transient, rhi::RenderpassState::transient, rhi::RenderpassState::transient},
 					                 {{}, {}, {}, {}},
-					                 {{}, {0, 1}, {0, 1}, {0, 1}},
+									 iarfs5,
 					                 {1, 1, 1, 0},
 					                 {true, true, true, true});
 
@@ -259,14 +289,13 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt2, rt3},
 					                 dimensions,
-					                 viewport,
 					                 {0},        // Parents
 					                 {"bloom"},
 					                 {rhi::RenderpassTechnique::fragment},
 					                 {rhi::RenderpassType::post_process},
 					                 {rhi::RenderpassState::transient},
 					                 {{}},
-					                 {{0}},
+					                 iarfs67,
 					                 {1},
 					                 {false});
 					break;
@@ -274,14 +303,13 @@ TEST(RendererTest, config_load)
 					test_render_pass(rdps,
 					                 {rt2, rt3},
 					                 dimensions,
-					                 viewport,
 					                 {0},        // Parents
 					                 {"tonemap"},
 					                 {rhi::RenderpassTechnique::fragment},
 					                 {rhi::RenderpassType::post_process},
 					                 {rhi::RenderpassState::transient},
 					                 {{}},
-					                 {{0}},
+					                 iarfs67,
 					                 {1},
 					                 {false});
 					break;
