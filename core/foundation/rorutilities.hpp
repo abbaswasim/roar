@@ -286,10 +286,10 @@ constexpr FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
 	if constexpr (get_build() == BuildType::build_debug)
 	{
 		if (a_value < static_cast<_type_from>(0))
-			throw std::runtime_error("Safe casting from negative values is undefined.\n");
+			throw std::runtime_error("Safe casting from negative values is undefined.");
 
 		if (static_cast<_type_big>(a_value) > static_cast<_type_big>(std::numeric_limits<_type_to>::max()))
-			throw std::runtime_error("Loss of data doing safe casting.\n");
+			throw std::runtime_error("Loss of data doing safe casting.");
 	}
 
 	return static_cast<_type_to>(a_value);

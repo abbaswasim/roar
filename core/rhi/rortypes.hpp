@@ -1204,7 +1204,7 @@ constexpr auto primitve_toplogy_to_class(PrimitiveTopology a_toplogy)
 		case PrimitiveTopology::lines_strip:         return PrimitiveTopologyClass::line;
 		case PrimitiveTopology::triangles:
 		case PrimitiveTopology::triangles_strip:     return PrimitiveTopologyClass::triangle;
-			// clang-format on
+		// clang-format on
 	}
 
 	assert(0);

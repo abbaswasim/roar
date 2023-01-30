@@ -78,6 +78,7 @@ class Renderer final : public Configuration<Renderer>
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &buffers()                      noexcept { return this->m_buffers;                 }
+	FORCE_INLINE constexpr auto &program(size_t a_index)  const          { return this->m_programs[a_index];       }
 	FORCE_INLINE constexpr auto &shaders()                const noexcept { return this->m_shaders;                 }
 	FORCE_INLINE constexpr auto &programs()               const noexcept { return this->m_programs;                }
 	FORCE_INLINE constexpr auto &textures()               const noexcept { return this->m_textures;                }

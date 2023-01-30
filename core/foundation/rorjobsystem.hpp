@@ -57,7 +57,7 @@ FORCE_INLINE uint32_t get_hardware_threads()
 	// TODO: Check what does different number of threads mean for performance and contention
 	// With some quick and dirty testing its shown that more threads than cores is not too bad for performance
 	auto    &setting = ror::settings();
-	uint32_t tcount  = std::max(1u, std::thread::hardware_concurrency() - 1) * setting.m_threads_multiplier;
+	uint32_t tcount  = std::max(1u, std::thread::hardware_concurrency() - 1) * std::max(1u, setting.m_threads_multiplier);
 	ror::log_info("JobSystem::Creating {} worker threads", tcount);
 
 	return tcount;

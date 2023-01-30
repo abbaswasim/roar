@@ -96,9 +96,6 @@
 	[
 		{
 			"vertex_position" : "float32_4"
-		},
-		{
-			"vertex_color_0" : "float32_4"
 		}
 	],
 	"grid" :

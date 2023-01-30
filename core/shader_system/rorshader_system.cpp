@@ -686,7 +686,6 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 
 	std::string result{"#version 450\n\n#extension GL_EXT_shader_16bit_storage : require\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 
-
 	// Write out vertex shader input output
 	result.append(ror::vertex_shader_input_output(vertex_descriptor, 0, "", true, is_depth_shadow));
 
@@ -1073,7 +1072,10 @@ std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
 	output.append(texture_lookup(a_material.m_occlusion, "occlusion", "float", ".x"));        // Red component of ORM[H] texture
 	output.append(texture_lookup(a_material.m_roughness, "roughness", "float", ".y"));        // Green component of ORM[H] texture
 	output.append(texture_lookup(a_material.m_metallic, "metallic", "float", ".z"));          // Blue component of ORM[H] texture
-	output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));              // Alpha component of ORM[H] texture
+	if (a_material.m_roughness.m_texture == a_material.m_height.m_texture)
+		output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));              // Alpha component of ORM[H] texture
+	else
+		output.append(texture_lookup(a_material.m_height, "height", "float", ".x"));              // Or the red component of the height texture
 	output.append(texture_lookup(a_material.m_normal, "normal", "vec3", ".xyz"));
 	// output.append(texture_lookup(a_material.m_tangent, "tangent", "vec3", ".xyz"));
 	output.append(texture_lookup(a_material.m_bent_normal, "bent_normal", "vec3", ".xyz"));

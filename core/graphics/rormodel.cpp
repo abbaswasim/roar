@@ -832,14 +832,17 @@ void pack_materials_textures(std::vector<ror::Material, rhi::BufferAllocator<ror
 {
 	for (auto &material : a_materials)
 	{
-		assert(material.m_roughness.m_texture == material.m_metallic.m_texture && "Material roughness and metallic should be the same texture");
-		// Lets pack occlusion into roughness Red
-		if (material.m_occlusion.m_texture != -1 && material.m_roughness.m_texture != material.m_occlusion.m_texture)
-			pack_into_channel(material.m_roughness, material.m_occlusion, a_textures, a_images, 0, 0);        // Pack into Red channel
+		if (material.m_roughness.m_texture != -1)
+		{
+			assert(material.m_roughness.m_texture == material.m_metallic.m_texture && "Material roughness and metallic should be the same texture");
+			// Lets pack occlusion into roughness Red
+			if (material.m_occlusion.m_texture != -1 && material.m_roughness.m_texture != material.m_occlusion.m_texture)
+				pack_into_channel(material.m_roughness, material.m_occlusion, a_textures, a_images, 0, 0);        // Pack into Red channel
 
-		// and height into Alpha if exists
-		if (material.m_height.m_texture != -1 && material.m_roughness.m_texture != material.m_height.m_texture)
-			pack_into_channel(material.m_roughness, material.m_height, a_textures, a_images, 3, 0);        // Pack into Alpha channel
+			// and height into Alpha if exists
+			if (material.m_height.m_texture != -1 && material.m_roughness.m_texture != material.m_height.m_texture)
+				pack_into_channel(material.m_roughness, material.m_height, a_textures, a_images, 3, 0);        // Pack into Alpha channel
+		}
 	}
 }
 
@@ -1166,7 +1169,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 					decoded_path.back() = '\0';
 
 					auto decoded_size = cgltf_decode_uri(decoded_path.data());
-					assert(decoded_size == path_size && "Decoding from URI into path failed");
+					assert(decoded_size <= path_size && "Decoding from URI into path failed");
 					(void) decoded_size;
 
 #if defined(USE_JS)
@@ -1953,7 +1956,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 						if (anim_sampler_accessor->component_type < cgltf_component_type_r_32f)
 						{
-							assert(0);
+							ror::log_critical("This format isn't supported in node_transform.glsl.comp, add support there");
 							// TODO: Don't cast to uint, use the provided precision
 							animation_sampler.m_output_format = int_format_to_int32_format_bit(format);        // Since we are casting everyting to uint lets adjust format accordingly
 							uint32_t *ptr_to_data             = reinterpret_cast<uint32_t *>(animation_sampler.m_output.data());
