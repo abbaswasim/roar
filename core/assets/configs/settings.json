@@ -4,6 +4,7 @@
 	"title" : "Roar Editor...",
 	"visualise_mipmaps": false,
 	"multisample_count": 8,
+	"debug_mesh_count": 1000,
 	"vsync": false,
 	"window_transparent": false,
 	"window_premultiplied": false,

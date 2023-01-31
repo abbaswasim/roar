@@ -48,6 +48,7 @@
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rorprogram.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rorrenderpass.hpp"
@@ -1078,74 +1079,105 @@ void Scene::add_node()
 	this->add_model_node(-1);
 }
 
+// NOTE: This method is not thread safe
+void Scene::create_global_program(const char *a_vertex_shader,
+                                  const char *a_fragment_shader,
+                                  size_t      a_node_id,
+                                  size_t      a_model_id)
+{
+	// Lets load and upload its shaders
+	int32_t vid = static_cast_safe<int32_t>(this->m_shaders.size());
+	int32_t fid = vid + 1;
+
+	// This is ok here because generate_shaders hasn't been called yet
+	this->m_shaders.emplace_back(rhi::load_shader(a_vertex_shader));
+	this->m_shaders.back().compile();
+	this->m_shaders.emplace_back(rhi::load_shader(a_fragment_shader));
+	this->m_shaders.back().compile();
+
+	GlobalProgram gb;
+
+	gb.program  = rhi::Program{vid, fid};
+	gb.node_id  = static_cast_safe<int32_t>(a_node_id);        // Remember I haven't added a node for this yet, so the size will be its index when I call add_model_node()
+	gb.model_id = static_cast_safe<int32_t>(a_model_id);
+
+	uint32_t mesh_index = 0;
+	for (auto &mesh : this->m_models[a_model_id].meshes())
+	{
+		gb.mesh_id = static_cast_safe<int32_t>(mesh_index);
+
+		for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+		{
+			// Don't assign the program id here, we will do it in generate_shaders
+			gb.primitive_id = static_cast_safe<int32_t>(prim_index);
+
+			int32_t mesh_program_index = -1;
+			for (uint32_t i = 0; i < renderpasstype_max(); ++i)
+			{
+				auto &pass_global_programs = this->m_global_programs[to_renderpasstype(i)];
+
+				// Some sanity checks
+				if (mesh_program_index == -1)
+				{
+					mesh_program_index = static_cast_safe<int32_t>(pass_global_programs.size());
+				}
+				else
+				{
+					assert(static_cast_safe<int32_t>(pass_global_programs.size()) == mesh_program_index && "Some renderpass programs are not properly initialized");
+				}
+
+				pass_global_programs.emplace_back(gb);
+			}
+		}
+		mesh_index++;
+	}
+}
+
 void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::function<bool(size_t)> &a_upload_job, std::vector<ror::JobHandle<bool>> &a_job_handles, size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
 {
-	auto grid_generation_job = [this, &a_buffer_pack](size_t model_index) -> auto
+	auto grid_generation_job = [this, &a_buffer_pack](size_t model_index, size_t node_index) -> auto
 	{
 		Model &model = this->m_models[model_index];
 		model.create_grid(false, a_buffer_pack);
 
-		// Lets load and upload its shaders
-		int32_t vid = static_cast_safe<int32_t>(this->m_shaders.size());
-		int32_t fid = vid + 1;
-
-		// This is ok here because generate_shaders hasn't been called yet
-		this->m_shaders.emplace_back(rhi::load_shader("grid.glsl.vert"));
-		this->m_shaders.back().compile();
-		this->m_shaders.emplace_back(rhi::load_shader("grid.glsl.frag"));
-		this->m_shaders.back().compile();
-
-		// Here I have node, program, model, mesh and primitive id, it will be for each passtype
-		GlobalProgram gb;
-		gb.program  = rhi::Program{vid, fid};
-		gb.model_id = static_cast_safe<int32_t>(model_index);
-		gb.node_id  = static_cast_safe<int32_t>(this->m_nodes_data.size());        // Remember I haven't added a node for this yet, so the size will be its index when I call add_model_node()
-
-		uint32_t mesh_index = 0;
-		for (auto &mesh : model.meshes())
-		{
-			gb.mesh_id = static_cast_safe<int32_t>(mesh_index);
-
-			for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
-			{
-				// Don't assign the program id here, we will do it in generate_shaders
-				// assert(mesh.program(prim_index) == -1 && "Grid primitives shouldn't have a program allocated to it");
-				// mesh.program(prim_index, static_cast_safe<int32_t>(mesh_program_index));
-
-				gb.primitive_id = static_cast_safe<int32_t>(prim_index);
-
-				int32_t mesh_program_index = -1;
-				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
-				{
-					// Some sanity checks
-					if (mesh_program_index == -1)
-					{
-						mesh_program_index = static_cast_safe<int32_t>(this->m_global_programs[to_renderpasstype(i)].size());
-					}
-					else
-					{
-						assert(static_cast_safe<int32_t>(this->m_global_programs[to_renderpasstype(i)].size()) == mesh_program_index && "Some renderpass programs are not properly initialized");
-					}
-
-					this->m_global_programs[to_renderpasstype(i)].emplace_back(gb);
-				}
-			}
-			mesh_index++;
-		}
+		this->create_global_program("grid.glsl.vert", "grid.glsl.frag", node_index, model_index);
 
 		return true;
 	};
 
 	// Add scene nodes for this model
-	// NOTE: Don't change order to before gb.node_id is assigned above
+	auto node_index = this->m_nodes.size();
 	this->add_model_node(static_cast_safe<int32_t>(a_model_index));        // Doing this outside nested jobs because its not thread safe
 
 	// kick off grid generation job
-	auto grid_job_handle   = a_job_system.push_job(grid_generation_job, a_model_index);
+	auto grid_job_handle   = a_job_system.push_job(grid_generation_job, a_model_index, node_index);
 	auto upload_job_handle = a_job_system.push_job(a_upload_job, grid_job_handle.job(), a_model_index);
 
 	a_job_handles.emplace_back(std::move(grid_job_handle));
 	a_job_handles.emplace_back(std::move(upload_job_handle));
+}
+
+// Does not create a job and is run on main thread
+void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lambda, size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
+{
+	// Add scene nodes for this model
+	auto node_index = this->m_nodes.size();
+	this->add_model_node(static_cast_safe<int32_t>(a_model_index));
+
+	Model &model = this->m_models[a_model_index];
+
+	float s = 100.0f;
+	float z = 0.0f;
+
+	std::vector<std::vector<float32_t>> data{
+	    {-s, -s, z, z, 1.0f, 0.0f, 0.0f, 1.0f, s, -s, z, z, 0.0f, 1.0f, 0.0f, 1.0f, z, s, z, z, 0.0f, 0.0f, 1.0f, 1.0f},
+	    {s, -s, z, z, 1.0f, 0.0f, 0.0f, 1.0f, -s, -s, z, z, 0.0f, 1.0f, 0.0f, 1.0f, z, 2.0f * -s, z, z, 0.0f, 0.0f, 1.0f, 1.0f}};
+
+	model.create_debug(false, data, a_buffer_pack);
+
+	this->create_global_program("debug.glsl.vert", "debug.glsl.frag", node_index, a_model_index);
+
+	a_upload_lambda(a_model_index);
 }
 
 void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer)
@@ -1156,9 +1188,9 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		if (node.m_model_path != "")
 			model_nodes++;
 
-	// Add all the procedurally created models here
-	// TODO: Add more types here
+	// Add node placeholders all the procedurally created models here
 	model_nodes++;        // for grid model
+	model_nodes++;        // for debug model
 
 	if (model_nodes > 0)
 	{
@@ -1196,15 +1228,23 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		}
 
 		// Generate grid into the grid model slot we have allocated
+		// NOTE: Don't create any more models before generate_grid_model job is finished because it uses global state, create these below like generate_debug_model
 		generate_grid_model(a_job_system, model_upload_job, job_handles, model_index, bpack);
 		model_index++;
-
-		assert(model_index == model_nodes && "Models count vs how many are loaded doesn't match");
+		// NOTE: Don't create any more models before generate_grid_model job is finished because it uses global state, create these below like generate_debug_model
 
 		// Wait for all jobs to finish
 		for (auto &jh : job_handles)
 			if (!jh.data())
 				ror::log_critical("Can't load models specified in the scene.");
+
+		// Generate debug geometries into the debug model slot we have allocated
+		// This needs to happen after all models are loaded and can't be a job that isn't finished before generate_shaders is called below
+		// This is why its called on main thread
+		generate_debug_model(model_upload_job, model_index, bpack);
+		model_index++;
+
+		assert(model_index == model_nodes && "Models count vs how many are queued and loaded doesn't match");
 	}
 
 	// Lets kick off shader generation while we upload the buffers
@@ -1464,7 +1504,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 	this->m_global_programs.clear();
 }
 
-void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system)
+void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system)
 {
 	auto render_passes = a_renderer.current_frame_graph();
 
@@ -1474,7 +1514,18 @@ void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::
 		shader.upload(a_device);
 	}
 
+	auto program_upload_job = [](rhi::Device & a_local_device, rhi::Program & a_program, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass) -> auto
+	{
+		a_program.upload(a_local_device, a_shaders, a_model, a_mesh_index, a_prim_index, a_subpass);
+
+		return true;
+	};
+
+	// Lets do this in parallel
 	// Upload all the shader programs, this creates pipelines in metal and vulkan cases
+	std::vector<ror::JobHandle<bool>> job_handles;
+	uint32_t                          programs_count = 1000;        // This should be big enough, otherwise its no big deal
+	job_handles.reserve(programs_count);
 	for (auto &pass : render_passes)
 	{
 		for (auto &subpass : pass.subpasses())
@@ -1488,7 +1539,17 @@ void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::
 				{
 					for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
 					{
-						pass_programs[program].upload(a_device, this->m_shaders, model, mesh_index, static_cast_safe<uint32_t>(prim_index), subpass);
+						auto upload_job_handle = a_job_system.push_job(program_upload_job,
+																	   std::ref(a_device),
+																	   std::ref(pass_programs[program]),
+																	   std::cref(this->m_shaders),
+																	   std::cref(model),
+																	   mesh_index,
+																	   static_cast_safe<uint32_t>(prim_index),
+																	   std::ref(subpass));
+
+						job_handles.emplace_back(std::move(upload_job_handle));
+
 						program++;
 					}
 					mesh_index++;
@@ -1517,6 +1578,10 @@ void Scene::upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::
 	for (auto &model : this->m_models)
 		for (auto &node : model.nodes_side_data())
 			node.upload(a_device);
+
+	for (auto &jh : job_handles)
+		if (!jh.data())
+			ror::log_critical("Can't upload all programs for all models in all the rendersses.");
 }
 
 void Scene::read_nodes()
@@ -1783,9 +1848,8 @@ void Scene::read_programs()
 				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
 					this->m_global_programs[to_renderpasstype(i)].emplace_back(gb);
 			}
-
-			// TODO: Need to find a way to upload these programs (Challenge is for which model/mesh/primitive?)
 		}
+
 		// Now lets walk the nodes who are using these program indices and link them
 		int32_t node_index{0};
 		assert(this->m_nodes_data.size() <= std::numeric_limits<int32_t>::max() && "Too many nodes in the scene graph, it doesn't fit in int32_t");
@@ -1793,7 +1857,10 @@ void Scene::read_programs()
 		{
 			if (node_data.m_program_id != -1)
 				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
-					this->m_global_programs[to_renderpasstype(i)][static_cast<size_t>(node_data.m_program_id)].node_id = node_index;
+				{
+					this->m_global_programs[to_renderpasstype(i)][static_cast<size_t>(node_data.m_program_id)].node_id         = node_index;
+					this->m_global_programs[to_renderpasstype(i)][static_cast<size_t>(node_data.m_program_id)].node_program_id = node_data.m_program_id;
+				}
 
 			node_index++;
 		}

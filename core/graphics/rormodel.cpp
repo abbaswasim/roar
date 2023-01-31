@@ -986,79 +986,129 @@ void Model::update_hashes()
 	}
 }
 
-void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack)
+/**
+ * @brief      Use this to create a mesh in the model ready to describe its VertexDescriptor and upload data into it
+ * @details    This method will create a default mesh with default material and sampler, one has to then define the
+ *             The VertexDescriptor for one or all of its primitives and upload its data. Then you should be ready to use it.
+ * @param      a_name Name of the mesh.
+ * @param      a_generate_shaders Whether to let the system generate shaders for it or shaders will be loaded manually.
+ * @param      a_mesh_count       The amount of meshes in the Model
+ * @param      a_primitives_count The amount of primitives in each mesh
+ * @param      a_material_model   Whether to be lit or unlit etc
+ * @param      a_blen_mode        What blend mode should the model use
+ * @param      a_prim_topology    Whether the mesh is lines or triangles etc
+ * @param      a_has_indices      If the model has indices this should be set to true, Only possibly per model at the moment.
+ * @return     return void
+ */
+
+void Model::create_default_mesh(const char            *a_name,
+                                bool                   a_generate_shaders,
+                                size_t                 a_mesh_count,
+                                size_t                 a_primitives_count,
+                                rhi::MaterialModel     a_material_model,
+                                rhi::BlendMode         a_blend_mode,
+                                rhi::PrimitiveTopology a_prim_topology,
+                                bool                   a_has_indices)
 {
+	assert(a_mesh_count > 0);
+	assert(a_primitives_count > 0);
+
 	this->m_generate_shaders = a_generate_shaders;
 
-	// All things to do for a Simple Model/Mesh, however not all apply in this case
+	// All things to do for a Simple Model/Mesh, however not all apply in all cases
 	// Load image
 	// Create texture using
-	// Use default sampler at 0
-	// Use default material at 0
+	// default sampler at 0
+	// default material at 0
 	// Create nodes and then
 	// Create mesh
 	// Update the bounding box
-	// Load shaders/programs that this mesh can use
-
-	ror::Node     node{};
-	ror::NodeData node_data{};
+	// Load shaders/programs that this mesh can use, done at higher scene level than model
 
 	assert(this->m_meshes.size() == 0 && "Mesh is already initialized");
-	this->m_meshes.resize(1);        // Want to have 1 mesh at this time
+	this->m_meshes.resize(a_mesh_count);        // Want to have a_mesh_count meshes
 
-	std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> attribs_data{};
-
-	// Grid is a geometry asset that has positions and colors only
-	ror::Mesh &mesh    = this->m_meshes[0];
-	uint32_t   prim_id = 0;
-
-	node.m_mesh_index = 0;
-
-	// Lets have an unlit blendable material at index 0
+	// Lets have a default material at index 0
 	this->m_materials.emplace_back();
-	this->m_materials.back().m_material_model = rhi::MaterialModel::unlit;
-	this->m_materials.back().m_blend_mode     = rhi::BlendMode::blend;
+	this->m_materials.back().m_material_model = a_material_model;
+	this->m_materials.back().m_blend_mode     = a_blend_mode;
 
 	// Lets have a default sampler at index 0
 	this->m_samplers.emplace_back();
 
-	mesh.name("grid");
-	mesh.resize(1);        // Want to have 1 mesh primitive at this time
-	mesh.material(prim_id, 0);
-	mesh.program(prim_id, -1);
-	mesh.has_indices(prim_id, false);
-
-	mesh.primitive_type(prim_id, rhi::PrimitiveTopology::lines);
-
-	// Grid is a geometry asset that has positions and colors only
-	mesh.vertex_descriptor(prim_id).add(rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_4, &a_buffers_pack);
-	mesh.vertex_descriptor(prim_id).add(rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4, &a_buffers_pack);
-
-	auto                  &setting                   = ror::settings();
-	std::vector<float32_t> positions_float32_pointer = generate_grid(setting.m_grid.m_sizes, setting.m_grid.m_color, setting.m_grid.m_show_y_axis);
+	for (size_t mesh_id = 0; mesh_id < a_mesh_count; ++mesh_id)
 	{
-		auto                                      data_pointer = reinterpret_cast<uint8_t *>(positions_float32_pointer.data());
-		std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, positions_float32_pointer.size() * sizeof(float32_t) / 2, sizeof(float32_t) * 8};
-		attribs_data.emplace(rhi::BufferSemantic::vertex_position, std::move(data_tuple));
+		ror::Mesh    &mesh = this->m_meshes[mesh_id];
+		ror::Vector3f min{};
+		ror::Vector3f max{};
+
+		ror::Node     node{};
+		ror::NodeData node_data{};
+
+		node.m_mesh_index = static_cast_safe<int32_t>(mesh_id);
+		mesh.resize(a_primitives_count);        // Want to have a_primitives_count mesh primitives
+		mesh.name(a_name);
+
+		for (size_t prim_id = 0; prim_id < a_primitives_count; ++prim_id)
+		{
+			mesh.material(prim_id, 0);
+			mesh.program(prim_id, -1);
+			mesh.has_indices(prim_id, a_has_indices);
+			mesh.primitive_type(prim_id, a_prim_topology);
+
+			auto &mesh_bbox = mesh.bounding_box(prim_id);
+			mesh_bbox.create_from_min_max(min, max);        // Nothing added at the moment
+		}
+
+		this->m_nodes.emplace_back(std::move(node));
+		this->m_nodes_side_data.emplace_back(std::move(node_data));
 	}
-	{
-		auto                                      data_pointer = reinterpret_cast<uint8_t *>(positions_float32_pointer.data());
-		std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + sizeof(float32_t) * 4, positions_float32_pointer.size() * sizeof(float32_t) / 2, sizeof(float32_t) * 8};
-		attribs_data.emplace(rhi::BufferSemantic::vertex_color_0, std::move(data_tuple));
-	}
-
-	mesh.vertex_descriptor(prim_id).upload(attribs_data, &a_buffers_pack);
-
-	// Don't want to sit the grid bounding box correctly otherwise the camera zoom will be affected
-	ror::Vector3f min{};
-	ror::Vector3f max{};
-	auto         &mesh_bbox = mesh.bounding_box(prim_id);
-	mesh_bbox.create_from_min_max(min, max);
-
-	this->m_nodes.emplace_back(std::move(node));
-	this->m_nodes_side_data.emplace_back(std::move(node_data));
 
 	this->update_hashes();
+}
+
+static void upload_position4_color4(ror::Mesh &a_mesh, size_t a_primitive_id, std::vector<float32_t> &a_data, rhi::BuffersPack &a_buffers_pack)
+{
+	auto data_pointer = reinterpret_cast<uint8_t *>(a_data.data());
+	auto data_size    = a_data.size() * sizeof(float32_t) / 2;
+	auto stride       = sizeof(float32_t) * 8;
+
+	a_mesh.mesh_data(a_primitive_id,
+	                 {{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_4, data_pointer, data_size, stride},
+	                  {rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4, data_pointer + sizeof(float32_t) * 4, data_size, stride}},
+	                 a_buffers_pack);
+}
+
+void Model::create_debug(bool a_generate_shaders, std::vector<std::vector<float32_t>> &attributes_data, rhi::BuffersPack &a_buffers_pack)
+{
+	// Grid is a geometry asset that single mesh and single primitive and has positions and colors only
+	auto &setting = ror::settings();
+
+	// Although its called debug_mesh_count its actually debug_mesh_primitives count in the 1 debug mesh
+	auto primitives_count = std::min(attributes_data.size(), static_cast<size_t>(setting.m_debug_mesh_count));
+
+	this->create_default_mesh("debug", a_generate_shaders, 1, primitives_count, rhi::MaterialModel::unlit, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, false);
+
+	ror::Mesh &mesh = this->m_meshes[0];
+
+	for (size_t prim_id = 0; prim_id < primitives_count; ++prim_id)
+	{
+		auto &primitive_data = attributes_data[prim_id];
+		upload_position4_color4(mesh, prim_id, primitive_data, a_buffers_pack);
+	}
+}
+
+void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack)
+{
+	this->create_default_mesh("grid", a_generate_shaders, 1, 1, rhi::MaterialModel::unlit, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, false);
+
+	// Grid is a geometry asset that single mesh and single primitive and has positions and colors only
+	ror::Mesh &mesh    = this->m_meshes[0];
+	uint32_t   prim_id = 0;
+
+	auto &setting   = ror::settings();
+	auto  grid_data = generate_grid(setting.m_grid.m_sizes, setting.m_grid.m_color, setting.m_grid.m_show_y_axis);
+	upload_position4_color4(mesh, prim_id, grid_data, a_buffers_pack);
 }
 
 void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, bool a_generate_shaders)
@@ -2070,31 +2120,21 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 void Model::upload(rhi::Device &a_device)
 {
-	// TODO: Jobify me
+	// NOTE: Don't need to jobify all of these because its already in a job from scene
 	for (auto &sampler : this->m_samplers)
-	{
 		sampler.upload(a_device);
-	}
 
 	for (auto &image : this->m_images)
-	{
 		image.upload(a_device);
-	}
 
 	for (auto &material : this->m_materials)
-	{
 		material.upload(a_device);
-	}
 
 	for (auto &skin : this->m_skins)
-	{
 		skin.upload(a_device);
-	}
 
 	for (auto &mesh : this->m_meshes)
-	{
 		mesh.upload(a_device);
-	}
 }
 
 void Model::update_mesh_program(uint32_t a_mesh_index, uint32_t a_primitive_index, int32_t a_program_index)

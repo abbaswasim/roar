@@ -41,11 +41,7 @@ void world_transform_position(inout vec4 vertex_position)
 void set_position()
 {
 	vec4 vertex_position = in_vertex_position;
-
-	//morph_vertex_position(vertex_position);
-	skin_position(vertex_position.xyz);
 	world_transform_position(vertex_position);
-
 	out_vertex_position = vertex_position;
 
 	gl_Position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * vec4(vertex_position.xyz, 1.0);

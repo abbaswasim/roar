@@ -32,11 +32,13 @@
 #include "foundation/rorutilities.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorbuffer_view.hpp"
+#include "rhi/rorbuffers_format.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
 #include "settings/rorsettings.hpp"
 #include <cassert>
 #include <string>
+#include <tuple>
 #include <vector>
 
 namespace ror
@@ -105,6 +107,10 @@ class ROAR_ENGINE_ITEM Mesh final
 	FORCE_INLINE           void  vertex_descriptor(size_t a_primitive_index, rhi::VertexDescriptor a_descriptor) noexcept { this->m_attribute_vertex_descriptors[a_primitive_index] = a_descriptor; }
 	FORCE_INLINE           void  name(std::string a_name)                                                        noexcept { this->m_name = a_name;                                                  }
 	// clang-format on
+
+	// Use this method to upload data for a specific mesh primitive
+	// Tuple is made up of buffer semantic, vertex format, data pointer, attribute count and stride
+	void mesh_data(size_t a_primitive_index, const std::vector<std::tuple<rhi::BufferSemantic, rhi::VertexFormat, uint8_t *, uint32_t, uint32_t>>& a_data, rhi::BuffersPack &a_buffers_pack);
 
 	// TODO: Flatten this into 'Mesh' into 'Models' etc to see if I get cache locallity
 	using BoundingBoxAllocator = rhi::BufferAllocator<ror::BoundingBoxf>;

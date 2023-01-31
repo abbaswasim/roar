@@ -62,7 +62,9 @@ class ROAR_ENGINE_ITEM Model final
 	// Takes scene cameras and lights as parameter and fills it up with this model cameras and lights
 	// If this or any other load functions are called before, data needs to be appended
 	void load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, bool a_generate_shaders);
+	void create_default_mesh(const char *a_name, bool a_generate_shaders, size_t a_mesh_count, size_t a_primitives_count, rhi::MaterialModel a_material_model, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_prim_topology, bool a_has_indices);
 	void create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack);
+	void create_debug(bool a_generate_shaders, std::vector<std::vector<float32_t>> &attributes_data, rhi::BuffersPack &a_buffers_pack);
 	void upload(rhi::Device &a_device);
 
 	// clang-format off

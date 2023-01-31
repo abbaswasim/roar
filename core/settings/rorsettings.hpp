@@ -72,6 +72,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_threads_multiplier = setting.get<uint32_t>("threads_multiplier");
 		this->m_buffer_increment   = setting.get<uint32_t>("buffer_increment");
 		this->m_multisample_count  = setting.get<uint32_t>("multisample_count");
+		this->m_debug_mesh_count   = setting.get<uint32_t>("debug_mesh_count");
 
 		for (size_t i = 0; i < generic_numbers_count; ++i)
 			this->m_generic_numbers[i] = 0;
@@ -318,6 +319,7 @@ class ROAR_ENGINE_ITEM Settings final
 	uint32_t m_threads_multiplier{2};        //! How many more threads should the job system create on top of available cores. Remember this is a multiplier
 	uint32_t m_buffer_increment{1};
 	uint32_t m_multisample_count{8};
+	uint32_t m_debug_mesh_count{1000};
 	int32_t  m_generic_numbers[generic_numbers_count];        //! This is used to limit things or render a specific node etc, each number is decremented by Ctr + N and increment by CMD + N
 
 	bool m_clean_on_boot{false};

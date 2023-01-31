@@ -204,7 +204,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr const auto &bounding_box()     const noexcept   {  return this->m_bounding_box;    }
 	// clang-format on
 
-	void upload(const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system);
 
   private:
 	struct GlobalProgram
@@ -214,7 +214,6 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		int32_t      model_id{-1};
 		int32_t      mesh_id{-1};
 		int32_t      primitive_id{-1};
-		bool         used{false};
 		rhi::Program program{-1, -1};
 	};
 
@@ -226,8 +225,11 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_job_system);
 	void update_bounding_box();
 	void generate_grid_model(ror::JobSystem &a_job_system, const std::function<bool(size_t)> &a_upload_job, std::vector<ror::JobHandle<bool>> &a_job_handles, size_t a_model_index, rhi::BuffersPack &a_buffer_pack);
+	void generate_debug_model(const std::function<bool(size_t)> &a_upload_lambda, size_t a_model_index, rhi::BuffersPack &a_buffer_pack);
 	void add_model_node(int32_t a_model_index);
 	void add_node();
+
+	void create_global_program(const char *a_vertex_shader, const char *a_fragment_shader, size_t a_node_id, size_t a_model_id);
 	auto find_global_program(rhi::RenderpassType a_passtype, uint32_t a_model_id, uint32_t a_mesh_id, size_t a_prim_id, Scene::GlobalProgram **a_global_program);
 
 	using RenderpassPrograms = std::unordered_map<rhi::RenderpassType, std::vector<rhi::Program>>;

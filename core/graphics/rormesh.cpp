@@ -107,4 +107,23 @@ void Mesh::upload(rhi::Device &a_device)
 		this->update();
 	}
 }
+
+void Mesh::mesh_data(size_t a_primitive_index, const std::vector<std::tuple<rhi::BufferSemantic, rhi::VertexFormat, uint8_t *, uint32_t, uint32_t>> &a_data, rhi::BuffersPack &a_buffers_pack)
+{
+	auto &vertex_descriptor = this->m_attribute_vertex_descriptors[a_primitive_index];
+
+	std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> attribs_data{};
+
+	for (auto &data : a_data)
+	{
+		auto [buffer_semantic, vertex_format, data_pointer, size, stride] = data;
+
+		vertex_descriptor.add(buffer_semantic, vertex_format, &a_buffers_pack);
+
+		std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer, size, stride};
+		attribs_data.emplace(buffer_semantic, std::move(data_tuple));
+	}
+
+	vertex_descriptor.upload(attribs_data, &a_buffers_pack);
+}
 }        // namespace ror
