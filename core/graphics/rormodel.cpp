@@ -1001,17 +1001,18 @@ void Model::update_hashes()
  * @return     return void
  */
 
-void Model::create_default_mesh(const char            *a_name,
-                                bool                   a_generate_shaders,
-                                size_t                 a_mesh_count,
-                                size_t                 a_primitives_count,
-                                rhi::MaterialModel     a_material_model,
-                                rhi::BlendMode         a_blend_mode,
-                                rhi::PrimitiveTopology a_prim_topology,
-                                bool                   a_has_indices)
+void Model::create_default_mesh(const char                         *a_name,
+                                bool                                a_generate_shaders,
+                                size_t                              a_mesh_count,
+                                size_t                              a_primitives_count,
+                                rhi::MaterialModel                  a_material_model,
+                                rhi::BlendMode                      a_blend_mode,
+                                std::vector<rhi::PrimitiveTopology> a_prim_topology,
+                                bool                                a_has_indices)
 {
 	assert(a_mesh_count > 0);
 	assert(a_primitives_count > 0);
+	assert(a_primitives_count == a_prim_topology.size());
 
 	this->m_generate_shaders = a_generate_shaders;
 
@@ -1030,8 +1031,10 @@ void Model::create_default_mesh(const char            *a_name,
 
 	// Lets have a default material at index 0
 	this->m_materials.emplace_back();
-	this->m_materials.back().m_material_model = a_material_model;
-	this->m_materials.back().m_blend_mode     = a_blend_mode;
+	auto &material            = this->m_materials.back();
+	material.m_material_model = a_material_model;
+	material.m_blend_mode     = a_blend_mode;
+	material.m_double_sided   = true;
 
 	// Lets have a default sampler at index 0
 	this->m_samplers.emplace_back();
@@ -1054,7 +1057,7 @@ void Model::create_default_mesh(const char            *a_name,
 			mesh.material(prim_id, 0);
 			mesh.program(prim_id, -1);
 			mesh.has_indices(prim_id, a_has_indices);
-			mesh.primitive_type(prim_id, a_prim_topology);
+			mesh.primitive_type(prim_id, a_prim_topology[prim_id]);
 
 			auto &mesh_bbox = mesh.bounding_box(prim_id);
 			mesh_bbox.create_from_min_max(min, max);        // Nothing added at the moment
@@ -1079,7 +1082,7 @@ static void upload_position4_color4(ror::Mesh &a_mesh, size_t a_primitive_id, st
 	                 a_buffers_pack);
 }
 
-void Model::create_debug(bool a_generate_shaders, std::vector<std::vector<float32_t>> &attributes_data, rhi::BuffersPack &a_buffers_pack)
+void Model::create_debug(bool a_generate_shaders, std::vector<std::vector<float32_t>> &attributes_data, std::vector<rhi::PrimitiveTopology> a_topology, rhi::BuffersPack &a_buffers_pack)
 {
 	// Grid is a geometry asset that single mesh and single primitive and has positions and colors only
 	auto &setting = ror::settings();
@@ -1087,7 +1090,7 @@ void Model::create_debug(bool a_generate_shaders, std::vector<std::vector<float3
 	// Although its called debug_mesh_count its actually debug_mesh_primitives count in the 1 debug mesh
 	auto primitives_count = std::min(attributes_data.size(), static_cast<size_t>(setting.m_debug_mesh_count));
 
-	this->create_default_mesh("debug", a_generate_shaders, 1, primitives_count, rhi::MaterialModel::unlit, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, false);
+	this->create_default_mesh("debug", a_generate_shaders, 1, primitives_count, rhi::MaterialModel::unlit, rhi::BlendMode::blend, a_topology, false);
 
 	ror::Mesh &mesh = this->m_meshes[0];
 
@@ -1100,7 +1103,7 @@ void Model::create_debug(bool a_generate_shaders, std::vector<std::vector<float3
 
 void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack)
 {
-	this->create_default_mesh("grid", a_generate_shaders, 1, 1, rhi::MaterialModel::unlit, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, false);
+	this->create_default_mesh("grid", a_generate_shaders, 1, 1, rhi::MaterialModel::unlit, rhi::BlendMode::blend, std::vector<rhi::PrimitiveTopology>{rhi::PrimitiveTopology::lines}, false);
 
 	// Grid is a geometry asset that single mesh and single primitive and has positions and colors only
 	ror::Mesh &mesh    = this->m_meshes[0];

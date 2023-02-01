@@ -33,11 +33,13 @@
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "geometry/rorgeometry_utilities.hpp"
 #include "graphics/roranimation.hpp"
 #include "graphics/rormesh.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
 #include "graphics/rorscene.hpp"
+#include "math/rormatrix3_functions.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorquaternion.hpp"
@@ -48,9 +50,9 @@
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rorprogram.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorhandles.hpp"
+#include "rhi/rorprogram.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortypes.hpp"
@@ -1157,6 +1159,131 @@ void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::functio
 	a_job_handles.emplace_back(std::move(upload_job_handle));
 }
 
+auto trs_to_matrix4(ror::Transformf &a_trs)
+{
+	ror::Matrix4f translation = ror::matrix4_translation(a_trs.translation());
+	ror::Matrix4f rotation    = ror::matrix4_rotation(a_trs.rotation());
+	ror::Matrix4f scale       = ror::matrix4_scaling(a_trs.scale());
+
+	return translation * rotation * scale;
+}
+template <typename _node_container, typename _node_type>
+auto get_node_global_transform(_node_container &a_model, _node_type &a_node)
+{
+	ror::Matrix4f node_matrix{};
+	auto         &model_nodes = a_model.nodes();
+
+	ror::Transformf trs{};
+	trs = a_node.m_trs_transform;
+
+	node_matrix = trs_to_matrix4(trs);
+
+	_node_type *node = &a_node;
+
+	while (node->m_parent != -1)
+	{
+		auto           &p = model_nodes[static_cast<size_t>(node->m_parent)];
+		ror::Transformf ptrs{};
+		ptrs = p.m_trs_transform;
+
+		node_matrix = trs_to_matrix4(ptrs) * node_matrix;
+
+		node = &p;
+	}
+
+	return node_matrix;
+}
+
+static void create_axis(std::vector<std::vector<float32_t>> &debug_data, std::vector<rhi::PrimitiveTopology> &topology_data)
+{
+	std::vector<float32_t> points_colors{};
+
+	auto add_point = [&points_colors](ror::Vector3f &point, ror::Vector4f &color, ror::Matrix4f xform) {
+		auto xpoint = xform * point;
+
+		points_colors.push_back(xpoint.x);
+		points_colors.push_back(xpoint.y);
+		points_colors.push_back(xpoint.z);
+		points_colors.push_back(0.0f);
+
+		points_colors.push_back(color.x);
+		points_colors.push_back(color.y);
+		points_colors.push_back(color.z);
+		points_colors.push_back(color.w);
+	};
+
+	std::vector<ror::Vector3f> cylinder_triangles_data{};
+	std::vector<ror::Vector3f> hemisphere_triangles_data{};
+	std::vector<ror::Vector3f> disk_triangles_data{};
+	std::vector<ror::Vector3f> arrow_triangles_data{};
+
+	make_cylinder_triangles(cylinder_triangles_data);
+	make_hemisphere_triangles(hemisphere_triangles_data);
+	make_disk_triangles(disk_triangles_data, ror::Vector3f{}, ror::Vector3f{0.0, -1.0, 0.0});
+
+	auto smat  = ror::matrix4_scaling(0.01f, 1.0f, 0.01f);
+	auto smat2 = ror::matrix4_scaling(0.02f, 0.05f, 0.02f);
+	auto tmat  = ror::matrix4_translation(0.0f, 1.0f, 0.0f);
+	auto rmat  = ror::matrix4_rotation_around_y(ror::to_radians(18.0f));
+
+	arrow_triangles_data.reserve(cylinder_triangles_data.size() + hemisphere_triangles_data.size() + disk_triangles_data.size());
+
+	// Lets make an arrow from the three objects, cylinder, hemisphere and disk
+	{
+		for (auto &p : cylinder_triangles_data)
+			arrow_triangles_data.emplace_back(smat * p);
+
+		for (auto &p : hemisphere_triangles_data)
+			arrow_triangles_data.emplace_back(tmat * smat2 * p);
+
+		for (auto &p : disk_triangles_data)
+			arrow_triangles_data.emplace_back(tmat * rmat * smat2 * p);
+
+		cylinder_triangles_data.clear();
+		hemisphere_triangles_data.clear();
+		disk_triangles_data.clear();
+	}
+
+	float32_t color_intensity = 1.0f;
+	float32_t color_fade      = 0.2f;
+
+	auto redcolor_p = ror::Vector4f{color_intensity, color_fade, color_fade, 1.0f};
+	auto redcolor_n = redcolor_p * ror::Vector4f(color_fade, color_fade, color_fade, 1.0);
+
+	auto greencolor_p = ror::Vector4f{color_fade, color_intensity, color_fade, 1.0f};
+	auto greencolor_n = greencolor_p * ror::Vector4f(color_fade, color_fade, color_fade, 1.0);
+
+	auto bluecolor_p = ror::Vector4f{color_fade, color_fade, color_intensity, 1.0f};
+	auto bluecolor_n = bluecolor_p * ror::Vector4f(color_fade, color_fade, color_fade, 1.0);
+
+	// +X
+	for (auto &p : arrow_triangles_data)
+		add_point(p, redcolor_p, ror::matrix4_rotation_around_z(ror::to_radians(-90.0f)));
+
+	// -X
+	for (auto &p : arrow_triangles_data)
+		add_point(p, redcolor_n, ror::matrix4_rotation_around_z(ror::to_radians(90.0f)));
+
+	// +Y
+	for (auto &p : arrow_triangles_data)
+		add_point(p, greencolor_p, {});
+
+	// -Y
+	for (auto &p : arrow_triangles_data)
+		add_point(p, greencolor_n, ror::matrix4_rotation_around_x(ror::to_radians(180.0f)));
+
+	// +Z
+	for (auto &p : arrow_triangles_data)
+		add_point(p, bluecolor_p, ror::matrix4_rotation_around_x(ror::to_radians(-90.0f)));
+
+	// -Z
+	for (auto &p : arrow_triangles_data)
+		add_point(p, bluecolor_n, ror::matrix4_rotation_around_x(ror::to_radians(90.0f)));
+
+	debug_data.emplace_back(points_colors);
+	topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
+}
+
 // Does not create a job and is run on main thread
 void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lambda, size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
 {
@@ -1164,16 +1291,109 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 	auto node_index = this->m_nodes.size();
 	this->add_model_node(static_cast_safe<int32_t>(a_model_index));
 
+	auto &setting = ror::settings();
+
+	std::vector<std::vector<float32_t>> debug_data{};
+	std::vector<rhi::PrimitiveTopology> primitive_data{};
+
+	std::vector<ror::Vector3f> sphere_triangles_data{};
+	make_sphere_triangles(sphere_triangles_data, 2);
+	std::vector<ror::Vector3f> box_lines_data{};
+	make_box_lines(box_lines_data, ror::Vector3f{0.0}, ror::Vector3f{1.0});
+	std::vector<ror::Vector3f> box_triangles_data{};
+	make_box_triangles(box_triangles_data, ror::Vector3f{0.0}, ror::Vector3f{1.0});
+
+	auto box_type      = true;
+	auto topology_type = rhi::PrimitiveTopology::lines;
+
+	std::vector<ror::Vector3f> &geometry_data = box_lines_data;        // By default lets draw boxes
+	if (setting.m_debug_mesh_type == Settings::DebugMeshType::triangle_sphere)
+	{
+		geometry_data = sphere_triangles_data;
+		box_type      = false;
+		topology_type = rhi::PrimitiveTopology::triangles;
+	}
+	else if (setting.m_debug_mesh_type == Settings::DebugMeshType::triangle_box)
+	{
+		geometry_data = box_triangles_data;
+		topology_type = rhi::PrimitiveTopology::triangles;
+	}
+	else if (setting.m_debug_mesh_type == Settings::DebugMeshType::line_sphere)
+	{
+		assert(0);
+	}
+
+	ror::Vector4f color{setting.m_debug_mesh_color};
+
+	if (setting.m_debug_mesh_type != Settings::DebugMeshType::none)
+	{
+		size_t node_id = 0;
+		for (auto &node : this->m_nodes_data)
+		{
+			if (node.m_model != -1)
+			{
+				auto scene_node_xform = get_node_global_transform(*this, this->m_nodes[node_id]);
+
+				auto &model  = this->m_models[static_cast_safe<size_t>(node.m_model)];
+				auto &meshes = model.meshes();
+
+				size_t node_data_index = 0;
+				for (auto &model_node : model.nodes())
+				{
+					if (model_node.m_mesh_index != -1)
+					{
+						auto             &mesh = meshes[static_cast<size_t>(model_node.m_mesh_index)];
+						ror::BoundingBoxf bbox{};
+
+						for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+						{
+							auto &bboxp = mesh.bounding_box(prim_index);
+							bbox.add_bounding(bboxp);
+						}
+
+						auto node_xform = get_node_global_transform(model, model_node);
+						auto xform      = scene_node_xform * node_xform;
+						auto min = bbox.minimum();
+						// auto max         = bbox.maximum();
+						auto sphere_size = ror::Vector3f{bbox.diagonal() / 2};
+						auto box_size    = bbox.extent();
+						auto box_center  = bbox.center();
+
+						auto &scale  = box_type ? box_size : sphere_size;
+						auto &offset = box_type ? min : box_center;
+
+						std::vector<float32_t> points_colors{};
+						for (size_t i = 0; i < geometry_data.size(); ++i)
+						{
+							auto xtdata = (geometry_data[i] * scale) + offset;
+
+							xtdata = xform * xtdata;
+
+							points_colors.push_back(xtdata.x);
+							points_colors.push_back(xtdata.y);
+							points_colors.push_back(xtdata.z);
+							points_colors.push_back(0.0f);
+
+							points_colors.push_back(color.x);
+							points_colors.push_back(color.y);
+							points_colors.push_back(color.z);
+							points_colors.push_back(color.w);
+						}
+
+						debug_data.emplace_back(points_colors);
+						primitive_data.emplace_back(topology_type);
+					}
+					node_data_index++;
+				}
+			}
+			node_id++;
+		}
+	}
+
+	create_axis(debug_data, primitive_data);
+
 	Model &model = this->m_models[a_model_index];
-
-	float s = 100.0f;
-	float z = 0.0f;
-
-	std::vector<std::vector<float32_t>> data{
-	    {-s, -s, z, z, 1.0f, 0.0f, 0.0f, 1.0f, s, -s, z, z, 0.0f, 1.0f, 0.0f, 1.0f, z, s, z, z, 0.0f, 0.0f, 1.0f, 1.0f},
-	    {s, -s, z, z, 1.0f, 0.0f, 0.0f, 1.0f, -s, -s, z, z, 0.0f, 1.0f, 0.0f, 1.0f, z, 2.0f * -s, z, z, 0.0f, 0.0f, 1.0f, 1.0f}};
-
-	model.create_debug(false, data, a_buffer_pack);
+	model.create_debug(false, debug_data, primitive_data, a_buffer_pack);
 
 	this->create_global_program("debug.glsl.vert", "debug.glsl.frag", node_index, a_model_index);
 
@@ -1526,6 +1746,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 	std::vector<ror::JobHandle<bool>> job_handles;
 	uint32_t                          programs_count = 1000;        // This should be big enough, otherwise its no big deal
 	job_handles.reserve(programs_count);
+
 	for (auto &pass : render_passes)
 	{
 		for (auto &subpass : pass.subpasses())
@@ -1540,13 +1761,13 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 					for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
 					{
 						auto upload_job_handle = a_job_system.push_job(program_upload_job,
-																	   std::ref(a_device),
-																	   std::ref(pass_programs[program]),
-																	   std::cref(this->m_shaders),
-																	   std::cref(model),
-																	   mesh_index,
-																	   static_cast_safe<uint32_t>(prim_index),
-																	   std::ref(subpass));
+						                                               std::ref(a_device),
+						                                               std::ref(pass_programs[program]),
+						                                               std::cref(this->m_shaders),
+						                                               std::cref(model),
+						                                               mesh_index,
+						                                               static_cast_safe<uint32_t>(prim_index),
+						                                               std::ref(subpass));
 
 						job_handles.emplace_back(std::move(upload_job_handle));
 
@@ -1582,6 +1803,9 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 	for (auto &jh : job_handles)
 		if (!jh.data())
 			ror::log_critical("Can't upload all programs for all models in all the rendersses.");
+
+	// Special treatment of weights UBO that needs filling up from mesh static weights unlike other ones, although these might get animated later
+	// Thats why its uploaded in renderer
 }
 
 void Scene::read_nodes()

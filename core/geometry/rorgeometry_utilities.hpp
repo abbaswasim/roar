@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "foundation/rortypes.hpp"
 #include "math/rorvector_functions.hpp"
 #include "thirdparty/include_convhull_3d.hpp"
 
@@ -125,6 +126,26 @@ template <class _type = float32_t, class _index_type = uint32_t>
 void make_sphere_triangles(std::vector<ror::Vector3<_type>>       &a_vertex_buffer,
                            std::vector<ror::Vector3<_index_type>> &a_index_buffer,
                            uint32_t                                a_samples = 50);
+
+void make_sphere_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
+                           int32_t                     a_subdivisions  = 3,
+                           float32_t                   a_corner_radius = 1.0f);        // Corner radius of 1.0 creates a unit sphere
+
+void make_cylinder_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
+                             int32_t                     a_slices  = 10,
+                             int32_t                     a_stackes = 1);
+
+void make_tetrahedron_triangles(std::vector<ror::Vector3f> &a_vertex_buffer);
+
+void make_hemisphere_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
+                               int32_t                     a_slices  = 10,
+                               int32_t                     a_stackes = 5);
+
+void make_disk_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
+                         ror::Vector3f               a_center = {0.0f, 0.0f, 0.0f},
+                         ror::Vector3f               a_normal = {0.0f, 1.0f, 0.0f},
+                         float32_t                   a_radius = 1.0,
+                         int32_t                     a_slices = 10);
 
 /**
  * @brief      Creates a sphere with samples number of points in all 3 or 2 dimensions at origin

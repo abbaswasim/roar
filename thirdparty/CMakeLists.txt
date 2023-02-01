@@ -111,6 +111,12 @@ target_include_directories(basisu PUBLIC ${BASIS_DIR}/transcoder)
 target_compile_options(basisu PUBLIC "-fno-strict-aliasing")
 set_property(TARGET basisu PROPERTY POSITION_INDEPENDENT_CODE ON)
 
+# Add par
+add_library(par INTERFACE)
+set(PAR_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/par)
+target_sources(par INTERFACE ${PAR_INCLUDE_DIR}/par_octasphere.h)
+target_include_directories(par INTERFACE ${PAR_INCLUDE_DIR})
+
 # Add cgltf
 add_library(cgltf INTERFACE)
 set(CGLTF_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/cgltf)

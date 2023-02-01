@@ -5,6 +5,8 @@
 	"visualise_mipmaps": false,
 	"multisample_count": 8,
 	"debug_mesh_count": 1000,
+	"debug_mesh_type": 0,
+	"debug_mesh_color" : [1.0, 0.2, 0.2, 1.0],
 	"vsync": false,
 	"window_transparent": false,
 	"window_premultiplied": false,

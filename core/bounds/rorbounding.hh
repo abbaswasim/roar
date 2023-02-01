@@ -865,7 +865,7 @@ FORCE_INLINE _type BoundingRectangle<_type>::extent() const noexcept
 template <class _type>
 FORCE_INLINE typename _type::value_type BoundingRectangle<_type>::diagonal() const noexcept
 {
-	return length(this->extent());
+	return this->extent().length();
 }
 
 template <class _type>
@@ -1210,7 +1210,7 @@ FORCE_INLINE _type BoundingBox<_type>::extent() const noexcept
 template <class _type>
 FORCE_INLINE typename _type::value_type BoundingBox<_type>::diagonal() const noexcept
 {
-	return length(this->extent());
+	return this->extent().length();
 }
 
 template <class _type>

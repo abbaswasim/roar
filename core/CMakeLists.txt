@@ -205,6 +205,7 @@ set(ROAR_REQUIRED_PRIVATE_LIBRARIES
   roar_version)
 
 set(ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM
+  par
   glslang
   SPIRV
   spirv-cross-core

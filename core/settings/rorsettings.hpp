@@ -73,6 +73,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_buffer_increment   = setting.get<uint32_t>("buffer_increment");
 		this->m_multisample_count  = setting.get<uint32_t>("multisample_count");
 		this->m_debug_mesh_count   = setting.get<uint32_t>("debug_mesh_count");
+		this->m_debug_mesh_type    = static_cast<DebugMeshType>(setting.get<uint32_t>("debug_mesh_type"));
 
 		for (size_t i = 0; i < generic_numbers_count; ++i)
 			this->m_generic_numbers[i] = 0;
@@ -91,6 +92,10 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_animate_cpu               = setting.get<bool>("animate_cpu");
 		this->m_clamp_material_roughness  = setting.get<bool>("clamp_material_roughness");
 		this->m_clamp_material_metallic   = setting.get<bool>("clamp_material_metallic");
+
+		auto amc = setting.get<std::vector<float32_t>>("debug_mesh_color");
+		if (amc.size() >= 4)
+			this->m_debug_mesh_color = ror::Vector4f(amc[0], amc[1], amc[2], amc[3]);
 
 		auto alc = setting.get<std::vector<float32_t>>("ambient_light_color");
 		if (alc.size() >= 4)
@@ -340,6 +345,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_clamp_material_roughness{false};
 	bool m_clamp_material_metallic{false};
 
+	ror::Vector4f m_debug_mesh_color{1.0f, 0.2f, 0.2f, 0.5f};
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
 	ror::Vector4f m_fog_color{0.5f, 0.5f, 0.5f, 1.0f};
 
@@ -351,6 +357,17 @@ class ROAR_ENGINE_ITEM Settings final
 	rhi::PixelFormat m_depth_stencil_format{rhi::PixelFormat::depth24_norm_stencil8_uint32};
 
 	rhi::PrimitiveWinding m_primitive_winding{rhi::PrimitiveWinding::counter_clockwise};
+
+	enum class DebugMeshType
+	{
+		none,
+		line_box,
+		line_sphere,
+		triangle_box,
+		triangle_sphere
+	};
+
+	DebugMeshType m_debug_mesh_type{DebugMeshType::none};
 
 	struct BindingsSets
 	{
