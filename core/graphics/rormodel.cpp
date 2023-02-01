@@ -1010,8 +1010,12 @@ void Model::create_default_mesh(const char                         *a_name,
                                 std::vector<rhi::PrimitiveTopology> a_prim_topology,
                                 bool                                a_has_indices)
 {
-	assert(a_mesh_count > 0);
-	assert(a_primitives_count > 0);
+	if (a_mesh_count == 0 || a_primitives_count == 0)
+	{
+		log_critical("Can't create a default mesh with meshes count {} or primitives count {}", a_mesh_count, a_primitives_count);
+		return;
+	}
+
 	assert(a_primitives_count == a_prim_topology.size());
 
 	this->m_generate_shaders = a_generate_shaders;
