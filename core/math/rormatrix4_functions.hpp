@@ -108,6 +108,9 @@ template <class _type>
 FORCE_INLINE Matrix4<_type> matrix4_rotation(const EulerAngle<_type> &a_euler_angles);
 
 template <class _type>
+FORCE_INLINE Matrix4<_type> matrix4_rotation(const Vector3<_type> &a_from, const Vector3<_type> &a_to);
+
+template <class _type>
 FORCE_INLINE Matrix4<_type> matrix4_scaling(_type a_x, _type a_y, _type a_z);
 template <class _type>
 FORCE_INLINE Matrix4<_type> matrix4_scaling(const Vector3<_type> &a_vector);

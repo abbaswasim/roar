@@ -329,6 +329,37 @@ FORCE_INLINE Matrix4<_type> matrix4_rotation(const EulerAngle<_type> &a_euler_an
 	                      0.0, 0.0, 0.0, 1.0);
 }
 
+/**
+ * Calculates a rotation matrix that will rorate a_from to a_to
+ * Source https://cs.brown.edu/research/pubs/pdfs/1999/Moller-1999-EBA.pdf
+ */
+template <class _type>
+FORCE_INLINE Matrix4<_type> matrix4_rotation(const Vector3<_type> &a_from, const Vector3<_type> &a_to)
+{
+	auto v = a_from.cross_product(a_to);
+	auto c = a_from.dot_product(a_to);
+
+	auto h = (static_cast<_type>(1) - c) / (static_cast<_type>(1) - c * c);
+
+	ror::Matrix4f rot{};
+
+	rot.m_values[0]  = c + h * v.x * v.x;
+	rot.m_values[1]  = h * v.x * v.y + v.z;
+	rot.m_values[2]  = h * v.x * v.z - v.y;
+
+	rot.m_values[4]  = h * v.x * v.y - v.z;
+	rot.m_values[5]  = c + h * v.y * v.y;
+	rot.m_values[6]  = h * v.y * v.z + v.x;
+
+	rot.m_values[8]  = h * v.x * v.z + v.y;
+	rot.m_values[9]  = h * v.y * v.z - v.x;
+	rot.m_values[10] = c + h * v.z * v.z;
+
+	rot.normalize();
+
+	return rot;
+}
+
 template <class _type>
 FORCE_INLINE Matrix4<_type> matrix4_scaling(_type a_x, _type a_y, _type a_z)
 {
