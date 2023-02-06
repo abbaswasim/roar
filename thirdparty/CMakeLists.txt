@@ -129,6 +129,26 @@ set(CTPL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/CTPL)
 target_sources(ctpl INTERFACE ${CTPL_INCLUDE_DIR}/ctpl_stl.h)
 target_include_directories(ctpl INTERFACE ${CTPL_INCLUDE_DIR})
 
+# Add Dear ImGui
+set(IMGUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
+set(IMGUI_HEADER_FILES
+    ${IMGUI_INCLUDE_DIR}/imconfig.h
+    ${IMGUI_INCLUDE_DIR}/imgui.h
+    ${IMGUI_INCLUDE_DIR}/imgui_internal.h
+    ${IMGUI_INCLUDE_DIR}/imstb_rectpack.h
+    ${IMGUI_INCLUDE_DIR}/imstb_textedit.h
+    ${IMGUI_INCLUDE_DIR}/imstb_truetype.h)
+set(IMGUI_SOURCE_FILES
+	${IMGUI_INCLUDE_DIR}/imgui.cpp
+	${IMGUI_INCLUDE_DIR}/imgui_demo.cpp
+	${IMGUI_INCLUDE_DIR}/imgui_draw.cpp
+	${IMGUI_INCLUDE_DIR}/imgui_tables.cpp
+	${IMGUI_INCLUDE_DIR}/imgui_widgets.cpp)
+
+add_library(imgui STATIC ${BASIS_SOURCE_FILES})
+target_include_directories(imgui PUBLIC ${IMGUI_INCLUDE_DIR})
+target_sources(imgui PRIVATE ${IMGUI_SOURCE_FILES})
+
 # SPIRV-Cross
 set(SPIRV_CROSS_STATIC ON)
 set(SPIRV_CROSS_ENABLE_MSL  ON)
