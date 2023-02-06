@@ -251,13 +251,11 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 {
 	auto        is_depth_shadow            = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
 	auto       *device                     = a_device.platform_device();
-	auto       *render_pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
 	const auto &mesh                       = a_model.meshes()[a_mesh_index];
 	const auto &materials                  = a_model.materials();
 	auto        material_index             = mesh.material(a_prim_index);
 
 	assert(device);
-	assert(render_pipeline_descriptor && "Can't allocate metal render pipeline descriptor");
 	assert(material_index != -1 && "Material index can't be -1");
 	auto &material = materials[static_cast<size_t>(material_index)];
 

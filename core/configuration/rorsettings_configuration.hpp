@@ -74,10 +74,9 @@ class ROAR_ENGINE_ITEM SettingsConfig : public Configuration<SettingsConfig>
 	// Use this method if get wouldn't work otherwise. For example of the config is complex and requires manual parsing
 	auto find(std::string a_key)
 	{
-		if (this->m_json_file.contains(a_key.c_str()))
-			return this->m_json_file[a_key.c_str()];
+		assert(this->m_json_file.contains(a_key.c_str()) && "They key you are looking for doesn't exist");
 
-		assert(0 && "Shouldn't reach here");
+		return this->m_json_file[a_key.c_str()];
 	}
 
   protected:

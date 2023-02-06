@@ -811,6 +811,12 @@ void pack_into_channel(ror::Material::Component<float32_t>                      
 	assert(d_bpp == 4 && s_bpp == 4 && "Packing only supports 4 bpp destination and source textures");
 	assert(a_destination_channel < 4 && a_source_channel < 4 && "Channel indices out of bound");
 	assert(d_width == s_width && d_height == s_height && d_depth == s_depth && "Width, height and depth of both textures is not the same");
+	// Don't remove these, required for release build
+	(void) d_depth;
+	(void) s_depth;
+	(void) s_width;
+	(void) s_height;
+	(void) s_bpp;
 
 	auto d_data = d_image.data();
 	auto s_data = s_image.data();
@@ -1118,8 +1124,10 @@ void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pac
 	upload_position4_color4(mesh, prim_id, grid_data, a_buffers_pack);
 }
 
-void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, bool a_generate_shaders)
+void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, std::vector<ror::Light> &a_lights, bool a_generate_shaders)
 {
+	(void) a_lights;
+
 	this->m_generate_shaders = a_generate_shaders;
 
 	// Lets start by reading a_filename via resource cache
