@@ -30,6 +30,7 @@
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
+#include "graphics/rorlight.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
 #include "math/rormatrix4.hpp"
@@ -52,74 +53,6 @@ namespace ror
 // TODO: Define properly somewhere
 class ROAR_ENGINE_ITEM ParticleSystem
 {};
-
-class ROAR_ENGINE_ITEM Light
-{
-  public:
-	FORCE_INLINE        Light()                             = default;        //! Default constructors
-	FORCE_INLINE        Light(const Light &a_other)         = delete;         //! Copy constructor
-	FORCE_INLINE        Light(Light &&a_other) noexcept     = default;        //! Move constructor
-	FORCE_INLINE Light &operator=(const Light &a_other)     = delete;         //! Copy assignment operator
-	FORCE_INLINE Light &operator=(Light &&a_other) noexcept = delete;         //! Move assignment operator
-	FORCE_INLINE ~Light() noexcept                          = default;        //! Destructor
-
-	enum class LightType
-	{
-		directional,
-		spot,
-		point,
-		area
-	};
-
-	void update();
-	void upload(rhi::Device &a_device);
-	void fill_shader_buffer();
-
-	// clang-format off
-	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; }
-	FORCE_INLINE constexpr auto& shader_buffer()       noexcept  { return this->m_shader_buffer; }
-	// clang-format on
-
-	LightType         m_type{LightType::directional};                        //! Light type
-	Matrix4f          m_mvp{};                                               //! Model view projection of the light, used in shadow mapping
-	Vector3f          m_color{};                                             //! Light color
-	Vector3f          m_position{};                                          //! Position of point and spot lights
-	Vector3f          m_direction{};                                         //! Direction of directional and spot lights
-	float32_t         m_intensity{1.0f};                                     //! Light intensity
-	float32_t         m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
-	float32_t         m_inner_angle{0.0f};                                   //! Spot light inner angle
-	float32_t         m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle
-	std::string       m_light_struct_name{};                                 //! Light struct name cache
-	rhi::ShaderBuffer m_shader_buffer{"Light",
-	                                  rhi::ShaderBufferType::ubo,
-	                                  rhi::Layout::std140,
-	                                  settings().directional_light_set(),
-	                                  settings().directional_light_binding()};        //! Shader buffer for a specific type of light UBO
-};
-
-class ROAR_ENGINE_ITEM EnvironmentProbe final
-{
-  public:
-	FORCE_INLINE                   EnvironmentProbe()                                    = default;        //! Default constructor
-	FORCE_INLINE                   EnvironmentProbe(const EnvironmentProbe &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE                   EnvironmentProbe(EnvironmentProbe &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE EnvironmentProbe &operator=(const EnvironmentProbe &a_other)            = default;        //! Copy assignment operator
-	FORCE_INLINE EnvironmentProbe &operator=(EnvironmentProbe &&a_other) noexcept        = default;        //! Move assignment operator
-	FORCE_INLINE ~EnvironmentProbe() noexcept                                            = default;        //! Destructor
-
-	// clang-format off
-	FORCE_INLINE void transform(Transformf a_transform)      { this->m_transform = a_transform; }
-	FORCE_INLINE void path(std::filesystem::path a_path)     { this->m_path = a_path;           }
-
-	FORCE_INLINE auto transform()                            { return this->m_transform;        }
-	FORCE_INLINE auto path()                                 { return this->m_path;             }
-	// clang-format on
-
-  protected:
-  private:
-	ror::Transformf       m_transform{};
-	std::filesystem::path m_path{};
-};
 
 class ROAR_ENGINE_ITEM SceneNode
 {

@@ -39,6 +39,7 @@
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
 #include "graphics/rorscene.hpp"
+#include "math/rormatrix3.hpp"
 #include "math/rormatrix3_functions.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
@@ -46,6 +47,7 @@
 #include "math/rortransform.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
+#include "math/rorvector_functions.hpp"
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
@@ -60,7 +62,9 @@
 #include "shader_system/rorshader_system.hpp"
 #include <array>
 #include <cassert>
+#include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 #include <type_traits>
 #include <unordered_map>
@@ -73,116 +77,6 @@ namespace ror
 
 define_translation_unit_vtable(Scene)
 {}
-
-void Light::fill_shader_buffer()
-{
-	const uint32_t fixed_light_count = 2;        // TODO: needs to be moved out of here, at least 2 so we make an array
-	assert(this->m_type != ror::Light::LightType::area && "Area lights not supported yet");
-
-	switch (this->m_type)
-	{
-		case ror::Light::LightType::directional:
-			this->m_shader_buffer.top_level().m_name = "directional_light_uniform";
-			this->m_shader_buffer.binding(settings().directional_light_binding());
-			this->m_shader_buffer.set(settings().directional_light_set());
-			this->m_light_struct_name = "directional_lights";
-			break;
-		case ror::Light::LightType::point:
-			this->m_shader_buffer.top_level().m_name = "point_light_uniform";
-			this->m_shader_buffer.binding(settings().point_light_binding());
-			this->m_shader_buffer.set(settings().point_light_set());
-			this->m_light_struct_name = "point_lights";
-			break;
-		case ror::Light::LightType::spot:
-			this->m_shader_buffer.top_level().m_name = "spot_light_uniform";
-			this->m_shader_buffer.binding(settings().spot_light_binding());
-			this->m_shader_buffer.set(settings().spot_light_set());
-			this->m_light_struct_name = "spot_lights";
-			break;
-		case ror::Light::LightType::area:
-			this->m_shader_buffer.top_level().m_name = "area_light_uniform";
-			this->m_shader_buffer.binding(settings().area_light_binding());
-			this->m_shader_buffer.set(settings().area_light_set());
-			this->m_light_struct_name = "area_lights";
-			break;
-	}
-
-	rhi::ShaderBufferTemplate::Struct light_type(this->m_light_struct_name, static_cast_safe<uint32_t>(fixed_light_count));
-
-	light_type.add_entry("mvp", rhi::Format::float32_4x4, rhi::Layout::std140, 1);
-	light_type.add_entry("color", rhi::Format::float32_3, rhi::Layout::std140, 1);
-
-	if (this->m_type != ror::Light::LightType::directional)
-		light_type.add_entry("position", rhi::Format::float32_3, rhi::Layout::std140, 1);
-
-	if (this->m_type != ror::Light::LightType::point)
-		light_type.add_entry("direction", rhi::Format::float32_3, rhi::Layout::std140, 1);
-
-	light_type.add_entry("intensity", rhi::Format::float32_1, rhi::Layout::std140, 1);
-	light_type.add_entry("range", rhi::Format::float32_1, rhi::Layout::std140, 1);
-
-	if (this->m_type == ror::Light::LightType::spot)
-	{
-		light_type.add_entry("inner_angle", rhi::Format::float32_1, rhi::Layout::std140, 1);
-		light_type.add_entry("outer_angle", rhi::Format::float32_1, rhi::Layout::std140, 1);
-	}
-
-	this->m_shader_buffer.add_struct(light_type);
-}
-
-void Light::update()
-{
-	this->m_shader_buffer.buffer_map();
-
-	auto     stride      = this->m_shader_buffer.stride(this->m_light_struct_name);
-	uint32_t light_index = 0;
-
-	this->m_shader_buffer.update("mvp", &this->m_mvp.m_values, light_index, stride);
-	this->m_shader_buffer.update("color", &this->m_color, light_index, stride);
-
-	if (this->m_type != ror::Light::LightType::directional)
-		this->m_shader_buffer.update("position", &this->m_position, light_index, stride);
-
-	if (this->m_type != ror::Light::LightType::point)
-		this->m_shader_buffer.update("direction", &this->m_direction, light_index, stride);
-
-	this->m_shader_buffer.update("intensity", &this->m_intensity, light_index, stride);
-	this->m_shader_buffer.update("range", &this->m_range, light_index, stride);
-
-	if (this->m_type == ror::Light::LightType::spot)
-	{
-		this->m_shader_buffer.update("inner_angle", &this->m_inner_angle, light_index, stride);
-		this->m_shader_buffer.update("outer_angle", &this->m_outer_angle, light_index, stride);
-	}
-	std::cout << "Her is the glsl string for light type = " << this->m_light_struct_name << "\n"
-	          << this->m_shader_buffer.to_glsl_string();
-
-	this->m_shader_buffer.buffer_unmap();
-}
-
-void Light::upload(rhi::Device &a_device)
-{
-	// Looking to create a UBO for directional light like below
-	/*
-	  const uint directional_lights_count = @;
-	  struct light_type
-	  {
-	      vec3  color;
-	      vec3  direction;
-	      float intensity;
-	      mat4  mvp;
-	  };
-
-	  layout(std140, set = @, binding = @) uniform directional_light_uniform
-	  {
-	      light_type lights[directional_lights_count];
-	  } in_directional_light_uniforms;
-	*/
-	this->fill_shader_buffer();
-	this->m_shader_buffer.upload(a_device);
-
-	this->update();
-}
 
 constexpr auto to_renderpasstype(uint32_t a_index)
 {
@@ -1194,94 +1088,114 @@ auto get_node_global_transform(_node_container &a_model, _node_type &a_node)
 	return node_matrix;
 }
 
-static void create_axis(std::vector<std::vector<float32_t>> &debug_data, std::vector<rhi::PrimitiveTopology> &topology_data)
+static void create_lights(std::vector<std::vector<float32_t>> &a_debug_data, const std::vector<ror::Light> &a_lights, std::vector<rhi::PrimitiveTopology> &a_topology_data)
 {
-	std::vector<float32_t> points_colors{};
+	ror::Vector3f light_position{-3.0f, 3.0f, 0.0f};
 
-	auto add_point = [&points_colors](ror::Vector3f &point, ror::Vector4f &color, ror::Matrix4f xform) {
-		auto xpoint = xform * point;
+	ror::Vector4f color{1.0f, 0.647f, 0.0f, 1.0f};        // orange color
+	srgb_to_linear(color);
 
-		points_colors.push_back(xpoint.x);
-		points_colors.push_back(xpoint.y);
-		points_colors.push_back(xpoint.z);
-		points_colors.push_back(0.0f);
-
-		points_colors.push_back(color.x);
-		points_colors.push_back(color.y);
-		points_colors.push_back(color.z);
-		points_colors.push_back(color.w);
-	};
-
-	std::vector<ror::Vector3f> cylinder_triangles_data{};
-	std::vector<ror::Vector3f> hemisphere_triangles_data{};
-	std::vector<ror::Vector3f> disk_triangles_data{};
-	std::vector<ror::Vector3f> arrow_triangles_data{};
-
-	make_cylinder_triangles(cylinder_triangles_data);
-	make_hemisphere_triangles(hemisphere_triangles_data);
-	make_disk_triangles(disk_triangles_data, ror::Vector3f{}, ror::Vector3f{0.0, -1.0, 0.0});
-
-	auto smat  = ror::matrix4_scaling(0.01f, 1.0f, 0.01f);
-	auto smat2 = ror::matrix4_scaling(0.02f, 0.05f, 0.02f);
-	auto tmat  = ror::matrix4_translation(0.0f, 1.0f, 0.0f);
-	auto rmat  = ror::matrix4_rotation_around_y(ror::to_radians(18.0f));
-
-	arrow_triangles_data.reserve(cylinder_triangles_data.size() + hemisphere_triangles_data.size() + disk_triangles_data.size());
-
-	// Lets make an arrow from the three objects, cylinder, hemisphere and disk
+	for (auto &light : a_lights)
 	{
-		for (auto &p : cylinder_triangles_data)
-			arrow_triangles_data.emplace_back(smat * p);
+		color = ror::Vector4f{light.m_color, 1.0f};
 
-		for (auto &p : hemisphere_triangles_data)
-			arrow_triangles_data.emplace_back(tmat * smat2 * p);
+		if (light.m_type == ror::Light::LightType::directional)
+		{
+			ror::Vector3f f{0.0f, 1.0f, 0.0f};        // direction of the arrow which is Y-up
+			auto          rot = ror::matrix3_rotation(f, light.m_direction);
 
-		for (auto &p : disk_triangles_data)
-			arrow_triangles_data.emplace_back(tmat * rmat * smat2 * p);
+			std::vector<ror::Vector3f> arrow_triangles_data{};
+			create_arrow(arrow_triangles_data, ror::Vector3f{1.0f});
 
-		cylinder_triangles_data.clear();
-		hemisphere_triangles_data.clear();
-		disk_triangles_data.clear();
+			std::vector<float32_t> arrow_triangles{};
+
+			float32_t offsetx[3] = {-0.1f, 0.0f, 0.1f};
+			for (int32_t i = 0; i < 3; ++i)
+			{
+				ror::Vector3f offset{offsetx[i], 0.0f, 0.0f};
+				for (auto point : arrow_triangles_data)
+				{
+					point = rot * point;
+					point += light_position + offset;
+
+					arrow_triangles.push_back(point.x);
+					arrow_triangles.push_back(point.y);
+					arrow_triangles.push_back(point.z);
+					arrow_triangles.push_back(0.0f);
+
+					arrow_triangles.push_back(color.x);
+					arrow_triangles.push_back(color.y);
+					arrow_triangles.push_back(color.z);
+					arrow_triangles.push_back(color.w);
+				}
+			}
+
+			a_debug_data.emplace_back(arrow_triangles);
+			a_topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
+		}
+		else if (light.m_type == ror::Light::LightType::point)
+		{
+			light_position = light.m_position;
+
+			std::vector<ror::Vector3f> sphere_triangles_data{};
+			make_sphere_triangles(sphere_triangles_data, 2);
+
+			std::vector<float32_t> sphere_triangles{};
+
+			for (auto &point : sphere_triangles_data)
+			{
+				point += light_position;
+
+				sphere_triangles.push_back(point.x);
+				sphere_triangles.push_back(point.y);
+				sphere_triangles.push_back(point.z);
+				sphere_triangles.push_back(0.0f);
+
+				sphere_triangles.push_back(color.x);
+				sphere_triangles.push_back(color.y);
+				sphere_triangles.push_back(color.z);
+				sphere_triangles.push_back(color.w);
+			}
+
+			a_debug_data.emplace_back(sphere_triangles);
+			a_topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
+		}
+		else if (light.m_type == ror::Light::LightType::spot)
+		{
+			// light_position = light.m_position;
+			// // ror::Vector3f light_direction{light.m_direction};
+
+			// std::vector<ror::Vector3f> sphere_triangles_data{};
+			// make_sphere_triangles(sphere_triangles_data, 2);
+
+			// std::vector<float32_t> sphere_triangles{};
+
+			// for (auto &point : sphere_triangles_data)
+			// {
+			// 	point += light_position;
+
+			// 	sphere_triangles.push_back(point.x);
+			// 	sphere_triangles.push_back(point.y);
+			// 	sphere_triangles.push_back(point.z);
+			// 	sphere_triangles.push_back(0.0f);
+
+			// 	sphere_triangles.push_back(color.x);
+			// 	sphere_triangles.push_back(color.y);
+			// 	sphere_triangles.push_back(color.z);
+			// 	sphere_triangles.push_back(color.w);
+			// }
+
+			// a_debug_data.emplace_back(sphere_triangles);
+			// a_topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
+		}
 	}
+}
 
-	float32_t color_intensity = 1.0f;
-	float32_t color_fade      = 0.2f;
-
-	auto redcolor_p = ror::Vector4f{color_intensity, color_fade, color_fade, 1.0f};
-	auto redcolor_n = redcolor_p * ror::Vector4f(color_fade, color_fade, color_fade, 1.0);
-
-	auto greencolor_p = ror::Vector4f{color_fade, color_intensity, color_fade, 1.0f};
-	auto greencolor_n = greencolor_p * ror::Vector4f(color_fade, color_fade, color_fade, 1.0);
-
-	auto bluecolor_p = ror::Vector4f{color_fade, color_fade, color_intensity, 1.0f};
-	auto bluecolor_n = bluecolor_p * ror::Vector4f(color_fade, color_fade, color_fade, 1.0);
-
-	// +X
-	for (auto &p : arrow_triangles_data)
-		add_point(p, redcolor_p, ror::matrix4_rotation_around_z(ror::to_radians(-90.0f)));
-
-	// -X
-	for (auto &p : arrow_triangles_data)
-		add_point(p, redcolor_n, ror::matrix4_rotation_around_z(ror::to_radians(90.0f)));
-
-	// +Y
-	for (auto &p : arrow_triangles_data)
-		add_point(p, greencolor_p, {});
-
-	// -Y
-	for (auto &p : arrow_triangles_data)
-		add_point(p, greencolor_n, ror::matrix4_rotation_around_x(ror::to_radians(180.0f)));
-
-	// +Z
-	for (auto &p : arrow_triangles_data)
-		add_point(p, bluecolor_p, ror::matrix4_rotation_around_x(ror::to_radians(-90.0f)));
-
-	// -Z
-	for (auto &p : arrow_triangles_data)
-		add_point(p, bluecolor_n, ror::matrix4_rotation_around_x(ror::to_radians(90.0f)));
-
-	debug_data.emplace_back(points_colors);
-	topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
+static void create_cameras(std::vector<std::vector<float32_t>> &a_debug_data, const std::vector<ror::OrbitCamera> &a_cameras, std::vector<rhi::PrimitiveTopology> &a_topology_data)
+{
+	(void) a_debug_data;
+	(void) a_topology_data;
+	(void) a_cameras;
 }
 
 // Does not create a job and is run on main thread
@@ -1353,7 +1267,7 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 
 						auto node_xform = get_node_global_transform(model, model_node);
 						auto xform      = scene_node_xform * node_xform;
-						auto min = bbox.minimum();
+						auto min        = bbox.minimum();
 						// auto max         = bbox.maximum();
 						auto sphere_size = ror::Vector3f{bbox.diagonal() / 2};
 						auto box_size    = bbox.extent();
@@ -1390,7 +1304,15 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 		}
 	}
 
-	create_axis(debug_data, primitive_data);
+	// Alaways create the axis
+	if (setting.m_show_axis)
+		create_axis(debug_data, primitive_data);
+
+	if (setting.m_show_lights)
+		create_lights(debug_data, this->m_lights, primitive_data);
+
+	if (setting.m_show_cameras)
+		create_cameras(debug_data, this->m_cameras, primitive_data);
 
 	Model &model = this->m_models[a_model_index];
 	model.create_debug(false, debug_data, primitive_data, a_buffer_pack);
@@ -1422,7 +1344,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		{
 			log_info("Loading model {}", node_model_path.c_str());
 			Model &model = this->m_models[a_model_index];
-			model.load_from_gltf_file(node_model_path, this->m_cameras, a_generate_shaders);
+			model.load_from_gltf_file(node_model_path, this->m_cameras, this->m_lights, a_generate_shaders);
 
 			return true;
 		};
