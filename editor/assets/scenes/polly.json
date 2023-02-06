@@ -25,11 +25,6 @@
 	"lights":[
 		{
 			"type":"directional",
-			"position":[
-				-10.0,
-				20.0,
-				-5.0
-			],
 			"direction":[
 				10.0,
 				-20.0,

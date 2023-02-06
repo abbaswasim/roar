@@ -27,6 +27,7 @@
 
 #include "foundation/rortypes.hpp"
 #include "math/rorvector_functions.hpp"
+#include "rhi/rortypes.hpp"
 #include "thirdparty/include_convhull_3d.hpp"
 
 namespace ror
@@ -135,6 +136,10 @@ void make_cylinder_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
                              int32_t                     a_slices  = 10,
                              int32_t                     a_stackes = 1);
 
+void make_cone_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
+                         int32_t                     a_slices  = 10,
+                         int32_t                     a_stackes = 1);
+
 void make_tetrahedron_triangles(std::vector<ror::Vector3f> &a_vertex_buffer);
 
 void make_hemisphere_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
@@ -146,6 +151,16 @@ void make_disk_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
                          ror::Vector3f               a_normal = {0.0f, 1.0f, 0.0f},
                          float32_t                   a_radius = 1.0,
                          int32_t                     a_slices = 10);
+
+/**
+ * @brief      Creates the a single arraow that is used for one axis but can be used for other things
+ */
+void create_arrow(std::vector<ror::Vector3f> &arrow_triangles_data, ror::Vector3f a_scale);
+
+/**
+ * @brief      Creates the cartesian axis, in different colors from a cylinder, hemisphere and a disk
+ */
+void create_axis(std::vector<std::vector<float32_t>> &debug_data, std::vector<rhi::PrimitiveTopology> &topology_data);
 
 /**
  * @brief      Creates a sphere with samples number of points in all 3 or 2 dimensions at origin

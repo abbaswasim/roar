@@ -29,6 +29,7 @@
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector3.hpp"
 #include "rorgeometry_utilities.hpp"
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <vector>
@@ -318,6 +319,8 @@ void make_sphere_triangles(std::vector<ror::Vector3f> &a_vertex_buffer, int32_t 
 
 static void shape_to_buffer(std::vector<ror::Vector3f> &a_vertex_buffer, const ror::Matrix4f &a_transform, par_shapes_mesh *a_shape)
 {
+	a_vertex_buffer.reserve(a_vertex_buffer.size() + (static_cast<size_t>(a_shape->ntriangles) * 3));
+
 	for (int32_t i = 0; i < a_shape->ntriangles; ++i)
 	{
 		auto *ptr = a_shape->points;
@@ -343,12 +346,27 @@ void make_cylinder_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
 	auto xform = ror::matrix4_rotation_around_x(ror::to_radians(-90.0f)) * ror::matrix4_scaling(0.5f, 0.5f, 1.0f);
 
 	shape_to_buffer(a_vertex_buffer, xform, shape);
+	delete shape;
+}
+
+void make_cone_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
+                         int32_t                     a_slices,
+                         int32_t                     a_stackes)
+{
+	auto *shape = par_shapes_create_cone(a_slices, a_stackes);
+
+	// Make the cylinder in roar y-axis and unit diameter
+	auto xform = ror::matrix4_rotation_around_x(ror::to_radians(-90.0f)) * ror::matrix4_scaling(0.5f, 0.5f, 1.0f);
+
+	shape_to_buffer(a_vertex_buffer, xform, shape);
+	delete shape;
 }
 
 void make_tetrahedron_triangles(std::vector<ror::Vector3f> &a_vertex_buffer)
 {
 	auto *shape = par_shapes_create_tetrahedron();
 	shape_to_buffer(a_vertex_buffer, ror::Matrix4f{}, shape);
+	delete shape;
 }
 
 void make_hemisphere_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
@@ -357,6 +375,7 @@ void make_hemisphere_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
 {
 	auto *shape = par_shapes_create_hemisphere(a_slices, a_stackes);
 	shape_to_buffer(a_vertex_buffer, ror::Matrix4f{}, shape);
+	delete shape;
 }
 
 void make_disk_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
@@ -368,6 +387,7 @@ void make_disk_triangles(std::vector<ror::Vector3f> &a_vertex_buffer,
 	// radius, slices, center, normal
 	auto *shape = par_shapes_create_disk(a_radius, a_slices, reinterpret_cast<float32_t *>(&a_center.x), reinterpret_cast<float32_t *>(&a_normal.x));
 	shape_to_buffer(a_vertex_buffer, ror::Matrix4f{}, shape);
+	delete shape;
 }
 
 template <class _type, class _index_type>
@@ -417,6 +437,96 @@ void make_sphere_triangles(std::vector<ror::Vector3<_type>> &a_vertex_buffer, st
 
 	delete[] vertices;
 	delete[] face_indices;
+}
+
+void create_arrow(std::vector<ror::Vector3f> &arrow_triangles_data, ror::Vector3f a_scale)
+{
+	std::vector<ror::Vector3f> cylinder_triangles_data{};
+	std::vector<ror::Vector3f> cone_triangles_data{};
+	std::vector<ror::Vector3f> disk_triangles_data{};
+
+	make_cylinder_triangles(cylinder_triangles_data);
+	make_cone_triangles(cone_triangles_data);
+	make_disk_triangles(disk_triangles_data, ror::Vector3f{}, ror::Vector3f{0.0, -1.0, 0.0});
+
+	auto smat  = ror::matrix4_scaling(0.01f * a_scale.x, 0.5f * a_scale.y, 0.01f * a_scale.z);
+	auto smat2 = ror::matrix4_scaling(0.03f * a_scale.x, 0.04f * a_scale.y, 0.03f * a_scale.z);
+	auto smat3 = ror::matrix4_scaling(0.015f * a_scale.x, 0.04f * a_scale.y, 0.015f * a_scale.z);
+	auto tmat  = ror::matrix4_translation(0.0f * a_scale.x, 0.5f * a_scale.y, 0.0f * a_scale.z);
+	auto rmat  = ror::matrix4_rotation_around_y(ror::to_radians(18.0f));
+
+	arrow_triangles_data.reserve(cylinder_triangles_data.size() + cone_triangles_data.size() + disk_triangles_data.size());
+
+	// Lets make an arrow from the three objects, cylinder, cone and disk
+	for (auto &p : cylinder_triangles_data)
+		arrow_triangles_data.emplace_back(smat * p);
+
+	for (auto &p : cone_triangles_data)
+		arrow_triangles_data.emplace_back(tmat * smat2 * p);
+
+	for (auto &p : disk_triangles_data)
+		arrow_triangles_data.emplace_back(tmat * rmat * smat3 * p);
+}
+
+void create_axis(std::vector<std::vector<float32_t>> &debug_data, std::vector<rhi::PrimitiveTopology> &topology_data)
+{
+	std::vector<float32_t> points_colors{};
+
+	auto add_point = [&points_colors](ror::Vector3f &point, ror::Vector4f &color, ror::Matrix4f xform) {
+		auto xpoint = xform * point;
+
+		points_colors.push_back(xpoint.x);
+		points_colors.push_back(xpoint.y);
+		points_colors.push_back(xpoint.z);
+		points_colors.push_back(0.0f);
+
+		points_colors.push_back(color.x);
+		points_colors.push_back(color.y);
+		points_colors.push_back(color.z);
+		points_colors.push_back(color.w);
+	};
+
+	std::vector<ror::Vector3f> arrow_triangles_data{};
+	create_arrow(arrow_triangles_data, ror::Vector3f{1.0f});
+
+	float32_t color_intensity = 1.0f;
+	float32_t color_fade      = 0.2f;
+
+	auto redcolor_p = ror::Vector4f{color_intensity, color_fade, color_fade, 1.0f};
+	auto redcolor_n = redcolor_p * ror::Vector4f(color_fade, color_fade, color_fade, 1.0);
+
+	auto greencolor_p = ror::Vector4f{color_fade, color_intensity, color_fade, 1.0f};
+	auto greencolor_n = greencolor_p * ror::Vector4f(color_fade, color_fade, color_fade, 1.0);
+
+	auto bluecolor_p = ror::Vector4f{color_fade, color_fade, color_intensity, 1.0f};
+	auto bluecolor_n = bluecolor_p * ror::Vector4f(color_fade, color_fade, color_fade, 1.0);
+
+	// +X
+	for (auto &p : arrow_triangles_data)
+		add_point(p, redcolor_p, ror::matrix4_rotation_around_z(ror::to_radians(-90.0f)));
+
+	// -X
+	for (auto &p : arrow_triangles_data)
+		add_point(p, redcolor_n, ror::matrix4_rotation_around_z(ror::to_radians(90.0f)));
+
+	// +Y
+	for (auto &p : arrow_triangles_data)
+		add_point(p, greencolor_p, {});
+
+	// -Y
+	for (auto &p : arrow_triangles_data)
+		add_point(p, greencolor_n, ror::matrix4_rotation_around_x(ror::to_radians(180.0f)));
+
+	// +Z
+	for (auto &p : arrow_triangles_data)
+		add_point(p, bluecolor_p, ror::matrix4_rotation_around_x(ror::to_radians(90.0f)));
+
+	// -Z
+	for (auto &p : arrow_triangles_data)
+		add_point(p, bluecolor_n, ror::matrix4_rotation_around_x(ror::to_radians(-90.0f)));
+
+	debug_data.emplace_back(points_colors);
+	topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
 }
 
 template <class _type>

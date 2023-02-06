@@ -6,72 +6,18 @@
 				2,
 				3
 			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
 			"name":"root"
 		},
 		{
 			"name":"damaged_helmet",
-			"path":"damaged_helmet/glTF/DamagedHelmet.gltf",
-			"translation":[
-				0.0,
-				0.0,
-				0.0
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"scale":[
-				1.0,
-				1.0,
-				1.0
-			]
+			"path":"damaged_helmet/glTF/DamagedHelmet.gltf"
 		},
 		{
 			"name":"sun",
-			"translation":[
-				0.0,
-				0.0,
-				0.0
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"scale":[
-				1.0,
-				1.0,
-				1.0
-			],
 			"light":0
 		},
 		{
 			"name":"maya_camera",
-			"translation":[
-				0.0,
-				0.0,
-				0.0
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"scale":[
-				1.0,
-				1.0,
-				1.0
-			],
 			"camera":0
 		},
 		{
@@ -87,15 +33,10 @@
 	"lights":[
 		{
 			"type":"directional",
-			"position":[
+			"direction":[
 				10.0,
 				-20.0,
 				5.0
-			],
-			"direction":[
-				-10.0,
-				20.0,
-				-5.0
 			],
 			"color":[
 				1.0,

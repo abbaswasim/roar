@@ -27,6 +27,7 @@
 
 #include "camera/rorcamera.hpp"
 #include "graphics/roranimation.hpp"
+#include "graphics/rorlight.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
 #include "graphics/rornode.hpp"
@@ -34,6 +35,7 @@
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
+#include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortexture.hpp"
 #include <vector>
 
@@ -61,7 +63,7 @@ class ROAR_ENGINE_ITEM Model final
 	// Populates data from a gltf file loaded as a resource.
 	// Takes scene cameras and lights as parameter and fills it up with this model cameras and lights
 	// If this or any other load functions are called before, data needs to be appended
-	void load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, bool a_generate_shaders);
+	void load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, std::vector<ror::Light> &a_lights, bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack);
 	void create_default_mesh(const char *a_name, bool a_generate_shaders,
 	                         size_t a_mesh_count, size_t a_primitives_count,
 	                         rhi::MaterialModel a_material_model, rhi::BlendMode a_blend_mode,

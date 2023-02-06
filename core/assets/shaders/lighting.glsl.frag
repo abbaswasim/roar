@@ -5,11 +5,11 @@ Light get_directional_light(const Material material, const Fragment fragment, co
 
 	// Do direction setup here
 	light.color                = directional.color.rgb;
-	light.direction            = normalize(directional.direction);
+	light.direction            = -normalize(directional.direction);
 	light.shadow               = @;
 	light.intensity            = directional.intensity;
 	light.attenuation          = 1.0;
-	light.normal_dot_direction = saturate(dot(material.normal, light.direction));
+	light.normal_dot_direction = saturate(dot(fragment.normal, light.direction));
 
 	return light;
 }
@@ -32,7 +32,7 @@ Light get_point_light(const Material material, const Fragment fragment, const ui
 	light.shadow               = @;
 	light.intensity            = point.intensity;
 	light.attenuation          = point_light_attenuation(length(light.direction), 0.01);
-	light.normal_dot_direction = saturate(dot(material.normal, light.direction));
+	light.normal_dot_direction = saturate(dot(fragment.normal, light.direction));
 
 	return light;
 }
@@ -59,7 +59,7 @@ Light get_spot_light(const Material material, const Fragment fragment, const uin
 	light.shadow               = @;
 	light.intensity            = spot.intensity;
 	light.attenuation          = point_light_attenuation(length(light.direction), 0.01); // TODO: Check if this should be spot_angle_attenuation
-	light.normal_dot_direction = saturate(dot(material.normal, light.direction));
+	light.normal_dot_direction = saturate(dot(fragment.normal, light.direction));
 
 	// From gltf punctual lights spec
 	// TODO: Move these two to CPU code

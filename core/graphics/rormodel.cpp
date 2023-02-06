@@ -1124,7 +1124,7 @@ void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pac
 	upload_position4_color4(mesh, prim_id, grid_data, a_buffers_pack);
 }
 
-void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, std::vector<ror::Light> &a_lights, bool a_generate_shaders)
+void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, std::vector<ror::Light> &a_lights, bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack)
 {
 	(void) a_lights;
 
@@ -1138,7 +1138,6 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 #if defined(USE_JS)
 	auto &js = ror::get_job_system();
 #endif
-	auto &bp = rhi::get_buffers_pack();
 
 	cgltf_options options{};        // Default setting
 	cgltf_data   *data{nullptr};
@@ -1596,7 +1595,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * attrib_byte_size, stride};
 						attribs_data.emplace(current_index, std::move(data_tuple));
 
-						vertex_attribute_descriptor.add(current_index, attrib_format, &bp);
+						vertex_attribute_descriptor.add(current_index, attrib_format, &a_buffers_pack);
 					}
 
 					// Read vertex indices buffer
@@ -1647,13 +1646,13 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						std::tuple<uint8_t *, uint32_t, uint32_t> data_tuple{data_pointer + offset, attrib_accessor->count * indices_byte_size, stride};
 						attribs_data.emplace(rhi::BufferSemantic::vertex_index, std::move(data_tuple));
 
-						vertex_attribute_descriptor.add(rhi::BufferSemantic::vertex_index, index_format, &bp);
+						vertex_attribute_descriptor.add(rhi::BufferSemantic::vertex_index, index_format, &a_buffers_pack);
 					}
 					else
 						mesh.has_indices(j, false);
 
 					// Now upload data from all the attributes into vertex_attribute_descriptor
-					vertex_attribute_descriptor.upload(attribs_data, &bp);
+					vertex_attribute_descriptor.upload(attribs_data, &a_buffers_pack);
 
 					// Read morph targets
 					for (size_t k = 0; k < cprim.targets_count; ++k)
@@ -1731,11 +1730,11 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 							morph_targets_attribs_data.emplace(current_index, std::move(data_tuple));
 
-							target_vertex_descriptor.add(current_index, attrib_format, &bp);
+							target_vertex_descriptor.add(current_index, attrib_format, &a_buffers_pack);
 						}
 
 						// Now copy all the buffer_views for morph_targets
-						target_vertex_descriptor.upload(morph_targets_attribs_data, &bp);
+						target_vertex_descriptor.upload(morph_targets_attribs_data, &a_buffers_pack);
 						morph_target_vertex_attribute_descriptor.emplace_back(std::move(target_vertex_descriptor));
 					}
 

@@ -1320,7 +1320,8 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal, boo
 		output.append("\tmaterial.normal = get_normal(in_vertex_normal);\n");
 	}
 	else        // otherwise lets generate a normal
-		output.append("\tmaterial.normal = normalize(cross(dFdx(in_vertex_position.xyz), dFdy(in_vertex_position.xyz)));\n");
+		// Check this out if you have precision issues https://www.enkisoftware.com/devlogpost-20150131-1-Normal-generation-in-the-pixel-shader
+		output.append("\tmaterial.normal = -normalize(cross(dFdx(in_vertex_position.xyz), dFdy(in_vertex_position.xyz)));\n");
 
 	// Reflecance factor is always there
 	output.append("\tmaterial.f0 = get_f0();\n");
