@@ -8,6 +8,7 @@
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
+#include "graphics/rorlight.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
 #include "math/rorquaternion.hpp"
@@ -103,8 +104,9 @@ TEST_F(GLTFTest, fox_gltf_loader_test)
 	(void) fox_sampler0_output;
 
 	std::vector<ror::OrbitCamera> fox_cameras;
+	std::vector<ror::Light>       fox_lights;
 
-	this->fox_model->load_from_gltf_file("Fox/Fox.gltf", fox_cameras, true);
+	this->fox_model->load_from_gltf_file("Fox/Fox.gltf", fox_cameras, fox_lights, true);
 	loaded_fox = true;
 
 	EXPECT_EQ(fox_cameras.size(), 0);
@@ -202,8 +204,9 @@ TEST_F(GLTFTest, couldron0_gltf_loader_test)
 	(void) fox_sampler0_output;
 
 	std::vector<ror::OrbitCamera> couldron0_cameras;
+	std::vector<ror::Light> couldron0_lights;
 
-	this->couldron0_model->load_from_gltf_file("baba_yagas_hut/scene.gltf", couldron0_cameras, true);
+	this->couldron0_model->load_from_gltf_file("baba_yagas_hut/scene.gltf", couldron0_cameras, couldron0_lights, true);
 
 	EXPECT_EQ(couldron0_cameras.size(), 0);
 
@@ -315,9 +318,10 @@ void GLTFTest::load_model(std::string path)
 	auto                          compile_shader_source = settings_configs_copy.get<bool>("gltf_compile_shader");
 	auto                          print_shader_source   = settings_configs_copy.get<bool>("gltf_compile_print_shader");
 	std::vector<ror::OrbitCamera> model_cameras;
+	std::vector<ror::Light> model_lights;
 	ror::Model                   *model2 = new ror::Model();
 
-	model2->load_from_gltf_file(path, model_cameras, true);
+	model2->load_from_gltf_file(path, model_cameras, model_lights, true);
 
 	if (print_shader_source)
 		compile_shader_source = true;

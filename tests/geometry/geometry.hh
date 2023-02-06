@@ -45,21 +45,22 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 	ror::make_box_triangles(size, origin , output);
 #endif
 
-	const uint32_t indices_tris[]  = {0, 1, 2, 2, 1, 3, 4, 5, 0, 0, 5, 1, 0, 1, 6, 6, 1, 7, 4, 0, 6, 6, 0, 2, 0, 5, 3, 3, 5, 7, 5, 4, 7, 7, 4, 6};
+	const uint32_t indices_tris[]  = {0, 1, 2, 1, 3, 2, 5, 4, 6, 5, 6, 7, 0, 2, 6, 4, 0, 6, 1, 5, 3, 5, 7, 3, 3, 7, 2, 7, 6, 2, 0, 4, 1, 4, 5, 1};
 	const size_t   indices_lines[] = {0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 1, 5, 2, 6, 3, 7, 4, 5, 5, 7, 7, 6, 6, 4};
 
 	if constexpr (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
 	{
 		{
 			ror::Vector3<TypeParam>              size{1.0f, 1.0f, 1.0f}, origin{0.0f, 0.0f, 0.0f};
-			std::vector<ror::Vector3<TypeParam>> res_points = {{-0.5f, -0.5f, -0.5f},
-															   {0.5f, -0.5f, -0.5f},
-															   {-0.5f, 0.5f, -0.5f},
-															   {0.5f, 0.5f, -0.5f},
-															   {-0.5f, -0.5f, 0.5f},
-															   {0.5f, -0.5f, 0.5f},
-															   {-0.5f, 0.5f, 0.5f},
-															   {0.5f, 0.5f, 0.5f}};
+			std::vector<ror::Vector3<TypeParam>> res_points = {{0.5, 0.5, 0.5},
+			                                                   {-0.5, 0.5, 0.5},
+			                                                   {0.5, -0.5, 0.5},
+			                                                   {-0.5, -0.5, 0.5},
+			                                                   {0.5, 0.5, -0.5},
+			                                                   {-0.5, 0.5, -0.5},
+			                                                   {0.5, -0.5, -0.5},
+			                                                   {-0.5, -0.5, -0.5}};
+
 			std::vector<ror::Vector3<TypeParam>> res_tris;
 			res_tris.reserve(36);
 
@@ -136,9 +137,9 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 				for (size_t i = 0; i < 12; ++i)
 				{
 					test_vector3_equal(ror::Vector3<TypeParam>(static_cast<TypeParam>(indices_tris[3 * i]),
-															   static_cast<TypeParam>(indices_tris[3 * i + 1]),
-															   static_cast<TypeParam>(indices_tris[3 * i + 2])),
-									   index_buffer[i]);
+					                                           static_cast<TypeParam>(indices_tris[3 * i + 1]),
+					                                           static_cast<TypeParam>(indices_tris[3 * i + 2])),
+					                   index_buffer[i]);
 				}
 			}
 			{
@@ -156,9 +157,9 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 				for (size_t i = 0; i < 12; ++i)
 				{
 					test_vector3_equal(ror::Vector3<TypeParam>(static_cast<TypeParam>(indices_tris[3 * i]),
-															   static_cast<TypeParam>(indices_tris[3 * i + 1]),
-															   static_cast<TypeParam>(indices_tris[3 * i + 2])),
-									   index_buffer[i]);
+					                                           static_cast<TypeParam>(indices_tris[3 * i + 1]),
+					                                           static_cast<TypeParam>(indices_tris[3 * i + 2])),
+					                   index_buffer[i]);
 				}
 			}
 			// Lines version of the tests
@@ -219,8 +220,8 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 				for (size_t i = 0; i < 12; ++i)
 				{
 					test_vector2_equal(ror::Vector2<TypeParam>(static_cast<TypeParam>(indices_lines[2 * i]),
-															   static_cast<TypeParam>(indices_lines[2 * i + 1])),
-									   index_buffer[i]);
+					                                           static_cast<TypeParam>(indices_lines[2 * i + 1])),
+					                   index_buffer[i]);
 				}
 			}
 			{
@@ -238,21 +239,21 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 				for (size_t i = 0; i < 12; ++i)
 				{
 					test_vector2_equal(ror::Vector2<TypeParam>(static_cast<TypeParam>(indices_lines[2 * i]),
-															   static_cast<TypeParam>(indices_lines[2 * i + 1])),
-									   index_buffer[i]);
+					                                           static_cast<TypeParam>(indices_lines[2 * i + 1])),
+					                   index_buffer[i]);
 				}
 			}
 		}
 		{
 			ror::Vector3<TypeParam>              size{1.0f, 1.0f, 1.0f}, origin{0.5f, 0.5f, 0.5f};
-			std::vector<ror::Vector3<TypeParam>> res_points = {{0.0f, 0.0f, 0.0f},
-															   {1.0f, 0.0f, 0.0f},
-															   {0.0f, 1.0f, 0.0f},
-															   {1.0f, 1.0f, 0.0f},
-															   {0.0f, 0.0f, 1.0f},
-															   {1.0f, 0.0f, 1.0f},
-															   {0.0f, 1.0f, 1.0f},
-															   {1.0f, 1.0f, 1.0f}};
+			std::vector<ror::Vector3<TypeParam>> res_points = {{1.0f, 1.0f, 1.0f},
+			                                                   {0.0f, 1.0f, 1.0f},
+			                                                   {1.0f, 0.0f, 1.0f},
+			                                                   {0.0f, 0.0f, 1.0f},
+			                                                   {1.0f, 1.0f, 0.0f},
+			                                                   {0.0f, 1.0f, 0.0f},
+			                                                   {1.0f, 0.0f, 0.0f},
+			                                                   {0.0f, 0.0f, 0.0f}};
 
 			std::vector<ror::Vector3<TypeParam>> res_tris;
 			res_tris.reserve(36);
@@ -293,14 +294,14 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 		{
 			ror::Vector3<TypeParam>              size{1.0f, 1.0f, 1.0f}, origin{-0.5f, -0.5f, -0.5f};
 			std::vector<ror::Vector3<TypeParam>> output;
-			std::vector<ror::Vector3<TypeParam>> res_points = {{-1.0f, -1.0f, -1.0f},
-															   {0.0f, -1.0f, -1.0f},
-															   {-1.0f, 0.0f, -1.0f},
-															   {0.0f, 0.0f, -1.0f},
-															   {-1.0f, -1.0f, 0.0f},
-															   {0.0f, -1.0f, 0.0f},
-															   {-1.0f, 0.0f, 0.0f},
-															   {0.0f, 0.0f, 0.0f}};
+			std::vector<ror::Vector3<TypeParam>> res_points = {{0.0f, 0.0f, 0.0f},
+			                                                   {-1.0f, 0.0f, 0.0f},
+			                                                   {0.0f, -1.0f, 0.0f},
+			                                                   {-1.0f, -1.0f, 0.0f},
+			                                                   {0.0f, 0.0f, -1.0f},
+			                                                   {-1.0f, 0.0f, -1.0f},
+			                                                   {0.0f, -1.0f, -1.0f},
+			                                                   {-1.0f, -1.0f, -1.0f}};
 
 			std::vector<ror::Vector3<TypeParam>> res_tris;
 			res_tris.reserve(36);
@@ -339,14 +340,14 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 	{
 		ror::Vector3<TypeParam>              size{10, 20, 30}, origin{0, 0, 0};
 		std::vector<ror::Vector3<TypeParam>> output;
-		std::vector<ror::Vector3<TypeParam>> res_points = {{static_cast<TypeParam>(-5), static_cast<TypeParam>(-10), static_cast<TypeParam>(-15)},
-														   {static_cast<TypeParam>(5), static_cast<TypeParam>(-10), static_cast<TypeParam>(-15)},
-														   {static_cast<TypeParam>(-5), static_cast<TypeParam>(10), static_cast<TypeParam>(-15)},
-														   {static_cast<TypeParam>(5), static_cast<TypeParam>(10), static_cast<TypeParam>(-15)},
-														   {static_cast<TypeParam>(-5), static_cast<TypeParam>(-10), static_cast<TypeParam>(15)},
-														   {static_cast<TypeParam>(5), static_cast<TypeParam>(-10), static_cast<TypeParam>(15)},
-														   {static_cast<TypeParam>(-5), static_cast<TypeParam>(10), static_cast<TypeParam>(15)},
-														   {static_cast<TypeParam>(5), static_cast<TypeParam>(10), static_cast<TypeParam>(15)}};
+		std::vector<ror::Vector3<TypeParam>> res_points = {{static_cast<TypeParam>(5), static_cast<TypeParam>(10), static_cast<TypeParam>(15)},
+		                                                   {static_cast<TypeParam>(-5), static_cast<TypeParam>(10), static_cast<TypeParam>(15)},
+		                                                   {static_cast<TypeParam>(5), static_cast<TypeParam>(-10), static_cast<TypeParam>(15)},
+		                                                   {static_cast<TypeParam>(-5), static_cast<TypeParam>(-10), static_cast<TypeParam>(15)},
+		                                                   {static_cast<TypeParam>(5), static_cast<TypeParam>(10), static_cast<TypeParam>(-15)},
+		                                                   {static_cast<TypeParam>(-5), static_cast<TypeParam>(10), static_cast<TypeParam>(-15)},
+		                                                   {static_cast<TypeParam>(5), static_cast<TypeParam>(-10), static_cast<TypeParam>(-15)},
+		                                                   {static_cast<TypeParam>(-5), static_cast<TypeParam>(-10), static_cast<TypeParam>(-15)}};
 
 		std::vector<ror::Vector3<TypeParam>> res_tris;
 		res_tris.reserve(36);
@@ -385,7 +386,7 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 	{
 		ror::Vector3<TypeParam>              size{10, 20, 30}, origin{5, 15, 25};
 		std::vector<ror::Vector3<TypeParam>> output;
-		std::vector<ror::Vector3<TypeParam>> res_points = {{0, 5, 10}, {10, 5, 10}, {0, 25, 10}, {10, 25, 10}, {0, 5, 40}, {10, 5, 40}, {0, 25, 40}, {10, 25, 40}};
+		std::vector<ror::Vector3<TypeParam>> res_points = {{10, 25, 40}, {0, 25, 40}, {10, 5, 40}, {0, 5, 40}, {10, 25, 10}, {0, 25, 10}, {10, 5, 10}, {0, 5, 10}};
 
 		std::vector<ror::Vector3<TypeParam>> res_tris;
 		res_tris.reserve(36);
@@ -423,7 +424,7 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 	{
 		ror::Vector3<TypeParam>              size{10, 20, 30}, origin{10, 20, 30};
 		std::vector<ror::Vector3<TypeParam>> output;
-		std::vector<ror::Vector3<TypeParam>> res_points = {{5, 10, 15}, {15, 10, 15}, {5, 30, 15}, {15, 30, 15}, {5, 10, 45}, {15, 10, 45}, {5, 30, 45}, {15, 30, 45}};
+		std::vector<ror::Vector3<TypeParam>> res_points = {{15, 30, 45}, {5, 30, 45}, {15, 10, 45}, {5, 10, 45}, {15, 30, 15}, {5, 30, 15}, {15, 10, 15}, {5, 10, 15}};
 
 		std::vector<ror::Vector3<TypeParam>> res_tris;
 		res_tris.reserve(36);
@@ -461,17 +462,16 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 
 TYPED_TEST(GeometryTest, cube_test_2d)
 {
-	const uint32_t indices_tris[]  = {0, 1, 2, 2, 1, 3};
+	const uint32_t indices_tris[]  = {0, 1, 2, 1, 3, 2};
 	const uint32_t indices_lines[] = {0, 1, 1, 3, 3, 2, 2, 0};
 	if constexpr (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
 	{
 		{
 			ror::Vector2<TypeParam>              size{1.0f, 1.0f}, origin{0.0f, 0.0f};
-			std::vector<ror::Vector2<TypeParam>> res_points = {{-0.5f, -0.5f},
-															   {0.5f, -0.5f},
-															   {-0.5f, 0.5f},
-															   {0.5f, 0.5f}};
-
+			std::vector<ror::Vector2<TypeParam>> res_points = {{0.5, 0.5},
+			                                                   {-0.5, 0.5},
+			                                                   {0.5, -0.5},
+			                                                   {-0.5, -0.5}};
 			std::vector<ror::Vector3<TypeParam>> res_tris;
 			res_tris.reserve(6);
 
@@ -548,9 +548,9 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 				for (size_t i = 0; i < 2; ++i)
 				{
 					test_vector2_equal(ror::Vector3<TypeParam>(static_cast<TypeParam>(indices_tris[3 * i]),
-															   static_cast<TypeParam>(indices_tris[3 * i + 1]),
-															   static_cast<TypeParam>(indices_tris[3 * i + 2])),
-									   index_buffer[i]);
+					                                           static_cast<TypeParam>(indices_tris[3 * i + 1]),
+					                                           static_cast<TypeParam>(indices_tris[3 * i + 2])),
+					                   index_buffer[i]);
 				}
 			}
 			{
@@ -568,9 +568,9 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 				for (size_t i = 0; i < 2; ++i)
 				{
 					test_vector2_equal(ror::Vector3<TypeParam>(static_cast<TypeParam>(indices_tris[3 * i]),
-															   static_cast<TypeParam>(indices_tris[3 * i + 1]),
-															   static_cast<TypeParam>(indices_tris[3 * i + 2])),
-									   index_buffer[i]);
+					                                           static_cast<TypeParam>(indices_tris[3 * i + 1]),
+					                                           static_cast<TypeParam>(indices_tris[3 * i + 2])),
+					                   index_buffer[i]);
 				}
 			}
 
@@ -632,8 +632,8 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 				for (size_t i = 0; i < 4; ++i)
 				{
 					test_vector2_equal(ror::Vector2<TypeParam>(static_cast<TypeParam>(indices_lines[2 * i]),
-															   static_cast<TypeParam>(indices_lines[2 * i + 1])),
-									   index_buffer[i]);
+					                                           static_cast<TypeParam>(indices_lines[2 * i + 1])),
+					                   index_buffer[i]);
 				}
 			}
 			{
@@ -651,17 +651,17 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 				for (size_t i = 0; i < 4; ++i)
 				{
 					test_vector2_equal(ror::Vector2<TypeParam>(static_cast<TypeParam>(indices_lines[2 * i]),
-															   static_cast<TypeParam>(indices_lines[2 * i + 1])),
-									   index_buffer[i]);
+					                                           static_cast<TypeParam>(indices_lines[2 * i + 1])),
+					                   index_buffer[i]);
 				}
 			}
 		}
 		{
 			ror::Vector2<TypeParam>              size{1.0f, 1.0f}, origin{0.5f, 0.5f};
-			std::vector<ror::Vector2<TypeParam>> res_points = {{0.0f, 0.0f},
-															   {1.0f, 0.0f},
-															   {0.0f, 1.0f},
-															   {1.0f, 1.0f}};
+			std::vector<ror::Vector2<TypeParam>> res_points = {{1.0f, 1.0f},
+			                                                   {0.0f, 1.0f},
+			                                                   {1.0f, 0.0f},
+			                                                   {0.0f, 0.0f}};
 
 			std::vector<ror::Vector3<TypeParam>> res_tris;
 			res_tris.reserve(6);
@@ -702,11 +702,10 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 		{
 			ror::Vector2<TypeParam>              size{1.0f, 1.0f}, origin{-0.5f, -0.5f};
 			std::vector<ror::Vector2<TypeParam>> output;
-			std::vector<ror::Vector2<TypeParam>> res_points = {{-1.0f, -1.0f},
-															   {0.0f, -1.0f},
-															   {-1.0f, 0.0f},
-															   {0.0f, 0.0f}};
-
+			std::vector<ror::Vector2<TypeParam>> res_points = {{0.0f, 0.0f},
+			                                                   {-1.0f, 0.0f},
+			                                                   {0.0f, -1.0f},
+			                                                   {-1.0f, -1.0f}};
 			std::vector<ror::Vector3<TypeParam>> res_tris;
 			res_tris.reserve(6);
 
@@ -748,10 +747,10 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 	{
 		ror::Vector2<TypeParam>              size{10, 20}, origin{0, 0};
 		std::vector<ror::Vector2<TypeParam>> output;
-		std::vector<ror::Vector2<TypeParam>> res_points = {{static_cast<TypeParam>(-5), static_cast<TypeParam>(-10)},
-														   {static_cast<TypeParam>(5), static_cast<TypeParam>(-10)},
-														   {static_cast<TypeParam>(-5), static_cast<TypeParam>(10)},
-														   {static_cast<TypeParam>(5), static_cast<TypeParam>(10)}};
+		std::vector<ror::Vector2<TypeParam>> res_points = {{static_cast<TypeParam>(5), static_cast<TypeParam>(10)},
+		                                                   {static_cast<TypeParam>(-5), static_cast<TypeParam>(10)},
+		                                                   {static_cast<TypeParam>(5), static_cast<TypeParam>(-10)},
+		                                                   {static_cast<TypeParam>(-5), static_cast<TypeParam>(-10)}};
 
 		std::vector<ror::Vector3<TypeParam>> res_tris;
 		res_tris.reserve(6);
@@ -792,7 +791,7 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 	{
 		ror::Vector2<TypeParam>              size{10, 20}, origin{5, 15};
 		std::vector<ror::Vector2<TypeParam>> output;
-		std::vector<ror::Vector2<TypeParam>> res_points = {{0, 5}, {10, 5}, {0, 25}, {10, 25}};
+		std::vector<ror::Vector2<TypeParam>> res_points = {{10, 25}, {0, 25}, {10, 5}, {0, 5}};
 
 		std::vector<ror::Vector3<TypeParam>> res_tris;
 		res_tris.reserve(6);
@@ -832,7 +831,7 @@ TYPED_TEST(GeometryTest, cube_test_2d)
 	{
 		ror::Vector2<TypeParam>              size{10, 20}, origin{10, 20};
 		std::vector<ror::Vector2<TypeParam>> output;
-		std::vector<ror::Vector2<TypeParam>> res_points = {{5, 10}, {15, 10}, {5, 30}, {15, 30}};
+		std::vector<ror::Vector2<TypeParam>> res_points = {{15, 30}, {5, 30}, {15, 10}, {5, 10}};
 
 		std::vector<ror::Vector3<TypeParam>> res_tris;
 		res_tris.reserve(6);
