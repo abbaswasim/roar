@@ -1322,10 +1322,9 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 	a_upload_lambda(a_model_index);
 }
 
-void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer)
+void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs)
 {
-	auto &bpack = rhi::get_buffers_pack();
-	auto  model_nodes{0u};
+	auto model_nodes{0u};
 	for (auto &node : this->m_nodes_data)
 		if (node.m_model_path != "")
 			model_nodes++;
@@ -1340,11 +1339,11 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		std::vector<ror::JobHandle<bool>> job_handles;
 		job_handles.reserve(model_nodes * 2);        // Multiplied by 2 because I am creating two jobs, load and upload per model
 
-		auto model_load_job = [this](const std::string &node_model_path, size_t a_model_index, bool a_generate_shaders) -> auto
+		auto model_load_job = [this, &a_buffers_packs](const std::string &node_model_path, size_t a_model_index, bool a_generate_shaders) -> auto
 		{
 			log_info("Loading model {}", node_model_path.c_str());
 			Model &model = this->m_models[a_model_index];
-			model.load_from_gltf_file(node_model_path, this->m_cameras, this->m_lights, a_generate_shaders);
+			model.load_from_gltf_file(node_model_path, this->m_cameras, this->m_lights, a_generate_shaders, a_buffers_packs);
 
 			return true;
 		};
@@ -1371,7 +1370,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 		// Generate grid into the grid model slot we have allocated
 		// NOTE: Don't create any more models before generate_grid_model job is finished because it uses global state, create these below like generate_debug_model
-		generate_grid_model(a_job_system, model_upload_job, job_handles, model_index, bpack);
+		generate_grid_model(a_job_system, model_upload_job, job_handles, model_index, a_buffers_packs);
 		model_index++;
 		// NOTE: Don't create any more models before generate_grid_model job is finished because it uses global state, create these below like generate_debug_model
 
@@ -1383,7 +1382,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		// Generate debug geometries into the debug model slot we have allocated
 		// This needs to happen after all models are loaded and can't be a job that isn't finished before generate_shaders is called below
 		// This is why its called on main thread
-		generate_debug_model(model_upload_job, model_index, bpack);
+		generate_debug_model(model_upload_job, model_index, a_buffers_packs);
 		model_index++;
 
 		assert(model_index == model_nodes && "Models count vs how many are queued and loaded doesn't match");
@@ -1394,7 +1393,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
 	// TODO: find out this might need to be done differently for Vulkan, also should be moved to upload()
-	bpack.upload(a_device);
+	a_buffers_packs.upload(a_device);
 
 	if (!shader_gen_job_handle.data())
 		ror::log_critical("Can't generate model shaders.");
