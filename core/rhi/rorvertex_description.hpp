@@ -64,8 +64,7 @@ using attrib_variant_vector = std::vector<attrib_variant>;
 
 /**
  * Can be used to describe vertex attributes and layouts for a single mesh drawable.
- * It uses get_buffers_pack() to access the default buffers allocated via "buffers_format.json"
- * Currently there is no way to provide a different set of buffers or use a different config file
+ * It will use the provided buffers pack to access the default buffers allocated via "buffers_format.json"
  */
 
 class ROAR_ENGINE_ITEM VertexDescriptor final

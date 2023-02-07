@@ -144,6 +144,15 @@ void VertexDescriptor::create_mapping()
 	}
 }
 
+/**
+ * @brief      Creates attributes and its layouts from the provided description
+ * @details    This function will create attributes and its layouts from the provided description in the a_attributes vector which is defined as follows
+ *             using tuple_type            = std::tuple<rhi::BufferSemantic, rhi::VertexFormat, rhi::StepFunction, uint32_t rate>;
+ *             using tuple_type_vector     = std::vector<tuple_type>;
+ * @param      a_attributes    An attributes description in the above vector
+ * @param      a_buffers_pack  A buffer pack to use for this vertex descriptor
+ * @return     return          void
+ */
 void VertexDescriptor::create_attributes_and_layouts(const tuple_type_vector &a_attributes, const rhi::BuffersPack *a_buffers_pack)
 {
 	uint32_t binding{0};        // Start with a lower binding and keep going up
@@ -174,7 +183,7 @@ void VertexDescriptor::create_attributes_and_layouts(const tuple_type_vector &a_
 				auto semantic0     = std::get<rhi::BufferSemantic>(attribute0);
 				auto buffer_index0 = a_buffers_pack->attribute_buffer_index(semantic0);
 				auto format0       = std::get<rhi::VertexFormat>(attribute0);
-				auto rate0         = std::get<uint32_t>(attribute);
+				auto rate0         = std::get<uint32_t>(attribute0);
 				auto multiplier0   = std::max(1U, rate0 >> 16);
 				auto format_bytes  = vertex_format_to_bytes(format0) * multiplier0;
 

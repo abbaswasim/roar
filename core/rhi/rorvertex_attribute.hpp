@@ -46,7 +46,6 @@ class ROAR_ENGINE_ITEM VertexAttribute final
 	/**
 	 * Use this version of the constructor if you want VertexDescriptor to take care of
 	 * Creating valid buffers and allocate location, offset and binding for you
-	 * If in doubt if the attribute represented is valid or not call complete() to check
 	 * This makes VertexAttribute more aware and clever than dumb data blob
 	 */
 	FORCE_INLINE VertexAttribute(rhi::BufferSemantic a_semantics = rhi::BufferSemantic::vertex_position,
