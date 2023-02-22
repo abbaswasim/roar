@@ -1,0 +1,80 @@
+{
+	"nodes":[
+	],
+	"lights":[
+		{
+			"type":"directional",
+			"direction":[
+				10.0,
+				-20.0,
+				5.0
+			],
+			"color":[
+				1.0,
+				1.0,
+				1.0
+			],
+			"intensity":5.0
+		},
+		{
+			"type": "spot",
+			"innerAngle": 0.8,
+			"outerAngle": 1.6,
+			"intensity":0.0,
+			"position":[
+				5.0,
+				10.0,
+				-5.0
+			],
+			"direction":[
+				0.0,
+				-20.0,
+				0.0
+			],
+			"color": [
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"type": "point",
+			"intensity":0.0,
+			"range":20.0,
+			"position":[
+				0.0,
+				100.0,
+				0.0
+			],
+			"color": [
+				1.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"type": "spot",
+			"intensity":1.0,
+			"color": [
+				1.0,
+				1.0,
+				1.0
+			]
+		}
+	],
+	"cameras":[
+		{
+			"type":"perspective",
+			"perspective":{
+				"aspectRatio":1.0,
+				"yfov":60.0,
+				"zfar":1000.0,
+				"znear":0.1
+			}
+		}
+	],
+	"shaders":[
+	],
+	"programs":[
+	]
+}
