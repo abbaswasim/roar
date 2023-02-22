@@ -106,7 +106,7 @@ TEST_F(GLTFTest, fox_gltf_loader_test)
 	std::vector<ror::OrbitCamera> fox_cameras;
 	std::vector<ror::Light>       fox_lights;
 
-	this->fox_model->load_from_gltf_file("Fox/Fox.gltf", fox_cameras, fox_lights, true);
+	this->fox_model->load_from_gltf_file("Fox/Fox.gltf", fox_cameras, fox_lights, true, *this->bp);
 	loaded_fox = true;
 
 	EXPECT_EQ(fox_cameras.size(), 0);
@@ -206,7 +206,7 @@ TEST_F(GLTFTest, couldron0_gltf_loader_test)
 	std::vector<ror::OrbitCamera> couldron0_cameras;
 	std::vector<ror::Light> couldron0_lights;
 
-	this->couldron0_model->load_from_gltf_file("baba_yagas_hut/scene.gltf", couldron0_cameras, couldron0_lights, true);
+	this->couldron0_model->load_from_gltf_file("baba_yagas_hut/scene.gltf", couldron0_cameras, couldron0_lights, true, *this->bp);
 
 	EXPECT_EQ(couldron0_cameras.size(), 0);
 
@@ -321,7 +321,7 @@ void GLTFTest::load_model(std::string path)
 	std::vector<ror::Light> model_lights;
 	ror::Model                   *model2 = new ror::Model();
 
-	model2->load_from_gltf_file(path, model_cameras, model_lights, true);
+	model2->load_from_gltf_file(path, model_cameras, model_lights, true, *this->bp);
 
 	if (print_shader_source)
 		compile_shader_source = true;
