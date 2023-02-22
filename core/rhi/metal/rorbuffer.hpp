@@ -110,6 +110,12 @@ class ROAR_ENGINE_ITEM BufferHybrid : public BufferCrtp<_type>, public BufferMet
 		BufferMetal::init(a_device, this->data().data(), this->filled_size(), rhi::ResourceStorageOption::managed);        // TODO: Fix me
 	}
 
+	FORCE_INLINE void upload_partial(size_t a_offset, size_t a_length)
+	{
+		// Since both the BufferCrtp and BufferMetal are of the same size, I use one offeset here and one inside BufferMetal::upload
+		BufferMetal::upload(this->data().data() + a_offset, a_offset, a_length);
+	}
+
   protected:
   private:
 };
