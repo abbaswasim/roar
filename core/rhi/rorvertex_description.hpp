@@ -152,6 +152,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 	 * This is because the data might be interleaved. In which case the buffer_size for both attributes will be added up using stride.
 	 */
 	void upload(const std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> &a_attrib_data, rhi::BuffersPack *a_buffers_pack);
+	void update(const std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> &a_attrib_data, rhi::BuffersPack *a_buffers_pack);
 
 	FORCE_INLINE const auto &attributes() const;
 	FORCE_INLINE const auto &layouts() const;

@@ -126,6 +126,44 @@ void VertexDescriptor::upload(const std::unordered_map<rhi::BufferSemantic, std:
 	}
 }
 
+void VertexDescriptor::update(const std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> &a_attrib_data, rhi::BuffersPack *a_buffers_pack)
+{
+	// Upload the data into the allocated space
+	for (auto &attrib_data : a_attrib_data)
+	{
+		auto &attribute    = this->attribute(attrib_data.first);
+		auto &layout       = this->layout(attrib_data.first);
+		auto  stride       = layout.stride();
+		auto  buffer_index = attribute.buffer_index();
+		auto  format_bytes = rhi::format_to_bytes(attribute.format()) * layout.format_multiplier();
+		auto &buffer       = a_buffers_pack->buffer(buffer_index);
+		auto  attrib_offset{0UL};
+
+		auto [buffer_pointer, buffer_size, buffer_stride] = attrib_data.second;
+
+		attrib_offset = attribute.buffer_offset() + attribute.offset();
+
+		auto element_count = buffer_size / format_bytes;
+		if (stride == format_bytes && buffer_stride == format_bytes)        // Case 1: both source and destination strides are equal to format_bytes, everything is packed
+		{
+			buffer.copy(buffer_pointer, buffer_size, attrib_offset);        // Do a bulk upload
+		}
+		else
+		{
+			// Case 2: Destination stride is packed but source stride isn't, destination packed source interleaved
+			// Case 3: Destination stride is interleaved but source stride is packed, destination interleaved source packed
+			// Case 4: Both destination and source stride means they are interleaved
+			// Thats why lets do element by element upload
+			for (size_t i = 0; i < element_count; ++i)
+				buffer.copy(buffer_pointer + i * buffer_stride, format_bytes, attrib_offset + stride * i);
+		}
+
+		buffer.upload_partial(attrib_offset, element_count * stride);
+
+		attribute.count(element_count);
+	}
+}
+
 void VertexDescriptor::create_mapping()
 {
 	this->m_mapping.clear();        // Perhaps could be converted into re-entrant function without this, for now this will do
