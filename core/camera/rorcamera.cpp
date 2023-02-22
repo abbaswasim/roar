@@ -214,8 +214,6 @@ void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 void OrbitCamera::enable()
 {
 	this->m_event_system->subscribe(mouse_move, this->m_move_callback);
-	this->m_event_system->subscribe(mouse_move, this->m_move_callback);
-	this->m_event_system->subscribe(mouse_move, this->m_move_callback);
 
 	this->m_event_system->subscribe(mouse_left_mouse_drag, this->m_drag_callback);
 	this->m_event_system->subscribe(mouse_middle_mouse_drag, this->m_drag_callback);
@@ -232,8 +230,6 @@ void OrbitCamera::enable()
 
 void OrbitCamera::disable()
 {
-	this->m_event_system->unsubscribe(mouse_move, this->m_move_callback);
-	this->m_event_system->unsubscribe(mouse_move, this->m_move_callback);
 	this->m_event_system->unsubscribe(mouse_move, this->m_move_callback);
 
 	this->m_event_system->unsubscribe(mouse_left_mouse_drag, this->m_drag_callback);
