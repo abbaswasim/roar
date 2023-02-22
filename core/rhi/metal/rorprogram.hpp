@@ -27,20 +27,26 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
-#include "graphics/rormodel.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rorvertex_description.hpp"
 
 #include <Metal/MTLComputePipeline.hpp>
 #include <Metal/MTLRenderPipeline.hpp>
 
+namespace ror
+{
+class Model;
+}
+
 namespace rhi
 {
 class Rendersubpass;
+class BuffersPack;
 
 class ProgramMetal : public ProgramCrtp<ProgramMetal>
 {
@@ -61,6 +67,8 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 
 	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass);
 	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack);
+	void upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode,
+	            rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow);
 
 	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept
 	{

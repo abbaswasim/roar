@@ -25,59 +25,41 @@
 // Version: 1.0.0
 
 #include "foundation/rormacros.hpp"
+#include "rhi/metal/rormetal_common.hpp"
 #include "rhi/metal/rorrenderstate.hpp"
 
 #include <Metal/MTLDepthStencil.hpp>
 
 namespace rhi
 {
-define_translation_unit_vtable(RenderstateMetal)
+define_translation_unit_vtable(RenderstateDepthMetal)
 {}
 
-void RenderstateMetal::upload(rhi::Device &a_device)
+void RenderstateDepthMetal::upload(rhi::Device &a_device)
 {
 	MTL::Device                 *device                   = a_device.platform_device();
 	MTL::DepthStencilDescriptor *depth_stencil_descriptor = MTL::DepthStencilDescriptor::alloc()->init();
 
-	depth_stencil_descriptor->setDepthCompareFunction(MTL::CompareFunctionLess);
-	depth_stencil_descriptor->setDepthWriteEnabled(true);
+	depth_stencil_descriptor->setDepthCompareFunction(to_metal_depth_compare_function(this->m_compare_function));
+	depth_stencil_descriptor->setDepthWriteEnabled(this->m_depth_write);
 	this->m_depth_state = device->newDepthStencilState(depth_stencil_descriptor);
-
-	depth_stencil_descriptor->setDepthCompareFunction(MTL::CompareFunctionLessEqual);
-	depth_stencil_descriptor->setDepthWriteEnabled(true);
-	this->m_depth_state_less_equal = device->newDepthStencilState(depth_stencil_descriptor);
-
-	depth_stencil_descriptor->setDepthCompareFunction(MTL::CompareFunctionEqual);
-	depth_stencil_descriptor->setDepthWriteEnabled(false);
-	this->m_depth_state_equal_no_write = device->newDepthStencilState(depth_stencil_descriptor);
-
-	depth_stencil_descriptor->setDepthCompareFunction(MTL::CompareFunctionAlways);
-	depth_stencil_descriptor->setDepthWriteEnabled(false);
-	this->m_depth_state_always_no_write = device->newDepthStencilState(depth_stencil_descriptor);
-
-	depth_stencil_descriptor->setDepthCompareFunction(MTL::CompareFunctionLess);
-	depth_stencil_descriptor->setDepthWriteEnabled(false);
-	this->m_depth_state_less_no_write = device->newDepthStencilState(depth_stencil_descriptor);
 
 	depth_stencil_descriptor->release();
 }
 
-void RenderstateMetal::release()
+void RenderstateDepthMetal::release()
 {
 	if (this->m_depth_state)
 		this->m_depth_state->release();
+}
 
-	if (this->m_depth_state_less_equal)
-		this->m_depth_state_less_equal->release();
-
-	if (this->m_depth_state_equal_no_write)
-		this->m_depth_state_equal_no_write->release();
-
-	if (this->m_depth_state_always_no_write)
-		this->m_depth_state_always_no_write->release();
-
-	if (this->m_depth_state_less_no_write)
-		this->m_depth_state_less_no_write->release();
+void Renderstate::upload(rhi::Device &a_device)
+{
+	this->m_depth_state.upload(a_device);
+	this->m_depth_state_less_equal.upload(a_device);
+	this->m_depth_state_equal_no_write.upload(a_device);
+	this->m_depth_state_always_no_write.upload(a_device);
+	this->m_depth_state_less_no_write.upload(a_device);
 }
 
 }        // namespace rhi

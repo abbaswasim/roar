@@ -994,35 +994,31 @@ void Model::update_hashes()
 
 /**
  * @brief      Use this to create a mesh in the model ready to describe its VertexDescriptor and upload data into it
- * @details    This method will create a default mesh with default material and sampler, one has to then define the
- *             The VertexDescriptor for one or all of its primitives and upload its data. Then you should be ready to use it.
+ * @details    This method will create a default mesh with default sampler and default material if no materials provided.
+ *             One has to then define the VertexDescriptor for one or all of its primitives and upload its data.
+ *             Then you should be ready to use it.
  * @param      a_name Name of the mesh.
  * @param      a_generate_shaders Whether to let the system generate shaders for it or shaders will be loaded manually.
- * @param      a_mesh_count       The amount of meshes in the Model
- * @param      a_primitives_count The amount of primitives in each mesh
- * @param      a_material_model   Whether to be lit or unlit etc
- * @param      a_blen_mode        What blend mode should the model use
- * @param      a_prim_topology    Whether the mesh is lines or triangles etc
- * @param      a_has_indices      If the model has indices this should be set to true, Only possibly per model at the moment.
+ * @param      a_mesh_data        This is a typle of primitives type, has indices bool and material index for each primitive
+ * @param      a_mesh_materials   The materials you want the mesh to use. If empty a default one will be created.
  * @return     return void
  */
 
-void Model::create_default_mesh(const char                         *a_name,
-                                bool                                a_generate_shaders,
-                                size_t                              a_mesh_count,
-                                size_t                              a_primitives_count,
-                                rhi::MaterialModel                  a_material_model,
-                                rhi::BlendMode                      a_blend_mode,
-                                std::vector<rhi::PrimitiveTopology> a_prim_topology,
-                                bool                                a_has_indices)
+void Model::create_default_mesh(const char                  *a_name,
+                                bool                         a_generate_shaders,
+                                DefaultMeshData              a_mesh_data,
+                                std::vector<ror::Material> &&a_mesh_materials)
 {
-	if (a_mesh_count == 0 || a_primitives_count == 0)
+	if (a_mesh_data.size() == 0)
 	{
-		log_critical("Can't create a default mesh with meshes count {} or primitives count {}", a_mesh_count, a_primitives_count);
+		log_critical("Can't create a default mesh with zero meshes count {}", a_mesh_data.size());
 		return;
 	}
-
-	assert(a_primitives_count == a_prim_topology.size());
+	else if (a_mesh_data[0].size() == 0)
+	{
+		log_critical("Can't create a default mesh with zero primitives count {}", a_mesh_data[0].size());
+		return;
+	}
 
 	this->m_generate_shaders = a_generate_shaders;
 
@@ -1037,21 +1033,22 @@ void Model::create_default_mesh(const char                         *a_name,
 	// Load shaders/programs that this mesh can use, done at higher scene level than model
 
 	assert(this->m_meshes.size() == 0 && "Mesh is already initialized");
-	this->m_meshes.resize(a_mesh_count);        // Want to have a_mesh_count meshes
+	this->m_meshes.resize(a_mesh_data.size());        // Want to have a_mesh_count meshes
 
-	// Lets have a default material at index 0
-	this->m_materials.emplace_back();
-	auto &material            = this->m_materials.back();
-	material.m_material_model = a_material_model;
-	material.m_blend_mode     = a_blend_mode;
-	material.m_double_sided   = true;
-
-	// Lets have a default sampler at index 0
+	// Lets have a default material and sampler at index 0
 	this->m_samplers.emplace_back();
 
-	for (size_t mesh_id = 0; mesh_id < a_mesh_count; ++mesh_id)
+	// Save the provided materials if any
+	if (a_mesh_materials.size())
+		for (auto &material : a_mesh_materials)
+			this->m_materials.emplace_back(std::move(material));
+	else
+		this->m_materials.emplace_back();
+
+	for (size_t mesh_id = 0; mesh_id < a_mesh_data.size(); ++mesh_id)
 	{
-		ror::Mesh    &mesh = this->m_meshes[mesh_id];
+		auto         &mesh           = this->m_meshes[mesh_id];
+		auto         &primitive_data = a_mesh_data[mesh_id];
 		ror::Vector3f min{};
 		ror::Vector3f max{};
 
@@ -1059,15 +1056,18 @@ void Model::create_default_mesh(const char                         *a_name,
 		ror::NodeData node_data{};
 
 		node.m_mesh_index = static_cast_safe<int32_t>(mesh_id);
-		mesh.resize(a_primitives_count);        // Want to have a_primitives_count mesh primitives
+		mesh.resize(primitive_data.size());        // Want to have a_primitive_data.size() mesh primitives
 		mesh.name(a_name);
 
-		for (size_t prim_id = 0; prim_id < a_primitives_count; ++prim_id)
+		for (size_t prim_id = 0; prim_id < primitive_data.size(); ++prim_id)
 		{
-			mesh.material(prim_id, 0);
 			mesh.program(prim_id, -1);
-			mesh.has_indices(prim_id, a_has_indices);
-			mesh.primitive_type(prim_id, a_prim_topology[prim_id]);
+
+			auto &primitive_tuple = primitive_data[prim_id];
+
+			mesh.primitive_type(prim_id, std::get<0>(primitive_tuple));
+			mesh.has_indices(prim_id, std::get<1>(primitive_tuple));
+			mesh.material(prim_id, std::get<2>(primitive_tuple));
 
 			auto &mesh_bbox = mesh.bounding_box(prim_id);
 			mesh_bbox.create_from_min_max(min, max);        // Nothing added at the moment
@@ -1092,15 +1092,67 @@ static void upload_position4_color4(ror::Mesh &a_mesh, size_t a_primitive_id, st
 	                 a_buffers_pack);
 }
 
+static void upload_position2_uv2_color4_index(ror::Mesh &a_mesh, size_t a_primitive_id, std::vector<uint8_t> &a_data, size_t a_vertex_buffer_size, rhi::BuffersPack &a_buffers_pack)
+{
+	assert(a_data.size() > a_vertex_buffer_size);
+
+	auto data_pointer         = reinterpret_cast<uint8_t *>(a_data.data());
+	auto stride               = 20u;        // Fix size of ImGuiVert
+	auto data_size_multiplier = a_vertex_buffer_size / stride;
+	auto index_data_size      = a_data.size() - a_vertex_buffer_size;
+	auto two_floats           = sizeof(float32_t) * 2;
+
+	a_mesh.mesh_data(a_primitive_id,
+	                 {{rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_2, data_pointer, data_size_multiplier * two_floats, stride},
+	                  {rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2, data_pointer + two_floats, data_size_multiplier * two_floats, stride},
+	                  {rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::uint8_4_norm, data_pointer + sizeof(float32_t) * 4, data_size_multiplier * 4, stride},
+	                  {rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1, data_pointer + a_vertex_buffer_size, index_data_size, sizeof(uint16_t)}},
+	                 a_buffers_pack);
+}
+
+static void update_position2_uv2_color4_index(ror::Mesh &a_mesh, size_t a_primitive_id, std::vector<uint8_t> &a_vertex_buffer, std::vector<uint8_t> &a_index_buffer, rhi::BuffersPack &a_buffers_pack)
+{
+	auto data_pointer       = reinterpret_cast<uint8_t *>(a_vertex_buffer.data());
+	auto index_data_pointer = reinterpret_cast<uint8_t *>(a_index_buffer.data());
+	auto stride             = 20u;        // Fix size of ImGuiVert
+	assert(a_vertex_buffer.size() > stride);
+	auto data_size_multiplier = a_vertex_buffer.size() / stride;
+
+	std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>>
+	    attribs_data{{rhi::BufferSemantic::vertex_position, {data_pointer, data_size_multiplier * sizeof(float32_t) * 2, stride}},
+	                 {rhi::BufferSemantic::vertex_texture_coord_0, {data_pointer + sizeof(float32_t) * 2, data_size_multiplier * sizeof(float32_t) * 2, stride}},
+	                 {rhi::BufferSemantic::vertex_color_0, {data_pointer + sizeof(float32_t) * 4, data_size_multiplier * 4, stride}},
+	                 {rhi::BufferSemantic::vertex_index, {index_data_pointer, a_index_buffer.size(), sizeof(uint16_t)}}};
+
+	a_mesh.update_mesh_data(a_primitive_id, attribs_data, a_buffers_pack);
+}
+
 void Model::create_debug(bool a_generate_shaders, std::vector<std::vector<float32_t>> &attributes_data, std::vector<rhi::PrimitiveTopology> a_topology, rhi::BuffersPack &a_buffers_pack)
 {
+	(void) upload_position2_uv2_color4_index;
+	(void) update_position2_uv2_color4_index;
+
 	// Grid is a geometry asset that single mesh and single primitive and has positions and colors only
 	auto &setting = ror::settings();
 
 	// Although its called debug_mesh_count its actually debug_mesh_primitives count in the 1 debug mesh
 	auto primitives_count = std::min(attributes_data.size(), static_cast<size_t>(setting.m_debug_mesh_count));
 
-	this->create_default_mesh("debug", a_generate_shaders, 1, primitives_count, rhi::MaterialModel::unlit, rhi::BlendMode::blend, a_topology, false);
+	ror::Material material;
+	material.m_material_model = rhi::MaterialModel::unlit;
+	material.m_blend_mode     = rhi::BlendMode::blend;
+	std::vector<ror::Material> materials;
+	materials.emplace_back(std::move(material));
+
+	DefaultMeshData                                                mesh_data;
+	std::vector<std::tuple<rhi::PrimitiveTopology, bool, int32_t>> primitives_data;
+	primitives_data.reserve(a_topology.size());
+	for (auto topology : a_topology)
+		primitives_data.emplace_back(std::make_tuple(topology, false, 0));
+
+	mesh_data.emplace_back(primitives_data);
+
+	this->create_default_mesh("debug", a_generate_shaders, mesh_data, std::move(materials));
 
 	ror::Mesh &mesh = this->m_meshes[0];
 
@@ -1111,11 +1163,37 @@ void Model::create_debug(bool a_generate_shaders, std::vector<std::vector<float3
 	}
 }
 
+void Model::reset()
+{
+	// Setting the attributes count to 0 essetially resets it
+	for (auto &mesh : this->m_meshes)
+	{
+		for (size_t prim_id = 0; prim_id < mesh.primitives_count(); ++prim_id)
+		{
+			auto &vd = mesh.vertex_descriptor(prim_id);
+			for (auto &attrib : vd.attributes())
+				attrib.count(0);
+		}
+	}
+}
+
 void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack)
 {
-	this->create_default_mesh("grid", a_generate_shaders, 1, 1, rhi::MaterialModel::unlit, rhi::BlendMode::blend, std::vector<rhi::PrimitiveTopology>{rhi::PrimitiveTopology::lines}, false);
+	ror::Material material;
+	material.m_material_model = rhi::MaterialModel::unlit;
+	material.m_blend_mode     = rhi::BlendMode::blend;
+	std::vector<ror::Material> materials;
+	materials.emplace_back(std::move(material));
 
-	// Grid is a geometry asset that single mesh and single primitive and has positions and colors only
+	DefaultMeshData                                                mesh_data;
+	std::vector<std::tuple<rhi::PrimitiveTopology, bool, int32_t>> primitives_data;
+	primitives_data.emplace_back(std::make_tuple(rhi::PrimitiveTopology::lines, false, 0));
+
+	mesh_data.emplace_back(primitives_data);
+
+	this->create_default_mesh("grid", a_generate_shaders, mesh_data, std::move(materials));
+
+	// Grid is a geometry asset with a single mesh and single primitive and has positions and colors only
 	ror::Mesh &mesh    = this->m_meshes[0];
 	uint32_t   prim_id = 0;
 

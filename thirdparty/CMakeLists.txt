@@ -145,9 +145,20 @@ set(IMGUI_SOURCE_FILES
 	${IMGUI_INCLUDE_DIR}/imgui_tables.cpp
 	${IMGUI_INCLUDE_DIR}/imgui_widgets.cpp)
 
-add_library(imgui STATIC ${BASIS_SOURCE_FILES})
+add_library(imgui STATIC ${IMGUI_SOURCE_FILES})
 target_include_directories(imgui PUBLIC ${IMGUI_INCLUDE_DIR})
 target_sources(imgui PRIVATE ${IMGUI_SOURCE_FILES})
+
+# Add Dear ImGuizmo
+set(IMGUIZMO_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imguizmo)
+set(IMGUIZMO_HEADER_FILES
+    ${IMGUIZMO_INCLUDE_DIR}/ImGuizmo.h)
+set(IMGUIZMO_SOURCE_FILES
+	${IMGUIZMO_INCLUDE_DIR}/ImGuizmo.cpp)
+
+add_library(imguizmo STATIC ${IMGUIZMO_SOURCE_FILES})
+target_include_directories(imguizmo PUBLIC imgui ${IMGUIZMO_INCLUDE_DIR})
+target_sources(imguizmo PRIVATE ${IMGUIZMO_SOURCE_FILES})
 
 # SPIRV-Cross
 set(SPIRV_CROSS_STATIC ON)

@@ -126,4 +126,11 @@ void Mesh::mesh_data(size_t a_primitive_index, const std::vector<std::tuple<rhi:
 
 	vertex_descriptor.upload(attribs_data, &a_buffers_pack);
 }
+
+void Mesh::update_mesh_data(size_t a_primitive_index, std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> &a_attribs_data, rhi::BuffersPack &a_buffers_pack)
+{
+	auto &vertex_descriptor = this->m_attribute_vertex_descriptors[a_primitive_index];
+
+	vertex_descriptor.update(a_attribs_data, &a_buffers_pack);
+}
 }        // namespace ror

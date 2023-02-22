@@ -92,6 +92,18 @@ FORCE_INLINE constexpr void BufferMetal::unmap() noexcept
 	this->unmap(0, this->m_buffer->length());
 }
 
+FORCE_INLINE void BufferMetal::resize(rhi::Device &a_device, size_t a_length)
+{
+	if (this->m_buffer->length() > a_length)
+		return;
+	else
+	{
+		// Lets adjust the size
+		this->m_buffer->autorelease();                                                // Showing interest for this to be released somewhere in the future, unlike immidiate release()
+		this->init(a_device, a_length + (a_length / 4), this->m_storage_mode);        // Append an extra quarter of what is required for future
+	}
+}
+
 void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes)
 {
 	/*
@@ -130,7 +142,7 @@ void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, s
 	         this->storage_mode() == rhi::ResourceStorageOption::managed)
 	{
 		uint8_t *ptr = this->map() + a_offset;
-		std::memcpy(ptr, a_data_pointer + a_offset, a_length);
+		std::memcpy(ptr, a_data_pointer, a_length);
 		this->unmap(a_offset, a_length);
 		this->ready(true);
 	}
@@ -144,14 +156,16 @@ void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, s
 void BufferMetal::upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
 {
 	// Some sanity checks first
-	assert(a_offset < this->m_buffer->length());
-	assert(this->m_buffer->length() >= a_length && "Not enough space in the buffer being copied into");
-	assert(this->m_buffer->length() >= a_offset + a_length && "Not enough space in the buffer being copied into");
+	auto buffer_length = this->m_buffer->length();
 
-	assert(this->storage_mode() == rhi::ResourceStorageOption::exclusive && "Can't update private/exclusive buffer data, its expensive, if really needed call upload(a_device) instead");
-	assert(this->storage_mode() == rhi::ResourceStorageOption::memory_less && "Can't update memory less buffer data");
+	assert(a_offset < buffer_length);
+	assert(buffer_length >= a_length && "Not enough space in the buffer being copied into");
+	assert(buffer_length >= a_offset + a_length && "Not enough space in the buffer being copied into");
 
-	std::memcpy(this->map() + a_offset, a_data_pointer + a_offset, a_length);
+	assert(this->storage_mode() != rhi::ResourceStorageOption::exclusive && "Can't update private/exclusive buffer data, its expensive, if really needed call upload(a_device) instead");
+	assert(this->storage_mode() != rhi::ResourceStorageOption::memory_less && "Can't update memory less buffer data");
+
+	std::memcpy(this->map() + a_offset, a_data_pointer, a_length);
 	this->unmap(a_offset, a_length);
 }
 

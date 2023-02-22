@@ -59,6 +59,13 @@ void EventSystem::subscribe(EventHandle a_event_handle, std::function<void(Event
 	this->m_subscribers[a_event_handle].push_back(a_function);
 }
 
+void EventSystem::subscribe_early(EventHandle a_event_handle, std::function<void(Event &)> a_function)
+{
+	auto &subs = this->m_subscribers[a_event_handle];
+	subs.insert(subs.begin(), a_function);
+}
+
+
 void EventSystem::unsubscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function)
 {
 	auto  function_find_predicate = [&a_function](std::function<void(Event &)> &function) { return function.target_type().hash_code() == a_function.target_type().hash_code(); };
@@ -97,7 +104,7 @@ void EventSystem::notify(Event a_event) const
 		for (auto &sub : this->m_subscribers.at(a_event.m_handle))
 		{
 			sub(a_event);
-			if (!a_event.m_live)        // Some subscribers might consume the event
+			if (!a_event.m_live)        // Some subscribers might consume the event, in which case the order of subscribtion matters
 				break;
 		}
 	}

@@ -526,7 +526,8 @@ void Renderer::load_frame_graphs()
 		auto forward_passes = frame_graph["forward"];
 		for (auto &forward_pass : forward_passes)
 		{
-			read_render_pass(forward_pass, this->m_frame_graphs["forward"], this->m_dimensions, this->m_textures, this->m_buffers);
+			ror::Vector2ui dimensions{static_cast<uint32_t>(this->m_dimensions.x), static_cast<uint32_t>(this->m_dimensions.y)};
+			read_render_pass(forward_pass, this->m_frame_graphs["forward"], dimensions, this->m_textures, this->m_buffers);
 		}
 	}
 
@@ -535,7 +536,8 @@ void Renderer::load_frame_graphs()
 		auto deferred_passes = frame_graph["deferred"];
 		for (auto &deferred_pass : deferred_passes)
 		{
-			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], this->m_dimensions, this->m_textures, this->m_buffers);
+			ror::Vector2ui dimensions{static_cast<uint32_t>(this->m_dimensions.x), static_cast<uint32_t>(this->m_dimensions.y)};
+			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], dimensions, this->m_textures, this->m_buffers);
 		}
 	}
 
@@ -773,9 +775,10 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 	fill_morph_weights(a_scene, *weights_ubo, weights_output_size);
 }
 
-void Renderer::dimensions(const ror::Vector2ui &a_dimensions, rhi::Device &a_device)
+void Renderer::dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device)
 {
 	this->m_dimensions = a_dimensions;
+	ror::Vector2ui dimensions{static_cast<uint32_t>(a_dimensions.x), static_cast<uint32_t>(a_dimensions.y)};
 
 	auto render_passes = this->m_current_frame_graph;
 	for (auto &pass : *render_passes)
@@ -789,7 +792,7 @@ void Renderer::dimensions(const ror::Vector2ui &a_dimensions, rhi::Device &a_dev
 				if (subpass.type() == rhi::RenderpassType::forward_light ||
 				    subpass.type() == rhi::RenderpassType::main)
 				{
-					pass.dimensions(a_dimensions);
+					pass.dimensions(dimensions);
 				}
 			}
 		}

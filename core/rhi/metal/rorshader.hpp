@@ -72,7 +72,8 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 /**
  * A convinence version of the constructor which generates its onwn hash, type and action
  */
-auto load_shader(const std::filesystem::path &a_shader_path);
+FORCE_INLINE auto load_shader(const std::filesystem::path &a_shader_path);
+FORCE_INLINE auto build_shader(rhi::Device &a_device, const std::filesystem::path &a_shader_path);
 
 declare_rhi_render_type(Shader);
 

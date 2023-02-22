@@ -99,6 +99,7 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/rhi/rorbuffer.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorvertex_attribute.hpp
   ${ROAR_SOURCE_DIR}/rhi/rorvertex_description.hpp
+  ${ROAR_SOURCE_DIR}/gui/rorgui.hpp
   ${ROAR_SOURCE_DIR}/graphics/rorlight.hpp
   ${ROAR_SOURCE_DIR}/graphics/rormesh.hpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.hpp
@@ -117,6 +118,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/graphics/rormaterial.cpp
   ${ROAR_SOURCE_DIR}/watchcat/rorwatchcat.cpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
+  ${ROAR_SOURCE_DIR}/gui/rorgui.cpp
   ${ROAR_SOURCE_DIR}/graphics/rorlight.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormesh.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.cpp
@@ -210,6 +212,8 @@ set(ROAR_REQUIRED_PRIVATE_LIBRARIES
   roar_version)
 
 set(ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM
+  imgui
+  imguizmo
   par
   glslang
   SPIRV

@@ -29,6 +29,7 @@
 #include "math/rorvector2.hpp"
 #include "math/rorvector4.hpp"
 #include "rhi/rorbuffer.hpp"
+#include "rhi/rorrenderstate.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
@@ -41,6 +42,7 @@ namespace rhi
 {
 
 class ProgramMetal;
+
 declare_rhi_render_type(Program);
 
 class RenderCommandEncoderMetal final
@@ -54,15 +56,18 @@ class RenderCommandEncoderMetal final
 	FORCE_INLINE explicit RenderCommandEncoderMetal(MTL::RenderCommandEncoder *a_encoder);
 
 	FORCE_INLINE constexpr void viewport(ror::Vector4d a_viewport_rectangle, ror::Vector2d a_near_far) noexcept;
+	FORCE_INLINE constexpr void scissor(ror::Vector4ui a_scissor_rectangle) noexcept;
 	FORCE_INLINE constexpr void front_facing_winding(rhi::PrimitiveWinding a_winding) noexcept;
-	FORCE_INLINE constexpr void depth_stencil_state(rhi::PrimitiveWinding a_winding) noexcept;
+	FORCE_INLINE constexpr void depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) noexcept;
 	FORCE_INLINE constexpr void cull_mode(rhi::PrimitiveCullMode a_cull_mode) noexcept;
 	FORCE_INLINE constexpr void render_pipeline_state(const rhi::Program &a_render_pipeline_state) noexcept;
 	FORCE_INLINE constexpr void vertex_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void fragment_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void tile_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void vertex_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void vertex_buffer_offset(uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void fragment_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void fragment_buffer_offset(uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void tile_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void fragment_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void vertex_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;

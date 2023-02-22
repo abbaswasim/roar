@@ -180,6 +180,7 @@ class ROAR_ENGINE_ITEM EventSystem final
 	 */
 	void unsubscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function);
 	void subscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function);
+	void subscribe_early(EventHandle a_event_handle, std::function<void(Event &)> a_function);
 	void notify(Event a_event) const;
 	void notify(std::vector<Event> a_events) const;
 
@@ -216,5 +217,7 @@ constexpr EventState event_state(EventHandle a_handle)
 	uint32_t mask = 0xFF000000;
 	return static_cast<EventState>((a_handle & mask) >> 24);
 }
+
+using EventCallback = std::function<void(Event &)>;
 
 }        // namespace ror

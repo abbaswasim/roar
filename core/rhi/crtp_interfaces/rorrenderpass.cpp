@@ -44,9 +44,9 @@ define_translation_unit_vtable(RenderBuffer)
 void Rendersubpass::setup(rhi::RenderCommandEncoder &a_command_encoder, ror::Renderer &a_renderer)
 {
 	if (this->has_depth())
-		a_renderer.render_state().bind(a_command_encoder, a_renderer.render_state().depth_state());
+		a_command_encoder.depth_stencil_state(a_renderer.render_state().depth_state());
 	else
-		a_renderer.render_state().bind(a_command_encoder, a_renderer.render_state().depth_state_less_no_write());
+		a_command_encoder.depth_stencil_state(a_renderer.render_state().depth_state_less_no_write());
 
 	this->bind_render_inputs(a_command_encoder);
 	this->bind_buffer_inputs(a_command_encoder);

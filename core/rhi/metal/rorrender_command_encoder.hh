@@ -53,9 +53,19 @@ FORCE_INLINE constexpr void RenderCommandEncoder::viewport(ror::Vector4d a_viewp
 	this->m_encoder->setViewport(MTL::Viewport{a_viewport_rectangle.x, a_viewport_rectangle.y, a_viewport_rectangle.z, a_viewport_rectangle.w, a_near_far.x, a_near_far.y});
 }
 
+FORCE_INLINE constexpr void RenderCommandEncoder::scissor(ror::Vector4ui a_scissor_rectangle) noexcept
+{
+	this->m_encoder->setScissorRect(MTL::ScissorRect{a_scissor_rectangle.x, a_scissor_rectangle.y, a_scissor_rectangle.z, a_scissor_rectangle.w});
+}
+
 FORCE_INLINE constexpr void RenderCommandEncoder::front_facing_winding(rhi::PrimitiveWinding a_winding) noexcept
 {
 	this->m_encoder->setFrontFacingWinding(to_metal_winding(a_winding));
+}
+
+FORCE_INLINE constexpr void RenderCommandEncoder::depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) noexcept
+{
+	this->m_encoder->setDepthStencilState(a_depth_stencil.depth_state());
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMode a_cull_mode) noexcept
@@ -88,9 +98,19 @@ FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(rhi::Buffer &a_b
 	this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
+FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer_offset(uintptr_t a_offset, uint32_t a_index) noexcept
+{
+	this->m_encoder->setVertexBufferOffset(a_offset, a_index);
+}
+
 FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	this->m_encoder->setFragmentBuffer(a_buffer.platform_buffer(), a_offset, a_index);
+}
+
+FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer_offset(uintptr_t a_offset, uint32_t a_index) noexcept
+{
+	this->m_encoder->setFragmentBufferOffset(a_offset, a_index);
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept

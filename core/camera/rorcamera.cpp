@@ -159,7 +159,7 @@ void OrbitCamera::update_projection()
 	if (this->m_type == CameraType::perspective)
 	{
 		// assumes square pixels, if ever there is evidence of non-square pixels, provided by windowing system i.e. glfw use it here instead
-		this->m_projection = ror::make_perspective(ror::to_radians(this->m_y_fov), static_cast<float>(this->m_width) / static_cast<float>(this->m_height), this->m_z_near, this->m_z_far);
+		this->m_projection = ror::make_perspective(ror::to_radians(this->m_y_fov), this->m_width / this->m_height, this->m_z_near, this->m_z_far);
 
 		// Make infinite projections matrix
 		float a_z_near = 0.1f;
@@ -169,7 +169,7 @@ void OrbitCamera::update_projection()
 		this->m_projection.m_values[14] = (epsilon - 2.0f) * a_z_near;
 	}
 	else
-		this->m_projection = ror::make_ortho(0.0f, static_cast<float>(this->m_width), 0.0f, static_cast<float>(this->m_height), this->m_z_near, this->m_z_far);
+		this->m_projection = ror::make_ortho(0.0f, this->m_width, 0.0f, this->m_height, this->m_z_near, this->m_z_far);
 }
 
 void OrbitCamera::setup()

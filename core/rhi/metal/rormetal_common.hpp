@@ -28,6 +28,7 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/rortypes.hpp"
 
+#include <Metal/MTLDepthStencil.hpp>
 #include <Metal/MTLRenderCommandEncoder.hpp>
 #include <Metal/MTLRenderPipeline.hpp>
 #include <Metal/MTLResource.hpp>
@@ -110,6 +111,11 @@ constexpr FORCE_INLINE auto to_metal_winding(rhi::PrimitiveWinding a_winding)
 constexpr FORCE_INLINE auto to_metal_triangle_fill_mode(rhi::TriangleFillMode a_fill_mode)
 {
 	return static_cast<MTL::TriangleFillMode>(a_fill_mode);
+}
+
+constexpr FORCE_INLINE auto to_metal_depth_compare_function(rhi::DepthCompareFunction a_compare_function)
+{
+	return static_cast<MTL::CompareFunction>(a_compare_function);
 }
 
 }        // namespace rhi

@@ -54,10 +54,10 @@ enum class ResourceSemantic
 	models,        // Also a mesh
 	scenes,        // Also a mesh
 	caches,
-	audio,
-	cubemap,
-	animation,
-	font,
+	audios,
+	cubemaps,
+	animations,
+	fonts,
 	logs,
 	misc
 };

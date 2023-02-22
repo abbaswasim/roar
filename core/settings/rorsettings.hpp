@@ -68,12 +68,15 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_zoom_speed  = setting.get<float32_t>("zoom_speed");
 		this->m_depth_clear = setting.get<float32_t>("depth");
 
-		this->m_unit               = setting.get<uint32_t>("unit");
-		this->m_threads_multiplier = setting.get<uint32_t>("threads_multiplier");
-		this->m_buffer_increment   = setting.get<uint32_t>("buffer_increment");
-		this->m_multisample_count  = setting.get<uint32_t>("multisample_count");
-		this->m_debug_mesh_count   = setting.get<uint32_t>("debug_mesh_count");
-		this->m_debug_mesh_type    = static_cast<DebugMeshType>(setting.get<uint32_t>("debug_mesh_type"));
+		this->m_unit                      = setting.get<uint32_t>("unit");
+		this->m_threads_multiplier        = setting.get<uint32_t>("threads_multiplier");
+		this->m_buffer_increment          = setting.get<uint32_t>("buffer_increment");
+		this->m_multisample_count         = setting.get<uint32_t>("multisample_count");
+		this->m_debug_mesh_count          = setting.get<uint32_t>("debug_mesh_count");
+		this->m_gui_primitives_count      = setting.get<uint32_t>("gui_primitives_count");
+		this->m_gui_primitives_index_size = setting.get<uint32_t>("gui_primitives_index_size");
+		this->m_gui_primitives_size       = setting.get<uint32_t>("gui_primitives_size");
+		this->m_debug_mesh_type           = static_cast<DebugMeshType>(setting.get<uint32_t>("debug_mesh_type"));
 
 		for (size_t i = 0; i < generic_numbers_count; ++i)
 			this->m_generic_numbers[i] = 0;
@@ -165,6 +168,30 @@ class ROAR_ENGINE_ITEM Settings final
 			this->m_grid.m_show_y_axis = setting.get<bool>("grid:y_axis");
 		}
 
+		{
+			this->m_gui.m_scale              = setting.get<uint32_t>("gui:scale");
+			this->m_gui.m_visible            = setting.get<bool>("gui:visible");
+			this->m_gui.m_default_font       = setting.get<uint32_t>("gui:default_font");
+			this->m_gui.m_font_size          = setting.get<uint32_t>("gui:font_size");
+			this->m_gui.m_vertex_buffer_size = setting.get<uint32_t>("gui:vertex_buffer_size");
+			this->m_gui.m_index_buffer_size  = setting.get<uint32_t>("gui:index_buffer_size");
+			this->m_gui.m_fonts              = setting.get<std::vector<std::string>>("gui:fonts");
+
+			auto theme = setting.get<std::string>("gui:theme");
+			if (theme == "classic")
+				this->m_gui.m_theme = GuiTheme::classic;
+			else if (theme == "dark")
+				this->m_gui.m_theme = GuiTheme::dark;
+			else if (theme == "light")
+				this->m_gui.m_theme = GuiTheme::light;
+			else
+			{
+				assert(0 && "Unknown theme in settings.json at gui:theme");
+			};
+
+			assert(this->m_gui.m_default_font < this->m_gui.m_fonts.size() && "Default font index is out of range");
+		}
+
 		auto bs_material_factors      = setting.get<std::vector<uint32_t>>("sets_bindings:material_factors");
 		auto bs_per_frame_uniform     = setting.get<std::vector<uint32_t>>("sets_bindings:per_frame_uniform");
 		auto bs_per_view_uniform      = setting.get<std::vector<uint32_t>>("sets_bindings:per_view_uniform");
@@ -241,6 +268,9 @@ class ROAR_ENGINE_ITEM Settings final
 
 		this->m_print_generated_shaders = setting.get<bool>("print_generated_shaders");
 		this->m_write_generated_shaders = setting.get<bool>("write_generated_shaders");
+		this->m_generate_debug_mesh     = setting.get<bool>("generate_debug_mesh");
+		this->m_generate_gui_mesh       = setting.get<bool>("generate_gui_mesh");
+		this->m_generate_grid_mesh      = setting.get<bool>("generate_grid_mesh");
 
 		this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
 
@@ -328,6 +358,9 @@ class ROAR_ENGINE_ITEM Settings final
 	uint32_t m_buffer_increment{1};
 	uint32_t m_multisample_count{8};
 	uint32_t m_debug_mesh_count{1000};
+	uint32_t m_gui_primitives_count{10};                      // 10 times
+	uint32_t m_gui_primitives_size{1000000};                  // About 1.0 MB size of the vertex buffer
+	uint32_t m_gui_primitives_index_size{10000};              // Size of index buffer
 	int32_t  m_generic_numbers[generic_numbers_count];        //! This is used to limit things or render a specific node etc, each number is decremented by Ctr + N and increment by CMD + N
 
 	bool m_clean_on_boot{false};
@@ -342,6 +375,9 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_force_rgba_textures{false};
 	bool m_print_generated_shaders{false};
 	bool m_write_generated_shaders{false};
+	bool m_generate_debug_mesh{false};
+	bool m_generate_gui_mesh{false};
+	bool m_generate_grid_mesh{false};
 	bool m_background_srgb_to_linear{false};
 	bool m_force_linear_textures{false};
 	bool m_animate_cpu{false};
@@ -428,7 +464,28 @@ class ROAR_ENGINE_ITEM Settings final
 		bool           m_show_y_axis{false};
 	};
 
+	enum class GuiTheme
+	{
+		dark,
+		light,
+		classic
+	};
+
 	Grid m_grid{};
+
+	struct Gui
+	{
+		uint32_t                 m_font_size{13};
+		uint32_t                 m_scale{1};
+		bool                     m_visible{true};
+		GuiTheme                 m_theme{GuiTheme::dark};
+		uint32_t                 m_default_font{0};
+		uint32_t                 m_vertex_buffer_size{2000000};        // Initial Size of vertex buffer
+		uint32_t                 m_index_buffer_size{500000};          // Initial Size of index buffer
+		std::vector<std::string> m_fonts{};
+	};
+
+	Gui m_gui{};
 
   protected:
   private:

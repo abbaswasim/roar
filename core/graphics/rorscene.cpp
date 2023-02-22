@@ -35,6 +35,7 @@
 #include "foundation/rorutilities.hpp"
 #include "geometry/rorgeometry_utilities.hpp"
 #include "graphics/roranimation.hpp"
+#include "gui/rorgui.hpp"
 #include "graphics/rormesh.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
@@ -193,6 +194,9 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	(void) a_subpass;
 	(void) a_timer;
 	(void) a_event_system;
+
+	if (this->m_nodes.size() == 0)
+		return;
 
 	auto program_id = a_subpass.program_id();
 
@@ -437,11 +441,12 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		{
 			auto &index_buffer_attribute = vertex_attributes.attribute(rhi::BufferSemantic::vertex_index);
 
-			a_dd.encoder->draw_indexed_primitives(a_mesh.primitive_type(prim_id),
-			                                      index_buffer_attribute.count(),
-			                                      index_buffer_attribute.format(),
-			                                      *a_dd.indices,
-			                                      static_cast_safe<uint32_t>(index_buffer_attribute.buffer_offset() + index_buffer_attribute.offset()));
+			if (index_buffer_attribute.count() > 0)
+				a_dd.encoder->draw_indexed_primitives(a_mesh.primitive_type(prim_id),
+				                                      index_buffer_attribute.count(),
+				                                      index_buffer_attribute.format(),
+				                                      *a_dd.indices,
+				                                      static_cast_safe<uint32_t>(index_buffer_attribute.buffer_offset() + index_buffer_attribute.offset()));
 		}
 		else
 		{
@@ -828,10 +833,8 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 	}
 }
 
-void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &subpass)
+void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass)
 {
-	// renderCommandEncoder.setTriangleFillMode(fillMode)
-
 	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
 
 	DrawData dd;
@@ -892,13 +895,14 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 	auto &index_buffer_out = a_renderer.buffers()[3];
 	index_buffer_out.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 
-	this->pre_render(a_encoder, a_buffers_pack, a_renderer, subpass);
+	this->pre_render(a_encoder, a_buffers_pack, a_renderer, a_subpass);
 
 	// Render the scene graph
 	for (auto &node : this->m_nodes_data)
 	{
 		if (node.m_model != -1)
 		{
+			// TODO: Test cull mode for DoubleSided material how does that work
 			auto &model            = this->m_models[static_cast_safe<size_t>(node.m_model)];
 			auto &meshes           = model.meshes();
 			auto &model_nodes_data = model.nodes_side_data();
@@ -924,12 +928,19 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 
 					a_encoder.front_facing_winding(model_node.m_winding);
 
-					render_mesh(model, mesh, dd, a_renderer, *this, subpass);
+					render_mesh(model, mesh, dd, a_renderer, *this, a_subpass);
 				}
 				node_data_index++;
 			}
 		}
 	}
+
+	// Lets update the UI elements
+	// TODO: Should move out of scene and into global end of frame renderpass
+	auto &setting = ror::settings();
+
+	if (setting.m_generate_gui_mesh && setting.m_gui.m_visible)
+		ror::gui().render(a_renderer, a_encoder, this->m_cameras[0]);        // TODO: Fix the camera
 }
 
 void Scene::update(double64_t a_milli_seconds)
@@ -1322,16 +1333,20 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 	a_upload_lambda(a_model_index);
 }
 
-void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs)
+void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs)
 {
+	auto &setting = ror::settings();
+
 	auto model_nodes{0u};
 	for (auto &node : this->m_nodes_data)
 		if (node.m_model_path != "")
 			model_nodes++;
 
 	// Add node placeholders all the procedurally created models here
-	model_nodes++;        // for grid model
-	model_nodes++;        // for debug model
+	if (setting.m_generate_debug_mesh)
+		model_nodes++;        // for debug model
+	if (setting.m_generate_grid_mesh)
+		model_nodes++;        // for grid model
 
 	if (model_nodes > 0)
 	{
@@ -1370,8 +1385,11 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 		// Generate grid into the grid model slot we have allocated
 		// NOTE: Don't create any more models before generate_grid_model job is finished because it uses global state, create these below like generate_debug_model
-		generate_grid_model(a_job_system, model_upload_job, job_handles, model_index, a_buffers_packs);
-		model_index++;
+		if (setting.m_generate_grid_mesh)
+		{
+			generate_grid_model(a_job_system, model_upload_job, job_handles, model_index, a_buffers_packs);
+			model_index++;
+		}
 		// NOTE: Don't create any more models before generate_grid_model job is finished because it uses global state, create these below like generate_debug_model
 
 		// Wait for all jobs to finish
@@ -1382,11 +1400,17 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		// Generate debug geometries into the debug model slot we have allocated
 		// This needs to happen after all models are loaded and can't be a job that isn't finished before generate_shaders is called below
 		// This is why its called on main thread
-		generate_debug_model(model_upload_job, model_index, a_buffers_packs);
-		model_index++;
+		if (setting.m_generate_debug_mesh)
+		{
+			generate_debug_model(model_upload_job, model_index, a_buffers_packs);
+			model_index++;
+		}
 
 		assert(model_index == model_nodes && "Models count vs how many are queued and loaded doesn't match");
 	}
+
+	// Lets create and upload the stuff required for the UI as well
+	auto gui_gen_job_handle = a_job_system.push_job([&a_device, &a_event_system, &setting]() -> auto{if (setting.m_generate_gui_mesh) ror::gui().init_upload(a_device, a_event_system); return true; });
 
 	// Lets kick off shader generation while we upload the buffers
 	auto shader_gen_job_handle = a_job_system.push_job([this, &a_renderer, &a_job_system]() -> auto{ this->generate_shaders(a_renderer, a_job_system); return true; });
@@ -1397,6 +1421,9 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 	if (!shader_gen_job_handle.data())
 		ror::log_critical("Can't generate model shaders.");
+
+	if (!gui_gen_job_handle.data())
+		ror::log_critical("Can't generate ui.");
 
 	this->update_bounding_box();
 }

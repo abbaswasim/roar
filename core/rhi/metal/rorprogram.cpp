@@ -81,6 +81,7 @@ static auto append_to_metal_vertex_descriptor(MTL::VertexDescriptor *mtl_vertex_
 {
 	auto  attribute_index             = attrib.location();        // This doesn't have to be sequential, as long as it matches for an attribute to its corresponding layout
 	auto *vertex_descriptor_attribute = mtl_vertex_descriptor->attributes()->object(attribute_index);
+
 	vertex_descriptor_attribute->setFormat(to_metal_vertexformat(attrib.format()));
 	vertex_descriptor_attribute->setBufferIndex(attribute_index);        // The index in the argument table for the associated vertex buffer
 	vertex_descriptor_attribute->setOffset(static_cast<unsigned long>(attrib.buffer_offset() + attrib.offset()));
@@ -116,6 +117,17 @@ static auto get_default_mtl_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
 	return mtl_vertex_descriptor;
 }
 
+static auto walk_vertex_descriptor_attributes(MTL::VertexDescriptor *a_target, const rhi::VertexDescriptor &a_vertex_descriptor, bool a_depth_shadow)
+{
+	// Lets read all the descriptors we might need to use for normal attributes + morph target attributes
+	const auto &attributes = a_vertex_descriptor.attributes();
+	for (auto &attrib : attributes)
+	{
+		if (is_attribute_required_in_pass(attrib.semantics(), a_depth_shadow))
+			append_to_metal_vertex_descriptor(a_target, attrib, a_vertex_descriptor);
+	}
+}
+
 static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>> &a_meshes, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_depth_shadow)
 {
 	const auto &mesh                     = a_meshes[a_mesh_index];
@@ -130,14 +142,16 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 		descriptors.emplace_back(morph_descriptor);
 
 	for (auto &descriptor : descriptors)
-	{
-		const auto &attributes = descriptor.get().attributes();
-		for (auto &attrib : attributes)
-		{
-			if (is_attribute_required_in_pass(attrib.semantics(), a_depth_shadow))
-				append_to_metal_vertex_descriptor(mtl_vertex_descriptor, attrib, descriptor.get());
-		}
-	}
+		walk_vertex_descriptor_attributes(mtl_vertex_descriptor, descriptor.get(), a_depth_shadow);
+
+	return mtl_vertex_descriptor;
+}
+
+static auto get_metal_vertex_descriptor(const rhi::VertexDescriptor &a_vertex_descriptor, bool a_depth_shadow)
+{
+	auto *mtl_vertex_descriptor = MTL::VertexDescriptor::alloc()->init();
+
+	walk_vertex_descriptor_attributes(mtl_vertex_descriptor, a_vertex_descriptor, a_depth_shadow);
 
 	return mtl_vertex_descriptor;
 }
@@ -147,7 +161,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
                                                                  const rhi::Shader     &a_fragment_shader,
                                                                  MTL::VertexDescriptor *mtl_vertex_descriptor,
                                                                  rhi::BlendMode         a_blend_mode,
-																 rhi::PrimitiveTopology a_topology,
+                                                                 rhi::PrimitiveTopology a_topology,
                                                                  const char            *a_label,
                                                                  bool                   a_depth)
 {
@@ -182,13 +196,15 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 	// Why there are colorAttachments in MTLRenderPipelineDescriptors as well as MTLRenderPassDescriptor the explanation is
 	// https://stackoverflow.com/questions/44118942/what-is-colorattachmentn-in-metal but it boils down to how expensive these are to change
 	// TODO: Add support for how ever many attachments we might have which is driven by render pass type
+	ror::log_error("Fix colorAttachments() in render pipeline descriptor");
 	auto colorAttachment = render_pipeline_descriptor->colorAttachments()->object(0);
 
 	colorAttachment->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
 	colorAttachment->setRgbBlendOperation(MTL::BlendOperationAdd);
 	colorAttachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
-	colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
-	colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+	colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+	// colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+	colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorSourceAlpha);
 	colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
 	colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
 
@@ -249,11 +265,11 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 
 void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass)
 {
-	auto        is_depth_shadow            = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
-	auto       *device                     = a_device.platform_device();
-	const auto &mesh                       = a_model.meshes()[a_mesh_index];
-	const auto &materials                  = a_model.materials();
-	auto        material_index             = mesh.material(a_prim_index);
+	auto        is_depth_shadow = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
+	auto       *device          = a_device.platform_device();
+	const auto &mesh            = a_model.meshes()[a_mesh_index];
+	const auto &materials       = a_model.materials();
+	auto        material_index  = mesh.material(a_prim_index);
 
 	assert(device);
 	assert(material_index != -1 && "Material index can't be -1");
@@ -291,13 +307,34 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, material.m_blend_mode, mesh.primitive_type(a_prim_index), mesh.name().c_str(), a_subpass.has_depth());
 }
 
+void ProgramMetal::upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode,
+						  rhi::PrimitiveTopology a_toplogy, const char* a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow)
+{
+	auto *device = a_device.platform_device();
+
+	assert(device);
+
+	if (a_vs_shader.function() == nullptr)
+	{
+		ror::log_critical("Vertex function can't be null or empty");
+		return;
+	}
+
+	if (a_fs_shader.function() == nullptr)
+	{
+		ror::log_critical("Fragment function can't be null or empty");
+		return;
+	}
+
+	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_vertex_descriptor, a_is_depth_shadow);
+	this->m_pipeline_state      = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth);
+}
+
 void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack)
 {
 	auto *device = a_device.platform_device();
 
 	// TODO: Add support for non-mesh vertex and fragment pipelines, would require a RenderpassType as a must
-	// auto      *render_pipeline_descriptor  = MTL::RenderPipelineDescriptor::alloc()->init();
-	// assert(render_pipeline_descriptor && "Can't allocate metal render pipeline descriptor");
 
 	auto vs_id = this->vertex_id();
 	auto fs_id = this->fragment_id();

@@ -28,7 +28,7 @@
 
 namespace rhi
 {
-FORCE_INLINE RenderstateMetal::~RenderstateMetal() noexcept
+FORCE_INLINE RenderstateDepthMetal::~RenderstateDepthMetal() noexcept
 {
 	this->release();
 }

@@ -387,6 +387,18 @@ enum class FormatType
 	format_float
 };
 
+enum class DepthCompareFunction
+{
+	never         = PlatformCompareFunctionNever,
+	less          = PlatformCompareFunctionLess,
+	equal         = PlatformCompareFunctionEqual,
+	less_equal    = PlatformCompareFunctionLessEqual,
+	greater       = PlatformCompareFunctionGreater,
+	not_equal     = PlatformCompareFunctionNotEqual,
+	greater_equal = PlatformCompareFunctionGreaterEqual,
+	always        = PlatformCompareFunctionAlways
+};
+
 enum class TextureFilter
 {
 	nearest = PlatformTextureFilterNearest,
@@ -1204,7 +1216,7 @@ constexpr auto primitve_toplogy_to_class(PrimitiveTopology a_toplogy)
 		case PrimitiveTopology::lines_strip:         return PrimitiveTopologyClass::line;
 		case PrimitiveTopology::triangles:
 		case PrimitiveTopology::triangles_strip:     return PrimitiveTopologyClass::triangle;
-		// clang-format on
+			// clang-format on
 	}
 
 	assert(0);

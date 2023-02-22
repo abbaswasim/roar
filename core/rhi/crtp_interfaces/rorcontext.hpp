@@ -30,6 +30,7 @@
 #include "foundation/rorjobsystem.hpp"
 #include "graphics/rorscene.hpp"
 #include "math/rorvector2.hpp"
+#include "math/rorvector4.hpp"
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
@@ -50,9 +51,9 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE ContextCrtp &operator=(ContextCrtp &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ContextCrtp() noexcept override                 = default;        //! Destructor
 
-	FORCE_INLINE void init(std::any a_window, ror::Vector2ui a_dimensions)
+	FORCE_INLINE void init(std::any a_window, ror::Vector4f a_dimensions)
 	{
-		this->m_current_device->init(a_window, this->m_event_system, a_dimensions);
+		this->m_current_device->init(a_window, this->m_event_system, ror::Vector2ui{static_cast<uint32_t>(a_dimensions.x), static_cast<uint32_t>(a_dimensions.y)});
 		ror::settings().setup_generic_numbers(this->m_event_system);
 
 		// Should only be called once per execution, TODO: check if this could be used in MT environment
@@ -65,7 +66,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		this->m_renderer.upload(*this->m_current_device, *this->m_buffer_pack);
 
 		// Load all the models now in a deferred way
-		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer, *this->m_buffer_pack);
+		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer, this->m_event_system, *this->m_buffer_pack);
 		this->m_scene.upload(*this->m_job_system, this->m_renderer, *this->m_current_device, this->m_event_system);
 
 		this->m_renderer.deferred_buffer_upload(*this->m_current_device, this->m_scene);
@@ -119,6 +120,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	std::vector<std::shared_ptr<Device>> m_devices{};                      //! List of devices in the system
 	std::shared_ptr<Device>              m_current_device{nullptr};        //! Current device we are using, only one device possible at a time
 	ror::Renderer                        m_renderer{};                     //! Renderer that will be used by the context to render stuff
+	ror::Vector4ui                       m_frame_dimensions{};             //! current frame dimensions updated by looking up current window and framebuffer sizes
 };
 
 }        // namespace rhi

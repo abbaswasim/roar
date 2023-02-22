@@ -31,7 +31,7 @@
 
 namespace ror
 {
-void OrbitCamera::bounds(uint32_t a_width, uint32_t a_height)
+void OrbitCamera::bounds(float32_t a_width, float32_t a_height)
 {
 	this->m_width  = a_width;
 	this->m_height = a_height;
@@ -160,14 +160,14 @@ void OrbitCamera::ratio(float32_t a_aspect_ratio)
 	this->update_projection();
 }
 
-void OrbitCamera::width(uint32_t a_width)
+void OrbitCamera::width(float32_t a_width)
 {
 	this->m_width = a_width;
 
 	this->update_projection();
 }
 
-void OrbitCamera::height(uint32_t a_height)
+void OrbitCamera::height(float32_t a_height)
 {
 	this->m_height = a_height;
 

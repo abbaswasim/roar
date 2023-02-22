@@ -27,6 +27,7 @@
 
 #include "camera/rorcamera.hpp"
 #include "configuration/rorconfiguration.hpp"
+#include "event_system/rorevent_system.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
@@ -118,7 +119,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	// void cpu_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
 
 	void update(double64_t a_milli_seconds);
-	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs);
+	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
 	void unload();
 	void load_specific();
 

@@ -256,6 +256,15 @@ constexpr auto PlatformPrimitiveCullModeNone  = MTL::CullModeNone;
 constexpr auto PlatformPrimitiveCullModeFront = MTL::CullModeFront;
 constexpr auto PlatformPrimitiveCullModeBack  = MTL::CullModeBack;
 
+constexpr auto PlatformCompareFunctionNever        = MTL::CompareFunctionNever;
+constexpr auto PlatformCompareFunctionLess         = MTL::CompareFunctionLess;
+constexpr auto PlatformCompareFunctionEqual        = MTL::CompareFunctionEqual;
+constexpr auto PlatformCompareFunctionLessEqual    = MTL::CompareFunctionLessEqual;
+constexpr auto PlatformCompareFunctionGreater      = MTL::CompareFunctionGreater;
+constexpr auto PlatformCompareFunctionNotEqual     = MTL::CompareFunctionNotEqual;
+constexpr auto PlatformCompareFunctionGreaterEqual = MTL::CompareFunctionGreaterEqual;
+constexpr auto PlatformCompareFunctionAlways       = MTL::CompareFunctionAlways;
+
 constexpr auto PlatformPrimitiveWindingClockWise        = MTL::WindingClockwise;
 constexpr auto PlatformPrimitiveWindingCounterClockWise = MTL::WindingCounterClockwise;
 
@@ -265,9 +274,9 @@ constexpr auto PlatformPrimitiveTopologyLineStrip     = MTL::PrimitiveTypeLineSt
 constexpr auto PlatformPrimitiveTopologyTriangle      = MTL::PrimitiveTypeTriangle;
 constexpr auto PlatformPrimitiveTopologyTriangleStrip = MTL::PrimitiveTypeTriangleStrip;
 
-constexpr auto PlatformPrimitiveTopologyClassPoint         = MTL::PrimitiveTopologyClassPoint;
-constexpr auto PlatformPrimitiveTopologyClassLine          = MTL::PrimitiveTopologyClassLine;
-constexpr auto PlatformPrimitiveTopologyClassTriangle      = MTL::PrimitiveTopologyClassTriangle;
+constexpr auto PlatformPrimitiveTopologyClassPoint    = MTL::PrimitiveTopologyClassPoint;
+constexpr auto PlatformPrimitiveTopologyClassLine     = MTL::PrimitiveTopologyClassLine;
+constexpr auto PlatformPrimitiveTopologyClassTriangle = MTL::PrimitiveTopologyClassTriangle;
 
 constexpr auto PlatformTriangleFillModeFill = MTL::TriangleFillModeFill;
 constexpr auto PlatformTriangleFillModeLine = MTL::TriangleFillModeLines;

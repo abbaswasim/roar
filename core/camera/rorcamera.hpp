@@ -76,7 +76,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE OrbitCamera &operator=(OrbitCamera &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~OrbitCamera() noexcept                                  = default;        //! Destructor
 
-	FORCE_INLINE void bounds(uint32_t a_width, uint32_t a_height);
+	FORCE_INLINE void bounds(float32_t a_width, float32_t a_height);
 	FORCE_INLINE void volume(Vector3f a_minimum, Vector3f a_maximum);
 	FORCE_INLINE void zoom(double64_t a_zoom_delta);
 	FORCE_INLINE void mode(CameraMode a_mode);
@@ -85,8 +85,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE void far(float32_t a_far);
 	FORCE_INLINE void fov(float32_t a_far);
 	FORCE_INLINE void ratio(float32_t a_far);
-	FORCE_INLINE void width(uint32_t a_far);
-	FORCE_INLINE void height(uint32_t a_far);
+	FORCE_INLINE void width(float32_t a_far);
+	FORCE_INLINE void height(float32_t a_far);
 	void              init(EventSystem &a_event_system);
 	void              enable();
 	void              disable();
@@ -94,13 +94,13 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	void              upload(rhi::Device &a_device);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this instead
-	FORCE_INLINE constexpr auto& shader_buffer()       noexcept  { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this instead
+	FORCE_INLINE constexpr auto& shader_buffer() const noexcept { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this instead
+	FORCE_INLINE constexpr auto& shader_buffer()       noexcept { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this iFORCE_INLINE nstead
+	FORCE_INLINE constexpr auto& view()          const noexcept { return this->m_view;          }
+	FORCE_INLINE constexpr auto& projection()    const noexcept { return this->m_projection;    }
 	// clang-format on
 
   private:
-	using EventCallback = std::function<void(Event &)>;
-
 	void fill_shader_buffer();
 	void reset();
 	void setup();
@@ -135,8 +135,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t     m_z_near{0.1f};                           //! z-near of the camera
 	float32_t     m_z_far{1000.0f};                         //! z-far of the camera
 	float32_t     m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
-	uint32_t      m_width{1024};                            //! Width of the rectangle it needs to fill
-	uint32_t      m_height{768};                            //! Height of the rectangle it needs to fill
+	float32_t     m_width{1024.0f};                         //! Width of the rectangle it needs to fill
+	float32_t     m_height{768.0f};                         //! Height of the rectangle it needs to fill
 	CameraMode    m_mode{CameraMode::orbit};                //! Default orbit camera
 	CameraType    m_type{CameraType::perspective};          //! Default perspective camera
 	EventSystem  *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around

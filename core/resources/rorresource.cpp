@@ -73,14 +73,14 @@ std::string get_resource_semantic_string(ResourceSemantic a_semantic)
 			return "scenes";
 		case ResourceSemantic::caches:
 			return "caches";
-		case ResourceSemantic::audio:
-			return "audio";
-		case ResourceSemantic::cubemap:
-			return "cubemap";
-		case ResourceSemantic::animation:
-			return "animation";
-		case ResourceSemantic::font:
-			return "font";
+		case ResourceSemantic::audios:
+			return "audios";
+		case ResourceSemantic::cubemaps:
+			return "cubemaps";
+		case ResourceSemantic::animations:
+			return "animations";
+		case ResourceSemantic::fonts:
+			return "fonts";
 		case ResourceSemantic::logs:
 			return "logs";
 		case ResourceSemantic::misc:
