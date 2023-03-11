@@ -68,12 +68,10 @@ class ROAR_ENGINE_ITEM Anchors final
 		Anchor(ror::Vector4f a_p1, ror::Vector4f a_p2, ror::Vector4f a_p3, ror::Vector4f a_p4, AnchorType a_type = AnchorType::rectangle);
 
 		void draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport, uint32_t a_color, uint32_t a_click_color, uint32_t a_white, bool a_hovering);
-		void make_ribbon(ImDrawList *a_drawlist, ror::Vector4f new_center, ror::Vector4f center, float line_thickness, uint32_t orange_alpha, uint32_t a_white, bool straight = false);
 		void recenter();
-		void move(ror::Vector4f &a_destination, const ror::Vector2f &a_delta, const ror::Matrix4f &a_view_projection, const ror::Matrix4f &a_view_projection_inverse, const ror::Vector4f &a_viewport);
 		void move(const ror::Vector2f &a_delta, const ror::Matrix4f &a_view_projection, const ror::Matrix4f &a_view_projection_inverse, const ror::Vector4f &a_viewport);
-		bool inside(const ror::Vector2f &a_mouse_position, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport);
 		void reset(const ror::Vector4f &a_origin);
+		bool inside(const ror::Vector2f &a_mouse_position, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport);
 
 		// clang-format off
 		constexpr auto  center(const ror::Vector4f &a_center)                     noexcept { this->m_center = a_center;         } 
@@ -97,6 +95,9 @@ class ROAR_ENGINE_ITEM Anchors final
 
 	  protected:
 	  private:
+		void move(ror::Vector4f &a_destination, const ror::Vector2f &a_delta, const ror::Matrix4f &a_view_projection, const ror::Matrix4f &a_view_projection_inverse, const ror::Vector4f &a_viewport);
+		void make_ribbon(ImDrawList *a_drawlist, ror::Vector4f new_center, ror::Vector4f center, float line_thickness, uint32_t orange_alpha, uint32_t a_white, bool straight = false);
+
 		AnchorType    m_type{AnchorType::circle};
 		ror::Vector4f m_center{ror::zero_vector4f};            //! The center of the anchor shape
 		ror::Vector4f m_new_center{ror::zero_vector4f};        //! The updated center of the anchor shape while moving

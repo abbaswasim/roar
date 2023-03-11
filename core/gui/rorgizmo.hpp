@@ -68,17 +68,18 @@ class ROAR_ENGINE_ITEM Gizmo final
 	FORCE_INLINE Gizmo &operator=(Gizmo &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Gizmo() noexcept                          = default;        //! Destructor
 
+	void init(const ror::Vector4f &a_origin);
+	void draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport);
+
+  protected:
+  private:
 	static constexpr uint32_t total_anchors{16};
 
 	void reset(const ror::Vector4f &a_origin);
 	void rescale(float32_t a_world_scale);
 	void shape();
 	void update(float32_t a_world_scale);
-	void init(const ror::Vector4f &a_origin);
-	void draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport);
 
-  protected:
-  private:
 	uint32_t  m_move[6];                                 //! Move anchors index within Gui for x, y, and z axis and yz, xz, xy
 	uint32_t  m_scale[6];                                //! Scale anchors index within Gui for x, y, and z axis and yz, xz, xy
 	uint32_t  m_rotate[3];                               //! Rotation anchors index within Gui for x, y, and z axis
