@@ -7,13 +7,20 @@
 #include "foundation/rorhash.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
+#include "foundation/rorrandom.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
+#include "gui/rorgui.hpp"
+#include "math/roreuler_angle.hpp"
+#include "math/rormatrix4.hpp"
+#include "math/rormatrix4_functions.hpp"
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
+#include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"
+#include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
 #include <atomic>
@@ -496,16 +503,151 @@ TEST(RoarGeneral, auto_type_verfication)
 TEST(RoarGeneral, quaternion_vs_cross)
 {
 	ror::Quaternionf q{2, 3, 5, 7};
-	ror::Vector3f v{34, 65, 28};
+	ror::Vector3f    v{34, 65, 28};
 
 	q.normalize();
 
-	auto res1 = v + ror::Vector3f(q.x, q.y, q.z).cross_product(ror::Vector3f(q.x, q.y, q.z).cross_product(v) + (v * q.w)) * 2.0; // Filament way of quaternion transform
+	auto res1 = v + ror::Vector3f(q.x, q.y, q.z).cross_product(ror::Vector3f(q.x, q.y, q.z).cross_product(v) + (v * q.w)) * 2.0;        // Filament way of quaternion transform
 	auto res2 = q * v;
 
 	EXPECT_NEAR(res1.x, res2.x, ror::ror_epsilon);
 	EXPECT_NEAR(res1.y, res2.y, ror::ror_epsilon);
 	EXPECT_NEAR(res1.z, res2.z, ror::ror_epsilon);
+}
+
+void xform_inverse_xform(ror::Matrix4f x, ror::Vector4f v)
+{
+	auto t = x * v;
+
+	auto res = x.invert();
+	EXPECT_TRUE(res);
+
+	auto ti = x * t;
+
+	EXPECT_FLOAT_EQ(v.x, ti.x);
+	EXPECT_FLOAT_EQ(v.y, ti.y);
+	EXPECT_FLOAT_EQ(v.z, ti.z);
+	EXPECT_FLOAT_EQ(v.w, ti.w);
+}
+
+TEST(RoarGeneral, xform_inverse_xform)
+{
+	ror::Matrix4f s{};
+	ror::Matrix4f r{};
+	ror::Matrix4f t{};
+
+	ror::EulerAngle<float32_t> as{ror::to_radians(25.0f), ror::to_radians(-40.6f), ror::to_radians(20.0f)};
+
+	s = ror::matrix4_scaling(-1.4f, 3.0f, 2.5f);
+	r = ror::matrix4_rotation(as);
+	t = ror::matrix4_translation(2.0f, 10.0f, -3.0f);
+
+	auto trs = t * r * s;
+	auto srt = s * r * t;
+
+	float sp = 5.0f;
+
+	const auto position0 = ror::Vector4f{sp, sp, sp, 1.0f};
+	const auto position1 = ror::Vector4f{-sp, sp, -sp, 1.0f};
+	const auto position2 = ror::Vector4f{sp, -sp, sp, 1.0f};
+
+	xform_inverse_xform(s, position0);
+	xform_inverse_xform(s, position1);
+	xform_inverse_xform(s, position2);
+
+	xform_inverse_xform(r, position0);
+	xform_inverse_xform(r, position1);
+	xform_inverse_xform(r, position2);
+
+	xform_inverse_xform(t, position0);
+	xform_inverse_xform(t, position1);
+	xform_inverse_xform(t, position2);
+
+	xform_inverse_xform(trs, position0);
+	xform_inverse_xform(trs, position1);
+	xform_inverse_xform(trs, position2);
+
+	xform_inverse_xform(srt, position0);
+	xform_inverse_xform(srt, position1);
+	xform_inverse_xform(srt, position2);
+}
+
+void check_projection(const ror::Vector4f &p, const ror::Matrix4f &view_projection, const ror::Matrix4f &view_projection_inverse, const ror::Vector4f &view_port)
+{
+	auto pp  = ror::project_to_screen(p, view_projection, view_port);
+	auto upp = ror::project_to_world(pp, view_projection_inverse, view_port);
+
+	const float32_t epsilon{0.005f};
+
+	EXPECT_NEAR(p.x, upp.x, epsilon);
+	EXPECT_NEAR(p.y, upp.y, epsilon);
+	EXPECT_NEAR(p.z, upp.z, epsilon);
+	EXPECT_NEAR(p.w, upp.w, epsilon);
+}
+
+TEST(RoarGeneral, project_unproject)
+{
+	ror::Matrix4f view{};
+	ror::Matrix4f projection{};
+
+	view.m_values[0]  = 0.861929655f;
+	view.m_values[1]  = 0.104853787f;
+	view.m_values[2]  = -0.496067822f;
+	view.m_values[3]  = 0.0f;
+	view.m_values[4]  = -0.00276203523f;
+	view.m_values[5]  = 0.979339897f;
+	view.m_values[6]  = 0.20220378f;
+	view.m_values[7]  = 0.0f;
+	view.m_values[8]  = 0.507019877f;
+	view.m_values[9]  = -0.17291522f;
+	view.m_values[10] = 0.844411671f;
+	view.m_values[11] = 0.0f;
+	view.m_values[12] = -0.00000087544322f;
+	view.m_values[13] = 0.000000074505806f;
+	view.m_values[14] = -37.8496857f;
+	view.m_values[15] = 1.0f;
+
+	projection.m_values[0]  = 1.3461014f;
+	projection.m_values[1]  = 0.0f;
+	projection.m_values[2]  = 0.0f;
+	projection.m_values[3]  = 0.0f;
+	projection.m_values[4]  = 0.0f;
+	projection.m_values[5]  = 1.79480195f;
+	projection.m_values[6]  = 0.0f;
+	projection.m_values[7]  = 0.0f;
+	projection.m_values[8]  = 0.0f;
+	projection.m_values[9]  = 0.0f;
+	projection.m_values[10] = -0.999999761f;
+	projection.m_values[11] = -1.0f;
+	projection.m_values[12] = 0.0f;
+	projection.m_values[13] = 0.0f;
+	projection.m_values[14] = -0.199999973f;
+	projection.m_values[15] = 0.0f;
+
+	auto view_projection         = projection * view;
+	auto view_projection_inverse = view_projection;
+	auto res                     = view_projection_inverse.invert();
+	EXPECT_TRUE(res);
+
+	float sp = 5.0f;
+
+	auto         view_port = ror::Vector4f{0.0f, 0.0f, 1024.0f, 768.0f};
+	float32_t    rmin{-sp};
+	float32_t    rmax{sp};
+	ror::Randomf r{rmin, rmax};
+
+	ror::Vector4f z{0.0f, 0.0f, 0.0f, 1.0f};
+	check_projection(z, view_projection, view_projection_inverse, view_port);
+	auto pp = ror::project_to_screen(z, view_projection, view_port);
+
+	EXPECT_FLOAT_EQ(pp.x, view_port.z / 2.0f);
+	EXPECT_FLOAT_EQ(pp.y, view_port.w - (view_port.w / 2.0f));
+
+	for (size_t i = 0; i < 100; ++i)
+	{
+		ror::Vector4f p{r.next(), r.next(), r.next(), 1.0f};
+		check_projection(p, view_projection, view_projection_inverse, view_port);
+	}
 }
 
 }        // namespace ror_test

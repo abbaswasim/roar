@@ -175,7 +175,17 @@ class ROAR_ENGINE_ITEM Settings final
 			this->m_gui.m_font_size          = setting.get<uint32_t>("gui:font_size");
 			this->m_gui.m_vertex_buffer_size = setting.get<uint32_t>("gui:vertex_buffer_size");
 			this->m_gui.m_index_buffer_size  = setting.get<uint32_t>("gui:index_buffer_size");
+			this->m_gui.m_anchor_size        = setting.get<float32_t>("gui:anchor_size");
+			this->m_gui.m_gizmo_size         = setting.get<float32_t>("gui:gizmo_size");
 			this->m_gui.m_fonts              = setting.get<std::vector<std::string>>("gui:fonts");
+
+			auto gco = setting.get<std::vector<float32_t>>("gui:anchor_color");
+			if (gco.size() >= 4)
+				this->m_gui.m_anchor_color = ror::Vector4f(gco[0], gco[1], gco[2], gco[3]);
+
+			gco = setting.get<std::vector<float32_t>>("gui:anchor_click_color");
+			if (gco.size() >= 4)
+				this->m_gui.m_anchor_click_color = ror::Vector4f(gco[0], gco[1], gco[2], gco[3]);
 
 			auto theme = setting.get<std::string>("gui:theme");
 			if (theme == "classic")
@@ -482,6 +492,10 @@ class ROAR_ENGINE_ITEM Settings final
 		uint32_t                 m_default_font{0};
 		uint32_t                 m_vertex_buffer_size{2000000};        // Initial Size of vertex buffer
 		uint32_t                 m_index_buffer_size{500000};          // Initial Size of index buffer
+		float32_t                m_gizmo_size{100.0f};
+		float32_t                m_anchor_size{3.0f};
+		ror::Vector4f            m_anchor_color{0.1f, 0.7f, 0.1f, 1.0f};
+		ror::Vector4f            m_anchor_click_color{0.7f, 0.1f, 0.1f, 1.0f};
 		std::vector<std::string> m_fonts{};
 	};
 

@@ -24,12 +24,15 @@
 // Version: 1.0.0
 
 #include "event_system/rorevent_handles.hpp"
+#include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector2.hpp"
+#include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
+#include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffer.hpp"
@@ -41,12 +44,16 @@
 #include "rorgui.hpp"
 #include "settings/rorsettings.hpp"
 
+#include <Foundation/NSPrivate.hpp>
 #include <ImGuizmo/ImGuizmo.h>
+#include <algorithm>
+#include <cmath>
 #include <imgui/imgui.h>
 
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <sys/wait.h>
 
 namespace ror
 {
@@ -119,6 +126,31 @@ Gui::Gui()
 		auto &setting           = ror::settings();
 		setting.m_gui.m_visible = !setting.m_gui.m_visible;
 	};
+
+	auto p0 = ror::Vector4f{2.0f, 2.0f, 0.0f, 1.0f};
+	// auto p1 = ror::Vector4f{2.5f, 2.5f, 0.0f, 1.0f};
+	// auto p2 = ror::Vector4f{7.5f, 2.5f, 0.0f, 1.0f};
+	// auto p3 = ror::Vector4f{1.0f, 1.0f, 0.0f, 1.0f};
+	// auto p4 = ror::Vector4f{5.0f, 1.0f, 0.0f, 1.0f};
+	// auto p5 = ror::Vector4f{9.0f, 2.5f, 0.0f, 1.0f};
+	// auto p6 = ror::Vector4f{7.5f, 1.0f, 0.0f, 1.0f};
+	// auto p7 = ror::Vector4f{9.0f, 1.0f, 0.0f, 1.0f};
+	// auto p8 = ror::Vector4f{8.0f, -1.0f, 0.0f, 1.0f};
+	// auto p9 = ror::Vector4f{8.5f, -1.0f, 0.0f, 1.0f};
+
+	Anchors::Anchor a0{p0, 4.3f};
+	// Anchors::Anchor a1{p1, p0, p2, Anchors::AnchorType::bezier};
+	// Anchors::Anchor a2{p1, p3, p4};
+	// Anchors::Anchor a3{p2, p6, p7, p5};
+	// Anchors::Anchor a4{p6, p8, p9, p7};
+
+	m_anchors.push_anchor(a0);
+	// m_anchors.push_anchor(a1);
+	// m_anchors.push_anchor(a2);
+	// m_anchors.push_anchor(a3);
+	// m_anchors.push_anchor(a4);
+
+	this->m_gizmo.init(ror::Vector4f{0.0f, 0.0f, 0.0f, 1.0f});
 }
 
 Gui::~Gui() noexcept        //! Destructor
@@ -156,126 +188,6 @@ void Gui::uninstall_input_handlers()
 
 		this->m_event_system->unsubscribe(keyboard_tab_click, this->m_tab_key_callback);
 	}
-}
-
-// Test ImGuizmo demo
-void EditTransform(const ror::OrbitCamera &camera, ror::Matrix4f &matrix)
-{
-	static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::ROTATE);
-	static ImGuizmo::MODE      mCurrentGizmoMode(ImGuizmo::WORLD);
-	if (ImGui::IsKeyPressed(ImGuiKey_0))
-		mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-	if (ImGui::IsKeyPressed(ImGuiKey_1))
-		mCurrentGizmoOperation = ImGuizmo::ROTATE;
-	if (ImGui::IsKeyPressed(ImGuiKey_2))        // r Key
-		mCurrentGizmoOperation = ImGuizmo::SCALE;
-	if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
-		mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-	ImGui::SameLine();
-	if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
-		mCurrentGizmoOperation = ImGuizmo::ROTATE;
-	ImGui::SameLine();
-	if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
-		mCurrentGizmoOperation = ImGuizmo::SCALE;
-	float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-	ImGuizmo::DecomposeMatrixToComponents(matrix.m_values, matrixTranslation, matrixRotation, matrixScale);
-	ImGui::InputFloat3("Tr", matrixTranslation);
-	ImGui::InputFloat3("Rt", matrixRotation);
-	ImGui::InputFloat3("Sc", matrixScale);
-	ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, matrix.m_values);
-
-	if (mCurrentGizmoOperation != ImGuizmo::SCALE)
-	{
-		if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
-			mCurrentGizmoMode = ImGuizmo::LOCAL;
-		ImGui::SameLine();
-		if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
-			mCurrentGizmoMode = ImGuizmo::WORLD;
-	}
-	static bool useSnap(false);
-	if (ImGui::IsKeyPressed(ImGuiKey_3))
-		useSnap = !useSnap;
-	ImGui::Checkbox("##", &useSnap);
-	ImGui::SameLine();
-	ror::Vector2f snap;
-	switch (mCurrentGizmoOperation)
-	{
-		case ImGuizmo::TRANSLATE:
-			snap.x = 0.001f;        // config.mSnapTranslation;
-			ImGui::InputFloat3("Snap", &snap.x);
-			break;
-		case ImGuizmo::ROTATE:
-			snap.x = 0.001f;        // config.mSnapRotation;
-			ImGui::InputFloat("Angle Snap", &snap.x);
-			break;
-		case ImGuizmo::SCALE:
-			snap.x = 0.001f;        // config.mSnapScale;
-			ImGui::InputFloat("Scale Snap", &snap.x);
-			break;
-		case ImGuizmo::TRANSLATE_X:
-		case ImGuizmo::TRANSLATE_Y:
-		case ImGuizmo::TRANSLATE_Z:
-		case ImGuizmo::ROTATE_X:
-		case ImGuizmo::ROTATE_Y:
-		case ImGuizmo::ROTATE_Z:
-		case ImGuizmo::ROTATE_SCREEN:
-		case ImGuizmo::SCALE_X:
-		case ImGuizmo::SCALE_Y:
-		case ImGuizmo::SCALE_Z:
-		case ImGuizmo::BOUNDS:
-		case ImGuizmo::SCALE_XU:
-		case ImGuizmo::SCALE_YU:
-		case ImGuizmo::SCALE_ZU:
-
-		case ImGuizmo::SCALEU:
-		case ImGuizmo::UNIVERSAL:
-			break;
-	}
-
-	auto &style = ImGuizmo::GetStyle();
-	float delta = 0.0f;
-
-	style.TranslationLineThickness   = 3.0f + delta;
-	style.TranslationLineArrowSize   = 6.0f + delta;
-	style.RotationLineThickness      = 2.0f + delta;
-	style.RotationOuterLineThickness = 3.0f + delta;
-	style.ScaleLineThickness         = 3.0f + delta;
-	style.ScaleLineCircleSize        = 6.0f + delta;
-	style.HatchedAxisLineThickness   = 6.0f + delta;
-	style.CenterCircleSize           = 6.0f + delta;
-
-	ImGuiIO &io = ImGui::GetIO();
-	ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-	static ror::Matrix4f ident{};
-	// ImGuizmo::DrawGrid(camera.m_view.m_values, camera.m_projection.m_values, ident.m_values, 1000.f);
-	// ImGuizmo::DrawCubes(camera.m_view.m_values, camera.m_projection.m_values, ident.m_values, 10.f);
-
-	// auto view = camera.m_view;
-	// auto projection = camera.m_projection;
-
-	// view.transpose();
-	// projection.transpose();
-
-	auto res = ImGuizmo::Manipulate(camera.view().m_values, camera.projection().m_values, mCurrentGizmoOperation, mCurrentGizmoMode, matrix.m_values, nullptr, useSnap ? &snap.x : nullptr);
-
-	log_info("result = {}, \n{}, {}, {}, {}\n{}, {}, {}, {}\n{}, {}, {}, {}\n{}, {}, {}, {})",
-	         res,
-	         matrix.m_values[0],
-	         matrix.m_values[1],
-	         matrix.m_values[2],
-	         matrix.m_values[3],
-	         matrix.m_values[4],
-	         matrix.m_values[5],
-	         matrix.m_values[6],
-	         matrix.m_values[7],
-	         matrix.m_values[8],
-	         matrix.m_values[9],
-	         matrix.m_values[10],
-	         matrix.m_values[11],
-	         matrix.m_values[12],
-	         matrix.m_values[13],
-	         matrix.m_values[14],
-	         matrix.m_values[15]);
 }
 
 void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
@@ -384,8 +296,38 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	this->m_index_buffer.init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
 }
 
+// Copied from ImGuizmo's version of new frame
+auto MyBeginFrame()
+{
+	const ImU32 flags = ImGuiWindowFlags_NoTitleBar |
+	                    ImGuiWindowFlags_NoResize |
+	                    ImGuiWindowFlags_NoScrollbar |
+	                    ImGuiWindowFlags_NoInputs |
+	                    ImGuiWindowFlags_NoSavedSettings |
+	                    ImGuiWindowFlags_NoFocusOnAppearing |
+	                    ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+	ImGuiIO &io = ImGui::GetIO();
+	ImGui::SetNextWindowSize(io.DisplaySize);
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
+	ImGui::PushStyleColor(ImGuiCol_Border, 0);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+	ImGui::Begin("gizmo", nullptr, flags);
+	auto mDrawList = ImGui::GetWindowDrawList();
+	ImGui::End();
+	ImGui::PopStyleVar();
+	ImGui::PopStyleColor(2);
+
+	return mDrawList;
+}
+
 void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions)
 {
+	(void) a_camera;
+	// (void) project_to_screen;
 	auto &setting = ror::settings();
 
 	// Lets render GUI
@@ -402,8 +344,6 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 	ImGuizmo::BeginFrame();
 	static ror::Matrix4f result{};
 
-	EditTransform(a_camera, result);
-
 	auto font_id = setting.m_generic_numbers[0];
 
 	if (font_id >= 0 && font_id < static_cast_safe<int32_t>(this->m_fonts.size()))
@@ -413,6 +353,7 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 
 	if (show_demo_window)
 		ImGui::ShowDemoWindow(&show_demo_window);
+
 	{
 		static float f       = 0.0f;
 		static int   counter = 0;
@@ -432,7 +373,25 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 		ImGui::Text("counter = %d", counter);
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+		auto draw_list = MyBeginFrame();
+		auto dis       = io.DisplaySize;
+
+		auto          mpos  = ImGui::GetMousePos();
+		auto          mcpos = io.MouseClickedPos[0];        // Left click only
+		ror::Vector2f mouse_position{mpos.x, mpos.y};
+		ror::Vector2f left_mouse_position{mcpos.x, mcpos.y};
+		ror::Vector4f view_port{0.0f, 0.0f, dis.x, dis.y};
+
+		auto view       = a_camera.view();
+		auto projection = a_camera.projection();
 		ImGui::End();
+
+		auto view_projection = projection * view;
+		this->m_anchors.new_frame(ImGui::IsMouseClicked(0), ImGui::IsMouseReleased(0), mouse_position, left_mouse_position);
+		this->m_anchors.draw(draw_list, view_projection, view_port, ImGui::IsMouseClicked(0));
+
+		this->m_gizmo.draw(view_projection, view_port);
 	}
 
 	// 3. Show another simple window.
@@ -519,7 +478,7 @@ void Gui::setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Re
 	float F = viewport_far;
 
 	auto ortho_projection_matrix = ror::make_ortho(L, R, B, T, N, F);
-	ortho_projection_matrix.m_values[14] *= -1; // For some reason that I don't yet understand this is what ImGui requires, this probably has something to do with handedness and NDC from 0 - 1 mapping
+	ortho_projection_matrix.m_values[14] *= -1;        // For some reason that I don't yet understand this is what ImGui requires, this probably has something to do with handedness and NDC from 0 - 1 mapping
 
 	this->m_shader_buffer.buffer_map();
 	this->m_shader_buffer.update("orthographic_projection", &ortho_projection_matrix);

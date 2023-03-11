@@ -215,5 +215,4 @@ FORCE_INLINE _type vector_select(const vector_type<_type, uint32_t> &a_vector, c
 		             (a_vector.y != 0 ? a_first.y : a_second.y));
 	}
 }
-
 }        // namespace ror

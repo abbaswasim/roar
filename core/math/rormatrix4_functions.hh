@@ -343,13 +343,13 @@ FORCE_INLINE Matrix4<_type> matrix4_rotation(const Vector3<_type> &a_from, const
 
 	ror::Matrix4f rot{};
 
-	rot.m_values[0]  = c + h * v.x * v.x;
-	rot.m_values[1]  = h * v.x * v.y + v.z;
-	rot.m_values[2]  = h * v.x * v.z - v.y;
+	rot.m_values[0] = c + h * v.x * v.x;
+	rot.m_values[1] = h * v.x * v.y + v.z;
+	rot.m_values[2] = h * v.x * v.z - v.y;
 
-	rot.m_values[4]  = h * v.x * v.y - v.z;
-	rot.m_values[5]  = c + h * v.y * v.y;
-	rot.m_values[6]  = h * v.y * v.z + v.x;
+	rot.m_values[4] = h * v.x * v.y - v.z;
+	rot.m_values[5] = c + h * v.y * v.y;
+	rot.m_values[6] = h * v.y * v.z + v.x;
 
 	rot.m_values[8]  = h * v.x * v.z + v.y;
 	rot.m_values[9]  = h * v.y * v.z - v.x;
@@ -638,6 +638,67 @@ FORCE_INLINE Matrix4<_type> matrix4_interpolate(const Matrix4<_type> &a_matrix1,
 	// temp.set_origin(t);
 
 	return temp;
+}
+
+template <class _type>
+FORCE_INLINE ror::Vector4<_type> project_to_screen(const ror::Vector4<_type> &world_position, const ror::Matrix4<_type> &view_projection, const ror::Vector4<_type> &view_port)
+{
+	ror::Vector4f output;
+	output = view_projection * world_position;
+
+	// Keep the w only normalize x,y,z
+	// TODO: Think about what to do if output.w == 0.0f
+	output.x /= output.w;
+	output.y /= output.w;
+	output.z /= output.w;
+
+	// Map the (-1, 1) range of x, y into (0, 1) range
+	output.x = output.x * 0.5f + 0.5f;
+	output.y = output.y * 0.5f + 0.5f;
+	// z is already in (0, 1) range
+	// output.z = output.z * 0.5f + 0.5f;
+
+	// Invert the y because of Metal and Vulkan viewports (left, top, right, bottom) = (0, 0, width, height)
+	output.y = 1.0f - output.y;
+
+	// Map x and y to viewport
+	output.x = output.x * view_port.z + view_port.x;
+	output.y = output.y * view_port.w + view_port.y;
+
+	// Return w unchanged
+	return output;
+}
+
+template <class _type>
+FORCE_INLINE ror::Vector4<_type> project_to_world(const ror::Vector4<_type> &screen_position, const ror::Matrix4<_type> &view_projection_inverse, const ror::Vector4<_type> &view_port)
+{
+	// view_projection must be inverted externally
+	ror::Vector4f output{screen_position};
+
+	// Reverse the viewport transform
+	output.x = (screen_position.x - view_port.x) / view_port.z;
+	output.y = (screen_position.y - view_port.y) / view_port.w;
+	// output.z = screen_position.z;
+	// output.w = screen_position.w;
+
+	// Reverse the viewport height transform
+	output.y = 1.0f - output.y;
+
+	// Reverse the (-1, 1) range to (0, 1) range
+	// Convert screen position to metal/vulkan NDC space (-1, -1, 0) - (1, 1, 1)
+	// Only x and y needs mapping z is in 0 - 1 range because its normalized
+	output.x = output.x * 2.0f - 1.0f;
+	output.y = output.y * 2.0f - 1.0f;
+
+	// Reverse the w division
+	output.x *= output.w;
+	output.y *= output.w;
+	output.z *= output.w;
+
+	// Invert the projection transform
+	output = view_projection_inverse * output;
+
+	return output;
 }
 
 }        // namespace ror

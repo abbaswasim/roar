@@ -156,11 +156,9 @@ void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, s
 void BufferMetal::upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
 {
 	// Some sanity checks first
-	auto buffer_length = this->m_buffer->length();
-
-	assert(a_offset < buffer_length);
-	assert(buffer_length >= a_length && "Not enough space in the buffer being copied into");
-	assert(buffer_length >= a_offset + a_length && "Not enough space in the buffer being copied into");
+	assert(a_offset < this->m_buffer->length());
+	assert(this->m_buffer->length() >= a_length && "Not enough space in the buffer being copied into");
+	assert(this->m_buffer->length() >= a_offset + a_length && "Not enough space in the buffer being copied into");
 
 	assert(this->storage_mode() != rhi::ResourceStorageOption::exclusive && "Can't update private/exclusive buffer data, its expensive, if really needed call upload(a_device) instead");
 	assert(this->storage_mode() != rhi::ResourceStorageOption::memory_less && "Can't update memory less buffer data");

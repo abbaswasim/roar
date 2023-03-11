@@ -27,6 +27,14 @@
 
 #include "camera/rorcamera.hpp"
 #include "event_system/rorevent_system.hpp"
+#include "foundation/rormacros.hpp"
+#include "foundation/rortypes.hpp"
+#include "foundation/rorutilities.hpp"
+#include "math/rormatrix4.hpp"
+#include "math/rormatrix4_functions.hpp"
+#include "math/rorvector2.hpp"
+#include "math/rorvector4.hpp"
+#include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
@@ -34,8 +42,10 @@
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rorvertex_description.hpp"
+#include "roranchor.hpp"
+#include "rorgizmo.hpp"
 
-#include <imgui/imgui.h>
+#include <vector>
 
 namespace ror
 {
@@ -59,6 +69,26 @@ class ROAR_ENGINE_ITEM Gui final
 	void render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera);
 	void setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data);
 
+	void push_anchor(Anchors::Anchor a_anchor)
+	{
+		this->m_anchors.push_anchor(std::move(a_anchor));
+	}
+
+	size_t anchors_count()
+	{
+		return this->m_anchors.anchors_count();
+	}
+
+	Anchors::Anchor &anchor(size_t a_index)
+	{
+		return this->m_anchors.anchor(a_index);
+	}
+
+	bool anchor_moving(size_t a_index)
+	{
+		return this->m_anchors.moving(a_index);
+	}
+
 	enum imgui_keys
 	{
 		imgui_keys_left,
@@ -69,6 +99,9 @@ class ROAR_ENGINE_ITEM Gui final
   protected:
   private:
 	void upload_draw_data(ImDrawData *a_draw_data);
+
+	Anchors m_anchors{};
+	Gizmo   m_gizmo{};
 
 	std::vector<ImFont *> m_fonts{};                       //! All the fonts provided in gui fonts list
 	uint32_t              m_current_font{0};               //! Index of the default pointer

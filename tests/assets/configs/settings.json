@@ -46,6 +46,10 @@
 		"font_size" : 16,
 		"vertex_buffer_size": 2000000,
 		"index_buffer_size": 500000,
+		"gizmo_size": 100.0,
+		"anchor_size": 4.0,
+		"anchor_color" : [0.1, 0.7, 0.1, 1.0],
+		"anchor_click_color" : [0.7, 0.1, 0.1, 1.0],
 		"fonts" : [
 			"Roboto-Medium.ttf",
 			"DroidSans.ttf",
