@@ -61,16 +61,8 @@ class ROAR_ENGINE_ITEM Gui final
 	Gui();                  //! Default constructor
 	~Gui() noexcept;        //! Destructor
 
-	void             install_input_handlers();
-	void             uninstall_input_handlers();
-	void             init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system);
-	void             draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions);
-	void             render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera);
-	void             setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data);
-	void             push_anchor(Anchors::Anchor a_anchor);
-	size_t           anchors_count();
-	Anchors::Anchor &anchor(size_t a_index);
-	bool             anchor_moving(size_t a_index);
+	void init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera);
 
 	enum imgui_keys
 	{
@@ -81,7 +73,15 @@ class ROAR_ENGINE_ITEM Gui final
 
   protected:
   private:
-	void upload_draw_data(ImDrawData *a_draw_data);
+	void             install_input_handlers();
+	void             uninstall_input_handlers();
+	void             draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions);
+	void             setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data);
+	void             push_anchor(Anchors::Anchor a_anchor);
+	size_t           anchors_count();
+	Anchors::Anchor &anchor(size_t a_index);
+	bool             anchor_moving(size_t a_index);
+	void             upload_draw_data(ImDrawData *a_draw_data);
 
 	Anchors m_anchors{};
 	Gizmo   m_gizmo{};
