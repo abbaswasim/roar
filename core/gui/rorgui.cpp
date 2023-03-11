@@ -27,6 +27,7 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "gui/rorgizmo.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector2.hpp"
@@ -123,7 +124,7 @@ Gui::Gui()
 		setting.m_gui.m_visible = !setting.m_gui.m_visible;
 	};
 
-	auto p0 = ror::Vector4f{2.0f, 2.0f, 0.0f, 1.0f};
+	// auto p0 = ror::Vector4f{2.0f, 2.0f, 0.0f, 1.0f};
 	// auto p1 = ror::Vector4f{2.5f, 2.5f, 0.0f, 1.0f};
 	// auto p2 = ror::Vector4f{7.5f, 2.5f, 0.0f, 1.0f};
 	// auto p3 = ror::Vector4f{1.0f, 1.0f, 0.0f, 1.0f};
@@ -134,13 +135,13 @@ Gui::Gui()
 	// auto p8 = ror::Vector4f{8.0f, -1.0f, 0.0f, 1.0f};
 	// auto p9 = ror::Vector4f{8.5f, -1.0f, 0.0f, 1.0f};
 
-	Anchors::Anchor a0{p0, 4.3f};
+	// Anchors::Anchor a0{p0, 4.3f};
 	// Anchors::Anchor a1{p1, p0, p2, Anchors::AnchorType::bezier};
 	// Anchors::Anchor a2{p1, p3, p4};
 	// Anchors::Anchor a3{p2, p6, p7, p5};
 	// Anchors::Anchor a4{p6, p8, p9, p7};
 
-	m_anchors.push_anchor(a0);
+	// m_anchors.push_anchor(a0);
 	// m_anchors.push_anchor(a1);
 	// m_anchors.push_anchor(a2);
 	// m_anchors.push_anchor(a3);
@@ -292,34 +293,6 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	this->m_index_buffer.init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
 }
 
-// Copied from ImGuizmo's version of new frame
-auto MyBeginFrame()
-{
-	const ImU32 flags = ImGuiWindowFlags_NoTitleBar |
-	                    ImGuiWindowFlags_NoResize |
-	                    ImGuiWindowFlags_NoScrollbar |
-	                    ImGuiWindowFlags_NoInputs |
-	                    ImGuiWindowFlags_NoSavedSettings |
-	                    ImGuiWindowFlags_NoFocusOnAppearing |
-	                    ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-	ImGuiIO &io = ImGui::GetIO();
-	ImGui::SetNextWindowSize(io.DisplaySize);
-	ImGui::SetNextWindowPos(ImVec2(0, 0));
-
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
-	ImGui::PushStyleColor(ImGuiCol_Border, 0);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-
-	ImGui::Begin("gizmo", nullptr, flags);
-	auto mDrawList = ImGui::GetWindowDrawList();
-	ImGui::End();
-	ImGui::PopStyleVar();
-	ImGui::PopStyleColor(2);
-
-	return mDrawList;
-}
-
 void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions)
 {
 	(void) a_camera;
@@ -369,7 +342,7 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-		auto draw_list = MyBeginFrame();
+		auto drawlist = draw_list();
 		auto dis       = io.DisplaySize;
 
 		auto          mpos  = ImGui::GetMousePos();
@@ -384,7 +357,7 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 
 		auto view_projection = projection * view;
 		this->m_anchors.new_frame(ImGui::IsMouseClicked(0), ImGui::IsMouseReleased(0), mouse_position, left_mouse_position);
-		this->m_anchors.draw(draw_list, view_projection, view_port, ImGui::IsMouseClicked(0));
+		this->m_anchors.draw(drawlist, view_projection, view_port, ImGui::IsMouseClicked(0));
 
 		this->m_gizmo.draw(view_projection, view_port);
 	}

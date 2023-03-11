@@ -128,7 +128,40 @@ void Gizmo::update(float32_t a_world_scale)
 		this->reset(this->m_anchors_front.anchor(this->m_center).new_center());        // Reset center to the origin
 
 	auto &center = this->m_anchors_front.anchor(this->m_center);
-	if (this->m_anchors_front.moving(this->m_move[3]))
+	if (this->m_anchors_behind.moving(this->m_move[0]))        // yz-plane move
+	{
+		auto &moveyz          = this->m_anchors_behind.anchor(this->m_move[0]);
+		auto  dy              = center.center().y - moveyz.center().y;
+		auto  dz              = center.center().z - moveyz.center().z;
+		center.new_center().y = moveyz.new_center().y + dy;
+		center.new_center().z = moveyz.new_center().z + dz;
+		center.center().y     = center.new_center().y;
+		center.center().z     = center.new_center().z;
+		this->reset(this->m_anchors_front.anchor(this->m_center).new_center());        // Reset center to the origin
+	}
+	else if (this->m_anchors_behind.moving(this->m_move[1]))        // xz-plane move
+	{
+		auto &movexz          = this->m_anchors_behind.anchor(this->m_move[1]);
+		auto  dx              = center.center().x - movexz.center().x;
+		auto  dz              = center.center().z - movexz.center().z;
+		center.new_center().x = movexz.new_center().x + dx;
+		center.new_center().z = movexz.new_center().z + dz;
+		center.center().x     = center.new_center().x;
+		center.center().z     = center.new_center().z;
+		this->reset(this->m_anchors_front.anchor(this->m_center).new_center());        // Reset center to the origin
+	}
+	else if (this->m_anchors_behind.moving(this->m_move[2]))        // xy-plane move
+	{
+		auto &movexy          = this->m_anchors_behind.anchor(this->m_move[2]);
+		auto  dx              = center.center().x - movexy.center().x;
+		auto  dy              = center.center().y - movexy.center().y;
+		center.new_center().x = movexy.new_center().x + dx;
+		center.new_center().y = movexy.new_center().y + dy;
+		center.center().x     = center.new_center().x;
+		center.center().y     = center.new_center().y;
+		this->reset(this->m_anchors_front.anchor(this->m_center).new_center());        // Reset center to the origin
+	}
+	else if (this->m_anchors_front.moving(this->m_move[3]))
 	{
 		auto &movex           = this->m_anchors_front.anchor(this->m_move[3]);
 		center.new_center().x = movex.new_center().x - this->m_size;
@@ -168,13 +201,6 @@ void Gizmo::update(float32_t a_world_scale)
 		this->m_scale_scale[2] += deltax / a_world_scale;
 		this->reset(this->m_anchors_front.anchor(this->m_center).new_center());        // Reset center to the origin
 	}
-	// else if (a_gui.anchor_moving(this->m_move_scale[0]))
-	// {
-	// 	auto     &move_scalex = a_gui.anchor(this->m_move_scale[2]);
-	// 	float32_t deltax      = move_scalex.m_new_center.z - move_scalex.m_center.z;
-	// 	this->m_scale_scale[2] += deltax / a_world_scale;
-	// 	this->reset(a_gui, a_gui.anchor(this->m_center).m_new_center);        // Reset center to the origin
-	// }
 
 	this->shape();
 }
@@ -227,10 +253,10 @@ void Gizmo::init(const ror::Vector4f &a_origin)
 		a.radius()     = radia[i] - 2.0f;
 		a.color()      = cols[i];
 		a.type()       = type[i];
-		a.point(0)    = identity;
-		a.point(1)    = identity;
-		a.point(2)    = identity;
-		a.point(3)    = identity;
+		a.point(0)     = identity;
+		a.point(1)     = identity;
+		a.point(2)     = identity;
+		a.point(3)     = identity;
 
 		if (i < 9)
 			this->m_anchors_behind.push_anchor(a);        // First all the plane anchors
@@ -275,17 +301,17 @@ void Gizmo::draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_
 
 	auto scale = world_scale(a_view_projection, a_viewport);
 
-	ImGuiIO &io  = ImGui::GetIO();
-	auto     dis = io.DisplaySize;
+	ImGuiIO &io = ImGui::GetIO();
 
 	auto          mpos  = ImGui::GetMousePos();
 	auto          mcpos = io.MouseClickedPos[0];        // Left click only
 	ror::Vector2f mouse_position{mpos.x, mpos.y};
 	ror::Vector2f left_mouse_position{mcpos.x, mcpos.y};
-	ror::Vector4f view_port{0.0f, 0.0f, dis.x, dis.y};
+	bool          left_clicked{ImGui::IsMouseClicked(0)};
+	bool          left_released{ImGui::IsMouseReleased(0)};
 
-	this->m_anchors_behind.new_frame(ImGui::IsMouseClicked(0), ImGui::IsMouseReleased(0), mouse_position, left_mouse_position);
-	this->m_anchors_behind.draw(this->m_draw_list, a_view_projection, view_port, ImGui::IsMouseClicked(0));
+	this->m_anchors_behind.new_frame(left_clicked, left_released, mouse_position, left_mouse_position);
+	this->m_anchors_behind.draw(this->m_draw_list, a_view_projection, a_viewport, left_clicked);
 
 	this->update(scale);
 
@@ -325,8 +351,8 @@ void Gizmo::draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_
 	this->m_draw_list->AddLine({scaley.x, scaley.y}, {beziery.x, beziery.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
 	this->m_draw_list->AddLine({scalez.x, scalez.y}, {bezierz.x, bezierz.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
 
-	this->m_anchors_front.new_frame(ImGui::IsMouseClicked(0), ImGui::IsMouseReleased(0), mouse_position, left_mouse_position);
-	this->m_anchors_front.draw(this->m_draw_list, a_view_projection, view_port, ImGui::IsMouseClicked(0));
+	this->m_anchors_front.new_frame(left_clicked, left_released, mouse_position, left_mouse_position);
+	this->m_anchors_front.draw(this->m_draw_list, a_view_projection, a_viewport, left_clicked);
 }
 
 }        // namespace ror

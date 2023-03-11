@@ -292,9 +292,17 @@ void Anchors::Anchor::recenter()
 		this->m_new_center.w = 1.0f;
 		this->m_center       = this->m_new_center;
 	}
-	else if ((this->m_type == AnchorType::rectangle) || (this->m_type == AnchorType::pyramid))
+	else if (this->m_type == AnchorType::rectangle)
 	{
 		this->m_new_center   = (this->m_points[0] + this->m_points[2]) / 2.0f;
+		this->m_new_center.w = 1.0f;
+		this->m_center       = this->m_new_center;
+	}
+	else if (this->m_type == AnchorType::pyramid)
+	{
+		auto c1   = (this->m_points[0] + this->m_points[2]) / 2.0f;
+		auto c2   = (this->m_points[1] + this->m_points[3]) / 2.0f;
+		this->m_new_center   = (c1 + c2) / 2.0f;
 		this->m_new_center.w = 1.0f;
 		this->m_center       = this->m_new_center;
 	}
