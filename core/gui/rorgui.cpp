@@ -45,8 +45,8 @@
 #include "settings/rorsettings.hpp"
 
 #include <algorithm>
-#include <cmath>
 #include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <sys/wait.h>
@@ -568,6 +568,26 @@ void Gui::render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_e
 		vertexBufferOffset += static_cast<size_t>(cmd_list->VtxBuffer.Size) * sizeof(ImDrawVert);
 		indexBufferOffset += static_cast<size_t>(cmd_list->IdxBuffer.Size) * sizeof(ImDrawIdx);
 	}
+}
+
+void Gui::push_anchor(Anchors::Anchor a_anchor)
+{
+	this->m_anchors.push_anchor(std::move(a_anchor));
+}
+
+size_t Gui::anchors_count()
+{
+	return this->m_anchors.anchors_count();
+}
+
+Anchors::Anchor &Gui::anchor(size_t a_index)
+{
+	return this->m_anchors.anchor(a_index);
+}
+
+bool Gui::anchor_moving(size_t a_index)
+{
+	return this->m_anchors.moving(a_index);
 }
 
 }        // namespace ror

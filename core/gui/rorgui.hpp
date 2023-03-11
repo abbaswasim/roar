@@ -61,33 +61,16 @@ class ROAR_ENGINE_ITEM Gui final
 	Gui();                  //! Default constructor
 	~Gui() noexcept;        //! Destructor
 
-	void install_input_handlers();
-	void uninstall_input_handlers();
-
-	void init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system);
-	void draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions);
-	void render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera);
-	void setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data);
-
-	void push_anchor(Anchors::Anchor a_anchor)
-	{
-		this->m_anchors.push_anchor(std::move(a_anchor));
-	}
-
-	size_t anchors_count()
-	{
-		return this->m_anchors.anchors_count();
-	}
-
-	Anchors::Anchor &anchor(size_t a_index)
-	{
-		return this->m_anchors.anchor(a_index);
-	}
-
-	bool anchor_moving(size_t a_index)
-	{
-		return this->m_anchors.moving(a_index);
-	}
+	void             install_input_handlers();
+	void             uninstall_input_handlers();
+	void             init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void             draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions);
+	void             render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera);
+	void             setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data);
+	void             push_anchor(Anchors::Anchor a_anchor);
+	size_t           anchors_count();
+	Anchors::Anchor &anchor(size_t a_index);
+	bool             anchor_moving(size_t a_index);
 
 	enum imgui_keys
 	{
