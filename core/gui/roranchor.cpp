@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rormacros.hpp"
 #include "roranchor.hpp"
 #include "settings/rorsettings.hpp"
 

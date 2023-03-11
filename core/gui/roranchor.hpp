@@ -25,13 +25,15 @@
 
 #pragma once
 
+#include "foundation/rormacros.hpp"
 #include "math/rormatrix4_functions.hpp"
+#include "math/rorvector4.hpp"
+#include <cstdint>
 #include <imgui/imgui.h>
 #include <vector>
 
 namespace ror
 {
-
 class ROAR_ENGINE_ITEM Anchors final
 {
   public:
@@ -74,20 +76,27 @@ class ROAR_ENGINE_ITEM Anchors final
 		void reset(const ror::Vector4f &a_origin);
 
 		// clang-format off
-		constexpr auto center(const ror::Vector4f &a_center)            noexcept { this->m_center = a_center;         } 
-		constexpr auto new_center(const ror::Vector4f &a_center)        noexcept { this->m_new_center = a_center;     } 
-		constexpr auto ribbon_value(float32_t a_value)                  noexcept { this->m_ribbon_value = a_value;    } 
-		constexpr auto clicked(bool a_clicked)                          noexcept { this->m_clicked = a_clicked;       }
-		constexpr auto color(uint32_t a_color)                          noexcept { this->m_color = a_color;           }
-		constexpr auto center()                                   const noexcept { return this->m_center;             } 
-		constexpr auto new_center()                               const noexcept { return this->m_new_center;         } 
-		constexpr auto ribbon_value()                             const noexcept { return this->m_ribbon_value;       } 
-		constexpr auto clicked()                                  const noexcept { return this->m_clicked;            }
-		constexpr auto color()                                    const noexcept { return this->m_color;              }
+		constexpr auto  center(const ror::Vector4f &a_center)                     noexcept { this->m_center = a_center;         } 
+		constexpr auto  new_center(const ror::Vector4f &a_center)                 noexcept { this->m_new_center = a_center;     } 
+		constexpr auto  point(uint32_t a_index, const ror::Vector4f a_point)      noexcept { this->m_points[a_index] = a_point; } 
+		constexpr auto  ribbon_value(float32_t a_value)                           noexcept { this->m_ribbon_value = a_value;    } 
+		constexpr auto  has_ribbon(bool a_value)                                  noexcept { this->m_has_ribbon = a_value;      }
+		constexpr auto  clicked(bool a_clicked)                                   noexcept { this->m_clicked = a_clicked;       }
+		constexpr auto  color(uint32_t a_color)                                   noexcept { this->m_color = a_color;           }
+		constexpr auto  radius(float32_t a_radius)                                noexcept { this->m_radius = a_radius;         }
+		constexpr auto  type(AnchorType a_type)                                   noexcept { this->m_type = a_type;             }
+		constexpr auto &center()                                                  noexcept { return this->m_center;             } 
+		constexpr auto &new_center()                                              noexcept { return this->m_new_center;         } 
+		constexpr auto &point(uint32_t a_index)                                   noexcept { return this->m_points[a_index];    } 
+		constexpr auto &radius()                                                  noexcept { return this->m_radius;             }
+		constexpr auto &type()                                                    noexcept { return this->m_type;               }
+		constexpr auto  ribbon_value()                                      const noexcept { return this->m_ribbon_value;       } 
+		constexpr auto  clicked()                                           const noexcept { return this->m_clicked;            }
+		constexpr auto &color()                                                   noexcept { return this->m_color;              }
 		// clang-format on
 
-	  // protected:
-	  // private:
+	  protected:
+	  private:
 		AnchorType    m_type{AnchorType::circle};
 		ror::Vector4f m_center{ror::zero_vector4f};            //! The center of the anchor shape
 		ror::Vector4f m_new_center{ror::zero_vector4f};        //! The updated center of the anchor shape while moving
