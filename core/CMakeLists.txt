@@ -217,7 +217,6 @@ set(ROAR_REQUIRED_PRIVATE_LIBRARIES
 
 set(ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM
   imgui
-  imguizmo
   par
   glslang
   SPIRV
