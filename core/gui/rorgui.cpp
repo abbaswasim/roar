@@ -44,12 +44,8 @@
 #include "rorgui.hpp"
 #include "settings/rorsettings.hpp"
 
-#include <Foundation/NSPrivate.hpp>
-#include <ImGuizmo/ImGuizmo.h>
 #include <algorithm>
 #include <cmath>
-#include <imgui/imgui.h>
-
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -341,7 +337,6 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 	io.DisplayFramebufferScale = ImVec2(a_dimensions.z, a_dimensions.w);
 
 	ImGui::NewFrame();
-	ImGuizmo::BeginFrame();
 	static ror::Matrix4f result{};
 
 	auto font_id = setting.m_generic_numbers[0];
