@@ -70,20 +70,21 @@ class ROAR_ENGINE_ITEM Gui final
 	bool             anchor_moving(size_t a_index);
 	void             upload_draw_data(ImDrawData *a_draw_data);
 
-	Anchors m_anchors{};
-	Gizmo   m_gizmo{};
-
-	std::vector<ImFont *> m_fonts{};                       //! All the fonts provided in gui fonts list
-	uint32_t              m_current_font{0};               //! Index of the default pointer
-	ImFont               *m_default_font{nullptr};         //! Non-Owning pointer to a default pointer
-	ror::EventSystem     *m_event_system{nullptr};         //! Non-owning pointer to the event system
-	EventCallback         m_move_callback{};               //! Mouse move function that will be used to subscribe and unsubscribe this imgui with event system
-	EventCallback         m_left_down_callback{};          //! Mouse down click function that will be used to subscribe and unsubscribe this imgui with event system
-	EventCallback         m_left_up_callback{};            //! Mouse up function that will be used to subscribe and unsubscribe this imgui with event system
-	EventCallback         m_right_down_callback{};         //! Same but for right click
-	EventCallback         m_right_up_callback{};           //! Same but for right click
-	EventCallback         m_mouse_wheel_callback{};        //! Mouse wheel event to scroll up
-	EventCallback         m_tab_key_callback{};            //! Tab key call back to enable disable the UI
+	Anchors               m_anchors{};                      //! All the anchors in the scene
+	Gizmo                 m_gizmo{};                        //! Single instance of a gizmo that can be used on different objects
+	std::vector<ImFont *> m_fonts{};                        //! All the fonts provided in gui fonts list
+	uint32_t              m_current_font{0};                //! Index of the default pointer
+	ImFont               *m_default_font{nullptr};          //! Non-Owning pointer to a default pointer
+	ror::EventSystem     *m_event_system{nullptr};          //! Non-owning pointer to the event system
+	EventCallback         m_move_callback{};                //! Mouse move function that will be used to subscribe and unsubscribe this imgui with event system
+	EventCallback         m_left_down_callback{};           //! Mouse down click function that will be used to subscribe and unsubscribe this imgui with event system
+	EventCallback         m_left_up_callback{};             //! Mouse up function that will be used to subscribe and unsubscribe this imgui with event system
+	EventCallback         m_right_down_callback{};          //! Same but for right click
+	EventCallback         m_right_up_callback{};            //! Same but for right click
+	EventCallback         m_mouse_wheel_callback{};         //! Mouse wheel event to scroll up
+	EventCallback         m_tab_key_callback{};             //! Tab key call back to enable disable the UI
+	EventCallback         m_demo_windown_callback{};        //! Demo window toggle callback
+	bool                  m_show_demo_window{false};        //! Show ImGui Demo test window
 
 	// Render data
 	rhi::Device          *m_device{nullptr};               //! Non-Owning pointer to a device that is used to initiliazed this gui

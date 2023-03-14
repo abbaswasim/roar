@@ -124,6 +124,13 @@ Gui::Gui()
 		setting.m_gui.m_visible = !setting.m_gui.m_visible;
 	};
 
+	this->m_demo_windown_callback = [&io, this](ror::Event &e) {
+		if (io.WantCaptureKeyboard)
+			e.m_live = false;
+
+		this->m_show_demo_window = !this->m_show_demo_window;
+	};
+
 	// auto p0 = ror::Vector4f{2.0f, 2.0f, 0.0f, 1.0f};
 	// auto p1 = ror::Vector4f{2.5f, 2.5f, 0.0f, 1.0f};
 	// auto p2 = ror::Vector4f{7.5f, 2.5f, 0.0f, 1.0f};
@@ -168,6 +175,8 @@ void Gui::install_input_handlers()
 		this->m_event_system->subscribe_early(mouse_right_mouse_click, this->m_right_up_callback);
 
 		this->m_event_system->subscribe(keyboard_tab_click, this->m_tab_key_callback);
+
+		this->m_event_system->subscribe(keyboard_question_mark_click, this->m_demo_windown_callback);
 	}
 }
 
@@ -184,6 +193,8 @@ void Gui::uninstall_input_handlers()
 		this->m_event_system->unsubscribe(mouse_right_mouse_click, this->m_right_up_callback);
 
 		this->m_event_system->unsubscribe(keyboard_tab_click, this->m_tab_key_callback);
+
+		this->m_event_system->unsubscribe(keyboard_question_mark_click, this->m_demo_windown_callback);
 	}
 }
 
@@ -300,9 +311,8 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 	auto &setting = ror::settings();
 
 	// Lets render GUI
-	static bool  show_demo_window{true};
-	static bool  show_another_window{true};
-	static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
+	// static bool  show_another_window{true};
+	// static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
 	ImGuiIO &io = ImGui::GetIO();
 
@@ -319,28 +329,28 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 
 	ImGui::PushFont(this->m_default_font);
 
-	if (show_demo_window)
-		ImGui::ShowDemoWindow(&show_demo_window);
+	if (this->m_show_demo_window)
+		ImGui::ShowDemoWindow(&this->m_show_demo_window);
 
 	{
-		static float f       = 0.0f;
-		static int   counter = 0;
+		// static float f       = 0.0f;
+		// static int   counter = 0;
+		// ImGui::Begin("Hello, world!");        // Create a window called "Hello, world!" and append into it.
 
-		ImGui::Begin("Hello, world!");        // Create a window called "Hello, world!" and append into it.
+		// ImGui::Text("This is some useful text.");                 // Display some text (you can use a format strings too)
+		// ImGui::Checkbox("Demo Window", &show_demo_window);        // Edit bools storing our window open/close state
+		// ImGui::Checkbox("Another Window", &show_another_window);
 
-		ImGui::Text("This is some useful text.");                 // Display some text (you can use a format strings too)
-		ImGui::Checkbox("Demo Window", &show_demo_window);        // Edit bools storing our window open/close state
-		ImGui::Checkbox("Another Window", &show_another_window);
+		// ImGui::SliderFloat("float", &f, 0.0f, 1.0f);                                      // Edit 1 float using a slider from 0.0f to 1.0f
+		// ImGui::ColorEdit3("clear color", reinterpret_cast<float *>(&clear_color));        // Edit 3 floats representing a color
 
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);                                      // Edit 1 float using a slider from 0.0f to 1.0f
-		ImGui::ColorEdit3("clear color", reinterpret_cast<float *>(&clear_color));        // Edit 3 floats representing a color
+		// if (ImGui::Button("Button"))        // Buttons return true when clicked (most widgets return true when edited/activated)
+		// 	counter++;
+		// ImGui::SameLine();
+		// ImGui::Text("counter = %d", counter);
 
-		if (ImGui::Button("Button"))        // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
-
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		// ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		// ImGui::End();
 
 		auto drawlist = draw_list();
 		auto dis      = io.DisplaySize;
@@ -353,7 +363,6 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 
 		auto view       = a_camera.view();
 		auto projection = a_camera.projection();
-		ImGui::End();
 
 		auto view_projection = projection * view;
 
@@ -364,14 +373,14 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 	}
 
 	// 3. Show another simple window.
-	if (show_another_window)
-	{
-		ImGui::Begin("Another Window", &show_another_window);        // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-		ImGui::Text("Hello from another window!");
-		if (ImGui::Button("Close Me"))
-			show_another_window = false;
-		ImGui::End();
-	}
+	// if (show_another_window)
+	// {
+	// 	ImGui::Begin("Another Window", &show_another_window);        // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+	// 	ImGui::Text("Hello from another window!");
+	// 	if (ImGui::Button("Close Me"))
+	// 		show_another_window = false;
+	// 	ImGui::End();
+	// }
 
 	ImGui::PopFont();
 
