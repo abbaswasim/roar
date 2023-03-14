@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "math/rorvector4.hpp"
 #include "rorgizmo.hpp"
 #include "settings/rorsettings.hpp"
 
@@ -48,12 +49,12 @@ void Gizmo::rescale(float32_t a_world_scale)
 	this->m_bezier_ease       = 0.16f * a_world_scale;
 }
 
+constexpr float32_t move_scale_split{2.0f};
+constexpr float32_t move_split{4.0f};
+
 void Gizmo::shape()
 {
 	auto &center_position = this->m_anchors_front.anchor(this->m_center).new_center();
-
-	float32_t move_scale_split{2.0f};
-	float32_t move_split{4.0f};
 
 	// Move anchors
 	this->m_anchors_behind.anchor(this->m_move[0]).point(0).y = center_position.y + this->m_size / move_split;
@@ -274,7 +275,7 @@ void Gizmo::init(const ror::Vector4f &a_origin)
 	this->reset(a_origin);
 }
 
-float32_t world_scale(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)
+float32_t world_scale(const ror::Vector4f a_origin, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)
 {
 	float32_t screen_size = ror::settings().m_gui.m_gizmo_size;
 
@@ -283,10 +284,8 @@ float32_t world_scale(const ror::Matrix4f &a_view_projection, const ror::Vector4
 	assert(res);
 	(void) res;
 
-	auto origin = zero_vector4f;
-	origin.w    = 1.0f;
-
-	auto          center0 = ror::project_to_screen(origin, a_view_projection, a_viewport);
+	bool          result{true};
+	auto          center0 = ror::project_to_screen(a_origin, a_view_projection, a_viewport, result);
 	ror::Vector4f center1{center0.x + screen_size, center0.y, center0.z, center0.w};
 
 	auto a = ror::project_to_world(center0, view_projection_inverse, a_viewport);
@@ -299,7 +298,7 @@ void Gizmo::draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_
 {
 	this->m_draw_list = draw_list();
 
-	auto scale = world_scale(a_view_projection, a_viewport);
+	auto scale = world_scale(this->m_anchors_front.anchor(this->m_center).center(), a_view_projection, a_viewport);
 
 	ImGuiIO &io = ImGui::GetIO();
 
@@ -320,36 +319,58 @@ void Gizmo::draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_
 	const uint32_t colors[]{red_alpha, green_alpha, blue_alpha};
 	for (size_t i = 0; i < 3; ++i)
 	{
-		auto bezierx = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[i]).point(0), a_view_projection, a_viewport);
-		auto beziery = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[i]).point(1), a_view_projection, a_viewport);
-		auto bezierz = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[i]).point(2), a_view_projection, a_viewport);
+		bool p0result{false};
+		bool p1result{false};
+		bool p2result{false};
+		auto bezierx = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[i]).point(0), a_view_projection, a_viewport, p0result);
+		auto beziery = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[i]).point(1), a_view_projection, a_viewport, p1result);
+		auto bezierz = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[i]).point(2), a_view_projection, a_viewport, p2result);
+
+		if (!p0result && !p1result && !p2result)
+			continue;
 
 		this->m_draw_list->AddBezierQuadratic({bezierx.x, bezierx.y}, {beziery.x, beziery.y}, {bezierz.x, bezierz.y}, colors[i], thickness);
 	}
 
-	auto center = ror::project_to_screen(this->m_anchors_front.anchor(this->m_center).center(), a_view_projection, a_viewport);
+	bool center_result{false};
+	auto center = ror::project_to_screen(this->m_anchors_front.anchor(this->m_center).center(), a_view_projection, a_viewport, center_result);
 
-	auto movex = ror::project_to_screen(this->m_anchors_front.anchor(this->m_move[3]).center(), a_view_projection, a_viewport);
-	auto movey = ror::project_to_screen(this->m_anchors_front.anchor(this->m_move[4]).center(), a_view_projection, a_viewport);
-	auto movez = ror::project_to_screen(this->m_anchors_front.anchor(this->m_move[5]).center(), a_view_projection, a_viewport);
+	bool movexresult{false};
+	bool moveyresult{false};
+	bool movezresult{false};
+	auto movex = ror::project_to_screen(this->m_anchors_front.anchor(this->m_move[3]).center(), a_view_projection, a_viewport, movexresult);
+	auto movey = ror::project_to_screen(this->m_anchors_front.anchor(this->m_move[4]).center(), a_view_projection, a_viewport, moveyresult);
+	auto movez = ror::project_to_screen(this->m_anchors_front.anchor(this->m_move[5]).center(), a_view_projection, a_viewport, movezresult);
 
-	auto scalex = ror::project_to_screen(this->m_anchors_front.anchor(this->m_scale[3]).center(), a_view_projection, a_viewport);
-	auto scaley = ror::project_to_screen(this->m_anchors_front.anchor(this->m_scale[4]).center(), a_view_projection, a_viewport);
-	auto scalez = ror::project_to_screen(this->m_anchors_front.anchor(this->m_scale[5]).center(), a_view_projection, a_viewport);
+	bool scalexresult{false};
+	bool scaleyresult{false};
+	bool scalezresult{false};
+	auto scalex = ror::project_to_screen(this->m_anchors_front.anchor(this->m_scale[3]).center(), a_view_projection, a_viewport, scalexresult);
+	auto scaley = ror::project_to_screen(this->m_anchors_front.anchor(this->m_scale[4]).center(), a_view_projection, a_viewport, scaleyresult);
+	auto scalez = ror::project_to_screen(this->m_anchors_front.anchor(this->m_scale[5]).center(), a_view_projection, a_viewport, scalezresult);
 
-	auto bezierx = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[2]).point(0), a_view_projection, a_viewport);
-	auto beziery = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[0]).point(0), a_view_projection, a_viewport);
-	auto bezierz = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[1]).point(2), a_view_projection, a_viewport);
+	bool bezierxresult{false};
+	bool bezieryresult{false};
+	bool bezierzresult{false};
+	auto bezierx = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[2]).point(0), a_view_projection, a_viewport, bezierxresult);
+	auto beziery = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[0]).point(0), a_view_projection, a_viewport, bezieryresult);
+	auto bezierz = ror::project_to_screen(this->m_anchors_behind.anchor(this->m_rotate[1]).point(2), a_view_projection, a_viewport, bezierzresult);
 
 	// Axis lines
-	this->m_draw_list->AddLine({movex.x, movex.y}, {center.x, center.y}, red, thickness);
-	this->m_draw_list->AddLine({movey.x, movey.y}, {center.x, center.y}, green, thickness);
-	this->m_draw_list->AddLine({movez.x, movez.y}, {center.x, center.y}, blue, thickness);
+	if (center_result && movexresult)
+		this->m_draw_list->AddLine({movex.x, movex.y}, {center.x, center.y}, red, thickness);
+	if (center_result && moveyresult)
+		this->m_draw_list->AddLine({movey.x, movey.y}, {center.x, center.y}, green, thickness);
+	if (center_result && movezresult)
+		this->m_draw_list->AddLine({movez.x, movez.y}, {center.x, center.y}, blue, thickness);
 
 	// Scale lines to the original scale positions
-	this->m_draw_list->AddLine({scalex.x, scalex.y}, {bezierx.x, bezierx.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
-	this->m_draw_list->AddLine({scaley.x, scaley.y}, {beziery.x, beziery.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
-	this->m_draw_list->AddLine({scalez.x, scalez.y}, {bezierz.x, bezierz.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
+	if (scalexresult && bezierxresult)
+		this->m_draw_list->AddLine({scalex.x, scalex.y}, {bezierx.x, bezierx.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
+	if (scaleyresult && bezieryresult)
+		this->m_draw_list->AddLine({scaley.x, scaley.y}, {beziery.x, beziery.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
+	if (scalezresult && bezierzresult)
+		this->m_draw_list->AddLine({scalez.x, scalez.y}, {bezierz.x, bezierz.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
 
 	this->m_anchors_front.new_frame(left_clicked, left_released, mouse_position, left_mouse_position);
 	this->m_anchors_front.draw(this->m_draw_list, a_view_projection, a_viewport, left_clicked);

@@ -343,7 +343,7 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
 		auto drawlist = draw_list();
-		auto dis       = io.DisplaySize;
+		auto dis      = io.DisplaySize;
 
 		auto          mpos  = ImGui::GetMousePos();
 		auto          mcpos = io.MouseClickedPos[0];        // Left click only
@@ -356,6 +356,7 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 		ImGui::End();
 
 		auto view_projection = projection * view;
+
 		this->m_anchors.new_frame(ImGui::IsMouseClicked(0), ImGui::IsMouseReleased(0), mouse_position, left_mouse_position);
 		this->m_anchors.draw(drawlist, view_projection, view_port, ImGui::IsMouseClicked(0));
 

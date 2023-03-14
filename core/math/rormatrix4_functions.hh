@@ -641,9 +641,11 @@ FORCE_INLINE Matrix4<_type> matrix4_interpolate(const Matrix4<_type> &a_matrix1,
 }
 
 template <class _type>
-FORCE_INLINE ror::Vector4<_type> project_to_screen(const ror::Vector4<_type> &world_position, const ror::Matrix4<_type> &view_projection, const ror::Vector4<_type> &view_port)
+FORCE_INLINE ror::Vector4<_type> project_to_screen(const ror::Vector4<_type> &world_position, const ror::Matrix4<_type> &view_projection, const ror::Vector4<_type> &view_port, bool &result)
 {
+	result = true;
 	ror::Vector4f output;
+
 	output = view_projection * world_position;
 
 	// Keep the w only normalize x,y,z
@@ -657,6 +659,9 @@ FORCE_INLINE ror::Vector4<_type> project_to_screen(const ror::Vector4<_type> &wo
 	output.y = output.y * 0.5f + 0.5f;
 	// z is already in (0, 1) range
 	// output.z = output.z * 0.5f + 0.5f;
+
+	if (output.x < -output.w || output.x > output.w || output.y < -output.w || output.y > output.w)
+		result = false;
 
 	// Invert the y because of Metal and Vulkan viewports (left, top, right, bottom) = (0, 0, width, height)
 	output.y = 1.0f - output.y;

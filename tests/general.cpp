@@ -574,7 +574,8 @@ TEST(RoarGeneral, xform_inverse_xform)
 
 void check_projection(const ror::Vector4f &p, const ror::Matrix4f &view_projection, const ror::Matrix4f &view_projection_inverse, const ror::Vector4f &view_port)
 {
-	auto pp  = ror::project_to_screen(p, view_projection, view_port);
+	bool res{false};
+	auto pp  = ror::project_to_screen(p, view_projection, view_port, res);
 	auto upp = ror::project_to_world(pp, view_projection_inverse, view_port);
 
 	const float32_t epsilon{0.005f};
@@ -638,7 +639,8 @@ TEST(RoarGeneral, project_unproject)
 
 	ror::Vector4f z{0.0f, 0.0f, 0.0f, 1.0f};
 	check_projection(z, view_projection, view_projection_inverse, view_port);
-	auto pp = ror::project_to_screen(z, view_projection, view_port);
+	bool result{false};
+	auto pp = ror::project_to_screen(z, view_projection, view_port, result);
 
 	EXPECT_FLOAT_EQ(pp.x, view_port.z / 2.0f);
 	EXPECT_FLOAT_EQ(pp.y, view_port.w - (view_port.w / 2.0f));

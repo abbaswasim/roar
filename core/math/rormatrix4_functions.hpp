@@ -164,7 +164,7 @@ template <class _type>
 FORCE_INLINE Matrix4<_type> matrix4_interpolate(const Matrix4<_type> &a_matrix1, const Matrix4<_type> &a_matrix2, _type a_t);
 
 template <class _type>
-FORCE_INLINE ror::Vector4<_type> project_to_screen(const ror::Vector4<_type> &world_position, const ror::Matrix4<_type> &view_projection, const ror::Vector4<_type> &view_port);
+FORCE_INLINE ror::Vector4<_type> project_to_screen(const ror::Vector4<_type> &world_position, const ror::Matrix4<_type> &view_projection, const ror::Vector4<_type> &view_port, bool &result);
 template <class _type>
 FORCE_INLINE ror::Vector4<_type> project_to_world(const ror::Vector4<_type> &screen_position, const ror::Matrix4<_type> &view_projection_inverse, const ror::Vector4<_type> &view_port);
 

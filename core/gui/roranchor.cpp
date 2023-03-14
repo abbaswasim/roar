@@ -92,12 +92,14 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 	const auto  line_thickness{2.0f};
 	const ImU32 orange_alpha = ImGui::ColorConvertFloat4ToU32({1.0f, 0.647f, 0.0f, 0.9f});
 
-	auto center     = ror::project_to_screen(this->m_center, a_view_projection, a_viewport);
-	auto new_center = ror::project_to_screen(this->m_new_center, a_view_projection, a_viewport);
+	bool cresult{true};
+	bool ncresult{true};
+	auto center = ror::project_to_screen(this->m_center, a_view_projection, a_viewport, cresult);
+	auto new_center = ror::project_to_screen(this->m_new_center, a_view_projection, a_viewport, ncresult);
 
 	a_click_color = orange_alpha;
 
-	if (this->m_clicked)
+	if (this->m_clicked && cresult && ncresult)
 		a_drawlist->AddLine(ImVec2(new_center.x, new_center.y), ImVec2(center.x, center.y), a_white, line_thickness);
 
 	if (this->m_type == AnchorType::circle)
@@ -115,9 +117,13 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 	}
 	else if (this->m_type == AnchorType::triangle)        // Simplification of bezier to a triangle
 	{
-		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport);
-		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport);
-		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport);
+		bool p0result{false};
+		bool p1result{false};
+		bool p2result{false};
+		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport, p0result);
+		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
+		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
+		if (!p0result && !p1result && !p2result) return;
 
 		if (this->m_clicked || a_hovering)
 
@@ -137,9 +143,13 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 	}
 	else if (this->m_type == AnchorType::bezier)
 	{
-		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport);
-		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport);
-		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport);
+		bool p0result{false};
+		bool p1result{false};
+		bool p2result{false};
+		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport, p0result);
+		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
+		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
+		if (!p0result && !p1result && !p2result) return;
 
 		if (this->m_clicked || a_hovering)
 		{
@@ -159,10 +169,15 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 	}
 	else if ((this->m_type == AnchorType::rectangle) || (this->m_type == AnchorType::pyramid))
 	{
-		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport);
-		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport);
-		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport);
-		auto p3 = ror::project_to_screen(this->m_points[3], a_view_projection, a_viewport);
+		bool p0result{false};
+		bool p1result{false};
+		bool p2result{false};
+		bool p3result{false};
+		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport, p0result);
+		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
+		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
+		auto p3 = ror::project_to_screen(this->m_points[3], a_view_projection, a_viewport, p3result);
+		if (!p0result && !p1result && !p2result && !p3result) return;
 
 		if (this->m_clicked || a_hovering)
 		{
@@ -300,8 +315,8 @@ void Anchors::Anchor::recenter()
 	}
 	else if (this->m_type == AnchorType::pyramid)
 	{
-		auto c1   = (this->m_points[0] + this->m_points[2]) / 2.0f;
-		auto c2   = (this->m_points[1] + this->m_points[3]) / 2.0f;
+		auto c1              = (this->m_points[0] + this->m_points[2]) / 2.0f;
+		auto c2              = (this->m_points[1] + this->m_points[3]) / 2.0f;
 		this->m_new_center   = (c1 + c2) / 2.0f;
 		this->m_new_center.w = 1.0f;
 		this->m_center       = this->m_new_center;
@@ -310,7 +325,8 @@ void Anchors::Anchor::recenter()
 
 void Anchors::Anchor::move(ror::Vector4f &a_destination, const ror::Vector2f &a_delta, const ror::Matrix4f &a_view_projection, const ror::Matrix4f &a_view_projection_inverse, const ror::Vector4f &a_viewport)
 {
-	auto center = ror::project_to_screen(a_destination, a_view_projection, a_viewport);
+	bool result{true};
+	auto center = ror::project_to_screen(a_destination, a_view_projection, a_viewport, result);
 
 	center.x -= a_delta.x;
 	center.y -= a_delta.y;
@@ -348,22 +364,35 @@ bool Anchors::Anchor::inside(const ror::Vector2f &a_mouse_position, const ror::M
 {
 	if (this->m_type == AnchorType::circle)
 	{
-		auto center = ror::project_to_screen(this->m_new_center, a_view_projection, a_viewport);
+		bool result{false};
+		auto center = ror::project_to_screen(this->m_new_center, a_view_projection, a_viewport, result);
+		if (!result) return false;
 		return inside_rectangle(a_mouse_position, ror::Vector2f{center.x, center.y} - this->m_radius, ror::Vector2f{center.x, center.y} + this->m_radius);
 	}
 	else if ((this->m_type == AnchorType::triangle) || (this->m_type == AnchorType::bezier))        // Simplification of bezier to a triangle
 	{
-		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport);
-		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport);
-		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport);
+		bool p0result{false};
+		bool p1result{false};
+		bool p2result{false};
+		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport, p0result);
+		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
+		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
+		if (!p0result && !p1result && !p2result) return false;
+
 		return inside_triangle(p0, p1, p2, a_mouse_position);
 	}
 	else if ((this->m_type == AnchorType::rectangle) || (this->m_type == AnchorType::pyramid))
 	{
-		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport);
-		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport);
-		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport);
-		auto p3 = ror::project_to_screen(this->m_points[3], a_view_projection, a_viewport);
+		bool p0result{false};
+		bool p1result{false};
+		bool p2result{false};
+		bool p3result{false};
+		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport, p0result);
+		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
+		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
+		auto p3 = ror::project_to_screen(this->m_points[3], a_view_projection, a_viewport, p3result);
+		if (!p0result && !p1result && !p2result && !p3result) return false;
+
 		return inside_triangle(p0, p1, p2, a_mouse_position) || inside_triangle(p0, p3, p2, a_mouse_position);
 	}
 
