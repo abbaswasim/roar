@@ -30,34 +30,6 @@
 namespace ror
 {
 
-// Copied from ImGuizmo's version of new frame
-FORCE_INLINE auto draw_list()
-{
-	const ImU32 flags = ImGuiWindowFlags_NoTitleBar |
-	                    ImGuiWindowFlags_NoResize |
-	                    ImGuiWindowFlags_NoScrollbar |
-	                    ImGuiWindowFlags_NoInputs |
-	                    ImGuiWindowFlags_NoSavedSettings |
-	                    ImGuiWindowFlags_NoFocusOnAppearing |
-	                    ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-	ImGuiIO &io = ImGui::GetIO();
-	ImGui::SetNextWindowSize(io.DisplaySize);
-	ImGui::SetNextWindowPos(ImVec2(0, 0));
-
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, 0);
-	ImGui::PushStyleColor(ImGuiCol_Border, 0);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-
-	ImGui::Begin("empty_list", nullptr, flags);
-	auto draw_list = ImGui::GetWindowDrawList();
-	ImGui::End();
-	ImGui::PopStyleVar();
-	ImGui::PopStyleColor(2);
-
-	return draw_list;
-}
-
 class ROAR_ENGINE_ITEM Gizmo final
 {
   public:
@@ -68,7 +40,7 @@ class ROAR_ENGINE_ITEM Gizmo final
 	FORCE_INLINE Gizmo &operator=(Gizmo &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Gizmo() noexcept                          = default;        //! Destructor
 
-	void init(const ror::Vector4f &a_origin);
+	void init(ImFont *a_icon_font, const ror::Vector4f &a_origin);
 	void draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport);
 
   protected:
@@ -91,9 +63,10 @@ class ROAR_ENGINE_ITEM Gizmo final
 	float32_t m_bezier_ease{1.0f};                       //! Scale for the bezier easing
 	float32_t m_scale_scale[3]{1.0f, 1.0f, 1.0f};        //! Scale on each axis after manipulation
 
-	Anchors     m_anchors_behind;            //! All the anchors but split into 2 groups because of rendering order
-	Anchors     m_anchors_front;             //! Some lines needs to be rendererd in the middle of these
-	ImDrawList *m_draw_list{nullptr};        //! Drawlist into ImGui data
+	Anchors     m_anchors_behind;                 //! All the anchors but split into 2 groups because of rendering order
+	Anchors     m_anchors_front;                  //! Some lines needs to be rendererd in the middle of these
+	ImDrawList *m_draw_list{nullptr};             //! Drawlist into ImGui data
+	ImFont     *m_roar_icon_font{nullptr};        //! Roar icon font with all the fancy icons
 };
 
 }        // namespace ror

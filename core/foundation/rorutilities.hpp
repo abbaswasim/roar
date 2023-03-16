@@ -66,7 +66,7 @@ FORCE_INLINE auto ror_precision_cast(_type a_value) -> ror_precision<_type>
 }
 
 template <class _type>
-FORCE_INLINE bool decimal_equal(_type a_first, _type a_second)
+FORCE_INLINE constexpr bool decimal_equal(_type a_first, _type a_second)
 {
 	if (std::abs(static_cast<ror_precision<_type>>(a_first - a_second)) <= static_cast<ror_precision<_type>>(ror_epsilon))
 		return true;
@@ -75,7 +75,7 @@ FORCE_INLINE bool decimal_equal(_type a_first, _type a_second)
 }
 
 template <class _type>
-FORCE_INLINE bool equal_zero(_type a_value)
+FORCE_INLINE constexpr bool equal_zero(_type a_value)
 {
 	return decimal_equal<_type>(a_value, static_cast<_type>(0));
 }
@@ -85,31 +85,31 @@ template <class _type>
 std::function<bool(_type)> equal_zero_copy = std::bind(decimal_equal<_type>, std::placeholders::_1, 0);
 
 template <class _type>
-FORCE_INLINE _type to_radians(_type a_degrees)
+FORCE_INLINE constexpr _type to_radians(_type a_degrees)
 {
 	return a_degrees * static_cast<_type>(0.017453292519943295769236907684886);
 }
 
 template <class _type>
-FORCE_INLINE _type to_degrees(_type a_radians)
+FORCE_INLINE constexpr _type to_degrees(_type a_radians)
 {
 	return a_radians * static_cast<_type>(57.295779513082320876798154814105);
 }
 
 template <class _type>
-FORCE_INLINE _type fov_to_zoom_(_type a_fov)
+FORCE_INLINE constexpr _type fov_to_zoom_(_type a_fov)
 {
 	return (static_cast<_type>(1.0) / std::tan(a_fov * static_cast<_type>(0.5)));
 }
 
 template <class _type>
-FORCE_INLINE _type zoom_to_fov_(_type a_zoom)
+FORCE_INLINE constexpr _type zoom_to_fov_(_type a_zoom)
 {
 	return (static_cast<_type>(2.0) * std::atan(static_cast<_type>(1.0) / a_zoom));
 }
 
 template <class _type, class _type2 = float32_t>
-FORCE_INLINE _type2 interpolate(_type a_from, _type a_to, _type2 a_t)
+FORCE_INLINE constexpr _type2 interpolate(_type a_from, _type a_to, _type2 a_t)
 {
 	static_assert(std::is_same<_type2, float32_t>::value || std::is_same<_type2, double64_t>::value, "T should be single or double precisions float");
 	// return static_cast<_type2>(((static_cast<_type2>(1) - a_t) * (static_cast<_type2>(a_from)) + (a_t * static_cast<_type2>(a_to))));
@@ -121,7 +121,7 @@ const auto lerp = interpolate<_type>;
 
 // https://www.gamedev.net/articles/programming/general-and-gameplay-programming/inverse-lerp-a-super-useful-yet-often-overlooked-function-r5230
 template <class _type>
-FORCE_INLINE auto interpolate_inverse(_type a_from, _type a_to, _type a_v) -> ror_precision<_type>
+FORCE_INLINE constexpr auto interpolate_inverse(_type a_from, _type a_to, _type a_v) -> ror_precision<_type>
 {
 	if (a_from < a_to)
 		return (static_cast<ror_precision<_type>>(a_v) - static_cast<ror_precision<_type>>(a_from)) / (static_cast<ror_precision<_type>>(a_to) - static_cast<ror_precision<_type>>(a_from));
@@ -134,14 +134,14 @@ const auto lerp_inv = interpolate_inverse<_type>;
 
 // This function takes a_value in range 1 (a_from1 -> a_to1) and remaps it into range 2 (a_from2 -> a_to2)
 template <class _type>
-FORCE_INLINE auto remap(_type a_from1, _type a_to1, _type a_from2, _type a_to2, _type a_v) -> ror_precision<_type>
+FORCE_INLINE constexpr auto remap(_type a_from1, _type a_to1, _type a_from2, _type a_to2, _type a_v) -> ror_precision<_type>
 {
 	auto t = interpolate_inverse(a_from1, a_to1, a_v);
 	return interpolate(a_from2, a_to2, t);
 }
 
 template <class _type, class _type2 = float32_t>
-FORCE_INLINE _type2 interpolate_clamp(_type a_from, _type a_to, _type2 a_t)
+FORCE_INLINE constexpr _type2 interpolate_clamp(_type a_from, _type a_to, _type2 a_t)
 {
 	if (a_from < a_to)
 		return std::clamp(interpolate(a_from, a_to, a_t), static_cast<_type2>(a_from), static_cast<_type2>(a_to));
@@ -153,7 +153,7 @@ template <class _type>
 const auto lerp_clamp = interpolate_clamp<_type>;
 
 template <class _type>
-FORCE_INLINE auto interpolate_inverse_clamp(_type a_from, _type a_to, _type a_v) -> ror_precision<_type>
+FORCE_INLINE constexpr auto interpolate_inverse_clamp(_type a_from, _type a_to, _type a_v) -> ror_precision<_type>
 {
 	return std::clamp<ror_precision<_type>>(interpolate_inverse(a_from, a_to, a_v), static_cast<ror_precision<_type>>(0.0), static_cast<ror_precision<_type>>(1.0));
 }
@@ -163,14 +163,14 @@ const auto lerp_inv_clamp = interpolate_inverse_clamp<_type>;
 
 // This function takes a_value in range 1 (a_from1 -> a_to1) and remaps it into range 2 (a_from2 -> a_to2)
 template <class _type>
-FORCE_INLINE auto remap_clamp(_type a_from1, _type a_to1, _type a_from2, _type a_to2, _type a_v) -> ror_precision<_type>
+FORCE_INLINE constexpr auto remap_clamp(_type a_from1, _type a_to1, _type a_from2, _type a_to2, _type a_v) -> ror_precision<_type>
 {
 	auto t = interpolate_inverse_clamp(a_from1, a_to1, a_v);
 	return interpolate_clamp(a_from2, a_to2, t);
 }
 
 template <class _type, class _genarator, typename std::enable_if<std::is_integral<_type>::value, _type>::type * = nullptr>
-FORCE_INLINE _type _random(_type a_min, _type a_max, _genarator &a_engine)
+FORCE_INLINE constexpr _type _random(_type a_min, _type a_max, _genarator &a_engine)
 {
 	std::uniform_int_distribution<_type> dist(a_min, a_max);
 	return dist(a_engine);
@@ -178,7 +178,7 @@ FORCE_INLINE _type _random(_type a_min, _type a_max, _genarator &a_engine)
 
 template <class _type, class _genarator, typename std::enable_if<std::is_floating_point<_type>::value, _type>::type * = nullptr>
 // template <class _type, class _genarator, typename std::enable_if<std::is_floating_point<_type>::value>::type>
-FORCE_INLINE _type _random(_type a_min, _type a_max, _genarator &a_engine)
+FORCE_INLINE constexpr _type _random(_type a_min, _type a_max, _genarator &a_engine)
 {
 	std::uniform_real_distribution<_type> dist(a_min, a_max);
 	return dist(a_engine);
@@ -214,7 +214,7 @@ FORCE_INLINE _type random(_type a_min, _type a_max)
 }
 
 template <class _type>
-FORCE_INLINE _type closest(_type a_value, _type a_first, _type a_second)
+FORCE_INLINE constexpr _type closest(_type a_value, _type a_first, _type a_second)
 {
 	// Converts to decimal from all types including unsigned values, in which case you might loose precision, truncation
 	return (std::abs(ror_precision_cast(a_value) - ror_precision_cast(a_first)) <
@@ -223,7 +223,7 @@ FORCE_INLINE _type closest(_type a_value, _type a_first, _type a_second)
 	            a_second);
 }
 
-FORCE_INLINE uint32_t power_of_two(uint32_t a_value)
+FORCE_INLINE constexpr uint32_t power_of_two(uint32_t a_value)
 {
 	uint32_t result = 2;
 
@@ -251,7 +251,7 @@ void bubble_sort(_type a_items[], int a_size)
 }
 
 template <typename _type>
-FORCE_INLINE bool is_nan(_type a_value)
+FORCE_INLINE constexpr bool is_nan(_type a_value)
 {
 	return a_value != a_value;
 }

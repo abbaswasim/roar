@@ -69,8 +69,8 @@ class ROAR_ENGINE_ITEM Light
 	Vector3f          m_direction{};                                         //! Direction of directional and spot lights
 	float32_t         m_intensity{1.0f};                                     //! Light intensity
 	float32_t         m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
-	float32_t         m_inner_angle{0.0f};                                   //! Spot light inner angle
-	float32_t         m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle
+	float32_t         m_inner_angle{0.0f};                                   //! Spot light inner angle, in radians
+	float32_t         m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle, in radians
 	std::string       m_light_struct_name{};                                 //! Light struct name cache
 	rhi::ShaderBuffer m_shader_buffer{"Light",
 	                                  rhi::ShaderBufferType::ubo,
@@ -90,7 +90,7 @@ class ROAR_ENGINE_ITEM EnvironmentProbe final
 	FORCE_INLINE ~EnvironmentProbe() noexcept                                            = default;        //! Destructor
 
 	// clang-format off
-	FORCE_INLINE void transform(ror::Transformf a_transform)      { this->m_transform = a_transform; }
+	FORCE_INLINE void transform(ror::Transformf a_transform) { this->m_transform = a_transform; }
 	FORCE_INLINE void path(std::filesystem::path a_path)     { this->m_path = a_path;           }
 
 	FORCE_INLINE auto transform()                            { return this->m_transform;        }

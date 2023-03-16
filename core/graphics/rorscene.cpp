@@ -1426,6 +1426,18 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		ror::log_critical("Can't generate ui.");
 
 	this->update_bounding_box();
+
+	this->make_overlays();
+}
+
+void Scene::make_overlays()
+{
+	auto &ui = ror::gui();
+	auto &overlays = ui.overlays();
+
+	overlays.add(this->m_lights);
+	overlays.add(this->m_cameras);
+
 }
 
 hash_64_t pass_aware_vertex_hash(rhi::RenderpassType a_passtype, const ror::Mesh &a_mesh, size_t a_prim_index, const std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>> &a_skins)

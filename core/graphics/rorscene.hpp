@@ -151,6 +151,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		rhi::Program program{-1, -1};
 	};
 
+	void make_overlays();
 	void read_nodes();
 	void read_lights();
 	void read_cameras();

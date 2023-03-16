@@ -43,6 +43,7 @@
 #include "rhi/rorvertex_description.hpp"
 #include "rhi/rorvertex_layout.hpp"
 #include "rorgui.hpp"
+#include "rorroar_font.hpp"
 #include "settings/rorsettings.hpp"
 
 #include <algorithm>
@@ -130,31 +131,6 @@ Gui::Gui()
 
 		this->m_show_demo_window = !this->m_show_demo_window;
 	};
-
-	// auto p0 = ror::Vector4f{2.0f, 2.0f, 0.0f, 1.0f};
-	// auto p1 = ror::Vector4f{2.5f, 2.5f, 0.0f, 1.0f};
-	// auto p2 = ror::Vector4f{7.5f, 2.5f, 0.0f, 1.0f};
-	// auto p3 = ror::Vector4f{1.0f, 1.0f, 0.0f, 1.0f};
-	// auto p4 = ror::Vector4f{5.0f, 1.0f, 0.0f, 1.0f};
-	// auto p5 = ror::Vector4f{9.0f, 2.5f, 0.0f, 1.0f};
-	// auto p6 = ror::Vector4f{7.5f, 1.0f, 0.0f, 1.0f};
-	// auto p7 = ror::Vector4f{9.0f, 1.0f, 0.0f, 1.0f};
-	// auto p8 = ror::Vector4f{8.0f, -1.0f, 0.0f, 1.0f};
-	// auto p9 = ror::Vector4f{8.5f, -1.0f, 0.0f, 1.0f};
-
-	// Anchors::Anchor a0{p0, 4.3f};
-	// Anchors::Anchor a1{p1, p0, p2, Anchors::AnchorType::bezier};
-	// Anchors::Anchor a2{p1, p3, p4};
-	// Anchors::Anchor a3{p2, p6, p7, p5};
-	// Anchors::Anchor a4{p6, p8, p9, p7};
-
-	// m_anchors.push_anchor(a0);
-	// m_anchors.push_anchor(a1);
-	// m_anchors.push_anchor(a2);
-	// m_anchors.push_anchor(a3);
-	// m_anchors.push_anchor(a4);
-
-	this->m_gizmo.init(ror::Vector4f{0.0f, 0.0f, 0.0f, 1.0f});
 }
 
 Gui::~Gui() noexcept        //! Destructor
@@ -206,7 +182,8 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 
 	auto &setting = ror::settings();
 
-	ImGuiIO &io = ImGui::GetIO();
+	ImGuiIO &io        = ImGui::GetIO();
+	io.FontGlobalScale = setting.m_gui.m_font_scale;        //  0.45f;        // For font blender_droid at size 32 using font scale .45 makes it look nicer
 
 	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
 	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
@@ -224,11 +201,8 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 
 	ImGui::GetStyle().ScaleAllSizes(setting.m_gui.m_scale);        // If you want to make things bigger, should probably be DPI aware
 
-	{
-		ImFontConfig font_cfg;
-		font_cfg.SizePixels = setting.m_gui.m_font_size;
-		io.Fonts->AddFontDefault(&font_cfg);
-	}
+	// Not using the ImFontGlyphRangesBuilder, instead hard coding this in here
+	static ImWchar roar_icons_range[]{ROAR_ICON_RANGE_START, ROAR_ICON_RANGE_END, 0};
 
 	for (auto &font : setting.m_gui.m_fonts)
 	{
@@ -244,17 +218,32 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 		font_cfg.FontDataOwnedByAtlas = false;                                        // So imgui doesn't delete the resource data from underneath us
 		std::memcpy(font_cfg.Name, font.c_str(), std::min(40ul, font.size()));        // 40 Hard limit on ImGui font name
 
-		ImFont *imfont{nullptr};
+		ImFont  *imfont{nullptr};
+		ImWchar *glyph_ranges{nullptr};
 
 		if (font_data)
 		{
-			imfont = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, setting.m_gui.m_font_size, &font_cfg);
+			if (font == "roar_icons.ttf")        // If we are loading roar_icons.ttf font use specified range only
+				glyph_ranges = roar_icons_range;
+
+			if (this->m_fonts.size() > 0)        // If we have any fonts lets append to those, NOTE: I think this doesn't work if there are overlapping fonts, check...
+				font_cfg.MergeMode = true;
+
+			imfont = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 0, &font_cfg, glyph_ranges);
 
 			if (imfont == nullptr)
 				ror::log_warn("Can't create a font from the loaded font resource {}", font.c_str());
 		}
 
 		this->m_fonts.push_back(imfont);        // I might be inserting a nullptr here but thats ok otherwise my default_font index will be wrong
+	}
+
+	// If there were no fonts provided lets use the default font at least
+	if (this->m_fonts.empty())
+	{
+		ImFontConfig font_cfg;
+		font_cfg.SizePixels = setting.m_gui.m_font_size;
+		this->m_fonts.emplace_back(io.Fonts->AddFontDefault(&font_cfg));
 	}
 
 	// Lets enable the default font from the setting
@@ -302,16 +291,40 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 
 	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
 	this->m_index_buffer.init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
+
+	// auto p0 = ror::Vector4f{2.0f, 2.0f, 0.0f, 1.0f};
+	// auto p1 = ror::Vector4f{2.5f, 2.5f, 0.0f, 1.0f};
+	// auto p2 = ror::Vector4f{7.5f, 2.5f, 0.0f, 1.0f};
+	// auto p3 = ror::Vector4f{1.0f, 1.0f, 0.0f, 1.0f};
+	// auto p4 = ror::Vector4f{5.0f, 1.0f, 0.0f, 1.0f};
+	// auto p5 = ror::Vector4f{9.0f, 2.5f, 0.0f, 1.0f};
+	// auto p6 = ror::Vector4f{7.5f, 1.0f, 0.0f, 1.0f};
+	// auto p7 = ror::Vector4f{9.0f, 1.0f, 0.0f, 1.0f};
+	// auto p8 = ror::Vector4f{8.0f, -1.0f, 0.0f, 1.0f};
+	// auto p9 = ror::Vector4f{8.5f, -1.0f, 0.0f, 1.0f};
+
+	// Anchors::Anchor a0{p0, 4.3f};
+	// Anchors::Anchor a1{p1, p0, p2, Anchors::AnchorType::bezier};
+	// Anchors::Anchor a2{p1, p3, p4};
+	// Anchors::Anchor a3{p2, p6, p7, p5};
+	// Anchors::Anchor a4{p6, p8, p9, p7};
+
+	// m_anchors.push_anchor(a0);
+	// m_anchors.push_anchor(a1);
+	// m_anchors.push_anchor(a2);
+	// m_anchors.push_anchor(a3);
+	// m_anchors.push_anchor(a4);
+
+	// this->m_gizmo.init(this->m_default_font, ror::Vector4f{0.0f, 0.0f, 0.0f, 1.0f});
+	this->m_overlays.init(this->m_default_font);
 }
 
 void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions)
 {
-	(void) a_camera;
-	// (void) project_to_screen;
 	auto &setting = ror::settings();
 
 	// Lets render GUI
-	// static bool  show_another_window{true};
+	// static bool show_another_window{true};
 	// static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
 	ImGuiIO &io = ImGui::GetIO();
@@ -333,26 +346,16 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 		ImGui::ShowDemoWindow(&this->m_show_demo_window);
 
 	{
-		// static float f       = 0.0f;
-		// static int   counter = 0;
-		// ImGui::Begin("Hello, world!");        // Create a window called "Hello, world!" and append into it.
-
-		// ImGui::Text("This is some useful text.");                 // Display some text (you can use a format strings too)
-		// ImGui::Checkbox("Demo Window", &show_demo_window);        // Edit bools storing our window open/close state
-		// ImGui::Checkbox("Another Window", &show_another_window);
-
-		// ImGui::SliderFloat("float", &f, 0.0f, 1.0f);                                      // Edit 1 float using a slider from 0.0f to 1.0f
-		// ImGui::ColorEdit3("clear color", reinterpret_cast<float *>(&clear_color));        // Edit 3 floats representing a color
-
-		// if (ImGui::Button("Button"))        // Buttons return true when clicked (most widgets return true when edited/activated)
-		// 	counter++;
-		// ImGui::SameLine();
-		// ImGui::Text("counter = %d", counter);
-
-		// ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		// ImGui::Begin("Hello, world!");           // Create a window called "Hello, world!" and append into it.
+		// ImGui::Text("Transform");                // Display some text (you can use a format strings too)
+		// ImGui::Text("Location X");
+		// ImGui::Text("Rotation X");
+		// ImGui::Text("Scale X");
+		// ImGui::Text("Collection");
+		// ImGui::Text("Instancing");
 		// ImGui::End();
 
-		auto drawlist = draw_list();
+		auto drawlist = imgui_draw_list();
 		auto dis      = io.DisplaySize;
 
 		auto          mpos  = ImGui::GetMousePos();
@@ -369,16 +372,21 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 		this->m_anchors.new_frame(ImGui::IsMouseClicked(0), ImGui::IsMouseReleased(0), mouse_position, left_mouse_position);
 		this->m_anchors.draw(drawlist, view_projection, view_port, ImGui::IsMouseClicked(0));
 
-		this->m_gizmo.draw(view_projection, view_port);
+		// this->m_gizmo.draw(view_projection, view_port);
+		this->m_overlays.draw(view_projection, view_port);
 	}
 
-	// 3. Show another simple window.
+	// // 3. Show another simple window.
 	// if (show_another_window)
 	// {
 	// 	ImGui::Begin("Another Window", &show_another_window);        // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 	// 	ImGui::Text("Hello from another window!");
-	// 	if (ImGui::Button("Close Me"))
+
+	// 	// a_drawlist->AddText(nullptr, color == imgui_black ? 13.0f : 12.0f, ImVec2{x - text_offset, y - 5.0f}, color, names[j - 1]);
+	// 	ImGui::PushFont(this->m_fonts[this->m_fonts.size() - 2]);
+	// 	if (ImGui::Button(ROAR_ICON_CAMERA "Close Me"))
 	// 		show_another_window = false;
+	// 	ImGui::PopFont();
 	// 	ImGui::End();
 	// }
 

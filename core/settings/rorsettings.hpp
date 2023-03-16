@@ -176,8 +176,10 @@ class ROAR_ENGINE_ITEM Settings final
 			this->m_gui.m_vertex_buffer_size = setting.get<uint32_t>("gui:vertex_buffer_size");
 			this->m_gui.m_index_buffer_size  = setting.get<uint32_t>("gui:index_buffer_size");
 			this->m_gui.m_anchor_size        = setting.get<float32_t>("gui:anchor_size");
+			this->m_gui.m_overlay_scale      = setting.get<float32_t>("gui:overlay_scale");
 			this->m_gui.m_gizmo_size         = setting.get<float32_t>("gui:gizmo_size");
 			this->m_gui.m_fonts              = setting.get<std::vector<std::string>>("gui:fonts");
+			this->m_gui.m_font_scale         = setting.get<float32_t>("gui:font_scale");
 
 			auto gco = setting.get<std::vector<float32_t>>("gui:anchor_color");
 			if (gco.size() >= 4)
@@ -492,8 +494,10 @@ class ROAR_ENGINE_ITEM Settings final
 		uint32_t                 m_default_font{0};
 		uint32_t                 m_vertex_buffer_size{2000000};        // Initial Size of vertex buffer
 		uint32_t                 m_index_buffer_size{500000};          // Initial Size of index buffer
+		float32_t                m_overlay_scale{1.5f};
 		float32_t                m_gizmo_size{100.0f};
 		float32_t                m_anchor_size{3.0f};
+		float32_t                m_font_scale{0.45f};
 		ror::Vector4f            m_anchor_color{0.1f, 0.7f, 0.1f, 1.0f};
 		ror::Vector4f            m_anchor_click_color{0.7f, 0.1f, 0.1f, 1.0f};
 		std::vector<std::string> m_fonts{};

@@ -122,20 +122,19 @@
 		"scale" : 1,
 		"visible" : true,
 		"theme" : "dark",
-		"default_font" : 3,
-		"font_size" : 16,
+		"default_font" : 0,
+		"font_size" : 32,
+		"font_scale" : 0.45,
 		"vertex_buffer_size": 2000000,
 		"index_buffer_size": 500000,
+		"overlay_scale": 1.0,
 		"gizmo_size": 100.0,
 		"anchor_size": 3.0,
 		"anchor_color" : [0.1, 0.3, 0.1, 1.0],
 		"anchor_click_color" : [0.3, 0.1, 0.1, 1.0],
 		"fonts" : [
-			"Roboto-Medium.ttf",
-			"DroidSans.ttf",
 			"blender-droidsans.ttf",
-			"bmonofont-i18n.ttf"
+			"roar_icons.ttf"
 		]
-
 	}
 }

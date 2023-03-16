@@ -101,6 +101,7 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/rhi/rorvertex_description.hpp
   ${ROAR_SOURCE_DIR}/gui/roranchor.hpp
   ${ROAR_SOURCE_DIR}/gui/rorgizmo.hpp
+  ${ROAR_SOURCE_DIR}/gui/roroverlay.hpp
   ${ROAR_SOURCE_DIR}/gui/rorgui.hpp
   ${ROAR_SOURCE_DIR}/graphics/rorlight.hpp
   ${ROAR_SOURCE_DIR}/graphics/rormesh.hpp
@@ -122,6 +123,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/resources/rorresource.cpp
   ${ROAR_SOURCE_DIR}/gui/roranchor.cpp
   ${ROAR_SOURCE_DIR}/gui/rorgizmo.cpp
+  ${ROAR_SOURCE_DIR}/gui/roroverlay.cpp
   ${ROAR_SOURCE_DIR}/gui/rorgui.cpp
   ${ROAR_SOURCE_DIR}/graphics/rorlight.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormesh.cpp

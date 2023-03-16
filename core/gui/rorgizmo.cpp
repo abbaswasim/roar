@@ -23,8 +23,10 @@
 //
 // Version: 1.0.0
 
+#include "gui/rorimgui_drawlist.hpp"
 #include "math/rorvector4.hpp"
 #include "rorgizmo.hpp"
+#include "rorroar_font.hpp"
 #include "settings/rorsettings.hpp"
 
 namespace ror
@@ -206,20 +208,9 @@ void Gizmo::update(float32_t a_world_scale)
 	this->shape();
 }
 
-const ImU32 red         = ImGui::ColorConvertFloat4ToU32({1.0f, 0.0f, 0.0f, 1.0f});
-const ImU32 green       = ImGui::ColorConvertFloat4ToU32({0.0f, 1.0f, 0.0f, 1.0f});
-const ImU32 blue        = ImGui::ColorConvertFloat4ToU32({0.0f, 0.0f, 1.0f, 1.0f});
-const ImU32 dim_red     = ImGui::ColorConvertFloat4ToU32({0.6f, 0.0f, 0.0f, 0.5f});
-const ImU32 dim_green   = ImGui::ColorConvertFloat4ToU32({0.0f, 0.6f, 0.0f, 0.5f});
-const ImU32 dim_blue    = ImGui::ColorConvertFloat4ToU32({0.0f, 0.0f, 0.6f, 0.5f});
-const ImU32 white_col   = ImGui::ColorConvertFloat4ToU32({1.0f, 1.0f, 1.0f, 1.0f});
-const ImU32 white_alpha = ImGui::ColorConvertFloat4ToU32({1.0f, 1.0f, 1.0f, 0.5f});
-const ImU32 red_alpha   = ImGui::ColorConvertFloat4ToU32({1.0f, 0.0f, 0.0f, 0.3f});
-const ImU32 green_alpha = ImGui::ColorConvertFloat4ToU32({0.0f, 1.0f, 0.0f, 0.3f});
-const ImU32 blue_alpha  = ImGui::ColorConvertFloat4ToU32({0.0f, 0.0f, 1.0f, 0.3f});
-
-void Gizmo::init(const ror::Vector4f &a_origin)
+void Gizmo::init(ImFont *a_icon_font, const ror::Vector4f &a_origin)
 {
+	this->m_roar_icon_font = a_icon_font;
 	// Side flat anchors on planes
 	for (uint32_t i = 0; i < 3; ++i)
 	{
@@ -237,7 +228,12 @@ void Gizmo::init(const ror::Vector4f &a_origin)
 	}
 
 	const float32_t           radia[]{6.0f, 6.0f, 6.0f, 8.0f, 8.0f, 8.0f, 6.0f, 6.0f, 6.0f, 10.0f, 8.0f, 8.0f, 8.0f, 6.0f, 6.0f, 6.0f};
-	const uint32_t            cols[]{dim_red, dim_green, dim_blue, dim_red, dim_green, dim_blue, dim_red, dim_green, dim_blue, white_col, red, green, blue, red, green, blue};
+	const uint32_t            cols[]{imgui_dim_red, imgui_dim_green, imgui_dim_blue,
+	                                 imgui_dim_red, imgui_dim_green, imgui_dim_blue,
+	                                 imgui_dim_red, imgui_dim_green, imgui_dim_blue,
+	                                 imgui_white,
+	                                 imgui_red, imgui_green, imgui_blue,
+	                                 imgui_red, imgui_green, imgui_blue};
 	const Anchors::AnchorType type[]{Anchors::AnchorType::bezier, Anchors::AnchorType::bezier, Anchors::AnchorType::bezier,
 	                                 Anchors::AnchorType::pyramid, Anchors::AnchorType::pyramid, Anchors::AnchorType::pyramid,
 	                                 Anchors::AnchorType::pyramid, Anchors::AnchorType::pyramid, Anchors::AnchorType::pyramid,
@@ -275,30 +271,12 @@ void Gizmo::init(const ror::Vector4f &a_origin)
 	this->reset(a_origin);
 }
 
-float32_t world_scale(const ror::Vector4f a_origin, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)
-{
-	float32_t screen_size = ror::settings().m_gui.m_gizmo_size;
-
-	auto view_projection_inverse = a_view_projection;
-	auto res                     = view_projection_inverse.invert();
-	assert(res);
-	(void) res;
-
-	bool          result{true};
-	auto          center0 = ror::project_to_screen(a_origin, a_view_projection, a_viewport, result);
-	ror::Vector4f center1{center0.x + screen_size, center0.y, center0.z, center0.w};
-
-	auto a = ror::project_to_world(center0, view_projection_inverse, a_viewport);
-	auto b = ror::project_to_world(center1, view_projection_inverse, a_viewport);
-
-	return (a - b).length();
-}
-
 void Gizmo::draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)
 {
-	this->m_draw_list = draw_list();
+	this->m_draw_list = imgui_draw_list();
 
-	auto scale = world_scale(this->m_anchors_front.anchor(this->m_center).center(), a_view_projection, a_viewport);
+	float32_t screen_size = ror::settings().m_gui.m_gizmo_size;
+	auto      scale       = screen_to_world_scale(screen_size, this->m_anchors_front.anchor(this->m_center).center(), a_view_projection, a_viewport);
 
 	ImGuiIO &io = ImGui::GetIO();
 
@@ -316,7 +294,7 @@ void Gizmo::draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_
 
 	float thickness{4};
 
-	const uint32_t colors[]{red_alpha, green_alpha, blue_alpha};
+	const uint32_t colors[]{imgui_dimmer_red, imgui_dimmer_green, imgui_dimmer_blue};
 	for (size_t i = 0; i < 3; ++i)
 	{
 		bool p0result{false};
@@ -358,19 +336,19 @@ void Gizmo::draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_
 
 	// Axis lines
 	if (center_result && movexresult)
-		this->m_draw_list->AddLine({movex.x, movex.y}, {center.x, center.y}, red, thickness);
+		this->m_draw_list->AddLine({movex.x, movex.y}, {center.x, center.y}, imgui_red, thickness);
 	if (center_result && moveyresult)
-		this->m_draw_list->AddLine({movey.x, movey.y}, {center.x, center.y}, green, thickness);
+		this->m_draw_list->AddLine({movey.x, movey.y}, {center.x, center.y}, imgui_green, thickness);
 	if (center_result && movezresult)
-		this->m_draw_list->AddLine({movez.x, movez.y}, {center.x, center.y}, blue, thickness);
+		this->m_draw_list->AddLine({movez.x, movez.y}, {center.x, center.y}, imgui_blue, thickness);
 
 	// Scale lines to the original scale positions
 	if (scalexresult && bezierxresult)
-		this->m_draw_list->AddLine({scalex.x, scalex.y}, {bezierx.x, bezierx.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
+		this->m_draw_list->AddLine({scalex.x, scalex.y}, {bezierx.x, bezierx.y}, imgui_dimmer_white, std::max(1.0f, thickness / 2.0f));
 	if (scaleyresult && bezieryresult)
-		this->m_draw_list->AddLine({scaley.x, scaley.y}, {beziery.x, beziery.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
+		this->m_draw_list->AddLine({scaley.x, scaley.y}, {beziery.x, beziery.y}, imgui_dimmer_white, std::max(1.0f, thickness / 2.0f));
 	if (scalezresult && bezierzresult)
-		this->m_draw_list->AddLine({scalez.x, scalez.y}, {bezierz.x, bezierz.y}, white_alpha, std::max(1.0f, thickness / 2.0f));
+		this->m_draw_list->AddLine({scalez.x, scalez.y}, {bezierz.x, bezierz.y}, imgui_dimmer_white, std::max(1.0f, thickness / 2.0f));
 
 	this->m_anchors_front.new_frame(left_clicked, left_released, mouse_position, left_mouse_position);
 	this->m_anchors_front.draw(this->m_draw_list, a_view_projection, a_viewport, left_clicked);

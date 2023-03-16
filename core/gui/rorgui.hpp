@@ -31,6 +31,7 @@
 #include "rhi/rordevice.hpp"
 #include "roranchor.hpp"
 #include "rorgizmo.hpp"
+#include "roroverlay.hpp"
 
 #include <vector>
 
@@ -48,8 +49,9 @@ class ROAR_ENGINE_ITEM Gui final
 	Gui();                  //! Default constructor
 	~Gui() noexcept;        //! Destructor
 
-	void init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system);
-	void render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera);
+	void  init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void  render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera);
+	auto &overlays() {return this->m_overlays;}
 
 	enum imgui_keys
 	{
@@ -72,6 +74,7 @@ class ROAR_ENGINE_ITEM Gui final
 
 	Anchors               m_anchors{};                      //! All the anchors in the scene
 	Gizmo                 m_gizmo{};                        //! Single instance of a gizmo that can be used on different objects
+	Overlays              m_overlays{};                     //! Instance of all overlays that can be used on different objects like Lights and Cameras etc
 	std::vector<ImFont *> m_fonts{};                        //! All the fonts provided in gui fonts list
 	uint32_t              m_current_font{0};                //! Index of the default pointer
 	ImFont               *m_default_font{nullptr};          //! Non-Owning pointer to a default pointer

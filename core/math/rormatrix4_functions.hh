@@ -23,6 +23,9 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rormacros.hpp"
+#include "foundation/rortypes.hpp"
+#include "foundation/rorutilities.hpp"
 #include "rormatrix4_functions.hpp"
 
 namespace ror
@@ -660,7 +663,7 @@ FORCE_INLINE ror::Vector4<_type> project_to_screen(const ror::Vector4<_type> &wo
 	// z is already in (0, 1) range
 	// output.z = output.z * 0.5f + 0.5f;
 
-	if (output.x < -output.w || output.x > output.w || output.y < -output.w || output.y > output.w)
+	if (decimal_equal(output.w, 0.0f) || output.x < -output.w || output.x > output.w || output.y < -output.w || output.y > output.w)
 		result = false;
 
 	// Invert the y because of Metal and Vulkan viewports (left, top, right, bottom) = (0, 0, width, height)
@@ -704,6 +707,24 @@ FORCE_INLINE ror::Vector4<_type> project_to_world(const ror::Vector4<_type> &scr
 	output = view_projection_inverse * output;
 
 	return output;
+}
+
+template <class _type>
+FORCE_INLINE _type screen_to_world_scale(_type a_screen_size, const ror::Vector4<_type> a_origin, const ror::Matrix4<_type> &a_view_projection, const ror::Vector4<_type> &a_viewport)
+{
+	auto view_projection_inverse = a_view_projection;
+	auto res                     = view_projection_inverse.invert();
+	assert(res);
+	(void) res;
+
+	auto                result{true};
+	auto                center0 = ror::project_to_screen(a_origin, a_view_projection, a_viewport, result);
+	ror::Vector4<_type> center1{center0.x + a_screen_size, center0.y, center0.z, center0.w};
+
+	auto a = ror::project_to_world(center0, view_projection_inverse, a_viewport);
+	auto b = ror::project_to_world(center1, view_projection_inverse, a_viewport);
+
+	return (a - b).length();
 }
 
 }        // namespace ror

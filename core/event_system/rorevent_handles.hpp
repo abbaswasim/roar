@@ -29,7 +29,7 @@
 
 namespace ror
 {
-static const auto application_event                       = create_event_handle(EventType::application, EventCode::none, EventModifier::none, EventState::max);
+static const auto application_event = create_event_handle(EventType::application, EventCode::none, EventModifier::none, EventState::max);
 
 static const auto mouse_click                             = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::click);
 static const auto mouse_repeat                            = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::repeat);
@@ -4439,6 +4439,7 @@ static const auto keyboard_fn_option_move                 = create_event_handle(
 static const auto keyboard_fn_option_drag                 = create_event_handle(EventType::keyboard, EventCode::fn, EventModifier::option, EventState::drag);
 static const auto keyboard_fn_option_resize               = create_event_handle(EventType::keyboard, EventCode::fn, EventModifier::option, EventState::resize);
 static const auto keyboard_fn_option_focus                = create_event_handle(EventType::keyboard, EventCode::fn, EventModifier::option, EventState::focus);
+static const auto keyboard_question_mark_click            = create_event_handle(EventType::keyboard, EventCode::slash, EventModifier::shift, EventState::down);
 static const auto window_click                            = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::click);
 static const auto window_repeat                           = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::repeat);
 static const auto window_down                             = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::down);

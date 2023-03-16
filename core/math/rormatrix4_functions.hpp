@@ -168,6 +168,9 @@ FORCE_INLINE ror::Vector4<_type> project_to_screen(const ror::Vector4<_type> &wo
 template <class _type>
 FORCE_INLINE ror::Vector4<_type> project_to_world(const ror::Vector4<_type> &screen_position, const ror::Matrix4<_type> &view_projection_inverse, const ror::Vector4<_type> &view_port);
 
+template <class _type>
+FORCE_INLINE _type screen_to_world_scale(_type a_screen_size, const ror::Vector4<_type> a_origin, const ror::Matrix4<_type> &a_view_projection, const ror::Vector4<_type> &a_viewport);
+
 }        // namespace ror
 
 #include "rormatrix4_functions.hh"

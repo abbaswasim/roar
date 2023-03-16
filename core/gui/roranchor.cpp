@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "foundation/rormacros.hpp"
+#include "foundation/rorutilities.hpp"
 #include "roranchor.hpp"
 #include "settings/rorsettings.hpp"
 
@@ -58,7 +59,6 @@ FORCE_INLINE void AddBezierQuadraticFilled(ImDrawList *a_drawlist, const ImVec2 
 
 Anchors::Anchor::Anchor(ror::Vector4f a_center, float32_t a_radius) :
     m_type(AnchorType::circle), m_center(a_center), m_new_center(a_center), m_radius(a_radius)
-
 {}
 
 Anchors::Anchor::Anchor(ror::Vector4f a_p1, ror::Vector4f a_p2, ror::Vector4f a_p3, AnchorType a_type) :
@@ -94,7 +94,7 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 
 	bool cresult{true};
 	bool ncresult{true};
-	auto center = ror::project_to_screen(this->m_center, a_view_projection, a_viewport, cresult);
+	auto center     = ror::project_to_screen(this->m_center, a_view_projection, a_viewport, cresult);
 	auto new_center = ror::project_to_screen(this->m_new_center, a_view_projection, a_viewport, ncresult);
 
 	a_click_color = orange_alpha;
@@ -123,7 +123,8 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport, p0result);
 		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
 		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
-		if (!p0result && !p1result && !p2result) return;
+		if (!p0result && !p1result && !p2result)
+			return;
 
 		if (this->m_clicked || a_hovering)
 
@@ -149,7 +150,8 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport, p0result);
 		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
 		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
-		if (!p0result && !p1result && !p2result) return;
+		if (!p0result && !p1result && !p2result)
+			return;
 
 		if (this->m_clicked || a_hovering)
 		{
@@ -177,7 +179,8 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
 		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
 		auto p3 = ror::project_to_screen(this->m_points[3], a_view_projection, a_viewport, p3result);
-		if (!p0result && !p1result && !p2result && !p3result) return;
+		if (!p0result && !p1result && !p2result && !p3result)
+			return;
 
 		if (this->m_clicked || a_hovering)
 		{
@@ -222,7 +225,6 @@ void Anchors::Anchor::make_ribbon(ImDrawList *a_drawlist, ror::Vector4f new_cent
 	const uint32_t  segments{26};
 	const float32_t segment_space{ribon_height / segments};
 	float32_t       line_thickness_copy{line_thickness};
-	const auto      imgui_black = ImGui::ColorConvertFloat4ToU32({0, 0, 0, 1.0f});
 
 	(void) straight;
 
@@ -326,10 +328,13 @@ void Anchors::Anchor::recenter()
 void Anchors::Anchor::move(ror::Vector4f &a_destination, const ror::Vector2f &a_delta, const ror::Matrix4f &a_view_projection, const ror::Matrix4f &a_view_projection_inverse, const ror::Vector4f &a_viewport)
 {
 	bool result{true};
-	auto center = ror::project_to_screen(a_destination, a_view_projection, a_viewport, result);
+	auto center = ror::project_to_screen(a_destination, a_view_projection, a_viewport, result);        // NOTE: result is not used further because I always want to move
 
-	center.x -= a_delta.x;
-	center.y -= a_delta.y;
+	if (!decimal_equal(a_delta.x, ror_epsilon))
+		center.x -= a_delta.x;
+
+	if (!decimal_equal(a_delta.y, ror_epsilon))
+		center.y -= a_delta.y;
 
 	a_destination = ror::project_to_world(center, a_view_projection_inverse, a_viewport);
 }
@@ -366,7 +371,8 @@ bool Anchors::Anchor::inside(const ror::Vector2f &a_mouse_position, const ror::M
 	{
 		bool result{false};
 		auto center = ror::project_to_screen(this->m_new_center, a_view_projection, a_viewport, result);
-		if (!result) return false;
+		if (!result)
+			return false;
 		return inside_rectangle(a_mouse_position, ror::Vector2f{center.x, center.y} - this->m_radius, ror::Vector2f{center.x, center.y} + this->m_radius);
 	}
 	else if ((this->m_type == AnchorType::triangle) || (this->m_type == AnchorType::bezier))        // Simplification of bezier to a triangle
@@ -377,7 +383,8 @@ bool Anchors::Anchor::inside(const ror::Vector2f &a_mouse_position, const ror::M
 		auto p0 = ror::project_to_screen(this->m_points[0], a_view_projection, a_viewport, p0result);
 		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
 		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
-		if (!p0result && !p1result && !p2result) return false;
+		if (!p0result && !p1result && !p2result)
+			return false;
 
 		return inside_triangle(p0, p1, p2, a_mouse_position);
 	}
@@ -391,7 +398,8 @@ bool Anchors::Anchor::inside(const ror::Vector2f &a_mouse_position, const ror::M
 		auto p1 = ror::project_to_screen(this->m_points[1], a_view_projection, a_viewport, p1result);
 		auto p2 = ror::project_to_screen(this->m_points[2], a_view_projection, a_viewport, p2result);
 		auto p3 = ror::project_to_screen(this->m_points[3], a_view_projection, a_viewport, p3result);
-		if (!p0result && !p1result && !p2result && !p3result) return false;
+		if (!p0result && !p1result && !p2result && !p3result)
+			return false;
 
 		return inside_triangle(p0, p1, p2, a_mouse_position) || inside_triangle(p0, p3, p2, a_mouse_position);
 	}
@@ -480,9 +488,7 @@ void Anchors::draw(ImDrawList *draw_list, const ror::Matrix4f &a_view_projection
 		}
 
 		if (this->m_draging && anch.clicked())
-		{
 			anch.move(delta, a_view_projection, view_projection_inverse, a_viewport);
-		}
 
 		auto anc_col       = anch.color() != 0 ? anch.color() : anchor_color;
 		auto anc_cli_col   = anch.color() != 0 ? (anch.color() & 0xC8FFFFFF) : anchor_click_color;
