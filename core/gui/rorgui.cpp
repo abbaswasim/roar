@@ -131,6 +131,32 @@ Gui::Gui()
 
 		this->m_show_demo_window = !this->m_show_demo_window;
 	};
+
+	this->m_gizmo_toggle_callback = [&io, this](ror::Event &e) {
+		if (io.WantCaptureKeyboard)
+			e.m_live = false;
+
+		this->m_show_gizmo = !this->m_show_gizmo;
+	};
+
+	this->m_overlays_toggle_callback = [&io, this](ror::Event &e) {
+		if (io.WantCaptureKeyboard)
+			e.m_live = false;
+
+		this->m_show_overlays = !this->m_show_overlays;
+	};
+	this->m_anchors_toggle_callback = [&io, this](ror::Event &e) {
+		if (io.WantCaptureKeyboard)
+			e.m_live = false;
+
+		this->m_show_anchors = !this->m_show_anchors;
+	};
+
+	auto &setting         = ror::settings();
+
+	this->m_show_anchors  = setting.m_gui.m_show_anchors;
+	this->m_show_gizmo    = setting.m_gui.m_show_gizmo;
+	this->m_show_overlays = setting.m_gui.m_show_overlays;
 }
 
 Gui::~Gui() noexcept        //! Destructor
@@ -152,6 +178,10 @@ void Gui::install_input_handlers()
 
 		this->m_event_system->subscribe(keyboard_tab_click, this->m_tab_key_callback);
 
+		this->m_event_system->subscribe(keyboard_g_click, this->m_gizmo_toggle_callback);
+		this->m_event_system->subscribe(keyboard_o_click, this->m_overlays_toggle_callback);
+		this->m_event_system->subscribe(keyboard_a_click, this->m_anchors_toggle_callback);
+
 		this->m_event_system->subscribe(keyboard_question_mark_click, this->m_demo_windown_callback);
 	}
 }
@@ -169,6 +199,10 @@ void Gui::uninstall_input_handlers()
 		this->m_event_system->unsubscribe(mouse_right_mouse_click, this->m_right_up_callback);
 
 		this->m_event_system->unsubscribe(keyboard_tab_click, this->m_tab_key_callback);
+
+		this->m_event_system->unsubscribe(keyboard_g_click, this->m_gizmo_toggle_callback);
+		this->m_event_system->unsubscribe(keyboard_o_click, this->m_overlays_toggle_callback);
+		this->m_event_system->unsubscribe(keyboard_a_click, this->m_anchors_toggle_callback);
 
 		this->m_event_system->unsubscribe(keyboard_question_mark_click, this->m_demo_windown_callback);
 	}
@@ -315,7 +349,7 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	// m_anchors.push_anchor(a3);
 	// m_anchors.push_anchor(a4);
 
-	// this->m_gizmo.init(this->m_default_font, ror::Vector4f{0.0f, 0.0f, 0.0f, 1.0f});
+	this->m_gizmo.init(this->m_default_font, ror::Vector4f{0.0f, 0.0f, 0.0f, 1.0f});
 	this->m_overlays.init(this->m_default_font);
 }
 
@@ -369,11 +403,16 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 
 		auto view_projection = projection * view;
 
-		this->m_anchors.new_frame(ImGui::IsMouseClicked(0), ImGui::IsMouseReleased(0), mouse_position, left_mouse_position);
-		this->m_anchors.draw(drawlist, view_projection, view_port, ImGui::IsMouseClicked(0));
+		if (this->m_show_anchors)
+		{
+			this->m_anchors.new_frame(ImGui::IsMouseClicked(0), ImGui::IsMouseReleased(0), mouse_position, left_mouse_position);
+			this->m_anchors.draw(drawlist, view_projection, view_port, ImGui::IsMouseClicked(0));
+		}
 
-		// this->m_gizmo.draw(view_projection, view_port);
-		this->m_overlays.draw(view_projection, view_port);
+		if (this->m_show_gizmo)
+			this->m_gizmo.draw(view_projection, view_port);
+		if (this->m_show_overlays)
+			this->m_overlays.draw(view_projection, view_port);
 	}
 
 	// // 3. Show another simple window.

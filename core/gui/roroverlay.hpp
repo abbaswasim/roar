@@ -37,10 +37,7 @@ namespace ror
 {
 enum class OverlayType
 {
-	point_light,
-	spot_light,
-	directional_light,
-	area_light,
+	light,
 	camera
 };
 
@@ -91,14 +88,15 @@ class ROAR_ENGINE_ITEM Overlay final
 
 	void create_light(ImDrawList *a_drawlist, ImFont *a_icon_font, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport);
 	void create_camera(ImDrawList *a_drawlist, ImFont *a_icon_font, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport);
+	void update_other_anchors(const ror::Light &a_light);
 	void update_light(bool a_left_released);
 	void update_camera(bool a_left_released);
 	void update(bool a_left_released);
 
-	OverlayType   m_type{OverlayType::point_light};        //! Type of overlay, initially a point light type
-	OverlaySource m_source;                                //! Source vector of this type of Overlays, like lights and cameras
-	uint32_t      m_source_index;                          //! Index inside of the source vector this type of Overlays
-	Anchors       m_anchors;                               //! Multi-purpose anchors used for different types of overlay
+	OverlayType   m_type{OverlayType::light};        //! Type of overlay, initially a point light type
+	OverlaySource m_source;                          //! Source vector of this type of Overlays, like lights and cameras
+	uint32_t      m_source_index;                    //! Index inside of the source vector this type of Overlays
+	Anchors       m_anchors;                         //! Multi-purpose anchors used for different types of overlay
 };
 
 class ROAR_ENGINE_ITEM Overlays final

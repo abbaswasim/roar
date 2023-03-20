@@ -69,8 +69,8 @@ class ROAR_ENGINE_ITEM Light
 	Vector3f          m_direction{};                                         //! Direction of directional and spot lights
 	float32_t         m_intensity{1.0f};                                     //! Light intensity
 	float32_t         m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
-	float32_t         m_inner_angle{0.0f};                                   //! Spot light inner angle, in radians
-	float32_t         m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle, in radians
+	float32_t         m_inner_angle{0.0f};                                   //! Spot light inner angle, in radians, inner and outer might flip because outer > inner always
+	float32_t         m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle, in radians, inner and outer might flip because outer > inner always
 	std::string       m_light_struct_name{};                                 //! Light struct name cache
 	rhi::ShaderBuffer m_shader_buffer{"Light",
 	                                  rhi::ShaderBufferType::ubo,

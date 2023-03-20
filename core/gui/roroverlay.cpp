@@ -33,25 +33,22 @@
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
+#include "math/rorvector_functions.hpp"
 #include "roroverlay.hpp"
 #include "rorroar_font.hpp"
 #include "settings/rorsettings.hpp"
+#include <cmath>
+#include <cstdint>
+#include <functional>
+#include <ostream>
+#include <vector>
 
 namespace ror
 {
 
-Overlay::Overlay(const ror::Light &a_light, OverlaySource a_source, uint32_t a_source_index) :
-    m_source(a_source), m_source_index(a_source_index)
+Overlay::Overlay(const ror::Light &, OverlaySource a_source, uint32_t a_source_index) :
+    m_type(OverlayType::light), m_source(a_source), m_source_index(a_source_index)
 {
-	// clang-format off
-	switch (a_light.m_type)
-	{
-		case Light::LightType::point:          this->m_type = OverlayType::point_light;        break;
-		case Light::LightType::spot:           this->m_type = OverlayType::spot_light;         break;
-		case Light::LightType::directional:    this->m_type = OverlayType::directional_light;  break;
-		case Light::LightType::area:           this->m_type = OverlayType::area_light;         break;
-	}
-	// clang-format on
 	this->add_light_anchors(this->light());
 }
 
@@ -61,11 +58,128 @@ Overlay::Overlay(const ror::OrbitCamera &, OverlaySource a_source, uint32_t a_so
 	this->add_camera_anchors(this->camera());
 }
 
+auto get_perpendicular(const ror::Vector3f &a_normal)
+{
+	auto perpendicular = a_normal.cross_product(ror::yaxis3f);
+
+	if (perpendicular == zero_vector3f)        // float compare is ok here, the operator is doing decimal_equal inside
+	{
+		perpendicular = a_normal.cross_product(ror::xaxis3f);
+
+		if (perpendicular == zero_vector3f)        // float compare is ok here, the operator is doing decimal_equal inside
+			perpendicular = a_normal.cross_product(ror::zaxis3f);
+	}
+
+	assert(perpendicular != zero_vector3f && "Can't find a perpendicular axis");
+
+	perpendicular.normalize();
+
+	return perpendicular;
+}
+
+ror::Vector4f point_light_anchor1(const ror::Light &a_light)
+{
+	return ror::Vector4f{a_light.m_position.x + a_light.m_range, a_light.m_position.y, a_light.m_position.z, 1.0f};
+}
+
+ror::Vector4f spot_light_anchor1(const ror::Light &a_light)
+{
+	auto normal = a_light.m_direction.normalized();
+	return ror::Vector4f{a_light.m_position + (normal * a_light.m_range)};
+}
+
+ror::Vector4f directional_light_anchor1(const ror::Light &a_light)
+{
+	auto normal = a_light.m_direction.normalized();
+	return ror::Vector4f{a_light.m_position + (normal * 60.0f)};
+}
+
+ror::Vector4f area_light_anchor1(const ror::Light &a_light)
+{
+	return ror::Vector4f{a_light.m_position.x + a_light.m_range, a_light.m_position.y, a_light.m_position.z, 1.0f};
+}
+
+ror::Vector4f spot_light_radius(const ror::Light &a_light, float32_t a_angle)
+{
+	auto radius = a_light.m_range * std::tan(a_angle);        // angle is already in radians
+	auto normal = a_light.m_direction.normalized();
+	auto center = a_light.m_position + (normal * a_light.m_range);
+
+	auto perpendicular = get_perpendicular(normal);
+	auto hand          = perpendicular * radius;
+
+	return ror::Vector4f{center + hand};
+}
+
+ror::Vector4f spot_light_anchor2(const ror::Light &a_light)
+{
+	return spot_light_radius(a_light, a_light.m_outer_angle);
+}
+
+ror::Vector4f spot_light_anchor3(const ror::Light &a_light)
+{
+	return spot_light_radius(a_light, a_light.m_inner_angle);
+}
+
+void get_light_anchor_positions(const ror::Light &a_light, ror::Vector4f &anchor1, ror::Vector4f &anchor2, ror::Vector4f &anchor3)
+{
+	// clang-format off
+	switch (a_light.m_type)
+	{
+		case Light::LightType::point:         anchor1 = point_light_anchor1(a_light);        break;
+		case Light::LightType::spot:          anchor1 = spot_light_anchor1(a_light);
+			                                  anchor2 = spot_light_anchor2(a_light);
+											  anchor3 = spot_light_anchor3(a_light);         break;
+		case Light::LightType::directional:   anchor1 = directional_light_anchor1(a_light);  break;
+		case Light::LightType::area:          anchor1 = area_light_anchor1(a_light);         break;
+	}
+	// clang-format on
+}
+
+auto get_light_icon(const ror::Light &a_light)
+{
+	// clang-format off
+	switch (a_light.m_type)
+	{
+		case Light::LightType::point:         return ROAR_ICON_POINT_LIGHT;
+		case Light::LightType::spot:          return ROAR_ICON_SPOT_LIGHT;
+		case Light::LightType::directional:   return ROAR_ICON_DIRECTIONAL_LIGHT;
+		case Light::LightType::area:          return ROAR_ICON_AREA_LIGHT;
+	}
+	// clang-format on
+}
+
 void Overlay::add_light_anchors(const ror::Light &a_light)
 {
-	(void) a_light;
-	Anchors::Anchor position{ror::Vector4f{a_light.m_position}, 5.0f};
+	auto          icon{get_light_icon(a_light)};
+	ror::Vector4f anchor1{};
+	ror::Vector4f anchor2{};
+	ror::Vector4f anchor3{};
+
+	get_light_anchor_positions(a_light, anchor1, anchor2, anchor3);
+
+	// Anchor0 is always position of the light
+	Anchors::Anchor position{ror::Vector4f{a_light.m_position}, 10.0f, 32, icon};        // 10 is for collision rect and 32 is icon size
+	position.dorment(true);
 	this->m_anchors.push_anchor(position);
+
+	// Anchor1 is scale for point light and direction for spot and directional light, maybe area as well
+	Anchors::Anchor scale_or_direction{anchor1, 3.0f};
+	scale_or_direction.dorment(true);
+	this->m_anchors.push_anchor(scale_or_direction);
+
+	if (a_light.m_type == Light::LightType::spot)
+	{
+		// Anchor2 is scale for point light on the other side and outter angle for spot light
+		Anchors::Anchor outer_angle{anchor2, 3.0f};
+		outer_angle.dorment(true);
+		this->m_anchors.push_anchor(outer_angle);
+
+		// Anchor4 inner angle for spot light
+		Anchors::Anchor inner_angle{anchor3, 3.0f};
+		inner_angle.dorment(true);
+		this->m_anchors.push_anchor(inner_angle);
+	}
 }
 
 void Overlay::add_camera_anchors(const ror::OrbitCamera &a_camera)
@@ -73,36 +187,84 @@ void Overlay::add_camera_anchors(const ror::OrbitCamera &a_camera)
 	(void) a_camera;
 }
 
+void Overlay::update_other_anchors(const ror::Light &a_light)
+{
+	ror::Vector4f anchor1_position{};
+	ror::Vector4f anchor2_position{};
+	ror::Vector4f anchor3_position{};
+
+	get_light_anchor_positions(a_light, anchor1_position, anchor2_position, anchor3_position);
+
+	auto &anchor1 = this->m_anchors.anchor(1);
+	anchor1.center(anchor1_position);
+	anchor1.new_center(anchor1_position);
+
+	if (a_light.m_type == Light::LightType::spot)
+	{
+		auto &anchor2 = this->m_anchors.anchor(2);
+		anchor2.center(anchor2_position);
+		anchor2.new_center(anchor2_position);
+
+		auto &anchor3 = this->m_anchors.anchor(3);
+		anchor3.center(anchor3_position);
+		anchor3.new_center(anchor3_position);
+	}
+}
+
 void Overlay::update_light(bool a_left_released)
 {
 	auto &light = this->light();
-	if (this->m_anchors.moving(0))
+	if (this->m_anchors.moving(0))        // Position of the light
 	{
-		auto new_pos = this->m_anchors.anchor(0).new_center();
-
-		light.m_position.x = new_pos.x;
-		light.m_position.y = new_pos.y;
-		light.m_position.z = new_pos.z;
+		light.m_position = this->m_anchors.anchor(0).position();
+		this->update_other_anchors(light);
 	}
-	else
+	else if (this->m_anchors.moving(1))        // Scale for the point light, direction for spot and directional
 	{
-		auto pos           = this->m_anchors.anchor(0).center();
-		light.m_position.x = pos.x;
-		light.m_position.y = pos.y;
-		light.m_position.z = pos.z;
-	}
-	if (a_left_released)
-	{}
+		auto  range_target = this->m_anchors.anchor(1).position();
+		auto &p1           = light.m_position;
+		light.m_range      = distance(p1, range_target);
+		light.m_direction  = range_target - p1;        // Only valid for Directional and Spot lights
 
-	// clang-format off
-	// switch (light.m_type)
-	// {
-	// 	case Light::LightType::point:         icon = ROAR_ICON_POINT_LIGHT;       break;
-	// 	case Light::LightType::spot:          icon = ROAR_ICON_SPOT_LIGHT;        break;
-	// 	case Light::LightType::directional:   icon = ROAR_ICON_DIRECTIONAL_LIGHT; break;
-	// 	case Light::LightType::area:          icon = ROAR_ICON_AREA_LIGHT;        break;
-	// }
-	// clang-format on
+		ror::Vector4f scale_or_direction{};
+
+		if (a_left_released)
+		{
+			// clang-format off
+			switch (light.m_type)
+			{
+				case Light::LightType::point:       scale_or_direction = point_light_anchor1(light);       break;
+				case Light::LightType::spot:        scale_or_direction = spot_light_anchor1(light);        break;
+				case Light::LightType::directional: scale_or_direction = directional_light_anchor1(light); break;
+				case Light::LightType::area:        scale_or_direction = area_light_anchor1(light);        break;
+			}
+			// clang-format on
+
+			this->m_anchors.anchor(1).position(scale_or_direction);
+		}
+		this->update_other_anchors(light);
+	}
+	else if (light.m_type == Light::LightType::spot)
+	{
+		if (this->m_anchors.moving(2))        // Outer angle for spot light
+		{
+			auto  range_target  = this->m_anchors.anchor(2).position();
+			auto &p1            = light.m_position;
+			light.m_outer_angle = angle(range_target - p1, light.m_direction);
+
+			if (a_left_released)
+				this->m_anchors.anchor(2).position(spot_light_anchor2(light));
+		}
+		else if (this->m_anchors.moving(3))        // Inner angle for spot light
+		{
+			auto  range_target  = this->m_anchors.anchor(3).position();
+			auto &p1            = light.m_position;
+			light.m_inner_angle = angle(range_target - p1, light.m_direction);
+
+			if (a_left_released)
+				this->m_anchors.anchor(3).position(spot_light_anchor3(light));
+		}
+	}
 }
 
 void Overlay::update_camera(bool a_left_released)
@@ -117,10 +279,7 @@ void Overlay::update(bool a_left_released)
 		case OverlayType::camera:
 			this->update_camera(a_left_released);
 			break;
-		case OverlayType::point_light:
-		case OverlayType::directional_light:
-		case OverlayType::spot_light:
-		case OverlayType::area_light:
+		case OverlayType::light:
 			this->update_light(a_left_released);
 			break;
 	}
@@ -142,9 +301,6 @@ void Overlay::draw(ImDrawList *a_drawlist, ImFont *a_icon_font, const ror::Matri
 	bool          left_clicked{ImGui::IsMouseClicked(0)};
 	bool          left_released{ImGui::IsMouseReleased(0)};
 
-	this->m_anchors.new_frame(left_clicked, left_released, mouse_position, left_mouse_position);
-	this->m_anchors.draw(a_drawlist, a_view_projection, a_viewport, left_clicked);
-
 	this->update(left_released);
 
 	switch (this->m_type)
@@ -152,32 +308,13 @@ void Overlay::draw(ImDrawList *a_drawlist, ImFont *a_icon_font, const ror::Matri
 		case OverlayType::camera:
 			this->create_camera(a_drawlist, a_icon_font, a_view_projection, a_viewport);
 			break;
-		case OverlayType::point_light:
-		case OverlayType::directional_light:
-		case OverlayType::spot_light:
-		case OverlayType::area_light:
+		case OverlayType::light:
 			this->create_light(a_drawlist, a_icon_font, a_view_projection, a_viewport);
 			break;
 	}
-}
 
-auto get_perpendicular(const ror::Vector3f &a_normal)
-{
-	auto perpendicular = a_normal.cross_product(ror::yaxis3f);
-
-	if (perpendicular == zero_vector3f)        // float compare is ok here, the operator is doing decimal_equal inside
-	{
-		perpendicular = a_normal.cross_product(ror::xaxis3f);
-
-		if (perpendicular == zero_vector3f)        // float compare is ok here, the operator is doing decimal_equal inside
-			perpendicular = a_normal.cross_product(ror::zaxis3f);
-	}
-
-	assert(perpendicular != zero_vector3f && "Can't find a perpendicular axis");
-
-	perpendicular.normalize();
-
-	return perpendicular;
+	this->m_anchors.new_frame(left_clicked, left_released, mouse_position, left_mouse_position);
+	this->m_anchors.draw(a_drawlist, a_view_projection, a_viewport, left_clicked);
 }
 
 void draw_circle(ImDrawList *a_drawlist, ror::Vector3f a_center, float32_t a_radius, ror::Vector3f a_normal, uint32_t a_color, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)

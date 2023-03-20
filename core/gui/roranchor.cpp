@@ -25,6 +25,7 @@
 
 #include "foundation/rormacros.hpp"
 #include "foundation/rorutilities.hpp"
+#include "gui/rorroar_font.hpp"
 #include "roranchor.hpp"
 #include "settings/rorsettings.hpp"
 
@@ -59,6 +60,10 @@ FORCE_INLINE void AddBezierQuadraticFilled(ImDrawList *a_drawlist, const ImVec2 
 
 Anchors::Anchor::Anchor(ror::Vector4f a_center, float32_t a_radius) :
     m_type(AnchorType::circle), m_center(a_center), m_new_center(a_center), m_radius(a_radius)
+{}
+
+Anchors::Anchor::Anchor(ror::Vector4f a_center, float32_t a_radius, uint32_t a_icon_size, const char* a_icon) :
+    m_type(AnchorType::icon), m_center(a_center), m_new_center(a_center), m_radius(a_radius), m_icon_size(a_icon_size), m_icon(a_icon)
 {}
 
 Anchors::Anchor::Anchor(ror::Vector4f a_p1, ror::Vector4f a_p2, ror::Vector4f a_p3, AnchorType a_type) :
@@ -112,8 +117,18 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 			a_drawlist->AddCircleFilled(ImVec2(new_center.x, new_center.y), this->m_radius + anchor_increment, a_click_color);
 			a_drawlist->AddCircle(ImVec2(new_center.x, new_center.y), this->m_radius + anchor_increment, a_white, 0, line_thickness);
 		}
-		else
+		else if (cresult && !this->m_dorment)
 			a_drawlist->AddCircleFilled(ImVec2(center.x, center.y), this->m_radius + anchor_increment, a_color);
+	}
+	else if (this->m_type == AnchorType::icon)
+	{
+		if (this->m_clicked)
+			a_drawlist->AddText(nullptr, this->m_icon_size, ImVec2(center.x - this->m_icon_size * 0.5f, center.y - this->m_icon_size * 0.5f), a_color, this->m_icon);
+
+		if (this->m_clicked || a_hovering)
+			a_drawlist->AddText(nullptr, this->m_icon_size, ImVec2(center.x - this->m_icon_size * 0.5f, center.y - this->m_icon_size * 0.5f), a_click_color, this->m_icon);
+		else if (cresult && !this->m_dorment)
+			a_drawlist->AddText(nullptr, this->m_icon_size, ImVec2(center.x - this->m_icon_size * 0.5f, center.y - this->m_icon_size * 0.5f), a_color, this->m_icon);
 	}
 	else if (this->m_type == AnchorType::triangle)        // Simplification of bezier to a triangle
 	{
@@ -137,10 +152,8 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 			if (this->m_clicked && this->m_has_ribbon)
 				this->make_ribbon(a_drawlist, new_center, center, line_thickness, orange_alpha, a_white);
 		}
-		else
-		{
+		else if (!this->m_dorment)
 			a_drawlist->AddTriangleFilled(ImVec2{p0.x, p0.y}, ImVec2{p1.x, p1.y}, ImVec2{p2.x, p2.y}, a_color);
-		}
 	}
 	else if (this->m_type == AnchorType::bezier)
 	{
@@ -164,10 +177,8 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 			if (this->m_clicked && this->m_has_ribbon)
 				this->make_ribbon(a_drawlist, new_center, center, line_thickness, orange_alpha, a_white);
 		}
-		else
-		{
+		else if (!this->m_dorment)
 			AddBezierQuadraticFilled(a_drawlist, ImVec2{p0.x, p0.y}, ImVec2{p1.x, p1.y}, ImVec2{p2.x, p2.y}, a_color);
-		}
 	}
 	else if ((this->m_type == AnchorType::rectangle) || (this->m_type == AnchorType::pyramid))
 	{
@@ -196,10 +207,8 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 			if (this->m_clicked && this->m_has_ribbon)
 				this->make_ribbon(a_drawlist, new_center, center, line_thickness, orange_alpha, a_white, true);
 		}
-		else
-		{
+		else if (!this->m_dorment)
 			a_drawlist->AddQuadFilled(ImVec2{p0.x, p0.y}, ImVec2{p1.x, p1.y}, ImVec2{p2.x, p2.y}, ImVec2{p3.x, p3.y}, a_color);
-		}
 	}
 }
 
@@ -327,47 +336,29 @@ void Anchors::Anchor::recenter()
 
 void Anchors::Anchor::move(ror::Vector4f &a_destination, const ror::Vector2f &a_delta, const ror::Matrix4f &a_view_projection, const ror::Matrix4f &a_view_projection_inverse, const ror::Vector4f &a_viewport)
 {
-	bool result{true};
-	auto center = ror::project_to_screen(a_destination, a_view_projection, a_viewport, result);        // NOTE: result is not used further because I always want to move
+	bool       result{true};
+	const bool xdelta{!decimal_equal(a_delta.x, ror_epsilon)};
+	const bool ydelta{!decimal_equal(a_delta.y, ror_epsilon)};
+	auto       center = ror::project_to_screen(a_destination, a_view_projection, a_viewport, result);        // NOTE: result is not used further because I always want to move
 
-	if (!decimal_equal(a_delta.x, ror_epsilon))
+	if (xdelta)
 		center.x -= a_delta.x;
 
-	if (!decimal_equal(a_delta.y, ror_epsilon))
+	if (ydelta)
 		center.y -= a_delta.y;
 
-	a_destination = ror::project_to_world(center, a_view_projection_inverse, a_viewport);
+	if (xdelta || ydelta)
+		a_destination = ror::project_to_world(center, a_view_projection_inverse, a_viewport);
 }
 
 void Anchors::Anchor::move(const ror::Vector2f &a_delta, const ror::Matrix4f &a_view_projection, const ror::Matrix4f &a_view_projection_inverse, const ror::Vector4f &a_viewport)
 {
 	this->move(this->m_new_center, a_delta, a_view_projection, a_view_projection_inverse, a_viewport);
-
-	// if (this->m_type == AnchorType::circle)
-	// {
-	// 	this->move(this->m_new_center, a_delta, a_view_projection, a_view_projection_inverse, a_viewport);
-	// }
-	// else if ((this->m_type == AnchorType::triangle) || (this->m_type == AnchorType::bezier))        // Simplification of bezier to a triangle
-	// {
-	// 	this->move(this->m_new_center, a_delta, a_view_projection, a_view_projection_inverse, a_viewport);
-	// }
-	// else if ((this->m_type == AnchorType::rectangle) || (this->m_type == AnchorType::pyramid))
-	// {
-	// 	// this->move(this->m_new_center, a_delta, a_view_projection, a_view_projection_inverse, a_viewport);
-	// 	// this->move(this->m_points[0], a_delta, a_view_projection, a_view_projection_inverse, a_viewport);
-	// 	// this->move(this->m_points[1], a_delta, a_view_projection, a_view_projection_inverse, a_viewport);
-	// 	// this->move(this->m_points[2], a_delta, a_view_projection, a_view_projection_inverse, a_viewport);
-	// 	// this->move(this->m_points[3], a_delta, a_view_projection, a_view_projection_inverse, a_viewport);
-
-	// 	// this->m_new_center   = (this->m_points[0] + this->m_points[2]) / 2.0f;
-	// 	// this->m_new_center.w = 1.0f;
-
-	// }
 }
 
 bool Anchors::Anchor::inside(const ror::Vector2f &a_mouse_position, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)
 {
-	if (this->m_type == AnchorType::circle)
+	if (this->m_type == AnchorType::circle || this->m_type == AnchorType::icon)
 	{
 		bool result{false};
 		auto center = ror::project_to_screen(this->m_new_center, a_view_projection, a_viewport, result);

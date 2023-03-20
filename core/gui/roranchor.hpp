@@ -27,6 +27,7 @@
 
 #include "foundation/rormacros.hpp"
 #include "math/rormatrix4_functions.hpp"
+#include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
 #include "rorimgui_drawlist.hpp"
 #include <cstdint>
@@ -50,7 +51,8 @@ class ROAR_ENGINE_ITEM Anchors final
 		triangle,
 		rectangle,
 		pyramid,        // top cutted pyramid like a perspective pyramid
-		bezier
+		bezier,
+		icon,
 	};
 
 	class ROAR_ENGINE_ITEM Anchor final
@@ -64,6 +66,7 @@ class ROAR_ENGINE_ITEM Anchors final
 		FORCE_INLINE ~Anchor() noexcept                           = default;        //! Destructor
 
 		Anchor(ror::Vector4f a_center, float32_t a_radius);
+		Anchor(ror::Vector4f a_center, float32_t a_radius, uint32_t a_icon_size, const char *a_icon);
 		Anchor(ror::Vector4f a_p1, ror::Vector4f a_p2, ror::Vector4f a_p3, AnchorType a_type = AnchorType::triangle);
 		Anchor(ror::Vector4f a_p1, ror::Vector4f a_p2, ror::Vector4f a_p3, ror::Vector4f a_p4, AnchorType a_type = AnchorType::rectangle);
 
@@ -79,6 +82,7 @@ class ROAR_ENGINE_ITEM Anchors final
 		constexpr auto  point(uint32_t a_index, const ror::Vector4f a_point)      noexcept { this->m_points[a_index] = a_point; } 
 		constexpr auto  ribbon_value(float32_t a_value)                           noexcept { this->m_ribbon_value = a_value;    } 
 		constexpr auto  has_ribbon(bool a_value)                                  noexcept { this->m_has_ribbon = a_value;      }
+		constexpr auto  dorment(bool a_value)                                     noexcept { this->m_dorment = a_value;         }
 		constexpr auto  clicked(bool a_clicked)                                   noexcept { this->m_clicked = a_clicked;       }
 		constexpr auto  color(uint32_t a_color)                                   noexcept { this->m_color = a_color;           }
 		constexpr auto  radius(float32_t a_radius)                                noexcept { this->m_radius = a_radius;         }
@@ -91,6 +95,19 @@ class ROAR_ENGINE_ITEM Anchors final
 		constexpr auto  ribbon_value()                                      const noexcept { return this->m_ribbon_value;       } 
 		constexpr auto  clicked()                                           const noexcept { return this->m_clicked;            }
 		constexpr auto &color()                                                   noexcept { return this->m_color;              }
+
+		auto position()                                                           noexcept { return ror::Vector3f{this->m_new_center.x / this->m_new_center.w,
+			                                                                                                      this->m_new_center.y / this->m_new_center.w,
+			                                                                                                      this->m_new_center.z / this->m_new_center.w};    }
+
+		auto position(const ror::Vector4f &a_position)                             noexcept { this->m_center.x = a_position.x;
+			                                                                                  this->m_center.y = a_position.y;
+                                                                                              this->m_center.z = a_position.z;
+                                                                                              this->m_center.w = a_position.w;
+			                                                                                  this->m_new_center.x = a_position.x;
+			                                                                                  this->m_new_center.y = a_position.y;
+                                                                                              this->m_new_center.z = a_position.z;
+                                                                                              this->m_new_center.w = a_position.w;                                 }
 		// clang-format on
 
 	  protected:
@@ -103,10 +120,13 @@ class ROAR_ENGINE_ITEM Anchors final
 		ror::Vector4f m_new_center{ror::zero_vector4f};        //! The updated center of the anchor shape while moving
 		ror::Vector4f m_points[4]{ror::zero_vector4f};         //! The supported shapes with up to 4 points
 		float32_t     m_radius{5.0f};                          //! Radius of the circle Anchor
+		uint32_t      m_icon_size{32};                         //! If the anchor is an icon will use this to draw it
 		float32_t     m_ribbon_value{0.0f};                    //! Ribbon value that can be used for whatever this Anchor is suppose to do
 		uint32_t      m_color{0};                              //! Color of the Anchor in ImGui format
 		bool          m_clicked{false};                        //! Internal use only checks if Anchor is clicked
 		bool          m_has_ribbon{false};                     //! Do I draw a Ribbon when dragged or not
+		bool          m_dorment{false};                        //! Will not display resting state if true, only shows when hovered, only works with circle or icon for the moment
+		const char   *m_icon{nullptr};                         //! The incon to render if using icon as anchor point
 	};
 
 	void    new_frame(bool a_mouse_down_state, bool a_mouse_up_state, ror::Vector2f a_mouse_position, ror::Vector2f a_mouse_clicked_position);

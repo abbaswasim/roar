@@ -121,6 +121,9 @@
 	{
 		"scale" : 1,
 		"visible" : true,
+		"show_anchors" : true,
+		"show_gizmo" : false,
+		"show_overlays" : true,
 		"theme" : "dark",
 		"default_font" : 0,
 		"font_size" : 32,

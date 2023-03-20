@@ -105,8 +105,16 @@ void Light::update()
 
 	if (this->m_type == ror::Light::LightType::spot)
 	{
-		this->m_shader_buffer.update("inner_angle", &this->m_inner_angle, light_index, stride);
-		this->m_shader_buffer.update("outer_angle", &this->m_outer_angle, light_index, stride);
+		float outer = this->m_outer_angle;
+		float inner = this->m_inner_angle;
+		if (outer < inner)
+		{
+			inner = this->m_outer_angle;
+			outer = this->m_inner_angle;
+		}
+
+		this->m_shader_buffer.update("inner_angle", &inner, light_index, stride);
+		this->m_shader_buffer.update("outer_angle", &outer, light_index, stride);
 	}
 	// std::cout << "Her is the glsl string for light type = " << this->m_light_struct_name << "\n"
 	//           << this->m_shader_buffer.to_glsl_string();
