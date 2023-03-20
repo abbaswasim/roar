@@ -165,19 +165,16 @@ void Overlay::add_light_anchors(const ror::Light &a_light)
 
 	// Anchor1 is scale for point light and direction for spot and directional light, maybe area as well
 	Anchors::Anchor scale_or_direction{anchor1, 3.0f};
-	scale_or_direction.dorment(true);
 	this->m_anchors.push_anchor(scale_or_direction);
 
 	if (a_light.m_type == Light::LightType::spot)
 	{
 		// Anchor2 is scale for point light on the other side and outter angle for spot light
 		Anchors::Anchor outer_angle{anchor2, 3.0f};
-		outer_angle.dorment(true);
 		this->m_anchors.push_anchor(outer_angle);
 
 		// Anchor4 inner angle for spot light
 		Anchors::Anchor inner_angle{anchor3, 3.0f};
-		inner_angle.dorment(true);
 		this->m_anchors.push_anchor(inner_angle);
 	}
 }
@@ -438,17 +435,8 @@ void draw_area_light_bounds(ImDrawList *, const ror::Light &, const ror::Matrix4
 void Overlay::create_light(ImDrawList *a_drawlist, ImFont *a_icon_font, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)
 {
 	auto &light = this->light();
-	auto  icon{""};
+	auto  icon{get_light_icon(light)};
 
-	// clang-format off
-	switch (light.m_type)
-	{
-		case Light::LightType::point:         icon = ROAR_ICON_POINT_LIGHT;       break;
-		case Light::LightType::spot:          icon = ROAR_ICON_SPOT_LIGHT;        break;
-		case Light::LightType::directional:   icon = ROAR_ICON_DIRECTIONAL_LIGHT; break;
-		case Light::LightType::area:          icon = ROAR_ICON_AREA_LIGHT;        break;
-	}
-	// clang-format on
 	auto        result{false};
 	auto        light_pos = ror::project_to_screen(ror::Vector4f{light.m_position}, a_view_projection, a_viewport, result);
 	const ImU32 color     = ImGui::ColorConvertFloat4ToU32({light.m_color.x, light.m_color.y, light.m_color.z, 1.0f});
