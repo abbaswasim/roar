@@ -758,6 +758,32 @@ rhi::ShaderType string_to_shader_type(const std::string &a_extension)
 	return type;
 }
 
+const std::string shader_type_to_string(rhi::ShaderType a_type)
+{
+	// clang-format off
+	switch (a_type)
+	{
+		case rhi::ShaderType::mesh:               return "mesh";
+		case rhi::ShaderType::task:               return "task";
+		case rhi::ShaderType::vertex:             return "vertex";
+		case rhi::ShaderType::compute:            return "compute";
+		case rhi::ShaderType::fragment:           return "fragment";
+		case rhi::ShaderType::ray_miss:           return "ray_miss";
+		case rhi::ShaderType::ray_any_hit:        return "ray_any_hit";
+		case rhi::ShaderType::ray_closest_hit:    return "ray_closest_hit";
+		case rhi::ShaderType::ray_intersection:   return "ray_intersection";
+		case rhi::ShaderType::ray_generation:     return "ray_generation";
+		case rhi::ShaderType::none:               return "none";
+		case rhi::ShaderType::tile:               return "tile";
+
+	}
+	// clang-format on
+
+	assert(0 && "Implement more types");
+
+	return "";
+}
+
 rhi::ShaderStage string_to_shader_stage(const std::string &a_stage)
 {
 	auto stage{rhi::ShaderStage::vertex};

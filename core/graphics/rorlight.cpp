@@ -86,40 +86,44 @@ void Light::fill_shader_buffer()
 
 void Light::update()
 {
-	this->m_shader_buffer.buffer_map();
-
-	auto     stride      = this->m_shader_buffer.stride(this->m_light_struct_name);
-	uint32_t light_index = 0;
-
-	this->m_shader_buffer.update("mvp", &this->m_mvp.m_values, light_index, stride);
-	this->m_shader_buffer.update("color", &this->m_color, light_index, stride);
-
-	if (this->m_type != ror::Light::LightType::directional)
-		this->m_shader_buffer.update("position", &this->m_position, light_index, stride);
-
-	if (this->m_type != ror::Light::LightType::point)
-		this->m_shader_buffer.update("direction", &this->m_direction, light_index, stride);
-
-	this->m_shader_buffer.update("intensity", &this->m_intensity, light_index, stride);
-	this->m_shader_buffer.update("range", &this->m_range, light_index, stride);
-
-	if (this->m_type == ror::Light::LightType::spot)
+	if (this->m_dirty)
 	{
-		float outer = this->m_outer_angle;
-		float inner = this->m_inner_angle;
-		if (outer < inner)
+		this->m_dirty = false;
+		this->m_shader_buffer.buffer_map();
+
+		auto     stride      = this->m_shader_buffer.stride(this->m_light_struct_name);
+		uint32_t light_index = 0;
+
+		this->m_shader_buffer.update("mvp", &this->m_mvp.m_values, light_index, stride);
+		this->m_shader_buffer.update("color", &this->m_color, light_index, stride);
+
+		if (this->m_type != ror::Light::LightType::directional)
+			this->m_shader_buffer.update("position", &this->m_position, light_index, stride);
+
+		if (this->m_type != ror::Light::LightType::point)
+			this->m_shader_buffer.update("direction", &this->m_direction, light_index, stride);
+
+		this->m_shader_buffer.update("intensity", &this->m_intensity, light_index, stride);
+		this->m_shader_buffer.update("range", &this->m_range, light_index, stride);
+
+		if (this->m_type == ror::Light::LightType::spot)
 		{
-			inner = this->m_outer_angle;
-			outer = this->m_inner_angle;
+			float outer = this->m_outer_angle;
+			float inner = this->m_inner_angle;
+			if (outer < inner)
+			{
+				inner = this->m_outer_angle;
+				outer = this->m_inner_angle;
+			}
+
+			this->m_shader_buffer.update("inner_angle", &inner, light_index, stride);
+			this->m_shader_buffer.update("outer_angle", &outer, light_index, stride);
 		}
+		// std::cout << "Her is the glsl string for light type = " << this->m_light_struct_name << "\n"
+		//           << this->m_shader_buffer.to_glsl_string();
 
-		this->m_shader_buffer.update("inner_angle", &inner, light_index, stride);
-		this->m_shader_buffer.update("outer_angle", &outer, light_index, stride);
+		this->m_shader_buffer.buffer_unmap();
 	}
-	// std::cout << "Her is the glsl string for light type = " << this->m_light_struct_name << "\n"
-	//           << this->m_shader_buffer.to_glsl_string();
-
-	this->m_shader_buffer.buffer_unmap();
 }
 
 void Light::upload(rhi::Device &a_device)

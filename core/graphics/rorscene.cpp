@@ -782,6 +782,9 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 	(void) a_renderer;
 	(void) a_encoder;
 
+	for (auto &light : this->m_lights)
+		light.update();
+
 	if (this->m_indices_dirty)
 	{
 		ror::Vector4ui node_index{0};        // Index contains index of the node in the resolved matrix array, and index offset for other things like joints
@@ -1582,7 +1585,9 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 						shader_hash_to_flag.emplace(fs_hash, true);
 
 						GlobalProgram *gb{nullptr};
-						find_global_program(passtype, model_index, mesh_index, prim_index, &gb);
+						auto res = find_global_program(passtype, model_index, mesh_index, prim_index, &gb);
+						(void) res;
+						assert(res && "Couldn't find global program for render pass");
 
 						pass_programs.emplace_back(gb->program);
 

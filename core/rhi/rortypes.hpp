@@ -1270,6 +1270,7 @@ std::string            get_format_semantic(const BufferSemantic &a_semantic);
 rhi::PixelFormat       string_to_pixel_format(const std::string &a_format);
 rhi::VertexFormat      string_to_vertex_format(const std::string &a_format);
 rhi::ShaderType        string_to_shader_type(const std::string &a_extension);
+const std::string      shader_type_to_string(rhi::ShaderType a_type);
 rhi::ShaderStage       string_to_shader_stage(const std::string &a_stage);
 rhi::PrimitiveWinding  string_to_primitive_winding(const std::string &a_winding);
 rhi::PrimitiveCullMode string_to_cull_mode(const std::string &a_cull_mode);

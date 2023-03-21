@@ -215,6 +215,7 @@ void Overlay::update_light(bool a_left_released)
 	{
 		light.m_position = this->m_anchors.anchor(0).position();
 		this->update_other_anchors(light);
+		light.m_dirty = true;
 	}
 	else if (this->m_anchors.moving(1))        // Scale for the point light, direction for spot and directional
 	{
@@ -240,6 +241,7 @@ void Overlay::update_light(bool a_left_released)
 			this->m_anchors.anchor(1).position(scale_or_direction);
 		}
 		this->update_other_anchors(light);
+		light.m_dirty = true;
 	}
 	else if (light.m_type == Light::LightType::spot)
 	{
@@ -261,6 +263,7 @@ void Overlay::update_light(bool a_left_released)
 			if (a_left_released)
 				this->m_anchors.anchor(3).position(spot_light_anchor3(light));
 		}
+		light.m_dirty = true;
 	}
 }
 

@@ -26,12 +26,12 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
-#include "math/rortransform.hpp"
-#include "rhi/rorshader_buffer.hpp"
-#include "rhi/rorbuffer.hpp"
-#include "roar_export_import.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
+#include "math/rortransform.hpp"
+#include "rhi/rorbuffer.hpp"
+#include "rhi/rorshader_buffer.hpp"
+#include "roar_export_import.hpp"
 
 namespace ror
 {
@@ -62,6 +62,7 @@ class ROAR_ENGINE_ITEM Light
 	FORCE_INLINE constexpr auto& shader_buffer()       noexcept  { return this->m_shader_buffer; }
 	// clang-format on
 
+	bool              m_dirty{true};                                         //! If dirty will update/upload into the GPU otherwise not
 	LightType         m_type{LightType::directional};                        //! Light type
 	Matrix4f          m_mvp{};                                               //! Model view projection of the light, used in shadow mapping
 	Vector3f          m_color{};                                             //! Light color
@@ -89,7 +90,7 @@ class ROAR_ENGINE_ITEM EnvironmentProbe final
 	FORCE_INLINE EnvironmentProbe &operator=(EnvironmentProbe &&a_other) noexcept        = default;        //! Move assignment operator
 	FORCE_INLINE ~EnvironmentProbe() noexcept                                            = default;        //! Destructor
 
-	// clang-format off
+	                                                                                                       // clang-format off
 	FORCE_INLINE void transform(ror::Transformf a_transform) { this->m_transform = a_transform; }
 	FORCE_INLINE void path(std::filesystem::path a_path)     { this->m_path = a_path;           }
 
@@ -102,6 +103,5 @@ class ROAR_ENGINE_ITEM EnvironmentProbe final
 	ror::Transformf       m_transform{};
 	std::filesystem::path m_path{};
 };
-
 
 }        // namespace ror

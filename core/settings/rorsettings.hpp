@@ -281,11 +281,15 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_vulkan.version_major = setting.get<uint32_t>("vulkan:version_major");
 		this->m_vulkan.version_minor = setting.get<uint32_t>("vulkan:version_minor");
 
-		this->m_print_generated_shaders = setting.get<bool>("print_generated_shaders");
-		this->m_write_generated_shaders = setting.get<bool>("write_generated_shaders");
-		this->m_generate_debug_mesh     = setting.get<bool>("generate_debug_mesh");
-		this->m_generate_gui_mesh       = setting.get<bool>("generate_gui_mesh");
-		this->m_generate_grid_mesh      = setting.get<bool>("generate_grid_mesh");
+		this->m_print_generated_shaders          = setting.get<bool>("print_generated_shaders");
+		this->m_print_generated_msl_shaders      = setting.get<bool>("print_generated_msl_shaders");
+		this->m_print_generated_glsl_shaders     = setting.get<bool>("print_generated_glsl_shaders");
+		this->m_print_generated_vertex_shaders   = setting.get<bool>("print_generated_vertex_shaders");
+		this->m_print_generated_fragment_shaders = setting.get<bool>("print_generated_fragment_shaders");
+		this->m_write_generated_shaders          = setting.get<bool>("write_generated_shaders");
+		this->m_generate_debug_mesh              = setting.get<bool>("generate_debug_mesh");
+		this->m_generate_gui_mesh                = setting.get<bool>("generate_gui_mesh");
+		this->m_generate_grid_mesh               = setting.get<bool>("generate_grid_mesh");
 
 		this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
 
@@ -389,6 +393,10 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_fog_enabled{false};
 	bool m_force_rgba_textures{false};
 	bool m_print_generated_shaders{false};
+	bool m_print_generated_msl_shaders{false};
+	bool m_print_generated_glsl_shaders{false};
+	bool m_print_generated_vertex_shaders{false};
+	bool m_print_generated_fragment_shaders{false};
 	bool m_write_generated_shaders{false};
 	bool m_generate_debug_mesh{false};
 	bool m_generate_gui_mesh{false};

@@ -73,27 +73,7 @@ spv::ExecutionModel shader_type_to_execution_model(const rhi::ShaderType a_type)
 
 std::string shader_type_to_msl_entry(const rhi::ShaderType a_type)
 {
-	// clang-format off
-	switch (a_type)
-	{
-		case rhi::ShaderType::mesh:               return "mesh_main";
-		case rhi::ShaderType::task:               return "task_main";
-		case rhi::ShaderType::vertex:             return "vertex_main";
-		case rhi::ShaderType::compute:            return "compute_main";
-		case rhi::ShaderType::fragment:           return "fragment_main";
-		case rhi::ShaderType::ray_miss:           return "ray_miss_main";
-		case rhi::ShaderType::ray_any_hit:        return "ray_any_hit_main";
-		case rhi::ShaderType::ray_closest_hit:    return "ray_closest_hit_main";
-		case rhi::ShaderType::ray_intersection:   return "ray_intersection_main";
-		case rhi::ShaderType::ray_generation:     return "ray_generation_main";
-		case rhi::ShaderType::none:               return "none_main";
-		case rhi::ShaderType::tile:               return "tile_main";
-
-	}
-	// clang-format on
-	assert(0 && "Implement more types");
-
-	return "main0";
+	return shader_type_to_string(a_type) + "_main";
 }
 
 void ShaderMetal::platform_source()
@@ -115,12 +95,29 @@ void ShaderMetal::platform_source()
 
 	if constexpr (ror::get_build() == ror::BuildType::build_debug)
 	{
-		if (setting.m_print_generated_shaders)
+#define print_command(message, source) ror::log_info("Generated {}, {} shader code.\n{}", message, shader_type_to_string(this->type()), source);
+
+		bool vertex_glsl_print_code   = (setting.m_print_generated_vertex_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
+		bool fragment_glsl_print_code = (setting.m_print_generated_fragment_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
+
+		if ((vertex_glsl_print_code && this->type() == rhi::ShaderType::vertex) ||
+		    (fragment_glsl_print_code && this->type() == rhi::ShaderType::fragment))
 		{
 			auto resource = this->source();
-			ror::log_info("Generated GLSL shader code.\n{}", resource);
-			ror::log_info("Spirv-cross generated MSL shader.\n{}", this->m_msl_source.c_str());
+			print_command("GLSL", resource);
 		}
+
+		bool vertex_msl_print_code   = (setting.m_print_generated_vertex_shaders && setting.m_print_generated_msl_shaders) || setting.m_print_generated_shaders;
+		bool fragment_msl_print_code = (setting.m_print_generated_fragment_shaders && setting.m_print_generated_msl_shaders) || setting.m_print_generated_shaders;
+
+		if ((vertex_msl_print_code && this->type() == rhi::ShaderType::vertex) ||
+		    (fragment_msl_print_code && this->type() == rhi::ShaderType::fragment))
+		{
+			print_command("Spirv-corss MSL", this->m_msl_source);
+		}
+
+#undef print_command
+
 		if (setting.m_write_generated_shaders)
 		{
 			static uint32_t index = 0;        // NOTE: This is not mutex protected because its not critical, adding shader hash makes contention highly unlikely
