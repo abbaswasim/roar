@@ -30,12 +30,12 @@
 namespace ror
 {
 void fsevents_callback(
-	ConstFSEventStreamRef /*streamRef*/,
-	void                         *clientCallBackInfo,
-	size_t                        numEvents,
-	void                         *eventPaths,
-	const FSEventStreamEventFlags eventFlags[],
-	const FSEventStreamEventId[] /*eventIds[]*/)
+    ConstFSEventStreamRef /*streamRef*/,
+    void                         *clientCallBackInfo,
+    size_t                        numEvents,
+    void                         *eventPaths,
+    const FSEventStreamEventFlags eventFlags[],
+    const FSEventStreamEventId[] /*eventIds[]*/)
 {
 	char    **paths = static_cast<char **>(eventPaths);
 	WatchCat *wc    = static_cast<WatchCat *>(clientCallBackInfo);
@@ -99,12 +99,12 @@ class PlatformData final
 		this->m_callbackInfo->version         = 0;
 
 		this->m_stream = FSEventStreamCreate(nullptr,
-											 &fsevents_callback,
-											 this->m_callbackInfo,
-											 this->m_paths_to_watch,
-											 kFSEventStreamEventIdSinceNow,
-											 this->m_latency,
-											 static_cast<uint32_t>(kFSEventStreamCreateFlagFileEvents) | static_cast<uint32_t>(kFSEventStreamEventFlagRootChanged) | static_cast<uint32_t>(kFSEventStreamEventFlagItemCreated));
+		                                     &fsevents_callback,
+		                                     this->m_callbackInfo,
+		                                     this->m_paths_to_watch,
+		                                     kFSEventStreamEventIdSinceNow,
+		                                     this->m_latency,
+		                                     static_cast<uint32_t>(kFSEventStreamCreateFlagFileEvents) | static_cast<uint32_t>(kFSEventStreamEventFlagRootChanged) | static_cast<uint32_t>(kFSEventStreamEventFlagItemCreated));
 	}
 
 	FSEventStreamRef get_stream()
@@ -136,19 +136,23 @@ void WatchCat::run()
 	this->m_run.store(true, std::memory_order_relaxed);        // Enable running of the thread incase we were stopped before
 
 	this->m_runner_thread = std::make_unique<std::thread>([&]() {
-		FSEventStreamScheduleWithRunLoop(this->m_platform_data->get_stream(), CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		dispatch_queue_t watchcat_event_queue = dispatch_queue_create("watchcat_event_queue", nullptr);
+
+		FSEventStreamSetDispatchQueue(this->m_platform_data->get_stream(), watchcat_event_queue);
 
 		if (!FSEventStreamStart(this->m_platform_data->get_stream()))
 		{
 			ror::log_error("Can't create MacOS FSEventStream to watch paths\n");
 		}
 
-		int timeout = 5;        // Run RunLoop for 5 seconds and then check whether we should be runing or not
+		int sleep = 5;        // Run Loop for 5 seconds and then check whether we should be runing or not
 
 		do
 		{
-			CFRunLoopRunInMode(kCFRunLoopDefaultMode, timeout, true);
+			std::this_thread::sleep_for(std::chrono::seconds(sleep));
 		} while (this->m_run.load(std::memory_order_relaxed));
+
+		dispatch_release(watchcat_event_queue);
 	});
 }
 
