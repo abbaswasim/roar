@@ -39,10 +39,11 @@ void main()
 
 	vec4  shadow_color = vec4(0.0, 0.0, 0.0, 1.0);
 	float tex_shadow   = base_color.b;
+
 	base_color.b       = 1.0;
+	base_color.g       = 1.0;
 
 	// float tex_outline  = base_color.g;
-	// base_color.g       = 1.0;
 	// vec4 outline_color = vec4(0.0, 0.0, 0.0, 1.0);
 
 	base_color.rgb *= base_color.a;
