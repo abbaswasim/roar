@@ -152,7 +152,7 @@ Gui::Gui()
 		this->m_show_anchors = !this->m_show_anchors;
 	};
 
-	auto &setting         = ror::settings();
+	auto &setting = ror::settings();
 
 	this->m_show_anchors  = setting.m_gui.m_show_anchors;
 	this->m_show_gizmo    = setting.m_gui.m_show_gizmo;
@@ -321,7 +321,7 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	auto vs_shader = rhi::build_shader(a_device, "gui.glsl.vert");
 	auto fs_shader = rhi::build_shader(a_device, "gui.glsl.frag");
 
-	this->m_shader_program.upload(a_device, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false);
+	this->m_shader_program.upload(a_device, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
 
 	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
 	this->m_index_buffer.init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode

@@ -1696,7 +1696,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 	}
 
 	auto program_upload_job = [](rhi::Device &a_local_device, rhi::Program &a_program, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass) -> auto {
-		a_program.upload(a_local_device, a_shaders, a_model, a_mesh_index, a_prim_index, a_subpass);
+		a_program.upload(a_local_device, a_shaders, a_model, a_mesh_index, a_prim_index, a_subpass, false);
 
 		return true;
 	};

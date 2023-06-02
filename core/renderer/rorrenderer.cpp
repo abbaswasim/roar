@@ -847,7 +847,7 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 	}
 
 	for (auto &program : this->m_programs)
-		program.upload(a_device, this->m_shaders, a_buffer_pack);
+		program.upload(a_device, this->m_shaders, a_buffer_pack, false);        // TODO: Retrieve pre-multiplied state from renderer for each shader
 
 	// Upload all render targets now, render buffers are deffered after scenes are loaded
 	for (auto &render_target : this->m_input_render_targets)
