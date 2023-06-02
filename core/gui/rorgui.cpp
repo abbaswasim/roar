@@ -49,9 +49,8 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <cstddef>
-#include <cstdint>
-#include <sys/wait.h>
+#include <string>
+#include <vector>
 
 namespace ror
 {
@@ -208,6 +207,152 @@ void Gui::uninstall_input_handlers()
 	}
 }
 
+uint8_t *generate_shadow_pixels(uint8_t *pixels, int iwidth, int iheight)
+{
+	auto width  = static_cast<uint32_t>(iwidth);
+	auto height = static_cast<uint32_t>(iheight);
+
+	// First lets make a copy
+	uint8_t *pixels_shadow = new uint8_t[width * height * 4];
+	memcpy(pixels_shadow, pixels, width * height * 4);
+
+	// Clear the buffers' green and blue components
+	for (int i = 0; i < iheight * iwidth * 4; i += 4)
+	{
+		pixels_shadow[i + 1] = 0;        // green
+		pixels_shadow[i + 2] = 0;        // blue
+	}
+
+	// Create shadow at offset
+	auto offset = ImGui::GetIO().Fonts->TexGlyphShadowOffset;
+
+	for (int y = std::abs(static_cast<int>(offset.y)); y < iheight; y++)
+	{
+		for (int x = std::abs(static_cast<int>(offset.x)); x < iwidth; x++)
+		{
+			uint32_t current_index      = static_cast<uint32_t>(((x * 4) + (iwidth * 4 * y)));
+			uint32_t write_shadow_index = static_cast<uint32_t>((((x + offset.x) * 4) + (iwidth * 4 * (y + offset.y))));
+
+			uint8_t current_pixel        = pixels[current_index + 3];
+			uint8_t current_pixel_shadow = pixels[write_shadow_index + 3];
+
+			// Only write shadow pixels into empty areas
+			if (current_pixel != 0 && current_pixel_shadow == 0)
+				pixels_shadow[write_shadow_index + 2] = pixels[current_index + 3];
+		}
+	}
+
+	// Makes an outline if needed
+	// for (int i = 0; i < iheight; i++)
+	// {
+	// 	for (int j = 0; j < iwidth; j++)
+	// 	{
+	// 		// Also make outline
+	// 		int outline_kernel[3][3] = {{-1, -1, -1}, {-1, 8, -1}, {-1, -1, -1}};
+
+	// 		int  current_index = ((j * 4) + (iwidth * 4 * i));
+	// 		unsigned char current_pixel = pixels_shadow[current_index + 3];
+
+	// 		if (current_pixel == 0)
+	// 		{
+	// 			int value = 0;
+	// 			// Find outline
+	// 			for (int y = 0, oy = -1; y < 3; y++, oy++)
+	// 			{
+	// 				for (int x = 0, ox = -1; x < 3; x++, ox++)
+	// 				{
+	// 					int ix = j + ox;
+	// 					int iy = i + oy;
+
+	// 					if ((ix < iwidth * 4 && ix >= 0) && (iy < iheight * 4 && iy >= 0))
+	// 					{
+	// 						float kvalu = outline_kernel[x][y];
+	// 						int   woi   = ((ix * 4) + (iwidth * 4 * iy));
+	// 						value += static_cast<uint8_t>(pixels[woi + 3] * kvalu);
+	// 					}
+	// 				}
+	// 			}
+	// 			// Found a color around
+	// 			pixels_shadow[current_index + 1] = static_cast<uint8_t>(value);
+	// 		}
+	// 	}
+	// }
+
+	//  Adds blurr if needed, doesn't blur much at the moment, needs fixing
+	// for (int i = 0; i < iheight; i++)
+	// {
+	// 	for (int j = 0; j < iwidth; j++)
+	// 	{
+	// 		int current_index = ((j * 4) + (iwidth * 4 * i));
+	// 		//            unsigned char current_pixel = pixels_shadow[current_index + 3];
+
+	// 		float blurr_kernel[3][3] = {{0.0625, 0.125, 0.0625}, {0.125, 0.25, 0.125}, {0.0625, 0.125, 0.0625}};
+
+	// 		// Blur it
+	// 		//            if (current_pixel != 0)
+	// 		{
+	// 			float value = 0;
+	// 			for (int y = 0, oy = -1; y < 3; y++, oy++)
+	// 			{
+	// 				for (int x = 0, ox = -1; x < 3; x++, ox++)
+	// 				{
+	// 					int ix = j + ox;
+	// 					int iy = i + oy;
+
+	// 					if ((ix < iwidth * 4 && ix >= 0) && (iy < iheight * 4 && iy >= 0))
+	// 					{
+	// 						float kvalu = blurr_kernel[x][y];
+	// 						int   woi   = ((ix * 4) + (iwidth * 4 * iy));
+	// 						value += pixels_shadow[woi + 1] * kvalu;
+	// 					}
+	// 				}
+	// 			}
+	// 			// Found a color around
+	// 			pixels_shadow[current_index + 1] = static_cast<uint8_t>(value);
+	// 		}
+	// 	}
+	// }
+
+	auto &setting = ror::settings();
+	if (setting.m_gui.m_dump_texture)
+	{
+		auto       &gui_texture = resource("imgui_texture.ppm", ResourceSemantic::textures, ResourceAction::create);
+
+		std::string w{std::to_string(width)};
+		std::string h{std::to_string(height)};
+
+		std::vector<uint8_t> data{};
+		data.reserve(width * height * 3 + 17);        // 17 is the header size assuming texture size of 9999 max
+		data.push_back('P');
+		data.push_back('6');
+		data.push_back('\n');
+		for (auto &wc : w)
+			data.push_back(static_cast<uint8_t>(wc));
+		data.push_back(' ');
+		for (auto &hc : h)
+			data.push_back(static_cast<uint8_t>(hc));
+		data.push_back('\n');
+		data.push_back('2');
+		data.push_back('5');
+		data.push_back('5');
+		data.push_back('\n');
+
+		for (int i = 0; i < iheight; i++)
+		{
+			for (int j = 0; j < iwidth; j++)
+			{
+				for (int k = 1; k < 4; ++k)
+					data.push_back(pixels_shadow[((j * 4) + (iwidth * 4 * i)) + k] % 256);     
+			}
+		}
+
+		gui_texture.update({data.begin(), data.end()}, false, true);
+		gui_texture.flush();
+	}
+
+	return pixels_shadow;
+}
+
 void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 {
 	this->m_device = &a_device;
@@ -221,6 +366,9 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 
 	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
 	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+
+	// Set gly shadows offset
+	io.Fonts->TexGlyphShadowOffset = ImVec2(5, 3);
 
 	// Incase there are indices which doesn't fit in uint16_t
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
@@ -289,9 +437,7 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	int      width, height;
 	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
 
-	size_t   size       = static_cast<size_t>(width) * static_cast<size_t>(height) * 4;
-	uint8_t *new_pixels = new uint8_t[size];        // Need a copy because texture will own the pixels from now on
-	std::memcpy(new_pixels, pixels, size);
+	auto new_pixels = generate_shadow_pixels(pixels, width, height);
 
 	rhi::fill_texture_from_memory(new_pixels, static_cast<uint32_t>(width), static_cast<uint32_t>(height), 4, this->m_texture_image, "imgui_font_texture");
 
