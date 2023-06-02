@@ -174,6 +174,7 @@ class ROAR_ENGINE_ITEM Settings final
 			this->m_gui.m_show_anchors       = setting.get<bool>("gui:show_anchors");
 			this->m_gui.m_show_gizmo         = setting.get<bool>("gui:show_gizmo");
 			this->m_gui.m_show_overlays      = setting.get<bool>("gui:show_overlays");
+			this->m_gui.m_dump_texture       = setting.get<bool>("gui:dump_texture");
 			this->m_gui.m_default_font       = setting.get<uint32_t>("gui:default_font");
 			this->m_gui.m_font_size          = setting.get<uint32_t>("gui:font_size");
 			this->m_gui.m_vertex_buffer_size = setting.get<uint32_t>("gui:vertex_buffer_size");
@@ -504,6 +505,7 @@ class ROAR_ENGINE_ITEM Settings final
 		bool                     m_show_anchors{true};
 		bool                     m_show_gizmo{true};
 		bool                     m_show_overlays{true};
+		bool                     m_dump_texture{true};
 		GuiTheme                 m_theme{GuiTheme::dark};
 		uint32_t                 m_default_font{0};
 		uint32_t                 m_vertex_buffer_size{2000000};        // Initial Size of vertex buffer

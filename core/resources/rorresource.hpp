@@ -99,9 +99,9 @@ enum class ResourceExtension
 
 enum class ResourceAction
 {
-	load,
-	create,
-	make
+	load,          // Load action to load an existing resource
+	create,        // Create action to create a resource on disk
+	make           // Make action creates a resource in memory, that needs to be flushed later
 };
 
 std::string       get_resource_semantic_string(ResourceSemantic a_semantic);
@@ -173,7 +173,7 @@ class ROAR_ENGINE_ITEM Resource final
 
 /**
  * @brief      External interface to loading resources
- * @details    Use load_resource to load any resource via the resource catche system
+ * @details    Use load_resource to load any resource via the resource cache system
  *             This will try hard to find the resource from semantic. Load it and return a pointer to it.
  * @param      a_path to the resource. It doesn't have to be absolute only name and extension is enough
  * @param      a_semantic Type of the resource via ResourceSemantic::XXX. For example a config, texture etc.

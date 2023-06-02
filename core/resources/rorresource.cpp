@@ -305,7 +305,7 @@ static Resource &cache_resource(const std::filesystem::path &a_absolute_path)
 }
 
 /**
- * Can be used to load resources relative to project_root anywhere in different folers
+ * Can be used to load resources relative to project_root anywhere in different folders
  */
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
 {
@@ -356,7 +356,7 @@ Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic 
 /**
  * Can be used to make a resource in memory relative to project_root if they don't already exist
  * Requires the path to resource that to be created and semantic and will create a Resource object corresponding to that path
- * NOTE: You need to call write on the resource at someone if you want to write it to desk
+ * NOTE: You need to call flush on the resource at some point if you want to write it to desk
  */
 Resource &make_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
 {
