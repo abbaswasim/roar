@@ -89,7 +89,7 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 			camera.enable();
 			camera.bounds(dims.x, dims.y);
 
-#if 1
+#if 0
 			auto &model = scene.models()[0];
 			auto &mesh  = model.meshes()[0];
 			auto  bbox  = mesh.bounding_box(0);
@@ -108,7 +108,6 @@ class ContextMetal : public ContextCrtp<ContextMetal>
   protected:
   private:
 };
-
 define_translation_unit_vtable(ContextMetal)
 {}
 

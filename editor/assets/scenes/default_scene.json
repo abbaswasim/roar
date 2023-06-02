@@ -57,11 +57,53 @@
 			]
 		},
 		{
+			"name":"boy",
+			"path":"astro_boy_gltf/astro_boy.gltf",
+			"animation":2,
+			"translation":[
+				-1.4,
+				0.0,
+				-1.5
+			],
+			"rotation":[
+				0,
+				-0.8509035,
+				0,
+				0.525322 
+			],
+			"scale":[
+				0.08,
+				0.08,
+				0.08
+			]
+		},
+		{
+			"name":"boy",
+			"path":"astro_boy_gltf/astro_boy.gltf",
+			"animation":2,
+			"translation":[
+				-1.4,
+				0.0,
+				1.5
+			],
+			"rotation":[
+				0,
+				-0.8509035,
+				0,
+				0.525322 
+			],
+			"scale":[
+				0.08,
+				0.08,
+				0.08
+			]
+		},
+		{
 			"name":"fox",
 			"path":"Fox/Fox.gltf",
 			"translation":[
-				0.0,
-				0.02,
+				2.5,
+				0.18,
 				0.0
 			],
 			"scale":[
@@ -95,7 +137,7 @@
 			"path":"boom_box_with_axes/glTF/BoomBoxWithAxes.gltf",
 			"translation":[
 				0.0,
-				0.0,
+				0.74,
 				0.0
 			],
 			"rotation":[

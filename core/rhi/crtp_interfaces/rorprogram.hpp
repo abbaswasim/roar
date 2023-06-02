@@ -52,7 +52,7 @@ class ProgramCrtp : public ror::Crtp<_type, ProgramCrtp>
 	FORCE_INLINE constexpr void compute_id(int32_t       a_id)   { this->m_compute_id = a_id;   }
 	FORCE_INLINE constexpr void tile_id(int32_t          a_id)   { this->m_tile_id = a_id;      }
 	FORCE_INLINE constexpr void mesh_id(int32_t          a_id)   { this->m_mesh_id = a_id;      }
-	FORCE_INLINE constexpr void upload()                         { this->underlying().upload(); }
+	// FORCE_INLINE constexpr void upload()                         { this->underlying().upload(); }
 
 	FORCE_INLINE constexpr auto vertex_id()     const noexcept { return this->m_vertex_id;   }
 	FORCE_INLINE constexpr auto fragment_id()   const noexcept { return this->m_fragment_id; }

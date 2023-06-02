@@ -1311,7 +1311,7 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal, boo
 	// This works around having to call get_normal() twice
 	output.append("\tmaterial.view = normalize(in_per_view_uniforms.camera_position - in_vertex_position.xyz);\n");
 
-	// If we have a normal map use the overloaded get_normal(N, V) which uses get_normal() internally, there must be vertex normal available
+	// If we have a normal map use the overloaded get_normal(N) which uses get_normal() internally, there must be vertex normal available
 	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
 	    a_material.m_normal.m_type == ror::Material::ComponentType::texture ||
 	    a_has_normal)
