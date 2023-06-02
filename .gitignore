@@ -29,3 +29,5 @@ temp/
 ycm_extra_conf.template
 .simple-debug.json
 to_copy
+tests/assets/models/*
+baba_yaga_generated_shaders
