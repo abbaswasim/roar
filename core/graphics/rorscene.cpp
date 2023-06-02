@@ -35,11 +35,11 @@
 #include "foundation/rorutilities.hpp"
 #include "geometry/rorgeometry_utilities.hpp"
 #include "graphics/roranimation.hpp"
-#include "gui/rorgui.hpp"
 #include "graphics/rormesh.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
 #include "graphics/rorscene.hpp"
+#include "gui/rorgui.hpp"
 #include "math/rormatrix3.hpp"
 #include "math/rormatrix3_functions.hpp"
 #include "math/rormatrix4.hpp"
@@ -1045,8 +1045,7 @@ void Scene::create_global_program(const char *a_vertex_shader,
 
 void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::function<bool(size_t)> &a_upload_job, std::vector<ror::JobHandle<bool>> &a_job_handles, size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
 {
-	auto grid_generation_job = [this, &a_buffer_pack](size_t model_index, size_t node_index) -> auto
-	{
+	auto grid_generation_job = [this, &a_buffer_pack](size_t model_index, size_t node_index) -> auto {
 		Model &model = this->m_models[model_index];
 		model.create_grid(false, a_buffer_pack);
 
@@ -1265,7 +1264,6 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 				auto &model  = this->m_models[static_cast_safe<size_t>(node.m_model)];
 				auto &meshes = model.meshes();
 
-				size_t node_data_index = 0;
 				for (auto &model_node : model.nodes())
 				{
 					if (model_node.m_mesh_index != -1)
@@ -1311,7 +1309,6 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 						debug_data.emplace_back(points_colors);
 						primitive_data.emplace_back(topology_type);
 					}
-					node_data_index++;
 				}
 			}
 			node_id++;
@@ -1353,12 +1350,11 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 	if (model_nodes > 0)
 	{
-		this->m_models.resize(model_nodes);        // NOTE: I am resizing the models vector because I don't want many threads to emplace to it at the same time
+		this->m_models.resize(model_nodes);          // NOTE: I am resizing the models vector because I don't want many threads to emplace to it at the same time
 		std::vector<ror::JobHandle<bool>> job_handles;
 		job_handles.reserve(model_nodes * 2);        // Multiplied by 2 because I am creating two jobs, load and upload per model
 
-		auto model_load_job = [this, &a_buffers_packs](const std::string &node_model_path, size_t a_model_index, bool a_generate_shaders) -> auto
-		{
+		auto model_load_job = [this, &a_buffers_packs](const std::string &node_model_path, size_t a_model_index, bool a_generate_shaders) -> auto {
 			log_info("Loading model {}", node_model_path.c_str());
 			Model &model = this->m_models[a_model_index];
 			model.load_from_gltf_file(node_model_path, this->m_cameras, this->m_lights, a_generate_shaders, a_buffers_packs);
@@ -1366,8 +1362,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 			return true;
 		};
 
-		auto model_upload_job = [this, &a_device](size_t a_index) -> auto
-		{
+		auto model_upload_job = [this, &a_device](size_t a_index) -> auto {
 			Model &model = this->m_models[a_index];
 			model.upload(a_device);        // I can't confirm if doing this in multiple threads is defined behaviour or not. But https://developer.apple.com/forums/thread/93346 seems to suggest its ok
 			return true;
@@ -1413,10 +1408,12 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	}
 
 	// Lets create and upload the stuff required for the UI as well
-	auto gui_gen_job_handle = a_job_system.push_job([&a_device, &a_event_system, &setting]() -> auto{if (setting.m_generate_gui_mesh) ror::gui().init_upload(a_device, a_event_system); return true; });
+	auto gui_gen_job_handle = a_job_system.push_job([&a_device, &a_event_system, &setting]() -> auto {if (setting.m_generate_gui_mesh) ror::gui().init_upload(a_device, a_event_system); return true; });
+
+	this->read_programs();        // I can only do this after the all the models are loaded and glslang is initialized, it can't be done in the config load
 
 	// Lets kick off shader generation while we upload the buffers
-	auto shader_gen_job_handle = a_job_system.push_job([this, &a_renderer, &a_job_system]() -> auto{ this->generate_shaders(a_renderer, a_job_system); return true; });
+	auto shader_gen_job_handle = a_job_system.push_job([this, &a_renderer, &a_job_system]() -> auto { this->generate_shaders(a_renderer, a_job_system); return true; });
 
 	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
 	// TODO: find out this might need to be done differently for Vulkan, also should be moved to upload()
@@ -1435,12 +1432,11 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 void Scene::make_overlays()
 {
-	auto &ui = ror::gui();
+	auto &ui       = ror::gui();
 	auto &overlays = ui.overlays();
 
 	overlays.add(this->m_lights);
 	overlays.add(this->m_cameras);
-
 }
 
 hash_64_t pass_aware_vertex_hash(rhi::RenderpassType a_passtype, const ror::Mesh &a_mesh, size_t a_prim_index, const std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>> &a_skins)
@@ -1585,7 +1581,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 						shader_hash_to_flag.emplace(fs_hash, true);
 
 						GlobalProgram *gb{nullptr};
-						auto res = find_global_program(passtype, model_index, mesh_index, prim_index, &gb);
+						auto           res = find_global_program(passtype, model_index, mesh_index, prim_index, &gb);
 						(void) res;
 						assert(res && "Couldn't find global program for render pass");
 
@@ -1630,11 +1626,11 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 					{
 						auto &vs_shader_index = shader_hash_to_index[vs_hash];
 						auto &vs_shader       = this->m_shaders[vs_shader_index];
-						auto  vs_job_handle   = a_job_system.push_job([mesh_index, prim_index, passtype, &vs_shader, &model]() -> auto{
+						auto  vs_job_handle   = a_job_system.push_job([mesh_index, prim_index, passtype, &vs_shader, &model]() -> auto {
                             auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype);
                             vs_shader.source(vs);
                             return true;
-						   });
+                        });
 
 						job_handles.emplace_back(std::move(vs_job_handle));
 					}
@@ -1643,11 +1639,11 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 					{
 						auto &fs_shader_index = shader_hash_to_index[fs_hash];
 						auto &fs_shader       = this->m_shaders[fs_shader_index];
-						auto  fs_job_handle   = a_job_system.push_job([prim_index, passtype, has_shadows, &fs_shader, &mesh, &model]() -> auto{
+						auto  fs_job_handle   = a_job_system.push_job([prim_index, passtype, has_shadows, &fs_shader, &mesh, &model]() -> auto {
                             auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, has_shadows);
                             fs_shader.source(fs);
                             return true;
-						   });
+                        });
 
 						job_handles.emplace_back(std::move(fs_job_handle));
 					}
@@ -1699,8 +1695,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 		shader.upload(a_device);
 	}
 
-	auto program_upload_job = [](rhi::Device & a_local_device, rhi::Program & a_program, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass) -> auto
-	{
+	auto program_upload_job = [](rhi::Device &a_local_device, rhi::Program &a_program, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass) -> auto {
 		a_program.upload(a_local_device, a_shaders, a_model, a_mesh_index, a_prim_index, a_subpass);
 
 		return true;
@@ -2054,6 +2049,13 @@ void Scene::read_programs()
 			node_index++;
 		}
 	}
+}
+
+void Scene::init_global_programs()
+{
+	// Prim the global programs
+	for (uint32_t i = 0; i < renderpasstype_max(); ++i)
+		this->m_global_programs[to_renderpasstype(i)] = {};
 }
 
 void Scene::read_probes()

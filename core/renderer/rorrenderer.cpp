@@ -273,7 +273,7 @@ rhi::LoadAction to_load_action(nlohmann::json a_loadaction)
 
 rhi::StoreAction to_store_action(nlohmann::json a_storeaction)
 {
-	rhi::StoreAction store_action{rhi::LoadAction::clear};
+	rhi::StoreAction store_action{rhi::StoreAction::dont_care};
 	if (a_storeaction == "store")
 		store_action = rhi::StoreAction::store;
 	else if (a_storeaction == "discard")
