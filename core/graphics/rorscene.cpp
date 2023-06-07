@@ -1350,7 +1350,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 	if (model_nodes > 0)
 	{
-		this->m_models.resize(model_nodes);          // NOTE: I am resizing the models vector because I don't want many threads to emplace to it at the same time
+		this->m_models.resize(model_nodes);        // NOTE: I am resizing the models vector because I don't want many threads to emplace to it at the same time
 		std::vector<ror::JobHandle<bool>> job_handles;
 		job_handles.reserve(model_nodes * 2);        // Multiplied by 2 because I am creating two jobs, load and upload per model
 
@@ -1410,7 +1410,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	// Lets create and upload the stuff required for the UI as well
 	auto gui_gen_job_handle = a_job_system.push_job([&a_device, &a_event_system, &setting]() -> auto {if (setting.m_generate_gui_mesh) ror::gui().init_upload(a_device, a_event_system); return true; });
 
-	this->read_programs();        // I can only do this after the all the models are loaded and glslang is initialized, it can't be done in the config load
+	this->read_programs();        // Now do this because I can only do this after the all the models are loaded and glslang is initialized, it can't be done in the config load
 
 	// Lets kick off shader generation while we upload the buffers
 	auto shader_gen_job_handle = a_job_system.push_job([this, &a_renderer, &a_job_system]() -> auto { this->generate_shaders(a_renderer, a_job_system); return true; });
@@ -1989,40 +1989,56 @@ void Scene::read_lights()
 
 void Scene::read_programs()
 {
-	assert(this->m_shaders.size() == 0 && "Pre-initialized shaders are not supported, for support requires updating vid, fid and cid below");
+	// assert(this->m_shaders.size() == 0 && "Pre-initialized shaders are not supported, for support requires updating vid, fid and cid below");
+	assert(this->m_nodes_data.size() <= std::numeric_limits<int32_t>::max() && "Too many nodes in the scene graph, it doesn't fit in int32_t");
+
+	// Temporary mapping of programs to their nodes
+	std::unordered_map<int32_t, uint32_t> program_to_node{};
+
+	uint32_t node_index{0};
+	for (auto &node_data : this->m_nodes_data)
+	{
+		if (node_data.m_program_id != -1)
+			program_to_node[node_data.m_program_id] = node_index;
+
+		node_index++;
+	}
+
+	// Temporary list of shaders needed when we load programs
+	std::vector<std::string> shader_file_names{};
 
 	if (this->m_json_file.contains("shaders"))
 	{
 		// Read all the shaders
 		auto shaders = this->m_json_file["shaders"];
+		shader_file_names.reserve(shaders.size());
 		for (auto &shader : shaders)
-			this->m_shaders.emplace_back(rhi::load_shader(shader));        // No need the move which prevents copy elision
+			// this->m_shaders.emplace_back(rhi::load_shader(shader));        // No need the move which prevents copy elision
+			shader_file_names.emplace_back(shader);
 	}
-
-	for (uint32_t i = 0; i < renderpasstype_max(); ++i)
-		this->m_global_programs[to_renderpasstype(i)] = {};
 
 	if (this->m_json_file.contains("programs"))
 	{
-		auto programs = this->m_json_file["programs"];
+		auto    programs = this->m_json_file["programs"];
+		int32_t program_id{0};
 		for (auto &program : programs)
 		{
 			if (program.contains("vertex"))
 			{
 				assert(program.contains("fragment") && "Program must contain both vertex and fragment ids");
 
-				int32_t vid = program["vertex"];
-				int32_t fid = program["fragment"];
+				auto vid = program["vertex"];
+				auto fid = program["fragment"];
 
-				GlobalProgram gb;
-				gb.program = rhi::Program(vid, fid);
+				auto node_id  = program_to_node[program_id];
+				auto model_id = static_cast_safe<size_t>(this->m_nodes_data[node_id].m_model);
 
-				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
-					this->m_global_programs[to_renderpasstype(i)].emplace_back(gb);
+				this->create_global_program(shader_file_names[vid].c_str(), shader_file_names[fid].c_str(), node_id, model_id);
 			}
 			else if (program.contains("compute"))
 			{
-				assert(!program.contains("fragment") && "Program can't have compute and fragment ids");
+				assert(0 && "Implement me");
+				assert((!program.contains("vertex") || !program.contains("fragment")) && "Program can't have compute and vertex/fragment ids");
 
 				int32_t cid = program["compute"];
 
@@ -2032,21 +2048,10 @@ void Scene::read_programs()
 				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
 					this->m_global_programs[to_renderpasstype(i)].emplace_back(gb);
 			}
-		}
-
-		// Now lets walk the nodes who are using these program indices and link them
-		int32_t node_index{0};
-		assert(this->m_nodes_data.size() <= std::numeric_limits<int32_t>::max() && "Too many nodes in the scene graph, it doesn't fit in int32_t");
-		for (auto &node_data : this->m_nodes_data)
-		{
-			if (node_data.m_program_id != -1)
-				for (uint32_t i = 0; i < renderpasstype_max(); ++i)
-				{
-					this->m_global_programs[to_renderpasstype(i)][static_cast<size_t>(node_data.m_program_id)].node_id         = node_index;
-					this->m_global_programs[to_renderpasstype(i)][static_cast<size_t>(node_data.m_program_id)].node_program_id = node_data.m_program_id;
-				}
-
-			node_index++;
+			else
+			{
+				assert(0 && "Implement this type of program support");
+			}
 		}
 	}
 }
@@ -2098,7 +2103,8 @@ void Scene::load_specific()
 	this->read_nodes();
 	this->read_cameras();
 	this->read_lights();
-	this->read_programs();
+	// this->read_programs();        // I can only do this after the all the models are loaded and glslang is initialized
+	this->init_global_programs();
 	this->read_probes();
 }
 
