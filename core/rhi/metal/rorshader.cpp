@@ -32,6 +32,7 @@
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 #include "spirv-cross/spirv_glsl.hpp"
+#include <atomic>
 #include <spirv-cross/spirv_msl.hpp>
 #include <spirv.hpp>
 #include <string>
@@ -120,7 +121,8 @@ void ShaderMetal::platform_source()
 
 		if (setting.m_write_generated_shaders)
 		{
-			static uint32_t index = 0;        // NOTE: This is not mutex protected because its not critical, adding shader hash makes contention highly unlikely
+			static std::atomic<uint32_t> index = 0;
+
 			std::string     name{};
 			name += std::to_string(this->hash());
 			name += "_";
