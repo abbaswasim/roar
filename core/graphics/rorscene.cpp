@@ -337,6 +337,12 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		assert(pso && "There should be a PSO available for the mesh primitive");
 		a_dd.encoder->render_pipeline_state(*pso);
 
+		if (material.m_double_sided)
+			a_dd.encoder->cull_mode(rhi::PrimitiveCullMode::none);
+		else
+			a_dd.encoder->cull_mode(subpass.cull_mode());
+
+
 		// Bind standard vertex attributes
 		auto &vertex_attributes = a_mesh.vertex_descriptor(prim_id);
 		for (auto &va : vertex_attributes.attributes())

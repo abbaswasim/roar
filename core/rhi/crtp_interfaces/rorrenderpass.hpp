@@ -171,6 +171,7 @@ class Rendersubpass final
 	FORCE_INLINE constexpr auto  program_id()             const noexcept { return this->m_program_id;            }
 	FORCE_INLINE constexpr auto  debug_output()           const noexcept { return this->m_debug_output;          }
 	FORCE_INLINE constexpr auto  has_depth()              const noexcept { return this->m_has_depth;             }
+	FORCE_INLINE constexpr auto  cull_mode()              const noexcept { return this->m_cull_mode;             }
 
 	FORCE_INLINE constexpr void name(const std::string& a_name)                                            noexcept { this->m_name = a_name;                             }
 	FORCE_INLINE constexpr void technique(rhi::RenderpassTechnique a_technique)                            noexcept { this->m_technique = a_technique;                   }
@@ -182,6 +183,7 @@ class Rendersubpass final
 	FORCE_INLINE constexpr void program_id(int32_t a_program_id)                                           noexcept { this->m_program_id = a_program_id;                 }
 	FORCE_INLINE constexpr void debug_output(bool a_debug_output)                                          noexcept { this->m_debug_output = a_debug_output;             }
 	FORCE_INLINE constexpr void has_depth(bool a_has_depth)                                                noexcept { this->m_has_depth = a_has_depth;                   }
+	FORCE_INLINE constexpr void cull_mode(const rhi::PrimitiveCullMode a_cull_mode)                        noexcept { this->m_cull_mode = a_cull_mode;                   }
 	// clang-format on
 
 	void setup(rhi::RenderCommandEncoder &a_command_buffer, ror::Renderer &a_renderer);
@@ -206,6 +208,7 @@ class Rendersubpass final
 	int32_t                  m_program_id{-1};                                       //! A program id that could be used to execute this pass or will use the content PSOs
 	bool                     m_debug_output{false};                                  //! Whether debug output is required
 	bool                     m_has_depth{false};                                     //! Whether there is a depth buffer required and attached
+	rhi::PrimitiveCullMode   m_cull_mode{rhi::PrimitiveCullMode::back};              //! Subpass specific cull mode, otherwise Renderpass one is used
 };
 
 template <class _type>
@@ -233,22 +236,22 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE constexpr auto  background()          const noexcept { return this->m_background;         }
 	FORCE_INLINE constexpr auto  enabled()             const noexcept { return this->m_enabled;            }
 
-	FORCE_INLINE constexpr void subpasses(const std::vector<Rendersubpass>& a_passes)                    { this->m_subpasses = a_passes;                 }
-	FORCE_INLINE constexpr void dimensions(ror::Vector2ui a_dimensions)                                  { this->m_dimensions = a_dimensions;            }
-	FORCE_INLINE constexpr void parent_ids(const std::vector<uint32_t>& a_parents)                       { this->m_parent_ids = a_parents;               }
-	FORCE_INLINE constexpr void cull_mode(const rhi::PrimitiveCullMode a_cull_mode)                      { this->m_cull_mode = a_cull_mode;              }
-	FORCE_INLINE constexpr void parents(const Renderpasses& a_parents)                                   { this->m_parents = a_parents;                  }
-	FORCE_INLINE constexpr void render_targets(const std::vector<RenderTarget> &a_render_targets)        { this->m_render_targets = a_render_targets;    }
-	FORCE_INLINE constexpr void render_buffers(const std::vector<RenderBuffer> &a_render_buffers)        { this->m_render_buffers = a_render_buffers;    }
-	FORCE_INLINE constexpr void background(ror::Vector4f a_color)                                        { this->m_background = a_color;                 }
-	FORCE_INLINE constexpr void enabled(bool a_enabled)                                                  { this->m_enabled = a_enabled;                  }
-	FORCE_INLINE constexpr void upload()                                                                 { this->underlying().upload();                  }
+	FORCE_INLINE constexpr void subpasses(const std::vector<Rendersubpass>& a_passes)                    noexcept { this->m_subpasses = a_passes;                 }
+	FORCE_INLINE constexpr void dimensions(ror::Vector2ui a_dimensions)                                  noexcept { this->m_dimensions = a_dimensions;            }
+	FORCE_INLINE constexpr void parent_ids(const std::vector<uint32_t>& a_parents)                       noexcept { this->m_parent_ids = a_parents;               }
+	FORCE_INLINE constexpr void cull_mode(const rhi::PrimitiveCullMode a_cull_mode)                      noexcept { this->m_cull_mode = a_cull_mode;              }
+	FORCE_INLINE constexpr void parents(const Renderpasses& a_parents)                                   noexcept { this->m_parents = a_parents;                  }
+	FORCE_INLINE constexpr void render_targets(const std::vector<RenderTarget> &a_render_targets)        noexcept { this->m_render_targets = a_render_targets;    }
+	FORCE_INLINE constexpr void render_buffers(const std::vector<RenderBuffer> &a_render_buffers)        noexcept { this->m_render_buffers = a_render_buffers;    }
+	FORCE_INLINE constexpr void background(ror::Vector4f a_color)                                        noexcept { this->m_background = a_color;                 }
+	FORCE_INLINE constexpr void enabled(bool a_enabled)                                                  noexcept { this->m_enabled = a_enabled;                  }
+	FORCE_INLINE constexpr void upload()                                                                 noexcept { this->underlying().upload();                  }
 
-	FORCE_INLINE constexpr auto render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index)   { return this->underlying().render_encoder(a_command_buffer, a_index); }
-	FORCE_INLINE constexpr auto compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index)  { return this->underlying().compute_encoder(a_command_buffer, a_index);}
-	FORCE_INLINE constexpr auto platform_renderpass(uint32_t a_index)                                    { return this->underlying().platform_renderpass(a_index);              }
-	FORCE_INLINE constexpr auto platform_renderpass_count()                                              { return this->underlying().platform_renderpass_count();               }
-	FORCE_INLINE constexpr void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)              { this->underlying().make_final_pass(a_surface, a_index);              }
+	FORCE_INLINE constexpr auto render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index)   noexcept { return this->underlying().render_encoder(a_command_buffer, a_index); }
+	FORCE_INLINE constexpr auto compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index)  noexcept { return this->underlying().compute_encoder(a_command_buffer, a_index);}
+	FORCE_INLINE constexpr auto platform_renderpass(uint32_t a_index)                                    noexcept { return this->underlying().platform_renderpass(a_index);              }
+	FORCE_INLINE constexpr auto platform_renderpass_count()                                              noexcept { return this->underlying().platform_renderpass_count();               }
+	FORCE_INLINE constexpr void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)              noexcept { this->underlying().make_final_pass(a_surface, a_index);              }
 	// clang-format on
 
 	FORCE_INLINE void setup(rhi::RenderCommandEncoder &a_command_encoder);

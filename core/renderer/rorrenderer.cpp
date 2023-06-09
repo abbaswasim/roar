@@ -388,7 +388,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		render_pass.render_buffers(std::move(rbs));
 	}
 
-	assert(a_render_pass.contains("subpasses") && "There must be atleast one subpass in a render pass");
+	assert(a_render_pass.contains("subpasses") && "There must be at least one subpass in a render pass");
 
 	auto subpasses = a_render_pass["subpasses"];
 
@@ -409,6 +409,16 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 
 		if (subpass.contains("type"))
 			rsp.type(string_to_renderpass_type(subpass["type"]));
+
+		if (subpass.contains("cull_mode"))
+		{
+			auto cull_mode = subpass["cull_mode"];
+			rsp.cull_mode(rhi::string_to_cull_mode(cull_mode));
+		}
+		else
+		{
+			rsp.cull_mode(render_pass.cull_mode());
+		}
 
 		if (subpass.contains("state"))
 			rsp.state(subpass["state"] == "transient" ? rhi::RenderpassState::transient : rhi::RenderpassState::persistent);

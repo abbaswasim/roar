@@ -393,6 +393,7 @@
 						"type":"forward_light",
 						"state":"transient",
 						"debug_output":true,
+						"cull_mode" : "back",
 						"rendered_inputs":[
 							{
 								"index" : 2,

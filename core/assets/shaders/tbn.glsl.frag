@@ -20,28 +20,28 @@ vec3 get_tangent(const in vec3 n, const in vec3 p, const in vec2 uv)
 vec4 get_tangent()
 {
 	// Only one of the following will be enabled at a time
-	@return vec4(get_tangent(in_vertex_normal, in_vertex_position.xyz, get_normal_uvs()), 1.0);
-	@return in_vertex_tangent;
+	@return vec4(get_tangent(normalize(in_vertex_normal), in_vertex_position.xyz, get_normal_uvs()), 1.0);
+	@return normalize(in_vertex_tangent);
 }
 
 vec3 get_bitangent(const in vec3 n, const in vec4 t)
 {
-	return cross(n, t.xyz) * t.w;
+	return cross(n, t.xyz) * t.w;        // Cross product of two normalized vectors is normalized
 }
 
 // gn is the geometric normal of the vertex interpolated for the face
 vec3 get_normal(const in vec3 gn)
 {
 	vec3 map = get_normal();
-
-	vec4 gt = get_tangent();
-	vec3 gb = get_bitangent(gn, gt);
+	vec4 gt  = get_tangent();
+	vec3 gb  = get_bitangent(gn, gt);
 
 	vec3 n = normalize(mat3(gt.xyz, gb, gn) * map);
 
-	// // If double sided do the following
-	// if (!gl_FrontFacing)
-	//	n *= -1.0;
+	// If double sided do the following, remember this is shading normal not culling normal.
+	// culling is enabled via API calls. This means if cull_mode is back it won't work
+	if (!gl_FrontFacing)
+		n *= -1.0;
 
 	return n;
 }
