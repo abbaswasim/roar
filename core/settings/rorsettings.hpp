@@ -553,7 +553,7 @@ FORCE_INLINE const std::string &render_mode(size_t a_index) noexcept
 {
 	auto &setting = ror::settings();
 
-	assert((a_index >= 0 && a_index < setting.m_gui.m_render_modes.size()) && "Render mode index out of range");
+	assert(a_index < setting.m_gui.m_render_modes.size() && "Render mode index out of range");
 
 	return setting.m_gui.m_render_modes[a_index];
 }
