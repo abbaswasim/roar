@@ -144,6 +144,7 @@ Gui::Gui()
 
 		this->m_show_overlays = !this->m_show_overlays;
 	};
+
 	this->m_anchors_toggle_callback = [&io, this](ror::Event &e) {
 		if (io.WantCaptureKeyboard)
 			e.m_live = false;
@@ -151,11 +152,27 @@ Gui::Gui()
 		this->m_show_anchors = !this->m_show_anchors;
 	};
 
+	this->m_settings_toggle_callback = [&io, this](ror::Event &e) {
+		if (io.WantCaptureKeyboard)
+			e.m_live = false;
+
+		this->m_show_settings = !this->m_show_settings;
+	};
+
+	this->m_debug_toggle_callback = [&io, this](ror::Event &e) {
+		if (io.WantCaptureKeyboard)
+			e.m_live = false;
+
+		this->m_show_debug = !this->m_show_debug;
+	};
+
 	auto &setting = ror::settings();
 
 	this->m_show_anchors  = setting.m_gui.m_show_anchors;
 	this->m_show_gizmo    = setting.m_gui.m_show_gizmo;
 	this->m_show_overlays = setting.m_gui.m_show_overlays;
+	this->m_show_settings = setting.m_gui.m_show_settings;
+	this->m_show_debug    = setting.m_gui.m_show_debug;
 }
 
 Gui::~Gui() noexcept        //! Destructor
@@ -180,6 +197,8 @@ void Gui::install_input_handlers()
 		this->m_event_system->subscribe(keyboard_g_click, this->m_gizmo_toggle_callback);
 		this->m_event_system->subscribe(keyboard_o_click, this->m_overlays_toggle_callback);
 		this->m_event_system->subscribe(keyboard_a_click, this->m_anchors_toggle_callback);
+		this->m_event_system->subscribe(keyboard_s_click, this->m_settings_toggle_callback);
+		this->m_event_system->subscribe(keyboard_d_click, this->m_debug_toggle_callback);
 
 		this->m_event_system->subscribe(keyboard_question_mark_click, this->m_demo_windown_callback);
 	}
@@ -202,6 +221,8 @@ void Gui::uninstall_input_handlers()
 		this->m_event_system->unsubscribe(keyboard_g_click, this->m_gizmo_toggle_callback);
 		this->m_event_system->unsubscribe(keyboard_o_click, this->m_overlays_toggle_callback);
 		this->m_event_system->unsubscribe(keyboard_a_click, this->m_anchors_toggle_callback);
+		this->m_event_system->unsubscribe(keyboard_s_click, this->m_settings_toggle_callback);
+		this->m_event_system->unsubscribe(keyboard_d_click, this->m_debug_toggle_callback);
 
 		this->m_event_system->unsubscribe(keyboard_question_mark_click, this->m_demo_windown_callback);
 	}
@@ -368,7 +389,7 @@ void set_imgui_style()
 	colors[ImGuiCol_ChildBg]               = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
 	colors[ImGuiCol_WindowBg]              = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
 	colors[ImGuiCol_PopupBg]               = ImVec4(0.25f, 0.25f, 0.25f, 1.00f);
-	colors[ImGuiCol_Border]                = ImVec4(0.12f, 0.12f, 0.12f, 0.71f);
+	colors[ImGuiCol_Border]                = ImVec4(0.32f, 0.32f, 0.32f, 0.71f);
 	colors[ImGuiCol_BorderShadow]          = ImVec4(1.00f, 1.00f, 1.00f, 0.06f);
 	colors[ImGuiCol_FrameBg]               = ImVec4(0.42f, 0.42f, 0.42f, 0.54f);
 	colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.42f, 0.42f, 0.42f, 0.40f);
@@ -390,7 +411,7 @@ void set_imgui_style()
 	colors[ImGuiCol_Header]                = ImVec4(0.38f, 0.38f, 0.38f, 1.00f);
 	colors[ImGuiCol_HeaderHovered]         = ImVec4(0.47f, 0.47f, 0.47f, 1.00f);
 	colors[ImGuiCol_HeaderActive]          = ImVec4(0.76f, 0.76f, 0.76f, 0.77f);
-	colors[ImGuiCol_Separator]             = ImVec4(0.000f, 0.000f, 0.000f, 0.137f);
+	colors[ImGuiCol_Separator]             = ImVec4(0.50, 0.50, 0.50, 0.137f);
 	colors[ImGuiCol_SeparatorHovered]      = ImVec4(0.700f, 0.671f, 0.600f, 0.290f);
 	colors[ImGuiCol_SeparatorActive]       = ImVec4(0.702f, 0.671f, 0.600f, 0.674f);
 	colors[ImGuiCol_ResizeGrip]            = ImVec4(0.26f, 0.59f, 0.98f, 0.25f);
@@ -406,6 +427,12 @@ void set_imgui_style()
 	colors[ImGuiCol_NavHighlight]          = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
 	colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
 	colors[ImGuiCol_NavWindowingDimBg]     = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
+	colors[ImGuiCol_Tab]                   = ImVec4(0.45f, 0.45f, 0.45f, 0.80f);
+	colors[ImGuiCol_TabHovered]            = ImVec4(0.73f, 0.73f, 0.73f, 0.80f);
+	colors[ImGuiCol_TabActive]             = ImVec4(0.54f, 0.54f, 0.54f, 1.0f);
+	colors[ImGuiCol_ResizeGrip]            = ImVec4(0.51f, 0.51f, 0.51f, 0.25f);
+	colors[ImGuiCol_ResizeGripHovered]     = ImVec4(0.12f, 0.12f, 0.12f, 0.67f);
+	colors[ImGuiCol_ResizeGripActive]      = ImVec4(0.20f, 0.20f, 0.20f, 0.95f);
 
 	style.PopupRounding = 3;
 
@@ -594,6 +621,56 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	this->m_overlays.init(this->m_default_font);
 }
 
+static void show_debug_overlay(bool &a_show_debug)
+{
+	ImGuiIO         &io           = ImGui::GetIO();
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+	{
+		const float          PAD       = 10.0f;
+		const ImGuiViewport *viewport  = ImGui::GetMainViewport();
+		ImVec2               work_pos  = viewport->WorkPos;        // Use work area to avoid menu-bar/task-bar, if any!
+		ImVec2               work_size = viewport->WorkSize;
+		ImVec2               window_pos, window_pos_pivot;
+		window_pos.x       = (work_pos.x + work_size.x - PAD);
+		window_pos.y       = (work_pos.y + work_size.y - PAD);
+		window_pos_pivot.x = 1.0f;
+		window_pos_pivot.y = 1.0f;
+		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+		window_flags |= ImGuiWindowFlags_NoMove;
+	}
+
+	ImGui::SetNextWindowBgAlpha(0.35f);        // Transparent background
+	if (ImGui::Begin("Roar Debug...", &a_show_debug, window_flags))
+	{
+		ImGui::Text("Roar Debug:");
+		ImGui::Separator();
+		ImGui::Text("Framerate: (%.1f)", io.Framerate);
+	}
+	ImGui::End();
+}
+
+static bool rendering_mode_selector()
+{
+	auto &rendermodes  = render_modes();
+	static int style_idx = 0;
+	if (ImGui::Combo("Render style##Selector", &style_idx, rendermodes.c_str()))
+	{
+		ror::log_warn("Render mode is = {}", render_mode(static_cast_safe<size_t>(style_idx)));
+		return true;
+	}
+	return false;
+}
+
+static void show_settings(bool &a_show_settings)
+{
+	ImGui::Begin("Roar settings...", &a_show_settings);
+
+	if (rendering_mode_selector())
+		ror::log_critical("Yes its working");
+
+	ImGui::End();
+}
+
 void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions)
 {
 	auto &setting = ror::settings();
@@ -619,6 +696,12 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 
 	if (this->m_show_demo_window)
 		ImGui::ShowDemoWindow(&this->m_show_demo_window);
+
+	if (this->m_show_settings)
+		show_settings(this->m_show_settings);
+
+	if (this->m_show_debug)
+		show_debug_overlay(this->m_show_debug);
 
 	{
 		// ImGui::Begin("Hello, world!");           // Create a window called "Hello, world!" and append into it.

@@ -128,6 +128,8 @@
 		"show_anchors" : false,
 		"show_gizmo" : false,
 		"show_overlays" : false,
+		"show_settings" : false,
+		"show_debug" : true,
 		"dump_texture" : true,
 		"theme" : "dark",
 		"default_font" : 0,
@@ -143,6 +145,37 @@
 		"fonts" : [
 			"blender-droidsans.ttf",
 			"roar_icons.ttf"
+		],
+		"render_modes" : [
+			"Shaded",
+			"Base Color",
+			"Base Color Factored",
+			"Texture Coordinate 0",
+			"Texture Coordinate 1",
+			"Texture Coordinate 2",
+			"Shading Normal",
+			"Normal Map",
+			"Material Normal Scaled",
+			"Geometric Normal",
+			"Geometric Normal Scaled",
+			"Geometric Tangent",
+			"Geometric Bitangent",
+			"Roughness Map",
+			"Roughness Factor",
+			"Material Roughness",
+			"Fragment Roughness",
+			"Occlusion Map",
+			"Metallic Map",
+			"Emissive Map",
+			"Height Map",
+			"World Position",
+			"View Vector",
+			"F0",
+			"NoV",
+			"NoL",
+			"H",
+			"NoH",
+			"VoH"
 		]
 	}
 }

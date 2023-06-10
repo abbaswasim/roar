@@ -174,6 +174,8 @@ class ROAR_ENGINE_ITEM Settings final
 			this->m_gui.m_show_anchors       = setting.get<bool>("gui:show_anchors");
 			this->m_gui.m_show_gizmo         = setting.get<bool>("gui:show_gizmo");
 			this->m_gui.m_show_overlays      = setting.get<bool>("gui:show_overlays");
+			this->m_gui.m_show_settings      = setting.get<bool>("gui:show_settings");
+			this->m_gui.m_show_debug         = setting.get<bool>("gui:show_debug");
 			this->m_gui.m_dump_texture       = setting.get<bool>("gui:dump_texture");
 			this->m_gui.m_default_font       = setting.get<uint32_t>("gui:default_font");
 			this->m_gui.m_font_size          = setting.get<uint32_t>("gui:font_size");
@@ -183,6 +185,7 @@ class ROAR_ENGINE_ITEM Settings final
 			this->m_gui.m_overlay_scale      = setting.get<float32_t>("gui:overlay_scale");
 			this->m_gui.m_gizmo_size         = setting.get<float32_t>("gui:gizmo_size");
 			this->m_gui.m_fonts              = setting.get<std::vector<std::string>>("gui:fonts");
+			this->m_gui.m_render_modes       = setting.get<std::vector<std::string>>("gui:render_modes");
 			this->m_gui.m_font_scale         = setting.get<float32_t>("gui:font_scale");
 
 			auto gco = setting.get<std::vector<float32_t>>("gui:anchor_color");
@@ -505,6 +508,8 @@ class ROAR_ENGINE_ITEM Settings final
 		bool                     m_show_anchors{true};
 		bool                     m_show_gizmo{true};
 		bool                     m_show_overlays{true};
+		bool                     m_show_settings{true};
+		bool                     m_show_debug{true};
 		bool                     m_dump_texture{true};
 		GuiTheme                 m_theme{GuiTheme::dark};
 		uint32_t                 m_default_font{0};
@@ -517,6 +522,7 @@ class ROAR_ENGINE_ITEM Settings final
 		ror::Vector4f            m_anchor_color{0.1f, 0.7f, 0.1f, 1.0f};
 		ror::Vector4f            m_anchor_click_color{0.7f, 0.1f, 0.1f, 1.0f};
 		std::vector<std::string> m_fonts{};
+		std::vector<std::string> m_render_modes{};
 	};
 
 	Gui m_gui{};
@@ -530,5 +536,25 @@ FORCE_INLINE Settings &settings() noexcept
 {
 	static Settings sc{};        // Global settings container
 	return sc;
+}
+
+FORCE_INLINE const std::string &render_modes() noexcept
+{
+	static std::string options{};
+
+	if (options.empty())
+		for (auto &render_mode : ror::settings().m_gui.m_render_modes)
+			options += render_mode + '\0';
+
+	return options;
+}
+
+FORCE_INLINE const std::string &render_mode(size_t a_index) noexcept
+{
+	auto &setting = ror::settings();
+
+	assert((a_index >= 0 && a_index < setting.m_gui.m_render_modes.size()) && "Render mode index out of range");
+
+	return setting.m_gui.m_render_modes[a_index];
 }
 }        // namespace ror
