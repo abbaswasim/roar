@@ -991,7 +991,7 @@ std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_c
 		std::string factor_type{factor_cast<decltype(a_mat_comp.m_factor)>()};
 		std::string output_coords{};
 		std::string output_lookup{"\n" + a_retrun_type + " get_" + a_comp_name + "()\n{\n\t"};
-		std::string factor_cast_str{factor_type + "(in_factors." + a_comp_name + "_factor)"};
+		std::string factor_cast_str{factor_type + "(in_material_factors." + a_comp_name + "_factor)"};
 		bool        needs_normalize = a_comp_name == "normal" || a_comp_name == "bent_normal";
 
 		if (a_mat_comp.m_type == ror::Material::ComponentType::factor)
@@ -1034,7 +1034,7 @@ std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_c
 				output_lookup.append(" * ");
 				if (needs_normalize)
 				{
-					auto tmp{"in_factors." + a_comp_name + "_factor"};
+					auto tmp{"in_material_factors." + a_comp_name + "_factor"};
 					output_lookup.append("vec3(" + tmp + ", " + tmp + ", 1.0)");        // This scale only scale X and Y not Z hence 1.0 in Z according to gltf spec
 				}
 				else
@@ -1073,9 +1073,9 @@ std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
 	output.append(texture_lookup(a_material.m_roughness, "roughness", "float", ".y"));        // Green component of ORM[H] texture
 	output.append(texture_lookup(a_material.m_metallic, "metallic", "float", ".z"));          // Blue component of ORM[H] texture
 	if (a_material.m_roughness.m_texture == a_material.m_height.m_texture)
-		output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));              // Alpha component of ORM[H] texture
+		output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));        // Alpha component of ORM[H] texture
 	else
-		output.append(texture_lookup(a_material.m_height, "height", "float", ".x"));              // Or the red component of the height texture
+		output.append(texture_lookup(a_material.m_height, "height", "float", ".x"));        // Or the red component of the height texture
 	output.append(texture_lookup(a_material.m_normal, "normal", "vec3", ".xyz"));
 	// output.append(texture_lookup(a_material.m_tangent, "tangent", "vec3", ".xyz"));
 	output.append(texture_lookup(a_material.m_bent_normal, "bent_normal", "vec3", ".xyz"));
@@ -1105,9 +1105,9 @@ std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
 	}
 
 	if (a_material.m_blend_mode == rhi::BlendMode::mask)
-		output.append("\nfloat get_opacity()\n{\n\treturn in_factors.opacity_factor;\n}\n");
+		output.append("\nfloat get_opacity()\n{\n\treturn in_material_factors.opacity_factor;\n}\n");
 
-	output.append("\nfloat get_f0()\n{\n\treturn in_factors.f0_factor;\n}\n");
+	output.append("\nfloat get_f0()\n{\n\treturn in_material_factors.f0_factor;\n}\n");
 
 	return output;
 }
@@ -1163,84 +1163,6 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 	return output;
 }
 
-std::string material_factors_ubo(const ror::Material &a_material, rhi::ShaderBufferTemplate &a_shader_buffer)
-{
-	std::string result{"\nlayout(" +
-	                   a_shader_buffer.layout_string() +
-	                   ", set = " +
-	                   std::to_string(settings().material_factors_set()) +
-	                   ", binding = " +
-	                   std::to_string(settings().material_factors_binding()) +
-	                   ") uniform factors\n{\n\t"};
-	std::string output{};
-
-#define create_component(name, format, count, var)      \
-	{                                                   \
-		output.append(var);                             \
-		a_shader_buffer.add_entry(name, format, count); \
-	}                                                   \
-	(void) 0
-
-	// clang-format off
-	if (a_material.m_base_color.m_type == ror::Material::ComponentType::factor || a_material.m_base_color.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("base_color_factor", rhi::Format::float32_4, 1, "vec4  base_color_factor;\n\t");
-	if (a_material.m_diffuse_color.m_type == ror::Material::ComponentType::factor || a_material.m_diffuse_color.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("diffuse_color_factor", rhi::Format::float32_4, 1, "vec4  diffuse_color_factor;\n\t");
-	if (a_material.m_specular_glossyness.m_type == ror::Material::ComponentType::factor || a_material.m_specular_glossyness.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("specular_glossyness_factor", rhi::Format::float32_4, 1, "vec4  specular_glossyness_factor;\n\t");
-	if (a_material.m_emissive.m_type == ror::Material::ComponentType::factor || a_material.m_emissive.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("emissive_factor", rhi::Format::float32_4, 1, "vec4  emissive_factor;\n\t");
-	if (a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor || a_material.m_anisotropy.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("anisotropy_factor", rhi::Format::float32_4, 1, "vec4  anisotropy_factor;\n\t");
-	if (a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_color.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("sheen_color_factor", rhi::Format::float32_3, 1, "vec3  sheen_color_factor;\n\t");
-	if (a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat_normal.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("clearcoat_normal_factor", rhi::Format::float32_3, 1, "vec3  clearcoat_normal_factor;\n\t");
-	if (a_material.m_transmission.m_type == ror::Material::ComponentType::factor || a_material.m_transmission.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("transmission_factor", rhi::Format::float32_2, 1, "vec2  transmission_factor;\n\t");
-	if (a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_sheen_roughness.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("sheen_roughness_factor", rhi::Format::float32_1, 1, "float sheen_roughness_factor;\n\t");
-	if (a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("clearcoat_factor", rhi::Format::float32_1, 1, "float clearcoat_factor;\n\t");
-	if (a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_clearcoat_roughness.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("clearcoat_roughness_factor", rhi::Format::float32_1, 1, "float clearcoat_roughness_factor;\n\t");
-	if (a_material.m_metallic.m_type == ror::Material::ComponentType::factor || a_material.m_metallic.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("metallic_factor", rhi::Format::float32_1, 1, "float metallic_factor;\n\t");
-	if (a_material.m_roughness.m_type == ror::Material::ComponentType::factor || a_material.m_roughness.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("roughness_factor", rhi::Format::float32_1, 1, "float roughness_factor;\n\t");
-	if (a_material.m_occlusion.m_type == ror::Material::ComponentType::factor || a_material.m_occlusion.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("occlusion_factor", rhi::Format::float32_1, 1, "float occlusion_factor;\n\t");
-	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor || a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("normal_factor", rhi::Format::float32_1, 1, "float normal_factor;\n\t");
-	if (a_material.m_bent_normal.m_type == ror::Material::ComponentType::factor || a_material.m_bent_normal.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("bent_normal_factor", rhi::Format::float32_1, 1, "float bent_normal_factor;\n\t");
-	if (a_material.m_height.m_type == ror::Material::ComponentType::factor || a_material.m_height.m_type == ror::Material::ComponentType::factor_texture)
-		create_component("height_factor", rhi::Format::float32_1, 1, "float height_factor;\n\t");
-	// clang-format on
-
-	if (a_material.m_blend_mode == rhi::BlendMode::mask)
-		create_component("opacity_factor", rhi::Format::float32_1, 1, "float opacity_factor;\n\t");
-
-	// Unconditional factor of f0 needs to be there
-	create_component("f0_factor", rhi::Format::float32_1, 1, "float f0_factor;\n");
-
-	// TODO: The following needs some condition, add that later for subsurface scattering support
-	// if (a_material.m_subsurface_color.m_type != ror::Material::MaterialComponentType::texture_only)
-	//	output.append("\tvec4  subsurface_color_factor;\n\t");
-	// if (a_material.m_subsurface_radius.m_type != ror::Material::MaterialComponentType::texture_only)
-	//	output.append("vec4  subsurface_radius_factor;\n\t");
-	// if (a_material.m_subsurface_scattering.m_type != ror::Material::MaterialComponentType::texture_only)
-	//	output.append("float subsurface_scattering_factor;\n\t");
-
-	if (output.empty())
-		return "";
-
-	result.append(output);
-	result.append("} in_factors;\n");
-
-	return result;
-}
-
 std::string get_material(const ror::Material &a_material, bool a_has_normal, bool a_has_color_0, bool a_has_color_1)
 {
 #define stringify_helper(x) #x
@@ -1260,10 +1182,10 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal, boo
 	else
 		output.append("\tmaterial.base_color = vec4(1.0)");
 
-	if(a_has_color_0)
+	if (a_has_color_0)
 		output.append(" * in_vertex_color_0");
 
-	if(a_has_color_1)
+	if (a_has_color_1)
 		output.append(" * in_vertex_color_1");
 
 	output.append(";\n");
@@ -1406,7 +1328,7 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	std::string lighting_code{reinterpret_cast<const char *>(lighting_resource.data().data()), lighting_resource.data().size()};
 
 	// Read main.glsl.frag resource and create a string_view
-	auto            &main_resource = ror::load_resource("shaders/main.glsl.frag", ror::ResourceSemantic::shaders);
+	auto       &main_resource = ror::load_resource("shaders/main.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string main_code{reinterpret_cast<const char *>(main_resource.data().data()), main_resource.data().size()};
 
 	std::string output{};
@@ -1470,15 +1392,14 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 		return output;
 	}
 
-	rhi::ShaderBufferTemplate sb{"factors", rhi::ShaderBufferType::ubo, rhi::Layout::std140};        // TODO: Move this out, or remove
-	auto                     &setting = settings();
+	auto &setting = settings();
 
 	// write out inputs from fragment shader
 	output.append(ror::fragment_shader_input_output(vertex_descriptor));
 	output.append(per_view_common(setting.per_view_uniform_set(), setting.per_view_uniform_binding()));
 	output.append(per_frame_common(setting.per_frame_uniform_set(), setting.per_frame_uniform_binding()));
 	output.append(material_samplers(material, a_has_shadow));
-	output.append(material_factors_ubo(material, sb));
+	output.append(material.m_shader_buffer.to_glsl_string());
 	output.append(fs_light_common(1, setting.directional_light_set(), setting.directional_light_binding(), fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
