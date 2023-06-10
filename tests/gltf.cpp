@@ -204,7 +204,7 @@ TEST_F(GLTFTest, couldron0_gltf_loader_test)
 	(void) fox_sampler0_output;
 
 	std::vector<ror::OrbitCamera> couldron0_cameras;
-	std::vector<ror::Light> couldron0_lights;
+	std::vector<ror::Light>       couldron0_lights;
 
 	this->couldron0_model->load_from_gltf_file("baba_yagas_hut/scene.gltf", couldron0_cameras, couldron0_lights, true, *this->bp);
 
@@ -318,10 +318,13 @@ void GLTFTest::load_model(std::string path)
 	auto                          compile_shader_source = settings_configs_copy.get<bool>("gltf_compile_shader");
 	auto                          print_shader_source   = settings_configs_copy.get<bool>("gltf_compile_print_shader");
 	std::vector<ror::OrbitCamera> model_cameras;
-	std::vector<ror::Light> model_lights;
+	std::vector<ror::Light>       model_lights;
 	ror::Model                   *model2 = new ror::Model();
 
 	model2->load_from_gltf_file(path, model_cameras, model_lights, true, *this->bp);
+	auto &materials = model2->materials();
+	for (auto &material : materials)
+		material.fill_shader_buffer();
 
 	if (print_shader_source)
 		compile_shader_source = true;

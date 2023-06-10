@@ -119,19 +119,19 @@ void example0_test(rhi::Layout a_layout)
 
 	auto uniform_output{R"output(, set = 0, binding = 0) uniform Example0
 {
-	float a;
-	vec2 b;
-	vec3 c;
-	int d;
-	bvec2 e;
-	float g;
-	float h;
-	mat2x3 i;
-	uvec3 j;
-	vec2 k;
-	float l;
-	vec2 m;
-	mat3 n;
+	float   a;
+	vec2    b;
+	vec3    c;
+	int     d;
+	bvec2   e;
+	float   g;
+	float   h;
+	mat2x3  i;
+	uvec3   j;
+	vec2    k;
+	float   l;
+	vec2    m;
+	mat3    n;
 } in_Example0;
 )output"};
 
@@ -241,19 +241,19 @@ void example1_test(rhi::Layout a_layout)
 
 	auto uniform_output{R"output(, set = 0, binding = 0) uniform Example1
 {
-	float a;
-	vec2 b;
-	vec3 c;
-	int d;
-	bvec2 e;
-	float g;
-	float h;
-	mat2x3 i;
-	uint j;
-	vec2 k;
-	float l;
-	vec2 m;
-	mat3 n;
+	float   a;
+	vec2    b;
+	vec3    c;
+	int     d;
+	bvec2   e;
+	float   g;
+	float   h;
+	mat2x3  i;
+	uint    j;
+	vec2    k;
+	float   l;
+	vec2    m;
+	mat3    n;
 } in_Example1;
 )output"};
 
@@ -358,19 +358,19 @@ TEST(ShaderBuffer, std140_example2_test)
 
 	auto expected_output{R"output(layout(std140, set = 0, binding = 0) uniform Example2
 {
-	float a;
-	vec2 b;
-	vec3 c;
-	int d;
-	bvec2 e;
-	float g[2];
-	float h;
-	mat2x3 i;
-	uint j;
-	vec2 k;
-	float l[2];
-	vec2 m;
-	mat3 n;
+	float   a;
+	vec2    b;
+	vec3    c;
+	int     d;
+	bvec2   e;
+	float   g[2];
+	float   h;
+	mat2x3  i;
+	uint    j;
+	vec2    k;
+	float   l[2];
+	vec2    m;
+	mat3    n;
 } in_Example2;
 )output"};
 
@@ -434,19 +434,19 @@ TEST(ShaderBuffer, std140_example3_test)
 
 	auto expected_output{R"output(layout(std140, set = 0, binding = 0) uniform Example3
 {
-	float a;
-	vec2 b;
-	vec3 c;
-	int d;
-	bvec2 e;
-	float g[2];
-	float h;
-	mat2x3 i[2];
-	uint j;
-	vec2 k;
-	float l[2];
-	vec2 m;
-	mat3 n;
+	float   a;
+	vec2    b;
+	vec3    c;
+	int     d;
+	bvec2   e;
+	float   g[2];
+	float   h;
+	mat2x3  i[2];
+	uint    j;
+	vec2    k;
+	float   l[2];
+	vec2    m;
+	mat3    n;
 } in_Example3;
 )output"};
 
@@ -600,28 +600,28 @@ TEST(ShaderBuffer, std140_example4_test)
 
 	auto expected_output{R"output(struct F
 {
-	int d;
-	bvec2 e;
+	int     d;
+	bvec2   e;
 };
 
 struct O
 {
-	uvec3 j;
-	vec2 k;
-	float l[2];
-	vec2 m;
-	mat3 n[2];
+	uvec3   j;
+	vec2    k;
+	float   l[2];
+	vec2    m;
+	mat3    n[2];
 };
 
 layout(std140, set = 0, binding = 0) uniform Example4
 {
-	float a;
-	vec2 b;
-	vec3 c;
+	float   a;
+	vec2    b;
+	vec3    c;
 	F f;
-	float g;
-	float h[2];
-	mat2x3 i;
+	float   g;
+	float   h[2];
+	mat2x3  i;
 	O o[2];
 } in_Example4;
 )output"};
@@ -1442,9 +1442,9 @@ void joint_transforms_test(uint32_t joints_count)
 	auto        output  = joint_transform.to_glsl_string();
 	std::string expected_output{R"output(struct Joint_transforms
 {
-	vec4 rotation;
-	vec3 translation;
-	vec3 scale;
+	vec4    rotation;
+	vec3    translation;
+	vec3    scale;
 };
 
 layout(std140, set = 2, binding = 0) uniform joint_transform
