@@ -1,0 +1,119 @@
+diff --git a/imgui.h b/imgui.h
+index 66fda139..dc817243 100644
+--- a/imgui.h
++++ b/imgui.h
+@@ -2848,6 +2848,7 @@ struct ImFontAtlas
+     ImTextureID                 TexID;              // User data to refer to the texture once it has been uploaded to user's graphic systems. It is passed back to you during rendering via the ImDrawCmd structure.
+     int                         TexDesiredWidth;    // Texture width desired by user before Build(). Must be a power-of-two. If have many glyphs your graphics API have texture size restrictions you may want to increase texture width to decrease height.
+     int                         TexGlyphPadding;    // Padding between glyphs within texture in pixels. Defaults to 1. If your rendering method doesn't rely on bilinear filtering you may set this to 0 (will also need to set AntiAliasedLinesUseTex = false).
++    ImVec2                      TexGlyphShadowOffset;  // If you would like to use shadows with your text use this to create big enough glyph quad to cover your shadow pixels. Defaults to (0, 0). Defines horizontal and vertical shadows. If positive creates shadows right-bottom else creates shadows top-left. In other words -x=left, -y=top, x=right and y=bottom.
+     bool                        Locked;             // Marked as Locked by ImGui::NewFrame() so attempt to modify the atlas will assert.
+     void*                       UserData;           // Store your own atlas related user-data (if e.g. you have multiple font atlas).
+ 
+diff --git a/imgui_draw.cpp b/imgui_draw.cpp
+index be2058ee..c0f804c2 100644
+--- a/imgui_draw.cpp
++++ b/imgui_draw.cpp
+@@ -1969,6 +1969,7 @@ ImFontAtlas::ImFontAtlas()
+ {
+     memset(this, 0, sizeof(*this));
+     TexGlyphPadding = 1;
++    TexGlyphShadowOffset = ImVec2(0.0f, 0.0f);
+     PackIdMouseCursors = PackIdLines = -1;
+ }
+ 
+@@ -2469,7 +2470,7 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
+ 
+         // Gather the sizes of all rectangles we will need to pack (this loop is based on stbtt_PackFontRangesGatherRects)
+         const float scale = (cfg.SizePixels > 0) ? stbtt_ScaleForPixelHeight(&src_tmp.FontInfo, cfg.SizePixels) : stbtt_ScaleForMappingEmToPixels(&src_tmp.FontInfo, -cfg.SizePixels);
+-        const int padding = atlas->TexGlyphPadding;
++        const int padding = atlas->TexGlyphPadding + ImMax(ImFabs(atlas->TexGlyphShadowOffset.x), ImFabs(atlas->TexGlyphShadowOffset.y));
+         for (int glyph_i = 0; glyph_i < src_tmp.GlyphsList.Size; glyph_i++)
+         {
+             int x0, y0, x1, y1;
+@@ -2496,7 +2497,8 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
+     // Pack our extra data rectangles first, so it will be on the upper-left corner of our texture (UV will have small values).
+     const int TEX_HEIGHT_MAX = 1024 * 32;
+     stbtt_pack_context spc = {};
+-    stbtt_PackBegin(&spc, NULL, atlas->TexWidth, TEX_HEIGHT_MAX, 0, atlas->TexGlyphPadding, NULL);
++    const int padding = atlas->TexGlyphPadding + ImMax(ImFabs(atlas->TexGlyphShadowOffset.x), ImFabs(atlas->TexGlyphShadowOffset.y));
++    stbtt_PackBegin(&spc, NULL, atlas->TexWidth, TEX_HEIGHT_MAX, 0, padding, NULL);
+     ImFontAtlasBuildPackCustomRects(atlas, spc.pack_info);
+ 
+     // 6. Pack each source font. No rendering yet, we are working with rectangles in an infinitely tall texture at this point.
+@@ -2581,7 +2583,27 @@ static bool ImFontAtlasBuildWithStbTruetype(ImFontAtlas* atlas)
+             stbtt_aligned_quad q;
+             float unused_x = 0.0f, unused_y = 0.0f;
+             stbtt_GetPackedQuad(src_tmp.PackedChars, atlas->TexWidth, atlas->TexHeight, glyph_i, &unused_x, &unused_y, &q, 0);
+-            dst_font->AddGlyph(&cfg, (ImWchar)codepoint, q.x0 + font_off_x, q.y0 + font_off_y, q.x1 + font_off_x, q.y1 + font_off_y, q.s0, q.t0, q.s1, q.t1, pc.xadvance);
++            // dst_font->AddGlyph(&cfg, (ImWchar)codepoint, q.x0 + font_off_x, q.y0 + font_off_y, q.x1 + font_off_x, q.y1 + font_off_y, q.s0, q.t0, q.s1, q.t1, pc.xadvance);
++
++            const ImVec2& shadow_off = atlas->TexGlyphShadowOffset;
++            const ImVec2& uv_scale = atlas->TexUvScale;
++
++            ImVec4 offset = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
++            offset.x = (shadow_off.x > 0.0f ? 0.0f : shadow_off.x);
++            offset.y = (shadow_off.y > 0.0f ? 0.0f : shadow_off.y);
++            offset.z = (shadow_off.x > 0.0f ? shadow_off.x : 0.0f);
++            offset.w = (shadow_off.y > 0.0f ? shadow_off.y : 0.0f);
++
++            dst_font->AddGlyph(&cfg, (ImWchar)codepoint,
++                               q.x0 + font_off_x + (offset.x / 3), // I don't understand this 3 here, is this OversampleH?
++                               q.y0 + font_off_y + offset.y,
++                               q.x1 + font_off_x + (offset.z / 3), // I don't understand this 3 here, is this OversampleH?
++                               q.y1 + font_off_y + offset.w,
++                               q.s0 + (uv_scale.x * (offset.x)),
++                               q.t0 + (uv_scale.y * offset.y),
++                               q.s1 + (uv_scale.x * (offset.z)),
++                               q.t1 + (uv_scale.y * offset.w),
++                               pc.xadvance);
+         }
+     }
+ 
+diff --git a/misc/freetype/imgui_freetype.cpp b/misc/freetype/imgui_freetype.cpp
+index 69417d7b..9e5ccff1 100644
+--- a/misc/freetype/imgui_freetype.cpp
++++ b/misc/freetype/imgui_freetype.cpp
+@@ -544,7 +544,7 @@ bool ImFontAtlasBuildWithFreeTypeEx(FT_Library ft_library, ImFontAtlas* atlas, u
+             ImFontAtlasBuildMultiplyCalcLookupTable(multiply_table, cfg.RasterizerMultiply);
+ 
+         // Gather the sizes of all rectangles we will need to pack
+-        const int padding = atlas->TexGlyphPadding;
++        const int padding = atlas->TexGlyphPadding + ImMax(ImFabs(atlas->TexGlyphShadowOffset.x), ImFabs(atlas->TexGlyphShadowOffset.y));
+         for (int glyph_i = 0; glyph_i < src_tmp.GlyphsList.Size; glyph_i++)
+         {
+             ImFontBuildSrcGlyphFT& src_glyph = src_tmp.GlyphsList[glyph_i];
+@@ -666,6 +666,15 @@ bool ImFontAtlasBuildWithFreeTypeEx(FT_Library ft_library, ImFontAtlas* atlas, u
+             const int tx = pack_rect.x + padding;
+             const int ty = pack_rect.y + padding;
+ 
++            const ImVec2& shadow_off = atlas->TexGlyphShadowOffset;
++            const ImVec2& uv_scale = atlas->TexUvScale;
++
++            ImVec4 offset = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
++            offset.x = (shadow_off.x > 0.0f ? 0.0f : shadow_off.x);
++            offset.y = (shadow_off.y > 0.0f ? 0.0f : shadow_off.y);
++            offset.z = (shadow_off.x > 0.0f ? shadow_off.x : 0.0f);
++            offset.w = (shadow_off.y > 0.0f ? shadow_off.y : 0.0f);
++
+             // Register glyph
+             float x0 = info.OffsetX + font_off_x;
+             float y0 = info.OffsetY + font_off_y;
+@@ -675,7 +684,16 @@ bool ImFontAtlasBuildWithFreeTypeEx(FT_Library ft_library, ImFontAtlas* atlas, u
+             float v0 = (ty) / (float)atlas->TexHeight;
+             float u1 = (tx + info.Width) / (float)atlas->TexWidth;
+             float v1 = (ty + info.Height) / (float)atlas->TexHeight;
+-            dst_font->AddGlyph(&cfg, (ImWchar)src_glyph.Codepoint, x0, y0, x1, y1, u0, v0, u1, v1, info.AdvanceX);
++            dst_font->AddGlyph(&cfg, (ImWchar)src_glyph.Codepoint,
++                               x0 + offset.x,
++                               y0 + offset.y,
++                               x1 + offset.z,
++                               y1 + offset.w,
++                               u0 + (uv_scale.x * offset.x),
++                               v0 + (uv_scale.y * offset.y),
++                               u1 + (uv_scale.x * offset.z),
++                               v1 + (uv_scale.y * offset.w),
++                               info.AdvanceX);
+ 
+             ImFontGlyph* dst_glyph = &dst_font->Glyphs.back();
+             IM_ASSERT(dst_glyph->Codepoint == src_glyph.Codepoint);
