@@ -130,24 +130,52 @@ target_sources(ctpl INTERFACE ${CTPL_INCLUDE_DIR}/ctpl_stl.h)
 target_include_directories(ctpl INTERFACE ${CTPL_INCLUDE_DIR})
 
 # Add Dear ImGui
+# This one is a bit special, I am patching the repo first then copy it to build/imgui and build it from there
 set(IMGUI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui)
 set(IMGUI_HEADER_FILES
-    ${IMGUI_INCLUDE_DIR}/imconfig.h
-    ${IMGUI_INCLUDE_DIR}/imgui.h
-    ${IMGUI_INCLUDE_DIR}/imgui_internal.h
-    ${IMGUI_INCLUDE_DIR}/imstb_rectpack.h
-    ${IMGUI_INCLUDE_DIR}/imstb_textedit.h
-    ${IMGUI_INCLUDE_DIR}/imstb_truetype.h)
+    imconfig.h
+    imgui.h
+    imgui_internal.h
+    imstb_rectpack.h
+    imstb_textedit.h
+    imstb_truetype.h)
 set(IMGUI_SOURCE_FILES
-	${IMGUI_INCLUDE_DIR}/imgui.cpp
-	${IMGUI_INCLUDE_DIR}/imgui_demo.cpp
-	${IMGUI_INCLUDE_DIR}/imgui_draw.cpp
-	${IMGUI_INCLUDE_DIR}/imgui_tables.cpp
-	${IMGUI_INCLUDE_DIR}/imgui_widgets.cpp)
+	imgui.cpp
+	imgui_demo.cpp
+	imgui_draw.cpp
+	imgui_tables.cpp
+	imgui_widgets.cpp)
 
-add_library(imgui STATIC ${IMGUI_SOURCE_FILES})
-target_include_directories(imgui PUBLIC ${IMGUI_INCLUDE_DIR})
-target_sources(imgui PRIVATE ${IMGUI_SOURCE_FILES})
+# need to patch the imgui headers before built into imgui target, build will happen on all sources in binary/imgui dir
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/imgui)
+set(IMGUI_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/imgui)
+
+# I have to run 3 different processes one after another otherwise they are run concurently
+execute_process(COMMAND git apply ../imgui_shadows.patch
+  WORKING_DIRECTORY ${IMGUI_INCLUDE_DIR}
+  TIMEOUT 5
+  RESULT_VARIABLE imgui_patch_result)
+
+execute_process(COMMAND cp ${IMGUI_HEADER_FILES} ${IMGUI_SOURCE_FILES} ${IMGUI_BUILD_DIR}
+  WORKING_DIRECTORY ${IMGUI_INCLUDE_DIR}
+  TIMEOUT 5
+  RESULT_VARIABLE imgui_copy_result)
+
+execute_process(COMMAND git checkout -- .
+  WORKING_DIRECTORY ${IMGUI_INCLUDE_DIR}
+  TIMEOUT 5
+  RESULT_VARIABLE imgui_clean_result)
+
+set(IMGUI_SOURCES)
+
+foreach(src_file IN ZIP_LISTS IMGUI_HEADER_FILES IMGUI_SOURCE_FILES)
+   list(APPEND IMGUI_SOURCES ${IMGUI_BUILD_DIR}/${src_file_0})
+   list(APPEND IMGUI_SOURCES ${IMGUI_BUILD_DIR}/${src_file_1})
+endforeach()
+
+add_library(imgui STATIC ${IMGUI_SOURCES})
+target_include_directories(imgui PUBLIC ${IMGUI_BUILD_DIR})
+target_sources(imgui PRIVATE ${IMGUI_SOURCES})
 
 # SPIRV-Cross
 set(SPIRV_CROSS_STATIC ON)
