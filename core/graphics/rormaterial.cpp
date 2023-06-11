@@ -180,7 +180,7 @@ void Material::upload(rhi::Device &a_device)
 	      float roughness_factor;
 	      float opacity_factor;
 	      float f0_factor;
-	  } in_factors;
+	  } in_material_factors;
 	*/
 
 	this->fill_shader_buffer();
