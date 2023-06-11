@@ -147,8 +147,8 @@ set(IMGUI_SOURCE_FILES
 	imgui_widgets.cpp)
 
 # need to patch the imgui headers before built into imgui target, build will happen on all sources in binary/imgui dir
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/imgui)
 set(IMGUI_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/imgui)
+file(MAKE_DIRECTORY ${IMGUI_BUILD_DIR})
 
 # I have to run 3 different processes one after another otherwise they are run concurently
 execute_process(COMMAND git apply ../imgui_shadows.patch
