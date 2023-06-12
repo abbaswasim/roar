@@ -65,35 +65,76 @@
 	],
 	"buffers":[
 		{
-			"name":"node_transform_output",
+			"name":"per_frame_uniform",
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"entries":[
+				{
+					"name":"delta_time",
+					"format":"float32_1"
+				},
+				{
+					"name":"nodes_count",
+					"format":"uint32_1"
+				},
+				{
+					"name":"animations_count",
+					"format":"uint32_1"
+				},
+				{
+					"name":"render_mode",
+					"format":"uint32_1"
+				}
+			]
+		},
+		{
+			"name":"per_view_uniform",
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"entries":[
+				{
+					"name":"delta_time",
+					"format":"float32_1"
+				}
+			]
+		},
+		{
+			"name":"nodes_models",
 			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
-			"binding":0,
 			"entries":[
 				{
-					"struct":{
-						"name":"node_transform",
-						"count":0,
-						"entries":[
-							{
-								"name":"rotation",
-								"format":"float32_4"
-							},
-							{
-								"name":"translation",
-								"format":"float32_3"
-							},
-							{
-								"name":"scale",
-								"format":"float32_3"
-							},
-							{
-								"name":"scale_inverse",
-								"format":"float32_3"
-							}
-						]
-					}
+					"name":"node_model",
+					"format":"float32_4x4",
+					"count":0
+				}
+			]
+		},
+		{
+			"name":"nodes_offsets",
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"entries":[
+				{
+					"name":"node_offset",
+					"format":"uint32_4"
+				}
+			]
+		},
+		{
+			"name":"morphs_weights",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"entries":[
+				{
+					"name":"morph_weights",
+					"format":"float32_1",
+					"count":0
 				}
 			]
 		},
@@ -102,11 +143,11 @@
 			"layout":"std140",
 			"type":"ssbo",
 			"set":0,
-			"binding":1,
+			"binding":0,
 			"entries":[
 				{
 					"struct":{
-						"name":"node_transform_in",
+						"name":"trs_transform_input",
 						"count":0,
 						"entries":[
 							{
@@ -135,29 +176,35 @@
 			]
 		},
 		{
-			"name":"nodes_model",
+			"name":"node_transform_output",
 			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
-			"binding":27,
+			"binding":1,
 			"entries":[
 				{
-					"name":"node_model_mat4",
-					"format":"float32_4x4",
-					"count":0
-				}
-			]
-		},
-		{
-			"name":"nodes_offsets",
-			"layout":"std140",
-			"type":"ubo",
-			"set":0,
-			"binding":28,
-			"entries":[
-				{
-					"name":"node_offsets",
-					"format":"uint32_4"
+					"struct":{
+						"name":"trs_transform_output",
+						"count":0,
+						"entries":[
+							{
+								"name":"rotation",
+								"format":"float32_4"
+							},
+							{
+								"name":"translation",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale_inverse",
+								"format":"float32_3"
+							}
+						]
+					}
 				}
 			]
 		},
@@ -166,7 +213,7 @@
 			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
-			"binding":4,
+			"binding":2,
 			"entries":[
 				{
 					"struct":{
@@ -195,7 +242,7 @@
 			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
-			"binding":5,
+			"binding":3,
 			"entries":[
 				{
 					"name":"inputs",
@@ -209,7 +256,7 @@
 			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
-			"binding":6,
+			"binding":4,
 			"entries":[
 				{
 					"name":"outputs",
@@ -223,83 +270,12 @@
 			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
-			"binding":7,
+			"binding":5,
 			"entries":[
 				{
-					"name":"animation",
+					"name":"current_animation",
 					"format":"uint32_2",
 					"count":0
-				}
-			]
-		},
-		{
-			"name":"morphs_weights",
-			"layout":"std430",
-			"type":"ssbo",
-			"set":0,
-			"binding":26,
-			"entries":[
-				{
-					"name":"morph_weights",
-					"format":"float32_1",
-					"count":0
-				}
-			]
-		},
-		{
-			"name":"per_frame_uniform",
-			"layout":"std140",
-			"type":"ubo",
-			"set":0,
-			"binding":3,
-			"entries":[
-				{
-					"name":"delta_time",
-					"format":"float32_1"
-				},
-				{
-					"name":"nodes_count",
-					"format":"uint32_1"
-				},
-				{
-					"name":"animations_count",
-					"format":"uint32_1"
-				},
-				{
-					"name":"force_opaque",
-					"format":"bool32_1"
-				},
-				{
-					"name":"debug_all",
-					"format":"bool32_1"
-				},
-				{
-					"name":"debug_normals",
-					"format":"bool32_1"
-				},
-				{
-					"name":"debug_positions",
-					"format":"bool32_1"
-				},
-				{
-					"name":"debug_tangents",
-					"format":"bool32_1"
-				},
-				{
-					"name":"debug_base_color",
-					"format":"bool32_1"
-				},
-				{
-					"name":"debug_brdf_visibility",
-					"format":"bool32_1"
-				},
-				{
-					"name":"debug_brdf_occlusion",
-					"format":"bool32_1"
-				},
-				{
-					"name":"debug_brdf_fresnel",
-					"format":"bool32_1"
 				}
 			]
 		}
@@ -318,12 +294,12 @@
 			{
 				"render_buffers":[
 					{
-						"index":0,
+						"index":2,
 						"load_action":"clear",
 						"store_action":"store"
 					},
 					{
-						"index":2,
+						"index":4,
 						"load_action":"clear",
 						"store_action":"store"
 					}
@@ -336,19 +312,7 @@
 						"state":"transient",
 						"buffer_inputs":[
 							{
-								"index" : 1,
-								"stage" : "compute"
-							},
-							{
-								"index" : 4,
-								"stage" : "compute"
-							},
-							{
 								"index" : 5,
-								"stage" : "compute"
-							},
-							{
-								"index" : 6,
 								"stage" : "compute"
 							},
 							{
@@ -357,6 +321,18 @@
 							},
 							{
 								"index" : 8,
+								"stage" : "compute"
+							},
+							{
+								"index" : 9,
+								"stage" : "compute"
+							},
+							{
+								"index" : 10,
+								"stage" : "compute"
+							},
+							{
+								"index" : 4,
 								"stage" : "compute"
 							}
 						],

@@ -74,6 +74,7 @@ class Renderer final : public Configuration<Renderer>
 	void                             generate_shader_buffers_mapping();
 	void                             deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene);
 	void                             dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device);
+	void                             reset_sets_bindings();
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off

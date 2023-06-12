@@ -6,13 +6,23 @@
 
 layout(local_size_x_id = 0) in;
 
-struct trs_transform_output
+layout(std140, set = 0, binding = 19) uniform per_frame_uniform
 {
-	vec4 rotation;
-	vec3 translation;
-	vec3 scale;
-	vec3 scale_inverse;
-};
+	float32_t delta_time;
+	uint      nodes_count;
+	uint      animations_count;
+	uint      render_mode;
+} in_per_frame_uniform;
+
+layout(std430, set = 0, binding = 21) buffer nodes_model
+{
+	mat4 node_model_mat4[];
+} in_nodes_model;
+
+layout(std430, set = 0, binding = 28) buffer morphs_weights
+{
+	float morph_weights[];
+} in_morphs_weights;
 
 struct trs_transform_input
 {
@@ -23,41 +33,13 @@ struct trs_transform_input
 	vec3  scale_inverse;
 };
 
-layout(std430, set = 0, binding = 0) buffer node_transform_out
+struct trs_transform_output
 {
-	trs_transform_output node_transforms[];
-} out_nodes_transforms;
-
-layout(std430, set = 0, binding = 1) buffer node_transform_in
-{
-	trs_transform_input node_transforms[];
-} in_nodes_transforms;
-
-layout(std430, set = 0, binding = 26) buffer morphs_weights
-{
-	float morph_weights[];
-} in_morphs_weights;
-
-layout(std430, set = 0, binding = 27) buffer nodes_model
-{
-	mat4 node_model_mat4[];
-} out_nodes_model;
-
-layout(std140, set = 0, binding = 3) uniform per_frame_uniform
-{
-	float32_t delta_time;
-	uint      nodes_count;
-	uint      animations_count;
-	bool      debug_normals;
-	bool      force_opaque;
-	bool      debug_base_color;
-	bool      debug_all;
-	bool      debug_positions;
-	bool      debug_brdf_visibility;
-	bool      debug_brdf_occlusion;
-	bool      debug_tangents;
-	bool      debug_brdf_fresnel;
-} in_per_frame_uniform;
+	vec4 rotation;
+	vec3 translation;
+	vec3 scale;
+	vec3 scale_inverse;
+};
 
 struct Animation
 {
@@ -66,22 +48,33 @@ struct Animation
 	uvec4 node_offsets;             // x = sampler_input_offset, y = sampler_output_offset, z = weight_offset, w = weights_count
 };
 
-layout(std430, set = 0, binding = 4) buffer animations
+layout(std430, set = 0, binding = 0) buffer node_transform_input
+{
+	trs_transform_input node_transforms[];
+} in_node_transform_input;
+
+layout(std430, set = 0, binding = 1) buffer node_transform_output
+{
+	trs_transform_output node_transforms[];
+} in_node_transform_output;
+
+
+layout(std430, set = 0, binding = 2) buffer animations
 {
 	Animation animation[];
 } in_animations;
 
-layout(std430, set = 0, binding = 5) buffer animation_input
+layout(std430, set = 0, binding = 3) buffer animations_sampler_input
 {
 	float32_t inputs[];
-} in_animation_input;
+} in_animations_sampler_input;
 
-layout(std430, set = 0, binding = 6) buffer animation_output
+layout(std430, set = 0, binding = 4) buffer animations_sampler_output
 {
 	float32_t outputs[];
-} in_animation_output;
+} in_animations_sampler_output;
 
-layout(std430, set = 0, binding = 7) buffer current_animations
+layout(std430, set = 0, binding = 5) buffer current_animations
 {
 	uvec2 current_animation[];
 } in_current_animations;
@@ -197,7 +190,7 @@ void main()
 
 				time = mod(time, sampler_max - sampler_min);
 
-				while (input_time_start < input_time_end && in_animation_input.inputs[input_time_start] < time)
+				while (input_time_start < input_time_end && in_animations_sampler_input.inputs[input_time_start] < time)
 				{
 					input_time_start++;
 					sid++;
@@ -207,40 +200,40 @@ void main()
 				{
 					uint cin = sampler_output_offset + (sid * 3);
 
-					float32_t output_translationx = in_animation_output.outputs[cin + 0];
-					float32_t output_translationy = in_animation_output.outputs[cin + 1];
-					float32_t output_translationz = in_animation_output.outputs[cin + 2];
+					float32_t output_translationx = in_animations_sampler_output.outputs[cin + 0];
+					float32_t output_translationy = in_animations_sampler_output.outputs[cin + 1];
+					float32_t output_translationz = in_animations_sampler_output.outputs[cin + 2];
 
 					// These should be in out_nodes_transforms
-					in_nodes_transforms.node_transforms[node_index].translation.x = output_translationx;
-					in_nodes_transforms.node_transforms[node_index].translation.y = output_translationy;
-					in_nodes_transforms.node_transforms[node_index].translation.z = output_translationz;
+					in_node_transform_input.node_transforms[node_index].translation.x = output_translationx;
+					in_node_transform_input.node_transforms[node_index].translation.y = output_translationy;
+					in_node_transform_input.node_transforms[node_index].translation.z = output_translationz;
 				}
 				else if (target_path == 1)
 				{
 					uint cin = sampler_output_offset + (sid * 4);
 
-					float32_t output_rotationx = in_animation_output.outputs[cin + 0];
-					float32_t output_rotationy = in_animation_output.outputs[cin + 1];
-					float32_t output_rotationz = in_animation_output.outputs[cin + 2];
-					float32_t output_rotationw = in_animation_output.outputs[cin + 3];
+					float32_t output_rotationx = in_animations_sampler_output.outputs[cin + 0];
+					float32_t output_rotationy = in_animations_sampler_output.outputs[cin + 1];
+					float32_t output_rotationz = in_animations_sampler_output.outputs[cin + 2];
+					float32_t output_rotationw = in_animations_sampler_output.outputs[cin + 3];
 
-					in_nodes_transforms.node_transforms[node_index].rotation.x = output_rotationx;
-					in_nodes_transforms.node_transforms[node_index].rotation.y = output_rotationy;
-					in_nodes_transforms.node_transforms[node_index].rotation.z = output_rotationz;
-					in_nodes_transforms.node_transforms[node_index].rotation.w = output_rotationw;
+					in_node_transform_input.node_transforms[node_index].rotation.x = output_rotationx;
+					in_node_transform_input.node_transforms[node_index].rotation.y = output_rotationy;
+					in_node_transform_input.node_transforms[node_index].rotation.z = output_rotationz;
+					in_node_transform_input.node_transforms[node_index].rotation.w = output_rotationw;
 				}
 				else if (target_path == 2)
 				{
 					uint cin = sampler_output_offset + (sid * 3);
 
-					float32_t output_scalex = in_animation_output.outputs[cin + 0];
-					float32_t output_scaley = in_animation_output.outputs[cin + 1];
-					float32_t output_scalez = in_animation_output.outputs[cin + 2];
+					float32_t output_scalex = in_animations_sampler_output.outputs[cin + 0];
+					float32_t output_scaley = in_animations_sampler_output.outputs[cin + 1];
+					float32_t output_scalez = in_animations_sampler_output.outputs[cin + 2];
 
-					in_nodes_transforms.node_transforms[node_index].scale.x = output_scalex;
-					in_nodes_transforms.node_transforms[node_index].scale.y = output_scaley;
-					in_nodes_transforms.node_transforms[node_index].scale.z = output_scalez;
+					in_node_transform_input.node_transforms[node_index].scale.x = output_scalex;
+					in_node_transform_input.node_transforms[node_index].scale.y = output_scaley;
+					in_node_transform_input.node_transforms[node_index].scale.z = output_scalez;
 				}
 				else if (target_path == 3)
 				{
@@ -248,7 +241,7 @@ void main()
 
 					for (uint wid = 0; wid < weights_count; wid++)
 					{
-						float32_t output_weight = in_animation_output.outputs[cin + wid];
+						float32_t output_weight = in_animations_sampler_output.outputs[cin + wid];
 						in_morphs_weights.morph_weights[weights_offset + wid ] = output_weight;
 					}
 				}
@@ -258,7 +251,7 @@ void main()
 		// Lets transform using animated TRS
 		for (uint id = 0; id < in_per_frame_uniform.nodes_count; id++)
 		{
-			trs_transform_input in_trs = in_nodes_transforms.node_transforms[id];
+			trs_transform_input in_trs = in_node_transform_input.node_transforms[id];
 
 			vec3 translation   = in_trs.translation;
 			vec4 rotation      = in_trs.rotation;
@@ -270,10 +263,10 @@ void main()
 
 			if (parent_id != -1)
 			{
-				node_matrix = out_nodes_model.node_model_mat4[parent_id] * node_matrix;
+				node_matrix = in_nodes_model.node_model_mat4[parent_id] * node_matrix;
 			}
 
-			out_nodes_model.node_model_mat4[id] = node_matrix;
+			in_nodes_model.node_model_mat4[id] = node_matrix;
 		}
 	}
 }

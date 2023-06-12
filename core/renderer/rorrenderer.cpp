@@ -227,6 +227,11 @@ void Renderer::load_buffers()
 			this->m_buffers.emplace_back(std::move(shader_buffer));
 		}
 	}
+
+	this->generate_shader_buffers_mapping();
+
+	// Ignore the hard-coded sets and bindings in renderer if any and use the settings ones
+	this->reset_sets_bindings();
 }
 
 rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
@@ -718,13 +723,49 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 	}
 }
 
+void Renderer::reset_sets_bindings()
+{
+	auto perframe_ubo = this->shader_buffer("per_frame_uniform");
+	auto perview_ubo  = this->shader_buffer("per_view_uniform");
+	auto model_ubo    = this->shader_buffer("nodes_models");
+	auto offset_ubo   = this->shader_buffer("nodes_offsets");
+	auto weights_ubo  = this->shader_buffer("morphs_weights");
+
+	// These ones are hard-coded in renderer.json because these are not shared at the moment, so don't need reseting
+
+	// auto input_ubo                     = this->shader_buffer("node_transform_input");
+	// auto ouptut_ubo                    = this->shader_buffer("node_transform_output");
+	// auto animations_ubo                = this->shader_buffer("animations");
+	// auto animations_sampler_input_ubo  = this->shader_buffer("animations_sampler_input");
+	// auto animations_sampler_output_ubo = this->shader_buffer("animations_sampler_output");
+	// auto current_animations_ubo        = this->shader_buffer("current_animations");
+
+	auto &setting = ror::settings();
+
+	perframe_ubo->set(setting.per_frame_uniform_set());
+	perframe_ubo->binding(setting.per_frame_uniform_binding());
+
+	perview_ubo->set(setting.per_view_uniform_set());
+	perview_ubo->binding(setting.per_view_uniform_binding());
+
+	model_ubo->set(setting.nodes_model_set());
+	model_ubo->binding(setting.nodes_model_binding());
+
+	offset_ubo->set(setting.nodes_offset_set());
+	offset_ubo->binding(setting.nodes_offset_binding());
+
+	weights_ubo->set(setting.morph_weights_set());
+	weights_ubo->binding(setting.morph_weights_binding());
+
+	// Sanity check if other buffers are added in the future, make sure to update their sets and bindings
+	assert(this->m_buffers.size() == 11);
+}
+
 void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene)
 {
-	(void) a_scene;
-
-	auto output_ubo = this->shader_buffer("node_transform_output");        // this->m_buffers[0];        // Hack: FIXME: remove the 0, I know this one is node_transform_output
-	auto input_ubo  = this->shader_buffer("node_transform_input");         // this->m_buffers[1];        // Hack: FIXME: remove the 1, I know this one is node_transform_input
-	auto model_ubo  = this->shader_buffer("nodes_model");                  //  this->m_buffers[2];        // Hack: FIXME: remove the 2, I know this one is nodes_model
+	auto output_ubo = this->shader_buffer("node_transform_output");
+	auto input_ubo  = this->shader_buffer("node_transform_input");
+	auto model_ubo  = this->shader_buffer("nodes_models");
 
 	auto animations_ubo                = this->shader_buffer("animations");
 	auto animations_sampler_input_ubo  = this->shader_buffer("animations_sampler_input");
@@ -732,19 +773,13 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 	auto current_animations_ubo        = this->shader_buffer("current_animations");
 	auto weights_ubo                   = this->shader_buffer("morphs_weights");
 
-	// auto &animations_ubo                = this->m_buffers[4];        // Hack: FIXME: remove the 4, I know this one is animations
-	// auto &animations_sampler_input_ubo  = this->m_buffers[5];        // Hack: FIXME: remove the 5, I know this one is sampler input
-	// auto &animations_sampler_output_ubo = this->m_buffers[6];        // Hack: FIXME: remove the 6, I know this one is sampler output
-	// auto &weights_ubo                   = this->m_buffers[8];        // Hack: FIXME: remove the 8, I know this one is sampler output
-	// auto &current_animations_ubo        = this->m_buffers[7];        // Hack: FIXME: remove the 9, I know this one is animations
-
 	uint32_t nodes_count = static_cast_safe<uint32_t>(a_scene.nodes().size());
 	for (auto &model : a_scene.models())
 		nodes_count += model.nodes().size();
 
-	model_ubo->update_count("node_model_mat4", nodes_count);
-	input_ubo->update_count("node_transform_in", nodes_count);
-	output_ubo->update_count("node_transform", nodes_count);
+	model_ubo->update_count("node_model", nodes_count);
+	input_ubo->update_count("trs_transform_input", nodes_count);
+	output_ubo->update_count("trs_transform_output", nodes_count);
 
 	uint32_t animation_size{0u};
 	uint32_t animation_count{0u};
@@ -763,7 +798,7 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 	animations_sampler_input_ubo->update_count("inputs", sampler_input_size);
 	animations_sampler_output_ubo->update_count("outputs", sampler_output_size);
 	weights_ubo->update_count("morph_weights", weights_output_size);
-	current_animations_ubo->update_count("animation", animation_count);
+	current_animations_ubo->update_count("current_animation", animation_count);
 
 	for (auto &render_buffer : this->m_input_render_buffers)
 	{
@@ -866,8 +901,6 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 	this->upload_frame_graphs(a_device);
 
 	this->m_render_state.upload(a_device);
-
-	this->generate_shader_buffers_mapping();
 }
 
 std::vector<rhi::RenderpassType> Renderer::render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const

@@ -146,7 +146,7 @@ auto copy_node_transforms(ror::Scene &a_scene, rhi::ShaderBuffer &a_input_buffer
 
 	a_input_buffer.buffer_map();
 
-	auto stride = a_input_buffer.stride("node_transform_in");
+	auto stride = a_input_buffer.stride("trs_transform_input");
 
 	uint32_t node_index    = 0;
 	uint32_t parent_offset = 0;
@@ -749,7 +749,7 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 	}
 
 	{
-		auto stride = current_animation_buffer->stride("animation");
+		auto stride = current_animation_buffer->stride("current_animation");
 		assert(animation_count == current_anim_data.size() && "Animations not fully collected");
 		assert(stride == sizeof(ror::Vector2ui) && "Stride is wrong");
 		(void) stride;
@@ -757,7 +757,7 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 
 		auto i{0u};
 		for (auto &canim : current_anim_data)
-			current_animation_buffer->update("animation", &canim.x, i++, stride);
+			current_animation_buffer->update("current_animation", &canim.x, i++, stride);
 
 		current_animation_buffer->buffer_unmap();
 	}
@@ -1632,8 +1632,8 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 					{
 						auto &vs_shader_index = shader_hash_to_index[vs_hash];
 						auto &vs_shader       = this->m_shaders[vs_shader_index];
-						auto  vs_job_handle   = a_job_system.push_job([mesh_index, prim_index, passtype, &vs_shader, &model]() -> auto {
-                            auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype);
+						auto  vs_job_handle   = a_job_system.push_job([mesh_index, prim_index, passtype, &a_renderer, &vs_shader, &model]() -> auto {
+                            auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype, a_renderer);
                             vs_shader.source(vs);
                             return true;
                         });
@@ -1645,8 +1645,8 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 					{
 						auto &fs_shader_index = shader_hash_to_index[fs_hash];
 						auto &fs_shader       = this->m_shaders[fs_shader_index];
-						auto  fs_job_handle   = a_job_system.push_job([prim_index, passtype, has_shadows, &fs_shader, &mesh, &model]() -> auto {
-                            auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, has_shadows);
+						auto  fs_job_handle   = a_job_system.push_job([prim_index, passtype, has_shadows, &fs_shader, &mesh, &model, &a_renderer]() -> auto {
+                            auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
                             fs_shader.source(fs);
                             return true;
                         });

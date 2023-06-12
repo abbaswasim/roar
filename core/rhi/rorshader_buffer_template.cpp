@@ -332,6 +332,7 @@ std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries_s
 void ShaderBufferTemplate::update_count(const std::string &a_entry_name, uint32_t a_new_count)
 {
 	ShaderBufferTemplate temp_entry(this->m_toplevel.m_name, this->m_type, this->m_layout, this->m_set, this->m_binding);
+	bool                 found{false};
 
 	for (auto &e : this->m_toplevel.m_entries)
 	{
@@ -340,7 +341,10 @@ void ShaderBufferTemplate::update_count(const std::string &a_entry_name, uint32_
 			uint32_t count = pentry->m_count;
 
 			if (a_entry_name == pentry->m_name)
+			{
 				count = a_new_count;
+				found = true;
+			}
 
 			temp_entry.add_entry(pentry->m_name, pentry->m_type, count);
 		}
@@ -351,7 +355,10 @@ void ShaderBufferTemplate::update_count(const std::string &a_entry_name, uint32_
 			uint32_t count = s.m_count;
 
 			if (a_entry_name == s.m_name)
+			{
 				count = a_new_count;
+				found = true;
+			}
 
 			ShaderBufferTemplate::Struct temp_struct{s.m_name, count};
 
@@ -362,7 +369,10 @@ void ShaderBufferTemplate::update_count(const std::string &a_entry_name, uint32_
 					count = spentry->m_count;
 
 					if (a_entry_name == spentry->m_name)
+					{
 						count = a_new_count;
+						found = true;
+					}
 
 					temp_struct.add_entry(spentry->m_name, spentry->m_type, this->m_layout, count);
 				}
@@ -375,6 +385,9 @@ void ShaderBufferTemplate::update_count(const std::string &a_entry_name, uint32_
 			temp_entry.add_struct(temp_struct);
 		}
 	}
+
+	assert(found && "Couldn't find the entry you are trying to update");
+	(void) found;
 
 	*this = std::move(temp_entry);
 }

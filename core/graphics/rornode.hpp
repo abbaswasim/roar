@@ -101,8 +101,8 @@ class ROAR_ENGINE_ITEM NodeData
 	rhi::ShaderBuffer m_shader_buffer{"nodes_offsets",
 	                                  rhi::ShaderBufferType::ubo,
 	                                  rhi::Layout::std140,
-	                                  settings().nodes_index_set(),
-	                                  settings().nodes_index_binding()};        //! Model specific shader buffer, currently only contains node_index
+	                                  settings().nodes_offset_set(),
+	                                  settings().nodes_offset_binding()};        //! Model specific shader buffer, currently only contains node_index
 };
 
 }        // namespace ror

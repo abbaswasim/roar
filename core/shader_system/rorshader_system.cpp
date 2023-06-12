@@ -224,10 +224,12 @@ std::string vs_morph_common(size_t a_weights_count, uint32_t a_morph_set, uint32
 	replace_next_at(a_morph_set, str);
 	replace_next_at(a_morph_binding, str);
 
+	// auto str2 = 
+
 	return str;
 }
 
-const std::string vs_morph_stuff_header_str{"\nvoid morph_@(inout @ @)\n{\n\tuint weight_offset = in_nodes_offsets.node_offsets.z;\n"};
+const std::string vs_morph_stuff_header_str{"\nvoid morph_@(inout @ @)\n{\n\tuint weight_offset = in_nodes_offsets.node_offset.z;\n"};
 const std::string vs_morph_stuff_line_str{"\t@ += in_morphs_weights.morph_weights[weight_offset + @] * in_target_@@;\n"};
 
 std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_name, const std::string &a_type)
@@ -269,14 +271,14 @@ layout(std140, set = @, binding = @) uniform per_view_uniform
 	vec3 camera_position;
 } in_per_view_uniforms;
 
-layout(std430, set = 0, binding = 27) readonly buffer nodes_model
+layout(std430, set = 0, binding = 21) readonly buffer nodes_models
 {
-    mat4 node_model_mat4[];
-} in_nodes_model;
+    mat4 node_model[];
+} in_nodes_models;
 
-layout(std140, set = 0, binding = 28) uniform nodes_offsets
+layout(std140, set = 0, binding = 22) uniform nodes_offsets
 {
-	uvec4 node_offsets;
+	uvec4 node_offset;
 } in_nodes_offsets;
 )com";
 
@@ -362,11 +364,11 @@ vec3 skin_position(vec3 vertex, uint index)
 	// vertex += 2.0 * cross(rotation.xyz, cross(rotation.xyz, vertex) + rotation.w * vertex);        // apply the rigid transform (valid only for unit quaternions)
 	// vertex += translation;                                                                         // apply the translation
 
-    uvec4 node_offset = in_nodes_offsets.node_offsets;
+    uvec4 node_offset = in_nodes_offsets.node_offset;
 
-	mat4 inverse_transform  = inverse(in_nodes_model.node_model_mat4[node_offset.x]);
+	mat4 inverse_transform  = inverse(in_nodes_models.node_model[node_offset.x]);
 	mat4 joint_inverse_bind = in_joint_inverse_bind_matrices.joint_inverse_matrix[index];
-	mat4 joint_transform    = in_nodes_model.node_model_mat4[uint(in_joint_redirects.joint_redirect[index]) + node_offset.y];
+	mat4 joint_transform    = in_nodes_models.node_model[uint(in_joint_redirects.joint_redirect[index]) + node_offset.y];
 
     joint_transform = inverse_transform * joint_transform * joint_inverse_bind;
 
@@ -656,8 +658,9 @@ std::string vertex_shader_input_output(const rhi::VertexDescriptor &a_vertex_des
 }
 
 // TODO: Use https://github.com/aras-p/glsl-optimizer on the output for further optimising the GLSL
-std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_primitive_index, rhi::RenderpassType a_renderpass_type)
+std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_primitive_index, rhi::RenderpassType a_renderpass_type, const ror::Renderer &a_renderer)
 {
+	(void) a_renderer;
 	const auto &mesh                     = a_model.meshes()[a_mesh_index];
 	auto       &vertex_descriptor        = mesh.vertex_descriptor(a_primitive_index);
 	auto       &vertex_target_descriptor = mesh.target_descriptor(a_primitive_index);
@@ -1369,8 +1372,9 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	return output;
 }
 
-std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const materials_vector &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, bool a_has_shadow)
+std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const materials_vector &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, const ror::Renderer &a_renderer, bool a_has_shadow)
 {
+	(void) a_renderer;
 	const auto  is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
 	const auto &vertex_descriptor = a_mesh.vertex_descriptor(a_primitive_index);
 	const auto  type              = vertex_descriptor.type();
