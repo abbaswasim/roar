@@ -12,7 +12,6 @@
 #include "foundation/rorutilities.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rormesh.hpp"
-#include "gui/rorgui.hpp"
 #include "math/roreuler_angle.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"

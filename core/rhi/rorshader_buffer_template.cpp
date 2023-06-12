@@ -394,7 +394,7 @@ static void create_variable_entry(std::string &a_output, const std::string &a_ty
 	a_output.append(";\n");
 }
 
-std::string ShaderBufferTemplate::to_glsl_string() const
+std::string ShaderBufferTemplate::to_glsl_string(std::string &&a_modifier) const
 {
 	std::string pre_output{};
 	std::string output{"layout("};
@@ -404,6 +404,11 @@ std::string ShaderBufferTemplate::to_glsl_string() const
 	output.append(", binding = ");
 	output.append(std::to_string(this->m_binding));
 	output.append(") ");
+	if (!a_modifier.empty())
+	{
+		output.append(a_modifier);
+		output.append(" ");
+	}
 	output.append(this->type_string());
 	output.append(" ");
 	output.append(this->m_toplevel.m_name);

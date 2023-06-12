@@ -153,7 +153,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		return this->m_type == ShaderBufferType::ubo ? "uniform" : "buffer";
 	}
 
-	FORCE_INLINE auto &top_level() 
+	FORCE_INLINE auto &top_level()
 	{
 		return this->m_toplevel;
 	}
@@ -173,8 +173,12 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	 *     vec3   vec3_variable;
 	 *     mat4x4 mat4x4_variable;
 	 * };
+	 * If a_modifier is provided it will be used as memory qualifier for the block.
+	 * Like to_glsl_string("readonly"); will result in:
+	 * layout(std140, set = 0, binding = 0) readonly uniform ubo_name ....
+	 * Modifier can be one of coherent, volatile, restrict, readonly, writeonly or empty
 	 */
-	std::string to_glsl_string() const;
+	std::string to_glsl_string(std::string && a_modifier = "") const;
 
 	/**
 	 * Use this as an iterator to get the entries in the buffer
