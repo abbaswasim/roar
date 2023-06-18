@@ -66,6 +66,8 @@ enum class CameraMode
 	orbit
 };
 
+class Renderer;
+
 class ROAR_ENGINE_ITEM OrbitCamera final
 {
   public:
@@ -90,19 +92,16 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	void              init(EventSystem &a_event_system);
 	void              enable();
 	void              disable();
-	void              update();
+	void              update(Renderer &a_renderer);
 	void              upload(rhi::Device &a_device);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto& shader_buffer() const noexcept { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this instead
-	FORCE_INLINE constexpr auto& shader_buffer()       noexcept { return this->m_shader_buffer; } // TODO: Fix how you do this, just call bind directly on this iFORCE_INLINE nstead
 	FORCE_INLINE constexpr auto& view()          const noexcept { return this->m_view;          }
 	FORCE_INLINE constexpr auto& eye()           const noexcept { return this->m_eye;           }
 	FORCE_INLINE constexpr auto& projection()    const noexcept { return this->m_projection;    }
 	// clang-format on
 
   private:
-	void fill_shader_buffer();
 	void reset();
 	void setup();
 	void update_vectors();
@@ -148,12 +147,6 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	EventCallback m_frambuffer_resize_callback{};           //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_mode_callback{};                        //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_reset_callback{};                       //! Reset lambda function that will be used to subscribe and unsubscribe this camera with event system
-
-	rhi::ShaderBuffer m_shader_buffer{"per_view_uniforms",
-	                                  rhi::ShaderBufferType::ubo,
-	                                  rhi::Layout::std140,
-	                                  settings().per_view_uniform_set(),
-	                                  settings().per_view_uniform_binding()};        //! Shader buffer for per_view_uniform UBO
 };
 }        // namespace ror
 

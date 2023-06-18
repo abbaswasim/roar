@@ -45,7 +45,7 @@ void BufferMetal::release()
 FORCE_INLINE void BufferMetal::init(rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
 {
 	if (a_size_in_bytes == 0)
-		ror::log_warn("Create a buffer of size {}", a_size_in_bytes);
+		ror::log_warn("Creating a buffer of size {}", a_size_in_bytes);
 
 	assert(this->m_buffer == nullptr && "Calling init on already created buffer");
 
@@ -141,8 +141,7 @@ void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, s
 	else if (this->storage_mode() == rhi::ResourceStorageOption::shared ||
 	         this->storage_mode() == rhi::ResourceStorageOption::managed)
 	{
-		uint8_t *ptr = this->map() + a_offset;
-		std::memcpy(ptr, a_data_pointer, a_length);
+		std::memcpy(this->map() + a_offset, a_data_pointer, a_length);
 		this->unmap(a_offset, a_length);
 		this->ready(true);
 	}

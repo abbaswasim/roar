@@ -35,7 +35,6 @@ void make_segments()
 	float h = in_per_view_uniform.viewport.w;
 
 	float wc = w / (segments_count + 2);
-	float hc = h / (segments_count + 2);
 
 	float w_skew = wc * skew;
 

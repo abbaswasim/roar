@@ -100,7 +100,7 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 			enable_camera = false;
 		}
 
-		camera.update();
+		camera.update(renderer);
 
 		renderer.render(scene, job_system, event_system, buffer_pack, device, timer);
 	}

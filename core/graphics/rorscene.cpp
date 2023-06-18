@@ -884,19 +884,19 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 	dd.encoder = &a_encoder;
 
 	// TODO: Abstract out these buffers and magic numbers
-	auto &per_view_uniforms          = this->m_cameras[0].shader_buffer();
 	auto &directional_light_uniforms = this->m_lights[0].shader_buffer();
 	auto &spot_light_uniforms        = this->m_lights[1].shader_buffer();
 	auto &point_light_uniforms       = this->m_lights[2].shader_buffer();
 
+	auto per_view_uniforms     = a_renderer.shader_buffer("per_view_uniform");        // Shared per_view_uniform amongst all cameras
 	auto per_frame_uniform     = a_renderer.shader_buffer("per_frame_uniform");
 	auto weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
 
 	// Vertex shader bindings
-	per_view_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+	per_view_uniforms->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 
 	// Fragment shader bindings
-	per_view_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+	per_view_uniforms->buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 	directional_light_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 	point_light_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 	spot_light_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);

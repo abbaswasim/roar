@@ -34,6 +34,8 @@
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorquaternion.hpp"
 #include "math/rorvector3.hpp"
+#include "math/rorvector4.hpp"
+#include "renderer/rorrenderer.hpp"
 
 namespace ror
 {
@@ -243,44 +245,28 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(keyboard_r_click, this->m_reset_callback);
 }
 
-void OrbitCamera::fill_shader_buffer()
-{
-	// This creates the per_view_uniforms UBO with variable name of in_per_view_uniforms
-	this->m_shader_buffer.add_entry("view_mat4", rhi::Format::float32_4x4, 1);
-	this->m_shader_buffer.add_entry("projection_mat4", rhi::Format::float32_4x4, 1);
-	this->m_shader_buffer.add_entry("view_projection_mat4", rhi::Format::float32_4x4, 1);
-	this->m_shader_buffer.add_entry("inverse_projection_mat4", rhi::Format::float32_4x4, 1);
-	this->m_shader_buffer.add_entry("inverse_view_projection_mat4", rhi::Format::float32_4x4, 1);
-	this->m_shader_buffer.add_entry("normal_mat3", rhi::Format::float32_3x3, 1);
-	this->m_shader_buffer.add_entry("viewport", rhi::Format::uint32_4, 1);
-	this->m_shader_buffer.add_entry("camera_position", rhi::Format::float32_3, 1);
-}
-
-void OrbitCamera::update()
+void OrbitCamera::update(Renderer &a_renderer)
 {
 	// TODO: Don't update me if nothing has changed
-	this->m_shader_buffer.buffer_map();
+	auto per_view_uniform = a_renderer.shader_buffer("per_view_uniform");
 
-	this->m_shader_buffer.update("view_mat4", &this->m_view.m_values);
-	this->m_shader_buffer.update("projection_mat4", &this->m_projection.m_values);
-	this->m_shader_buffer.update("view_projection_mat4", &this->m_view_projection.m_values);
-	this->m_shader_buffer.update("inverse_projection_mat4", &this->m_inverse_projection.m_values);
-	this->m_shader_buffer.update("inverse_view_projection_mat4", &this->m_inverse_view_projection.m_values);
-	this->m_shader_buffer.update("normal_mat3", &this->m_normal.m_values);
-	this->m_shader_buffer.update("camera_position", &this->m_eye.x);
+	per_view_uniform->buffer_map();
+
+	per_view_uniform->update("view_mat4", &this->m_view.m_values);
+	per_view_uniform->update("projection_mat4", &this->m_projection.m_values);
+	per_view_uniform->update("view_projection_mat4", &this->m_view_projection.m_values);
+	per_view_uniform->update("inverse_projection_mat4", &this->m_inverse_projection.m_values);
+	per_view_uniform->update("inverse_view_projection_mat4", &this->m_inverse_view_projection.m_values);
+	per_view_uniform->update("normal_mat3", &this->m_normal.m_values);
+	per_view_uniform->update("camera_position", &this->m_eye.x);
 
 	ror::Vector4ui viewport{0, 0, static_cast<uint32_t>(this->m_width), static_cast<uint32_t>(this->m_height)};
-	this->m_shader_buffer.update("viewport", &viewport.x);
+	per_view_uniform->update("viewport", &viewport.x);
 
-	this->m_shader_buffer.buffer_unmap();
+	per_view_uniform->buffer_unmap();
 }
 
-void OrbitCamera::upload(rhi::Device &a_device)
-{
-	this->fill_shader_buffer();
-	this->m_shader_buffer.upload(a_device);
-
-	this->update();
-}
+void OrbitCamera::upload(rhi::Device &)
+{}
 
 }        // namespace ror

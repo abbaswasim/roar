@@ -74,7 +74,7 @@ class ShaderBufferMetal : public ShaderBufferCrtp<ShaderBufferMetal>, public Buf
 	FORCE_INLINE void buffer_copy(const uint8_t *a_data, size_t a_offset, size_t a_length)
 	{
 		assert(this->m_mapped_address && "Need to map the shader buffer first before copy is called");
-		assert(a_data && "Need to map the shader buffer first before copy is called");
+		assert(a_data && "Data is null need to provide valid data before copy is called");
 
 		std::memcpy(this->m_mapped_address + a_offset, a_data, a_length);
 	}
