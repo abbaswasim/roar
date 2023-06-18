@@ -126,8 +126,8 @@ void OrbitCamera::update_normal()
 {
 	// TODO: This is wrong, I don't have model matrix here, its somewhere in the compute shader world
 	// Also remember if a tranpose of a matrix is possible then the order doesn't matter, transpose first then inverse or inverse first then transpose
-	// Also calculate normal matrix, for xforming normals, from transpose of inverse of model (top 3x3) without translations Transpose and Inverse removes non-uniform scale from it
-	this->m_normal  = Matrix3f{this->m_view};
+	// For xforming nomrals calculate normal matrix from transpose of inverse of model (top 3x3) without translations. Transpose and Inverse removes non-uniform scale from it
+	this->m_normal  = Matrix3f{this->m_view};        // NOTE: This should be model not view
 	bool invertable = this->m_normal.invert();
 	assert(invertable);
 	(void) invertable;
@@ -149,6 +149,10 @@ void OrbitCamera::update_vectors()
 
 void OrbitCamera::update_view()
 {
+	// Applying a translation matrix to a vector should have no effect. We can achieve this by setting the vector’s w component to 0, which zeroes out the translational component of a transformation matrix.
+	// On the other hand, we need points to be able to translate, so we set their w component to 1. This gives us the 3D translation results we want.
+
+	// Another way to calculate view transformation is to take the inverse of the camera’s model-to-world transformation.
 	static const Vector3f up{0.0f, 1.0f, 0.0f};        //! World Up vector to orient itself
 	this->m_view = ror::make_look_at(this->m_eye, this->m_center, up);
 
@@ -209,7 +213,14 @@ void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 	else
 		this->m_center = translation1 * rotation_y * rotation_x * translation0 * this->m_center;
 
-	this->update_vectors();
+	static const Vector3f roar_world_up{0.0f, 1.0f, 0.0f};        //! World Up vector to orient itself
+
+	// If current up and world up are closer together than don't reset
+	if (this->m_up.dot_product(roar_world_up) > 0.2f)
+		this->reset();
+	else
+		this->update_vectors();
+
 	this->update_normal();
 }
 
