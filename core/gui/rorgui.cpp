@@ -704,8 +704,7 @@ static void show_multi_render_view_titles(bool &a_show_render_titles)
 
 static bool rendering_mode_selector(uint32_t &a_render_mode_index, bool &a_show_render_titles)
 {
-	static int mode_index = 0;
-	bool       return_state{false};
+	bool return_state{false};
 
 	if (ImGui::TreeNode("Render mode selector"))
 	{
@@ -715,10 +714,9 @@ static bool rendering_mode_selector(uint32_t &a_render_mode_index, bool &a_show_
 			if (render_mode.c_str()[0] != '-')
 			{
 				ImGui::TreePush(render_mode.c_str() + 1);
-				if (ImGui::Selectable(render_mode.c_str(), selected == mode_index))
+				if (ImGui::Selectable(render_mode.c_str()))
 				{
-					mode_index          = selected;
-					a_render_mode_index = static_cast_safe<uint32_t>(mode_index);
+					a_render_mode_index = static_cast_safe<uint32_t>(selected);
 					return_state        = true;
 
 					if (render_mode == "Multi-Render View")
