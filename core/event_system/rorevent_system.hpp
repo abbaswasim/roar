@@ -54,6 +54,7 @@ enum class EventType : uint32_t
 	mouse = 0,
 	application,
 	keyboard,
+	renderer,
 	gamepad,
 	window,
 	buffer,
@@ -141,7 +142,7 @@ struct Event
 	/**
 	 * Returns the payload contained within the event safely.
 	 * If it doesn't exist or its the wrong type default value
-	 * of the requested type is requred
+	 * of the requested type is returned
 	 */
 	template <class _type>
 	FORCE_INLINE constexpr auto get_payload() const noexcept

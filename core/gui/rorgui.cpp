@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "event_system/rorevent_handles.hpp"
+#include "event_system/rorevent_system.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
@@ -624,7 +625,12 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 static void show_debug_overlay(bool &a_show_debug)
 {
 	ImGuiIO         &io           = ImGui::GetIO();
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |
+	                                ImGuiWindowFlags_AlwaysAutoResize |
+	                                ImGuiWindowFlags_NoSavedSettings |
+	                                ImGuiWindowFlags_NoFocusOnAppearing |
+	                                ImGuiWindowFlags_NoInputs |
+	                                ImGuiWindowFlags_NoNav;
 	{
 		const float          PAD       = 10.0f;
 		const ImGuiViewport *viewport  = ImGui::GetMainViewport();
@@ -649,29 +655,127 @@ static void show_debug_overlay(bool &a_show_debug)
 	ImGui::End();
 }
 
-static bool rendering_mode_selector()
+static void show_multi_render_view_titles(bool &a_show_render_titles)
 {
-	auto &rendermodes  = render_modes();
-	static int style_idx = 0;
-	if (ImGui::Combo("Render style##Selector", &style_idx, rendermodes.c_str()))
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoBackground |
+	                                ImGuiWindowFlags_NoDecoration |
+	                                ImGuiWindowFlags_AlwaysAutoResize |
+	                                ImGuiWindowFlags_NoSavedSettings |
+	                                ImGuiWindowFlags_NoFocusOnAppearing |
+	                                ImGuiWindowFlags_NoInputs |
+	                                ImGuiWindowFlags_NoNav;
+
+	const float          padding  = 5.0f;
+	const ImGuiViewport *viewport = ImGui::GetMainViewport();
+	ImVec2               work_pos = viewport->WorkPos;        // Use work area to avoid menu-bar/task-bar, if any!
+	ImVec2               window_pos, window_pos_pivot;
+	window_pos.x       = (work_pos.x + padding);
+	window_pos.y       = (work_pos.y + padding);
+	window_pos_pivot.x = 0.0f;
+	window_pos_pivot.y = 0.0f;
+	ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
+	window_flags |= ImGuiWindowFlags_NoMove;
+
+	// also defined same in render_modes.glsl.frag, need to be kept in sync
+	const uint32_t  segments_count{6};
+	const float32_t skew{0.5};
+	const float32_t segments_size{viewport->WorkSize.x / (segments_count + 2)};
+
+	float32_t segments[segments_count];
+
+	// Make segments
+	for (uint32_t i = 0u; i < segments_count; ++i)
+		segments[i] = segments_size * (i + 1) + segments_size * skew;
+
+	const std::string titles[segments_count] = {"Occlusion", "Normal", "Roughness", "Metallic", "Base Color", "Emissive"};
+
+	ImGui::SetNextWindowBgAlpha(0.0f);        // Fully transparent background
+	if (ImGui::Begin("Multi-Render View", &a_show_render_titles, window_flags))
 	{
-		ror::log_warn("Render mode is = {}", render_mode(static_cast_safe<size_t>(style_idx)));
-		return true;
+		for (uint32_t i = 0u; i < segments_count; ++i)
+		{
+			auto s = ImGui::CalcTextSize(titles[i].c_str());
+			ImGui::SetCursorScreenPos(ImVec2{segments[i] + ((segments_size - s.x) / 2), window_pos.y});
+			ImGui::Text("%s", titles[i].c_str());
+		}
 	}
-	return false;
+	ImGui::End();
 }
 
-static void show_settings(bool &a_show_settings)
+static bool rendering_mode_selector(uint32_t &a_render_mode_index, bool &a_show_render_titles)
+{
+	static int mode_index = 0;
+	bool       return_state{false};
+
+	if (ImGui::TreeNode("Render mode selector"))
+	{
+		int selected = 0;
+		for (auto &render_mode : ror::Settings().m_gui.m_render_modes)
+		{
+			if (render_mode.c_str()[0] != '-')
+			{
+				ImGui::TreePush(render_mode.c_str() + 1);
+				if (ImGui::Selectable(render_mode.c_str(), selected == mode_index))
+				{
+					mode_index          = selected;
+					a_render_mode_index = static_cast_safe<uint32_t>(mode_index);
+					return_state        = true;
+
+					if (render_mode == "Multi-Render View")
+						a_show_render_titles = true;
+					else
+						a_show_render_titles = false;
+				}
+				ImGui::TreePop();
+			}
+			else
+			{
+				ImGui::Separator();
+				ImGui::Text("%s", render_mode.c_str() + 1);
+			}
+
+			selected++;
+		}
+		ImGui::TreePop();
+	}
+
+	// int mode_radio_index = 0;
+	// for (auto &render_mode : ror::Settings().m_gui.m_render_modes)
+	// {
+	// 	if (ImGui::RadioButton(render_mode.c_str(), &mode_index, mode_radio_index++))
+	// 	{
+	// 		a_render_mode_index = static_cast_safe<uint32_t>(mode_index);
+
+	// 		return true;
+	// 	}
+	// }
+
+	// auto      &rendermodes = render_modes();
+	// if (ImGui::Combo("Render style##Selector", &mode_index, rendermodes.c_str()))
+	// {
+	// 	a_render_mode_index = static_cast_safe<uint32_t>(mode_index);
+
+	// 	return true;
+	// }
+
+	return return_state;
+}
+
+static void show_settings(bool &a_show_settings, ror::EventSystem &a_event_system, bool &a_show_render_titles)
 {
 	ImGui::Begin("Roar settings...", &a_show_settings);
 
-	if (rendering_mode_selector())
-		ror::log_critical("Yes its working");
+	uint32_t render_mode_index{0};
+	if (rendering_mode_selector(render_mode_index, a_show_render_titles))
+	{
+		auto render_mode_handle = create_event_handle(EventType::renderer);
+		a_event_system.notify({render_mode_handle, true, render_mode_index});
+	}
 
 	ImGui::End();
 }
 
-void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions)
+void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions, ror::EventSystem &a_event_system)
 {
 	auto &setting = ror::settings();
 
@@ -698,10 +802,13 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 		ImGui::ShowDemoWindow(&this->m_show_demo_window);
 
 	if (this->m_show_settings)
-		show_settings(this->m_show_settings);
+		show_settings(this->m_show_settings, a_event_system, this->m_show_render_titles);
 
 	if (this->m_show_debug)
 		show_debug_overlay(this->m_show_debug);
+
+	if (this->m_show_render_titles)
+		show_multi_render_view_titles(this->m_show_render_titles);
 
 	{
 		// ImGui::Begin("Hello, world!");           // Create a window called "Hello, world!" and append into it.
@@ -835,10 +942,10 @@ void Gui::setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Re
 	this->m_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 }
 
-void Gui::render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera)
+void Gui::render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system)
 {
 	auto dimensions = a_renderer.dimensions();
-	this->draw_test_windows(a_camera, dimensions);
+	this->draw_test_windows(a_camera, dimensions, a_event_system);
 
 	ImDrawData *draw_data = ImGui::GetDrawData();
 	if (!draw_data)

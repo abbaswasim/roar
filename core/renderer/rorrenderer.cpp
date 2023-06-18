@@ -49,6 +49,7 @@
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
+#include "shader_system/rorshader_system.hpp"
 #include <cassert>
 #include <filesystem>
 #include <stdexcept>
@@ -75,6 +76,18 @@ rhi::TextureTarget string_to_texture_target(const std::string &a_target)
 	return rhi::TextureTarget::texture_2D;
 }
 
+void Renderer::patch_shader(rhi::Shader &a_shader, std::string &a_shader_name)
+{
+	auto shader_callback = this->m_callbacks_mapping.find(a_shader_name);
+	if (shader_callback != this->m_callbacks_mapping.end())
+	{
+		ror::log_info("Calling shader_callback on {}", a_shader_name.c_str());
+		auto shader_source = a_shader.source();
+		shader_callback->second(shader_source, *this);
+		a_shader.source(shader_source);
+	}
+}
+
 void Renderer::load_programs()
 {
 	if (this->m_json_file.contains("shaders"))
@@ -87,6 +100,7 @@ void Renderer::load_programs()
 			auto      type   = rhi::string_to_shader_type(s_path.extension());
 			hash_64_t hash   = hash_64(s_path.c_str(), s_path.string().length());
 			this->m_shaders.emplace_back(shader, hash, type, ror::ResourceAction::load);
+			this->patch_shader(this->m_shaders.back(), shader);
 		}
 	}
 
@@ -683,10 +697,12 @@ void Renderer::setup_references()
 
 void Renderer::load_specific()
 {
+	this->generate_shader_callbacks_mapping();
+
 	// Order is important don't re-order
+	this->load_buffers();
 	this->load_programs();
 	this->load_textures();
-	this->load_buffers();
 	this->load_frame_graphs();
 	this->setup_references();
 }
@@ -721,6 +737,18 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 		command_buffer.release();
 		surface->release();
 	}
+}
+
+void Renderer::set_modifier_events(ror::EventSystem &a_event_system)
+{
+	EventHandle handle = create_event_handle(EventType::renderer);
+
+	auto render_mode = [this](Event &e) {
+		auto index = e.get_payload<uint32_t>();
+		this->set_render_mode(index);
+	};
+
+	a_event_system.subscribe(handle, render_mode);
 }
 
 void Renderer::reset_sets_bindings()
@@ -759,6 +787,15 @@ void Renderer::reset_sets_bindings()
 
 	// Sanity check if other buffers are added in the future, make sure to update their sets and bindings
 	assert(this->m_buffers.size() == 11);
+}
+
+void Renderer::set_render_mode(uint32_t a_render_mode)
+{
+	auto perframe_ubo = this->shader_buffer("per_frame_uniform");
+
+	perframe_ubo->buffer_map();
+	perframe_ubo->update("render_mode", &a_render_mode);
+	perframe_ubo->buffer_unmap();
 }
 
 void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene)
@@ -946,6 +983,11 @@ void Renderer::generate_shader_buffers_mapping()
 {
 	for (auto &buffer : this->m_buffers)
 		this->m_buffers_mapping.emplace(buffer.top_level().m_name, &buffer);
+}
+
+void Renderer::generate_shader_callbacks_mapping()
+{
+	this->m_callbacks_mapping.emplace("node_transform.glsl.comp", node_transform_glsl_comp);
 }
 
 }        // namespace ror

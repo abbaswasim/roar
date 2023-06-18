@@ -53,11 +53,11 @@ EventModifier glfw_button_to_event_modifier(int a_mode);
 
 void glfw_error_callback(int a_error, const char *a_description);
 template <class _type>
-void glfw_window_resize_callback(GLFWwindow *a_window, int a_width, int a_height);
+void glfw_window_resize_callback(GLFWwindow *a_window, int a_width, int a_height);        // Accepts size in window/screen coordinates so for a 2x scaled retina this is half of the actual size in pixels
 template <class _type>
 void glfw_key_callback(GLFWwindow *a_window, int a_key, int a_scancode, int a_action, int a_mode);
 template <class _type>
-void glfw_buffer_resize_callback(GLFWwindow *a_window, int a_width, int a_height);
+void glfw_buffer_resize_callback(GLFWwindow *a_window, int a_width, int a_height);        // Accepts size in buffer coordinate for a 2x scaled retina this is the actual size in pixels
 template <class _type>
 void glfw_mouse_callback(GLFWwindow *a_window, int a_key, int a_scancode, int a_action, int a_mode);
 template <class _type>

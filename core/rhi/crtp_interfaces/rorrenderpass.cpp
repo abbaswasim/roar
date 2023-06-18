@@ -72,7 +72,7 @@ void render_scene(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sc
 	(void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer;
 	// clang-format on
 
-	a_scene.render(a_command_encoder, a_buffer_pack, a_renderer, a_subpass);
+	a_scene.render(a_command_encoder, a_buffer_pack, a_renderer, a_subpass, a_event_system);
 }
 
 void lut_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,

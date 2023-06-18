@@ -1,38 +1,31 @@
 {
 	"shaders":[
-		"default_pbr.vert",
-		"default_pbr.frag",
-		"shadow.vert",
-		"shadow.frag",
-		"depth.vert",
-		"depth.frag",
-		"blur.kern",
-		"explode.comp"
+		"node_transform.glsl.comp",
+		"position.glsl.vert",
+		"position.glsl.frag",
+		"tonemap.glsl.vert",
+		"tonemap.glsl.frag"
 	],
 	"programs":[
 		{
-			"vertex":0,
-			"fragment":1
-		},
-		{
-			"vertex":2,
-			"fragment":3
-		},
-		{
-			"compute":7
+			"compute":0
 		}
 	],
 	"textures":[
 		{
-			"name":"swapchain",
-			"format":"b8g8r8a8_uint32_norm_srgb"
+			"name":"before_swapchain",
+			"format":"b8g8r8a8_uint32_norm"
 		},
 		{
 			"name":"renderable",
 			"format":"r8g8b8a8_uint32_norm"
 		},
 		{
-			"name":"Shadow",
+			"name":"shadow",
+			"format":"depth32_float32"
+		},
+		{
+			"name":"depth",
 			"format":"depth32_float32"
 		},
 		{
@@ -59,7 +52,7 @@
 		},
 		{
 			"name":"Texture6",
-			"format":"r8g8b8a8_uint32_norm_srgb"
+			"format":"r8g8b8a8_uint32_norm"
 		},
 		{
 			"name":"Texture8",
@@ -72,7 +65,105 @@
 	],
 	"buffers":[
 		{
-			"name":"node_transform_output",
+			"name":"per_frame_uniform",
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"entries":[
+				{
+					"name":"delta_time",
+					"format":"float32_1"
+				},
+				{
+					"name":"nodes_count",
+					"format":"uint32_1"
+				},
+				{
+					"name":"animations_count",
+					"format":"uint32_1"
+				},
+				{
+					"name":"render_mode",
+					"format":"uint32_1"
+				}
+			]
+		},
+		{
+			"name":"per_view_uniform",
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"entries":[
+				{
+					"name":"view_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"projection_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"view_projection_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"inverse_projection_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"inverse_view_projection_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"normal_mat3",
+					"format":"float32_3x3"
+				},
+				{
+					"name":"camera_position",
+					"format":"float32_3"
+				}
+			]
+		},
+		{
+			"name":"nodes_models",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"entries":[
+				{
+					"name":"node_model",
+					"format":"float32_4x4",
+					"count":0
+				}
+			]
+		},
+		{
+			"name":"nodes_offsets",
+			"layout":"std140",
+			"type":"ubo",
+			"set":0,
+			"entries":[
+				{
+					"name":"node_offset",
+					"format":"uint32_4"
+				}
+			]
+		},
+		{
+			"name":"morphs_weights",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"entries":[
+				{
+					"name":"morph_weights",
+					"format":"float32_1",
+					"count":0
+				}
+			]
+		},
+		{
+			"name":"node_transform_input",
 			"layout":"std140",
 			"type":"ssbo",
 			"set":0,
@@ -80,7 +171,44 @@
 			"entries":[
 				{
 					"struct":{
-						"name":"node_transform",
+						"name":"trs_transform_input",
+						"count":0,
+						"entries":[
+							{
+								"name":"parent_index",
+								"format":"int32_4"
+							},
+							{
+								"name":"rotation",
+								"format":"float32_4"
+							},
+							{
+								"name":"translation",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale",
+								"format":"float32_3"
+							},
+							{
+								"name":"scale_inverse",
+								"format":"float32_3"
+							}
+						]
+					}
+				}
+			]
+		},
+		{
+			"name":"node_transform_output",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"binding":1,
+			"entries":[
+				{
+					"struct":{
+						"name":"trs_transform_output",
 						"count":0,
 						"entries":[
 							{
@@ -105,40 +233,73 @@
 			]
 		},
 		{
-			"name":"node_transform_input",
-			"layout":"std140",
-			"type":"ubo",
+			"name":"animations",
+			"layout":"std430",
+			"type":"ssbo",
 			"set":0,
-			"binding":1,
+			"binding":2,
 			"entries":[
 				{
 					"struct":{
-						"name":"node_transform_in",
+						"name":"animation",
 						"count":0,
 						"entries":[
 							{
-								"name":"rotation",
-								"format":"float32_4"
+								"name":"animation_channel",
+								"format":"uint32_4"
 							},
 							{
-								"name":"translation",
-								"format":"float32_3"
+								"name":"animation_sampler",
+								"format":"uint32_4"
 							},
 							{
-								"name":"scale",
-								"format":"float32_3"
-							},
-							{
-								"name":"scale_inverse",
-								"format":"float32_3"
-							},
-							{
-								"name":"parent_index",
-								"format":"int32_4"
+								"name":"node_offsets",
+								"format":"uint32_4"
 							}
-
 						]
 					}
+				}
+			]
+		},
+		{
+			"name":"animations_sampler_input",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"binding":3,
+			"entries":[
+				{
+					"name":"inputs",
+					"format":"float32_1",
+					"count":0
+				}
+			]
+		},
+		{
+			"name":"animations_sampler_output",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"binding":4,
+			"entries":[
+				{
+					"name":"outputs",
+					"format":"float32_1",
+					"count":0
+				}
+			]
+		},
+		{
+			"name":"current_animations",
+			"layout":"std430",
+			"type":"ssbo",
+			"set":0,
+			"binding":5,
+			"entries":[
+				{
+					"name":"current_animation",
+					"format":"uint32_2",
+					"count":0
 				}
 			]
 		}
@@ -155,26 +316,50 @@
 		},
 		"forward":[
 			{
-				"render_targets":[
+				"render_buffers":[
 					{
 						"index":2,
 						"load_action":"clear",
 						"store_action":"store"
+					},
+					{
+						"index":4,
+						"load_action":"clear",
+						"store_action":"store"
 					}
 				],
-				"viewport":{
-					"x":0,
-					"y":0,
-					"w":1024,
-					"h":768
-				},
 				"subpasses":[
 					{
-						"name":"shadowing",
-						"technique":"fragment",
-						"type":"shadow",
+						"name":"node_compute_traversal",
+						"technique":"compute",
+						"type":"node_transform",
 						"state":"transient",
-						"debug_output":true,
+						"buffer_inputs":[
+							{
+								"index" : 5,
+								"stage" : "compute"
+							},
+							{
+								"index" : 7,
+								"stage" : "compute"
+							},
+							{
+								"index" : 8,
+								"stage" : "compute"
+							},
+							{
+								"index" : 9,
+								"stage" : "compute"
+							},
+							{
+								"index" : 10,
+								"stage" : "compute"
+							},
+							{
+								"index" : 4,
+								"stage" : "compute"
+							}
+						],
 						"program":0
 					}
 				]
@@ -185,30 +370,46 @@
 						"index":0,
 						"load_action":"clear",
 						"store_action":"store"
+					},
+					{
+						"index":3,
+						"load_action":"clear",
+						"store_action":"discard"
 					}
 				],
 				"background":[
-					0.14,
-					0.14,
-					0.14,
+					0.152,
+					0.137,
+					0.122,
 					1.0
 				],
 				"depends_on":[
 					0
 				],
+				"cull_mode" : "back",
 				"subpasses":[
 					{
 						"name":"forward_lighting",
 						"type":"forward_light",
 						"state":"transient",
 						"debug_output":true,
+						"cull_mode" : "back",
 						"rendered_inputs":[
 							{
 								"index" : 2,
 								"stage" : "fragment"
 							}
 						],
-						"program":1
+						"buffer_inputs":[
+							{
+								"index" : 2,
+								"stage" : "vertex"
+							},
+							{
+								"index" : 3,
+								"stage" : "vertex"
+							}
+						]
 					},
 					{
 						"name":"tonemap",
@@ -220,8 +421,7 @@
 								"index" : 0,
 								"stage" : "fragment"
 							}
-						],
-						"program":0
+						]
 					}
 				]
 			}
@@ -230,7 +430,7 @@
 			{
 				"render_targets":[
 					{
-						"index":3,
+						"index":4,
 						"load_action":"clear",
 						"store_action":"store"
 					}
@@ -249,7 +449,7 @@
 			{
 				"render_targets":[
 					{
-						"index":4,
+						"index":5,
 						"load_action":"clear",
 						"store_action":"store"
 					}
@@ -291,9 +491,9 @@
 					}
 				],
 				"background":[
-					0.14,
-					0.14,
-					0.14,
+					0.53,
+					0.37,
+					0.22,
 					1.0
 				],
 				"subpasses":[
@@ -313,12 +513,6 @@
 						"store_action":"store"
 					}
 				],
-				"viewport":{
-					"x":0,
-					"y":0,
-					"w":1024,
-					"h":768
-				},
 				"depends_on":[
 					1
 				],
@@ -340,17 +534,11 @@
 						"store_action":"store"
 					},
 					{
-						"index":3,
+						"index":4,
 						"load_action":"clear",
 						"store_action":"store"
 					}
 				],
-				"viewport":{
-					"x":0,
-					"y":0,
-					"w":1024,
-					"h":768
-				},
 				"depends_on":[
 					0,
 					1
@@ -372,10 +560,6 @@
 							{
 								"index" : 0,
 								"stage" : "fragment"
-							},
-							{
-								"index" : 1,
-								"stage" : "fragment"
 							}
 						],
 						"program":1
@@ -388,10 +572,6 @@
 						"subpass_inputs":[
 							{
 								"index" : 0,
-								"stage" : "fragment"
-							},
-							{
-								"index" : 1,
 								"stage" : "fragment"
 							}
 						],
@@ -408,10 +588,6 @@
 							{
 								"index" : 0,
 								"stage" : "fragment"
-							},
-							{
-								"index" : 1,
-								"stage" : "fragment"
 							}
 						],
 						"program":0
@@ -426,7 +602,7 @@
 						"store_action":"store"
 					},
 					{
-						"index":3,
+						"index":4,
 						"load_action":"clear",
 						"store_action":"store"
 					}
@@ -457,7 +633,7 @@
 						"store_action":"store"
 					},
 					{
-						"index":3,
+						"index":4,
 						"load_action":"clear",
 						"store_action":"store"
 					}

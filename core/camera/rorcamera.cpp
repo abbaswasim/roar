@@ -219,7 +219,6 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(mouse_middle_mouse_drag, this->m_drag_callback);
 	this->m_event_system->subscribe(mouse_right_mouse_drag, this->m_drag_callback);
 
-	this->m_event_system->subscribe(window_resize, this->m_resize_callback);
 	this->m_event_system->subscribe(buffer_resize, this->m_resize_callback);
 
 	this->m_event_system->subscribe(mouse_scroll, this->m_zoom_callback);
@@ -236,7 +235,6 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_middle_mouse_drag, this->m_drag_callback);
 	this->m_event_system->unsubscribe(mouse_right_mouse_drag, this->m_drag_callback);
 
-	this->m_event_system->unsubscribe(window_resize, this->m_resize_callback);
 	this->m_event_system->unsubscribe(buffer_resize, this->m_resize_callback);
 
 	this->m_event_system->unsubscribe(mouse_scroll, this->m_zoom_callback);
@@ -254,6 +252,7 @@ void OrbitCamera::fill_shader_buffer()
 	this->m_shader_buffer.add_entry("inverse_projection_mat4", rhi::Format::float32_4x4, 1);
 	this->m_shader_buffer.add_entry("inverse_view_projection_mat4", rhi::Format::float32_4x4, 1);
 	this->m_shader_buffer.add_entry("normal_mat3", rhi::Format::float32_3x3, 1);
+	this->m_shader_buffer.add_entry("viewport", rhi::Format::uint32_4, 1);
 	this->m_shader_buffer.add_entry("camera_position", rhi::Format::float32_3, 1);
 }
 
@@ -269,6 +268,9 @@ void OrbitCamera::update()
 	this->m_shader_buffer.update("inverse_view_projection_mat4", &this->m_inverse_view_projection.m_values);
 	this->m_shader_buffer.update("normal_mat3", &this->m_normal.m_values);
 	this->m_shader_buffer.update("camera_position", &this->m_eye.x);
+
+	ror::Vector4ui viewport{0, 0, static_cast<uint32_t>(this->m_width), static_cast<uint32_t>(this->m_height)};
+	this->m_shader_buffer.update("viewport", &viewport.x);
 
 	this->m_shader_buffer.buffer_unmap();
 }

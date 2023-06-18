@@ -71,10 +71,11 @@ class Renderer final : public Configuration<Renderer>
 	void                             upload_frame_graphs(rhi::Device &);
 	std::vector<rhi::RenderpassType> render_pass_types() const;
 	std::vector<rhi::RenderpassType> all_render_pass_types() const;
-	void                             generate_shader_buffers_mapping();
 	void                             deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene);
 	void                             dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device);
+	void                             set_modifier_events(ror::EventSystem &a_event_system);
 	void                             reset_sets_bindings();
+	void                             set_render_mode(uint32_t a_render_mode);
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off
@@ -104,6 +105,7 @@ class Renderer final : public Configuration<Renderer>
 	using InputRenderTargets = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
 	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
 	using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderBuffer *>;
+	using ShaderCallbackMap  = std::unordered_map<std::string, std::function<void(std::string&, ror::Renderer&)>>;
 
   protected:
   private:
@@ -112,7 +114,10 @@ class Renderer final : public Configuration<Renderer>
 	std::vector<rhi::RenderpassType> render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const;
 	const rhi::RenderTarget         *find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
 	const rhi::RenderBuffer         *find_renderbuffer_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
+	void                             generate_shader_buffers_mapping();
+	void                             generate_shader_callbacks_mapping();
 
+	void patch_shader(rhi::Shader &a_shader, std::string &a_shader_name);
 	void load_programs();
 	void load_frame_graphs();
 	void load_textures();
@@ -132,6 +137,7 @@ class Renderer final : public Configuration<Renderer>
 	InputRenderTargets             m_input_render_targets{};                         //! Render targets that are not directly associated with any render pass but required to be filled in before rendering starts
 	InputBufferTargets             m_input_render_buffers{};                         //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
 	ShaderBufferMap                m_buffers_mapping{};                              //! All the Shader buffers in m_buffers are now name accessible
+	ShaderCallbackMap              m_callbacks_mapping{};                            //! All the callbacks that can be used to patch or do something else to shaders
 };
 
 }        // namespace ror

@@ -64,6 +64,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 
 		this->m_renderer.dimensions(a_dimensions, *this->m_current_device);
 		this->m_renderer.upload(*this->m_current_device, *this->m_buffer_pack);
+		this->m_renderer.set_modifier_events(this->m_event_system);
 
 		// Load all the models now in a deferred way
 		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer, this->m_event_system, *this->m_buffer_pack);

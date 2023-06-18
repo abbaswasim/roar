@@ -30,6 +30,7 @@
 #include "math/rorvector2.hpp"
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
+#include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
@@ -173,6 +174,14 @@ std::string attribute_format(rhi::VertexFormat a_format)
 	return "";
 }
 
+void replace_first(const std::string &a_search, const std::string &a_replacement, std::string &a_result)
+{
+	auto index = a_result.find(a_search);
+	assert(index != std::string::npos && "Index is out of range in replace_first, this means could find search term");
+
+	a_result.replace(index, a_search.length(), a_replacement);
+}
+
 template <typename _type>
 void replace_next_at(_type a_value, std::string &a_result)
 {
@@ -205,26 +214,18 @@ void append_count_times(uint32_t a_count, uint32_t a_ats_count,
 	}
 }
 
-// TODO: Take out these into renderer common shader buffers
-const std::string vs_morph_common_str = R"coms(
-const uint weights_count = @;
-
-layout(std430, set = @, binding = @) readonly buffer morphs_weights
+std::string vs_morph_common(size_t a_weights_count, const ror::Renderer &a_renderer)
 {
-	float morph_weights[];
-} in_morphs_weights;
+	const std::string morph_weights_str{"\nconst uint weights_count = @;\n\n"};
 
-)coms";
-
-std::string vs_morph_common(size_t a_weights_count, uint32_t a_morph_set, uint32_t a_morph_binding)
-{
-	auto str{vs_morph_common_str};
-
+	auto str{morph_weights_str};
 	replace_next_at(a_weights_count, str);
-	replace_next_at(a_morph_set, str);
-	replace_next_at(a_morph_binding, str);
 
-	// auto str2 = 
+	auto morphs_weights_buffer  = a_renderer.shader_buffer("morphs_weights");
+	auto morphs_weights_uniform = morphs_weights_buffer->to_glsl_string("readonly");
+
+	str.append(morphs_weights_uniform);
+	str.append("\n");
 
 	return str;
 }
@@ -258,63 +259,23 @@ std::string vs_morph_attribute_common(uint32_t a_count, const std::string &a_nam
 // TODO: These should be conditional
 // There should be per_view vs per_renderable uniforms, view requires many more matrices while renderable only needs MVP, Normal matrices
 // TODO: Separate this by view and renderable
-const std::string per_view_common_str = R"com(
-
-layout(std140, set = @, binding = @) uniform per_view_uniform
+std::string per_view_common(const ror::Renderer &a_renderer)
 {
-	mat4 view_mat4;
-	mat4 projection_mat4;
-	mat4 view_projection_mat4;
-	mat4 inverse_projection_mat4;
-	mat4 inverse_view_projection_mat4;
-	mat3 normal_mat3;
-	vec3 camera_position;
-} in_per_view_uniforms;
+	auto per_view_buffer  = a_renderer.shader_buffer("per_view_uniform");
+	auto per_view_uniform = per_view_buffer->to_glsl_string();
 
-layout(std430, set = 0, binding = 21) readonly buffer nodes_models
-{
-    mat4 node_model[];
-} in_nodes_models;
+	auto model_buffer  = a_renderer.shader_buffer("nodes_models");
+	auto model_uniform = model_buffer->to_glsl_string("readonly");
 
-layout(std140, set = 0, binding = 22) uniform nodes_offsets
-{
-	uvec4 node_offset;
-} in_nodes_offsets;
-)com";
+	auto nodes_offsets_buffer  = a_renderer.shader_buffer("nodes_offsets");
+	auto nodes_offsets_uniform = nodes_offsets_buffer->to_glsl_string();
 
-std::string per_view_common(uint32_t a_set, uint32_t a_binding)
-{
-	auto str{per_view_common_str};
+	per_view_uniform.append(model_uniform);
+	per_view_uniform.append(nodes_offsets_uniform);
 
-	replace_next_at(a_set, str);
-	replace_next_at(a_binding, str);
+	per_view_uniform.append("\n");
 
-	return str;
-}
-
-const std::string per_frame_common_str = R"com(
-layout(std140, set = @, binding = @) uniform per_frame_uniform
-{
-	bool force_opaque;
-	bool debug_all;
-	bool debug_normals;
-	bool debug_positions;
-	bool debug_tangents;
-	bool debug_base_color;
-	bool debug_brdf_visibility;
-	bool debug_brdf_occlusion;
-	bool debug_brdf_fresnel;
-} in_per_frame_uniforms;
-)com";
-
-std::string per_frame_common(uint32_t a_set, uint32_t a_binding)
-{
-	auto str{per_frame_common_str};
-
-	replace_next_at(a_set, str);
-	replace_next_at(a_binding, str);
-
-	return str;
+	return per_view_uniform;
 }
 
 const std::string vs_skin_common_str = R"scom(
@@ -706,14 +667,12 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		}
 	}
 
-	auto &setting = settings();
-
 	// Write out common methods
-	result.append(per_view_common(setting.per_view_uniform_set(), setting.per_view_uniform_binding()));
+	result.append(per_view_common(a_renderer));
 
 	// Only add morph common if mesh has weights and has morph targets
 	if (has_morphs)
-		result.append(vs_morph_common(mesh.weights_count(), setting.morph_weights_set(), setting.morph_weights_binding()));
+		result.append(vs_morph_common(mesh.weights_count(), a_renderer));
 
 	// Write out common morph target functions
 	for (auto &tc : targets_count)
@@ -1214,7 +1173,7 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal, boo
 	// get_material_component(subsurface, 12.234);
 
 	// Some manual appends, not using the macro
-	// Not using macro for roughness because I need to clamp it
+	// Not using macro for roughness because I need to clamp it to minimum 4%
 	if (a_material.m_roughness.m_type != ror::Material::ComponentType::none)
 		if (ror::settings().m_clamp_material_roughness)
 			output.append("\tmaterial.roughness = clamp(get_roughness(), 0.04, 1.0);\n");
@@ -1234,7 +1193,7 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal, boo
 
 	// TODO: View doesn't fit in material, this belongs in fragment but its a hack for now
 	// This works around having to call get_normal() twice
-	output.append("\tmaterial.view = normalize(in_per_view_uniforms.camera_position - in_vertex_position.xyz);\n");
+	output.append("\tmaterial.view = normalize(in_per_view_uniform.camera_position - in_vertex_position.xyz);\n");
 
 	// If we have a normal map use the overloaded get_normal(N) which uses get_normal() internally, there must be vertex normal available
 	if (a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture ||
@@ -1307,7 +1266,179 @@ std::string fs_set_output(const ror::Material &a_material, bool a_has_normal, bo
 	return result;
 }
 
-std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool a_has_normal, bool a_has_color_0, bool a_has_color_1)
+void enable_render_modes(std::string &a_render_modes, const ror::Material &a_material, bool a_has_normal, bool a_has_color_0, bool a_has_color_1, bool a_has_uv0, bool a_has_uv1, bool a_has_uv2)
+{
+	auto has_base_color = a_material.m_base_color.m_type == ror::Material::ComponentType::factor_texture || a_material.m_base_color.m_type == ror::Material::ComponentType::texture;
+	auto has_tangent    = a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture || a_material.m_normal.m_type == ror::Material::ComponentType::texture;
+	auto has_roughness  = a_material.m_roughness.m_type == ror::Material::ComponentType::factor_texture || a_material.m_roughness.m_type == ror::Material::ComponentType::texture;
+	auto has_metallic   = a_material.m_metallic.m_type == ror::Material::ComponentType::factor_texture || a_material.m_metallic.m_type == ror::Material::ComponentType::texture;
+	auto has_occlusion  = a_material.m_occlusion.m_type == ror::Material::ComponentType::factor_texture || a_material.m_occlusion.m_type == ror::Material::ComponentType::texture;
+	auto has_normal     = a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture || a_material.m_normal.m_type == ror::Material::ComponentType::texture;
+	auto has_height     = a_material.m_height.m_type == ror::Material::ComponentType::factor_texture || a_material.m_height.m_type == ror::Material::ComponentType::texture;
+	auto has_emissive   = a_material.m_emissive.m_type == ror::Material::ComponentType::factor_texture || a_material.m_emissive.m_type == ror::Material::ComponentType::texture;
+
+	auto has_base_factor      = a_material.m_base_color.m_type == ror::Material::ComponentType::factor_texture || a_material.m_base_color.m_type == ror::Material::ComponentType::factor;
+	auto has_roughness_factor = a_material.m_roughness.m_type == ror::Material::ComponentType::factor_texture || a_material.m_roughness.m_type == ror::Material::ComponentType::factor;
+	auto has_metallic_factor  = a_material.m_metallic.m_type == ror::Material::ComponentType::factor_texture || a_material.m_metallic.m_type == ror::Material::ComponentType::factor;
+	auto has_occlusion_factor = a_material.m_occlusion.m_type == ror::Material::ComponentType::factor_texture || a_material.m_occlusion.m_type == ror::Material::ComponentType::factor;
+	auto has_normal_factor    = a_material.m_normal.m_type == ror::Material::ComponentType::factor_texture || a_material.m_normal.m_type == ror::Material::ComponentType::factor;
+	auto has_emissive_factor  = a_material.m_emissive.m_type == ror::Material::ComponentType::factor_texture || a_material.m_emissive.m_type == ror::Material::ComponentType::factor;
+
+	// UV 0, 1@
+	if (a_has_uv0)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	// UV 1, 1@
+	if (a_has_uv1)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	// UV 2, 1@
+	if (a_has_uv2)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	// Geometric Normal/And scalled 4-@s
+	if (a_has_normal)
+		replace_all_ats(4, "", a_render_modes);
+	else
+		replace_all_ats(4, "//", a_render_modes);
+
+	// Geometric Tangent/Bitangent 2-@
+	if (has_tangent)
+		replace_all_ats(2, "", a_render_modes);
+	else
+		replace_all_ats(2, "//", a_render_modes);
+
+	if (a_has_color_0)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	if (a_has_color_1)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	// Base color
+	if (has_base_color)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	// Ambient Occlusion map 2-@
+	if (has_occlusion)
+		replace_all_ats(2, "", a_render_modes);
+	else
+		replace_all_ats(2, "//", a_render_modes);
+
+	// Roughness map 2-@
+	if (has_roughness)
+		replace_all_ats(2, "", a_render_modes);
+	else
+		replace_all_ats(2, "//", a_render_modes);
+
+	// Metallic map 2-@
+	if (has_metallic)
+		replace_all_ats(2, "", a_render_modes);
+	else
+		replace_all_ats(2, "//", a_render_modes);
+
+	// Normal map 4-@, 2 for scaled
+	if (has_normal)
+		replace_all_ats(4, "", a_render_modes);
+	else
+		replace_all_ats(4, "//", a_render_modes);
+
+	// Height map 2-@
+	if (has_height)
+		replace_all_ats(2, "", a_render_modes);
+	else
+		replace_all_ats(2, "//", a_render_modes);
+
+	// Emissive map 1-@
+	if (has_emissive)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	// Material Normal Scaled 1-@
+	if (has_normal)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	// Material Factors
+
+	// Base Color Factor 1-@
+	if (has_base_factor)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	// Occlusion factor 2-@
+	if (has_occlusion_factor)
+		replace_all_ats(2, "", a_render_modes);
+	else
+		replace_all_ats(2, "//", a_render_modes);
+
+	// Roughness factor 2-@
+	if (has_roughness_factor)
+		replace_all_ats(2, "", a_render_modes);
+	else
+		replace_all_ats(2, "//", a_render_modes);
+
+	// Metallic factor 2-@
+	if (has_metallic_factor)
+		replace_all_ats(2, "", a_render_modes);
+	else
+		replace_all_ats(2, "//", a_render_modes);
+
+	// Normal factor 2-@
+	if (has_normal_factor)
+		replace_all_ats(2, "", a_render_modes);
+	else
+		replace_all_ats(2, "//", a_render_modes);
+
+	// Emissive factor 1-@
+	if (has_emissive_factor)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+
+	// Base Color Factored 1-@
+	if (has_base_factor)
+		replace_next_at("", a_render_modes);
+	else
+		replace_next_at("//", a_render_modes);
+}
+
+std::string get_render_modes()
+{
+	auto       &render_modes_resource = ror::load_resource("shaders/render_modes.glsl.frag", ror::ResourceSemantic::shaders);
+	std::string render_modes_code{reinterpret_cast<const char *>(render_modes_resource.data().data()), render_modes_resource.data().size()};
+
+	auto    &setting = ror::settings();
+	uint32_t mode{0};
+	for (auto &render_mode : setting.m_gui.m_render_modes)
+	{
+		if (render_mode.c_str()[0] != '-')
+		{
+			std::string replacement{"in_per_frame_uniform.render_mode == " + std::to_string(mode)};
+			std::string search_term{"\"" + render_mode + "\""};
+			replace_first(search_term, replacement, render_modes_code);
+		}
+		mode++;
+	}
+
+	return render_modes_code;
+}
+
+std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool a_has_normal, bool a_has_color_0, bool a_has_color_1, bool a_has_uv0, bool a_has_uv1, bool a_has_uv2)
 {
 	// Read all the shader snippets
 	// Read brdf.glsl.frag resource and create a string_view
@@ -1362,6 +1493,11 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	output.append(lighting_code);
 	output.append("\n");
 
+	// Lets first add set_render_mode code to main
+	auto render_modes = get_render_modes();
+	enable_render_modes(render_modes, a_material, a_has_normal, a_has_color_0, a_has_color_1, a_has_uv0, a_has_uv1, a_has_uv2);
+	replace_next_at(render_modes, main_code);
+
 	if (a_material.m_material_model == rhi::MaterialModel::unlit)
 		replace_next_at("", main_code);
 	else
@@ -1378,6 +1514,9 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	const auto  is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
 	const auto &vertex_descriptor = a_mesh.vertex_descriptor(a_primitive_index);
 	const auto  type              = vertex_descriptor.type();
+	const auto  has_uv0           = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0);
+	const auto  has_uv1           = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_1)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_1);
+	const auto  has_uv2           = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_2)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_2);
 	const auto  has_normal        = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_normal);
 	const auto  has_tangent       = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_tangent)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_tangent);
 	const auto  has_color_0       = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0);
@@ -1386,6 +1525,9 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	auto material_index = a_mesh.material(a_primitive_index);
 	assert(material_index != -1 && "Material index can't be -1");
 	auto &material = a_materials[ror::static_cast_safe<size_t>(material_index)];
+
+	auto per_frame_buffer  = a_renderer.shader_buffer("per_frame_uniform");
+	auto per_frame_uniform = per_frame_buffer->to_glsl_string();
 
 	std::string output{"#version 450\n\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 
@@ -1400,17 +1542,33 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 
 	// write out inputs from fragment shader
 	output.append(ror::fragment_shader_input_output(vertex_descriptor));
-	output.append(per_view_common(setting.per_view_uniform_set(), setting.per_view_uniform_binding()));
-	output.append(per_frame_common(setting.per_frame_uniform_set(), setting.per_frame_uniform_binding()));
+	output.append(per_view_common(a_renderer));
+	output.append(per_frame_uniform);
 	output.append(material_samplers(material, a_has_shadow));
 	output.append(material.m_shader_buffer.to_glsl_string());
 	output.append(fs_light_common(1, setting.directional_light_set(), setting.directional_light_binding(), fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
 	output.append(texture_lookups(material, has_tangent));
-	output.append(fs_set_main(material, a_has_shadow, has_normal, has_color_0, has_color_1));
+	output.append(fs_set_main(material, a_has_shadow, has_normal, has_color_0, has_color_1, has_uv0, has_uv1, has_uv2));
 
 	return output;
+}
+
+// Some specialized functions/callbacks that are used to patch loaded shaders
+// Name of this function is usually the name of the shader, in this case node_transform_glsl_comp is for node_transform.glsl.comp
+void node_transform_glsl_comp(std::string &a_input, const ror::Renderer &a_renderer)
+{
+	replace_next_at(a_renderer.shader_buffer("per_frame_uniform")->to_glsl_string(), a_input);
+	replace_next_at(a_renderer.shader_buffer("per_view_uniform")->to_glsl_string(), a_input);
+	replace_next_at(a_renderer.shader_buffer("nodes_models")->to_glsl_string(), a_input);
+	replace_next_at(a_renderer.shader_buffer("morphs_weights")->to_glsl_string(), a_input);
+	replace_next_at(a_renderer.shader_buffer("node_transform_input")->to_glsl_string(), a_input);
+	replace_next_at(a_renderer.shader_buffer("node_transform_output")->to_glsl_string(), a_input);
+	replace_next_at(a_renderer.shader_buffer("animations")->to_glsl_string(), a_input);
+	replace_next_at(a_renderer.shader_buffer("animations_sampler_input")->to_glsl_string(), a_input);
+	replace_next_at(a_renderer.shader_buffer("animations_sampler_output")->to_glsl_string(), a_input);
+	replace_next_at(a_renderer.shader_buffer("current_animations")->to_glsl_string(), a_input);
 }
 
 // End of fragment shader code

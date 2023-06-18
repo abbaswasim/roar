@@ -67,8 +67,8 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 
 	glfwSetErrorCallback(glfw_error_callback);
 	glfwSetKeyCallback(window, glfw_key_callback<_type>);
-	glfwSetWindowSizeCallback(window, glfw_window_resize_callback<_type>);
-	glfwSetFramebufferSizeCallback(window, glfw_buffer_resize_callback<_type>);
+	glfwSetWindowSizeCallback(window, glfw_window_resize_callback<_type>);             // Accepts size in window/screen coordinate so for a 2x scaled retina this is half of the actual size in pixels
+	glfwSetFramebufferSizeCallback(window, glfw_buffer_resize_callback<_type>);        // Accepts size in buffer coordinate for a 2x scaled retina this is the actual size in pixels
 	glfwSetCursorPosCallback(window, glfw_mouse_move_callback<_type>);
 	glfwSetMouseButtonCallback(window, glfw_mouse_button_callback<_type>);
 	glfwSetScrollCallback(window, glfw_mouse_scroll_callback<_type>);
@@ -208,15 +208,15 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 	glfw_register_drag_event<_type>(a_window, EventModifier::middle_mouse);
 }
 
+// Accepts size in window/screen coordinate so for a 2x scaled retina this is half of the actual size in pixels
 template <class _type>
 void glfw_window_resize_callback(GLFWwindow *a_window, int a_width, int a_height)
 {
 	if (a_width <= 0 || a_height <= 0)
 		return;
 
-	auto  event_handle = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::resize);
 	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({event_handle, true, ror::Vector2ui{static_cast<uint32_t>(a_width), static_cast<uint32_t>(a_height)}});
+	event_system.notify({ror::window_resize, true, ror::Vector2ui{static_cast<uint32_t>(a_width), static_cast<uint32_t>(a_height)}});
 }
 
 template <class _type>
@@ -233,23 +233,22 @@ void glfw_key_callback(GLFWwindow *a_window, int a_key, int a_scancode, int a_ac
 	event_system.notify({event_handle, true});
 }
 
+// Accepts size in buffer coordinate for a 2x scaled retina this is the actual size in pixels
 template <class _type>
 void glfw_buffer_resize_callback(GLFWwindow *a_window, int a_width, int a_height)
 {
 	if (a_width <= 0 || a_height <= 0)
 		return;
 
-	auto  event_handle = create_event_handle(EventType::buffer, EventCode::none, EventModifier::none, EventState::resize);
 	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({event_handle, true, ror::Vector2ui{static_cast<uint32_t>(a_width), static_cast<uint32_t>(a_height)}});
+	event_system.notify({ror::buffer_resize, true, ror::Vector2ui{static_cast<uint32_t>(a_width), static_cast<uint32_t>(a_height)}});
 }
 
 template <class _type>
 void glfw_mouse_move_callback(GLFWwindow *a_window, double a_x_pos, double a_y_pos)
 {
-	auto  event_handle = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::move);
 	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({event_handle, true, ror::Vector2d{a_x_pos, a_y_pos}});
+	event_system.notify({ror::mouse_move, true, ror::Vector2d{a_x_pos, a_y_pos}});
 }
 
 template <class _type>
@@ -268,9 +267,8 @@ void glfw_mouse_button_callback(GLFWwindow *a_window, int a_button, int a_action
 template <class _type>
 void glfw_mouse_scroll_callback(GLFWwindow *a_window, double a_x_offset, double a_y_offset)
 {
-	auto  event_handle = create_event_handle(EventType::mouse, EventCode::none, EventModifier::none, EventState::scroll);
 	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({event_handle, true, ror::Vector2d{a_x_offset, a_y_offset}});
+	event_system.notify({ror::mouse_scroll, true, ror::Vector2d{a_x_offset, a_y_offset}});
 }
 
 template <class _type>
@@ -284,9 +282,8 @@ void glfw_file_drop_callback(GLFWwindow *a_window, int a_count, const char **a_p
 	for (int i = 0; i < a_count; i++)
 		paths.emplace_back(a_paths[i]);
 
-	auto  event_handle = create_event_handle(EventType::file, EventCode::none, EventModifier::none, EventState::drop);
 	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({event_handle, true, paths});
+	event_system.notify({ror::file_drop, true, paths});
 }
 
 }        // namespace ror

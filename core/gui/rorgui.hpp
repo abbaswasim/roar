@@ -50,7 +50,7 @@ class ROAR_ENGINE_ITEM Gui final
 	~Gui() noexcept;        //! Destructor
 
 	void  init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system);
-	void  render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera);
+	void  render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system);
 	auto &overlays() {return this->m_overlays;}
 
 	enum imgui_keys
@@ -64,7 +64,7 @@ class ROAR_ENGINE_ITEM Gui final
   private:
 	void             install_input_handlers();
 	void             uninstall_input_handlers();
-	void             draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions);
+	void             draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions, ror::EventSystem &a_event_system);
 	void             setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data);
 	void             push_anchor(Anchors::Anchor a_anchor);
 	size_t           anchors_count();
@@ -98,6 +98,7 @@ class ROAR_ENGINE_ITEM Gui final
 	bool                  m_show_anchors{false};               //! Show Anchors or not
 	bool                  m_show_settings{false};              //! Show settings or not
 	bool                  m_show_debug{false};                 //! Show Debug window or not
+	bool                  m_show_render_titles{false};         //! Show titles for Multi-Render View
 
 	// Render data
 	rhi::Device          *m_device{nullptr};               //! Non-Owning pointer to a device that is used to initiliazed this gui

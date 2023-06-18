@@ -25,7 +25,7 @@ void test_render_target(const rhi::RenderTarget &a, const rhi::RenderTarget& b)
 
 void test_render_targets(const std::vector<rhi::RenderTarget> a, std::vector<rhi::RenderTarget> b)
 {
-	EXPECT_EQ(a.size(), b.size());
+	ASSERT_EQ(a.size(), b.size());
 
 	for (size_t i = 0; i < b.size(); ++i)
 		test_render_target(a[i], b[i]);
@@ -33,7 +33,7 @@ void test_render_targets(const std::vector<rhi::RenderTarget> a, std::vector<rhi
 
 void test_render_target_refs(const RenderTargets a, RenderTargets b)
 {
-	EXPECT_EQ(a.size(), b.size());
+	ASSERT_EQ(a.size(), b.size());
 
 	for (size_t i = 0; i < b.size(); ++i)
 	{
@@ -382,6 +382,8 @@ TEST(RendererTest, config_load)
 		return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 	};
 
+	ASSERT_GT(shdrs.size(), 7);
+
 	{
 		EXPECT_TRUE(ends_with(shdrs[0].shader_path().filename(), "default_pbr.vert"));
 		EXPECT_TRUE(ends_with(shdrs[1].shader_path().filename(), "default_pbr.frag"));
@@ -395,6 +397,7 @@ TEST(RendererTest, config_load)
 	// Test programs
 	auto &prg = rdr.programs();
 	{
+		ASSERT_GT(prg.size(), 2);
 		{
 			EXPECT_EQ(prg[0].vertex_id(), 0);
 			EXPECT_EQ(prg[0].fragment_id(), 1);

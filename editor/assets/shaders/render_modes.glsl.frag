@@ -1,0 +1,1 @@
+../../../core/assets/shaders/render_modes.glsl.frag

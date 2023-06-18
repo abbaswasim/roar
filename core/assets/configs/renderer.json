@@ -95,8 +95,36 @@
 			"set":0,
 			"entries":[
 				{
-					"name":"delta_time",
-					"format":"float32_1"
+					"name":"view_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"projection_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"view_projection_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"inverse_projection_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"inverse_view_projection_mat4",
+					"format":"float32_4x4"
+				},
+				{
+					"name":"normal_mat3",
+					"format":"float32_3x3"
+				},
+				{
+					"name":"viewport",
+					"format":"uint32_4"
+				},
+				{
+					"name":"camera_position",
+					"format":"float32_3"
 				}
 			]
 		},
@@ -140,7 +168,7 @@
 		},
 		{
 			"name":"node_transform_input",
-			"layout":"std140",
+			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
 			"binding":0,

@@ -44,8 +44,6 @@ FORCE_INLINE void ShaderCrtp<_type>::source(const std::string &a_source)
 {
 	assert(this->m_shader);
 	this->m_shader->update({a_source.begin(), a_source.end()}, false, false);
-
-	this->compile();
 }
 
 template <class _type>

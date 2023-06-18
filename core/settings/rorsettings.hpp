@@ -282,6 +282,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_print_generated_glsl_shaders     = setting.get<bool>("print_generated_glsl_shaders");
 		this->m_print_generated_vertex_shaders   = setting.get<bool>("print_generated_vertex_shaders");
 		this->m_print_generated_fragment_shaders = setting.get<bool>("print_generated_fragment_shaders");
+		this->m_print_generated_compute_shaders  = setting.get<bool>("print_generated_compute_shaders");
 		this->m_write_generated_shaders          = setting.get<bool>("write_generated_shaders");
 		this->m_generate_debug_mesh              = setting.get<bool>("generate_debug_mesh");
 		this->m_generate_gui_mesh                = setting.get<bool>("generate_gui_mesh");
@@ -308,27 +309,27 @@ class ROAR_ENGINE_ITEM Settings final
 	FORCE_INLINE constexpr auto material_factors_binding()        const noexcept { return (this->m_bindings.m_material_factors & bits_mask) + this->max_attributes();        }
 	FORCE_INLINE constexpr auto per_frame_uniform_binding()       const noexcept { return (this->m_bindings.m_per_frame_uniform & bits_mask) + this->max_attributes();       }
 	FORCE_INLINE constexpr auto per_view_uniform_binding()        const noexcept { return (this->m_bindings.m_per_view_uniform & bits_mask) + this->max_attributes();        }
-	FORCE_INLINE constexpr auto nodes_model_binding()             const noexcept { return (this->m_bindings.m_nodes_models & bits_mask) + this->max_attributes();             }
-	FORCE_INLINE constexpr auto nodes_offset_binding()            const noexcept { return (this->m_bindings.m_nodes_offsets & bits_mask) + this->max_attributes();            }
+	FORCE_INLINE constexpr auto nodes_model_binding()             const noexcept { return (this->m_bindings.m_nodes_models & bits_mask) + this->max_attributes();            }
+	FORCE_INLINE constexpr auto nodes_offset_binding()            const noexcept { return (this->m_bindings.m_nodes_offsets & bits_mask) + this->max_attributes();           }
 	FORCE_INLINE constexpr auto directional_light_binding()       const noexcept { return (this->m_bindings.m_directional_light & bits_mask) + this->max_attributes();       }
 	FORCE_INLINE constexpr auto point_light_binding()             const noexcept { return (this->m_bindings.m_point_light & bits_mask) + this->max_attributes();             }
 	FORCE_INLINE constexpr auto spot_light_binding()              const noexcept { return (this->m_bindings.m_spot_light & bits_mask) + this->max_attributes();              }
 	FORCE_INLINE constexpr auto area_light_binding()              const noexcept { return (this->m_bindings.m_area_light & bits_mask) + this->max_attributes();              }
 	FORCE_INLINE constexpr auto skin_joints_binding()             const noexcept { return (this->m_bindings.m_skin_joints & bits_mask) + this->max_attributes();             }
-	FORCE_INLINE constexpr auto morph_weights_binding()           const noexcept { return (this->m_bindings.m_morphs_weights & bits_mask) + this->max_attributes();           }
+	FORCE_INLINE constexpr auto morph_weights_binding()           const noexcept { return (this->m_bindings.m_morphs_weights & bits_mask) + this->max_attributes();          }
 	FORCE_INLINE constexpr auto joint_inverse_bind_binding()      const noexcept { return (this->m_bindings.m_joint_inverse_bind & bits_mask) + this->max_attributes();      }
 
 	FORCE_INLINE constexpr auto material_factors_set()            const noexcept { return (this->m_bindings.m_material_factors >> bits_shift);                               }
 	FORCE_INLINE constexpr auto per_frame_uniform_set()           const noexcept { return (this->m_bindings.m_per_frame_uniform >> bits_shift);                              }
 	FORCE_INLINE constexpr auto per_view_uniform_set()            const noexcept { return (this->m_bindings.m_per_view_uniform >> bits_shift);                               }
-	FORCE_INLINE constexpr auto nodes_model_set()                 const noexcept { return (this->m_bindings.m_nodes_models >> bits_shift);                                    }
-	FORCE_INLINE constexpr auto nodes_offset_set()                const noexcept { return (this->m_bindings.m_nodes_offsets >> bits_shift);                                   }
+	FORCE_INLINE constexpr auto nodes_model_set()                 const noexcept { return (this->m_bindings.m_nodes_models >> bits_shift);                                   }
+	FORCE_INLINE constexpr auto nodes_offset_set()                const noexcept { return (this->m_bindings.m_nodes_offsets >> bits_shift);                                  }
 	FORCE_INLINE constexpr auto directional_light_set()           const noexcept { return (this->m_bindings.m_directional_light >> bits_shift);                              }
 	FORCE_INLINE constexpr auto point_light_set()                 const noexcept { return (this->m_bindings.m_point_light >> bits_shift);                                    }
 	FORCE_INLINE constexpr auto spot_light_set()                  const noexcept { return (this->m_bindings.m_spot_light >> bits_shift);                                     }
 	FORCE_INLINE constexpr auto area_light_set()                  const noexcept { return (this->m_bindings.m_area_light >> bits_shift);                                     }
 	FORCE_INLINE constexpr auto skin_joints_set()                 const noexcept { return (this->m_bindings.m_skin_joints >> bits_shift);                                    }
-	FORCE_INLINE constexpr auto morph_weights_set()               const noexcept { return (this->m_bindings.m_morphs_weights >> bits_shift);                                  }
+	FORCE_INLINE constexpr auto morph_weights_set()               const noexcept { return (this->m_bindings.m_morphs_weights >> bits_shift);                                 }
 	FORCE_INLINE constexpr auto joint_inverse_bind_set()          const noexcept { return (this->m_bindings.m_joint_inverse_bind >> bits_shift);                             }
 	// clang-format on
 
@@ -389,6 +390,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_print_generated_glsl_shaders{false};
 	bool m_print_generated_vertex_shaders{false};
 	bool m_print_generated_fragment_shaders{false};
+	bool m_print_generated_compute_shaders{false};
 	bool m_write_generated_shaders{false};
 	bool m_generate_debug_mesh{false};
 	bool m_generate_gui_mesh{false};

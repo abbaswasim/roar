@@ -342,7 +342,6 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		else
 			a_dd.encoder->cull_mode(subpass.cull_mode());
 
-
 		// Bind standard vertex attributes
 		auto &vertex_attributes = a_mesh.vertex_descriptor(prim_id);
 		for (auto &va : vertex_attributes.attributes())
@@ -842,7 +841,7 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 	}
 }
 
-void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass)
+void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
 {
 	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
 
@@ -890,6 +889,7 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 	auto &spot_light_uniforms        = this->m_lights[1].shader_buffer();
 	auto &point_light_uniforms       = this->m_lights[2].shader_buffer();
 
+	auto per_frame_uniform     = a_renderer.shader_buffer("per_frame_uniform");
 	auto weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
 
 	// Vertex shader bindings
@@ -935,6 +935,7 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 						weights_shader_buffer->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 					}
 
+					per_frame_uniform->buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 					a_encoder.front_facing_winding(model_node.m_winding);
 
 					render_mesh(model, mesh, dd, a_renderer, *this, a_subpass);
@@ -949,7 +950,7 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 	auto &setting = ror::settings();
 
 	if (setting.m_generate_gui_mesh && setting.m_gui.m_visible)
-		ror::gui().render(a_renderer, a_encoder, this->m_cameras[0]);        // TODO: Fix the camera
+		ror::gui().render(a_renderer, a_encoder, this->m_cameras[0], a_event_system);        // TODO: Fix the camera
 }
 
 void Scene::update(double64_t a_milli_seconds)
@@ -1635,6 +1636,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 						auto  vs_job_handle   = a_job_system.push_job([mesh_index, prim_index, passtype, &a_renderer, &vs_shader, &model]() -> auto {
                             auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype, a_renderer);
                             vs_shader.source(vs);
+                            vs_shader.compile();
                             return true;
                         });
 
@@ -1648,6 +1650,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 						auto  fs_job_handle   = a_job_system.push_job([prim_index, passtype, has_shadows, &fs_shader, &mesh, &model, &a_renderer]() -> auto {
                             auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
                             fs_shader.source(fs);
+                            fs_shader.compile();
                             return true;
                         });
 

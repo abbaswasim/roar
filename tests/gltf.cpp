@@ -32,6 +32,7 @@
 #include "couldron_0.hpp"
 #include "fox.h"
 #include "graphics/rormodel.hpp"
+#include "renderer/rorrenderer.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorbuffers_pack.hpp"

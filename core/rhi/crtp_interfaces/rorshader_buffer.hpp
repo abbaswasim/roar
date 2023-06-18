@@ -125,13 +125,14 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	{}
 
 	// clang-format off
-	FORCE_INLINE constexpr auto &shader_buffer()                   noexcept  { return this->m_shader_buffer_template;                         }
-	FORCE_INLINE constexpr auto  to_glsl_string()            const           { return this->m_shader_buffer_template.to_glsl_string();        }
-	FORCE_INLINE constexpr auto  set()                       const noexcept  { return this->m_shader_buffer_template.set();                   }
-	FORCE_INLINE constexpr auto  binding()                   const noexcept  { return this->m_shader_buffer_template.binding();               }
-	FORCE_INLINE constexpr auto  offset()                    const noexcept  { return this->m_shader_buffer_template.offset();                }
-	FORCE_INLINE constexpr void  set(uint32_t a_set)               noexcept  {        this->m_shader_buffer_template.set(a_set);              }
-	FORCE_INLINE constexpr void  binding(uint32_t a_binding)       noexcept  {        this->m_shader_buffer_template.binding(a_binding);      }
+	FORCE_INLINE constexpr auto &shader_buffer()                                   noexcept  { return this->m_shader_buffer_template;                                              }
+	FORCE_INLINE constexpr auto  to_glsl_string()                            const           { return this->m_shader_buffer_template.to_glsl_string();                             }
+	FORCE_INLINE constexpr auto  to_glsl_string(std::string && a_modifier)   const           { return this->m_shader_buffer_template.to_glsl_string(std::move(a_modifier));        }
+	FORCE_INLINE constexpr auto  set()                                       const noexcept  { return this->m_shader_buffer_template.set();                                        }
+	FORCE_INLINE constexpr auto  binding()                                   const noexcept  { return this->m_shader_buffer_template.binding();                                    }
+	FORCE_INLINE constexpr auto  offset()                                    const noexcept  { return this->m_shader_buffer_template.offset();                                     }
+	FORCE_INLINE constexpr void  set(uint32_t a_set)                               noexcept  {        this->m_shader_buffer_template.set(a_set);                                   }
+	FORCE_INLINE constexpr void  binding(uint32_t a_binding)                       noexcept  {        this->m_shader_buffer_template.binding(a_binding);                           }
 	// clang-format on
 
 	FORCE_INLINE constexpr auto stride(const std::string &a_name)
