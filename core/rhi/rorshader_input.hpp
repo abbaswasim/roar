@@ -28,8 +28,8 @@
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/metal/rordevice.hpp"
-#include "rhi/metal/rorshader_buffer.hpp"
+#include "rhi/rordevice.hpp"
+#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortypes.hpp"
 #include <string>
 #include <unordered_map>

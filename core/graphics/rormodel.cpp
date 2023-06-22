@@ -1991,7 +1991,12 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						node.m_trs_transform.m_rotation = ror::Quaternionf(cnode->rotation[0], cnode->rotation[1], cnode->rotation[2], cnode->rotation[3]);
 
 					if (cnode->has_scale)
+					{
 						node.m_trs_transform.m_scale = ror::Vector3f(cnode->scale[0], cnode->scale[1], cnode->scale[2]);
+
+						if (cnode->scale[0] != cnode->scale[1] || cnode->scale[0] != cnode->scale[2] || cnode->scale[1] != cnode->scale[2])
+							ror::log_critical("There is non-uniform scale in model {}, make sure the vertex shader normalisation code has no-uniform scale support", a_filename.c_str());
+					}
 
 					if (cnode->has_matrix)
 					{
@@ -2232,6 +2237,38 @@ void Model::upload(rhi::Device &a_device)
 void Model::update_mesh_program(uint32_t a_mesh_index, uint32_t a_primitive_index, int32_t a_program_index)
 {
 	this->m_meshes[a_mesh_index].program(a_primitive_index, a_program_index);
+}
+
+ror::BoundingBoxf Model::bounding_box_scaled()
+{
+	ror::log_info("Recreating model bounding box");
+
+	ror::BoundingBoxf bbox{};
+
+	for (auto &node : this->m_nodes)
+	{
+		if (node.m_mesh_index != -1)
+		{
+			auto &mesh = this->m_meshes[static_cast<size_t>(node.m_mesh_index)];
+
+			for (size_t prim_id = 0; prim_id < mesh.primitives_count(); ++prim_id)
+			{
+				auto &mesh_bound = mesh.bounding_box(prim_id);
+
+				auto T = node.m_trs_transform.translation();
+				auto R = node.m_trs_transform.rotation();
+				auto S = node.m_trs_transform.scale();
+
+				auto min = T * (R * (S * mesh_bound.minimum()));
+				auto max = T * (R * (S * mesh_bound.maximum()));
+
+				bbox.add_point(min);
+				bbox.add_point(max);
+			}
+		}
+	}
+
+	return bbox;
 }
 
 }        // namespace ror

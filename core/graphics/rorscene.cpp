@@ -1810,6 +1810,9 @@ void Scene::read_nodes()
 		{
 			std::array<float32_t, 3> s = node["scale"];
 			nod.m_trs_transform.scale({s[0], s[1], s[2]});
+
+			if (s[0] != s[1] || s[0] != s[2] || s[1] != s[2])
+				ror::log_critical("There is non-uniform scale in node {}, make sure the vertex shader normalisation code has no-uniform scale support", nod_data.m_name.c_str());
 		}
 
 		if (node.contains("path"))

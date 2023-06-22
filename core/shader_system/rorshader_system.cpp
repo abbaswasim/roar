@@ -394,17 +394,15 @@ std::string vs_skin_position(uint32_t a_joints_weights_count)
 	return result;
 }
 
-// TODO: Create un-projected, perspective correct world position
-// vec3 wp = model * view * vertex_position;
-// wp = wp.xyz / vertex_position.w; // or something like that
 const std::string vs_set_position_str = R"spos(
 void world_transform_position(inout vec4 vertex_position)
 {
-    // You need to retain 'w' only after perspective transform for fixed function "prespective division"
+    // You need to retain 'w' only after 'perspective' transform for fixed function "prespective division"
     // hence reseting w=1.0 to make sure skinning or morphing hasn't messed it up
     // Details https://www.tomdalling.com/blog/modern-opengl/explaining-homogenous-coordinates-and-projective-geometry/
-    uint node_index = in_nodes_offsets.node_offsets.x;
-	vertex_position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * in_nodes_model.node_model_mat4[node_index] * vec4(vertex_position.xyz, 1.0);
+
+    uint node_index = in_nodes_offsets.node_offset.x;
+	vertex_position = in_nodes_models.node_model[node_index] * vec4(vertex_position.xyz, 1.0);
 }
 
 void set_position()
@@ -417,14 +415,36 @@ void set_position()
 
 	@out_vertex_position = vertex_position;
 
-	gl_Position = vertex_position;
+	gl_Position = in_per_view_uniform.projection_mat4 * in_per_view_uniform.view_mat4 * vec4(vertex_position.xyz, 1.0);
 }
 )spos";
 
 const std::string vs_set_normal_str = R"snor(
 void world_transform_normal(inout vec3 vertex_normal)
 {
-	vertex_normal = in_per_view_uniforms.normal_mat3 * vertex_normal;
+    uint node_index = in_nodes_offsets.node_offset.x;
+    mat3 normal_matrix = mat3(in_nodes_models.node_model[node_index]);
+
+/*
+    // If there ever is non-uniform scale in any model matrices we need to do the following
+    vec3 c0 = normal_matrix[0];
+    vec3 c1 = normal_matrix[1];
+    vec3 c2 = normal_matrix[2];
+
+    c0 = normalize(c0);
+    c1 = normalize(c1);
+    c2 = normalize(c2);
+
+    normal_matrix[0] = c0;
+    normal_matrix[1] = c1;
+    normal_matrix[2] = c2;
+
+    normal_matrix = inverse(normal_matrix);
+    normal_matrix = transpose(normal_matrix);
+*/
+
+	vertex_normal = normal_matrix * vertex_normal;
+	vertex_normal = normalize(vertex_normal);
 }
 
 void set_normal()
@@ -439,7 +459,7 @@ void set_normal()
 }
 )snor";
 
-// TODO: Is this skin_position and world_transform_position correct here?, I think I need world_transform_tangent here
+// Unlike normals tangents can be xforms just like positions using 'skin_position' and 'world_transform_position'
 const std::string vs_set_tangent_str = R"stan(
 void set_tangent()
 {
@@ -1162,6 +1182,7 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal, boo
 	get_material_component(bent_normal, vec3(0.0, 0.0, 1.0));
 	// get_material_component(roughness, 1.0);
 	// get_material_component(metallic, 0.0);
+	get_material_component(height, 0.0);
 	get_material_component(occlusion, 1.0);
 	get_material_component(anisotropy, 0.0);
 	get_material_component(clearcoat, 1.0);
@@ -1232,7 +1253,6 @@ std::string get_material(const ror::Material &a_material, bool a_has_normal, boo
 		output.append("\tmaterial.anisotropy = 0.0;\n");
 	}
 
-	output.append("\tmaterial.height = 0.0;\n");
 	output.append("\n\treturn material;\n}\n");
 
 	return output;

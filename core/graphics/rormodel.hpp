@@ -65,12 +65,13 @@ class ROAR_ENGINE_ITEM Model final
 	// Populates data from a gltf file loaded as a resource.
 	// Takes scene cameras and lights as parameter and fills it up with this model cameras and lights
 	// If this or any other load functions are called before, data needs to be appended
-	void load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, std::vector<ror::Light> &a_lights, bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack);
-	void create_default_mesh(const char *a_name, bool a_generate_shaders, DefaultMeshData a_mesh_data, std::vector<ror::Material> &&a_mesh_materials);
-	void create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack);
-	void create_debug(bool a_generate_shaders, std::vector<std::vector<float32_t>> &attributes_data, std::vector<rhi::PrimitiveTopology> a_topology, rhi::BuffersPack &a_buffers_pack);
-	void reset();
-	void upload(rhi::Device &a_device);
+	void              load_from_gltf_file(std::filesystem::path a_filename, std::vector<ror::OrbitCamera> &a_cameras, std::vector<ror::Light> &a_lights, bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack);
+	void              create_default_mesh(const char *a_name, bool a_generate_shaders, DefaultMeshData a_mesh_data, std::vector<ror::Material> &&a_mesh_materials);
+	void              create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack);
+	void              create_debug(bool a_generate_shaders, std::vector<std::vector<float32_t>> &attributes_data, std::vector<rhi::PrimitiveTopology> a_topology, rhi::BuffersPack &a_buffers_pack);
+	void              reset();
+	void              upload(rhi::Device &a_device);
+	ror::BoundingBoxf bounding_box_scaled();
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &images()                 noexcept  {  return this->m_images;             }
@@ -102,19 +103,19 @@ class ROAR_ENGINE_ITEM Model final
 
 	void update_hashes();
 
-	std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     m_images{};                                       //! All images, by handles
-	std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> m_samplers{};                                     //! All samplers, by handles
-	std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               m_textures{};                                     //! All textures by handles
-	std::vector<ror::Material, rhi::BufferAllocator<ror::Material>>             m_materials{};                                    //! All the materials in this asset
-	std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>>                     m_meshes{};                                       //! All the meshes in this asset
-	std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>>                     m_skins{};                                        //! All the skins we have
-	std::vector<ror::Node, rhi::BufferAllocator<ror::Node>>                     m_nodes{};                                        //! All the nodes in this asset
-	std::vector<ror::NodeData, rhi::BufferAllocator<ror::NodeData>>             m_nodes_side_data{};                              //! All the nodes parallel data that needs to be maintained
-	std::vector<ror::Animation, rhi::BufferAllocator<ror::Animation>>           m_animations{};                                   //! All the animations in this asset
-	BinBuffer_Vector_Vector                                                     m_buffers{};                                      //! All the buffers provided in gltf, only required temporarily
-	ror::BoundingBoxf                                                           m_bounding_box{};                                 //! Model bounding box, a combination of its mesh in object space
-	bool                                                                        m_generate_shaders{true};                         //! Flag to determine if the model requires its shaders to be generated or these are provided,
-	                                                                                                                              //! For instanced models to many nodes this will generate shaders for all nodes
+	std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     m_images{};                      //! All images, by handles
+	std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> m_samplers{};                    //! All samplers, by handles
+	std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               m_textures{};                    //! All textures by handles
+	std::vector<ror::Material, rhi::BufferAllocator<ror::Material>>             m_materials{};                   //! All the materials in this asset
+	std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>>                     m_meshes{};                      //! All the meshes in this asset
+	std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>>                     m_skins{};                       //! All the skins we have
+	std::vector<ror::Node, rhi::BufferAllocator<ror::Node>>                     m_nodes{};                       //! All the nodes in this asset
+	std::vector<ror::NodeData, rhi::BufferAllocator<ror::NodeData>>             m_nodes_side_data{};             //! All the nodes parallel data that needs to be maintained
+	std::vector<ror::Animation, rhi::BufferAllocator<ror::Animation>>           m_animations{};                  //! All the animations in this asset
+	BinBuffer_Vector_Vector                                                     m_buffers{};                     //! All the buffers provided in gltf, only required temporarily
+	ror::BoundingBoxf                                                           m_bounding_box{};                //! Model bounding box, a combination of its mesh in object space
+	bool                                                                        m_generate_shaders{true};        //! Flag to determine if the model requires its shaders to be generated or these are provided,
+	                                                                                                             //! For instanced models to many nodes this will generate shaders for all nodes
 };
 
 }        // namespace ror
