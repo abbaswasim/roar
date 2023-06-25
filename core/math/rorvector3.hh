@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "rorvector3.hpp"
+#include <cassert>
 
 namespace ror
 {
