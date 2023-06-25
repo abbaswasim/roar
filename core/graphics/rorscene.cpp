@@ -1285,12 +1285,6 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 	if (setting.m_show_axis)
 		create_axis(debug_data, primitive_data);
 
-	if (setting.m_show_lights)
-		create_lights(debug_data, this->m_lights, primitive_data);
-
-	if (setting.m_show_cameras)
-		create_cameras(debug_data, this->m_cameras, primitive_data);
-
 	Model &model = this->m_models[a_model_index];
 	model.create_debug(false, debug_data, primitive_data, a_buffer_pack);
 
