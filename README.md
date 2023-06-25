@@ -64,6 +64,24 @@ Roar uses NASA standard aeroplane conventions as described on page: [Euler angle
   * attitude=Z
   * bank=X
 
+### To replicate a github actions build error locally
+
+```bash
+# First pull the Image where the issue is, something like
+$ docker pull ghcr.io/catthehacker/ubuntu:runner-22.04
+
+# Create a container from the image and run bash in it
+$ docker run --rm -it --entrypoint bash <image_id_from_the_pulled_images>
+
+# Install the required things:
+$ sudo apt-get update && sudo apt install xorg-dev libglu1-mesa-dev cmake vim
+
+# Build normally
+$ cmake -H"." -B"build/ubuntu/Vulkan/Debug" -DCMAKE_BUILD_TYPE="Debug" -DROAR_RENDER_TYPE="Vulkan" -DROAR_BUILD_TESTS=1 -DROAR_BUILD_EDITOR=1
+$ cmake --build "build/ubuntu/Vulkan/Debug" --config Debug -- -j4
+
+```
+
 ## Third party
 
 Roar uses the following third party software as submodules.
