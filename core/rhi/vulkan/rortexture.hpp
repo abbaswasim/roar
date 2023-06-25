@@ -32,20 +32,26 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-namespace cfg
-{
-}
-
 namespace rhi
 {
+declare_rhi_render_type(RenderCommandEncoder);
+declare_rhi_render_type(ComputeCommandEncoder);
+
 class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImageVulkan>
 {
   public:
-	void upload(std::any a_device);
+	void upload(rhi::Device &a_device);
+
+	FORCE_INLINE constexpr auto platform_handle() const noexcept;
+
+	void bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
 
   protected:
   private:
 	declare_translation_unit_vtable();
+
+	VkImage *m_texture{nullptr};
 };
 
 class ROAR_ENGINE_ITEM TextureSamplerVulkan : public TextureSamplerCrtp<TextureSamplerVulkan>
@@ -53,13 +59,23 @@ class ROAR_ENGINE_ITEM TextureSamplerVulkan : public TextureSamplerCrtp<TextureS
   public:
 	void upload(rhi::Device &a_device);
 
+	FORCE_INLINE constexpr auto platform_handle() const noexcept;
+
+	void bind(rhi::RenderCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+
   protected:
   private:
 	declare_translation_unit_vtable();
+
+	VkSampler *m_sampler{nullptr};
 };
 
 class ROAR_ENGINE_ITEM TextureVulkan final : public TextureCrtp<TextureVulkan>
 {
+  public:
+  protected:
+  private:
 	declare_translation_unit_vtable();
 };
 

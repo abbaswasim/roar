@@ -240,4 +240,39 @@ constexpr auto PlatformTextureFilterLinear  = 1;
 constexpr auto PlatformTextureMipFilterNotMipmapped = 0;
 constexpr auto PlatformTextureMipFilterNearest      = 1;
 constexpr auto PlatformTextureMipFilterLinear       = 2;
+
+constexpr auto PlatformStorageModeManaged    = 0;        // MTL::StorageModeManaged;
+constexpr auto PlatformStorageModeShared     = 1;
+constexpr auto PlatformStorageModePrivate    = 2;
+constexpr auto PlatformStorageModeMemoryLess = 3;
+
+constexpr auto PlatformPrimitiveCullModeNone  = 0;
+constexpr auto PlatformPrimitiveCullModeFront = 1;
+constexpr auto PlatformPrimitiveCullModeBack  = 2;
+
+constexpr auto PlatformCompareFunctionNever        = 0;
+constexpr auto PlatformCompareFunctionLess         = 1;
+constexpr auto PlatformCompareFunctionEqual        = 2;
+constexpr auto PlatformCompareFunctionLessEqual    = 3;
+constexpr auto PlatformCompareFunctionGreater      = 4;
+constexpr auto PlatformCompareFunctionNotEqual     = 5;
+constexpr auto PlatformCompareFunctionGreaterEqual = 6;
+constexpr auto PlatformCompareFunctionAlways       = 7;
+
+constexpr auto PlatformPrimitiveWindingClockWise        = 0;
+constexpr auto PlatformPrimitiveWindingCounterClockWise = 1;
+
+constexpr auto PlatformPrimitiveTopologyPoint         = 0;
+constexpr auto PlatformPrimitiveTopologyLine          = 1;
+constexpr auto PlatformPrimitiveTopologyLineStrip     = 2;
+constexpr auto PlatformPrimitiveTopologyTriangle      = 3;
+constexpr auto PlatformPrimitiveTopologyTriangleStrip = 4;
+
+constexpr auto PlatformPrimitiveTopologyClassPoint    = 0;
+constexpr auto PlatformPrimitiveTopologyClassLine     = 1;
+constexpr auto PlatformPrimitiveTopologyClassTriangle = 2;
+
+constexpr auto PlatformTriangleFillModeFill = 0;
+constexpr auto PlatformTriangleFillModeLine = 1;
+
 }        // namespace rhi

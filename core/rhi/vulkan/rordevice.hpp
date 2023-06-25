@@ -25,9 +25,11 @@
 
 #pragma once
 
+#include "math/rorvector2.hpp"
 #include "rhi/crtp_interfaces/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
+#include "vulkan/vulkan_core.h"
 #include <any>
 // #include <vulkan/include/vulkan/vulkan_core.h>
 
@@ -47,14 +49,20 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE DeviceVulkan &operator=(DeviceVulkan &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~DeviceVulkan() noexcept override                   = default;        //! Destructor
 
-	declare_translation_unit_vtable();
-
+	FORCE_INLINE void     init(std::any a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
 	FORCE_INLINE VkDevice platform_device();
-	void                  init(std::any a_window);
+	FORCE_INLINE VkQueue platform_queue();
+	FORCE_INLINE VkCommandBuffer platform_command_buffer();
+	FORCE_INLINE void    *platform_swapchain();
 
   protected:
   private:
-	VkDevice m_device{};        //! Vulkan device
+	VkDevice m_device{};                        //! Vulkan device
+	VkQueue  m_command_queue;                   //! MTLCommandQueue where all the commands will be submitted, I think I only need one
+	std::any m_window{};                        //! Platform window, on Vulkan its NSWindow while on Vulkan its GLFWwindow
+	void    *m_ca_vulkan_layer{nullptr};        //! Actually CAVulkanLayer*
+
+	declare_translation_unit_vtable();
 };
 
 declare_rhi_render_type(Device);

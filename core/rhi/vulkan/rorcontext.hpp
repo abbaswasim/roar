@@ -36,10 +36,10 @@ class ContextVulkan : public ContextCrtp<ContextVulkan>
 {
   public:
 	FORCE_INLINE                ContextVulkan()                                 = default;        //! Default constructor
-	FORCE_INLINE                ContextVulkan(const ContextVulkan &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE                ContextVulkan(ContextVulkan &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE ContextVulkan &operator=(const ContextVulkan &a_other)         = default;        //! Copy assignment operator
-	FORCE_INLINE ContextVulkan &operator=(ContextVulkan &&a_other) noexcept     = default;        //! Move assignment operator
+	FORCE_INLINE                ContextVulkan(const ContextVulkan &a_other)     = delete;        //! Copy constructor
+	FORCE_INLINE                ContextVulkan(ContextVulkan &&a_other) noexcept = delete;        //! Move constructor
+	FORCE_INLINE ContextVulkan &operator=(const ContextVulkan &a_other)         = delete;        //! Copy assignment operator
+	FORCE_INLINE ContextVulkan &operator=(ContextVulkan &&a_other) noexcept     = delete;        //! Move assignment operator
 	FORCE_INLINE virtual ~ContextVulkan() noexcept override                     = default;        //! Destructor
 
 	declare_translation_unit_vtable();

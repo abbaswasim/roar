@@ -1,4 +1,3 @@
-
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
@@ -24,17 +23,8 @@
 //
 // Version: 1.0.0
 
-#include "rhi/vulkan/rorprogram.hpp"
+#include "rhi/vulkan/rorcompute_command_encoder.hpp"
 
 namespace rhi
 {
-
-FORCE_INLINE ProgramVulkan::~ProgramVulkan() noexcept
-{
-	// if (std::holds_alternative<MTL::RenderPipelineState *>(this->m_pipeline_state))
-	// 	std::get<MTL::RenderPipelineState *>(this->m_pipeline_state)->release();
-
-	// else if (std::holds_alternative<MTL::ComputePipelineState *>(this->m_pipeline_state))
-	// 	std::get<MTL::ComputePipelineState *>(this->m_pipeline_state)->release();
-}
 }        // namespace rhi

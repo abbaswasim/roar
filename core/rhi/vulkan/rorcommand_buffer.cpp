@@ -1,4 +1,3 @@
-
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
@@ -24,17 +23,34 @@
 //
 // Version: 1.0.0
 
-#include "rhi/vulkan/rorprogram.hpp"
+#include "foundation/rormacros.hpp"
+#include "profiling/rorlog.hpp"
+#include "rhi/vulkan/rorcommand_buffer.hpp"
+#include "rhi/rorrender_command_encoder.hpp"
+#include "rhi/rorcompute_command_encoder.hpp"
+#include "rhi/rorrenderpass.hpp"
+#include "rhi/rorrhi_macros.hpp"
 
 namespace rhi
 {
 
-FORCE_INLINE ProgramVulkan::~ProgramVulkan() noexcept
+FORCE_INLINE rhi::RenderCommandEncoder CommandBuffer::render_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index)
 {
-	// if (std::holds_alternative<MTL::RenderPipelineState *>(this->m_pipeline_state))
-	// 	std::get<MTL::RenderPipelineState *>(this->m_pipeline_state)->release();
+	(void) a_render_pass;
+	(void) a_index;
 
-	// else if (std::holds_alternative<MTL::ComputePipelineState *>(this->m_pipeline_state))
-	// 	std::get<MTL::ComputePipelineState *>(this->m_pipeline_state)->release();
+	ror::log_critical("Fix me, I shouldnt be using default ctor here {}", __FUNCTION__);
+
+	return rhi::RenderCommandEncoder{};
 }
+
+FORCE_INLINE rhi::ComputeCommandEncoder CommandBuffer::compute_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index)
+{
+	(void) a_render_pass;
+	(void) a_index;
+
+	ror::log_critical("Fix me, I shouldnt be using default ctor here {}", __FUNCTION__);
+	return rhi::ComputeCommandEncoder{};
+}
+
 }        // namespace rhi

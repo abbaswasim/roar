@@ -28,11 +28,14 @@
 
 #include "foundation/rormacros.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
-#include "rhi/vulkan/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/vulkan/rordevice.hpp"
 
 namespace rhi
 {
+declare_rhi_render_type(RenderCommandEncoder);
+declare_rhi_render_type(ComputeCommandEncoder);
+
 class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 {
   public:
@@ -43,15 +46,30 @@ class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 	FORCE_INLINE RenderpassVulkan &operator=(RenderpassVulkan &&a_other) noexcept        = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~RenderpassVulkan() noexcept override                           = default;        //! Destructor
 
-	void upload(rhi::Device &a_device);
+	declare_translation_unit_vtable();
+
+	void          upload(rhi::Device &a_device);
+	VkRenderPass *platform_renderpass(uint32_t a_index);
+	VkRenderPass *platform_computepass(uint32_t a_index);
+
+	size_t                     platform_renderpass_count();
+	rhi::RenderCommandEncoder  render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
+	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
+
+	FORCE_INLINE constexpr void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
+	{
+		(void) a_surface;
+		(void) a_index;
+		// auto rp = this->platform_renderpass(a_index);
+		// rp->colorAttachments()->object(0)->setTexture(a_surface->texture());
+	}
 
   protected:
   private:
-	declare_translation_unit_vtable();
+	std::vector<VkRenderPass *> m_render_passes{};        //! Platform render pass descriptors, we have a list here because engine subpasses are split into render passes for Vulkan
 };
 
 declare_rhi_render_type(Renderpass);
-
 }        // namespace rhi
 
 #include "rhi/vulkan/rorrenderpass.hh"

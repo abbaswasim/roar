@@ -24,16 +24,18 @@
 // Version: 1.0.0
 
 #include "rhi/crtp_interfaces/rortexture.hpp"
+#include "rhi/rortypes.hpp"
+#include "rhi/vulkan/rorcompute_command_encoder.hpp"
+#include "rhi/vulkan/rordevice.hpp"
+#include "rhi/vulkan/rorrender_command_encoder.hpp"
 #include "rhi/vulkan/rortexture.hpp"
+#include "rhi/vulkan/rorvulkan_common.hpp"
+#include "vulkan/vulkan_core.h"
 
-namespace rhi
-{
+#include <cassert>
 
-void TextureImageVulkan::upload(std::any a_device)
-{
-	(void) a_device;
-	ror::log_critical("Uploading texture to Vulkan");
-}
+// namespace rhi
+// {
 
 /*
 VkBuffer create_buffer(VkDevice a_device, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, std::vector<uint32_t> a_share_indices)
@@ -205,9 +207,197 @@ void create_texture()
 }
 */
 
+namespace rhi
+{
+
+FORCE_INLINE constexpr VkImageType to_vulkan_texture_target(rhi::TextureTarget a_target)
+{
+	switch (a_target)
+	{
+		case rhi::TextureTarget::texture_1D:
+			return VkImageType::VK_IMAGE_TYPE_1D;        // MTL::TextureType::TextureType1D;
+		case rhi::TextureTarget::texture_2D:
+			return VkImageType::VK_IMAGE_TYPE_2D;
+		case rhi::TextureTarget::texture_3D:
+			return VkImageType::VK_IMAGE_TYPE_3D;
+		case rhi::TextureTarget::texture_1D_array:
+			break;
+			// 	return MTL::TextureType::TextureType1DArray;
+		case rhi::TextureTarget::texture_2D_array:
+			break;
+			// return MTL::TextureType::TextureType2DArray;
+		case rhi::TextureTarget::texture_2D_MS:
+			break;
+			// return MTL::TextureType::TextureType2DMultisample;
+		case rhi::TextureTarget::texture_cube:
+			break;
+			// return MTL::TextureType::TextureTypeCube;
+		case rhi::TextureTarget::texture_cube_array:
+			break;
+			// return MTL::TextureType::TextureTypeCubeArray;
+		case rhi::TextureTarget::texture_2D_MS_array:
+			break;
+			// return MTL::TextureType::TextureType2DMultisampleArray;
+	}
+
+	return VkImageType::VK_IMAGE_TYPE_2D;
+}
+
+FORCE_INLINE constexpr VkFilter to_vulkan_texture_filter(rhi::TextureFilter a_filter)
+{
+	return static_cast<VkFilter>(a_filter);
+}
+
+FORCE_INLINE constexpr VkFilter to_vulkan_texture_mip_filter(rhi::TextureMipFilter a_filter)
+{
+	return static_cast<VkFilter>(a_filter);
+}
+
+FORCE_INLINE constexpr VkBorderColor to_vulkan_texture_border(rhi::TextureBorder a_color)
+{
+	return static_cast<VkBorderColor>(a_color);
+}
+
+FORCE_INLINE constexpr VkSamplerAddressMode to_vulkan_texture_address_mode(rhi::TextureAddressMode a_mode)
+{
+	return static_cast<VkSamplerAddressMode>(a_mode);
+}
+
+void TextureImageVulkan::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.fragment_texture(*this, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::vertex || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.vertex_texture(*this, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::tile)
+		a_command_encoder.tile_texture(*this, a_index);
+}
+
+void TextureImageVulkan::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.texture(*this, a_index);
+	else
+	{
+		assert(0 && "Can't bind texture image to this shader stage");
+	}
+}
+
+void TextureSamplerVulkan::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.fragment_sampler(*this, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::vertex || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.vertex_sampler(*this, a_index);
+
+	if (a_shader_stage == rhi::ShaderStage::tile)
+		a_command_encoder.tile_sampler(*this, a_index);
+}
+
+void TextureSamplerVulkan::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+{
+	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
+		a_command_encoder.sampler(*this, a_index);
+	else
+	{
+		assert(0 && "Can't bind texture image to this shader stage");
+	}
+}
+
+void TextureImageVulkan::upload(rhi::Device &a_device)
+{
+	(void) a_device;
+	// MTL::Device            *device             = a_device.platform_device();
+	// MTL::TextureDescriptor *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
+	// auto                    tex_bpp            = this->bytes_per_pixel();
+	// uint32_t                bytes_per_row      = tex_bpp * this->width();
+	// MTL::Origin             texture_origin{0, 0, 0};
+	// MTL::Size               size{this->width(), this->height(), this->depth()};
+
+	// assert(device);
+
+	if (this->width() == 0 || this->height() == 0)
+	{
+		ror::log_critical("Uploading a texture of zero width or height texture name = {}, width x height=({}, {})",
+		                  this->name().c_str(), this->width(), this->height());
+		return;
+	}
+
+	// texture_descriptor->setWidth(this->width());
+	// texture_descriptor->setHeight(this->height());
+	// texture_descriptor->setPixelFormat(to_vulkan_pixelformat(this->format()));
+	// texture_descriptor->setTextureType(to_vulkan_texture_target(this->target()));
+	// texture_descriptor->setMipmapLevelCount(this->mips().size());
+	// texture_descriptor->setUsage(MTL::TextureUsageUnknown);
+
+	bool needs_upload = true;
+
+	// if (this->usage() == rhi::TextureUsage::shader_read || this->usage() == rhi::TextureUsage::render_target_read)
+	// 	texture_descriptor->setUsage(MTL::TextureUsageShaderRead);
+
+	if (this->usage() == rhi::TextureUsage::render_target || this->usage() == rhi::TextureUsage::render_target_read)
+	{
+		// texture_descriptor->setUsage(texture_descriptor->usage() | MTL::TextureUsageRenderTarget);
+		needs_upload = false;
+	}
+
+	if (this->usage() == rhi::TextureUsage::shader_write)
+	{
+		// texture_descriptor->setUsage(texture_descriptor->usage() | MTL::TextureUsageShaderWrite);
+		needs_upload = false;
+	}
+
+	// texture_descriptor->setStorageMode(MTL::StorageModePrivate);
+
+	// if (this->m_texture)
+		// this->m_texture->release();
+
+	// this->m_texture = device->newTexture(texture_descriptor);
+
+	if (needs_upload)
+	{
+		assert(this->data());
+		assert(this->size() == this->width() * this->height() * this->bytes_per_pixel());
+
+		// MTL::CommandQueue       *queue                = a_device.platform_queue();
+		// MTL::Buffer             *source_buffer        = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);
+		// MTL::CommandBuffer      *command_buffer       = queue->commandBuffer();
+		// MTL::BlitCommandEncoder *blit_command_encoder = command_buffer->blitCommandEncoder();
+
+		// assert(queue);
+
+		// blit_command_encoder->copyFromBuffer(source_buffer, 0, bytes_per_row, this->width() * this->height() * this->bytes_per_pixel(), size, this->m_texture, 0, 0, texture_origin);
+		// blit_command_encoder->endEncoding();
+
+		// command_buffer->addCompletedHandler([this, source_buffer](MTL::CommandBuffer *) {this->ready(true); source_buffer->release(); });
+		// command_buffer->commit();
+	}
+	else
+		this->ready(true);
+
+	// texture_descriptor->release();
+}
+
 void TextureSamplerVulkan::upload(rhi::Device &a_device)
 {
-	(void) a_device;	
+	(void) a_device;
+	// MTL::Device            *device             = a_device.platform_device();
+	// MTL::SamplerDescriptor *sampler_descriptor = MTL::SamplerDescriptor::alloc()->init();
+
+	// sampler_descriptor->setSAddressMode(to_vulkan_texture_address_mode(this->wrap_s()));
+	// sampler_descriptor->setTAddressMode(to_vulkan_texture_address_mode(this->wrap_t()));
+	// sampler_descriptor->setRAddressMode(to_vulkan_texture_address_mode(this->wrap_u()));
+	// sampler_descriptor->setMinFilter(to_vulkan_texture_filter(this->min_filter()));
+	// sampler_descriptor->setMagFilter(to_vulkan_texture_filter(this->mag_filter()));
+	// sampler_descriptor->setMipFilter(to_vulkan_texture_mip_filter(this->mip_mode()));
+	// sampler_descriptor->setBorderColor(to_vulkan_texture_border(this->border_color()));
+
+	// this->m_sampler = device->newSamplerState(sampler_descriptor);
+
+	// sampler_descriptor->release();
 }
 
 define_translation_unit_vtable(TextureImageVulkan)

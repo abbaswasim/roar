@@ -28,4 +28,6 @@
 namespace rhi
 {
 
+define_translation_unit_vtable(ShaderBufferVulkan)
+{}
 }        // namespace rhi

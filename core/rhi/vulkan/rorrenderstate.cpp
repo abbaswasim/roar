@@ -28,5 +28,35 @@
 
 namespace rhi
 {
+define_translation_unit_vtable(RenderstateDepthVulkan)
+{}
 
-}        // namespace rhi
+void RenderstateDepthVulkan::upload(rhi::Device &a_device)
+{
+	(void) a_device;
+	// VkDevice                 *device                   = a_device.platform_device();
+	// MTL::DepthStencilDescriptor *depth_stencil_descriptor = MTL::DepthStencilDescriptor::alloc()->init();
+
+	// depth_stencil_descriptor->setDepthCompareFunction(to_metal_depth_compare_function(this->m_compare_function));
+	// depth_stencil_descriptor->setDepthWriteEnabled(this->m_depth_write);
+	// this->m_depth_state = device->newDepthStencilState(depth_stencil_descriptor);
+
+	// depth_stencil_descriptor->release();
+}
+
+void RenderstateDepthVulkan::release()
+{
+	// if (this->m_depth_state)
+	// 	this->m_depth_state->release();
+}
+
+void Renderstate::upload(rhi::Device &a_device)
+{
+	this->m_depth_state.upload(a_device);
+	this->m_depth_state_less_equal.upload(a_device);
+	this->m_depth_state_equal_no_write.upload(a_device);
+	this->m_depth_state_always_no_write.upload(a_device);
+	this->m_depth_state_less_no_write.upload(a_device);
+}
+
+}
