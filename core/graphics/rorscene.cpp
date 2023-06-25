@@ -260,7 +260,7 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	per_frame_uniform->buffer_bind(a_command_encoder, rhi::ShaderStage::compute);
 
 	// Calculate a threadgroup size.
-	NS::UInteger max_thread_group_size = 1024;        // compute_pso->maxTotalThreadsPerThreadgroup();
+	uint32_t max_thread_group_size = 1024;        // compute_pso->maxTotalThreadsPerThreadgroup();
 
 	if (max_thread_group_size > node_matrices_size)
 		max_thread_group_size = node_matrices_size;
@@ -965,8 +965,10 @@ void Scene::update_bounding_box()
 	{
 		if (node.m_model != -1)
 		{
-			auto &model       = this->m_models[static_cast_safe<size_t>(node.m_model)];
-			auto &bbox        = model.bounding_box();
+			auto &model = this->m_models[static_cast_safe<size_t>(node.m_model)];
+			auto  bbox  = model.bounding_box_scaled();
+
+			// TODO: These needs to be traversed to the root to be correct
 			auto &translation = this->m_nodes[node_id].m_trs_transform.m_translation;
 			auto &rotation    = this->m_nodes[node_id].m_trs_transform.m_rotation;
 			auto &scale       = this->m_nodes[node_id].m_trs_transform.m_scale;
@@ -975,6 +977,7 @@ void Scene::update_bounding_box()
 			auto  min_res     = translation + (rotation * (scale * min));
 			auto  max_res     = translation + (rotation * (scale * max));
 			auto  box         = ror::BoundingBoxf(min_res, max_res);
+
 			this->m_bounding_box.add_bounding(box);
 		}
 		node_id++;
@@ -1084,23 +1087,14 @@ auto trs_to_matrix4(ror::Transformf &a_trs)
 template <typename _node_container, typename _node_type>
 auto get_node_global_transform(_node_container &a_model, _node_type &a_node)
 {
-	ror::Matrix4f node_matrix{};
 	auto         &model_nodes = a_model.nodes();
-
-	ror::Transformf trs{};
-	trs = a_node.m_trs_transform;
-
-	node_matrix = trs_to_matrix4(trs);
-
-	_node_type *node = &a_node;
+	ror::Matrix4f node_matrix{trs_to_matrix4(a_node.m_trs_transform)};
+	_node_type   *node = &a_node;
 
 	while (node->m_parent != -1)
 	{
-		auto           &p = model_nodes[static_cast<size_t>(node->m_parent)];
-		ror::Transformf ptrs{};
-		ptrs = p.m_trs_transform;
-
-		node_matrix = trs_to_matrix4(ptrs) * node_matrix;
+		auto &p     = model_nodes[static_cast<size_t>(node->m_parent)];
+		node_matrix = trs_to_matrix4(p.m_trs_transform) * node_matrix;
 
 		node = &p;
 	}
@@ -1108,115 +1102,83 @@ auto get_node_global_transform(_node_container &a_model, _node_type &a_node)
 	return node_matrix;
 }
 
-static void create_lights(std::vector<std::vector<float32_t>> &a_debug_data, const std::vector<ror::Light> &a_lights, std::vector<rhi::PrimitiveTopology> &a_topology_data)
-{
-	ror::Vector3f light_position{-3.0f, 3.0f, 0.0f};
+// Good reference for how to add different geometry to debug data
+// static void create_lights(std::vector<std::vector<float32_t>> &a_debug_data, const std::vector<ror::Light> &a_lights, std::vector<rhi::PrimitiveTopology> &a_topology_data)
+// {
+// 	ror::Vector3f light_position{-3.0f, 3.0f, 0.0f};
 
-	ror::Vector4f color{1.0f, 0.647f, 0.0f, 1.0f};        // orange color
-	srgb_to_linear(color);
+// 	ror::Vector4f color{1.0f, 0.647f, 0.0f, 1.0f};        // orange color
+// 	srgb_to_linear(color);
 
-	for (auto &light : a_lights)
-	{
-		color = ror::Vector4f{light.m_color, 1.0f};
+// 	for (auto &light : a_lights)
+// 	{
+// 		color = ror::Vector4f{light.m_color, 1.0f};
 
-		if (light.m_type == ror::Light::LightType::directional)
-		{
-			ror::Vector3f f{0.0f, 1.0f, 0.0f};        // direction of the arrow which is Y-up
-			auto          rot = ror::matrix3_rotation(f, light.m_direction);
+// 		if (light.m_type == ror::Light::LightType::directional)
+// 		{
+// 			ror::Vector3f f{0.0f, 1.0f, 0.0f};        // direction of the arrow which is Y-up
+// 			auto          rot = ror::matrix3_rotation(f, light.m_direction);
 
-			std::vector<ror::Vector3f> arrow_triangles_data{};
-			create_arrow(arrow_triangles_data, ror::Vector3f{1.0f});
+// 			std::vector<ror::Vector3f> arrow_triangles_data{};
+// 			create_arrow(arrow_triangles_data, ror::Vector3f{1.0f});
 
-			std::vector<float32_t> arrow_triangles{};
+// 			std::vector<float32_t> arrow_triangles{};
 
-			float32_t offsetx[3] = {-0.1f, 0.0f, 0.1f};
-			for (int32_t i = 0; i < 3; ++i)
-			{
-				ror::Vector3f offset{offsetx[i], 0.0f, 0.0f};
-				for (auto point : arrow_triangles_data)
-				{
-					point = rot * point;
-					point += light_position + offset;
+// 			float32_t offsetx[3] = {-0.1f, 0.0f, 0.1f};
+// 			for (int32_t i = 0; i < 3; ++i)
+// 			{
+// 				ror::Vector3f offset{offsetx[i], 0.0f, 0.0f};
+// 				for (auto point : arrow_triangles_data)
+// 				{
+// 					point = rot * point;
+// 					point += light_position + offset;
 
-					arrow_triangles.push_back(point.x);
-					arrow_triangles.push_back(point.y);
-					arrow_triangles.push_back(point.z);
-					arrow_triangles.push_back(0.0f);
+// 					arrow_triangles.push_back(point.x);
+// 					arrow_triangles.push_back(point.y);
+// 					arrow_triangles.push_back(point.z);
+// 					arrow_triangles.push_back(0.0f);
 
-					arrow_triangles.push_back(color.x);
-					arrow_triangles.push_back(color.y);
-					arrow_triangles.push_back(color.z);
-					arrow_triangles.push_back(color.w);
-				}
-			}
+// 					arrow_triangles.push_back(color.x);
+// 					arrow_triangles.push_back(color.y);
+// 					arrow_triangles.push_back(color.z);
+// 					arrow_triangles.push_back(color.w);
+// 				}
+// 			}
 
-			a_debug_data.emplace_back(arrow_triangles);
-			a_topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
-		}
-		else if (light.m_type == ror::Light::LightType::point)
-		{
-			light_position = light.m_position;
+// 			a_debug_data.emplace_back(arrow_triangles);
+// 			a_topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
+// 		}
+// 		else if (light.m_type == ror::Light::LightType::point)
+// 		{
+// 			light_position = light.m_position;
 
-			std::vector<ror::Vector3f> sphere_triangles_data{};
-			make_sphere_triangles(sphere_triangles_data, 2);
+// 			std::vector<ror::Vector3f> sphere_triangles_data{};
+// 			make_sphere_triangles(sphere_triangles_data, 2);
 
-			std::vector<float32_t> sphere_triangles{};
+// 			std::vector<float32_t> sphere_triangles{};
 
-			for (auto &point : sphere_triangles_data)
-			{
-				point += light_position;
+// 			for (auto &point : sphere_triangles_data)
+// 			{
+// 				point += light_position;
 
-				sphere_triangles.push_back(point.x);
-				sphere_triangles.push_back(point.y);
-				sphere_triangles.push_back(point.z);
-				sphere_triangles.push_back(0.0f);
+// 				sphere_triangles.push_back(point.x);
+// 				sphere_triangles.push_back(point.y);
+// 				sphere_triangles.push_back(point.z);
+// 				sphere_triangles.push_back(0.0f);
 
-				sphere_triangles.push_back(color.x);
-				sphere_triangles.push_back(color.y);
-				sphere_triangles.push_back(color.z);
-				sphere_triangles.push_back(color.w);
-			}
+// 				sphere_triangles.push_back(color.x);
+// 				sphere_triangles.push_back(color.y);
+// 				sphere_triangles.push_back(color.z);
+// 				sphere_triangles.push_back(color.w);
+// 			}
 
-			a_debug_data.emplace_back(sphere_triangles);
-			a_topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
-		}
-		else if (light.m_type == ror::Light::LightType::spot)
-		{
-			// light_position = light.m_position;
-			// // ror::Vector3f light_direction{light.m_direction};
-
-			// std::vector<ror::Vector3f> sphere_triangles_data{};
-			// make_sphere_triangles(sphere_triangles_data, 2);
-
-			// std::vector<float32_t> sphere_triangles{};
-
-			// for (auto &point : sphere_triangles_data)
-			// {
-			// 	point += light_position;
-
-			// 	sphere_triangles.push_back(point.x);
-			// 	sphere_triangles.push_back(point.y);
-			// 	sphere_triangles.push_back(point.z);
-			// 	sphere_triangles.push_back(0.0f);
-
-			// 	sphere_triangles.push_back(color.x);
-			// 	sphere_triangles.push_back(color.y);
-			// 	sphere_triangles.push_back(color.z);
-			// 	sphere_triangles.push_back(color.w);
-			// }
-
-			// a_debug_data.emplace_back(sphere_triangles);
-			// a_topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
-		}
-	}
-}
-
-static void create_cameras(std::vector<std::vector<float32_t>> &a_debug_data, const std::vector<ror::OrbitCamera> &a_cameras, std::vector<rhi::PrimitiveTopology> &a_topology_data)
-{
-	(void) a_debug_data;
-	(void) a_topology_data;
-	(void) a_cameras;
-}
+// 			a_debug_data.emplace_back(sphere_triangles);
+// 			a_topology_data.emplace_back(rhi::PrimitiveTopology::triangles);
+// 		}
+// 		else if (light.m_type == ror::Light::LightType::spot)
+// 		{}
+// 	}
+// }
 
 // Does not create a job and is run on main thread
 void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lambda, size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
@@ -1254,10 +1216,26 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 	}
 	else if (setting.m_debug_mesh_type == Settings::DebugMeshType::line_sphere)
 	{
-		assert(0);
+		assert(0 && "Currently unsupported debug mode");
 	}
 
 	ror::Vector4f color{setting.m_debug_mesh_color};
+
+#define add_pos4_col4(output, input, scale, offset, xform)   \
+	for (size_t i = 0; i < geometry_data.size(); ++i)        \
+	{                                                        \
+		auto xtdata = xform * ((input[i] * scale) + offset); \
+		output.push_back(xtdata.x);                          \
+		output.push_back(xtdata.y);                          \
+		output.push_back(xtdata.z);                          \
+		output.push_back(0.0f);                              \
+                                                             \
+		output.push_back(color.x);                           \
+		output.push_back(color.y);                           \
+		output.push_back(color.z);                           \
+		output.push_back(color.w);                           \
+	}                                                        \
+	(void) 0
 
 	if (setting.m_debug_mesh_type != Settings::DebugMeshType::none)
 	{
@@ -1275,46 +1253,27 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 				{
 					if (model_node.m_mesh_index != -1)
 					{
-						auto             &mesh = meshes[static_cast<size_t>(model_node.m_mesh_index)];
-						ror::BoundingBoxf bbox{};
+						auto  node_xform = get_node_global_transform(model, model_node);
+						auto  xform      = scene_node_xform * node_xform;
+						auto &mesh       = meshes[static_cast<size_t>(model_node.m_mesh_index)];
 
 						for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
 						{
-							auto &bboxp = mesh.bounding_box(prim_index);
-							bbox.add_bounding(bboxp);
+							ror::BoundingBoxf &bbox        = mesh.bounding_box(prim_index);
+							auto               min         = bbox.minimum();
+							auto               sphere_size = ror::Vector3f{bbox.diagonal() / 2};
+							auto               box_size    = bbox.extent();
+							auto               box_center  = bbox.center();
+
+							auto &scale  = box_type ? box_size : sphere_size;
+							auto &offset = box_type ? min : box_center;
+
+							std::vector<float32_t> points_colors{};
+							add_pos4_col4(points_colors, geometry_data, scale, offset, xform);
+
+							debug_data.emplace_back(points_colors);
+							primitive_data.emplace_back(topology_type);
 						}
-
-						auto node_xform = get_node_global_transform(model, model_node);
-						auto xform      = scene_node_xform * node_xform;
-						auto min        = bbox.minimum();
-						// auto max         = bbox.maximum();
-						auto sphere_size = ror::Vector3f{bbox.diagonal() / 2};
-						auto box_size    = bbox.extent();
-						auto box_center  = bbox.center();
-
-						auto &scale  = box_type ? box_size : sphere_size;
-						auto &offset = box_type ? min : box_center;
-
-						std::vector<float32_t> points_colors{};
-						for (size_t i = 0; i < geometry_data.size(); ++i)
-						{
-							auto xtdata = (geometry_data[i] * scale) + offset;
-
-							xtdata = xform * xtdata;
-
-							points_colors.push_back(xtdata.x);
-							points_colors.push_back(xtdata.y);
-							points_colors.push_back(xtdata.z);
-							points_colors.push_back(0.0f);
-
-							points_colors.push_back(color.x);
-							points_colors.push_back(color.y);
-							points_colors.push_back(color.z);
-							points_colors.push_back(color.w);
-						}
-
-						debug_data.emplace_back(points_colors);
-						primitive_data.emplace_back(topology_type);
 					}
 				}
 			}
@@ -1322,7 +1281,7 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 		}
 	}
 
-	// Alaways create the axis
+	// create the axis
 	if (setting.m_show_axis)
 		create_axis(debug_data, primitive_data);
 
@@ -1338,6 +1297,8 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 	this->create_global_program("debug.glsl.vert", "debug.glsl.frag", node_index, a_model_index);
 
 	a_upload_lambda(a_model_index);
+
+#undef add_pos4_col4
 }
 
 void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs)

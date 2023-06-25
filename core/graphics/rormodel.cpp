@@ -2255,6 +2255,7 @@ ror::BoundingBoxf Model::bounding_box_scaled()
 			{
 				auto &mesh_bound = mesh.bounding_box(prim_id);
 
+				// TODO: These needs to be traversed to the root and skeletal/morph target animation bound adjusted to be correct
 				auto T = node.m_trs_transform.translation();
 				auto R = node.m_trs_transform.rotation();
 				auto S = node.m_trs_transform.scale();

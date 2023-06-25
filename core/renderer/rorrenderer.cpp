@@ -735,7 +735,7 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 		// TODO: Pipeline the render passes and remove this
 		command_buffer.wait_until_completed();
 		command_buffer.release();
-		surface->release();
+		// surface->release();
 	}
 }
 

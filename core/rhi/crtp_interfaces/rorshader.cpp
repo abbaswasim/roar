@@ -140,4 +140,5 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
 
 	return true;
 }
+
 }        // namespace rhi

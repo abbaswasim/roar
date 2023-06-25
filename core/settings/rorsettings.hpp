@@ -96,8 +96,6 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_clamp_material_roughness  = setting.get<bool>("clamp_material_roughness");
 		this->m_clamp_material_metallic   = setting.get<bool>("clamp_material_metallic");
 		this->m_show_axis                 = setting.get<bool>("show_axis");
-		this->m_show_lights               = setting.get<bool>("show_lights");
-		this->m_show_cameras              = setting.get<bool>("show_cameras");
 
 		auto amc = setting.get<std::vector<float32_t>>("debug_mesh_color");
 		if (amc.size() >= 4)
@@ -401,8 +399,6 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_clamp_material_roughness{false};
 	bool m_clamp_material_metallic{false};
 	bool m_show_axis{false};
-	bool m_show_lights{false};
-	bool m_show_cameras{false};
 
 	ror::Vector4f m_debug_mesh_color{1.0f, 0.2f, 0.2f, 0.5f};
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
