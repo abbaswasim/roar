@@ -30,8 +30,8 @@ jobs:
         build_type: [Debug, Release]
         renderer: [Vulkan]
         compiler:
-          - { compiler: GNU,  CC: gcc-11, CXX: g++-11}
-          - { compiler: LLVM, CC: clang-13, CXX: clang++-13}
+          - { compiler: GNU,  CC: gcc-13, CXX: g++-13}
+          - { compiler: LLVM, CC: clang-15, CXX: clang++-15}
     env:
       NUMCPUS: -j4
       CC: ${{ matrix.compiler.CC }}
