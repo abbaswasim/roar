@@ -27,7 +27,8 @@
 
 #include "rhi/crtp_interfaces/rorbuffer.hpp"
 #include "rhi/rorrhi_macros.hpp"
-#include "vulkan/vulkan_core.h"
+
+#include "rhi/vulkan/rorvulkan_common.hpp"
 
 namespace rhi
 {
@@ -41,12 +42,12 @@ declare_rhi_render_type(ComputeCommandEncoder);
 class ROAR_ENGINE_ITEM BufferVulkan
 {
   public:
-	FORCE_INLINE              BufferVulkan()                               = default;        //! Default constructor
-	FORCE_INLINE              BufferVulkan(const BufferVulkan &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE              BufferVulkan(BufferVulkan &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE BufferVulkan &operator=(const BufferVulkan &a_other)       = default;        //! Copy assignment operator
-	FORCE_INLINE BufferVulkan &operator=(BufferVulkan &&a_other) noexcept   = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~BufferVulkan() noexcept                          = default;        //! Destructor
+	FORCE_INLINE               BufferVulkan()                                = default;        //! Default constructor
+	FORCE_INLINE               BufferVulkan(const BufferVulkan &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE               BufferVulkan(BufferVulkan &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE BufferVulkan &operator=(const BufferVulkan &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE BufferVulkan &operator=(BufferVulkan &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~BufferVulkan() noexcept                            = default;        //! Destructor
 
 	[[nodiscard]] FORCE_INLINE constexpr auto map() noexcept;
 
@@ -78,7 +79,7 @@ class ROAR_ENGINE_ITEM BufferVulkan
   private:
 	declare_translation_unit_vtable();
 
-	VkBuffer               *m_buffer{nullptr};                                         //! API handle to buffer
+	VkBuffer                  *m_buffer{nullptr};                                         //! API handle to buffer
 	rhi::ResourceStorageOption m_storage_mode{rhi::ResourceStorageOption::shared};        //! Storage mode of the buffer, shared means no synchronisation is required
 	bool                       m_ready{false};                                            //! Keeps track of whether the buffer is ready to be used or not
 };
@@ -124,6 +125,5 @@ BufferHybrid(_type) -> BufferHybrid<Static>;
 using Buffer = BufferVulkan;
 
 }        // namespace rhi
-
 
 #include "rhi/vulkan/rorbuffer.hh"

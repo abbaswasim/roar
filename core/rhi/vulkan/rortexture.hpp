@@ -30,7 +30,6 @@
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include <any>
 #include <vector>
-#include <vulkan/vulkan_core.h>
 
 namespace rhi
 {

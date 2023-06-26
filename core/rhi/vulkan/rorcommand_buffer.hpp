@@ -28,7 +28,6 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
-#include "vulkan/vulkan_core.h"
 
 namespace rhi
 {

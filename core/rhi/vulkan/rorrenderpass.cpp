@@ -27,8 +27,6 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/vulkan/rorrenderpass.hpp"
 
-#include "vulkan/vulkan_core.h"
-
 namespace rhi
 {
 define_translation_unit_vtable(RenderpassVulkan)

@@ -29,7 +29,6 @@
 #include "rhi/crtp_interfaces/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
-#include "vulkan/vulkan_core.h"
 #include <any>
 // #include <vulkan/include/vulkan/vulkan_core.h>
 

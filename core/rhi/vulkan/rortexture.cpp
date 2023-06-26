@@ -30,7 +30,6 @@
 #include "rhi/vulkan/rorrender_command_encoder.hpp"
 #include "rhi/vulkan/rortexture.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
-#include "vulkan/vulkan_core.h"
 
 #include <cassert>
 

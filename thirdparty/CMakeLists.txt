@@ -54,30 +54,6 @@ add_library(stb INTERFACE)
 target_sources(stb INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/stb/stb_image.h)
 target_include_directories(stb INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 
-if (${ROR_RENDER_TYPE_VULKAN})
-  # Add vulkan
-  add_library(vulkan_headers INTERFACE)
-  set(VULKAN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/vulkan/include)
-  target_sources(vulkan_headers INTERFACE ${VULKAN_INCLUDE_DIR}/vulkan/vulkan.h)
-  target_include_directories(vulkan_headers INTERFACE ${VULKAN_INCLUDE_DIR})
-elseif (${ROR_RENDER_TYPE_METAL})
-  # Add MetalCPP
-  set(METAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/metal-cpp)
-
-  find_library(MTL_FOUNDATION_LIBRARY Foundation)
-  find_library(MTL_METAL_LIBRARY Metal)
-  find_library(MTL_QUARTZCORE_LIBRARY QuartzCore)
-
-  add_library(metalcpp ${CMAKE_CURRENT_SOURCE_DIR}/rormetal_common.cpp
-	${METAL_INCLUDE_DIR}/Foundation/Foundation.hpp
-	${METAL_INCLUDE_DIR}/Metal/Metal.hpp
-	${METAL_INCLUDE_DIR}/QuartzCore/QuartzCore.hpp)
-  target_link_libraries(metalcpp PUBLIC ${MTL_FOUNDATION_LIBRARY} ${MTL_METAL_LIBRARY} ${MTL_QUARTZCORE_LIBRARY})
-  target_include_directories(metalcpp PUBLIC ${METAL_INCLUDE_DIR})
-elseif (${ROR_RENDER_TYPE_DX12})
-elseif (${ROR_RENDER_TYPE_GLES3})
-endif()
-
 # Add glslang
 set(ENABLE_SPVREMAPPER OFF)
 set(ENABLE_GLSLANG_BINARIES ON)
@@ -97,6 +73,28 @@ add_subdirectory(glslang)
 build_options(glslang false)                               # Set common build options
 
 cmake_policy(POP)
+
+if (${ROR_RENDER_TYPE_VULKAN})
+  # Add vusym which also adds vulkan headers
+  add_subdirectory(vusym)
+
+elseif (${ROR_RENDER_TYPE_METAL})
+  # Add MetalCPP
+  set(METAL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/metal-cpp)
+
+  find_library(MTL_FOUNDATION_LIBRARY Foundation)
+  find_library(MTL_METAL_LIBRARY Metal)
+  find_library(MTL_QUARTZCORE_LIBRARY QuartzCore)
+
+  add_library(metalcpp ${CMAKE_CURRENT_SOURCE_DIR}/rormetal_common.cpp
+	${METAL_INCLUDE_DIR}/Foundation/Foundation.hpp
+	${METAL_INCLUDE_DIR}/Metal/Metal.hpp
+	${METAL_INCLUDE_DIR}/QuartzCore/QuartzCore.hpp)
+  target_link_libraries(metalcpp PUBLIC ${MTL_FOUNDATION_LIBRARY} ${MTL_METAL_LIBRARY} ${MTL_QUARTZCORE_LIBRARY})
+  target_include_directories(metalcpp PUBLIC ${METAL_INCLUDE_DIR})
+elseif (${ROR_RENDER_TYPE_DX12})
+elseif (${ROR_RENDER_TYPE_GLES3})
+endif()
 
 # Add basis
 set(BASIS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/basis_universal)

@@ -44,6 +44,10 @@
 	"generate_grid_mesh" : true,
 	"clean_on_boot" : true,
 	"winding" : "counter_clockwise",
+	"application_name" : "Roar Editor",
+	"application_version" : [1, 0, 0],
+	"engine_name" : "Roar",
+	"engine_version" : [1, 0, 0],
 	"sets_bindings" :
 	{
 		"material_factors" : [0, 0],

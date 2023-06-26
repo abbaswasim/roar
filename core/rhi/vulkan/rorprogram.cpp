@@ -35,7 +35,6 @@
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
 #include "rhi/rorvertex_description.hpp"
-#include "vulkan/vulkan_core.h"
 #include <cassert>
 #include <cstddef>
 #include <string>

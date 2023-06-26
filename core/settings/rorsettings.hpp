@@ -45,6 +45,9 @@ static const auto bits_shift            = 16u;
 static const auto bits_mask             = 0x0000FFFF;
 static const auto generic_numbers_count = 10;
 
+#define ROAR_MAKE_VERSION(major, minor, patch) \
+	(((static_cast<uint32_t>(major)) << 22u) | ((static_cast<uint32_t>(minor)) << 12u) | (static_cast<uint32_t>(patch)))
+
 class ROAR_ENGINE_ITEM Settings final
 {
   public:
@@ -58,12 +61,14 @@ class ROAR_ENGINE_ITEM Settings final
 	{
 		auto setting = ror::get_settings();        // This is config settings that will load settings.json, then we cache it in Settings object
 
-		this->m_roar_title      = setting.get<std::string>("title");
-		this->m_roar_cache      = setting.get<std::string>("roar_cache");
-		this->m_default_scene   = setting.get<std::string>("default_scene");
-		this->m_buffers_format  = setting.get<std::string>("buffers_format");
-		this->m_working_dir     = setting.get<std::string>("working_dir");
-		this->m_renderer_config = setting.get<std::string>("renderer_config");
+		this->m_roar_title       = setting.get<std::string>("title");
+		this->m_roar_cache       = setting.get<std::string>("roar_cache");
+		this->m_default_scene    = setting.get<std::string>("default_scene");
+		this->m_buffers_format   = setting.get<std::string>("buffers_format");
+		this->m_working_dir      = setting.get<std::string>("working_dir");
+		this->m_renderer_config  = setting.get<std::string>("renderer_config");
+		this->m_application_name = setting.get<std::string>("application_name");
+		this->m_engine_name      = setting.get<std::string>("engine_name");
 
 		this->m_zoom_speed  = setting.get<float32_t>("zoom_speed");
 		this->m_depth_clear = setting.get<float32_t>("depth");
@@ -76,7 +81,16 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_gui_primitives_count      = setting.get<uint32_t>("gui_primitives_count");
 		this->m_gui_primitives_index_size = setting.get<uint32_t>("gui_primitives_index_size");
 		this->m_gui_primitives_size       = setting.get<uint32_t>("gui_primitives_size");
-		this->m_debug_mesh_type           = static_cast<DebugMeshType>(setting.get<uint32_t>("debug_mesh_type"));
+
+		auto av = setting.get<std::vector<uint32_t>>("application_version");
+		if (av.size() >= 3)
+			this->m_application_version = ROAR_MAKE_VERSION(av[0], av[1], av[2]);
+
+		auto ev = setting.get<std::vector<uint32_t>>("engine_version");
+		if (ev.size() >= 3)
+			this->m_engine_version = ROAR_MAKE_VERSION(ev[0], ev[1], ev[2]);
+
+		this->m_debug_mesh_type = static_cast<DebugMeshType>(setting.get<uint32_t>("debug_mesh_type"));
 
 		for (size_t i = 0; i < generic_numbers_count; ++i)
 			this->m_generic_numbers[i] = 0;
@@ -355,6 +369,8 @@ class ROAR_ENGINE_ITEM Settings final
 	std::string m_buffers_format{};
 	std::string m_working_dir{};
 	std::string m_renderer_config{"renderer.json"};
+	std::string m_application_name{"Roar Editor"};
+	std::string m_engine_name{"Roar"};
 
 	std::vector<std::string> m_clean_dirs{};        //! Directories to clean on boot
 
@@ -372,6 +388,8 @@ class ROAR_ENGINE_ITEM Settings final
 	uint32_t m_gui_primitives_size{1000000};                  // About 1.0 MB size of the vertex buffer
 	uint32_t m_gui_primitives_index_size{10000};              // Size of index buffer
 	int32_t  m_generic_numbers[generic_numbers_count];        //! This is used to limit things or render a specific node etc, each number is decremented by Ctr + N and increment by CMD + N
+	uint32_t m_application_version{0};
+	uint32_t m_engine_version{0};
 
 	bool m_clean_on_boot{false};
 	bool m_visualise_mipmaps{false};
@@ -541,4 +559,66 @@ FORCE_INLINE const std::string &render_mode(size_t a_index) noexcept
 
 	return setting.m_gui.m_render_modes[a_index];
 }
+
+FORCE_INLINE uint32_t metal_api_version() noexcept
+{
+	auto &setting = ror::settings();
+
+	return ROAR_MAKE_VERSION(setting.m_metal.version_major, setting.m_metal.version_minor, 0);
+}
+
+FORCE_INLINE uint32_t vulkan_api_version() noexcept
+{
+	auto &setting = ror::settings();
+
+	return ROAR_MAKE_VERSION(setting.m_vulkan.version_major, setting.m_vulkan.version_minor, 0);
+}
+
+// TODO: Add setting values
+FORCE_INLINE constexpr uint32_t number_of_buffers()
+{
+	return 3;        // Tripple buffering
+}
+
+FORCE_INLINE constexpr bool visualise_mipmaps()
+{
+	return false;
+}
+
+FORCE_INLINE constexpr uint32_t multisample_count()
+{
+	return 8;
+}
+
+FORCE_INLINE constexpr bool sample_rate_shading_enabled()
+{
+	return false;
+}
+
+FORCE_INLINE constexpr float sample_rate_shading()
+{
+	return 0.5f;
+}
+
+FORCE_INLINE auto vsync()
+{
+	// TODO: No vsync available on Android so when enabling make sure android is guarded
+	return false;
+}
+
+FORCE_INLINE auto window_transparent()
+{
+	return false;
+}
+
+FORCE_INLINE auto window_premultiplied()
+{
+	return false;
+}
+
+FORCE_INLINE auto window_prerotated()
+{
+	return false;
+}
+
 }        // namespace ror
