@@ -37,16 +37,14 @@ declare_rhi_render_type(Renderpass);
 declare_rhi_render_type(RenderCommandEncoder);
 declare_rhi_render_type(ComputeCommandEncoder);
 
-using Swapchain = void *;
-
 class CommandBufferVulkan final
 {
   public:
-	FORCE_INLINE                     CommandBufferVulkan(const CommandBufferVulkan &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE                     CommandBufferVulkan(CommandBufferVulkan &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE CommandBufferVulkan &operator=(const CommandBufferVulkan &a_other)              = default;        //! Copy assignment operator
-	FORCE_INLINE CommandBufferVulkan &operator=(CommandBufferVulkan &&a_other) noexcept          = default;        //! Move assignment operator
-	FORCE_INLINE ~CommandBufferVulkan() noexcept                                                = default;        //! Destructor
+	FORCE_INLINE                      CommandBufferVulkan(const CommandBufferVulkan &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                      CommandBufferVulkan(CommandBufferVulkan &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE CommandBufferVulkan &operator=(const CommandBufferVulkan &a_other)               = default;        //! Copy assignment operator
+	FORCE_INLINE CommandBufferVulkan &operator=(CommandBufferVulkan &&a_other) noexcept           = default;        //! Move assignment operator
+	FORCE_INLINE ~CommandBufferVulkan() noexcept                                                  = default;        //! Destructor
 
 	FORCE_INLINE explicit CommandBufferVulkan(rhi::Device &a_device)
 	{

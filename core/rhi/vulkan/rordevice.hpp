@@ -38,6 +38,29 @@ namespace cfg
 
 namespace rhi
 {
+
+class ROAR_ENGINE_ITEM SwapChain final
+{
+  public:
+	FORCE_INLINE            SwapChain()                             = default;        //! Default constructor
+	FORCE_INLINE            SwapChain(const SwapChain &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE            SwapChain(SwapChain &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE SwapChain &operator=(const SwapChain &a_other)     = default;        //! Copy assignment operator
+	FORCE_INLINE SwapChain &operator=(SwapChain &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~SwapChain() noexcept                      = default;        //! Destructor
+
+	void release()
+	{
+		(void) m_swapchain;
+	}
+
+  protected:
+  private:
+	VkSwapchainKHR m_swapchain{nullptr};
+};
+
+using Swapchain = SwapChain *;
+
 class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 {
   public:
@@ -48,11 +71,11 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE DeviceVulkan &operator=(DeviceVulkan &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~DeviceVulkan() noexcept override                   = default;        //! Destructor
 
-	FORCE_INLINE void     init(std::any a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
-	FORCE_INLINE VkDevice platform_device();
-	FORCE_INLINE VkQueue platform_queue();
+	FORCE_INLINE void            init(std::any a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
+	FORCE_INLINE VkDevice        platform_device();
+	FORCE_INLINE VkQueue         platform_queue();
 	FORCE_INLINE VkCommandBuffer platform_command_buffer();
-	FORCE_INLINE void    *platform_swapchain();
+	FORCE_INLINE Swapchain       platform_swapchain();
 
   protected:
   private:
