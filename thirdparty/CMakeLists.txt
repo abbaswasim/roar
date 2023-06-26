@@ -176,6 +176,7 @@ endforeach()
 add_library(imgui STATIC ${IMGUI_SOURCES})
 target_include_directories(imgui PUBLIC ${IMGUI_BUILD_DIR})
 target_sources(imgui PRIVATE ${IMGUI_SOURCES})
+set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 # SPIRV-Cross
 set(SPIRV_CROSS_STATIC ON)

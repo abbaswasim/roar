@@ -1627,7 +1627,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 		for (auto &s : shaders)
 		{
 			(void) s;
-			assert(s.second.test() == true && "Not all unique shaders are generated");
+			assert(s.second.test_and_set() == true && "Not all unique shaders are generated");
 		}
 		for (auto &passtype1 : render_pass_types)
 		{

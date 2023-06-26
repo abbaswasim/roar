@@ -106,6 +106,10 @@ function(build_options target_name extra_pedantic)
 	endif()
   endif()
 
+  if (${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
+      target_compile_options(${target_name} PRIVATE -Wno-invalid-constexpr -Wno-c++20-extensions -Wno-c++20-compat -Wno-return-type -Wno-attributes)
+  endif()
+
 endfunction(build_options)
 
 # Inspired by https://stackoverflow.com/questions/52135983/cmake-target-link-libraries-include-as-system-to-suppress-compiler-warnings

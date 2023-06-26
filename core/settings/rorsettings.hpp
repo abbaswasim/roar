@@ -204,7 +204,7 @@ class ROAR_ENGINE_ITEM Settings final
 			else
 			{
 				assert(0 && "Unknown theme in settings.json at gui:theme");
-			};
+			}
 
 			assert(this->m_gui.m_default_font < this->m_gui.m_fonts.size() && "Default font index is out of range");
 		}

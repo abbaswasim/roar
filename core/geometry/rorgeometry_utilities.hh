@@ -286,13 +286,15 @@ FORCE_INLINE void make_box_lines_indexed(std::vector<_type> &a_vertex_buffer, st
 
 void make_sphere_triangles(std::vector<ror::Vector3f> &a_vertex_buffer, int32_t a_subdivisions, float32_t a_cornder_radius)
 {
-	const par_octasphere_config cfg = {
-	    .corner_radius    = a_cornder_radius,
-	    .width            = 0,
-	    .height           = 0,
-	    .depth            = 0,
-	    .num_subdivisions = a_subdivisions,
-	};
+	par_octasphere_config cfg{};// = {
+	    cfg.corner_radius    = a_cornder_radius;
+	    cfg.width            = 0;
+	    cfg.height           = 0;
+	    cfg.depth            = 0;
+	    cfg.num_subdivisions = a_subdivisions;
+        // cfg.uv_mode          = PAR_OCTASPHERE_UV_LATLONG;
+	    // cfg.normals_mode     = PAR_OCTASPHERE_NORMALS_SMOOT;
+	//};
 
 	uint32_t num_indices;
 	uint32_t num_vertices;
@@ -303,11 +305,15 @@ void make_sphere_triangles(std::vector<ror::Vector3f> &a_vertex_buffer, int32_t 
 	vertex_buffer.resize(num_vertices * sizeof(ror::Vector3f));
 	indicies.resize(num_indices);
 
-	par_octasphere_mesh mesh = {
-	    .positions = reinterpret_cast<float32_t *>(vertex_buffer.data()),
-	    .normals   = nullptr,        // Don't want normals
-	    .texcoords = nullptr,        // Don't want uvs
-	    .indices   = indicies.data()};
+	par_octasphere_mesh mesh{};// = {
+	    mesh.positions    = reinterpret_cast<float32_t *>(vertex_buffer.data());
+	    mesh.normals      = nullptr;        // Don't want normals
+	    mesh.texcoords    = nullptr;        // Don't want uvs
+	    mesh.indices      = indicies.data();
+        // mesh.num_indices  = num_indices;
+        // mesh.num_vertices = num_vertices;
+    //};
+
 
 	// Generate vertex coordinates, ignoring normals, uv, and triangle indices.
 	par_octasphere_populate(&cfg, &mesh);

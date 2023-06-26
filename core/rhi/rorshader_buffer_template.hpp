@@ -143,13 +143,13 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 
 	FORCE_INLINE std::string layout_string() const
 	{
-		assert(this->m_layout == Layout::std140 || this->m_layout == Layout::std430 && "Requesting invalid layout set");
+		assert((this->m_layout == Layout::std140 || this->m_layout == Layout::std430) && "Requesting invalid layout set");
 		return this->m_layout == Layout::std140 ? "std140" : "std430";
 	}
 
 	FORCE_INLINE std::string type_string() const
 	{
-		assert(this->m_type == ShaderBufferType::ubo || this->m_type == ShaderBufferType::ssbo && "Requesting invalid type");
+		assert((this->m_type == ShaderBufferType::ubo || this->m_type == ShaderBufferType::ssbo) && "Requesting invalid type");
 		return this->m_type == ShaderBufferType::ubo ? "uniform" : "buffer";
 	}
 
