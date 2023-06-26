@@ -84,9 +84,24 @@ $ cmake --build "build/ubuntu/Vulkan/Debug" --config Debug -- -j4
 
 ## Third party
 
-Roar uses the following third party software as submodules.
+Roar uses the following third party software as submodules. These come with their own licenses.
 
-* [GLFW](https://github.com/glfw/glfw)
+* [glfw] (https://github.com/glfw/glfw)
+* [spdlog] (https://github.com/gabime/spdlog)
+* [nlohmann] (https://github.com/nlohmann/json)
+* [xxHash] (https://github.com/Cyan4973/xxHash)
+* [CImg] (http://www.cimg.eu)
+* [stb] (https://github.com/nothings/stb)
+* [Vulkan Headers] (https://github.com/KhronosGroup/Vulkan-Headers)
+* [MetalCPP] (https://developer.apple.com/metal/cpp/)
+* [glslang] (https://github.com/KhronosGroup/glslang)
+* [basis_universal] (https://github.com/BinomialLLC/basis_universal)
+* [par] (https://github.com/prideout/par.git)
+* [cgltf] (https://github.com/jkuhlmann/cgltf.git)
+* [CTPL] (https://github.com/vit-vit/CTPL.git)
+* [Dear ImGui] (https://github.com/ocornut/imgui.git)
+* [SPIRV-Cross] (https://github.com/KhronosGroup/SPIRV-Cross.git)
+* [gtest] (https://github.com/google/googletest.git)
 
 ## License
 
