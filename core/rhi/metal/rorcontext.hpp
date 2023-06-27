@@ -67,47 +67,13 @@ class ContextMetal : public ContextCrtp<ContextMetal>
 	FORCE_INLINE void     pre_tick_derived()        {}
 	FORCE_INLINE void     post_tick_derived()       {}
 	FORCE_INLINE void     shutdown_derived()        {}
+	FORCE_INLINE void     tick_derived()            {}
 	// clang-format on
-
-	FORCE_INLINE void tick_derived()
-	{
-		auto &job_system   = this->job_system();
-		auto &event_system = this->event_system();
-		auto &scene        = this->scene();
-		auto &buffer_pack  = this->buffer_pack();
-		auto &device       = this->device();
-		auto &renderer     = this->renderer();
-		auto &timer        = this->timer();
-
-		auto &camera = scene.cameras()[0];
-
-		static bool enable_camera = true;
-
-		if (enable_camera)
-		{
-			auto dims = renderer.dimensions();
-			camera.enable();
-			camera.bounds(dims.x, dims.y);
-
-#if 0
-			auto &model = scene.models()[0];
-			auto &mesh  = model.meshes()[0];
-			auto  bbox  = mesh.bounding_box(0);
-#else
-			auto bbox = scene.bounding_box();
-#endif
-			camera.volume(bbox.minimum(), bbox.maximum());
-			enable_camera = false;
-		}
-
-		camera.update(renderer);
-
-		renderer.render(scene, job_system, event_system, buffer_pack, device, timer);
-	}
 
   protected:
   private:
 };
+
 define_translation_unit_vtable(ContextMetal)
 {}
 

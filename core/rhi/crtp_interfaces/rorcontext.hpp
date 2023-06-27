@@ -75,10 +75,47 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		this->underlying().init_derived();
 	}
 
+	FORCE_INLINE void tick()
+	{
+		auto &job_system   = this->job_system();
+		auto &event_system = this->event_system();
+		auto &scene        = this->scene();
+		auto &buffer_pack  = this->buffer_pack();
+		auto &device       = this->device();
+		auto &renderer     = this->renderer();
+		auto &timer        = this->timer();
+
+		auto &camera = scene.cameras()[0];
+
+		static bool enable_camera = true;
+
+		if (enable_camera)
+		{
+			auto dims = renderer.dimensions();
+			camera.enable();
+			camera.bounds(dims.x, dims.y);
+
+#if 0
+			auto &model = scene.models()[0];
+			auto &mesh  = model.meshes()[0];
+			auto  bbox  = mesh.bounding_box(0);
+#else
+			auto bbox = scene.bounding_box();
+#endif
+			camera.volume(bbox.minimum(), bbox.maximum());
+			enable_camera = false;
+		}
+
+		camera.update(renderer);
+
+		renderer.render(scene, job_system, event_system, buffer_pack, device, timer);
+
+		this->underlying().tick_derived();
+	}
+
 	// clang-format off
 	FORCE_INLINE void   post_init()        {    this->underlying().post_init_derived();    }
 	FORCE_INLINE void   pre_tick()         {    this->underlying().pre_tick_derived();     }
-	FORCE_INLINE void   tick()             {    this->underlying().tick_derived();         }
 	FORCE_INLINE void   post_tick()        {    this->underlying().post_tick_derived();    }
 
 	FORCE_INLINE constexpr auto  &job_system()     noexcept  {    return *this->m_job_system;                }
