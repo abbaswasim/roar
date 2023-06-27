@@ -26,8 +26,11 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/rortypes.hpp"
-
+#include "settings/rorsettings.hpp"
+#include <typeindex>
+#include <unordered_map>
 #include <vusym/vusym.hpp>
 
 namespace vk
@@ -112,6 +115,57 @@ constexpr FORCE_INLINE auto to_vulkan_depth_compare_function(rhi::DepthCompareFu
 	return static_cast<VkCompareOp>(a_compare_function);
 }
 
+FORCE_INLINE auto get_surface_format()
+{
+	return VK_FORMAT_B8G8R8A8_SRGB;
+}
+
+FORCE_INLINE auto get_surface_colorspace()
+{
+	return VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+	// return VK_COLOR_SPACE_PASS_THROUGH_EXT;
+}
+
+FORCE_INLINE auto get_surface_transform()
+{
+	// TODO: Fix the hardcode 90 degree rotation
+	return ror::window_prerotated() ? VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR : VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+}
+
+FORCE_INLINE auto get_surface_composition_mode()
+{
+	return (ror::window_transparent() ?
+	            (ror::window_premultiplied() ?
+	                 VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR :
+	                 VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR) :
+	            VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR);
+}
+
+FORCE_INLINE auto get_swapchain_usage()
+{
+	return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+}
+
+FORCE_INLINE auto get_swapchain_sharing_mode(uint32_t a_queue_family_indices[2])
+{
+	VkSwapchainCreateInfoKHR create_info{};
+
+	if (a_queue_family_indices[0] != a_queue_family_indices[1])
+	{
+		create_info.imageSharingMode      = VK_SHARING_MODE_CONCURRENT;
+		create_info.queueFamilyIndexCount = 2;
+		create_info.pQueueFamilyIndices   = a_queue_family_indices;
+	}
+	else
+	{
+		create_info.imageSharingMode      = VK_SHARING_MODE_EXCLUSIVE;
+		create_info.queueFamilyIndexCount = 0;              // Optional
+		create_info.pQueueFamilyIndices   = nullptr;        // Optional
+	}
+
+	return create_info;
+}
+
 FORCE_INLINE std::vector<const char *> instance_extensions_requested()
 {
 	/* Usually available extensions
@@ -166,4 +220,362 @@ FORCE_INLINE std::vector<const char *> device_layers_requested()
 	return std::vector<const char *>{};
 }
 
+template <class _type, typename std::enable_if<std::is_same<_type, VkExtensionProperties>::value>::type * = nullptr>
+FORCE_INLINE std::string get_properties_type_name(_type a_type)
+{
+	return a_type.extensionName;
+}
+
+template <class _type, typename std::enable_if<std::is_same<_type, VkLayerProperties>::value>::type * = nullptr>
+FORCE_INLINE std::string get_properties_type_name(_type a_type)
+{
+	return a_type.layerName;
+}
+
+template <class _type>
+using properties_type = typename std::conditional<std::is_same<_type, VkExtensionProperties>::value, VkExtensionProperties, VkLayerProperties>::type;
+
+template <class _type, class _property, typename std::enable_if<std::is_same<_type, VkInstance>::value>::type * = nullptr, typename std::enable_if<std::is_same<_property, VkExtensionProperties>::value>::type * = nullptr>
+FORCE_INLINE VkResult get_properties_function(const char *a_name, uint32_t &a_count, properties_type<_property> *a_properties, _type a_context)
+{
+	(void) a_context;
+
+	return vkEnumerateInstanceExtensionProperties(a_name, &a_count, a_properties);
+}
+
+template <class _type, class _property, typename std::enable_if<std::is_same<_type, VkInstance>::value>::type * = nullptr, typename std::enable_if<std::is_same<_property, VkLayerProperties>::value>::type * = nullptr>
+FORCE_INLINE VkResult get_properties_function(const char *a_name, uint32_t &a_count, properties_type<_property> *a_properties, _type a_context)
+{
+	(void) a_name;
+	(void) a_context;
+
+	return vkEnumerateInstanceLayerProperties(&a_count, a_properties);
+}
+
+template <class _type, class _property, typename std::enable_if<std::is_same<_type, VkPhysicalDevice>::value>::type * = nullptr, typename std::enable_if<std::is_same<_property, VkExtensionProperties>::value>::type * = nullptr>
+FORCE_INLINE VkResult get_properties_function(const char *a_name, uint32_t &a_count, properties_type<_property> *a_properties, _type a_context)
+{
+	return vkEnumerateDeviceExtensionProperties(a_context, a_name, &a_count, a_properties);
+}
+
+template <class _type, class _property, typename std::enable_if<std::is_same<_type, VkPhysicalDevice>::value>::type * = nullptr, typename std::enable_if<std::is_same<_property, VkLayerProperties>::value>::type * = nullptr>
+FORCE_INLINE VkResult get_properties_function(const char *a_name, uint32_t &a_count, properties_type<_property> *a_properties, _type a_context)
+{
+	(void) a_name;
+
+	return vkEnumerateDeviceLayerProperties(a_context, &a_count, a_properties);
+}
+
+template <class _type, class _property>
+FORCE_INLINE auto get_properties_requested_list()
+{
+	if constexpr (std::is_same<_type, VkInstance>::value)
+	{
+		if constexpr (std::is_same<_property, VkExtensionProperties>::value)
+			return instance_extensions_requested();
+		else
+			return instance_layers_requested();
+	}
+	else if constexpr (std::is_same<_type, VkPhysicalDevice>::value)
+	{
+		if constexpr (std::is_same<_property, VkExtensionProperties>::value)
+			return device_extensions_requested();
+		else
+			return device_layers_requested();
+	}
+
+	return std::vector<const char *>{};
+}
+
+template <class _type>
+FORCE_INLINE std::string get_name()
+{
+	static std::unordered_map<std::type_index, std::string> type_names;
+
+	// This should all be compile time constants
+	type_names[std::type_index(typeid(VkInstance))]            = "instance";
+	type_names[std::type_index(typeid(VkPhysicalDevice))]      = "physical device";
+	type_names[std::type_index(typeid(VkExtensionProperties))] = "extension";
+	type_names[std::type_index(typeid(VkLayerProperties))]     = "layer";
+
+	return type_names[std::type_index(typeid(_type))];
+}
+
+template <class _type, class _property>
+FORCE_INLINE std::string get_properties_requested_erro_message(std::string a_prefix = "!.")
+{
+	static std::string output{"Failed to enumerate "};
+
+	output.append(get_name<_type>());
+	output.append(" ");
+	output.append(get_name<_property>());
+	output.append(a_prefix);
+
+	return output;
+}
+
+template <class _type, class _property>
+std::vector<const char *> enumerate_properties(_type a_context = nullptr)
+{
+	uint32_t properties_count{0};
+	if (get_properties_function<_type, _property>(nullptr, properties_count, nullptr, a_context) != VK_SUCCESS)
+		throw std::runtime_error(get_properties_requested_erro_message<_type, _property>());
+
+	std::vector<properties_type<_property>> properties{properties_count};
+	if (get_properties_function<_type, _property>(nullptr, properties_count, properties.data(), a_context) != VK_SUCCESS)
+		throw std::runtime_error(get_properties_requested_erro_message<_type, _property>(" calling it again!."));
+
+	ror::log_info("All available {} {}s:", get_name<_type>(), get_name<_property>());
+	for (const auto &property : properties)
+	{
+		ror::log_info("\t{}", get_properties_type_name(property));
+	}
+
+	std::vector<const char *> properties_available;
+
+	auto properties_requested = get_properties_requested_list<_type, _property>();
+
+	for (const auto &property_requested : properties_requested)
+	{
+		if (std::find_if(properties.begin(),
+		                 properties.end(),
+		                 [&property_requested](properties_type<_property> &arg) {
+			                 return std::strcmp(get_properties_type_name(arg).c_str(), property_requested) == 0;
+		                 }) != properties.end())
+		{
+			properties_available.emplace_back(property_requested);
+		}
+		else
+		{
+			ror::log_critical("Requested {} {} not available.", get_name<_property>(), property_requested);
+		}
+	}
+
+	ror::log_info("Enabling the following {}s:", get_name<_property>());
+	for (const auto &property : properties_available)
+	{
+		ror::log_info("\t{}", property);
+	}
+
+	return properties_available;
+}
+
+template <class _property_type, bool _returns, typename _function, typename... _rest>
+std::vector<_property_type> enumerate_general_property(_function &&a_fptr, _rest &&...a_rest_of_args)
+{
+	// TODO: Add some indication of function name or where the error comes from
+
+	VkResult                    result{VK_SUCCESS};
+	unsigned int                count{0};
+	std::vector<_property_type> items;
+
+	do
+	{
+		if constexpr (_returns)
+			result = a_fptr(a_rest_of_args..., &count, nullptr);
+		else
+			a_fptr(a_rest_of_args..., &count, nullptr);
+
+		assert(result == VK_SUCCESS && "enumerate general failed!");
+		assert(count > 0 && "None of the properties required are available");
+
+		items.resize(count, _property_type{});
+
+		if constexpr (_returns)
+			result = a_fptr(a_rest_of_args..., &count, items.data());
+		else
+			a_fptr(a_rest_of_args..., &count, items.data());
+
+	} while (result == VK_INCOMPLETE);
+
+	assert(result == VK_SUCCESS && "enumerate general failed!");
+	assert(count > 0 && "None of the properties required are available");
+
+	return items;
+}
+
+const uint32_t graphics_index{0};
+const uint32_t compute_index{1};
+const uint32_t transfer_index{2};
+const uint32_t sparse_index{3};
+const uint32_t protected_index{4};
+
+const std::vector<VkQueueFlags> all_family_flags{VK_QUEUE_GRAPHICS_BIT,
+                                                 VK_QUEUE_COMPUTE_BIT,
+                                                 VK_QUEUE_TRANSFER_BIT,
+                                                 VK_QUEUE_SPARSE_BINDING_BIT,
+                                                 VK_QUEUE_PROTECTED_BIT};
+
+struct QueueData
+{
+	QueueData()
+	{
+		this->m_indicies.resize(all_family_flags.size());
+	}
+
+	std::vector<std::pair<uint32_t, uint32_t>> m_indicies{};
+};
+
+// a_others is the exclusion list I don't want in this family
+inline auto get_dedicated_queue_family(std::vector<VkQueueFamilyProperties> &a_queue_families, VkQueueFlags a_queue_flag, VkQueueFlags a_others, uint32_t &a_index)
+{
+	uint32_t index = 0;
+	for (auto &queue_family : a_queue_families)
+	{
+		if (((queue_family.queueFlags & a_queue_flag) == a_queue_flag) &&
+		    (queue_family.queueCount > 0) &&
+		    !((queue_family.queueFlags & a_others) == a_others))
+		{
+			a_index = index;
+			queue_family.queueCount--;
+			return true;
+		}
+		index++;
+	}
+	return false;
+}
+
+// TODO: Extract out
+inline auto get_priority(VkQueueFlags a_flag)
+{
+	if (a_flag & VK_QUEUE_GRAPHICS_BIT)
+		return 0.75f;
+	if (a_flag & VK_QUEUE_COMPUTE_BIT)
+		return 1.00f;
+	if (a_flag & VK_QUEUE_TRANSFER_BIT)
+		return 0.50f;
+	if (a_flag & VK_QUEUE_SPARSE_BINDING_BIT)
+		return 0.20f;
+	if (a_flag & VK_QUEUE_PROTECTED_BIT)
+		return 0.10f;
+
+	return 0.0f;
+}
+
+inline auto get_queue_indices(VkPhysicalDevice a_physical_device, VkSurfaceKHR a_surface, std::vector<float32_t *> &a_priorities_pointers, QueueData &a_queue_data)
+{
+	auto queue_families = enumerate_general_property<VkQueueFamilyProperties, false>(vkGetPhysicalDeviceQueueFamilyProperties, a_physical_device);
+
+	// Other tests
+	// std::vector<VkQueueFamilyProperties> queue_families{
+	//	{VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT,
+	//	 16,
+	//	 64,
+	//	 {1, 1, 1}},
+	//	{VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT,
+	//	 2,
+	//	 64,
+	//	 {1, 1, 1}},
+	//	{VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT | VK_QUEUE_SPARSE_BINDING_BIT,
+	//	 8,
+	//	 64,
+	//	 {1, 1, 1}}};
+
+	// std::vector<VkQueueFamilyProperties> queue_families{
+	//	{VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT,
+	//	 2,
+	//	 0,
+	//	 {1, 1, 1}}};
+
+	std::vector<std::pair<bool, uint32_t>> found_indices{};
+	found_indices.resize(all_family_flags.size());
+
+	found_indices[graphics_index].first = get_dedicated_queue_family(queue_families, VK_QUEUE_GRAPHICS_BIT, static_cast<uint32_t>(~VK_QUEUE_GRAPHICS_BIT), found_indices[graphics_index].second);
+	assert(found_indices[graphics_index].first && "No graphics queue found can't continue!");
+
+	found_indices[compute_index].first = get_dedicated_queue_family(queue_families, VK_QUEUE_COMPUTE_BIT, VK_QUEUE_GRAPHICS_BIT, found_indices[compute_index].second);
+
+	if (!found_indices[compute_index].first)
+	{
+		found_indices[compute_index].first = get_dedicated_queue_family(queue_families, VK_QUEUE_COMPUTE_BIT, static_cast<uint32_t>(~VK_QUEUE_GRAPHICS_BIT), found_indices[compute_index].second);
+		assert(found_indices[compute_index].first && "No compute queue found can't continue!");
+	}
+
+	// Look for a queue that has transfer but no compute or graphics
+	found_indices[transfer_index].first = get_dedicated_queue_family(queue_families, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_COMPUTE_BIT | VK_QUEUE_GRAPHICS_BIT, found_indices[transfer_index].second);
+
+	if (!found_indices[transfer_index].first)
+	{
+		// Look for a queue that has transfer but no compute
+		found_indices[transfer_index].first = get_dedicated_queue_family(queue_families, VK_QUEUE_TRANSFER_BIT, VK_QUEUE_COMPUTE_BIT, found_indices[transfer_index].second);
+		if (!found_indices[transfer_index].first)
+		{
+			// Get the first one that supports transfer, quite possible the one with Graphics
+			found_indices[transfer_index].first = get_dedicated_queue_family(queue_families, VK_QUEUE_TRANSFER_BIT, static_cast<uint32_t>(~VK_QUEUE_TRANSFER_BIT), found_indices[transfer_index].second);
+			// If still can't find one just use the graphics queue
+			if (!found_indices[transfer_index].first)
+				found_indices[transfer_index].second = found_indices[graphics_index].second;
+		}
+	}
+
+	found_indices[sparse_index].first    = get_dedicated_queue_family(queue_families, VK_QUEUE_SPARSE_BINDING_BIT, static_cast<uint32_t>(~VK_QUEUE_SPARSE_BINDING_BIT), found_indices[sparse_index].second);
+	found_indices[protected_index].first = get_dedicated_queue_family(queue_families, VK_QUEUE_PROTECTED_BIT, static_cast<uint32_t>(~VK_QUEUE_PROTECTED_BIT), found_indices[protected_index].second);
+
+	std::vector<VkDeviceQueueCreateInfo> device_queue_create_infos{};
+	device_queue_create_infos.reserve(all_family_flags.size());
+
+	VkDeviceQueueCreateInfo device_queue_create_info{};
+	device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	device_queue_create_info.pNext = nullptr;
+	device_queue_create_info.flags = 0;        // Remember if had to change, then need to use vkGetDeviceQueue2
+
+	// device_queue_create_info.queueFamilyIndex = // Assigned in the loop
+	// device_queue_create_info.queueCount = 1;        // Assigned in the loop too
+	// device_queue_create_info.pQueuePriorities =  // Assigned in the loop
+
+	std::vector<std::pair<std::optional<uint32_t>, std::vector<float32_t>>> consolidated_families;
+	consolidated_families.resize(queue_families.size());
+
+	uint32_t priority_index = 0;
+	for (const auto &index : found_indices)
+	{
+		if (index.first)
+		{
+			if (!consolidated_families[index.second].first.has_value())
+				consolidated_families[index.second].first = index.second;
+
+			assert(consolidated_families[index.second].first == index.second && "Index mismatch for queue family!");
+			consolidated_families[index.second].second.push_back(get_priority(all_family_flags[priority_index]));
+			a_queue_data.m_indicies[priority_index] = std::make_pair(index.second, consolidated_families[index.second].second.size() - 1);
+		}
+		priority_index++;
+	}
+
+	{
+		VkBool32 present_support = false;
+		auto     result          = vkGetPhysicalDeviceSurfaceSupportKHR(a_physical_device, a_queue_data.m_indicies[graphics_index].first, a_surface, &present_support);
+		assert(result == VK_SUCCESS);
+		assert(present_support && "Graphics queue chosen doesn't support presentation!");
+	}
+	{
+		VkBool32 present_support = false;
+		auto     result          = vkGetPhysicalDeviceSurfaceSupportKHR(a_physical_device, a_queue_data.m_indicies[compute_index].first, a_surface, &present_support);
+		assert(result == VK_SUCCESS);
+		assert(present_support && "Compute queue chosen doesn't support presentation!");
+	}
+
+	for (const auto &queue_family : consolidated_families)
+	{
+		if (queue_family.first.has_value())
+		{
+			auto pptr = new float32_t[queue_family.second.size()];
+			a_priorities_pointers.push_back(pptr);
+
+			for (size_t i = 0; i < queue_family.second.size(); ++i)
+			{
+				pptr[i] = queue_family.second[i];
+			}
+
+			device_queue_create_info.pQueuePriorities = pptr;
+			device_queue_create_info.queueFamilyIndex = queue_family.first.value();
+			device_queue_create_info.queueCount       = ror::static_cast_safe<uint32_t>(queue_family.second.size());
+
+			device_queue_create_infos.push_back(device_queue_create_info);
+		}
+	}
+
+	assert(device_queue_create_infos.size() >= 1);
+
+	return device_queue_create_infos;
+}
 }        // namespace rhi

@@ -53,20 +53,7 @@ class ContextVulkan : public ContextCrtp<ContextVulkan>
 	FORCE_INLINE void         shutdown_derived()                                 {}
 	// clang-format on
   protected:
-	// FORCE_INLINE ContextVulkan(std::any *a_window)
-	// {
-	// this->m_current_instance = std::make_shared<Instance>();
-	// this->m_current_gpu      = std::make_shared<Device>(this->m_current_instance->get_handle(), a_window);
-
-	// this->m_instances.emplace_back(this->m_current_instance);
-	// this->m_gpus.emplace_back(this->m_current_gpu);
-	// }
-
   private:
-	// std::vector<std::shared_ptr<Instance>> m_instances;
-	// std::vector<std::shared_ptr<Device>>   m_gpus;
-	// std::shared_ptr<Device>                m_current_gpu{nullptr};
-	// std::shared_ptr<Instance>              m_current_instance{nullptr};
 };
 
 define_translation_unit_vtable(ContextVulkan)

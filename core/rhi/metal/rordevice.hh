@@ -61,8 +61,10 @@ FORCE_INLINE void *resize_ca_metal_layer(std::any a_window, MTL::Device *a_devic
 }
 
 // This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
-FORCE_INLINE void DeviceMetal::init(std::any a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
+FORCE_INLINE void DeviceMetal::init(std::any a_platform_window, void* a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
 {
+	(void) a_window;
+
 	this->m_device = MTL::CreateSystemDefaultDevice();
 	if (!this->m_device)
 	{
@@ -70,16 +72,16 @@ FORCE_INLINE void DeviceMetal::init(std::any a_window, ror::EventSystem &a_event
 		exit(1);
 	}
 
-	this->m_window = a_window;
+	this->m_window = a_platform_window;
 	auto &settings = ror::settings();
 
-	auto resize_callback = [this, a_window, &settings](ror::Event &a_event) {
+	auto resize_callback = [this, a_platform_window, &settings](ror::Event &a_event) {
 		auto           size         = a_event.get_payload<ror::Vector2ui>();
 		uint32_t       pixel_format = ror::static_cast_safe<uint32_t>(to_metal_pixelformat(settings.m_pixel_format));
 		ror::Vector2ui dimensions{size.x, size.y};
 
 		release_layer(this->m_ca_metal_layer);
-		this->m_ca_metal_layer = resize_ca_metal_layer(a_window, this->m_device, dimensions, pixel_format);
+		this->m_ca_metal_layer = resize_ca_metal_layer(a_platform_window, this->m_device, dimensions, pixel_format);
 	};
 
 	a_event_system.subscribe(ror::buffer_resize, resize_callback);

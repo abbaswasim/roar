@@ -61,43 +61,90 @@ FORCE_INLINE void *resize_ca_vulkan_layer(std::any a_window, VkDevice a_device, 
 	return ca_vulkan_layer;
 }
 
-// This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
-FORCE_INLINE void DeviceVulkan::init(std::any a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
+Instance::Instance()
 {
-	this->m_device = nullptr;        // VkCreateDevice();// MTL::CreateSystemDefaultDevice();
+	auto &setting = ror::settings();
+
+	// Set debug messenger callback setup required later after instance creation
+	VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info{};
+	debug_messenger_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	debug_messenger_create_info.pNext = nullptr;
+
+	debug_messenger_create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+	                                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+	                                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+
+	debug_messenger_create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+	                                          VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+	                                          VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+
+	debug_messenger_create_info.pfnUserCallback = vk_debug_generic_callback;
+	debug_messenger_create_info.pUserData       = nullptr;        // Optional
+
+	VkInstance        instance_handle{VK_NULL_HANDLE};
+	VkApplicationInfo app_info = {};
+
+	app_info.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	app_info.pNext              = nullptr;
+	app_info.pApplicationName   = setting.m_application_name.c_str();
+	app_info.applicationVersion = setting.m_application_version;
+	app_info.pEngineName        = setting.m_engine_name.c_str();
+	app_info.engineVersion      = setting.m_engine_version;
+	app_info.apiVersion         = ror::vulkan_api_version();
+	// Should this be result of vkEnumerateInstanceVersion
+
+	auto extensions = enumerate_properties<VkInstance, VkExtensionProperties>();
+	auto layers     = enumerate_properties<VkInstance, VkLayerProperties>();
+
+	VkInstanceCreateInfo instance_create_info    = {};
+	instance_create_info.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	instance_create_info.pNext                   = &debug_messenger_create_info;        // nullptr;
+	instance_create_info.pApplicationInfo        = &app_info;
+	instance_create_info.enabledLayerCount       = ror::static_cast_safe<uint32_t>(layers.size());
+	instance_create_info.ppEnabledLayerNames     = layers.data();
+	instance_create_info.enabledExtensionCount   = ror::static_cast_safe<uint32_t>(extensions.size());
+	instance_create_info.ppEnabledExtensionNames = extensions.data();
+	instance_create_info.flags                   = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+
+	VkResult result{};
+	result = vkCreateInstance(&instance_create_info, cfg::VkAllocator, &instance_handle);
+	assert(result == VK_SUCCESS && "Failed to create vulkan instance!");
+
+	this->set_handle(instance_handle);
+
+	result = vkCreateDebugUtilsMessengerEXT(this->get_handle(), &debug_messenger_create_info, cfg::VkAllocator, &m_messenger);
+	assert(result == VK_SUCCESS && "Failed to create Debug Utils Messenger!");
+}
+
+// This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
+FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
+{
+	this->m_gpu.init(this->m_instance);
+
+	this->create_surface(a_window);
+	this->create_device();
+
 	if (!this->m_device)
 	{
 		ror::log_critical("Can't create vulkan device");
 		exit(1);
 	}
 
-	this->m_window = a_window;
+	this->m_window = a_platform_window;
 	auto &settings = ror::settings();
 
-	auto resize_callback = [this, a_window, &settings](ror::Event &a_event) {
-		auto           size         = a_event.get_payload<ror::Vector2ui>();
-		uint32_t       pixel_format = ror::static_cast_safe<uint32_t>(to_vulkan_pixelformat(settings.m_pixel_format));
-		ror::Vector2ui dimensions{size.x, size.y};
+	auto resize_callback = [this, a_platform_window, &settings](ror::Event &a_event) {
+		auto size         = a_event.get_payload<ror::Vector2ui>();
+		auto pixel_format = to_vulkan_pixelformat(settings.m_pixel_format);
 
-		(void) pixel_format;
-		(void) this;
-
-		// release_layer(this->m_ca_vulkan_layer);
-		// this->m_ca_vulkan_layer = resize_ca_vulkan_layer(a_window, this->m_device, dimensions, pixel_format);
+		release_swapchain(this->m_swapchain);
+		this->m_swapchain = create_swapchain(this->m_gpu.get_handle(), this->m_device, this->m_surface, pixel_format, VkExtent2D{size.x, size.y});
 	};
 
 	a_event_system.subscribe(ror::buffer_resize, resize_callback);
 
 	ror::Event e{ror::buffer_resize, true, ror::Vector2ui{a_dimensions.x, a_dimensions.y}};
 	resize_callback(e);
-
-	// this->m_command_queue = this->m_device->newCommandQueue();
-
-	if (!this->m_command_queue)
-	{
-		ror::log_critical("Can't create Vulkan command queue");
-		exit(1);
-	}
 }
 
 FORCE_INLINE VkDevice DeviceVulkan::platform_device()
@@ -138,10 +185,8 @@ FORCE_INLINE VkCommandBuffer DeviceVulkan::platform_command_buffer()
 
 FORCE_INLINE rhi::Swapchain DeviceVulkan::platform_swapchain()
 {
-	assert(this->m_ca_vulkan_layer && "Vulkan ca layer is null, can't create swapchain");
+	assert(this->m_swapchain.swapchain() && "Vulkan ca layer is null, can't create swapchain");
 
-	static rhi::Swapchain swp{nullptr};
-
-	return swp;
+	return &this->m_swapchain;
 }
 }        // namespace rhi

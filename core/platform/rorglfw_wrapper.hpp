@@ -29,6 +29,11 @@
 #include "foundation/rormacros.hpp"
 #include "math/rorvector4.hpp"
 
+#ifdef ROR_RENDER_TYPE_VULKAN
+#	include "rhi/vulkan/rorvulkan_common.hpp"
+#else
+#endif
+
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
@@ -75,6 +80,9 @@ template <class _type>
 void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button);
 template <class _type>
 void glfw_register_for_global_events(GLFWwindow *a_window);
+
+template <class _instance, class _surface>
+auto glfw_create_surface(_instance a_instance, _surface &a_surface, void* a_window);
 
 template <class _type>
 class ROAR_ENGINE_ITEM GLFWwindowWrapper final

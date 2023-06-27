@@ -42,7 +42,7 @@ class DeviceCrtp : public ror::Crtp<_type, DeviceCrtp>
 	FORCE_INLINE virtual ~DeviceCrtp() noexcept override               = default;        //! Destructor
 
 	// clang-format off
-	FORCE_INLINE void  init(std::any a_window, ror::EventSystem &a_event_system)  { this->underlying().init(a_window, a_event_system); }
+	FORCE_INLINE void  init(std::any a_platform_window, void* a_window, ror::EventSystem &a_event_system)  { this->underlying().init(a_platform_window, a_window, a_event_system); }
 	// clang-format on
 
   protected:

@@ -55,7 +55,7 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 
 	// clang-format off
 	FORCE_INLINE void         loop()                                     {     this->underlying().loop();                        }
-	FORCE_INLINE std::any     window()                                   {     return this->underlying().window();               }
+	FORCE_INLINE void*        window()                                   {     return this->underlying().window();               }
 	FORCE_INLINE std::any     platform_window()                          {     return this->underlying().platform_window();      }
 	FORCE_INLINE auto         dimensions()                               {     return this->underlying().dimensions();           }
 	FORCE_INLINE EventSystem &event_system()                             {     return this->m_context.event_system();            }
@@ -107,7 +107,7 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 		ror::Vector4ui dimensions = this->dimensions();        // For the first time need to get framebuffer size, for later we have registered a callback
 		auto scale = this->framebuffer_scaling();
 		ror::Vector4f dimensions_scale{static_cast<float32_t>(dimensions.x), static_cast<float32_t>(dimensions.y), scale.x, scale.y};
-		this->m_context.init(this->platform_window(), dimensions_scale);
+		this->m_context.init(this->platform_window(), this->window(), dimensions_scale);
 		this->m_context.post_init();
 	}
 

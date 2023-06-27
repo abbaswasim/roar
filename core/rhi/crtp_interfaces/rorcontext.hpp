@@ -51,9 +51,9 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE ContextCrtp &operator=(ContextCrtp &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ContextCrtp() noexcept override                 = default;        //! Destructor
 
-	FORCE_INLINE void init(std::any a_window, ror::Vector4f a_dimensions)
+	FORCE_INLINE void init(std::any a_platform_window, void* a_window, ror::Vector4f a_dimensions)
 	{
-		this->m_current_device->init(a_window, this->m_event_system, ror::Vector2ui{static_cast<uint32_t>(a_dimensions.x), static_cast<uint32_t>(a_dimensions.y)});
+		this->m_current_device->init(a_platform_window, a_window, this->m_event_system, ror::Vector2ui{static_cast<uint32_t>(a_dimensions.x), static_cast<uint32_t>(a_dimensions.y)});
 		ror::settings().setup_generic_numbers(this->m_event_system);
 
 		// Should only be called once per execution, TODO: check if this could be used in MT environment

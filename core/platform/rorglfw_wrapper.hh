@@ -208,6 +208,12 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 	glfw_register_drag_event<_type>(a_window, EventModifier::middle_mouse);
 }
 
+template <class _instance, class _surface>
+auto glfw_create_surface(_instance a_instance, _surface &a_surface, void *a_window)
+{
+	return glfwCreateWindowSurface(a_instance, reinterpret_cast<GLFWwindow *>(a_window), nullptr, &a_surface);
+}
+
 // Accepts size in window/screen coordinate so for a 2x scaled retina this is half of the actual size in pixels
 template <class _type>
 void glfw_window_resize_callback(GLFWwindow *a_window, int a_width, int a_height)
