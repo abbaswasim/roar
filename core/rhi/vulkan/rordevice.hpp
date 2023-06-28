@@ -36,7 +36,6 @@
 #include <any>
 #include <typeindex>
 #include <vector>
-// #include <vulkan/include/vulkan/vulkan_core.h>
 
 namespace cfg
 {
@@ -170,56 +169,6 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	// 	this->create_sync_objects();
 	// }
 
-	// std::pair<unsigned int, double> get_keyframe_time(bool a_animate)
-	// {
-	// 	// Note this is very specific to AstroBoy
-	// 	static double   accumulate_time  = 0.0;
-	// 	static uint32_t current_keyframe = 0;
-	// 	const double    per_frame_time   = 1.166670 / 36.0;
-
-	// 	double new_time = 0.0;
-	// 	double delta    = 0.0;
-
-	// 	new_time = glfwGetTime();
-
-	// 	if (a_animate)
-	// 		delta = new_time - this->m_old_time;
-
-	// 	this->m_old_time = new_time;
-
-	// 	accumulate_time += delta;
-
-	// 	current_keyframe = static_cast<uint32_t>(accumulate_time / per_frame_time);
-
-	// 	if (accumulate_time > 1.66670 || (current_keyframe > astro_boy_animation_keyframes_count - 5))        // Last 5 frames don't quite work with the animation loop, so ignored
-	// 	{
-	// 		accumulate_time  = 0.0;
-	// 		current_keyframe = 0;
-	// 	}
-
-	// 	return std::make_pair(current_keyframe, delta);
-	// }
-
-	// double m_old_time{0};
-
-	// auto animate(bool a_animate)
-	// {
-	// 	std::vector<ror::Matrix4f> astro_boy_joint_matrices;
-	// 	astro_boy_joint_matrices.reserve(astro_boy_nodes_count);
-
-	// 	auto [current_keyframe, delta_time] = get_keyframe_time(a_animate);
-
-	// 	auto astro_boy_matrices = ror::get_world_matrices_for_skinning(astro_boy_tree, astro_boy_nodes_count, current_keyframe, delta_time);
-
-	// 	for (size_t i = 0; i < astro_boy_matrices.size(); ++i)
-	// 	{
-	// 		if (astro_boy_tree[i].m_type == 1)
-	// 			astro_boy_joint_matrices.push_back(astro_boy_matrices[i] * ror::get_ror_matrix4(astro_boy_tree[i].m_inverse));
-	// 	}
-
-	// 	return astro_boy_joint_matrices;
-	// }
-
 	// void draw_frame(bool a_update_animation)
 	// {
 	// 	vkWaitForFences(this->m_device, 1, &this->m_queue_fence[this->m_current_frame], VK_TRUE, UINT64_MAX);
@@ -330,27 +279,6 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 
   protected:
   private:
-	// 	void destory_surface()
-	// 	{
-	// 		vkDestroySurfaceKHR(this->m_instance, this->m_surface, nullptr);
-	// 		this->m_surface = nullptr;
-	// 	}
-
-	// 	auto get_framebuffer_size(void *a_window)
-	// 	{
-	// #if defined(VULKANED_USE_GLFW)
-	// 		return glfw_get_buffer_size(reinterpret_cast<GLFWwindow *>(a_window));
-	// #else
-	// 		return nullptr;
-	// #endif
-	// 	}
-
-	// 	void destroy_device()
-	// 	{
-	// 		vkDestroyDevice(this->m_device, cfg::VkAllocator);
-	// 		this->m_device = nullptr;
-	// 	}
-
 	// 	void create_swapchain()
 	// 	{
 	// 		VkSurfaceCapabilitiesKHR capabilities;
@@ -1816,6 +1744,9 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	void create_surface(void *a_window);
 	void create_device();
 
+	void destory_surface();
+	void destroy_device();
+
   protected:
   private:
 	Instance       m_instance{};
@@ -1843,6 +1774,7 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 declare_rhi_render_type(Device);
 
 // TODO: Should be moved to another header
+
 SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat a_format, VkExtent2D a_swapchain_extent);
 void      release_swapchain(SwapChain &a_swapchain);
 

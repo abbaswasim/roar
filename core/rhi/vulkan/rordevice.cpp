@@ -272,7 +272,7 @@ SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device
 	auto           result = vkCreateSwapchainKHR(a_device, &swapchain_create_info, cfg::VkAllocator, &swapchain);
 	assert(result == VK_SUCCESS);
 
-	std::vector<VkImage> swapchain_images;
+	std::vector<VkImage>     swapchain_images;
 	std::vector<VkImageView> swapchain_images_views;
 	swapchain_images = enumerate_general_property<VkImage, true>(vkGetSwapchainImagesKHR, a_device, swapchain);
 
@@ -365,4 +365,15 @@ void DeviceVulkan::create_device()
 	this->m_compute_queue_index = queues[queue_data.m_indicies[compute_index].first].queueFamilyIndex;
 }
 
+void DeviceVulkan::destory_surface()
+{
+	vkDestroySurfaceKHR(this->m_instance.get_handle(), this->m_surface, nullptr);
+	this->m_surface = nullptr;
+}
+
+void DeviceVulkan::destroy_device()
+{
+	vkDestroyDevice(this->m_device, cfg::VkAllocator);
+	this->m_device = nullptr;
+}
 }        // namespace rhi
