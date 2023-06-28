@@ -108,10 +108,10 @@ constexpr FORCE_INLINE const char *vk_result_to_string(VkResult a_result)
 
 // Accepts VkResult and compares with VK_SUCCESSS
 #define check_return_status(result, funcall)                                                                 \
-	if constexpr (ror::get_build() == BuildType::build_debug && result != VK_SUCCESS)                        \
+	if (ror::get_build() == ror::BuildType::build_debug && result != VK_SUCCESS)                             \
 	{                                                                                                        \
 		ror::log_critical("Vulkan command {} returned error code {}", funcall, vk_result_to_string(result)); \
-		assert(0 && message);                                                                                \
+		assert(0 && funcall);                                                                                \
 	}
 
 constexpr FORCE_INLINE auto to_vulkan_pixelformat(rhi::PixelFormat a_pixelformat)

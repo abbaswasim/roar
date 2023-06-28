@@ -33,15 +33,10 @@
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_object.hpp"
+#include "rhi/vulkan/rorvulkan_utils.hpp"
 #include <any>
 #include <typeindex>
 #include <vector>
-
-namespace cfg
-{
-// TODO: make a better allocator
-static VkAllocationCallbacks *VkAllocator = nullptr;
-}        // namespace cfg
 
 namespace rhi
 {
@@ -1512,16 +1507,20 @@ class ROAR_ENGINE_ITEM SwapChain final
 	FORCE_INLINE SwapChain &operator=(SwapChain &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~SwapChain() noexcept                      = default;        //! Destructor
 
+	void create(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat swapchain_format, VkExtent2D a_swapchain_extent);
+	void release(VkDevice a_device);
+
 	// clang-format off
 	void swapchain(VkSwapchainKHR a_swapchain)                      { this->m_swapchain = a_swapchain;           }
 	void swapchain_images(std::vector<VkImage> &&a_swapchains)      { this->m_swapchain_images = a_swapchains;   } 
 	void swapchain_images_views(std::vector<VkImageView> &&a_views) { this->m_swapchain_images_views = a_views;  }
 	void format(VkFormat a_format)                                  { this->m_format = a_format;                 }
-	VkSwapchainKHR swapchain()                                      { return this->m_swapchain;                  }
-	std::vector<VkImage> &swapchain_images()                        { return this->m_swapchain_images;           }
+
+	VkSwapchainKHR            swapchain()                           { return this->m_swapchain;                  }
+	std::vector<VkImage>     &swapchain_images()                    { return this->m_swapchain_images;           }
 	std::vector<VkImageView> &swapchain_images_views()              { return this->m_swapchain_images_views;     }
-	VkFormat format()                                               { return this->m_format;                     }
-	void release()                                                  { (void) m_swapchain;                        } // TODO: Implement by encapsulating release
+	VkFormat                  format()                              { return this->m_format;                     }
+	void                      release()                             {}
 	// clang-format on
 
 	declare_translation_unit_vtable();
@@ -1551,12 +1550,11 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE VkQueue         platform_queue();
 	FORCE_INLINE VkCommandBuffer platform_command_buffer();
 	FORCE_INLINE Swapchain       platform_swapchain();
+	FORCE_INLINE void            destory_surface();
+	FORCE_INLINE void            destroy_device();
 
 	void create_surface(void *a_window);
 	void create_device();
-
-	void destory_surface();
-	void destroy_device();
 
   protected:
   private:
@@ -1583,22 +1581,6 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 };
 
 declare_rhi_render_type(Device);
-
-// TODO: Should be moved to another header
-
-SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat a_format, VkExtent2D a_swapchain_extent);
-void      release_swapchain(VkDevice a_device, SwapChain &a_swapchain);
-
-VkImageView create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspect_flags, uint32_t a_mip_levels,
-                              VkImageViewType    a_type      = VK_IMAGE_VIEW_TYPE_2D,
-                              VkComponentSwizzle a_r_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
-                              VkComponentSwizzle a_g_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
-                              VkComponentSwizzle a_b_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
-                              VkComponentSwizzle a_a_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY);
-
-// TODO: Make these FORCE_INLINE
-void      destroy_swapchain(VkDevice a_device, VkSwapchainKHR a_swapchain);
-void destroy_imageview(VkDevice a_device, VkImageView a_image_view);
 
 }        // namespace rhi
 

@@ -82,8 +82,8 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 		auto size         = a_event.get_payload<ror::Vector2ui>();
 		auto pixel_format = to_vulkan_pixelformat(settings.m_pixel_format);
 
-		release_swapchain(this->m_swapchain);
-		this->m_swapchain = create_swapchain(this->m_gpu.get_handle(), this->m_device, this->m_surface, pixel_format, VkExtent2D{size.x, size.y});
+		this->m_swapchain.release(this->m_device);
+		this->m_swapchain.create(this->m_gpu.get_handle(), this->m_device, this->m_surface, pixel_format, VkExtent2D{size.x, size.y});
 	};
 
 	a_event_system.subscribe(ror::buffer_resize, resize_callback);
@@ -134,4 +134,15 @@ FORCE_INLINE rhi::Swapchain DeviceVulkan::platform_swapchain()
 
 	return &this->m_swapchain;
 }
+
+FORCE_INLINE void DeviceVulkan::destory_surface()
+{
+	vk_destroy_surface(this->m_instance.get_handle(), this->m_surface);
+}
+
+FORCE_INLINE void DeviceVulkan::destroy_device()
+{
+	vk_destroy_device(this->m_device);
+}
+
 }        // namespace rhi
