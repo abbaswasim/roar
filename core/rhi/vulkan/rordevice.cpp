@@ -163,6 +163,11 @@ VkImageView create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_for
 	return image_view;
 }
 
+void destroy_imageview(VkDevice a_device, VkImageView a_image_view)
+{
+	vkDestroyImageView(a_device, a_image_view, cfg::VkAllocator);
+}
+
 SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat swapchain_format, VkExtent2D a_swapchain_extent)
 {
 	VkSurfaceCapabilitiesKHR capabilities;
@@ -213,7 +218,7 @@ SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device
 		{
 			surface_format = surface_formats[0];        // Get the first one otherwise
 			surface_found  = true;
-			// ror::log_error("Requested surface format and color space not available, chosing the first one!\n");
+			ror::log_error("Requested surface format and color space not available, chosing the first one!\n");
 		}
 	}
 
@@ -290,11 +295,24 @@ SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device
 	return swap;
 }
 
-void release_swapchain(SwapChain &a_swapchain)
+void release_swapchain(VkDevice a_device, SwapChain &a_swapchain)
 {
-	(void) a_swapchain;
+	for (auto &image_view : a_swapchain.swapchain_images_views())
+	{
+		vkDestroyImageView(a_device, image_view, cfg::VkAllocator);
+		image_view = nullptr;
+	}
 
-	ror::log_critical("Release swapchain properly");
+	destroy_swapchain(a_device, a_swapchain.swapchain());
+
+	// Release images, and imageviews and swapchain later
+	ror::log_critical("Release swapchain properly, not sure if images needs releasing, find out");
+}
+
+void destroy_swapchain(VkDevice a_device, VkSwapchainKHR a_swapchain)
+{
+	vkDestroySwapchainKHR(a_device, a_swapchain, cfg::VkAllocator);
+	a_swapchain = nullptr;
 }
 
 void DeviceVulkan::create_surface(void *a_window)

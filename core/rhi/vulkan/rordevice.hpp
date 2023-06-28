@@ -279,117 +279,6 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 
   protected:
   private:
-	// 	void create_swapchain()
-	// 	{
-	// 		VkSurfaceCapabilitiesKHR capabilities;
-	// 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->get_handle(), this->m_surface, &capabilities);
-	// 		assert(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max());
-
-	// 		if (capabilities.currentExtent.width == 0xFFFFFFFF && capabilities.currentExtent.height == 0xFFFFFFFF)
-	// 			this->m_swapchain_extent = capabilities.currentExtent;
-	// 		else
-	// 		{
-	// 			auto extent = this->get_framebuffer_size(this->m_window);
-
-	// 			VkExtent2D actualExtent         = {extent.first, extent.second};
-	// 			this->m_swapchain_extent.width  = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-	// 			this->m_swapchain_extent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-	// 		}
-
-	// 		uint32_t image_count = cfg::get_number_of_buffers();
-	// 		if (capabilities.maxImageCount > 0 && image_count > capabilities.maxImageCount)
-	// 		{
-	// 			image_count = capabilities.maxImageCount;
-	// 		}
-	// 		assert(image_count >= capabilities.minImageCount && image_count <= capabilities.maxImageCount && "Min image count for swapchain is bigger than requested!\n");
-
-	// 		auto surface_formats = enumerate_general_property<VkSurfaceFormatKHR, true>(vkGetPhysicalDeviceSurfaceFormatsKHR, this->get_handle(), this->m_surface);
-
-	// 		// Choose format
-	// 		VkSurfaceFormatKHR surface_format;
-	// 		bool               surface_found = false;
-	// 		for (const auto &available_format : surface_formats)
-	// 		{
-	// 			if (available_format.format == vkd::get_surface_format() &&
-	// 			    available_format.colorSpace == vkd::get_surface_colorspace())
-	// 			{
-	// 				surface_format = available_format;
-	// 				surface_found  = true;
-	// 				break;
-	// 			}
-	// 		}
-
-	// 		if (!surface_found)
-	// 		{
-	// 			if (surface_formats.size() == 1 && surface_formats[0].format == VK_FORMAT_UNDEFINED)        // Special case which means all formats are supported
-	// 			{
-	// 				surface_format.format     = vkd::get_surface_format();
-	// 				surface_format.colorSpace = vkd::get_surface_colorspace();
-	// 				surface_found             = true;
-	// 			}
-	// 			else
-	// 			{
-	// 				surface_format = surface_formats[0];        // Get the first one otherwise
-	// 				surface_found  = true;
-	// 				// ror::log_error("Requested surface format and color space not available, chosing the first one!\n");
-	// 			}
-	// 		}
-
-	// 		assert(surface_found);
-
-	// 		this->m_swapchain_format = surface_format.format;
-
-	// 		auto present_modes = enumerate_general_property<VkPresentModeKHR, true>(vkGetPhysicalDeviceSurfacePresentModesKHR, this->get_handle(), this->m_surface);
-
-	// 		// Start with the only available present mode and change if requested
-	// 		VkPresentModeKHR present_mode{VK_PRESENT_MODE_FIFO_KHR};
-
-	// 		if (cfg::get_vsync())
-	// 		{
-	// 			present_mode = VK_PRESENT_MODE_MAX_ENUM_KHR;
-	// 			VkPresentModeKHR present_mode_required{VK_PRESENT_MODE_IMMEDIATE_KHR};
-
-	// 			for (const auto &available_present_mode : present_modes)
-	// 			{
-	// 				if (available_present_mode == present_mode_required)
-	// 				{
-	// 					present_mode = available_present_mode;
-	// 					break;
-	// 				}
-	// 			}
-
-	// 			assert(present_mode != VK_PRESENT_MODE_MAX_ENUM_KHR);
-	// 		}
-
-	// 		uint32_t queue_family_indices[]{0, 0};        // TODO: Get graphics and present queue indices
-	// 		auto     sci = vkd::get_swapchain_sharing_mode(queue_family_indices);
-
-	// 		VkSwapchainCreateInfoKHR swapchain_create_info = {};
-	// 		swapchain_create_info.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	// 		swapchain_create_info.pNext                    = nullptr;
-	// 		swapchain_create_info.flags                    = 0;
-	// 		swapchain_create_info.surface                  = this->m_surface;
-	// 		swapchain_create_info.minImageCount            = image_count;
-	// 		swapchain_create_info.imageFormat              = surface_format.format;
-	// 		swapchain_create_info.imageColorSpace          = surface_format.colorSpace;
-	// 		swapchain_create_info.imageExtent              = this->m_swapchain_extent;
-	// 		swapchain_create_info.imageArrayLayers         = 1;
-	// 		swapchain_create_info.imageUsage               = vkd::get_swapchain_usage();
-	// 		swapchain_create_info.imageSharingMode         = sci.imageSharingMode;
-	// 		swapchain_create_info.queueFamilyIndexCount    = sci.queueFamilyIndexCount;
-	// 		swapchain_create_info.pQueueFamilyIndices      = sci.pQueueFamilyIndices;
-	// 		swapchain_create_info.preTransform             = vkd::get_surface_transform();
-	// 		swapchain_create_info.compositeAlpha           = vkd::get_surface_composition_mode();
-	// 		swapchain_create_info.presentMode              = present_mode;
-	// 		swapchain_create_info.clipped                  = VK_TRUE;
-	// 		swapchain_create_info.oldSwapchain             = VK_NULL_HANDLE;
-
-	// 		auto result = vkCreateSwapchainKHR(this->m_device, &swapchain_create_info, cfg::VkAllocator, &this->m_swapchain);
-	// 		assert(result == VK_SUCCESS);
-
-	// 		this->m_swapchain_images = enumerate_general_property<VkImage, true>(vkGetSwapchainImagesKHR, this->m_device, this->m_swapchain);
-	// 	}
-
 	// 	VkShaderModule create_shader_module(std::string a_shader_path)
 	// 	{
 	// 		utl::bytes_vector shader_code;
@@ -1521,12 +1410,6 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	// 		this->m_render_pass = nullptr;
 	// 	}
 
-	// 	void destroy_swapchain()
-	// 	{
-	// 		vkDestroySwapchainKHR(this->m_device, this->m_swapchain, cfg::VkAllocator);
-	// 		this->m_swapchain = nullptr;
-	// 	}
-
 	// 	void cleanup_swapchain()
 	// 	{
 	// 		// TODO: Expolore how does the 'oldSwapChain' argument works to be more efficient
@@ -1542,59 +1425,6 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	// 		this->destroy_depth_buffer();
 	// 		this->destroy_msaa_color_buffer();
 	// 		this->destroy_swapchain();
-	// 	}
-
-	// 	VkImageView create_image_view(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspect_flags, uint32_t a_mip_levels)
-	// 	{
-	// 		VkImageViewCreateInfo image_view_create_info = {};
-	// 		image_view_create_info.sType                 = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	// 		image_view_create_info.pNext                 = nullptr;
-	// 		image_view_create_info.flags                 = 0;
-	// 		image_view_create_info.image                 = a_image;
-	// 		image_view_create_info.viewType              = VK_IMAGE_VIEW_TYPE_2D;
-	// 		image_view_create_info.format                = a_format;
-
-	// 		image_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-	// 		image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-	// 		image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-	// 		image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-	// 		image_view_create_info.subresourceRange.aspectMask     = a_aspect_flags;        // VK_IMAGE_ASPECT_COLOR_BIT;
-	// 		image_view_create_info.subresourceRange.baseMipLevel   = 0;
-	// 		image_view_create_info.subresourceRange.levelCount     = a_mip_levels;
-	// 		image_view_create_info.subresourceRange.baseArrayLayer = 0;
-	// 		image_view_create_info.subresourceRange.layerCount     = 1;
-
-	// 		VkImageView image_view;
-	// 		VkResult    result = vkCreateImageView(this->m_device, &image_view_create_info, nullptr, &image_view);
-	// 		assert(result == VK_SUCCESS);
-
-	// 		return image_view;
-	// 	}
-
-	// 	void destroy_imageview(VkImageView a_image_view)
-	// 	{
-	// 		vkDestroyImageView(this->m_device, a_image_view, cfg::VkAllocator);
-	// 	}
-
-	// 	void create_imageviews()
-	// 	{
-	// 		// Creating an image view for all swapchain images
-	// 		this->m_swapchain_image_views.resize(this->m_swapchain_images.size());
-
-	// 		for (size_t i = 0; i < this->m_swapchain_images.size(); ++i)
-	// 		{
-	// 			this->m_swapchain_image_views[i] = this->create_image_view(this->m_swapchain_images[i], this->m_swapchain_format, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-	// 		}
-	// 	}
-
-	// 	void destroy_imageviews()
-	// 	{
-	// 		for (auto &image_view : this->m_swapchain_image_views)
-	// 		{
-	// 			vkDestroyImageView(this->m_device, image_view, cfg::VkAllocator);
-	// 			image_view = nullptr;
-	// 		}
 	// 	}
 
 	// 	void create_depth_buffer()
@@ -1633,29 +1463,11 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	// 		vkFreeMemory(this->m_device, this->m_depth_image_memory, cfg::VkAllocator);
 	// 	}
 
-	// 	VkPhysicalDevice             m_physical_device{nullptr};        // TODO: This is not required, its already in handle, change will finalize the name of the class
-	// 	VkDevice                     m_device{nullptr};
-	// 	VkSurfaceKHR                 m_surface{nullptr};
 	VkPhysicalDeviceProperties m_physical_device_properties;
-	// 	uint32_t                     m_graphics_queue_index{0};
-	// 	uint32_t                     m_present_queue_index{0};
-	// 	uint32_t                     m_transfer_queue_index{0};
-	// 	uint32_t                     m_compute_queue_index{0};
-	// 	VkQueue                      m_graphics_queue{nullptr};
-	// 	VkQueue                      m_compute_queue{nullptr};
-	// 	VkQueue                      m_transfer_queue{nullptr};
-	// 	VkQueue                      m_present_queue{nullptr};
-	// 	VkQueue                      m_sparse_queue{nullptr};
-	// 	VkQueue                      m_protected_queue{nullptr};
-	// 	std::vector<VkImage>         m_swapchain_images;
-	// 	std::vector<VkImageView>     m_swapchain_image_views;
 	// 	std::vector<VkFramebuffer>   m_framebuffers;
 	// 	std::vector<VkCommandBuffer> m_graphics_command_buffers;
 	// 	std::vector<VkCommandBuffer> m_compute_command_buffers;
 	// 	std::vector<VkCommandBuffer> m_transfer_command_buffers;
-	// 	VkSwapchainKHR               m_swapchain{nullptr};
-	// 	VkFormat                     m_swapchain_format{VK_FORMAT_B8G8R8A8_SRGB};
-	// 	VkExtent2D                   m_swapchain_extent{1024, 800};
 	// 	VkPipeline                   m_graphics_pipeline{nullptr};
 	// 	VkPipelineLayout             m_pipeline_layout{nullptr};
 	// 	VkDescriptorSetLayout        m_descriptor_set_layout{nullptr};
@@ -1663,7 +1475,6 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	// 	std::vector<VkDescriptorSet> m_descriptor_sets{cfg::get_number_of_buffers()};
 	// 	VkPipelineCache              m_pipeline_cache{nullptr};
 	// 	VkRenderPass                 m_render_pass{nullptr};
-	// 	void                        *m_window{nullptr};        // Window type that can be glfw or nullptr
 	// 	VkCommandPool                m_graphics_command_pool{nullptr};
 	// 	VkCommandPool                m_transfer_command_pool{nullptr};
 	// 	VkSemaphore                  m_image_available_semaphore[cfg::get_number_of_buffers()];
@@ -1710,7 +1521,7 @@ class ROAR_ENGINE_ITEM SwapChain final
 	std::vector<VkImage> &swapchain_images()                        { return this->m_swapchain_images;           }
 	std::vector<VkImageView> &swapchain_images_views()              { return this->m_swapchain_images_views;     }
 	VkFormat format()                                               { return this->m_format;                     }
-	void release()                                                  { (void) m_swapchain;                        }
+	void release()                                                  { (void) m_swapchain;                        } // TODO: Implement by encapsulating release
 	// clang-format on
 
 	declare_translation_unit_vtable();
@@ -1776,7 +1587,7 @@ declare_rhi_render_type(Device);
 // TODO: Should be moved to another header
 
 SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat a_format, VkExtent2D a_swapchain_extent);
-void      release_swapchain(SwapChain &a_swapchain);
+void      release_swapchain(VkDevice a_device, SwapChain &a_swapchain);
 
 VkImageView create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspect_flags, uint32_t a_mip_levels,
                               VkImageViewType    a_type      = VK_IMAGE_VIEW_TYPE_2D,
@@ -1784,6 +1595,10 @@ VkImageView create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_for
                               VkComponentSwizzle a_g_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
                               VkComponentSwizzle a_b_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
                               VkComponentSwizzle a_a_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY);
+
+// TODO: Make these FORCE_INLINE
+void      destroy_swapchain(VkDevice a_device, VkSwapchainKHR a_swapchain);
+void destroy_imageview(VkDevice a_device, VkImageView a_image_view);
 
 }        // namespace rhi
 
