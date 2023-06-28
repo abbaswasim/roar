@@ -61,61 +61,6 @@ FORCE_INLINE void *resize_ca_vulkan_layer(std::any a_window, VkDevice a_device, 
 	return ca_vulkan_layer;
 }
 
-Instance::Instance()
-{
-	auto &setting = ror::settings();
-
-	// Set debug messenger callback setup required later after instance creation
-	VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info{};
-	debug_messenger_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-	debug_messenger_create_info.pNext = nullptr;
-
-	debug_messenger_create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-	                                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-	                                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-
-	debug_messenger_create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-	                                          VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-	                                          VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-
-	debug_messenger_create_info.pfnUserCallback = vk_debug_generic_callback;
-	debug_messenger_create_info.pUserData       = nullptr;        // Optional
-
-	VkInstance        instance_handle{VK_NULL_HANDLE};
-	VkApplicationInfo app_info = {};
-
-	app_info.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	app_info.pNext              = nullptr;
-	app_info.pApplicationName   = setting.m_application_name.c_str();
-	app_info.applicationVersion = setting.m_application_version;
-	app_info.pEngineName        = setting.m_engine_name.c_str();
-	app_info.engineVersion      = setting.m_engine_version;
-	app_info.apiVersion         = ror::vulkan_api_version();
-	// Should this be result of vkEnumerateInstanceVersion
-
-	auto extensions = enumerate_properties<VkInstance, VkExtensionProperties>();
-	auto layers     = enumerate_properties<VkInstance, VkLayerProperties>();
-
-	VkInstanceCreateInfo instance_create_info    = {};
-	instance_create_info.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	instance_create_info.pNext                   = &debug_messenger_create_info;        // nullptr;
-	instance_create_info.pApplicationInfo        = &app_info;
-	instance_create_info.enabledLayerCount       = ror::static_cast_safe<uint32_t>(layers.size());
-	instance_create_info.ppEnabledLayerNames     = layers.data();
-	instance_create_info.enabledExtensionCount   = ror::static_cast_safe<uint32_t>(extensions.size());
-	instance_create_info.ppEnabledExtensionNames = extensions.data();
-	instance_create_info.flags                   = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
-
-	VkResult result{};
-	result = vkCreateInstance(&instance_create_info, cfg::VkAllocator, &instance_handle);
-	assert(result == VK_SUCCESS && "Failed to create vulkan instance!");
-
-	this->set_handle(instance_handle);
-
-	result = vkCreateDebugUtilsMessengerEXT(this->get_handle(), &debug_messenger_create_info, cfg::VkAllocator, &m_messenger);
-	assert(result == VK_SUCCESS && "Failed to create Debug Utils Messenger!");
-}
-
 // This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
 FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
 {

@@ -42,6 +42,127 @@ define_translation_unit_vtable(SwapChain)
 define_translation_unit_vtable(DeviceVulkan)
 {}
 
+static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_generic_callback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT      a_message_severity,
+    VkDebugUtilsMessageTypeFlagsEXT             a_message_type,
+    const VkDebugUtilsMessengerCallbackDataEXT *a_callback_data,
+    void                                       *a_user_data)
+{
+	// (void) a_message_severity;
+	// (void) a_message_type;
+	// (void) a_callback_data;
+	(void) a_user_data;
+
+	std::string prefix{};
+
+	switch (a_message_type)
+	{
+		case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT:
+			prefix = "performance";
+			break;
+		case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT:
+			prefix = "validation";
+			break;
+		default:        // VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
+			prefix = "general";
+	}
+
+	if (a_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+		ror::log_error("Validation layer {} error: {}", prefix, a_callback_data->pMessage);
+	else if (a_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+		ror::log_warn("Validation layer {} warning: {}", prefix, a_callback_data->pMessage);
+	else if (a_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)        // includes VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+		ror::log_info("Validation layer {} info: {}", prefix, a_callback_data->pMessage);
+	else
+		ror::log_critical("Validation layer {} critical error: {}", prefix, a_callback_data->pMessage);
+
+	return VK_FALSE;
+}
+
+Instance::Instance()
+{
+	auto &setting = ror::settings();
+
+	// Set debug messenger callback setup required later after instance creation
+	VkDebugUtilsMessengerCreateInfoEXT debug_messenger_create_info{};
+	debug_messenger_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	debug_messenger_create_info.pNext = nullptr;
+
+	debug_messenger_create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+	                                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+	                                              VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+
+	debug_messenger_create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+	                                          VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+	                                          VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+
+	debug_messenger_create_info.pfnUserCallback = vk_debug_generic_callback;
+	debug_messenger_create_info.pUserData       = nullptr;        // Optional
+
+	VkInstance        instance_handle{VK_NULL_HANDLE};
+	VkApplicationInfo app_info = {};
+
+	app_info.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	app_info.pNext              = nullptr;
+	app_info.pApplicationName   = setting.m_application_name.c_str();
+	app_info.applicationVersion = setting.m_application_version;
+	app_info.pEngineName        = setting.m_engine_name.c_str();
+	app_info.engineVersion      = setting.m_engine_version;
+	app_info.apiVersion         = ror::vulkan_api_version();
+	// Should this be result of vkEnumerateInstanceVersion
+
+	auto extensions = enumerate_properties<VkInstance, VkExtensionProperties>();
+	auto layers     = enumerate_properties<VkInstance, VkLayerProperties>();
+
+	VkInstanceCreateInfo instance_create_info    = {};
+	instance_create_info.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	instance_create_info.pNext                   = &debug_messenger_create_info;        // nullptr;
+	instance_create_info.pApplicationInfo        = &app_info;
+	instance_create_info.enabledLayerCount       = ror::static_cast_safe<uint32_t>(layers.size());
+	instance_create_info.ppEnabledLayerNames     = layers.data();
+	instance_create_info.enabledExtensionCount   = ror::static_cast_safe<uint32_t>(extensions.size());
+	instance_create_info.ppEnabledExtensionNames = extensions.data();
+	instance_create_info.flags                   = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+
+	VkResult result{};
+	result = vkCreateInstance(&instance_create_info, cfg::VkAllocator, &instance_handle);
+	assert(result == VK_SUCCESS && "Failed to create vulkan instance!");
+
+	this->set_handle(instance_handle);
+
+	result = vkCreateDebugUtilsMessengerEXT(this->get_handle(), &debug_messenger_create_info, cfg::VkAllocator, &m_messenger);
+	assert(result == VK_SUCCESS && "Failed to create Debug Utils Messenger!");
+}
+
+VkImageView create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspect_flags, uint32_t a_mip_levels, VkImageViewType a_type,
+                              VkComponentSwizzle a_r_swizzle, VkComponentSwizzle a_g_swizzle, VkComponentSwizzle a_b_swizzle, VkComponentSwizzle a_a_swizzle)
+{
+	VkImageViewCreateInfo image_view_create_info = {};
+	image_view_create_info.sType                 = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	image_view_create_info.pNext                 = nullptr;
+	image_view_create_info.flags                 = 0;
+	image_view_create_info.image                 = a_image;
+	image_view_create_info.viewType              = a_type;        // could be any of VK_IMAGE_VIEW_TYPE_2D; VK_IMAGE_VIEW_TYPE_1D; etc
+	image_view_create_info.format                = a_format;
+
+	image_view_create_info.components.r = a_r_swizzle;        // default as VK_COMPONENT_SWIZZLE_IDENTITY;
+	image_view_create_info.components.g = a_g_swizzle;        // default as VK_COMPONENT_SWIZZLE_IDENTITY;
+	image_view_create_info.components.b = a_b_swizzle;        // default as VK_COMPONENT_SWIZZLE_IDENTITY;
+	image_view_create_info.components.a = a_a_swizzle;        // default as VK_COMPONENT_SWIZZLE_IDENTITY;
+
+	image_view_create_info.subresourceRange.aspectMask     = a_aspect_flags;        // Things like VK_IMAGE_ASPECT_COLOR_BIT;
+	image_view_create_info.subresourceRange.baseMipLevel   = 0;
+	image_view_create_info.subresourceRange.levelCount     = a_mip_levels;
+	image_view_create_info.subresourceRange.baseArrayLayer = 0;
+	image_view_create_info.subresourceRange.layerCount     = 1;
+
+	VkImageView image_view;
+	VkResult    result = vkCreateImageView(a_device, &image_view_create_info, nullptr, &image_view);
+	assert(result == VK_SUCCESS && "VKImageView creation failed");
+
+	return image_view;
+}
+
 SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat swapchain_format, VkExtent2D a_swapchain_extent)
 {
 	VkSurfaceCapabilitiesKHR capabilities;
@@ -152,10 +273,18 @@ SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device
 	assert(result == VK_SUCCESS);
 
 	std::vector<VkImage> swapchain_images;
+	std::vector<VkImageView> swapchain_images_views;
 	swapchain_images = enumerate_general_property<VkImage, true>(vkGetSwapchainImagesKHR, a_device, swapchain);
+
+	// Creating image views for all swapchain images
+	swapchain_images_views.resize(swapchain_images.size());
+
+	for (size_t i = 0; i < swapchain_images.size(); ++i)
+		swapchain_images_views[i] = create_image_view(a_device, swapchain_images[i], swapchain_format, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 	swap.swapchain(swapchain);
 	swap.swapchain_images(std::move(swapchain_images));
+	swap.swapchain_images_views(std::move(swapchain_images_views));
 	swap.format(swapchain_format);
 
 	return swap;

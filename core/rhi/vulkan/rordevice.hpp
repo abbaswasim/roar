@@ -47,43 +47,6 @@ static VkAllocationCallbacks *VkAllocator = nullptr;
 namespace rhi
 {
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_generic_callback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT      a_message_severity,
-    VkDebugUtilsMessageTypeFlagsEXT             a_message_type,
-    const VkDebugUtilsMessengerCallbackDataEXT *a_callback_data,
-    void                                       *a_user_data)
-{
-	// (void) a_message_severity;
-	// (void) a_message_type;
-	// (void) a_callback_data;
-	(void) a_user_data;
-
-	std::string prefix{};
-
-	switch (a_message_type)
-	{
-		case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT:
-			prefix = "performance";
-			break;
-		case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT:
-			prefix = "validation";
-			break;
-		default:        // VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
-			prefix = "general";
-	}
-
-	if (a_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-		ror::log_error("Validation layer {} error: {}", prefix, a_callback_data->pMessage);
-	else if (a_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-		ror::log_warn("Validation layer {} warning: {}", prefix, a_callback_data->pMessage);
-	else if (a_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)        // includes VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-		ror::log_info("Validation layer {} info: {}", prefix, a_callback_data->pMessage);
-	else
-		ror::log_critical("Validation layer {} critical error: {}", prefix, a_callback_data->pMessage);
-
-	return VK_FALSE;
-}
-
 class Instance : public VulkanObject<VkInstance>
 {
   public:
@@ -178,11 +141,11 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	//     m_window(a_window)
 	// {
 	// 	// Order of these calls is important, don't reorder
-	// 	this->create_surface(this->m_window);
-	// 	this->create_physical_device();
-	// 	this->create_device();
-	// 	this->create_swapchain();
-	// 	this->create_imageviews();
+	// 	this->create_surface(this->m_window); // Done
+	// 	this->create_physical_device(); // Done
+	// 	this->create_device(); // Done
+	// 	this->create_swapchain(); // Done
+	// 	this->create_imageviews(); // Done
 
 	// 	this->create_descriptor_set_layout();
 
@@ -1813,9 +1776,11 @@ class ROAR_ENGINE_ITEM SwapChain final
 	// clang-format off
 	void swapchain(VkSwapchainKHR a_swapchain)                      { this->m_swapchain = a_swapchain;           }
 	void swapchain_images(std::vector<VkImage> &&a_swapchains)      { this->m_swapchain_images = a_swapchains;   } 
+	void swapchain_images_views(std::vector<VkImageView> &&a_views) { this->m_swapchain_images_views = a_views;  }
 	void format(VkFormat a_format)                                  { this->m_format = a_format;                 }
 	VkSwapchainKHR swapchain()                                      { return this->m_swapchain;                  }
 	std::vector<VkImage> &swapchain_images()                        { return this->m_swapchain_images;           }
+	std::vector<VkImageView> &swapchain_images_views()              { return this->m_swapchain_images_views;     }
 	VkFormat format()                                               { return this->m_format;                     }
 	void release()                                                  { (void) m_swapchain;                        }
 	// clang-format on
@@ -1824,9 +1789,10 @@ class ROAR_ENGINE_ITEM SwapChain final
 
   protected:
   private:
-	VkSwapchainKHR       m_swapchain{nullptr};
-	std::vector<VkImage> m_swapchain_images;
-	VkFormat             m_format{VK_FORMAT_B8G8R8A8_SRGB};
+	VkSwapchainKHR           m_swapchain{nullptr};
+	std::vector<VkImage>     m_swapchain_images;
+	std::vector<VkImageView> m_swapchain_images_views;
+	VkFormat                 m_format{VK_FORMAT_B8G8R8A8_SRGB};
 };
 
 using Swapchain = SwapChain *;
@@ -1879,6 +1845,13 @@ declare_rhi_render_type(Device);
 // TODO: Should be moved to another header
 SwapChain create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat a_format, VkExtent2D a_swapchain_extent);
 void      release_swapchain(SwapChain &a_swapchain);
+
+VkImageView create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspect_flags, uint32_t a_mip_levels,
+                              VkImageViewType    a_type      = VK_IMAGE_VIEW_TYPE_2D,
+                              VkComponentSwizzle a_r_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
+                              VkComponentSwizzle a_g_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
+                              VkComponentSwizzle a_b_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
+                              VkComponentSwizzle a_a_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY);
 
 }        // namespace rhi
 
