@@ -58,6 +58,8 @@ FORCE_INLINE void *resize_ca_vulkan_layer(std::any a_window, VkDevice a_device, 
 		exit(1);
 	}
 
+
+	assert(0);
 	return ca_vulkan_layer;
 }
 
@@ -125,12 +127,13 @@ FORCE_INLINE VkCommandBuffer DeviceVulkan::platform_command_buffer()
 		// buffer = this->platform_queue()->commandBuffer();
 	}
 
+	assert(0);
 	return buffer;
 }
 
 FORCE_INLINE rhi::Swapchain DeviceVulkan::platform_swapchain()
 {
-	assert(this->m_swapchain.swapchain() && "Vulkan ca layer is null, can't create swapchain");
+	assert(this->m_swapchain.swapchain() && "Vulkan swapchain is null, can't create swapchain");
 
 	return &this->m_swapchain;
 }

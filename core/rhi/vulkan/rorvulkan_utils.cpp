@@ -24,7 +24,6 @@
 // Version: 1.0.0
 
 #include "rhi/vulkan/rorvulkan_utils.hpp"
-#include "vulkan/vulkan_core.h"
 
 namespace rhi
 {
