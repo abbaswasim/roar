@@ -34,6 +34,11 @@ FORCE_INLINE void vk_destroy_swapchain(VkDevice a_device, VkSwapchainKHR a_swapc
 	a_swapchain = nullptr;
 }
 
+FORCE_INLINE void vk_destroy_imageview(VkDevice a_device, VkImageView a_image_view)
+{
+	vkDestroyImageView(a_device, a_image_view, cfg::VkAllocator);
+}
+
 FORCE_INLINE void vk_destroy_surface(VkInstance a_instance, VkSurfaceKHR a_surface)
 {
 	vkDestroySurfaceKHR(a_instance, a_surface, nullptr);

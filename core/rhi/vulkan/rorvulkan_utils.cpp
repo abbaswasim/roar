@@ -29,7 +29,7 @@ namespace rhi
 {
 
 VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspect_flags, uint32_t a_mip_levels, VkImageViewType a_type,
-                              VkComponentSwizzle a_r_swizzle, VkComponentSwizzle a_g_swizzle, VkComponentSwizzle a_b_swizzle, VkComponentSwizzle a_a_swizzle)
+                                 VkComponentSwizzle a_r_swizzle, VkComponentSwizzle a_g_swizzle, VkComponentSwizzle a_b_swizzle, VkComponentSwizzle a_a_swizzle)
 {
 	VkImageViewCreateInfo image_view_create_info = {};
 	image_view_create_info.sType                 = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -55,11 +55,6 @@ VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_
 	assert(result == VK_SUCCESS && "VKImageView creation failed");
 
 	return image_view;
-}
-
-void vk_destroy_imageview(VkDevice a_device, VkImageView a_image_view)
-{
-	vkDestroyImageView(a_device, a_image_view, cfg::VkAllocator);
 }
 
 VkSwapchainKHR vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat &swapchain_format, VkExtent2D a_swapchain_extent)
@@ -164,7 +159,6 @@ VkSwapchainKHR vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice 
 	swapchain_create_info.presentMode              = present_mode;
 	swapchain_create_info.clipped                  = VK_TRUE;
 	swapchain_create_info.oldSwapchain             = VK_NULL_HANDLE;
-
 
 	VkSwapchainKHR swapchain{nullptr};
 	auto           result = vkCreateSwapchainKHR(a_device, &swapchain_create_info, cfg::VkAllocator, &swapchain);
