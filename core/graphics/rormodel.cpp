@@ -2260,8 +2260,8 @@ ror::BoundingBoxf Model::bounding_box_scaled()
 				auto R = node.m_trs_transform.rotation();
 				auto S = node.m_trs_transform.scale();
 
-				auto min = T * (R * (S * mesh_bound.minimum()));
-				auto max = T * (R * (S * mesh_bound.maximum()));
+				auto min = T + (R * (S * mesh_bound.minimum()));
+				auto max = T + (R * (S * mesh_bound.maximum()));
 
 				bbox.add_point(min);
 				bbox.add_point(max);
