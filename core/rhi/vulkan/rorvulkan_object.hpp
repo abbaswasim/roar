@@ -43,7 +43,7 @@ class VulkanObject
 	FORCE_INLINE virtual ~VulkanObject() noexcept                            = default;        //! Destructor
 
 	// Will/Should be called by all derived classes to initialize m_handle, it can't be default initialized
-	FORCE_INLINE VulkanObject(_type handle) :
+	FORCE_INLINE explicit VulkanObject(_type handle) :
 	    m_handle(handle)
 	{}
 

@@ -28,5 +28,4 @@
 
 namespace rhi
 {
-
 }        // namespace rhi

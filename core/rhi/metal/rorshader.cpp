@@ -100,10 +100,10 @@ void ShaderMetal::platform_source()
 
 		bool vertex_glsl_print_code   = (setting.m_print_generated_vertex_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
 		bool fragment_glsl_print_code = (setting.m_print_generated_fragment_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
-		bool compute_glsl_print_code = (setting.m_print_generated_compute_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
+		bool compute_glsl_print_code  = (setting.m_print_generated_compute_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
 
 		if ((vertex_glsl_print_code && this->type() == rhi::ShaderType::vertex) ||
-		    (fragment_glsl_print_code && this->type() == rhi::ShaderType::fragment) || 
+		    (fragment_glsl_print_code && this->type() == rhi::ShaderType::fragment) ||
 		    (compute_glsl_print_code && this->type() == rhi::ShaderType::compute))
 		{
 			auto resource = this->source();
@@ -112,7 +112,7 @@ void ShaderMetal::platform_source()
 
 		bool vertex_msl_print_code   = (setting.m_print_generated_vertex_shaders && setting.m_print_generated_msl_shaders) || setting.m_print_generated_shaders;
 		bool fragment_msl_print_code = (setting.m_print_generated_fragment_shaders && setting.m_print_generated_msl_shaders) || setting.m_print_generated_shaders;
-		bool compute_msl_print_code = (setting.m_print_generated_compute_shaders && setting.m_print_generated_msl_shaders) || setting.m_print_generated_shaders;
+		bool compute_msl_print_code  = (setting.m_print_generated_compute_shaders && setting.m_print_generated_msl_shaders) || setting.m_print_generated_shaders;
 
 		if ((vertex_msl_print_code && this->type() == rhi::ShaderType::vertex) ||
 		    (fragment_msl_print_code && this->type() == rhi::ShaderType::fragment) ||
@@ -127,7 +127,7 @@ void ShaderMetal::platform_source()
 		{
 			static std::atomic<uint32_t> index = 0;
 
-			std::string     name{};
+			std::string name{};
 			name += std::to_string(this->hash());
 			name += "_";
 			name += std::to_string(index++);

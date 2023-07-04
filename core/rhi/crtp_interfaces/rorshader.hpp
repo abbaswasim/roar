@@ -31,6 +31,7 @@
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rordevice.hpp"
 #include <cassert>
 #include <vector>
 
@@ -93,6 +94,15 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
 
 void glslang_wrapper_initialize_process();
 void glslang_wrapper_finalize_process();
+
+/**
+ * A convenience version of the constructor which generates its onwn hash, type and action
+ */
+template<typename _type>
+FORCE_INLINE _type load_shader(const std::filesystem::path &a_shader_path);
+template<typename _type>
+FORCE_INLINE _type build_shader(rhi::Device &a_device, const std::filesystem::path &a_shader_path);
+
 
 }        // namespace rhi
 

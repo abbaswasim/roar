@@ -65,4 +65,24 @@ FORCE_INLINE constexpr auto ShaderCrtp<_type>::source() const noexcept
 	return std::string(reinterpret_cast<const char *>(this->m_shader->data().data()), this->m_shader->data().size());
 }
 
+// NOTE: When using this function, you still need to compile() and upload()
+template<typename _type>
+FORCE_INLINE _type load_shader(const std::filesystem::path &a_shader_path)
+{
+	auto type = rhi::string_to_shader_type(a_shader_path.extension());
+	auto hash = ror::hash_64(a_shader_path.c_str(), a_shader_path.string().length());
+	return _type{a_shader_path.string(), hash, type, ror::ResourceAction::load};
+}
+
+template<typename _type>
+FORCE_INLINE _type build_shader(rhi::Device &a_device, const std::filesystem::path &a_shader_path)
+{
+	auto shader = load_shader<_type>(a_shader_path);
+
+	shader.compile();
+	shader.upload(a_device);
+
+	return shader;
+}
+
 }        // namespace rhi

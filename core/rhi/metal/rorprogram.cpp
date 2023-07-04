@@ -68,7 +68,7 @@ These attribute(index) in shader needs to match atIndex:index from api side at b
 [cmd_encoder setVertexBuffer:positions offset:0 atIndex:nor_loc];
 
 Although the order or sequence doesn't matter, the idices needs to match.
-You can have all attributes in one buffer with offets for each separate attribute like the following
+You can have all attributes in one buffer with offsets for each separate attribute like the following
 
 [cmd_encoder setVertexBuffer:positions offset:position_offset atIndex:pos_loc];
 [cmd_encoder setVertexBuffer:positions offset:normals_offset atIndex:nor_loc];

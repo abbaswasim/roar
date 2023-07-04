@@ -38,22 +38,4 @@ FORCE_INLINE ShaderMetal::~ShaderMetal() noexcept
 	if (this->m_msl_Library)
 		this->m_msl_Library->release();
 }
-
-// NOTE: When using this function, you still need to compile() and upload()
-FORCE_INLINE auto load_shader(const std::filesystem::path &a_shader_path)
-{
-	auto type = rhi::string_to_shader_type(a_shader_path.extension());
-	auto hash = ror::hash_64(a_shader_path.c_str(), a_shader_path.string().length());
-	return ShaderMetal{a_shader_path.string(), hash, type, ror::ResourceAction::load};
-}
-
-FORCE_INLINE auto build_shader(rhi::Device &a_device, const std::filesystem::path &a_shader_path)
-{
-	auto shader = load_shader(a_shader_path);
-
-	shader.compile();
-	shader.upload(a_device);
-
-	return shader;
-}
 }        // namespace rhi

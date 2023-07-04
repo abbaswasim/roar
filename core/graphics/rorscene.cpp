@@ -1010,9 +1010,9 @@ void Scene::create_global_program(const char *a_vertex_shader,
 	int32_t fid = vid + 1;
 
 	// This is ok here because generate_shaders hasn't been called yet
-	this->m_shaders.emplace_back(rhi::load_shader(a_vertex_shader));
+	this->m_shaders.emplace_back(rhi::load_shader<rhi::Shader>(a_vertex_shader));
 	this->m_shaders.back().compile();
-	this->m_shaders.emplace_back(rhi::load_shader(a_fragment_shader));
+	this->m_shaders.emplace_back(rhi::load_shader<rhi::Shader>(a_fragment_shader));
 	this->m_shaders.back().compile();
 
 	GlobalProgram gb;

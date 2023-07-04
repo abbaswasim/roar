@@ -587,8 +587,8 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	this->m_vertex_descriptor = rhi::VertexDescriptor{vattribs, vlayouts};
 
 	// Create shader program
-	auto vs_shader = rhi::build_shader(a_device, "gui.glsl.vert");
-	auto fs_shader = rhi::build_shader(a_device, "gui.glsl.frag");
+	auto vs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.vert");
+	auto fs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.frag");
 
 	this->m_shader_program.upload(a_device, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
 

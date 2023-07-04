@@ -69,12 +69,6 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 	std::string    m_entry_point{"vertex_main"};        //! Shader main entry point, will be different based on the type of shader
 };
 
-/**
- * A convinence version of the constructor which generates its onwn hash, type and action
- */
-FORCE_INLINE auto load_shader(const std::filesystem::path &a_shader_path);
-FORCE_INLINE auto build_shader(rhi::Device &a_device, const std::filesystem::path &a_shader_path);
-
 declare_rhi_render_type(Shader);
 
 }        // namespace rhi
