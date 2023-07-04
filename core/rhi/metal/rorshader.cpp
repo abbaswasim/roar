@@ -96,20 +96,9 @@ void ShaderMetal::platform_source()
 
 	if constexpr (ror::get_build() == ror::BuildType::build_debug)
 	{
-#define print_command(message, source) ror::log_info("Generated {}, {} shader code.\n{}", message, shader_type_to_string(this->type()), source);
+		this->print_source();        // Prints main shader source which is GLSL in this case
 
-		bool vertex_glsl_print_code   = (setting.m_print_generated_vertex_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
-		bool fragment_glsl_print_code = (setting.m_print_generated_fragment_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
-		bool compute_glsl_print_code  = (setting.m_print_generated_compute_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
-
-		if ((vertex_glsl_print_code && this->type() == rhi::ShaderType::vertex) ||
-		    (fragment_glsl_print_code && this->type() == rhi::ShaderType::fragment) ||
-		    (compute_glsl_print_code && this->type() == rhi::ShaderType::compute))
-		{
-			auto resource = this->source();
-			print_command("GLSL", resource);
-		}
-
+		// Print msl shader code
 		bool vertex_msl_print_code   = (setting.m_print_generated_vertex_shaders && setting.m_print_generated_msl_shaders) || setting.m_print_generated_shaders;
 		bool fragment_msl_print_code = (setting.m_print_generated_fragment_shaders && setting.m_print_generated_msl_shaders) || setting.m_print_generated_shaders;
 		bool compute_msl_print_code  = (setting.m_print_generated_compute_shaders && setting.m_print_generated_msl_shaders) || setting.m_print_generated_shaders;
@@ -118,26 +107,13 @@ void ShaderMetal::platform_source()
 		    (fragment_msl_print_code && this->type() == rhi::ShaderType::fragment) ||
 		    (compute_msl_print_code && this->type() == rhi::ShaderType::compute))
 		{
-			print_command("Spirv-corss MSL", this->m_msl_source);
+			ror::log_info("Generated Spirv-corss MSL, {} shader code.\n{}", shader_type_to_string(this->type()), this->m_msl_source.c_str());
 		}
 
-#undef print_command
-
+		auto name = this->write_source();
 		if (setting.m_write_generated_shaders)
 		{
-			static std::atomic<uint32_t> index = 0;
-
-			std::string name{};
-			name += std::to_string(this->hash());
-			name += "_";
-			name += std::to_string(index++);
-			name += this->type() == rhi::ShaderType::vertex ? ".vert" : ".frag";
-
-			auto source = this->source();
-			{
-				auto &resource = ror::resource(name + ".glsl", ror::ResourceSemantic::caches, ror::ResourceAction::create, "generated_shaders");
-				resource.update({source.begin(), source.end()}, false, true);
-			}
+			// Calls write_source which writes out original shader source in this case GLSL and returns the name it used
 			{
 				auto &resource = ror::resource(name + ".msl", ror::ResourceSemantic::caches, ror::ResourceAction::create, "generated_shaders");
 				resource.update({this->m_msl_source.begin(), this->m_msl_source.end()}, false, true);

@@ -50,4 +50,16 @@ FORCE_INLINE void vk_destroy_device(VkDevice a_device)
 	vkDestroyDevice(a_device, cfg::VkAllocator);
 	a_device = nullptr;
 }
+
+FORCE_INLINE void vk_destroy_pipeline(VkDevice a_device, VkPipeline a_pipeline)
+{
+	vkDestroyPipeline(a_device, a_pipeline, cfg::VkAllocator);
+	a_pipeline = nullptr;
+}
+
+FORCE_INLINE void vk_destroy_shader_module(VkDevice a_device, VkShaderModule a_shader_module)
+{
+	vkDestroyShaderModule(a_device, a_shader_module, cfg::VkAllocator);
+	a_shader_module = nullptr;
+}
 }        // namespace rhi

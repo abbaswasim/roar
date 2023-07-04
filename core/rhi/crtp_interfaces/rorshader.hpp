@@ -30,8 +30,8 @@
 #include "foundation/rortypes.hpp"
 #include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rortypes.hpp"
 #include "rhi/rordevice.hpp"
+#include "rhi/rortypes.hpp"
 #include <cassert>
 #include <vector>
 
@@ -74,7 +74,11 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	FORCE_INLINE constexpr auto source() const noexcept;
 
   protected:
-	FORCE_INLINE ShaderCrtp() = default;        //! Default constructor
+	FORCE_INLINE      ShaderCrtp() = default;        //! Default constructor
+	FORCE_INLINE void print_source() const noexcept;
+	FORCE_INLINE auto generated_name() const noexcept;
+	FORCE_INLINE auto write_source() const noexcept;
+
   private:
 	// clang-format off
 	FORCE_INLINE void platform_source()      { this->underlying().platform_source(); }
@@ -98,11 +102,10 @@ void glslang_wrapper_finalize_process();
 /**
  * A convenience version of the constructor which generates its onwn hash, type and action
  */
-template<typename _type>
+template <typename _type>
 FORCE_INLINE _type load_shader(const std::filesystem::path &a_shader_path);
-template<typename _type>
+template <typename _type>
 FORCE_INLINE _type build_shader(rhi::Device &a_device, const std::filesystem::path &a_shader_path);
-
 
 }        // namespace rhi
 

@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "resources/rorresource.hpp"
+#include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 
 namespace rhi
@@ -200,6 +202,36 @@ VkDevice vk_create_device(VkPhysicalDevice physical_device, std::vector<VkDevice
 	check_return_status(result, "vkCreateDevice");
 
 	return device;
+}
+
+VkPipelineShaderStageCreateInfo vk_create_pipeline_shader_stage(VkShaderStageFlagBits a_shader_stage_flags, const char *a_name, VkShaderModule a_shader_module)
+{
+	VkPipelineShaderStageCreateInfo shader_stage_info = {};
+	shader_stage_info.sType                           = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shader_stage_info.pNext                           = nullptr;
+	shader_stage_info.flags                           = 0;
+	shader_stage_info.stage                           = a_shader_stage_flags;
+	shader_stage_info.module                          = a_shader_module;
+	shader_stage_info.pName                           = a_name;
+	shader_stage_info.pSpecializationInfo             = nullptr;
+
+	return shader_stage_info;
+}
+
+VkShaderModule vk_create_shader_module(VkDevice a_device, const std::vector<uint32_t> &a_spirv_code)
+{
+	VkShaderModuleCreateInfo shader_module_info = {};
+	shader_module_info.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	shader_module_info.pNext                    = nullptr;
+	shader_module_info.flags                    = 0;
+	shader_module_info.codeSize                 = a_spirv_code.size();
+	shader_module_info.pCode                    = reinterpret_cast<const uint32_t *>(a_spirv_code.data());
+
+	VkShaderModule shader_module;
+	VkResult       result = vkCreateShaderModule(a_device, &shader_module_info, cfg::VkAllocator, &shader_module);
+	check_return_status(result, "vkCreateShaderModule");
+
+	return shader_module;
 }
 
 }        // namespace rhi

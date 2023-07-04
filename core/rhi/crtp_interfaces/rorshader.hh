@@ -65,8 +65,57 @@ FORCE_INLINE constexpr auto ShaderCrtp<_type>::source() const noexcept
 	return std::string(reinterpret_cast<const char *>(this->m_shader->data().data()), this->m_shader->data().size());
 }
 
+template <class _type>
+void ShaderCrtp<_type>::print_source() const noexcept
+{
+	auto &setting = ror::settings();
+
+	bool vertex_glsl_print_code   = (setting.m_print_generated_vertex_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
+	bool fragment_glsl_print_code = (setting.m_print_generated_fragment_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
+	bool compute_glsl_print_code  = (setting.m_print_generated_compute_shaders && setting.m_print_generated_glsl_shaders) || setting.m_print_generated_shaders;
+
+	if ((vertex_glsl_print_code && this->type() == rhi::ShaderType::vertex) ||
+	    (fragment_glsl_print_code && this->type() == rhi::ShaderType::fragment) ||
+	    (compute_glsl_print_code && this->type() == rhi::ShaderType::compute))
+	{
+		auto resource = this->source();
+		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(this->type()), this->source().c_str());
+	}
+}
+
+template <class _type>
+auto ShaderCrtp<_type>::generated_name() const noexcept
+{
+	static std::atomic<uint32_t> index = 0;
+
+	std::string name{};
+	name += std::to_string(this->hash());
+	name += "_";
+	name += std::to_string(index++);
+	name += this->type() == rhi::ShaderType::vertex ? ".vert" : ".frag";
+
+	return name;
+}
+
+template <class _type>
+auto ShaderCrtp<_type>::write_source() const noexcept
+{
+	auto &setting = ror::settings();
+	auto name = this->generated_name();
+	if (setting.m_write_generated_shaders)
+	{
+		auto source = this->source();
+		{
+			auto &resource = ror::resource(name + ".glsl", ror::ResourceSemantic::caches, ror::ResourceAction::create, "generated_shaders");
+			resource.update({source.begin(), source.end()}, false, true);
+		}
+	}
+
+	return name;
+}
+
 // NOTE: When using this function, you still need to compile() and upload()
-template<typename _type>
+template <typename _type>
 FORCE_INLINE _type load_shader(const std::filesystem::path &a_shader_path)
 {
 	auto type = rhi::string_to_shader_type(a_shader_path.extension());
@@ -74,7 +123,7 @@ FORCE_INLINE _type load_shader(const std::filesystem::path &a_shader_path)
 	return _type{a_shader_path.string(), hash, type, ror::ResourceAction::load};
 }
 
-template<typename _type>
+template <typename _type>
 FORCE_INLINE _type build_shader(rhi::Device &a_device, const std::filesystem::path &a_shader_path)
 {
 	auto shader = load_shader<_type>(a_shader_path);

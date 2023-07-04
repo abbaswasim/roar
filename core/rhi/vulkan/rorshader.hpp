@@ -31,6 +31,7 @@
 #include "rhi/crtp_interfaces/rorshader.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/vulkan/rorvulkan_utils.hpp"
 
 namespace rhi
 {
@@ -47,30 +48,19 @@ class ShaderVulkan : public ShaderCrtp<ShaderVulkan>
 	    ShaderCrtp(a_shader, a_hash, a_type, a_action)
 	{}
 
+	// clang-format off
+	FORCE_INLINE constexpr VkShaderModule module()   const  noexcept   { return this->m_module;     }
+	// clang-format on
+
 	void platform_source();
 	void upload(rhi::Device &a_device);
-
-	// clang-format off
-	FORCE_INLINE constexpr auto      *function()   const  noexcept   {      return this->m_main_function;     }
-	FORCE_INLINE std::string_view     msl_source() const             {      return this->m_msl_source;        }
-	// clang-format on
 
   protected:
 	FORCE_INLINE ShaderVulkan() = default;        //! Default constructor
   private:
+	VkShaderModule m_module{nullptr};        // Vulkan Shader module for this shader
 	declare_translation_unit_vtable();
-
-	std::string m_msl_source{};                      //! Copy of the msl source code
-	void       *m_msl_Library{nullptr};              //! Point to the vulkan shader library
-	void       *m_main_function{nullptr};            //! Pointer to the entry point, it should be vertex_main for vertex and fragment_main for fragment shaders
-	std::string m_entry_point{"vertex_main"};        //! Shader main entry point, will be different based on the type of shader
 };
-
-/**
- * A convinence version of the constructor which generates its onwn hash, type and action
- */
-FORCE_INLINE auto load_shader(const std::filesystem::path &a_shader_path);
-FORCE_INLINE auto build_shader(rhi::Device &a_device, const std::filesystem::path &a_shader_path);
 
 declare_rhi_render_type(Shader);
 
