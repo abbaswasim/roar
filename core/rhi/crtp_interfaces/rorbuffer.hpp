@@ -30,6 +30,7 @@
 #include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rordevice.hpp"
 #include "roar_export_import.hpp"
 #include "settings/rorsettings.hpp"
 #include <cassert>
@@ -101,6 +102,40 @@ class ROAR_ENGINE_ITEM BufferCrtp
 	std::vector<uint8_t>        m_data{};                    //! Data block of the buffer
 	std::shared_ptr<std::mutex> m_mutex{};                   //! Mutex to lock _offset() calls with, its shared_ptr and not unique_ptr or std::mutex because I need the ctors
 };
+
+/**
+ * This type of buffer has both a CPU side copy and a GPU uploaded buffer
+ * Ideally the CPU side copy is also kept up to date with every update to the GPU
+ * This might not be required for some GPU only side buffer for that case
+ * Use BufferMetal/BufferVulkan instead
+ */
+template <typename _api_buffer, typename _type = Static>
+class ROAR_ENGINE_ITEM BufferHybrid : public BufferCrtp<_type>, public _api_buffer
+{
+  public:
+	FORCE_INLINE               BufferHybrid()                                = default;        //! Default constructor
+	FORCE_INLINE               BufferHybrid(const BufferHybrid &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE               BufferHybrid(BufferHybrid &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE BufferHybrid &operator=(const BufferHybrid &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE BufferHybrid &operator=(BufferHybrid &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~BufferHybrid() noexcept override                   = default;        //! Destructor
+
+	FORCE_INLINE void upload(rhi::Device &a_device)
+	{
+		// Does both init and upload at the same time
+		_api_buffer::init(a_device, this->data().data(), this->filled_size(), rhi::ResourceStorageOption::managed);        // TODO: Fix hard-coded managed mode
+	}
+
+	FORCE_INLINE void upload_partial(size_t a_offset, size_t a_length)
+	{
+		// Since both the BufferCrtp and BufferMetal are of the same size, I use one offeset here and one inside BufferMetal::upload
+		_api_buffer::upload(this->data().data() + a_offset, a_offset, a_length);
+	}
+
+  protected:
+  private:
+};
+
 
 // Template deduction guide CATD for Buffer static
 template <class _type>

@@ -160,36 +160,52 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 
 	FORCE_INLINE void            init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
 	FORCE_INLINE VkDevice        platform_device();
-	FORCE_INLINE VkQueue         platform_queue();
+	FORCE_INLINE VkQueue         platform_graphics_queue();
+	FORCE_INLINE VkQueue         platform_compute_queue();
+	FORCE_INLINE VkQueue         platform_present_queue();
+	FORCE_INLINE VkQueue         platform_transfer_queue();
+	FORCE_INLINE uint32_t        platform_graphics_queue_index();
+	FORCE_INLINE uint32_t        platform_compute_queue_index();
+	FORCE_INLINE uint32_t        platform_present_queue_index();
+	FORCE_INLINE uint32_t        platform_transfer_queue_index();
+	FORCE_INLINE VkCommandPool   platform_graphics_command_pool();
+	FORCE_INLINE VkCommandPool   platform_compute_command_pool();
+	FORCE_INLINE VkCommandPool   platform_transfer_command_pool();
 	FORCE_INLINE VkCommandBuffer platform_command_buffer();
 	FORCE_INLINE Swapchain       platform_swapchain();
+	FORCE_INLINE auto           &memory_properties();
 
   protected:
   private:
-	FORCE_INLINE void            destory_surface();
-	FORCE_INLINE void            destroy_device();
+	FORCE_INLINE void destory_surface();
+	FORCE_INLINE void destroy_device();
 
+	void set_memory_properties();
 	void create_surface(void *a_window);
 	void create_device();
+	void create_command_pools();
 
-	Instance       m_instance{};
-	PhysicalDevice m_gpu{};
-	VkDevice       m_device{nullptr};         //! Vulkan device
-	VkSurfaceKHR   m_surface{nullptr};        //! Vulkan drawable surface provided by windowing system
-	VkQueue        m_command_queue;           //! CommandQueue where all the commands will be submitted, I think I only need one
-	std::any       m_window{};                //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
-	SwapChain      m_swapchain{};             //! Swapchain images abstraction for Vulkan
+	Instance                          m_instance{};
+	PhysicalDevice                    m_gpu{};
+	VkPhysicalDeviceMemoryProperties2 m_memory_properties;        //! Vulkan physical device memory properties cache, it might also contain VkPhysicalDeviceMemoryBudgetPropertiesEXT in pNext*
+	VkDevice                          m_device{nullptr};          //! Vulkan device
+	VkSurfaceKHR                      m_surface{nullptr};         //! Vulkan drawable surface provided by windowing system
+	std::any                          m_window{};                 //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
+	SwapChain                         m_swapchain{};              //! Swapchain images abstraction for Vulkan
 
-	uint32_t m_graphics_queue_index{0};
-	uint32_t m_present_queue_index{0};
-	uint32_t m_transfer_queue_index{0};
-	uint32_t m_compute_queue_index{0};
-	VkQueue  m_graphics_queue{nullptr};
-	VkQueue  m_compute_queue{nullptr};
-	VkQueue  m_transfer_queue{nullptr};
-	VkQueue  m_present_queue{nullptr};
-	VkQueue  m_sparse_queue{nullptr};
-	VkQueue  m_protected_queue{nullptr};
+	uint32_t      m_graphics_queue_index{0};
+	uint32_t      m_present_queue_index{0};
+	uint32_t      m_transfer_queue_index{0};
+	uint32_t      m_compute_queue_index{0};
+	VkQueue       m_graphics_queue{nullptr};
+	VkQueue       m_compute_queue{nullptr};
+	VkQueue       m_transfer_queue{nullptr};
+	VkQueue       m_present_queue{nullptr};
+	VkQueue       m_sparse_queue{nullptr};
+	VkQueue       m_protected_queue{nullptr};
+	VkCommandPool m_graphics_command_pool{nullptr};
+	VkCommandPool m_compute_command_pool{nullptr};
+	VkCommandPool m_transfer_command_pool{nullptr};
 
 	declare_translation_unit_vtable();
 };

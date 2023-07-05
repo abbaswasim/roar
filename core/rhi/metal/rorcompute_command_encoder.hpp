@@ -55,7 +55,7 @@ class ComputeCommandEncoderMetal final
 	FORCE_INLINE explicit ComputeCommandEncoderMetal(MTL::ComputeCommandEncoder *a_encoder);
 
 	FORCE_INLINE constexpr void compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept;
-	FORCE_INLINE constexpr void buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;

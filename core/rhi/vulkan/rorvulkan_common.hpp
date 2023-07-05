@@ -152,9 +152,21 @@ constexpr FORCE_INLINE auto to_vulkan_step_function(rhi::StepFunction a_function
 	assert(0);
 }
 
-constexpr FORCE_INLINE auto to_vulkan_resource_option(rhi::ResourceStorageOption a_mode)
+constexpr FORCE_INLINE VkMemoryPropertyFlags to_vulkan_resource_option(rhi::ResourceStorageOption a_mode)
 {
-	return static_cast<uint32_t>(a_mode);
+	// TODO: Maybe this stuff should be in rortypes.hpp
+	switch (a_mode)
+	{
+		case rhi::ResourceStorageOption::shared:        // The resource is stored in system memory and is accessible to both the CPU and the GPU.
+			// return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+		case rhi::ResourceStorageOption::exclusive:        // The resource can be accessed only by the GPU.
+			return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		case rhi::ResourceStorageOption::memory_less:        // The resource’s contents can be accessed only by the GPU and only exist temporarily during a render pass.
+			return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+		case rhi::ResourceStorageOption::managed:        // The CPU and GPU may maintain separate copies of the resource, and any changes must be explicitly synchronized.
+			return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+	}
 }
 
 constexpr FORCE_INLINE auto to_vulkan_primitive_topoloy(rhi::PrimitiveTopology a_topology)
@@ -468,12 +480,6 @@ std::vector<_property_type> enumerate_general_property(_function &&a_fptr, _rest
 	return items;
 }
 
-const uint32_t graphics_index{0};
-const uint32_t compute_index{1};
-const uint32_t transfer_index{2};
-const uint32_t sparse_index{3};
-const uint32_t protected_index{4};
-
 const std::vector<VkQueueFlags> all_family_flags{VK_QUEUE_GRAPHICS_BIT,
                                                  VK_QUEUE_COMPUTE_BIT,
                                                  VK_QUEUE_TRANSFER_BIT,
@@ -525,6 +531,12 @@ inline auto get_priority(VkQueueFlags a_flag)
 
 	return 0.0f;
 }
+
+const uint32_t graphics_index{0};
+const uint32_t compute_index{1};
+const uint32_t transfer_index{2};
+const uint32_t sparse_index{3};
+const uint32_t protected_index{4};
 
 inline auto get_queue_indices(VkPhysicalDevice a_physical_device, VkSurfaceKHR a_surface, std::vector<float32_t *> &a_priorities_pointers, QueueData &a_queue_data)
 {

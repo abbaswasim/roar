@@ -27,14 +27,10 @@
 
 #include "rhi/crtp_interfaces/rorbuffer.hpp"
 #include "rhi/rorrhi_macros.hpp"
-
 #include "rhi/vulkan/rorvulkan_common.hpp"
 
 namespace rhi
 {
-
-class DeviceVulkan;
-using Device = DeviceVulkan;
 
 declare_rhi_render_type(RenderCommandEncoder);
 declare_rhi_render_type(ComputeCommandEncoder);
@@ -59,7 +55,6 @@ class ROAR_ENGINE_ITEM BufferVulkan
 	FORCE_INLINE void           upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
 	FORCE_INLINE void           upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
 	FORCE_INLINE constexpr void unmap() noexcept;
-	FORCE_INLINE constexpr void unmap(std::uintptr_t a_from, std::uintptr_t a_to) noexcept;
 
 	void bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uintptr_t a_offset, uint32_t a_index) noexcept;
 	void bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uintptr_t a_offset, uint32_t a_index) noexcept;
@@ -70,7 +65,9 @@ class ROAR_ENGINE_ITEM BufferVulkan
 	FORCE_INLINE constexpr auto ready()              const noexcept { return this->m_ready;            }
 	FORCE_INLINE constexpr auto platform_buffer()    const noexcept { return this->m_buffer;           }
 	FORCE_INLINE constexpr auto storage_mode()       const noexcept { return this->m_storage_mode;     }
+	FORCE_INLINE constexpr auto buffer_size()        const noexcept { return this->m_buffer_size;      }
 
+	FORCE_INLINE constexpr void buffer_size(size_t a_size)                 noexcept { this->m_buffer_size = a_size;  }
 	FORCE_INLINE constexpr void ready(bool a_ready)                        noexcept { this->m_ready = a_ready;       }
 	FORCE_INLINE           void storage_mode(rhi::ResourceStorageOption a_mode)     { this->m_storage_mode = a_mode; }
 	// clang-format on
@@ -79,42 +76,12 @@ class ROAR_ENGINE_ITEM BufferVulkan
   private:
 	declare_translation_unit_vtable();
 
-	VkBuffer                  *m_buffer{nullptr};                                         //! API handle to buffer
+	VkDevice                   m_device{nullptr};                                         //! API handle to current device
+	VkBuffer                   m_buffer{nullptr};                                         //! API handle to buffer
+	VkDeviceMemory             m_memory{nullptr};                                         //! API handle for Memory for the buffer
+	size_t                     m_buffer_size{0};                                                 //! Buffer size in machine units
 	rhi::ResourceStorageOption m_storage_mode{rhi::ResourceStorageOption::shared};        //! Storage mode of the buffer, shared means no synchronisation is required
 	bool                       m_ready{false};                                            //! Keeps track of whether the buffer is ready to be used or not
-};
-
-/**
- * This type of buffer has both a CPU side copy and a GPU uploaded buffer
- * Ideally the CPU side copy is also kept up to date with every update to the GPU
- * This might not be required for some GPU only side buffer for that case
- * Use BufferVulkan/BufferVulkan instead
- */
-template <typename _type = Static>
-class ROAR_ENGINE_ITEM BufferHybrid : public BufferCrtp<_type>, public BufferVulkan
-{
-  public:
-	FORCE_INLINE               BufferHybrid()                                = default;        //! Default constructor
-	FORCE_INLINE               BufferHybrid(const BufferHybrid &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE               BufferHybrid(BufferHybrid &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE BufferHybrid &operator=(const BufferHybrid &a_other)        = default;        //! Copy assignment operator
-	FORCE_INLINE BufferHybrid &operator=(BufferHybrid &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~BufferHybrid() noexcept override                   = default;        //! Destructor
-
-	FORCE_INLINE void upload(rhi::Device &a_device)
-	{
-		// Does both init and upload at the same time
-		BufferVulkan::init(a_device, this->data().data(), this->filled_size(), rhi::ResourceStorageOption::managed);        // TODO: Fix me
-	}
-
-	FORCE_INLINE void upload_partial(size_t a_offset, size_t a_length)
-	{
-		// Since both the BufferCrtp and BufferVulkan are of the same size, I use one offeset here and one inside BufferVulkan::upload
-		BufferVulkan::upload(this->data().data() + a_offset, a_offset, a_length);
-	}
-
-  protected:
-  private:
 };
 
 // Template deduction guide CATD for Buffer static

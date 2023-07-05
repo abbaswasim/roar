@@ -23,14 +23,17 @@
 //
 // Version: 1.0.0
 
+#include "profiling/rorlog.hpp"
 #include "rhi/vulkan/rorbuffer.hpp"
+#include "rhi/vulkan/rorvulkan_common.hpp"
+#include "rhi/vulkan/rorvulkan_utils.hpp"
+#include <cstring>
 
 namespace rhi
 {
 void BufferVulkan::release()
 {
-	// if (this->m_buffer)
-	// 	this->m_buffer->release();
+	// vk_destroy_buffer(this->m_device, this->m_buffer);
 }
 
 FORCE_INLINE void BufferVulkan::init(rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
@@ -40,11 +43,21 @@ FORCE_INLINE void BufferVulkan::init(rhi::Device &a_device, size_t a_size_in_byt
 
 	assert(this->m_buffer == nullptr && "Calling init on already created buffer");
 
+	this->buffer_size(a_size_in_bytes);
 	this->storage_mode(a_mode);
 
-	(void )a_device;
-	// MTL::Device *device = a_device.platform_device();
-	// this->m_buffer      = device->newBuffer(std::max(1ul, a_size_in_bytes), rhi::to_metal_resource_option(this->storage_mode()));
+	this->m_device = a_device.platform_device();
+
+	// TODO: Abstract these out
+	VkBufferUsageFlags usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT |
+	                           VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+
+	VkSharingMode                     mode = VK_SHARING_MODE_EXCLUSIVE;                                                                                                                         // VK_SHARING_MODE_CONCURRENT,
+	std::vector<uint32_t>             queue_family_indices{a_device.platform_graphics_queue_index(), a_device.platform_compute_queue_index(), a_device.platform_transfer_queue_index()};        // TODO: is it too many?
+	VkPhysicalDeviceMemoryProperties2 memory_properties = a_device.memory_properties();
+	VkMemoryPropertyFlags             properties        = rhi::to_vulkan_resource_option(a_mode);
+
+	vk_create_buffer_with_memory(this->m_device, this->m_buffer, std::max(1ul, a_size_in_bytes), usage, mode, queue_family_indices, this->m_memory, memory_properties.memoryProperties, properties);
 }
 
 FORCE_INLINE void BufferVulkan::init(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
@@ -53,27 +66,12 @@ FORCE_INLINE void BufferVulkan::init(rhi::Device &a_device, const uint8_t *a_dat
 	this->upload(a_device, a_data_pointer, a_size_in_bytes);
 }
 
-FORCE_INLINE constexpr void BufferVulkan::unmap(std::uintptr_t a_offset, std::uintptr_t a_length) noexcept
-{
-	(void) a_offset;
-	(void) a_length;
-	if (this->storage_mode() == rhi::ResourceStorageOption::managed)
-	{
-		// this->m_buffer->didModifyRange(NS::Range::Make(a_offset, a_length));        // only valid for Managed mode, shared and other doesn't require this
-	}
-	else if (this->storage_mode() == rhi::ResourceStorageOption::shared)
-	{}        // Do nothing already unmapped
-	else
-		ror::log_critical("Can't unmap private or memory less buffer");
-}
-
 FORCE_INLINE constexpr auto BufferVulkan::map() noexcept
 {
 	if (this->storage_mode() == rhi::ResourceStorageOption::shared ||
 	    this->storage_mode() == rhi::ResourceStorageOption::managed)
 	{
-		// return static_cast<uint8_t *>(this->m_buffer->contents());
-		return static_cast<uint8_t *>(nullptr);
+		return vk_map_memory(this->m_device, this->m_memory);
 	}
 	else
 	{
@@ -84,21 +82,28 @@ FORCE_INLINE constexpr auto BufferVulkan::map() noexcept
 
 FORCE_INLINE constexpr void BufferVulkan::unmap() noexcept
 {
-	// this->unmap(0, this->m_buffer->length());
+	if (this->storage_mode() == rhi::ResourceStorageOption::shared ||
+	    this->storage_mode() == rhi::ResourceStorageOption::managed)
+	{
+		vk_unmap_memory(this->m_device, this->m_memory);
+	}
+	else
+	{
+		ror::log_critical("Can't unmap private or memory less buffer");
+	}
 }
 
 FORCE_INLINE void BufferVulkan::resize(rhi::Device &a_device, size_t a_length)
 {
-	(void) a_device;
-	(void) a_length;
-	// if (this->m_buffer->length() > a_length)
-	// 	return;
-	// else
-	// {
-	// 	// Lets adjust the size
-	// 	this->m_buffer->autorelease();                                                // Showing interest for this to be released somewhere in the future, unlike immidiate release()
-	// 	this->init(a_device, a_length + (a_length / 4), this->m_storage_mode);        // Append an extra quarter of what is required for future
-	// }
+	if (this->buffer_size() > a_length)
+		return;
+	else
+	{
+		// Lets adjust the size
+		vk_destroy_buffer(a_device.platform_device(), this->m_buffer);
+		ror::log_critical("Destroying buffer that might be in use, need to find a way to add it to some list that will be deleted later");
+		this->init(a_device, a_length + (a_length / 4), this->m_storage_mode);        // Append an extra quarter of what is required for future
+	}
 }
 
 void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes)
@@ -118,29 +123,52 @@ void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, 
 	// Some sanity checks first
 	assert(this->m_buffer && "Called upload on uninitialized buffer, call init() first");
 	assert(a_offset <= a_length);
-	// assert(a_offset <= this->m_buffer->length());
-	// assert(this->m_buffer->length() >= a_length && "Not enough space in the buffer being copied into");
-	// assert(this->m_buffer->length() >= a_offset + a_length && "Not enough space in the buffer being copied into");
+	assert(a_offset <= this->buffer_size());
+	assert(this->buffer_size() >= a_length && "Not enough space in the buffer being copied into");
+	assert(this->buffer_size() >= a_offset + a_length && "Not enough space in the buffer being copied into");
 
 	if (this->storage_mode() == rhi::ResourceStorageOption::exclusive)
 	{
-		// MTL::Device             *device               = a_device.platform_device();
-		// MTL::CommandQueue       *queue                = a_device.platform_queue();
-		// MTL::Buffer             *source_buffer        = device->newBuffer(a_data_pointer + a_offset, a_length, MTL::ResourceStorageModeShared);
-		// MTL::CommandBuffer      *command_buffer       = queue->commandBuffer();
-		// MTL::BlitCommandEncoder *blit_command_encoder = command_buffer->blitCommandEncoder();
+		VkDevice      device         = a_device.platform_device();
+		VkQueue       transfer_queue = a_device.platform_transfer_queue();
+		VkCommandPool command_pool   = a_device.platform_transfer_command_pool();
 
-		// blit_command_encoder->copyFromBuffer(source_buffer, a_offset, this->m_buffer, a_offset, a_length);
-		// blit_command_encoder->endEncoding();
+		VkCommandBuffer staging_command_buffer = vk_begin_single_use_cmd_buffer(device, command_pool);
 
-		// command_buffer->addCompletedHandler([this](MTL::CommandBuffer *) { this->ready(true); });
-		// command_buffer->commit();
+		VkBufferCopy buffer_buffer_copy_region{};
+		buffer_buffer_copy_region.srcOffset = a_offset;        // Optional
+		buffer_buffer_copy_region.dstOffset = a_offset;        // Optional
+		buffer_buffer_copy_region.size      = a_length;
+
+		VkBuffer temp_buffer{nullptr};
+
+		VkBufferUsageFlags                usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		VkSharingMode                     mode  = VK_SHARING_MODE_CONCURRENT;        // VK_SHARING_MODE_EXCLUSIVE,
+		std::vector<uint32_t>             queue_family_indices{a_device.platform_transfer_queue_index()};
+		VkPhysicalDeviceMemoryProperties2 memory_properties = a_device.memory_properties();
+		VkMemoryPropertyFlags             properties        = rhi::to_vulkan_resource_option(rhi::ResourceStorageOption::managed);
+		VkDeviceMemory                    memory{nullptr};
+
+		// Create buffer and copy my data to it
+		vk_create_buffer_with_memory(this->m_device, this->m_buffer, a_length, usage, mode, queue_family_indices, memory, memory_properties.memoryProperties, properties);
+		auto *data = vk_map_memory(device, memory);
+		memcpy(data, a_data_pointer, a_length);
+		vk_unmap_memory(device, memory);
+
+		// Now blit it into the GPU resident buffer
+		vkCmdCopyBuffer(staging_command_buffer, temp_buffer, this->m_buffer, 1, &buffer_buffer_copy_region);
+
+		vk_end_single_use_cmd_buffer(device, staging_command_buffer, transfer_queue, command_pool);
+
+		vk_destroy_memory(device, memory);
+		vk_destroy_buffer(device, temp_buffer);
+		this->ready(true);
 	}
 	else if (this->storage_mode() == rhi::ResourceStorageOption::shared ||
 	         this->storage_mode() == rhi::ResourceStorageOption::managed)
 	{
 		std::memcpy(this->map() + a_offset, a_data_pointer, a_length);
-		this->unmap(a_offset, a_length);
+		this->unmap();
 		this->ready(true);
 	}
 	else
@@ -153,15 +181,15 @@ void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, 
 void BufferVulkan::upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
 {
 	// Some sanity checks first
-	// assert(a_offset < this->m_buffer->length());
-	// assert(this->m_buffer->length() >= a_length && "Not enough space in the buffer being copied into");
-	// assert(this->m_buffer->length() >= a_offset + a_length && "Not enough space in the buffer being copied into");
+	assert(a_offset < this->buffer_size());
+	assert(this->buffer_size() >= a_length && "Not enough space in the buffer being copied into");
+	assert(this->buffer_size() >= a_offset + a_length && "Not enough space in the buffer being copied into");
 
 	assert(this->storage_mode() != rhi::ResourceStorageOption::exclusive && "Can't update private/exclusive buffer data, its expensive, if really needed call upload(a_device) instead");
 	assert(this->storage_mode() != rhi::ResourceStorageOption::memory_less && "Can't update memory less buffer data");
 
 	std::memcpy(this->map() + a_offset, a_data_pointer, a_length);
-	this->unmap(a_offset, a_length);
+	this->unmap();
 }
 
 }        // namespace rhi

@@ -271,23 +271,23 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 
 struct DrawData
 {
-	rhi::BufferHybrid<rhi::Static> *positions{nullptr};
-	rhi::BufferHybrid<rhi::Static> *texture_coords0{nullptr};
-	rhi::BufferHybrid<rhi::Static> *texture_coords1{nullptr};
-	rhi::BufferHybrid<rhi::Static> *texture_coords2{nullptr};
-	rhi::BufferHybrid<rhi::Static> *normals{nullptr};
-	rhi::BufferHybrid<rhi::Static> *bent_normals{nullptr};
-	rhi::BufferHybrid<rhi::Static> *weights0{nullptr};
-	rhi::BufferHybrid<rhi::Static> *weights1{nullptr};
-	rhi::BufferHybrid<rhi::Static> *joint_ids0{nullptr};
-	rhi::BufferHybrid<rhi::Static> *joint_ids1{nullptr};
-	rhi::BufferHybrid<rhi::Static> *tangents{nullptr};
-	rhi::BufferHybrid<rhi::Static> *colors0{nullptr};
-	rhi::BufferHybrid<rhi::Static> *colors1{nullptr};
-	rhi::BufferHybrid<rhi::Static> *morph_target{nullptr};
-	rhi::BufferHybrid<rhi::Static> *morph_weights{nullptr};
-	rhi::BufferHybrid<rhi::Static> *indices{nullptr};
-	rhi::RenderCommandEncoder      *encoder{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *positions{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *texture_coords0{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *texture_coords1{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *texture_coords2{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *normals{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *bent_normals{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *weights0{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *weights1{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *joint_ids0{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *joint_ids1{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *tangents{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *colors0{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *colors1{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *morph_target{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *morph_weights{nullptr};
+	rhi::BufferHybrid<rhi::Buffer, rhi::Static> *indices{nullptr};
+	rhi::RenderCommandEncoder                   *encoder{nullptr};
 };
 
 template <typename _type>

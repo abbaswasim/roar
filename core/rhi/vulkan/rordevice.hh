@@ -33,6 +33,7 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/vulkan/rordevice.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
+#include "rhi/vulkan/rorvulkan_utils.hpp"
 #include "settings/rorsettings.hpp"
 #include <any>
 
@@ -58,9 +59,20 @@ FORCE_INLINE void *resize_ca_vulkan_layer(std::any a_window, VkDevice a_device, 
 		exit(1);
 	}
 
-
 	assert(0);
 	return ca_vulkan_layer;
+}
+
+FORCE_INLINE void DeviceVulkan::set_memory_properties()
+{
+	vkGetPhysicalDeviceMemoryProperties2(this->m_gpu.get_handle(), &this->m_memory_properties);
+}
+
+FORCE_INLINE void DeviceVulkan::create_command_pools()
+{
+	this->m_graphics_command_pool = vk_create_command_pools(this->m_device, this->m_graphics_queue_index, 0);        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+	this->m_compute_command_pool  = vk_create_command_pools(this->m_device, this->m_compute_queue_index, 0);
+	this->m_transfer_command_pool = vk_create_command_pools(this->m_device, this->m_transfer_queue_index, 0);
 }
 
 // This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
@@ -70,6 +82,8 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 
 	this->create_surface(a_window);
 	this->create_device();
+	this->set_memory_properties();
+	this->create_command_pools();
 
 	if (!this->m_device)
 	{
@@ -101,11 +115,81 @@ FORCE_INLINE VkDevice DeviceVulkan::platform_device()
 	return this->m_device;
 }
 
-FORCE_INLINE VkQueue DeviceVulkan::platform_queue()
+FORCE_INLINE VkQueue DeviceVulkan::platform_graphics_queue()
 {
-	assert(this->m_command_queue && "Vulkan device requested is null");
+	assert(this->m_graphics_queue && "Vulkan graphics queue requested is null");
 
-	return this->m_command_queue;
+	return this->m_graphics_queue;
+}
+
+FORCE_INLINE VkQueue DeviceVulkan::platform_compute_queue()
+{
+	assert(this->m_compute_queue && "Vulkan compute queue requested is null");
+
+	return this->m_compute_queue;
+}
+
+FORCE_INLINE VkQueue DeviceVulkan::platform_present_queue()
+{
+	assert(this->m_present_queue && "Vulkan present queue requested is null");
+
+	return this->m_present_queue;
+}
+
+FORCE_INLINE VkQueue DeviceVulkan::platform_transfer_queue()
+{
+	assert(this->m_transfer_queue && "Vulkan transfer queue requested is null");
+
+	return this->m_transfer_queue;
+}
+
+FORCE_INLINE uint32_t DeviceVulkan::platform_graphics_queue_index()
+{
+	assert(this->m_graphics_queue && "Vulkan graphics queue requested is null");
+
+	return this->m_graphics_queue_index;
+}
+
+FORCE_INLINE uint32_t DeviceVulkan::platform_compute_queue_index()
+{
+	assert(this->m_compute_queue && "Vulkan compute queue requested is null");
+
+	return this->m_compute_queue_index;
+}
+
+FORCE_INLINE uint32_t DeviceVulkan::platform_present_queue_index()
+{
+	assert(this->m_present_queue && "Vulkan present queue requested is null");
+
+	return this->m_present_queue_index;
+}
+
+FORCE_INLINE uint32_t DeviceVulkan::platform_transfer_queue_index()
+{
+	assert(this->m_transfer_queue && "Vulkan transfer queue requested is null");
+
+	return this->m_transfer_queue_index;
+}
+
+FORCE_INLINE VkCommandPool DeviceVulkan::platform_graphics_command_pool()
+{
+	assert(this->m_graphics_command_pool && "Vulkan graphics command pool requested is null");
+
+	return this->m_graphics_command_pool;
+}
+
+FORCE_INLINE VkCommandPool DeviceVulkan::platform_compute_command_pool()
+{
+	assert(this->m_compute_command_pool && "Vulkan compute command pool requested is null");
+
+	return this->m_compute_command_pool;
+}
+
+FORCE_INLINE VkCommandPool DeviceVulkan::platform_transfer_command_pool()
+{
+	assert(this->m_transfer_command_pool && "Vulkan transfer command pool requested is null");
+
+	return this->m_transfer_command_pool;
 }
 
 FORCE_INLINE VkCommandBuffer DeviceVulkan::platform_command_buffer()
@@ -146,6 +230,11 @@ FORCE_INLINE void DeviceVulkan::destory_surface()
 FORCE_INLINE void DeviceVulkan::destroy_device()
 {
 	vk_destroy_device(this->m_device);
+}
+
+FORCE_INLINE auto &DeviceVulkan::memory_properties()
+{
+	return this->m_memory_properties;
 }
 
 }        // namespace rhi

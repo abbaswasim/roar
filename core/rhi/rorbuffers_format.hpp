@@ -39,8 +39,8 @@ namespace ror
 
 struct BufferPack
 {
-	std::string                                 m_name{};
-	std::vector<rhi::BufferHybrid<rhi::Static>> m_buffers{};
+	std::string                                              m_name{};
+	std::vector<rhi::BufferHybrid<rhi::Buffer, rhi::Static>> m_buffers{};
 };
 
 struct BuffersFormat
@@ -67,7 +67,7 @@ class ROAR_ENGINE_ITEM BuffersFormatConfig : public Configuration<BuffersFormatC
 	FORCE_INLINE virtual ~BuffersFormatConfig() noexcept override                                 = default;        //! Destructor
 
 	FORCE_INLINE explicit BuffersFormatConfig(const std::filesystem::path &a_config_path);        //! Single argument constructor
-	BuffersFormat &&move_buffers_format() &&noexcept;
+	BuffersFormat &&move_buffers_format() && noexcept;
 
   protected:
   private:

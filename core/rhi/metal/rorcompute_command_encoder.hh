@@ -54,7 +54,7 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::compute_pipeline_state(const 
 	this->m_encoder->setComputePipelineState(a_compute_pipeline_state.compute_pipeline_state());
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }

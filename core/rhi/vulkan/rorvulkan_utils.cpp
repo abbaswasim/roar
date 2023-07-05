@@ -234,4 +234,173 @@ VkShaderModule vk_create_shader_module(VkDevice a_device, const std::vector<uint
 	return shader_module;
 }
 
+VkBuffer vk_create_buffer(VkDevice a_device, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, std::vector<uint32_t> &a_queue_family_indices)
+{
+	VkBufferCreateInfo buffer_info{};
+
+	buffer_info.sType                 = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	buffer_info.pNext                 = nullptr;
+	buffer_info.flags                 = 0;
+	buffer_info.size                  = a_size;                                                                // example: 1024 * 1024 * 2;        // 2kb
+	buffer_info.usage                 = a_usage;                                                               // example: VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT
+	buffer_info.sharingMode           = a_sharing_mode;                                                        // example: VK_SHARING_MODE_EXCLUSIVE; has performance implications, not all resources are shared either
+	buffer_info.queueFamilyIndexCount = ror::static_cast_safe<uint32_t>(a_queue_family_indices.size());        // Size of queue familes buffer will support
+	buffer_info.pQueueFamilyIndices   = a_queue_family_indices.data();                                         // example: {GRAPHICS ,COMPUTE} in a vector
+
+	VkBuffer buffer;
+	VkResult result = vkCreateBuffer(a_device, &buffer_info, cfg::VkAllocator, &buffer);
+	check_return_status(result, "VkCreateBuffer");
+
+	assert(buffer && "Couldn't allocate buffer, probably out of memory");
+
+	return buffer;
+}
+
+VkDeviceMemory vk_allocate_memory(VkDevice a_device, VkDeviceSize a_size, uint32_t a_memory_type_index)
+{
+	VkMemoryAllocateInfo allocation_info{};
+	allocation_info.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocation_info.allocationSize  = a_size;                     // a_buffer_mem_req.size;
+	allocation_info.memoryTypeIndex = a_memory_type_index;        // find_memory_type(a_buffer_mem_req.memoryTypeBits, a_properties);
+	allocation_info.pNext           = nullptr;
+
+	VkDeviceMemory buffer_memory;
+	VkResult       result = vkAllocateMemory(a_device, &allocation_info, cfg::VkAllocator, &buffer_memory);
+	check_return_status(result, "vkAllocateMemory");
+	assert(buffer_memory && "Memory allocation failed");
+
+	return buffer_memory;
+}
+
+VkMemoryRequirements2 vk_buffer_memory_requirements(VkDevice a_device, VkBuffer a_buffer)
+{
+	VkMemoryRequirements2           buffer_mem_req{};
+	VkBufferMemoryRequirementsInfo2 buffer_mem_info{};
+	buffer_mem_info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
+	buffer_mem_info.pNext  = nullptr;
+	buffer_mem_info.buffer = a_buffer;
+
+	vkGetBufferMemoryRequirements2(a_device, &buffer_mem_info, &buffer_mem_req);
+
+	return buffer_mem_req;
+}
+
+VkMemoryRequirements2 vk_image_memory_requirements(VkDevice a_device, VkImage a_image)
+{
+	VkMemoryRequirements2          image_mem_req{};
+	VkImageMemoryRequirementsInfo2 image_mem_info{};
+	image_mem_info.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2;
+	image_mem_info.pNext = nullptr;
+	image_mem_info.image = a_image;
+
+	vkGetImageMemoryRequirements2(a_device, &image_mem_info, &image_mem_req);
+
+	return image_mem_req;
+}
+
+void vk_bind_buffer_memory(VkDevice a_device, VkBuffer a_buffer, VkDeviceMemory a_memory)
+{
+	auto result = vkBindBufferMemory(a_device, a_buffer, a_memory, 0);
+	check_return_status(result, "vkBindBufferMemory");
+}
+
+VkDeviceMemory vk_bind_buffer_memory(VkDevice a_device, VkBuffer a_buffer, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties)
+{
+	VkMemoryRequirements2 buffer_mem_req    = vk_buffer_memory_requirements(a_device, a_buffer);
+	auto                  memory_type_index = vk_find_memory_type(buffer_mem_req.memoryRequirements.memoryTypeBits, a_memory_properties, a_properties);
+	auto                  memory            = vk_allocate_memory(a_device, buffer_mem_req.memoryRequirements.size, memory_type_index);
+
+	vk_bind_buffer_memory(a_device, a_buffer, memory);
+
+	return memory;
+}
+
+void vk_create_buffer_with_memory(VkDevice a_device, VkBuffer &a_buffer, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, std::vector<uint32_t> &a_queue_family_indices,
+                                  VkDeviceMemory &a_memory, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties)
+{
+	assert(a_buffer == nullptr && "Recreating buffer");
+	assert(a_memory == nullptr && "Recreating memory");
+
+	a_buffer                                = vk_create_buffer(a_device, a_size, a_usage, a_sharing_mode, a_queue_family_indices);
+	VkMemoryRequirements2 buffer_mem_req    = vk_buffer_memory_requirements(a_device, a_buffer);
+	auto                  memory_type_index = vk_find_memory_type(buffer_mem_req.memoryRequirements.memoryTypeBits, a_memory_properties, a_properties);
+	a_memory                                = vk_allocate_memory(a_device, buffer_mem_req.memoryRequirements.size, memory_type_index);
+
+	vk_bind_buffer_memory(a_device, a_buffer, a_memory);
+}
+
+uint32_t vk_find_memory_type(uint32_t a_type_filter, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties)
+{
+	for (uint32_t i = 0; i < a_memory_properties.memoryTypeCount; i++)
+		if ((a_type_filter & (1 << i)) && ((a_memory_properties.memoryTypes[i].propertyFlags & a_properties) == a_properties))
+			return i;
+
+	throw std::runtime_error("Failed to find suitable memory type!");
+}
+
+uint8_t *vk_map_memory(VkDevice a_device, VkDeviceMemory a_memory)
+{
+	void *data{nullptr};
+	vkMapMemory(a_device, a_memory, 0, VK_WHOLE_SIZE, 0, &data);
+
+	return static_cast<uint8_t *>(data);
+}
+
+void vk_unmap_memory(VkDevice a_device, VkDeviceMemory a_memory)
+{
+	vkUnmapMemory(a_device, a_memory);
+}
+
+VkCommandBuffer vk_begin_single_use_cmd_buffer(VkDevice a_device, VkCommandPool a_transfer_command_pool)
+{
+	VkCommandBufferAllocateInfo command_buffer_allocate_info{};
+	command_buffer_allocate_info.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	command_buffer_allocate_info.pNext              = nullptr;
+	command_buffer_allocate_info.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	command_buffer_allocate_info.commandPool        = a_transfer_command_pool;
+	command_buffer_allocate_info.commandBufferCount = 1;
+
+	VkCommandBuffer staging_command_buffer;
+	VkResult        result = vkAllocateCommandBuffers(a_device, &command_buffer_allocate_info, &staging_command_buffer);
+	check_return_status(result, "vkAllocateCommandBuffers");
+
+	VkCommandBufferBeginInfo command_buffer_begin_info{};
+	command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(staging_command_buffer, &command_buffer_begin_info);
+
+	return staging_command_buffer;
+}
+
+void vk_end_single_use_cmd_buffer(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_transfer_queue, VkCommandPool a_transfer_command_pool)
+{
+	vkEndCommandBuffer(a_command_buffer);
+
+	VkSubmitInfo staging_submit_info{};
+	staging_submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	staging_submit_info.commandBufferCount = 1;
+	staging_submit_info.pCommandBuffers    = &a_command_buffer;
+
+	vkQueueSubmit(a_transfer_queue, 1, &staging_submit_info, VK_NULL_HANDLE);
+	vkQueueWaitIdle(a_transfer_queue);        // TODO: Should be improved in the future
+
+	vkFreeCommandBuffers(a_device, a_transfer_command_pool, 1, &a_command_buffer);
+}
+
+VkCommandPool vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family_index, VkCommandPoolCreateFlags a_flags)
+{
+	VkCommandPoolCreateInfo command_pool_info = {};
+	command_pool_info.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	command_pool_info.pNext                   = nullptr;
+	command_pool_info.flags                   = a_flags;        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+	command_pool_info.queueFamilyIndex        = a_queue_family_index;
+
+	VkCommandPool command_pool;
+	VkResult result = vkCreateCommandPool(a_device, &command_pool_info, cfg::VkAllocator, &command_pool);
+	check_return_status(result, "vkCreateCommandPool");
+
+	return command_pool;
+}
+
 }        // namespace rhi

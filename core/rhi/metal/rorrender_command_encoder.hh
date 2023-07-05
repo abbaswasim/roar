@@ -78,17 +78,17 @@ FORCE_INLINE constexpr void RenderCommandEncoder::render_pipeline_state(const rh
 	this->m_encoder->setRenderPipelineState(a_render_pipeline_state.render_pipeline_state());
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	this->m_encoder->setFragmentBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	this->m_encoder->setTileBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
@@ -163,7 +163,7 @@ FORCE_INLINE constexpr void RenderCommandEncoder::draw_indexed_primitives(rhi::P
 	this->m_encoder->drawIndexedPrimitives(to_metal_primitive_topoloy(a_topology), a_index_count, to_metal_indexformat(a_format), a_indices.platform_buffer(), a_offset);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Static> &a_indices, uintptr_t a_offset) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_indices, uintptr_t a_offset) noexcept
 {
 	this->m_encoder->drawIndexedPrimitives(to_metal_primitive_topoloy(a_topology), a_index_count, to_metal_indexformat(a_format), a_indices.platform_buffer(), a_offset);
 }

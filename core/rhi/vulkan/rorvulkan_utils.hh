@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rormacros.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 
 namespace rhi
@@ -62,4 +63,16 @@ FORCE_INLINE void vk_destroy_shader_module(VkDevice a_device, VkShaderModule a_s
 	vkDestroyShaderModule(a_device, a_shader_module, cfg::VkAllocator);
 	a_shader_module = nullptr;
 }
+
+FORCE_INLINE void vk_destroy_buffer(VkDevice a_device, VkBuffer a_buffer)
+{
+	vkDestroyBuffer(a_device, a_buffer, cfg::VkAllocator);
+	a_buffer = nullptr;
+}
+
+FORCE_INLINE void vk_destroy_command_pools(VkDevice a_device, VkCommandPool a_command_pool)
+{
+	vkDestroyCommandPool(a_device, a_command_pool, cfg::VkAllocator);
+}
+
 }        // namespace rhi

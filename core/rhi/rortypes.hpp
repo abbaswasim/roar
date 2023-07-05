@@ -338,10 +338,10 @@ enum class StepFunction
 
 enum class ResourceStorageOption
 {
-	shared      = PlatformStorageModeShared,
-	managed     = PlatformStorageModeManaged,
-	exclusive   = PlatformStorageModePrivate,
-	memory_less = PlatformStorageModeMemoryLess
+	shared      = PlatformStorageModeShared,           // The resource is stored in system memory and is accessible to both the CPU and the GPU.
+	managed     = PlatformStorageModeManaged,          // The resource can be accessed only by the GPU.
+	exclusive   = PlatformStorageModePrivate,          // The resource’s contents can be accessed only by the GPU and only exist temporarily during a render pass.
+	memory_less = PlatformStorageModeMemoryLess        // The CPU and GPU may maintain separate copies of the resource, and any changes must be explicitly synchronized.
 };
 
 // If new types are required make sure to change in rormodel.hpp

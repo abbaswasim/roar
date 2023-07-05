@@ -45,14 +45,17 @@ namespace rhi
 class Rendersubpass;
 class BuffersPack;
 
+typedef struct VkGraphicsPipeline_T *GraphicsPipelineState;
+typedef struct VkComputePipeline_T  *ComputePipelineState;
+
 class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 {
   public:
-	FORCE_INLINE               ProgramVulkan(const ProgramVulkan &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE               ProgramVulkan(ProgramVulkan &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE ProgramVulkan &operator=(const ProgramVulkan &a_other)        = default;        //! Copy assignment operator
-	FORCE_INLINE ProgramVulkan &operator=(ProgramVulkan &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~ProgramVulkan() noexcept override;                                    //! Destructor
+	FORCE_INLINE                ProgramVulkan(const ProgramVulkan &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                ProgramVulkan(ProgramVulkan &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE ProgramVulkan &operator=(const ProgramVulkan &a_other)         = default;        //! Copy assignment operator
+	FORCE_INLINE ProgramVulkan &operator=(ProgramVulkan &&a_other) noexcept     = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~ProgramVulkan() noexcept override                     = default;        //! Destructor
 
 	FORCE_INLINE ProgramVulkan(int32_t a_vert_id, int32_t a_frag_id) :
 	    ProgramCrtp(a_vert_id, a_frag_id)
@@ -66,22 +69,22 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha);
 	void upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode,
 	            rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
+	void release(rhi::Device &a_device);
 
 	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept
 	{
-		// if (std::holds_alternative<MTL::ComputePipelineState *>(this->m_pipeline_state))
-		// 	return std::get<MTL::ComputePipelineState *>(this->m_pipeline_state);
+		if (std::holds_alternative<ComputePipelineState>(this->m_pipeline_state))
+			return reinterpret_cast<VkPipeline>(std::get<ComputePipelineState>(this->m_pipeline_state));
 
-		return static_cast<uint8_t*>(nullptr);
+		return static_cast<VkPipeline>(nullptr);
 	}
 
 	FORCE_INLINE constexpr auto *render_pipeline_state() const noexcept
 	{
-		// if (std::holds_alternative<MTL::RenderPipelineState *>(this->m_pipeline_state))
-		// 	return std::get<MTL::RenderPipelineState *>(this->m_pipeline_state);
+		if (std::holds_alternative<GraphicsPipelineState>(this->m_pipeline_state))
+			return reinterpret_cast<VkPipeline>(std::get<GraphicsPipelineState>(this->m_pipeline_state));
 
-		// return static_cast<MTL::RenderPipelineState *>(nullptr);
-		return static_cast<uint8_t*>(nullptr);
+		return static_cast<VkPipeline>(nullptr);
 	}
 
   protected:
@@ -90,8 +93,7 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
   private:
 	declare_translation_unit_vtable();
 
-	// std::variant<MTL::RenderPipelineState *, MTL::ComputePipelineState *> m_pipeline_state{};        //! This program will contain either Render or Compute pipeline state
-	std::variant<void *, uint32_t *> m_pipeline_state{};        //! This program will contain either Render or Compute pipeline state
+	std::variant<GraphicsPipelineState, ComputePipelineState> m_pipeline_state{};        //! This program will contain either Render or Compute pipeline state
 };
 
 declare_rhi_render_type(Program);

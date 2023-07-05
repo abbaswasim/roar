@@ -32,7 +32,7 @@ TEST(ConfigurationTest, BufferFormat)
 	EXPECT_EQ(bf.m_unit, 1024);
 	EXPECT_EQ(bf.m_current_format, 0);
 
-	const rhi::BufferHybrid<rhi::Static> &b1 = bfp.m_buffers[0];
+	const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &b1 = bfp.m_buffers[0];
 
 	EXPECT_EQ(b1.size(), 1024 * 150);
 	EXPECT_EQ(b1.interleaved(), true);
@@ -69,7 +69,7 @@ TEST(ConfigurationTest, BufferFormat)
 	EXPECT_EQ(b1.semantic(static_cast<size_t>(wi)).second, 25);
 	EXPECT_EQ(b1.semantic(static_cast<size_t>(ji)).second, 25);
 
-	const rhi::BufferHybrid<rhi::Static> &b2 = bfp.m_buffers[1];
+	const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &b2 = bfp.m_buffers[1];
 
 	EXPECT_EQ(b2.size(), 1024 * 200);
 	EXPECT_EQ(b2.interleaved(), false);

@@ -167,6 +167,7 @@ void SwapChain::release(VkDevice a_device)
 
 void DeviceVulkan::create_surface(void *a_window)
 {
+	// TODO: Add other types (Android non-glfw)
 	auto status = ror::glfw_create_surface<VkInstance, VkSurfaceKHR>(this->m_instance.get_handle(), this->m_surface, a_window);
 
 	if (status != VK_SUCCESS)
