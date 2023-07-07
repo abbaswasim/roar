@@ -63,11 +63,6 @@ FORCE_INLINE void *resize_ca_vulkan_layer(std::any a_window, VkDevice a_device, 
 	return ca_vulkan_layer;
 }
 
-FORCE_INLINE void DeviceVulkan::set_memory_properties()
-{
-	vkGetPhysicalDeviceMemoryProperties2(this->m_gpu.get_handle(), &this->m_memory_properties);
-}
-
 FORCE_INLINE void DeviceVulkan::create_command_pools()
 {
 	this->m_graphics_command_pool = vk_create_command_pools(this->m_device, this->m_graphics_queue_index, 0);        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
@@ -82,7 +77,6 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 
 	this->create_surface(a_window);
 	this->create_device();
-	this->set_memory_properties();
 	this->create_command_pools();
 
 	if (!this->m_device)
@@ -232,9 +226,14 @@ FORCE_INLINE void DeviceVulkan::destroy_device()
 	vk_destroy_device(this->m_device);
 }
 
-FORCE_INLINE auto &DeviceVulkan::memory_properties()
+FORCE_INLINE auto &PhysicalDevice::memory_properties()
 {
 	return this->m_memory_properties;
+}
+
+FORCE_INLINE auto &DeviceVulkan::memory_properties()
+{
+	return this->m_gpu.memory_properties();
 }
 
 }        // namespace rhi

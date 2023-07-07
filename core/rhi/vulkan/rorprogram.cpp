@@ -39,7 +39,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#include <vulkan/vulkan_core.h>
 
 namespace rhi
 {

@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorutilities.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
@@ -54,7 +55,7 @@ VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_
 
 	VkImageView image_view;
 	VkResult    result = vkCreateImageView(a_device, &image_view_create_info, nullptr, &image_view);
-	assert(result == VK_SUCCESS && "VKImageView creation failed");
+	check_return_status(result, "vkCreateImageView");
 
 	return image_view;
 }
@@ -62,7 +63,9 @@ VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_
 VkSwapchainKHR vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat &swapchain_format, VkExtent2D a_swapchain_extent)
 {
 	VkSurfaceCapabilitiesKHR capabilities;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(a_physical_device, a_surface, &capabilities);
+	auto                     result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(a_physical_device, a_surface, &capabilities);
+	check_return_status(result, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR");
+
 	assert(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max());
 
 	if (capabilities.currentExtent.width == 0xFFFFFFFF && capabilities.currentExtent.height == 0xFFFFFFFF)
@@ -163,7 +166,7 @@ VkSwapchainKHR vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice 
 	swapchain_create_info.oldSwapchain             = VK_NULL_HANDLE;
 
 	VkSwapchainKHR swapchain{nullptr};
-	auto           result = vkCreateSwapchainKHR(a_device, &swapchain_create_info, cfg::VkAllocator, &swapchain);
+	result = vkCreateSwapchainKHR(a_device, &swapchain_create_info, cfg::VkAllocator, &swapchain);
 	check_return_status(result, "vkCreateSwapchainKHR");
 
 	return swapchain;
@@ -224,7 +227,7 @@ VkShaderModule vk_create_shader_module(VkDevice a_device, const std::vector<uint
 	shader_module_info.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	shader_module_info.pNext                    = nullptr;
 	shader_module_info.flags                    = 0;
-	shader_module_info.codeSize                 = a_spirv_code.size();
+	shader_module_info.codeSize                 = a_spirv_code.size() * sizeof(uint32_t);        // a_spirv_code is std::vector<uint32_t> so its size in machine units is * 4
 	shader_module_info.pCode                    = reinterpret_cast<const uint32_t *>(a_spirv_code.data());
 
 	VkShaderModule shader_module;
@@ -274,7 +277,10 @@ VkDeviceMemory vk_allocate_memory(VkDevice a_device, VkDeviceSize a_size, uint32
 
 VkMemoryRequirements2 vk_buffer_memory_requirements(VkDevice a_device, VkBuffer a_buffer)
 {
-	VkMemoryRequirements2           buffer_mem_req{};
+	VkMemoryRequirements2 buffer_mem_req{};
+	buffer_mem_req.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
+	buffer_mem_req.pNext = nullptr;
+
 	VkBufferMemoryRequirementsInfo2 buffer_mem_info{};
 	buffer_mem_info.sType  = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2;
 	buffer_mem_info.pNext  = nullptr;
@@ -287,7 +293,10 @@ VkMemoryRequirements2 vk_buffer_memory_requirements(VkDevice a_device, VkBuffer 
 
 VkMemoryRequirements2 vk_image_memory_requirements(VkDevice a_device, VkImage a_image)
 {
-	VkMemoryRequirements2          image_mem_req{};
+	VkMemoryRequirements2 image_mem_req{};
+	image_mem_req.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2;
+	image_mem_req.pNext = nullptr;
+
 	VkImageMemoryRequirementsInfo2 image_mem_info{};
 	image_mem_info.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2;
 	image_mem_info.pNext = nullptr;
@@ -341,7 +350,8 @@ uint32_t vk_find_memory_type(uint32_t a_type_filter, VkPhysicalDeviceMemoryPrope
 uint8_t *vk_map_memory(VkDevice a_device, VkDeviceMemory a_memory)
 {
 	void *data{nullptr};
-	vkMapMemory(a_device, a_memory, 0, VK_WHOLE_SIZE, 0, &data);
+	auto  result = vkMapMemory(a_device, a_memory, 0, VK_WHOLE_SIZE, 0, &data);
+	check_return_status(result, "vkMapMemory");
 
 	return static_cast<uint8_t *>(data);
 }
@@ -351,41 +361,95 @@ void vk_unmap_memory(VkDevice a_device, VkDeviceMemory a_memory)
 	vkUnmapMemory(a_device, a_memory);
 }
 
-VkCommandBuffer vk_begin_single_use_cmd_buffer(VkDevice a_device, VkCommandPool a_transfer_command_pool)
+VkCommandBuffer vk_allocate_command_buffer(VkDevice a_device, VkCommandPool a_command_pool)
 {
 	VkCommandBufferAllocateInfo command_buffer_allocate_info{};
 	command_buffer_allocate_info.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	command_buffer_allocate_info.pNext              = nullptr;
 	command_buffer_allocate_info.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	command_buffer_allocate_info.commandPool        = a_transfer_command_pool;
+	command_buffer_allocate_info.commandPool        = a_command_pool;
 	command_buffer_allocate_info.commandBufferCount = 1;
 
 	VkCommandBuffer staging_command_buffer;
 	VkResult        result = vkAllocateCommandBuffers(a_device, &command_buffer_allocate_info, &staging_command_buffer);
 	check_return_status(result, "vkAllocateCommandBuffers");
 
+	return staging_command_buffer;
+}
+
+VkCommandBuffer vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info)
+{
+	auto result = vkBeginCommandBuffer(a_command_buffer, &a_command_buffer_begin_info);
+	check_return_status(result, "vkBeginCommandBuffer");
+}
+
+VkCommandBuffer vk_end_command_buffer(VkCommandBuffer a_command_buffer)
+{
+	auto result = vkEndCommandBuffer(a_command_buffer);
+	check_return_status(result, "vkEndCommandBuffer");
+}
+
+VkCommandBuffer vk_begin_single_use_cmd_buffer(VkDevice a_device, VkCommandPool a_command_pool)
+{
+	VkCommandBuffer staging_command_buffer = vk_allocate_command_buffer(a_device, a_command_pool);
+
 	VkCommandBufferBeginInfo command_buffer_begin_info{};
 	command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	vkBeginCommandBuffer(staging_command_buffer, &command_buffer_begin_info);
+	vk_begin_command_buffer(staging_command_buffer, command_buffer_begin_info);
 
 	return staging_command_buffer;
 }
 
-void vk_end_single_use_cmd_buffer(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_transfer_queue, VkCommandPool a_transfer_command_pool)
+void vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, VkFence a_fence)
 {
-	vkEndCommandBuffer(a_command_buffer);
+	auto result = vkQueueSubmit(a_queue, 1, &a_submit_info, a_fence);
+	check_return_status(result, "vkQueueSubmit");
+}
 
-	VkSubmitInfo staging_submit_info{};
-	staging_submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	staging_submit_info.commandBufferCount = 1;
-	staging_submit_info.pCommandBuffers    = &a_command_buffer;
+void vk_queue_submit(VkQueue a_queue, std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence)
+{
+	auto result = vkQueueSubmit(a_queue, ror::static_cast_safe<uint32_t>(a_submit_info.size()), a_submit_info.data(), a_fence);
+	check_return_status(result, "vkQueueSubmit");
+}
 
-	vkQueueSubmit(a_transfer_queue, 1, &staging_submit_info, VK_NULL_HANDLE);
-	vkQueueWaitIdle(a_transfer_queue);        // TODO: Should be improved in the future
+void vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence)
+{
+	VkSubmitInfo submit_info{};
+	submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers    = &a_command_buffer;
 
-	vkFreeCommandBuffers(a_device, a_transfer_command_pool, 1, &a_command_buffer);
+	vk_queue_submit(a_queue, submit_info, a_fence);
+}
+
+void vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, std::vector<VkCommandBuffer> a_command_buffers, VkFence a_fence)
+{
+	a_submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	a_submit_info.commandBufferCount = ror::static_cast_safe<uint32_t>(a_command_buffers.size());
+	a_submit_info.pCommandBuffers    = a_command_buffers.data();
+
+	vk_queue_submit(a_queue, a_submit_info, a_fence);
+}
+
+void vk_queue_wait_idle(VkQueue a_queue)
+{
+	auto result = vkQueueWaitIdle(a_queue);
+	check_return_status(result, "vkQueueWaitIdle");
+}
+
+void vk_end_single_use_command_buffer(VkCommandBuffer a_command_buffer, VkQueue a_queue)
+{
+	vk_end_command_buffer(a_command_buffer);
+	vk_queue_submit(a_queue, a_command_buffer, VK_NULL_HANDLE);
+}
+
+void vk_end_single_use_command_buffer_and_wait(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_transfer_queue, VkCommandPool a_command_pool)
+{
+	vk_end_single_use_command_buffer(a_command_buffer, a_transfer_queue);
+	vk_queue_wait_idle(a_transfer_queue);
+	vk_destroy_command_buffer(a_device, a_command_buffer, a_command_pool);
 }
 
 VkCommandPool vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family_index, VkCommandPoolCreateFlags a_flags)
@@ -397,7 +461,7 @@ VkCommandPool vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family
 	command_pool_info.queueFamilyIndex        = a_queue_family_index;
 
 	VkCommandPool command_pool;
-	VkResult result = vkCreateCommandPool(a_device, &command_pool_info, cfg::VkAllocator, &command_pool);
+	VkResult      result = vkCreateCommandPool(a_device, &command_pool_info, cfg::VkAllocator, &command_pool);
 	check_return_status(result, "vkCreateCommandPool");
 
 	return command_pool;

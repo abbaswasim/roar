@@ -129,39 +129,39 @@ void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, 
 
 	if (this->storage_mode() == rhi::ResourceStorageOption::exclusive)
 	{
-		VkDevice      device         = a_device.platform_device();
-		VkQueue       transfer_queue = a_device.platform_transfer_queue();
-		VkCommandPool command_pool   = a_device.platform_transfer_command_pool();
-
-		VkCommandBuffer staging_command_buffer = vk_begin_single_use_cmd_buffer(device, command_pool);
-
-		VkBufferCopy buffer_buffer_copy_region{};
-		buffer_buffer_copy_region.srcOffset = a_offset;        // Optional
-		buffer_buffer_copy_region.dstOffset = a_offset;        // Optional
-		buffer_buffer_copy_region.size      = a_length;
-
-		VkBuffer temp_buffer{nullptr};
-
+		VkDevice                          device         = a_device.platform_device();
+		VkQueue                           transfer_queue = a_device.platform_transfer_queue();
+		VkCommandPool                     command_pool   = a_device.platform_transfer_command_pool();
+		VkBuffer                          staging_buffer{nullptr};
+		VkDeviceMemory                    staging_memory{nullptr};
+		VkBufferCopy                      buffer_buffer_copy_region{};
 		VkBufferUsageFlags                usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		VkSharingMode                     mode  = VK_SHARING_MODE_CONCURRENT;        // VK_SHARING_MODE_EXCLUSIVE,
 		std::vector<uint32_t>             queue_family_indices{a_device.platform_transfer_queue_index()};
 		VkPhysicalDeviceMemoryProperties2 memory_properties = a_device.memory_properties();
 		VkMemoryPropertyFlags             properties        = rhi::to_vulkan_resource_option(rhi::ResourceStorageOption::managed);
-		VkDeviceMemory                    memory{nullptr};
 
 		// Create buffer and copy my data to it
-		vk_create_buffer_with_memory(this->m_device, this->m_buffer, a_length, usage, mode, queue_family_indices, memory, memory_properties.memoryProperties, properties);
-		auto *data = vk_map_memory(device, memory);
+		vk_create_buffer_with_memory(this->m_device, this->m_buffer, a_length, usage, mode, queue_family_indices, staging_memory, memory_properties.memoryProperties, properties);
+		auto *data = vk_map_memory(device, staging_memory);
 		memcpy(data, a_data_pointer, a_length);
-		vk_unmap_memory(device, memory);
+		vk_unmap_memory(device, staging_memory);
+
+		buffer_buffer_copy_region.srcOffset = a_offset;        // Optional
+		buffer_buffer_copy_region.dstOffset = a_offset;        // Optional
+		buffer_buffer_copy_region.size      = a_length;
+
+		VkCommandBuffer staging_command_buffer = vk_begin_single_use_cmd_buffer(device, command_pool);
 
 		// Now blit it into the GPU resident buffer
-		vkCmdCopyBuffer(staging_command_buffer, temp_buffer, this->m_buffer, 1, &buffer_buffer_copy_region);
+		vkCmdCopyBuffer(staging_command_buffer, staging_buffer, this->m_buffer, 1, &buffer_buffer_copy_region);
 
-		vk_end_single_use_cmd_buffer(device, staging_command_buffer, transfer_queue, command_pool);
+		// Note, there is possibility of waiting for fence while these uploads happen but it doesn't work in this architecture, thats why this command does waitIdle
+		vk_end_single_use_command_buffer_and_wait(device, staging_command_buffer, transfer_queue, command_pool);
 
-		vk_destroy_memory(device, memory);
-		vk_destroy_buffer(device, temp_buffer);
+		vk_destroy_memory(device, staging_memory);
+		vk_destroy_buffer(device, staging_buffer);
+
 		this->ready(true);
 	}
 	else if (this->storage_mode() == rhi::ResourceStorageOption::shared ||

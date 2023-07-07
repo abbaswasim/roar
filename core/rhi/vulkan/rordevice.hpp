@@ -35,6 +35,7 @@
 #include "rhi/vulkan/rorvulkan_object.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 #include <any>
+#include <cstddef>
 #include <typeindex>
 #include <vector>
 
@@ -76,6 +77,8 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	FORCE_INLINE PhysicalDevice &operator=(PhysicalDevice &&a_other) noexcept      = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~PhysicalDevice() noexcept override                       = default;
 
+	FORCE_INLINE auto &memory_properties();
+
 	declare_translation_unit_vtable();
 
 	void init(Instance &a_instance)
@@ -103,11 +106,17 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 		}
 
 		this->set_handle(physical_device);
+
+		this->m_memory_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
+		this->m_memory_properties.pNext = nullptr;
+
+		vkGetPhysicalDeviceMemoryProperties2(this->get_handle(), &this->m_memory_properties);
 	}
 
   protected:
   private:
-	VkPhysicalDeviceProperties m_physical_device_properties;
+	VkPhysicalDeviceProperties        m_physical_device_properties{};        //! Physical device properties cache
+	VkPhysicalDeviceMemoryProperties2 m_memory_properties{};                 //! Vulkan physical device memory properties cache, it might also contain VkPhysicalDeviceMemoryBudgetPropertiesEXT in pNext*
 };
 
 class ROAR_ENGINE_ITEM SwapChain final
@@ -180,18 +189,16 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE void destory_surface();
 	FORCE_INLINE void destroy_device();
 
-	void set_memory_properties();
 	void create_surface(void *a_window);
 	void create_device();
 	void create_command_pools();
 
-	Instance                          m_instance{};
-	PhysicalDevice                    m_gpu{};
-	VkPhysicalDeviceMemoryProperties2 m_memory_properties;        //! Vulkan physical device memory properties cache, it might also contain VkPhysicalDeviceMemoryBudgetPropertiesEXT in pNext*
-	VkDevice                          m_device{nullptr};          //! Vulkan device
-	VkSurfaceKHR                      m_surface{nullptr};         //! Vulkan drawable surface provided by windowing system
-	std::any                          m_window{};                 //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
-	SwapChain                         m_swapchain{};              //! Swapchain images abstraction for Vulkan
+	Instance       m_instance{};
+	PhysicalDevice m_gpu{};
+	VkDevice       m_device{nullptr};         //! Vulkan device
+	VkSurfaceKHR   m_surface{nullptr};        //! Vulkan drawable surface provided by windowing system
+	std::any       m_window{};                //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
+	SwapChain      m_swapchain{};             //! Swapchain images abstraction for Vulkan
 
 	uint32_t      m_graphics_queue_index{0};
 	uint32_t      m_present_queue_index{0};

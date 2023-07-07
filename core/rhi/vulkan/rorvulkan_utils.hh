@@ -80,4 +80,9 @@ FORCE_INLINE void vk_destroy_memory(VkDevice a_device, VkDeviceMemory a_memory)
 	vkFreeMemory(a_device, a_memory, cfg::VkAllocator);
 }
 
+FORCE_INLINE void vk_destroy_command_buffer(VkDevice a_device, VkCommandBuffer a_command_buffer, VkCommandPool a_command_pool)
+{
+	vkFreeCommandBuffers(a_device, a_command_pool, 1, &a_command_buffer);
+}
+
 }        // namespace rhi

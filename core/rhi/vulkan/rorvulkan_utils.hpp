@@ -61,9 +61,18 @@ void                            vk_create_buffer_with_memory(VkDevice a_device, 
 uint32_t                        vk_find_memory_type(uint32_t a_type_filter, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties);
 uint8_t                        *vk_map_memory(VkDevice a_device, VkDeviceMemory a_memory);
 void                            vk_unmap_memory(VkDevice a_device, VkDeviceMemory a_memory);
-VkCommandBuffer                 vk_begin_single_use_cmd_buffer(VkDevice a_device, VkCommandPool a_transfer_command_pool);
-void                            vk_end_single_use_cmd_buffer(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_transfer_queue, VkCommandPool a_transfer_command_pool);
-VkCommandPool                   vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family_index, VkCommandPoolCreateFlags a_flags);        // flags could be default to = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+VkCommandBuffer                 vk_begin_single_use_cmd_buffer(VkDevice a_device, VkCommandPool a_command_pool);
+void                            vk_end_single_use_command_buffer(VkCommandBuffer a_command_buffer, VkQueue a_queue);
+void                            vk_end_single_use_command_buffer_and_wait(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_queue, VkCommandPool a_command_pool);
+VkCommandPool                   vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family_index, VkCommandPoolCreateFlags a_flags);        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+VkCommandBuffer                 vk_allocate_command_buffer(VkDevice a_device, VkCommandPool a_command_pool);
+VkCommandBuffer                 vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info);
+VkCommandBuffer                 vk_end_command_buffer(VkCommandBuffer a_command_buffer);
+void                            vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, VkFence a_fence);
+void                            vk_queue_submit(VkQueue a_queue, std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence);
+void                            vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence);
+void                            vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, std::vector<VkCommandBuffer> a_command_buffers, VkFence a_fence);
+void                            vk_queue_wait_idle(VkQueue a_queue);
 
 FORCE_INLINE void vk_destroy_swapchain(VkDevice a_device, VkSwapchainKHR a_swapchain);
 FORCE_INLINE void vk_destroy_imageview(VkDevice a_device, VkImageView a_image_view);
@@ -74,6 +83,7 @@ FORCE_INLINE void vk_destroy_shader_module(VkDevice a_device, VkShaderModule a_m
 FORCE_INLINE void vk_destroy_buffer(VkDevice a_device, VkBuffer a_buffer);
 FORCE_INLINE void vk_destroy_memory(VkDevice a_device, VkDeviceMemory a_memory);
 FORCE_INLINE void vk_destroy_command_pools(VkDevice a_device, VkCommandPool a_command_pool);
+FORCE_INLINE void vk_destroy_command_buffer(VkDevice a_device, VkCommandBuffer a_command_buffer, VkCommandPool a_command_pool);
 
 }        // namespace rhi
 
