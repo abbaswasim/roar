@@ -100,6 +100,7 @@ constexpr FORCE_INLINE auto to_metal_primitive_topoloy_class(rhi::PrimitiveTopol
 
 constexpr FORCE_INLINE auto to_metal_cull_mode(rhi::PrimitiveCullMode a_cull_mode)
 {
+	assert(a_cull_mode != rhi::PrimitiveCullMode::front_back && "Metal does not support front_back cull mode");
 	return static_cast<MTL::CullMode>(a_cull_mode);
 }
 

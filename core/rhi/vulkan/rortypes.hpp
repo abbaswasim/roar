@@ -25,14 +25,18 @@
 
 #pragma once
 
-#include "vulkan/vulkan_core.h"
 #include <vusym/vusym.hpp>
 
 namespace rhi
 {
 // Pixel formats
+constexpr auto get_max_vk_format(uint32_t a_plus)
+{
+	return VK_FORMAT_MAX_ENUM + a_plus;
+}
+
 constexpr auto PlatformPixelFormatInvalid               = VK_FORMAT_UNDEFINED;
-constexpr auto PlatformPixelFormatA8Unorm               = VK_FORMAT_R8_UNORM;
+constexpr auto PlatformPixelFormatA8Unorm               = get_max_vk_format(1);
 constexpr auto PlatformPixelFormatR8Unorm               = VK_FORMAT_R8_UNORM;
 constexpr auto PlatformPixelFormatR8Unorm_sRGB          = VK_FORMAT_R8_SRGB;
 constexpr auto PlatformPixelFormatR8Snorm               = VK_FORMAT_R8_SNORM;
@@ -91,7 +95,7 @@ constexpr auto PlatformPixelFormatBC3_RGBA              = VK_FORMAT_BC3_UNORM_BL
 constexpr auto PlatformPixelFormatBC3_RGBA_sRGB         = VK_FORMAT_BC3_SRGB_BLOCK;
 constexpr auto PlatformPixelFormatBC4_RUnorm            = VK_FORMAT_BC4_UNORM_BLOCK;
 constexpr auto PlatformPixelFormatBC4_RSnorm            = VK_FORMAT_BC4_SNORM_BLOCK;
-constexpr auto PlatformPixelFormatBC5_RGUnorm           = VK_FORMAT_BC5_SNORM_BLOCK;
+constexpr auto PlatformPixelFormatBC5_RGUnorm           = VK_FORMAT_BC5_UNORM_BLOCK;
 constexpr auto PlatformPixelFormatBC5_RGSnorm           = VK_FORMAT_BC5_SNORM_BLOCK;        // Not sure about this one
 constexpr auto PlatformPixelFormatBC6H_RGBFloat         = VK_FORMAT_BC6H_SFLOAT_BLOCK;
 constexpr auto PlatformPixelFormatBC6H_RGBUfloat        = VK_FORMAT_BC6H_UFLOAT_BLOCK;
@@ -109,8 +113,8 @@ constexpr auto PlatformPixelFormatEAC_R11Unorm          = VK_FORMAT_EAC_R11_UNOR
 constexpr auto PlatformPixelFormatEAC_R11Snorm          = VK_FORMAT_EAC_R11_SNORM_BLOCK;
 constexpr auto PlatformPixelFormatEAC_RG11Unorm         = VK_FORMAT_EAC_R11G11_UNORM_BLOCK;
 constexpr auto PlatformPixelFormatEAC_RG11Snorm         = VK_FORMAT_EAC_R11G11_SNORM_BLOCK;
-constexpr auto PlatformPixelFormatEAC_RGBA8             = VK_FORMAT_UNDEFINED;
-constexpr auto PlatformPixelFormatEAC_RGBA8_sRGB        = VK_FORMAT_UNDEFINED;
+constexpr auto PlatformPixelFormatEAC_RGBA8             = get_max_vk_format(2);
+constexpr auto PlatformPixelFormatEAC_RGBA8_sRGB        = get_max_vk_format(3);
 constexpr auto PlatformPixelFormatETC2_RGB8             = VK_FORMAT_ETC2_R8G8B8_UNORM_BLOCK;
 constexpr auto PlatformPixelFormatETC2_RGB8_sRGB        = VK_FORMAT_ETC2_R8G8B8_SRGB_BLOCK;
 constexpr auto PlatformPixelFormatETC2_RGB8A1           = VK_FORMAT_ETC2_R8G8B8A1_UNORM_BLOCK;
@@ -151,7 +155,7 @@ constexpr auto PlatformPixelFormatASTC_6x6_HDR          = VK_FORMAT_ASTC_6x6_SFL
 constexpr auto PlatformPixelFormatASTC_8x5_HDR          = VK_FORMAT_ASTC_8x5_SFLOAT_BLOCK;
 constexpr auto PlatformPixelFormatASTC_8x6_HDR          = VK_FORMAT_ASTC_8x6_SFLOAT_BLOCK;
 constexpr auto PlatformPixelFormatASTC_8x8_HDR          = VK_FORMAT_ASTC_8x8_SFLOAT_BLOCK;
-constexpr auto PlatformPixelFormatASTC_10x5_HDR         = VK_FORMAT_ASTC_10x5_SRGB_BLOCK;
+constexpr auto PlatformPixelFormatASTC_10x5_HDR         = VK_FORMAT_ASTC_10x5_SFLOAT_BLOCK;
 constexpr auto PlatformPixelFormatASTC_10x6_HDR         = VK_FORMAT_ASTC_10x6_SFLOAT_BLOCK;
 constexpr auto PlatformPixelFormatASTC_10x8_HDR         = VK_FORMAT_ASTC_10x8_SFLOAT_BLOCK;
 constexpr auto PlatformPixelFormatASTC_10x10_HDR        = VK_FORMAT_ASTC_10x10_SFLOAT_BLOCK;
@@ -164,12 +168,12 @@ constexpr auto PlatformPixelFormatDepth32Float          = VK_FORMAT_D32_SFLOAT;
 constexpr auto PlatformPixelFormatStencil8              = VK_FORMAT_S8_UINT;
 constexpr auto PlatformPixelFormatDepth24Unorm_Stencil8 = VK_FORMAT_D24_UNORM_S8_UINT;
 constexpr auto PlatformPixelFormatDepth32Float_Stencil8 = VK_FORMAT_D32_SFLOAT_S8_UINT;
-constexpr auto PlatformPixelFormatX32_Stencil8          = VK_FORMAT_D32_SFLOAT_S8_UINT;        // Maybe shouldn't support these
-constexpr auto PlatformPixelFormatX24_Stencil8          = VK_FORMAT_D24_UNORM_S8_UINT;         // Maybe shouldn't support these
+constexpr auto PlatformPixelFormatX32_Stencil8          = get_max_vk_format(4);
+constexpr auto PlatformPixelFormatX24_Stencil8          = get_max_vk_format(5);
 constexpr auto PlatformPixelFormatBGRA10_XR             = VK_FORMAT_B10X6G10X6R10X6G10X6_422_UNORM_4PACK16;
-constexpr auto PlatformPixelFormatBGRA10_XR_sRGB        = VK_FORMAT_UNDEFINED;
-constexpr auto PlatformPixelFormatBGR10_XR              = VK_FORMAT_UNDEFINED;
-constexpr auto PlatformPixelFormatBGR10_XR_sRGB         = VK_FORMAT_UNDEFINED;
+constexpr auto PlatformPixelFormatBGRA10_XR_sRGB        = get_max_vk_format(6);
+constexpr auto PlatformPixelFormatBGR10_XR              = get_max_vk_format(7);
+constexpr auto PlatformPixelFormatBGR10_XR_sRGB         = get_max_vk_format(8);
 
 // Vertex formats
 constexpr auto PlatformVertexFormatInvalid               = VK_FORMAT_UNDEFINED;
@@ -224,6 +228,7 @@ constexpr auto PlatformVertexFormatShort                 = VK_FORMAT_R16_SINT;
 constexpr auto PlatformVertexFormatUShortNormalized      = VK_FORMAT_R16_UNORM;
 constexpr auto PlatformVertexFormatShortNormalized       = VK_FORMAT_R16_SNORM;
 constexpr auto PlatformVertexFormatHalf                  = VK_FORMAT_R16_SFLOAT;
+constexpr auto PlatformVertexFormatUnsupported           = VK_FORMAT_MAX_ENUM;
 
 constexpr auto PlatformTextureTargetTexture_1D            = VK_IMAGE_VIEW_TYPE_1D;
 constexpr auto PlatformTextureTargetTexture_2D            = VK_IMAGE_VIEW_TYPE_2D;

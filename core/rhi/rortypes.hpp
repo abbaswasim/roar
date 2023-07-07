@@ -251,7 +251,7 @@ enum class VertexFormat : uint32_t
 	uint1010102_norm  = PlatformVertexFormatUInt1010102Normalized,
 	uint8_4_norm_bgra = PlatformVertexFormatUChar4Normalized_BGRA,
 
-	bool32_1 = PlatformVertexFormatHalf + 1,
+	bool32_1 = PlatformVertexFormatUnsupported + 1u,
 	bool32_2,
 	bool32_3,
 	bool32_4,

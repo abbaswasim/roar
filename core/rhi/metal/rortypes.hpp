@@ -30,6 +30,7 @@
 #include <Metal/MTLRenderPipeline.hpp>
 #include <Metal/MTLResource.hpp>
 #include <Metal/MTLSampler.hpp>
+#include <Metal/MTLTexture.hpp>
 #include <Metal/MTLVertexDescriptor.hpp>
 
 namespace rhi
@@ -228,16 +229,17 @@ constexpr auto PlatformVertexFormatShort                 = MTL::VertexFormat::Ve
 constexpr auto PlatformVertexFormatUShortNormalized      = MTL::VertexFormat::VertexFormatUShortNormalized;
 constexpr auto PlatformVertexFormatShortNormalized       = MTL::VertexFormat::VertexFormatShortNormalized;
 constexpr auto PlatformVertexFormatHalf                  = MTL::VertexFormat::VertexFormatHalf;
+constexpr auto PlatformVertexFormatUnsupported           = PlatformVertexFormatHalf;
 
-constexpr auto PlatformTextureTargetTexture_1D            = 0;
-constexpr auto PlatformTextureTargetTexture_2D            = 1;
-constexpr auto PlatformTextureTargetTexture_3D            = 2;
-constexpr auto PlatformTextureTargetTexture_cube          = 3;
-constexpr auto PlatformTextureTargetTexture_2D_MS         = 4;
-constexpr auto PlatformTextureTargetTexture_2D_MS_array   = 5;
-constexpr auto PlatformTextureTargetTexture_1D_array      = 6;
-constexpr auto PlatformTextureTargetTexture_2D_array      = 7;
-constexpr auto PlatformTextureTargetTexture_1D_cube_array = 8;
+constexpr auto PlatformTextureTargetTexture_1D            = MTL::TextureType::TextureType1D;
+constexpr auto PlatformTextureTargetTexture_2D            = MTL::TextureType::TextureType2D;
+constexpr auto PlatformTextureTargetTexture_3D            = MTL::TextureType::TextureType3D;
+constexpr auto PlatformTextureTargetTexture_cube          = MTL::TextureType::TextureTypeCube;
+constexpr auto PlatformTextureTargetTexture_2D_MS         = MTL::TextureType::TextureType2DMultisample;
+constexpr auto PlatformTextureTargetTexture_2D_MS_array   = MTL::TextureType::TextureType2DMultisampleArray;
+constexpr auto PlatformTextureTargetTexture_1D_array      = MTL::TextureType::TextureType1DArray;
+constexpr auto PlatformTextureTargetTexture_2D_array      = MTL::TextureType::TextureType2DArray;
+constexpr auto PlatformTextureTargetTexture_1D_cube_array = MTL::TextureType::TextureTypeCubeArray;
 
 constexpr auto PlatformTextureAddressModeClampToEdge        = MTL::SamplerAddressMode::SamplerAddressModeClampToEdge;
 constexpr auto PlatformTextureAddressModeMirrorClampToEdge  = MTL::SamplerAddressMode::SamplerAddressModeMirrorClampToEdge;
@@ -262,9 +264,10 @@ constexpr auto PlatformStorageModeShared     = MTL::ResourceStorageModeShared;
 constexpr auto PlatformStorageModePrivate    = MTL::ResourceStorageModePrivate;
 constexpr auto PlatformStorageModeMemoryLess = MTL::ResourceStorageModeMemoryless;
 
-constexpr auto PlatformPrimitiveCullModeNone  = MTL::CullModeNone;
-constexpr auto PlatformPrimitiveCullModeFront = MTL::CullModeFront;
-constexpr auto PlatformPrimitiveCullModeBack  = MTL::CullModeBack;
+constexpr auto PlatformPrimitiveCullModeNone      = MTL::CullModeNone;
+constexpr auto PlatformPrimitiveCullModeFront     = MTL::CullModeFront;
+constexpr auto PlatformPrimitiveCullModeBack      = MTL::CullModeBack;
+constexpr auto PlatformPrimitiveCullModeFrontBack = 1000;        // Fairly big number as far as CullModes are concerned
 
 constexpr auto PlatformCompareFunctionNever        = MTL::CompareFunctionNever;
 constexpr auto PlatformCompareFunctionLess         = MTL::CompareFunctionLess;
