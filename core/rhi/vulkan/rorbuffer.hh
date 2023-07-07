@@ -33,7 +33,7 @@ namespace rhi
 {
 void BufferVulkan::release()
 {
-	// vk_destroy_buffer(this->m_device, this->m_buffer);
+	vk_destroy_buffer(this->m_device, this->m_buffer);
 }
 
 FORCE_INLINE void BufferVulkan::init(rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
