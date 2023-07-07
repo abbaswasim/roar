@@ -229,6 +229,16 @@ constexpr auto PlatformVertexFormatUShortNormalized      = MTL::VertexFormat::Ve
 constexpr auto PlatformVertexFormatShortNormalized       = MTL::VertexFormat::VertexFormatShortNormalized;
 constexpr auto PlatformVertexFormatHalf                  = MTL::VertexFormat::VertexFormatHalf;
 
+constexpr auto PlatformTextureTargetTexture_1D            = 0;
+constexpr auto PlatformTextureTargetTexture_2D            = 1;
+constexpr auto PlatformTextureTargetTexture_3D            = 2;
+constexpr auto PlatformTextureTargetTexture_cube          = 3;
+constexpr auto PlatformTextureTargetTexture_2D_MS         = 4;
+constexpr auto PlatformTextureTargetTexture_2D_MS_array   = 5;
+constexpr auto PlatformTextureTargetTexture_1D_array      = 6;
+constexpr auto PlatformTextureTargetTexture_2D_array      = 7;
+constexpr auto PlatformTextureTargetTexture_1D_cube_array = 8;
+
 constexpr auto PlatformTextureAddressModeClampToEdge        = MTL::SamplerAddressMode::SamplerAddressModeClampToEdge;
 constexpr auto PlatformTextureAddressModeMirrorClampToEdge  = MTL::SamplerAddressMode::SamplerAddressModeMirrorClampToEdge;
 constexpr auto PlatformTextureAddressModeRepeat             = MTL::SamplerAddressMode::SamplerAddressModeRepeat;

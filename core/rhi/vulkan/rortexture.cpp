@@ -209,59 +209,6 @@ void create_texture()
 namespace rhi
 {
 
-FORCE_INLINE constexpr VkImageType to_vulkan_texture_target(rhi::TextureTarget a_target)
-{
-	switch (a_target)
-	{
-		case rhi::TextureTarget::texture_1D:
-			return VkImageType::VK_IMAGE_TYPE_1D;        // MTL::TextureType::TextureType1D;
-		case rhi::TextureTarget::texture_2D:
-			return VkImageType::VK_IMAGE_TYPE_2D;
-		case rhi::TextureTarget::texture_3D:
-			return VkImageType::VK_IMAGE_TYPE_3D;
-		case rhi::TextureTarget::texture_1D_array:
-			break;
-			// 	return MTL::TextureType::TextureType1DArray;
-		case rhi::TextureTarget::texture_2D_array:
-			break;
-			// return MTL::TextureType::TextureType2DArray;
-		case rhi::TextureTarget::texture_2D_MS:
-			break;
-			// return MTL::TextureType::TextureType2DMultisample;
-		case rhi::TextureTarget::texture_cube:
-			break;
-			// return MTL::TextureType::TextureTypeCube;
-		case rhi::TextureTarget::texture_cube_array:
-			break;
-			// return MTL::TextureType::TextureTypeCubeArray;
-		case rhi::TextureTarget::texture_2D_MS_array:
-			break;
-			// return MTL::TextureType::TextureType2DMultisampleArray;
-	}
-
-	return VkImageType::VK_IMAGE_TYPE_2D;
-}
-
-FORCE_INLINE constexpr VkFilter to_vulkan_texture_filter(rhi::TextureFilter a_filter)
-{
-	return static_cast<VkFilter>(a_filter);
-}
-
-FORCE_INLINE constexpr VkFilter to_vulkan_texture_mip_filter(rhi::TextureMipFilter a_filter)
-{
-	return static_cast<VkFilter>(a_filter);
-}
-
-FORCE_INLINE constexpr VkBorderColor to_vulkan_texture_border(rhi::TextureBorder a_color)
-{
-	return static_cast<VkBorderColor>(a_color);
-}
-
-FORCE_INLINE constexpr VkSamplerAddressMode to_vulkan_texture_address_mode(rhi::TextureAddressMode a_mode)
-{
-	return static_cast<VkSamplerAddressMode>(a_mode);
-}
-
 void TextureImageVulkan::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)

@@ -375,9 +375,10 @@ enum class PrimitiveWinding
 
 enum class PrimitiveCullMode
 {
-	none  = PlatformPrimitiveCullModeNone,
-	front = PlatformPrimitiveCullModeFront,
-	back  = PlatformPrimitiveCullModeBack,
+	none       = PlatformPrimitiveCullModeNone,
+	front      = PlatformPrimitiveCullModeFront,
+	back       = PlatformPrimitiveCullModeBack,
+	front_back = PlatformPrimitiveCullModeFrontBack,
 };
 
 enum class FormatType
@@ -437,15 +438,15 @@ enum class TextureBorder
 
 enum class TextureTarget
 {
-	texture_1D,
-	texture_2D,
-	texture_3D,
-	texture_cube,
-	texture_2D_MS,
-	texture_2D_MS_array,
-	texture_1D_array,
-	texture_2D_array,
-	texture_cube_array
+	texture_1D          = PlatformTextureTargetTexture_1D,
+	texture_2D          = PlatformTextureTargetTexture_2D,
+	texture_3D          = PlatformTextureTargetTexture_3D,
+	texture_cube        = PlatformTextureTargetTexture_cube,
+	texture_2D_MS       = PlatformTextureTargetTexture_2D_MS,
+	texture_2D_MS_array = PlatformTextureTargetTexture_2D_MS_array,
+	texture_1D_array    = PlatformTextureTargetTexture_1D_array,
+	texture_2D_array    = PlatformTextureTargetTexture_2D_array,
+	texture_cube_array  = PlatformTextureTargetTexture_1D_cube_array
 };
 
 enum class TextureUsage

@@ -31,7 +31,6 @@
 #include "settings/rorsettings.hpp"
 #include <typeindex>
 #include <unordered_map>
-#include <vusym/vusym.hpp>
 
 namespace vk
 {
@@ -140,45 +139,28 @@ constexpr FORCE_INLINE auto to_vulkan_step_function(rhi::StepFunction a_function
 {
 	switch (a_function)
 	{
-			// clang-format off
-	case rhi::StepFunction::vertex:                       return VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;//MTL::VertexStepFunctionPerVertex;
-	case rhi::StepFunction::constant:                     return VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;//MTL::VertexStepFunctionConstant;
-	case rhi::StepFunction::instance:                     return VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE;//MTL::VertexStepFunctionPerInstance;
-	case rhi::StepFunction::patch:                        return VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;//MTL::VertexStepFunctionPerPatch;
-	case rhi::StepFunction::patch_control_point:          return VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;//MTL::VertexStepFunctionPerPatchControlPoint;
-			// clang-format on
+	// clang-format off
+	case rhi::StepFunction::vertex:                       return VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;
+	case rhi::StepFunction::constant:                     assert(0 && "Don't support rhi::StepFunction::constant in Vulkan");
+	case rhi::StepFunction::instance:                     return VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE;
+	case rhi::StepFunction::patch:                        assert(0 && "Don't support rhi::StepFunction::patch in Vulkan");
+	case rhi::StepFunction::patch_control_point:          assert(0 && "Don't support rhi::StepFunction::patch_control_point in Vulkan");
+	// clang-format on
 	}
 
-	assert(0);
+	assert(0 && "Shouldn't reach here");
+
+	return VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;
 }
 
 constexpr FORCE_INLINE VkMemoryPropertyFlags to_vulkan_resource_option(rhi::ResourceStorageOption a_mode)
 {
-	// TODO: Maybe this stuff should be in rortypes.hpp
-	switch (a_mode)
-	{
-		case rhi::ResourceStorageOption::shared:        // The resource is stored in system memory and is accessible to both the CPU and the GPU.
-			// return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-			return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-		case rhi::ResourceStorageOption::exclusive:        // The resource can be accessed only by the GPU.
-			return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		case rhi::ResourceStorageOption::memory_less:        // The resource’s contents can be accessed only by the GPU and only exist temporarily during a render pass.
-			return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
-		case rhi::ResourceStorageOption::managed:        // The CPU and GPU may maintain separate copies of the resource, and any changes must be explicitly synchronized.
-			return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-	}
+	return static_cast<VkMemoryPropertyFlags>(a_mode);
 }
 
 constexpr FORCE_INLINE auto to_vulkan_primitive_topoloy(rhi::PrimitiveTopology a_topology)
 {
 	return static_cast<VkPrimitiveTopology>(a_topology);
-}
-
-constexpr FORCE_INLINE auto to_vulkan_primitive_topoloy_class(rhi::PrimitiveTopology a_topology)
-{
-	auto topclass = primitve_toplogy_to_class(a_topology);
-
-	return static_cast<VkPrimitiveTopology>(topclass);        // TODO: This is a problem. not sure how to distinguish between class and topology in Vulkan
 }
 
 constexpr FORCE_INLINE auto to_vulkan_cull_mode(rhi::PrimitiveCullMode a_cull_mode)
@@ -199,6 +181,35 @@ constexpr FORCE_INLINE auto to_vulkan_triangle_fill_mode(rhi::TriangleFillMode a
 constexpr FORCE_INLINE auto to_vulkan_depth_compare_function(rhi::DepthCompareFunction a_compare_function)
 {
 	return static_cast<VkCompareOp>(a_compare_function);
+}
+
+FORCE_INLINE constexpr VkImageViewType to_vulkan_texture_target(rhi::TextureTarget a_target)
+{
+	assert(static_cast<uint32_t>(a_target) == VK_IMAGE_VIEW_TYPE_MAX_ENUM && "Don't understand this texture target type in vulkan");
+	return static_cast<VkImageViewType>(a_target);
+}
+
+FORCE_INLINE constexpr VkFilter to_vulkan_texture_filter(rhi::TextureFilter a_filter)
+{
+	return static_cast<VkFilter>(a_filter);
+}
+
+FORCE_INLINE constexpr VkSamplerMipmapMode to_vulkan_texture_mip_filter(rhi::TextureMipFilter a_filter)
+{
+	assert(a_filter != rhi::TextureMipFilter::not_mipmapped && "Don't call to_vulkan_texture_mip_filter if not mipmapped");
+	return static_cast<VkSamplerMipmapMode>(a_filter);
+}
+
+FORCE_INLINE constexpr VkBorderColor to_vulkan_texture_border(rhi::TextureBorder a_color)
+{
+	return static_cast<VkBorderColor>(a_color);
+}
+
+FORCE_INLINE constexpr VkSamplerAddressMode to_vulkan_texture_address_mode(rhi::TextureAddressMode a_mode)
+{
+	assert(rhi::TextureAddressMode::clamp_to_zero != a_mode && "Vulkan doesn't support clamp to zero");
+
+	return static_cast<VkSamplerAddressMode>(a_mode);
 }
 
 FORCE_INLINE auto get_surface_format()

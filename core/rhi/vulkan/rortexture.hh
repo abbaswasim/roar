@@ -26,4 +26,16 @@
 #include "rhi/vulkan/rortexture.hpp"
 
 namespace rhi
-{}        // namespace rhi
+{
+
+FORCE_INLINE constexpr auto TextureImageVulkan::platform_handle() const noexcept
+{
+	return this->m_texture;
+}
+
+FORCE_INLINE constexpr auto TextureSamplerVulkan::platform_handle() const noexcept
+{
+	return this->m_sampler;
+}
+
+}        // namespace rhi
