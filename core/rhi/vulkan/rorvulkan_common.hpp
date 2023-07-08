@@ -641,13 +641,13 @@ inline auto get_queue_indices(VkPhysicalDevice a_physical_device, VkSurfaceKHR a
 	{
 		VkBool32 present_support = false;
 		auto     result          = vkGetPhysicalDeviceSurfaceSupportKHR(a_physical_device, a_queue_data.m_indicies[graphics_index].first, a_surface, &present_support);
-		assert(result == VK_SUCCESS);
+		check_return_status(result, "vkGetPhysicalDeviceSurfaceSupportKHR");
 		assert(present_support && "Graphics queue chosen doesn't support presentation!");
 	}
 	{
 		VkBool32 present_support = false;
 		auto     result          = vkGetPhysicalDeviceSurfaceSupportKHR(a_physical_device, a_queue_data.m_indicies[compute_index].first, a_surface, &present_support);
-		assert(result == VK_SUCCESS);
+		check_return_status(result, "vkGetPhysicalDeviceSurfaceSupportKHR");
 		assert(present_support && "Compute queue chosen doesn't support presentation!");
 	}
 
