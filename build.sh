@@ -127,9 +127,7 @@ cmake_conf_cmd+=" $build_sanitized"
 cmake_conf_cmd+=" $build_pedantic"
 
 if [ "$verbose" = true ] ; then
-	tmp_var="VERBOSE=1 "
-	tmp_var+=$cmake_buil_cmd
-	cmake_buil_cmd=$tmp_var
+	export VERBOSE=1
 fi
 
 cmake_buil_cmd+="$build_folder"
