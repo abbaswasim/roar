@@ -36,6 +36,7 @@ namespace rhi
 declare_rhi_render_type(RenderCommandEncoder);
 declare_rhi_render_type(ComputeCommandEncoder);
 
+// TODO: Destroy image and image views
 class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImageVulkan>
 {
   public:
@@ -50,7 +51,9 @@ class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImage
   private:
 	declare_translation_unit_vtable();
 
-	VkImage *m_texture{nullptr};
+	VkImage        m_image{nullptr};
+	VkDeviceMemory m_image_memory{nullptr};
+	VkImageView    m_image_view{nullptr};
 };
 
 class ROAR_ENGINE_ITEM TextureSamplerVulkan : public TextureSamplerCrtp<TextureSamplerVulkan>
@@ -67,7 +70,7 @@ class ROAR_ENGINE_ITEM TextureSamplerVulkan : public TextureSamplerCrtp<TextureS
   private:
 	declare_translation_unit_vtable();
 
-	VkSampler *m_sampler{nullptr};
+	VkSampler m_sampler{nullptr};
 };
 
 class ROAR_ENGINE_ITEM TextureVulkan final : public TextureCrtp<TextureVulkan>

@@ -85,4 +85,19 @@ FORCE_INLINE void vk_destroy_command_buffer(VkDevice a_device, VkCommandBuffer a
 	vkFreeCommandBuffers(a_device, a_command_pool, 1, &a_command_buffer);
 }
 
+FORCE_INLINE void vk_destroy_image(VkDevice a_device, VkImage a_image)
+{
+	vkDestroyImage(a_device, a_image, cfg::VkAllocator);
+}
+
+FORCE_INLINE void vk_destroy_image_view(VkDevice a_device, VkImageView a_view)
+{
+	vkDestroyImageView(a_device, a_view, cfg::VkAllocator);
+}
+
+FORCE_INLINE void vk_destroy_image_sampler(VkDevice a_device, VkSampler a_sampler)
+{
+	vkDestroySampler(a_device, a_sampler, cfg::VkAllocator);
+}
+
 }        // namespace rhi

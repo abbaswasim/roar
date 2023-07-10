@@ -151,7 +151,7 @@ void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, 
 		buffer_buffer_copy_region.dstOffset = a_offset;        // Optional
 		buffer_buffer_copy_region.size      = a_length;
 
-		VkCommandBuffer staging_command_buffer = vk_begin_single_use_cmd_buffer(device, command_pool);
+		VkCommandBuffer staging_command_buffer = vk_begin_single_use_command_buffer(device, command_pool);
 
 		// Now blit it into the GPU resident buffer
 		vkCmdCopyBuffer(staging_command_buffer, staging_buffer, this->m_buffer, 1, &buffer_buffer_copy_region);

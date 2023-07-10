@@ -30,7 +30,7 @@ namespace rhi
 
 FORCE_INLINE constexpr auto TextureImageVulkan::platform_handle() const noexcept
 {
-	return this->m_texture;
+	return this->m_image;
 }
 
 FORCE_INLINE constexpr auto TextureSamplerVulkan::platform_handle() const noexcept
