@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rorcrtp.hpp"
 #include "foundation/rorjobsystem.hpp"
@@ -51,7 +52,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	FORCE_INLINE ContextCrtp &operator=(ContextCrtp &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ContextCrtp() noexcept override                 = default;        //! Destructor
 
-	FORCE_INLINE void init(std::any a_platform_window, void* a_window, ror::Vector4f a_dimensions)
+	FORCE_INLINE void init(std::any a_platform_window, void *a_window, ror::Vector4f a_dimensions)
 	{
 		this->m_current_device->init(a_platform_window, a_window, this->m_event_system, ror::Vector2ui{static_cast<uint32_t>(a_dimensions.x), static_cast<uint32_t>(a_dimensions.y)});
 		ror::settings().setup_generic_numbers(this->m_event_system);
@@ -80,30 +81,42 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		auto &job_system   = this->job_system();
 		auto &event_system = this->event_system();
 		auto &scene        = this->scene();
+		auto &cameras      = scene.cameras();
 		auto &buffer_pack  = this->buffer_pack();
 		auto &device       = this->device();
 		auto &renderer     = this->renderer();
 		auto &timer        = this->timer();
 
-		auto &camera = scene.cameras()[0];
+		ror::EventCallback camera_cycle_callback = [this, &cameras](ror::Event &) {
+			size_t cameras_size{cameras.size()};
+
+			cameras[this->m_current_camera_index].disable();
+
+			this->m_current_camera_index++;
+			this->m_current_camera_index = this->m_current_camera_index % cameras_size;
+
+			cameras[this->m_current_camera_index].enable();
+		};
+
+		auto &camera = cameras[this->m_current_camera_index];
 
 		static bool enable_camera = true;
 
 		if (enable_camera)
 		{
 			auto dims = renderer.dimensions();
-			camera.enable();
-			camera.bounds(dims.x, dims.y);
-
-#if 0
-			auto &model = scene.models()[0];
-			auto &mesh  = model.meshes()[0];
-			auto  bbox  = mesh.bounding_box(0);
-#else
 			auto bbox = scene.bounding_box();
-#endif
-			camera.volume(bbox.minimum(), bbox.maximum());
+
+			for (auto &cam : cameras)
+			{
+				cam.bounds(dims.x, dims.y);
+				cam.volume(bbox.minimum(), bbox.maximum());
+			}
+
+			camera.enable();
 			enable_camera = false;
+
+			event_system.subscribe(ror::keyboard_c_click, camera_cycle_callback);
 		}
 
 		camera.update(renderer);
@@ -159,6 +172,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	std::shared_ptr<Device>              m_current_device{nullptr};        //! Current device we are using, only one device possible at a time
 	ror::Renderer                        m_renderer{};                     //! Renderer that will be used by the context to render stuff
 	ror::Vector4ui                       m_frame_dimensions{};             //! current frame dimensions updated by looking up current window and framebuffer sizes
+	uint32_t                             m_current_camera_index{0};        //! Camera to use to render the scene
 };
 
 }        // namespace rhi
