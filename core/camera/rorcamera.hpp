@@ -89,6 +89,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE void ratio(float32_t a_far);
 	FORCE_INLINE void width(float32_t a_far);
 	FORCE_INLINE void height(float32_t a_far);
+	FORCE_INLINE void xmag(float32_t a_xmag);
+	FORCE_INLINE void ymag(float32_t a_ymag);
 	void              init(EventSystem &a_event_system);
 	void              enable();
 	void              disable();
@@ -137,6 +139,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t     m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
 	float32_t     m_width{1024.0f};                         //! Width of the rectangle it needs to fill
 	float32_t     m_height{768.0f};                         //! Height of the rectangle it needs to fill
+	float32_t     m_xmag{1.0f};                             //! Width of the orthographics camera
+	float32_t     m_ymag{1.0f};                             //! Height of the orthographics camera
 	CameraMode    m_mode{CameraMode::orbit};                //! Default orbit camera
 	CameraType    m_type{CameraType::perspective};          //! Default perspective camera
 	EventSystem  *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around

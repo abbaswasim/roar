@@ -56,13 +56,18 @@ void OrbitCamera::zoom(double64_t a_zoom_delta)
 
 void OrbitCamera::forward(double64_t a_zoom_delta)
 {
-	auto delta       = (camera_sensitivity * 10.0f * static_cast<float32_t>(a_zoom_delta));
+	auto delta = (camera_sensitivity * 10.0f * static_cast<float32_t>(a_zoom_delta));
+
 	auto translation = ror::matrix4_translation(this->m_forward * delta);
 	this->m_view *= translation;
 
 	translation = ror::matrix4_translation(this->m_forward * -delta);
 	this->m_eye = translation * this->m_eye;
 
+	this->m_xmag += delta;
+	this->m_ymag += delta;
+
+	this->update_projection();
 	this->update_vectors();
 }
 
@@ -100,7 +105,7 @@ void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_n
 	translation = ror::matrix4_translation(-delta_x - delta_y);
 	this->m_eye = translation * this->m_eye;
 
-	translation = ror::matrix4_translation(-delta_x - delta_y);
+	translation    = ror::matrix4_translation(-delta_x - delta_y);
 	this->m_center = translation * this->m_center;
 
 	this->update_vectors();
@@ -174,4 +179,17 @@ void OrbitCamera::height(float32_t a_height)
 	this->update_projection();
 }
 
+void OrbitCamera::xmag(float32_t a_xmag)
+{
+	this->m_xmag = a_xmag;
+
+	this->update_projection();
+}
+
+void OrbitCamera::ymag(float32_t a_ymag)
+{
+	this->m_ymag = a_ymag;
+
+	this->update_projection();
+}
 }        // namespace ror

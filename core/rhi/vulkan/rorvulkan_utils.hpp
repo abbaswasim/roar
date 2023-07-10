@@ -66,8 +66,8 @@ void                            vk_end_single_use_command_buffer(VkCommandBuffer
 void                            vk_end_single_use_command_buffer_and_wait(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_queue, VkCommandPool a_command_pool);
 VkCommandPool                   vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family_index, VkCommandPoolCreateFlags a_flags);        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 VkCommandBuffer                 vk_allocate_command_buffer(VkDevice a_device, VkCommandPool a_command_pool);
-VkCommandBuffer                 vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info);
-VkCommandBuffer                 vk_end_command_buffer(VkCommandBuffer a_command_buffer);
+void                            vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info);
+void                            vk_end_command_buffer(VkCommandBuffer a_command_buffer);
 void                            vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, VkFence a_fence);
 void                            vk_queue_submit(VkQueue a_queue, std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence);
 void                            vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence);

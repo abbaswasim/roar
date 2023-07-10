@@ -125,9 +125,8 @@ Instance::Instance()
 	instance_create_info.ppEnabledExtensionNames = extensions.data();
 	instance_create_info.flags                   = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
-	VkResult result{};
-	result = vkCreateInstance(&instance_create_info, cfg::VkAllocator, &instance_handle);
-	assert(result == VK_SUCCESS && "Failed to create vulkan instance!");
+	auto result = vkCreateInstance(&instance_create_info, cfg::VkAllocator, &instance_handle);
+	check_return_status(result, "vkCreateInstance");
 
 	this->set_handle(instance_handle);
 

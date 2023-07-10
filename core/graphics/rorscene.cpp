@@ -1819,7 +1819,7 @@ void Scene::read_cameras()
 		auto cameras = this->m_json_file["cameras"];
 		for (auto &camera : cameras)
 		{
-			OrbitCamera cam;
+			OrbitCamera cam{};
 			auto        cam_type = camera["type"];
 
 			if (cam_type == "perspective")
@@ -1849,6 +1849,10 @@ void Scene::read_cameras()
 						}
 					}
 				}
+			}
+			else
+			{
+				cam.type(CameraType::orthographic);
 				if (camera.contains("orthographic"))
 				{
 					auto cam_args = camera["orthographic"];
@@ -1857,11 +1861,11 @@ void Scene::read_cameras()
 					{
 						if (key == "xmag")
 						{
-							cam.width(value);
+							cam.xmag(value);
 						}
 						if (key == "ymag")
 						{
-							cam.height(value);
+							cam.ymag(value);
 						}
 						if (key == "znear")
 						{
@@ -1874,10 +1878,6 @@ void Scene::read_cameras()
 					}
 				}
 			}
-			else
-			{
-				cam.type(CameraType::orthographic);
-			}
 
 			this->m_cameras.emplace_back(std::move(cam));
 		}
@@ -1885,7 +1885,7 @@ void Scene::read_cameras()
 	else
 	{
 		log_info("No cameras founds in the scene, will assign default one");
-		OrbitCamera cam;
+		OrbitCamera cam{};
 		this->m_cameras.emplace_back(std::move(cam));
 	}
 }

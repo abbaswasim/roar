@@ -377,13 +377,13 @@ VkCommandBuffer vk_allocate_command_buffer(VkDevice a_device, VkCommandPool a_co
 	return staging_command_buffer;
 }
 
-VkCommandBuffer vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info)
+void vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info)
 {
 	auto result = vkBeginCommandBuffer(a_command_buffer, &a_command_buffer_begin_info);
 	check_return_status(result, "vkBeginCommandBuffer");
 }
 
-VkCommandBuffer vk_end_command_buffer(VkCommandBuffer a_command_buffer)
+void vk_end_command_buffer(VkCommandBuffer a_command_buffer)
 {
 	auto result = vkEndCommandBuffer(a_command_buffer);
 	check_return_status(result, "vkEndCommandBuffer");
