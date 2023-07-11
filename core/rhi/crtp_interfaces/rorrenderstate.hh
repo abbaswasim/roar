@@ -29,4 +29,14 @@
 namespace rhi
 {
 
+template <typename _type>
+void Renderstate<_type>::upload(rhi::Device &a_device)
+{
+	this->m_depth_state.upload(a_device);
+	this->m_depth_state_less_equal.upload(a_device);
+	this->m_depth_state_equal_no_write.upload(a_device);
+	this->m_depth_state_always_no_write.upload(a_device);
+	this->m_depth_state_less_no_write.upload(a_device);
+}
+
 }        // namespace rhi
