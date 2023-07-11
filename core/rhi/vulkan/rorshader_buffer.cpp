@@ -26,8 +26,4 @@
 #include "rhi/vulkan/rorshader_buffer.hpp"
 
 namespace rhi
-{
-
-define_translation_unit_vtable(ShaderBufferVulkan)
-{}
-}        // namespace rhi
+{}        // namespace rhi

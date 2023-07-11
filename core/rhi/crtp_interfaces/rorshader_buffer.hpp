@@ -289,6 +289,54 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	std::unordered_map<std::string, const rhi::ShaderBufferTemplate::Entry *> m_variables{};                     //! All the variables in this input buffer
 };
 
+template <typename _api_buffer>
+class ShaderBufferBase : public ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>, public _api_buffer        // _api_buffer is BufferVulkan, BufferMetal etc
+{
+  public:
+	FORCE_INLINE                   ShaderBufferBase()                                    = delete;         //! Default constructor
+	FORCE_INLINE                   ShaderBufferBase(const ShaderBufferBase &a_other)     = delete;         //! Copy constructor
+	FORCE_INLINE                   ShaderBufferBase(ShaderBufferBase &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE ShaderBufferBase &operator=(const ShaderBufferBase &a_other)            = delete;         //! Copy assignment operator
+	FORCE_INLINE ShaderBufferBase &operator=(ShaderBufferBase &&a_other) noexcept        = delete;         //! Move assignment operator
+	FORCE_INLINE virtual ~ShaderBufferBase() noexcept override                           = default;        //! Destructor
+
+	template <class... _types>
+	FORCE_INLINE ShaderBufferBase(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding, _types... a_others) :
+	    ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>(a_buffer_name, a_type, a_layout, a_set, a_binding, a_others...)
+	{}
+
+	FORCE_INLINE ShaderBufferBase(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding) :
+	    ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>(a_buffer_name, a_type, a_layout, a_set, a_binding)
+	{}
+
+	declare_translation_unit_vtable() override;
+
+	// clang-format off
+	template<typename _encoder_type>
+	FORCE_INLINE constexpr void  buffer_bind(_encoder_type& a_encoder, rhi::ShaderStage a_stage)                        { this->bind(a_encoder, a_stage, this->offset(), this->binding());  }
+	template<typename _encoder_type>
+	FORCE_INLINE constexpr void  buffer_bind(_encoder_type& a_encoder, rhi::ShaderStage a_stage, uintptr_t a_binding)   { this->bind(a_encoder, a_stage, this->offset(), a_binding);        }
+	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept        { this->unmap(); this->m_mapped_address = nullptr;                  }
+	FORCE_INLINE constexpr void  buffer_map()                                                           noexcept        { this->m_mapped_address = this->map();                             }
+	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->init(a_device, a_size, a_mode);                             }
+	// clang-format on
+
+	FORCE_INLINE void buffer_copy(const uint8_t *a_data, size_t a_offset, size_t a_length)
+	{
+		assert(this->m_mapped_address && "Need to map the shader buffer first before copy is called");
+		assert(a_data && "Data is null need to provide valid data before copy is called");
+
+		std::memcpy(this->m_mapped_address + a_offset, a_data, a_length);
+	}
+
+	// Forbids using uploads from _api_buffer (BufferVulkan or BufferMetal)
+	using ShaderBufferCrtp<ShaderBufferBase>::upload;
+
+  protected:
+  private:
+	uint8_t *m_mapped_address{nullptr};        //! For batch copy the buffer will be mapped once in here and unmapped once
+};
+
 }        // namespace rhi
 
 #include "rhi/crtp_interfaces/rorshader_buffer.hh"

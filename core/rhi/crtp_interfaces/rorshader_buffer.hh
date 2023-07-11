@@ -28,4 +28,8 @@
 namespace rhi
 {
 
+template <typename _api_buffer>
+void ShaderBufferBase<_api_buffer>::_temp_virtual()
+{}
+
 }        // namespace rhi

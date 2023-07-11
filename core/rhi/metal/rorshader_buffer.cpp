@@ -23,12 +23,8 @@
 //
 // Version: 1.0.0
 
-#include "foundation/rormacros.hpp"
 #include "rhi/metal/rorshader_buffer.hpp"
 
 namespace rhi
 {
-
-define_translation_unit_vtable(ShaderBufferMetal)
-{}
 }        // namespace rhi
