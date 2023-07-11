@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
@@ -61,7 +62,7 @@ VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_
 }
 
 VkImage vk_create_image(VkDevice a_device, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage, VkImageType a_image_type,
-                        VkImageTiling a_tiling, VkImageLayout a_initial_layout, VkSharingMode a_sharing_mode, VkSampleCountFlagBits a_samples_count, std::vector<uint32_t> a_queue_family_indices)
+                        VkImageTiling a_tiling, VkImageLayout a_initial_layout, VkSharingMode a_sharing_mode, VkSampleCountFlagBits a_samples_count, std::vector<uint32_t> &&a_queue_family_indices)
 {
 	VkImageCreateInfo image_info{};
 	image_info.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -505,14 +506,14 @@ void vk_create_buffer_with_memory(VkDevice a_device, VkBuffer &a_buffer, size_t 
 void vk_create_image_with_memory(VkDevice a_device, VkImage &a_image, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage,
                                  VkDeviceMemory &a_memory, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties,
                                  VkImageType a_image_type, VkImageTiling a_tiling, VkImageLayout a_initial_layout, VkSharingMode a_sharing_mode, VkSampleCountFlagBits a_samples_count,
-                                 std::vector<uint32_t> a_queue_family_indices)
+                                 std::vector<uint32_t> &&a_queue_family_indices)
 {
 	assert(a_image == nullptr && "Recreating image");
 	assert(a_memory == nullptr && "Recreating memory");
 
 	a_image                                 = vk_create_image(a_device, a_width, a_height, a_depth, a_format,
 	                                                          a_mip_levels, a_usage, a_image_type, a_tiling,
-	                                                          a_initial_layout, a_sharing_mode, a_samples_count, a_queue_family_indices);
+	                                                          a_initial_layout, a_sharing_mode, a_samples_count, std::move(a_queue_family_indices));
 	VkMemoryRequirements2 image_mem_req     = vk_image_memory_requirements(a_device, a_image);
 	auto                  memory_type_index = vk_find_memory_type(image_mem_req.memoryRequirements.memoryTypeBits, a_memory_properties, a_properties);
 	a_memory                                = vk_allocate_memory(a_device, image_mem_req.memoryRequirements.size, memory_type_index);
@@ -647,6 +648,27 @@ VkCommandPool vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family
 	check_return_status(result, "vkCreateCommandPool");
 
 	return command_pool;
+}
+
+VkPipelineDepthStencilStateCreateInfo vk_create_depth_stencil_state(bool a_depth_test, bool a_depth_write, VkCompareOp a_depth_compare,
+                                                                    bool a_stencil_test, VkStencilOpState a_stencil_front, VkStencilOpState a_stencil_back,
+                                                                    bool a_depth_bound_test, float32_t a_min_depth_bound, float32_t a_max_depth_bound)
+{
+	VkPipelineDepthStencilStateCreateInfo pipeline_depth_stencil_info = {};
+	pipeline_depth_stencil_info.sType                                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	pipeline_depth_stencil_info.pNext                                 = nullptr;
+	pipeline_depth_stencil_info.flags                                 = 0;
+	pipeline_depth_stencil_info.depthTestEnable                       = a_depth_test;              // VK_TRUE;
+	pipeline_depth_stencil_info.depthWriteEnable                      = a_depth_write;             // VK_TRUE;
+	pipeline_depth_stencil_info.depthCompareOp                        = a_depth_compare;           // VK_COMPARE_OP_LESS_OR_EQUAL;
+	pipeline_depth_stencil_info.depthBoundsTestEnable                 = a_depth_bound_test;        // VK_FALSE;
+	pipeline_depth_stencil_info.stencilTestEnable                     = a_stencil_test;            // VK_FALSE;
+	pipeline_depth_stencil_info.front                                 = a_stencil_front;           // VkStencilOpState{};
+	pipeline_depth_stencil_info.back                                  = a_stencil_back;            // VkStencilOpState{};
+	pipeline_depth_stencil_info.minDepthBounds                        = a_min_depth_bound;         // 0.0f;
+	pipeline_depth_stencil_info.maxDepthBounds                        = a_max_depth_bound;         // 1.0f;
+
+	return pipeline_depth_stencil_info;
 }
 
 }        // namespace rhi

@@ -37,23 +37,22 @@ namespace rhi
 class RenderstateDepthVulkan : public RenderstateCrtp<RenderstateDepthVulkan>
 {
   public:
-	FORCE_INLINE                        RenderstateDepthVulkan()                                         = default;        //! Default constructor
-	FORCE_INLINE                        RenderstateDepthVulkan(const RenderstateDepthVulkan &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE                        RenderstateDepthVulkan(RenderstateDepthVulkan &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE RenderstateDepthVulkan &operator=(const RenderstateDepthVulkan &a_other)                 = default;        //! Copy assignment operator
-	FORCE_INLINE RenderstateDepthVulkan &operator=(RenderstateDepthVulkan &&a_other) noexcept             = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~RenderstateDepthVulkan() noexcept override;                                                      //! Destructor
+	FORCE_INLINE                         RenderstateDepthVulkan()                                          = default;        //! Default constructor
+	FORCE_INLINE                         RenderstateDepthVulkan(const RenderstateDepthVulkan &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                         RenderstateDepthVulkan(RenderstateDepthVulkan &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE RenderstateDepthVulkan &operator=(const RenderstateDepthVulkan &a_other)                  = default;        //! Copy assignment operator
+	FORCE_INLINE RenderstateDepthVulkan &operator=(RenderstateDepthVulkan &&a_other) noexcept              = default;        //! Move assignment operator
+	FORCE_INLINE virtual ~RenderstateDepthVulkan() noexcept override;                                                        //! Destructor
 
+	// TODO: Add another bool for depth test because Vulkan works differently
 	FORCE_INLINE RenderstateDepthVulkan(rhi::DepthCompareFunction a_compare_func, bool a_depth_write) :
-	    m_compare_function(a_compare_func), m_depth_write(a_depth_write)
+	    RenderstateCrtp<RenderstateDepthVulkan>(a_compare_func, a_depth_write)
 	{}
 
 	void upload(rhi::Device &a_device);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto depth_state()             const noexcept { return this->m_depth_state;         }
-	FORCE_INLINE constexpr auto compare_function()        const noexcept { return this->m_compare_function;    }
-	FORCE_INLINE constexpr auto depth_write()             const noexcept { return this->m_depth_write;         }
+	FORCE_INLINE constexpr auto depth_state()             const noexcept { return this->m_depth_stencil_state;    }
 	// clang-format on
 
   protected:
@@ -61,41 +60,10 @@ class RenderstateDepthVulkan : public RenderstateCrtp<RenderstateDepthVulkan>
 	declare_translation_unit_vtable();
 	void release();
 
-	void   *m_depth_state{nullptr};
-	rhi::DepthCompareFunction m_compare_function{};
-	bool                      m_depth_write{true};
+	VkPipelineDepthStencilStateCreateInfo m_depth_stencil_state{};
 };
 
 declare_rhi_render_type(RenderstateDepth);
-
-class Renderstate final
-{
-  public:
-	FORCE_INLINE              Renderstate()                               = default;        //! Default constructor
-	FORCE_INLINE              Renderstate(const Renderstate &a_other)     = delete;         //! Copy constructor
-	FORCE_INLINE              Renderstate(Renderstate &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE Renderstate &operator=(const Renderstate &a_other)       = delete;         //! Copy assignment operator
-	FORCE_INLINE Renderstate &operator=(Renderstate &&a_other) noexcept   = delete;         //! Move assignment operator
-	FORCE_INLINE ~Renderstate() noexcept                                  = default;        //! Destructor
-
-	void upload(rhi::Device &a_device);
-
-	// clang-format off
-	FORCE_INLINE constexpr auto &depth_state()                 const noexcept { return this->m_depth_state;                 }
-	FORCE_INLINE constexpr auto &depth_state_less_equal()      const noexcept { return this->m_depth_state_less_equal;      }
-	FORCE_INLINE constexpr auto &depth_state_equal_no_write()  const noexcept { return this->m_depth_state_equal_no_write;  }
-	FORCE_INLINE constexpr auto &depth_state_always_no_write() const noexcept { return this->m_depth_state_always_no_write; }
-	FORCE_INLINE constexpr auto &depth_state_less_no_write()   const noexcept { return this->m_depth_state_less_no_write;   }
-	// clang-format on
-
-  protected:
-  private:
-	RenderstateDepth m_depth_state{rhi::DepthCompareFunction::less, true};
-	RenderstateDepth m_depth_state_less_equal{rhi::DepthCompareFunction::less_equal, true};
-	RenderstateDepth m_depth_state_equal_no_write{rhi::DepthCompareFunction::equal, false};
-	RenderstateDepth m_depth_state_always_no_write{rhi::DepthCompareFunction::always, false};
-	RenderstateDepth m_depth_state_less_no_write{rhi::DepthCompareFunction::less, false};
-};
 
 }        // namespace rhi
 
