@@ -49,6 +49,15 @@ class Renderer;
 
 namespace rhi
 {
+
+enum class RenderOutputType
+{
+	color,
+	resolve,
+	depth,
+	buffer
+};
+
 class RenderOutput
 {
   public:
@@ -58,13 +67,14 @@ class RenderOutput
 	FORCE_INLINE RenderOutput &operator=(RenderOutput &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~RenderOutput() noexcept                            = default;        //! Destructor
 
-	FORCE_INLINE RenderOutput(uint32_t a_target, LoadAction a_load_action, StoreAction a_store_action) :
-	    m_target_index(a_target), m_load_action(a_load_action), m_store_action(a_store_action)
+	FORCE_INLINE RenderOutput(uint32_t a_target, LoadAction a_load_action, StoreAction a_store_action, RenderOutputType a_type) :
+	    m_target_index(a_target), m_load_action(a_load_action), m_store_action(a_store_action), m_type(a_type)
 	{}
 
-	uint32_t    m_target_index{};                              //! Could be a render_target or render_buffer to write into
-	LoadAction  m_load_action{LoadAction::dont_care};          //! What to do at load time
-	StoreAction m_store_action{StoreAction::dont_care};        //! What to do at store time
+	uint32_t         m_target_index{};                              //! Could be a render_target or render_buffer to write into
+	LoadAction       m_load_action{LoadAction::dont_care};          //! What to do at load time
+	StoreAction      m_store_action{StoreAction::dont_care};        //! What to do at store time
+	RenderOutputType m_type{RenderOutputType::color};               //! Type of the render target / render buffer. It could be a resolve RT or depth RT
 
   protected:
 	FORCE_INLINE RenderOutput() = delete;        //! Default constructor
@@ -84,8 +94,8 @@ class RenderTarget final : public RenderOutput
 	FORCE_INLINE RenderTarget &operator=(RenderTarget &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE ~RenderTarget() noexcept override                           = default;        //! Destructor
 
-	FORCE_INLINE RenderTarget(uint32_t a_target, rhi::TextureImage &a_target_reference, LoadAction a_load_action, StoreAction a_store_action) :
-	    RenderOutput(a_target, a_load_action, a_store_action), m_target_reference(a_target_reference)
+	FORCE_INLINE RenderTarget(uint32_t a_target, rhi::TextureImage &a_target_reference, LoadAction a_load_action, StoreAction a_store_action, RenderOutputType a_type) :
+	    RenderOutput(a_target, a_load_action, a_store_action, a_type), m_target_reference(a_target_reference)
 	{}
 
 	TextureReference m_target_reference;        //! Reference to target texture
@@ -112,8 +122,8 @@ class RenderBuffer final : public RenderOutput
 	FORCE_INLINE RenderBuffer &operator=(RenderBuffer &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE ~RenderBuffer() noexcept override                           = default;        //! Destructor
 
-	FORCE_INLINE RenderBuffer(uint32_t a_target, ShaderBuffer &a_target_reference, LoadAction a_load_action, StoreAction a_store_action) :
-	    RenderOutput(a_target, a_load_action, a_store_action), m_target_reference(a_target_reference)
+	FORCE_INLINE RenderBuffer(uint32_t a_target, ShaderBuffer &a_target_reference, LoadAction a_load_action, StoreAction a_store_action, RenderOutputType a_type) :
+	    RenderOutput(a_target, a_load_action, a_store_action, a_type), m_target_reference(a_target_reference)
 	{}
 
 	ShaderBufferReference m_target_reference;        //! Reference to buffer

@@ -324,12 +324,14 @@
 					{
 						"index":2,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"buffer"
 					},
 					{
 						"index":4,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"buffer"
 					}
 				],
 				"subpasses":[
@@ -373,12 +375,14 @@
 					{
 						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					},
 					{
 						"index":3,
 						"load_action":"clear",
-						"store_action":"discard"
+						"store_action":"discard",
+						"type":"depth"
 					}
 				],
 				"background":[
@@ -436,7 +440,8 @@
 					{
 						"index":4,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"subpasses":[
@@ -455,7 +460,8 @@
 					{
 						"index":5,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"subpasses":[
@@ -473,7 +479,8 @@
 					{
 						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"subpasses":[
@@ -491,7 +498,8 @@
 					{
 						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"background":[
@@ -514,7 +522,8 @@
 					{
 						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"depends_on":[
@@ -535,12 +544,14 @@
 					{
 						"index":2,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					},
 					{
 						"index":4,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"depth"
 					}
 				],
 				"depends_on":[
@@ -603,12 +614,14 @@
 					{
 						"index":2,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					},
 					{
 						"index":4,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"depth"
 					}
 				],
 				"depends_on":[
@@ -634,12 +647,14 @@
 					{
 						"index":2,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					},
 					{
 						"index":4,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"depth"
 					}
 				],
 				"depends_on":[

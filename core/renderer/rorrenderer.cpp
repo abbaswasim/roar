@@ -38,6 +38,7 @@
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/crtp_interfaces/rorrenderpass.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorcommand_buffer.hpp"
@@ -305,6 +306,23 @@ rhi::StoreAction to_store_action(nlohmann::json a_storeaction)
 	return store_action;
 }
 
+rhi::RenderOutputType to_render_output_type(nlohmann::json a_type)
+{
+	rhi::RenderOutputType type{rhi::RenderOutputType::color};
+	if (a_type == "color")
+		type = rhi::RenderOutputType::color;
+	else if (a_type == "depth")
+		type = rhi::RenderOutputType::depth;
+	else if (a_type == "resolve")
+		type = rhi::RenderOutputType::resolve;
+	else if (a_type == "buffer")
+		type = rhi::RenderOutputType::buffer;
+	else
+		assert(0 && "Invalid type string provided");
+
+	return type;
+}
+
 void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame_graph, ror::Vector2ui a_dimensions,
                       std::vector<rhi::TextureImage> &a_textures,
                       std::vector<rhi::ShaderBuffer> &a_buffers)
@@ -363,19 +381,21 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 
 		for (auto &rt : render_targets)
 		{
-			assert(rt.contains("index") && rt.contains("load_action") && rt.contains("store_action") && "Render Target must contain all index, load and store actions");
+			assert(rt.contains("index") && rt.contains("load_action") && rt.contains("store_action") && rt.contains("type") && "Render Target must contain all index, type, load and store actions");
 
 			uint32_t index       = rt["index"];
 			auto     loadaction  = rt["load_action"];
 			auto     storeaction = rt["store_action"];
+			auto     typ         = rt["type"];
 
-			rhi::LoadAction  load_action  = to_load_action(loadaction);
-			rhi::StoreAction store_action = to_store_action(storeaction);
+			rhi::LoadAction       load_action  = to_load_action(loadaction);
+			rhi::StoreAction      store_action = to_store_action(storeaction);
+			rhi::RenderOutputType type         = to_render_output_type(typ);
 
 			// Emplaces a RenderTarget
 			assert(index < a_textures.size() && "Index is out of bound for render targets provided");
 
-			rts.emplace_back(index, a_textures[index], load_action, store_action);
+			rts.emplace_back(index, a_textures[index], load_action, store_action, type);
 		}
 
 		render_pass.render_targets(std::move(rts));

@@ -75,14 +75,14 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 	// For subpass/programmable blending rendering (only available in iOS) you would use a single command encoder created from the first render pass
 	// For your geometry pass the render targets "store" becomes "dont_care" and set storageMode to "memoryLess" == transient in Roar
 
-	auto  bgc            = this->background();
-	auto &render_targets = this->render_targets();
+	auto  bgc                       = this->background();
+	auto &renderpass_render_targets = this->render_targets();
+	auto &render_supasses           = this->subpasses();
 
-	// There is no concept of subpass in metal so we create a render pass for each subpass, PLS and Merging is done via single encoder instead
-	auto &render_supasses = this->subpasses();
 	this->m_render_passes.clear();
 	this->m_render_passes.reserve(render_supasses.size());
 
+	// There is no concept of subpass in metal so we create a render pass for each subpass, PLS and Merging is done via single encoder instead
 	for (auto &subpass : render_supasses)
 	{
 		if (subpass.technique() != rhi::RenderpassTechnique::compute)
@@ -93,46 +93,32 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 			mtl_render_pass->setRenderTargetWidth(this->dimensions().x);
 			mtl_render_pass->setRenderTargetHeight(this->dimensions().y);
 
-			int32_t  depth_index = -1;
-			uint32_t color_index = 0;
-			for (size_t i = 0; i < render_targets.size(); ++i)
+			int32_t  depth_index            = -1;
+			uint32_t color_index            = 0;
+			auto     subpass_render_targets = subpass.render_targets();
+			for (size_t i = 0; i < subpass_render_targets.size(); ++i)
 			{
-				if (is_pixel_format_depth_format(render_targets[i].m_target_reference.get().format()))
-				{
+				auto &render_target = renderpass_render_targets[subpass_render_targets[i]];
+				if (is_pixel_format_depth_format(render_target.m_target_reference.get().format()))
 					if (depth_index == -1)
-					{
-						depth_index = ror::static_cast_safe<int32_t>(i);
-						continue;
-					}
-					else
-					{
-						assert(0 && "Too many depth render targets provided");
-					}
-				}
+						depth_index = ror::static_cast_safe<int32_t>(subpass_render_targets[i]);
 
 				auto color_attachment = mtl_render_pass->colorAttachments()->object(color_index++);
 
 				color_attachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
-				color_attachment->setLoadAction(to_metal_load_action(render_targets[i].m_load_action));
-				color_attachment->setStoreAction(to_metal_store_action(render_targets[i].m_store_action));
-				color_attachment->setTexture(render_targets[i].m_target_reference.get().platform_handle());
+				color_attachment->setLoadAction(to_metal_load_action(render_target.m_load_action));
+				color_attachment->setStoreAction(to_metal_store_action(render_target.m_store_action));
+				color_attachment->setTexture(render_target.m_target_reference.get().platform_handle());
 			}
 
-			if (depth_index != -1)
-			{
-				auto depth = mtl_render_pass->depthAttachment();
+			asserr(depth_index != -1 && "Something went wrong depth index, we have lost depth index since renderer.json read");
+			auto  depth               = mtl_render_pass->depthAttachment();
+			auto &depth_render_target = renderpass_render_targets[subpass_render_targets[static_cast<uint32_t>(depth_index)]];
 
-				depth->setTexture(render_targets[static_cast<uint32_t>(depth_index)].m_target_reference.get().platform_handle());
-				depth->setClearDepth(ror::settings().m_depth_clear);
-				depth->setLoadAction(to_metal_load_action(render_targets[static_cast<uint32_t>(depth_index)].m_load_action));
-				depth->setStoreAction(to_metal_store_action(render_targets[static_cast<uint32_t>(depth_index)].m_store_action));
-
-				subpass.has_depth(true);
-			}
-			else
-			{
-				ror::log_info("No depth textures created for this renderpass {}", subpass.name().c_str());
-			}
+			depth->setTexture(depth_render_target.m_target_reference.get().platform_handle());
+			depth->setClearDepth(ror::settings().m_depth_clear);
+			depth->setLoadAction(to_metal_load_action(depth_render_target.m_load_action));
+			depth->setStoreAction(to_metal_store_action(depth_render_target.m_store_action));
 
 			this->m_render_passes.emplace_back(mtl_render_pass);
 		}
