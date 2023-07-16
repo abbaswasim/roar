@@ -402,6 +402,7 @@
 						"state":"transient",
 						"debug_output":true,
 						"cull_mode" : "back",
+						"render_targets":[0, 1],
 						"rendered_inputs":[
 							{
 								"index" : 2,
@@ -424,6 +425,7 @@
 						"type":"tone_mapping",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0, 1],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -451,6 +453,7 @@
 						"type":"lut",
 						"state":"persistent",
 						"debug_output":true,
+						"render_targets":[0],
 						"program":0
 					}
 				]
@@ -470,6 +473,7 @@
 						"state":"transient",
 						"technique":"compute",
 						"type":"reflection",
+						"render_targets":[0],
 						"program":3
 					}
 				]
@@ -489,6 +493,7 @@
 						"state":"transient",
 						"technique":"compute",
 						"type":"light_bin",
+						"render_targets":[0],
 						"program":3
 					}
 				]
@@ -513,6 +518,7 @@
 						"name":"main",
 						"state":"transient",
 						"type":"main",
+						"render_targets":[0],
 						"program":3
 					}
 				]
@@ -535,6 +541,7 @@
 						"type":"shadow",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0],
 						"program":2
 					}
 				]
@@ -564,6 +571,7 @@
 						"type":"depth",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0],
 						"program":1
 					},
 					{
@@ -571,6 +579,7 @@
 						"type":"deferred_gbuffer",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[1],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -584,6 +593,7 @@
 						"type":"post_process",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0, 1],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -599,6 +609,7 @@
 						"type":"main",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -632,6 +643,7 @@
 						"name":"bloom",
 						"type":"post_process",
 						"state":"transient",
+						"render_targets":[0, 1],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -665,6 +677,7 @@
 						"name":"tonemap",
 						"type":"post_process",
 						"state":"transient",
+						"render_targets":[0, 1],
 						"subpass_inputs":[
 							{
 								"index" : 0,

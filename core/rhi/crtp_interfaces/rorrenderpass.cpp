@@ -27,7 +27,9 @@
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
+#include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
+#include <vector>
 
 namespace rhi
 {
@@ -62,6 +64,17 @@ void Rendersubpass::setup(rhi::ComputeCommandEncoder &a_command_encoder, ror::Re
 	this->bind_render_inputs(a_command_encoder);
 	this->bind_buffer_inputs(a_command_encoder);
 	this->bind_input_attachments(a_command_encoder);
+}
+
+bool Rendersubpass::has_depth_attachment(const std::vector<RenderTarget> &a_renderpass_render_targets, const std::vector<uint32_t>& a_subpas_render_targets)
+{
+	for (auto &rti : a_subpas_render_targets)
+	{
+		if (is_pixel_format_depth_format(a_renderpass_render_targets[rti].m_target_reference.get().format()))
+			return true;
+	}
+
+	return false;
 }
 
 void render_scene(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system,

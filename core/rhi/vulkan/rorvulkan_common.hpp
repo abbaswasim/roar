@@ -243,6 +243,28 @@ FORCE_INLINE auto get_swapchain_usage()
 	return VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 }
 
+FORCE_INLINE VkSampleCountFlagBits get_sample_count(VkPhysicalDeviceProperties a_physical_device_properties)
+{
+	// Get color and depth sample count flags
+	VkSampleCountFlags counts = a_physical_device_properties.limits.framebufferColorSampleCounts &
+	                            a_physical_device_properties.limits.framebufferDepthSampleCounts;
+
+	VkSampleCountFlagBits required = static_cast<VkSampleCountFlagBits>(ror::multisample_count());        // FIXME: Dangerous, if vulkan header changes or sample count isn't 2's power
+
+	// Return if required available otherwise go lower until an alternative is available
+	do
+	{
+		if (counts & required)
+			return required;
+
+		required = static_cast<VkSampleCountFlagBits>(required >> 2);
+
+	} while (required);
+
+	// No choice but to return no MSAA
+	return VK_SAMPLE_COUNT_1_BIT;
+}
+
 FORCE_INLINE auto get_swapchain_sharing_mode(uint32_t a_queue_family_indices[2])
 {
 	VkSwapchainCreateInfoKHR create_info{};

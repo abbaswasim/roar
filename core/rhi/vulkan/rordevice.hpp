@@ -78,6 +78,7 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	FORCE_INLINE virtual ~PhysicalDevice() noexcept override                       = default;
 
 	FORCE_INLINE auto &memory_properties();
+	FORCE_INLINE auto samples_count();
 
 	declare_translation_unit_vtable();
 
@@ -183,6 +184,7 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE VkCommandBuffer platform_command_buffer();
 	FORCE_INLINE Swapchain       platform_swapchain();
 	FORCE_INLINE auto           &memory_properties();
+	FORCE_INLINE auto           samples_count();
 
   protected:
   private:

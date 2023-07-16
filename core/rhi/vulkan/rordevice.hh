@@ -231,9 +231,19 @@ FORCE_INLINE auto &PhysicalDevice::memory_properties()
 	return this->m_memory_properties;
 }
 
+FORCE_INLINE auto PhysicalDevice::samples_count()
+{
+	return get_sample_count(this->m_physical_device_properties);
+}
+
 FORCE_INLINE auto &DeviceVulkan::memory_properties()
 {
 	return this->m_gpu.memory_properties();
+}
+
+FORCE_INLINE auto DeviceVulkan::samples_count()
+{
+	return this->m_gpu.samples_count();
 }
 
 }        // namespace rhi

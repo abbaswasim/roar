@@ -371,7 +371,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		render_pass.background(bc);
 	}
 
-	assert((a_render_pass.contains("render_targets") || a_render_pass.contains("render_buffers")) && "Render pass must have render targets");
+	assert((a_render_pass.contains("render_targets") || a_render_pass.contains("render_buffers")) && "Render pass must have render targets or render buffers");
 
 	if (a_render_pass.contains("render_targets"))
 	{
@@ -398,6 +398,21 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			rts.emplace_back(index, a_textures[index], load_action, store_action, type);
 		}
 
+		// Check if there are any depth buffers attached or not
+		bool has_depth{false};
+		for (auto &rt : rts)
+		{
+			if (is_pixel_format_depth_format(rt.m_target_reference.get().format()))
+			{
+				assert(!has_depth && "Too many depth buffers attached");
+				has_depth = true;
+				break;
+			}
+		}
+
+		if (!has_depth)
+			ror::log_info("No depth buffer provided for this render pass");
+
 		render_pass.render_targets(std::move(rts));
 	}
 
@@ -409,19 +424,21 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 
 		for (auto &rb : render_buffers)
 		{
-			assert(rb.contains("index") && rb.contains("load_action") && rb.contains("store_action") && "Render Buffer must contain all index, load and store actions");
+			assert(rb.contains("index") && rb.contains("load_action") && rb.contains("store_action") && rb.contains("type") && "Render Buffer must contain all index, load and store actions");
 
 			uint32_t index       = rb["index"];
 			auto     loadaction  = rb["load_action"];
 			auto     storeaction = rb["store_action"];
+			auto     typ         = rb["type"];
 
-			rhi::LoadAction  load_action  = to_load_action(loadaction);
-			rhi::StoreAction store_action = to_store_action(storeaction);
+			rhi::LoadAction       load_action  = to_load_action(loadaction);
+			rhi::StoreAction      store_action = to_store_action(storeaction);
+			rhi::RenderOutputType type         = to_render_output_type(typ);
 
 			// Emplaces a RenderTarget
 			assert(index < a_buffers.size() && "Index is out of bound for render buffers provided");
 
-			rbs.emplace_back(index, a_buffers[index], load_action, store_action);
+			rbs.emplace_back(index, a_buffers[index], load_action, store_action, type);
 		}
 
 		render_pass.render_buffers(std::move(rbs));
@@ -536,6 +553,32 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			rsp.input_attachments(std::move(render_inputs_temp));
 		}
 
+		// Its reference to which render targets from the renderpass this subpass is using
+		auto &subpass_rt_indicies = rsp.render_targets();
+		assert(subpass_rt_indicies.size() == 0 && "Subpass render targets can't be preinitialized");
+		if (subpass.contains("render_targets"))
+		{
+			auto rts_indices = subpass["render_targets"];
+			subpass_rt_indicies.reserve(rts_indices.size());
+			for (size_t i = 0; i < rts_indices.size(); ++i)
+				subpass_rt_indicies.push_back(rts_indices[i]);
+		}
+
+		// This means does not have render_targets, then we use all the RTs from render pass
+		if (subpass_rt_indicies.size() == 0)
+		{
+			auto renderpass_rt_indicies = render_pass.render_targets();
+			subpass_rt_indicies.reserve(renderpass_rt_indicies.size());
+			for (size_t i = 0; i < renderpass_rt_indicies.size(); ++i)
+				subpass_rt_indicies.push_back(static_cast<uint32_t>(i));
+		}
+
+		auto render_pass_rts = render_pass.render_targets();
+		if (rsp.has_depth_attachment(render_pass_rts, subpass_rt_indicies))
+			rsp.has_depth(true);
+		else
+			ror::log_info("No depth texture created for this subpass {}", rsp.name().c_str());
+
 		rsps.emplace_back(std::move(rsp));
 	}
 
@@ -614,13 +657,14 @@ const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector
 
 	// If we don't have this render target lets create one
 	assert(a_index < this->m_textures.size() && "Index is out of bound in the textures array");
-	rhi::LoadAction  load_action{rhi::LoadAction::clear};
-	rhi::StoreAction store_action{rhi::StoreAction::store};
+	rhi::LoadAction       load_action{rhi::LoadAction::clear};
+	rhi::StoreAction      store_action{rhi::StoreAction::store};
+	rhi::RenderOutputType type{rhi::RenderOutputType::color};
 
 	if (this->m_input_render_targets.size() == 0)
 		this->m_input_render_targets.reserve(20);        // Should be enough otherwise an error will happen which I will know about
 
-	this->m_input_render_targets.emplace_back(a_index, this->m_textures[a_index], load_action, store_action);
+	this->m_input_render_targets.emplace_back(a_index, this->m_textures[a_index], load_action, store_action, type);
 
 	return &this->m_input_render_targets.back();        // back is ok here because this vector can't be reallocated
 }
@@ -638,13 +682,14 @@ const rhi::RenderBuffer *Renderer::find_renderbuffer_reference(const std::vector
 
 	// If we don't have this render buffers lets create one
 	assert(a_index < this->m_buffers.size() && "Index is out of bound in the render buffers array");
-	rhi::LoadAction  load_action{rhi::LoadAction::clear};
-	rhi::StoreAction store_action{rhi::StoreAction::store};
+	rhi::LoadAction       load_action{rhi::LoadAction::clear};
+	rhi::StoreAction      store_action{rhi::StoreAction::store};
+	rhi::RenderOutputType type{rhi::RenderOutputType::buffer};
 
 	if (this->m_input_render_buffers.size() == 0)
 		this->m_input_render_buffers.reserve(20);        // Should be enough otherwise an error will happen which I will know about
 
-	this->m_input_render_buffers.emplace_back(a_index, this->m_buffers[a_index], load_action, store_action);
+	this->m_input_render_buffers.emplace_back(a_index, this->m_buffers[a_index], load_action, store_action, type);
 
 	return &this->m_input_render_buffers.back();        // back is ok here because this vector can't be reallocated
 }
