@@ -111,14 +111,16 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 				color_attachment->setTexture(render_target.m_target_reference.get().platform_handle());
 			}
 
-			asserr(depth_index != -1 && "Something went wrong depth index, we have lost depth index since renderer.json read");
-			auto  depth               = mtl_render_pass->depthAttachment();
-			auto &depth_render_target = renderpass_render_targets[subpass_render_targets[static_cast<uint32_t>(depth_index)]];
+			if (depth_index != -1)
+			{
+				auto  depth               = mtl_render_pass->depthAttachment();
+				auto &depth_render_target = renderpass_render_targets[subpass_render_targets[static_cast<uint32_t>(depth_index)]];
 
-			depth->setTexture(depth_render_target.m_target_reference.get().platform_handle());
-			depth->setClearDepth(ror::settings().m_depth_clear);
-			depth->setLoadAction(to_metal_load_action(depth_render_target.m_load_action));
-			depth->setStoreAction(to_metal_store_action(depth_render_target.m_store_action));
+				depth->setTexture(depth_render_target.m_target_reference.get().platform_handle());
+				depth->setClearDepth(ror::settings().m_depth_clear);
+				depth->setLoadAction(to_metal_load_action(depth_render_target.m_load_action));
+				depth->setStoreAction(to_metal_store_action(depth_render_target.m_store_action));
+			}
 
 			this->m_render_passes.emplace_back(mtl_render_pass);
 		}
