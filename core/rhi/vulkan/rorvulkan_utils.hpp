@@ -92,6 +92,27 @@ void                                  vk_copy_staging_buffer_to_image(VkDevice a
                                                                       VkBuffer a_source, VkImage a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions);
 void                                  vk_copy_staging_buffers_to_images(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
                                                                         std::vector<VkBuffer> &a_source, std::vector<VkImage> &a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions);
+VkRenderPass                          vk_create_render_pass(VkDevice a_device, const VkAttachmentDescription &a_attachments, const VkSubpassDescription &a_subpasses, const VkSubpassDependency &a_dependencies);
+VkRenderPass                          vk_create_render_pass(VkDevice a_device, std::vector<VkAttachmentDescription> &&a_attachments, std::vector<VkSubpassDescription> &&a_subpasses, std::vector<VkSubpassDependency> &&a_dependencies);
+VkAttachmentDescription               vk_create_attachment_description(VkFormat a_format, VkSampleCountFlagBits a_samples = VK_SAMPLE_COUNT_4_BIT,
+                                                                       VkAttachmentLoadOp  a_load_op          = VK_ATTACHMENT_LOAD_OP_CLEAR,
+                                                                       VkAttachmentStoreOp a_store_op         = VK_ATTACHMENT_STORE_OP_STORE,
+                                                                       VkAttachmentLoadOp  a_stencil_load_op  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                                                       VkAttachmentStoreOp a_stencil_store_op = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                                                       VkImageLayout       a_initial_layout   = VK_IMAGE_LAYOUT_UNDEFINED,
+                                                                       VkImageLayout       a_final_layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+VkAttachmentReference                 vk_create_attachment_reference(uint32_t a_attachment_index, VkImageLayout a_image_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+VkSubpassDescription                  vk_create_subpass_description(VkPipelineBindPoint   a_pipeline_bind_point,
+                                                                    VkAttachmentReference a_color_attachment_reference, VkAttachmentReference a_depth_attachment_reference, VkAttachmentReference a_resolve_attachment_reference);
+VkSubpassDescription                  vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, VkAttachmentReference a_input_attachment,
+                                                                    VkAttachmentReference a_color_attachment_reference, VkAttachmentReference a_depth_attachment_reference, VkAttachmentReference a_resolve_attachment_reference);
+VkSubpassDescription                  vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, std::vector<VkAttachmentReference> a_input_attachments,
+                                                                    VkAttachmentReference a_color_attachment_reference, VkAttachmentReference a_depth_attachment_reference, VkAttachmentReference a_resolve_attachment_reference);
+VkSubpassDescription                  vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, std::vector<VkAttachmentReference> a_input_attachments, std::vector<VkAttachmentReference> a_color_attachment_reference,
+                                                                    const VkAttachmentReference *a_depth_attachment_reference, const VkAttachmentReference *a_resolve_attachment_reference);
+VkImageMemoryBarrier2                 vk_create_image_barrier(VkImage a_image, VkPipelineStageFlags2 a_src_stage_mask, VkAccessFlags2 a_src_access_mask, VkImageLayout a_old_layout, VkImageLayout a_new_layout,
+                                                              VkPipelineStageFlags2 a_dst_stage_mask, VkAccessFlags2 a_dst_access_mask, VkImageAspectFlags a_aspect_mask, uint32_t a_base_mip_level, uint32_t a_mip_level_count);
+VkBufferMemoryBarrier2                vk_create_buffer_barrier(VkBuffer a_buffer, VkPipelineStageFlags2 a_src_stage_mask, VkAccessFlags2 a_src_access_mask, VkPipelineStageFlags2 a_dst_stage_mask, VkAccessFlags2 a_dst_access_mask);
 
 FORCE_INLINE void vk_destroy_swapchain(VkDevice a_device, VkSwapchainKHR a_swapchain);
 FORCE_INLINE void vk_destroy_imageview(VkDevice a_device, VkImageView a_image_view);
@@ -106,6 +127,7 @@ FORCE_INLINE void vk_destroy_command_buffer(VkDevice a_device, VkCommandBuffer a
 FORCE_INLINE void vk_destroy_image(VkDevice a_device, VkImage a_image);
 FORCE_INLINE void vk_destroy_image_view(VkDevice a_device, VkImageView a_view);
 FORCE_INLINE void vk_destroy_image_sampler(VkDevice a_device, VkSampler a_sampler);
+FORCE_INLINE void vk_destroy_render_pass(VkDevice a_device);
 
 }        // namespace rhi
 

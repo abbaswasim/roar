@@ -73,31 +73,43 @@ FORCE_INLINE void vk_destroy_buffer(VkDevice a_device, VkBuffer a_buffer)
 FORCE_INLINE void vk_destroy_command_pools(VkDevice a_device, VkCommandPool a_command_pool)
 {
 	vkDestroyCommandPool(a_device, a_command_pool, cfg::VkAllocator);
+	a_command_pool = nullptr;
 }
 
 FORCE_INLINE void vk_destroy_memory(VkDevice a_device, VkDeviceMemory a_memory)
 {
 	vkFreeMemory(a_device, a_memory, cfg::VkAllocator);
+	a_memory = nullptr;
 }
 
 FORCE_INLINE void vk_destroy_command_buffer(VkDevice a_device, VkCommandBuffer a_command_buffer, VkCommandPool a_command_pool)
 {
 	vkFreeCommandBuffers(a_device, a_command_pool, 1, &a_command_buffer);
+	a_command_buffer = nullptr;
 }
 
 FORCE_INLINE void vk_destroy_image(VkDevice a_device, VkImage a_image)
 {
 	vkDestroyImage(a_device, a_image, cfg::VkAllocator);
+	a_image = nullptr;
 }
 
 FORCE_INLINE void vk_destroy_image_view(VkDevice a_device, VkImageView a_view)
 {
 	vkDestroyImageView(a_device, a_view, cfg::VkAllocator);
+	a_view = nullptr;
 }
 
 FORCE_INLINE void vk_destroy_image_sampler(VkDevice a_device, VkSampler a_sampler)
 {
 	vkDestroySampler(a_device, a_sampler, cfg::VkAllocator);
+	a_sampler = nullptr;
+
 }
 
+FORCE_INLINE void vk_destroy_render_pass(VkDevice a_device, VkRenderPass a_render_pass)
+{
+	vkDestroyRenderPass(a_device, a_render_pass, cfg::VkAllocator);
+	a_render_pass = nullptr;
+}
 }        // namespace rhi

@@ -130,6 +130,67 @@ VkSampler vk_create_image_sampler(VkDevice a_device, VkSamplerAddressMode a_wrap
 	return texture_sampler;
 }
 
+VkImageMemoryBarrier2 vk_create_image_barrier(VkImage a_image, VkPipelineStageFlags2 a_src_stage_mask, VkAccessFlags2 a_src_access_mask, VkImageLayout a_old_layout, VkImageLayout a_new_layout,
+                                              VkPipelineStageFlags2 a_dst_stage_mask, VkAccessFlags2 a_dst_access_mask, VkImageAspectFlags a_aspect_mask, uint32_t a_base_mip_level, uint32_t a_mip_level_count)
+{
+	VkImageMemoryBarrier2 image_barrier{};
+
+	image_barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2;
+	image_barrier.pNext                           = nullptr;
+	image_barrier.srcStageMask                    = a_src_stage_mask;
+	image_barrier.srcAccessMask                   = a_src_access_mask;
+	image_barrier.dstStageMask                    = a_dst_stage_mask;
+	image_barrier.dstAccessMask                   = a_dst_access_mask;
+	image_barrier.oldLayout                       = a_old_layout;
+	image_barrier.newLayout                       = a_new_layout;
+	image_barrier.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+	image_barrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
+	image_barrier.image                           = a_image;
+	image_barrier.subresourceRange.aspectMask     = a_aspect_mask;
+	image_barrier.subresourceRange.baseMipLevel   = a_base_mip_level;
+	image_barrier.subresourceRange.levelCount     = a_mip_level_count;
+	image_barrier.subresourceRange.baseArrayLayer = 0;
+	image_barrier.subresourceRange.layerCount     = VK_REMAINING_ARRAY_LAYERS;
+
+	return image_barrier;
+
+	// NOTE: To use an image barrier2 you will do something like the following
+
+	// VkImageMemoryBarrier2 image_barrier2{};
+	// VkBufferMemoryBarrier2 buffer_barrier2{};
+	// VkDependencyFlags dependency_flags{VK_DEPENDENCY_BY_REGION_BIT};
+
+	// VkDependencyInfo dependency_info{};
+	// dependency_info.sType                    = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+	// dependency_info.pNext                    = nullptr;
+	// dependency_info.dependencyFlags          = dependency_flags;
+	// dependency_info.bufferMemoryBarrierCount = 1;
+	// dependency_info.pBufferMemoryBarriers    = &buffer_barrier2;
+	// dependency_info.imageMemoryBarrierCount  = 1;
+	// dependency_info.pImageMemoryBarriers     = &image_barrier2;
+
+	// vkCmdPipelineBarrier2(command_buffer, &dependency_info);
+}
+
+VkBufferMemoryBarrier2 vk_create_buffer_barrier(VkBuffer a_buffer, VkPipelineStageFlags2 a_src_stage_mask, VkAccessFlags2 a_src_access_mask, VkPipelineStageFlags2 a_dst_stage_mask, VkAccessFlags2 a_dst_access_mask)
+{
+	VkBufferMemoryBarrier2 buffer_barrier{};
+
+	buffer_barrier.sType               = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2;
+	buffer_barrier.pNext               = nullptr;
+	buffer_barrier.srcStageMask        = a_src_stage_mask;
+	buffer_barrier.srcAccessMask       = a_src_access_mask;
+	buffer_barrier.dstStageMask        = a_dst_stage_mask;
+	buffer_barrier.dstAccessMask       = a_dst_access_mask;
+	buffer_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	buffer_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	buffer_barrier.buffer              = a_buffer;
+	buffer_barrier.offset              = 0;
+	buffer_barrier.size                = VK_WHOLE_SIZE;
+
+	return buffer_barrier;
+}
+
 void vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout)
 {
 	VkCommandBuffer command_buffer = vk_begin_single_use_command_buffer(a_device, a_command_pool);
@@ -669,6 +730,176 @@ VkPipelineDepthStencilStateCreateInfo vk_create_depth_stencil_state(bool a_depth
 	pipeline_depth_stencil_info.maxDepthBounds                        = a_max_depth_bound;         // 1.0f;
 
 	return pipeline_depth_stencil_info;
+}
+
+VkRenderPass vk_create_render_pass(VkDevice a_device, std::vector<VkAttachmentDescription> &&a_attachments, std::vector<VkSubpassDescription> &&a_subpasses, std::vector<VkSubpassDependency> &&a_dependencies)
+{
+	VkRenderPassCreateInfo render_pass_info = {};
+	render_pass_info.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	render_pass_info.pNext                  = nullptr;
+	render_pass_info.flags                  = 0;
+	render_pass_info.attachmentCount        = ror::static_cast_safe<uint32_t>(a_attachments.size());
+	render_pass_info.pAttachments           = a_attachments.data();
+	render_pass_info.subpassCount           = ror::static_cast_safe<uint32_t>(a_subpasses.size());
+	render_pass_info.pSubpasses             = a_subpasses.data();
+	render_pass_info.dependencyCount        = ror::static_cast_safe<uint32_t>(a_dependencies.size());
+	render_pass_info.pDependencies          = a_dependencies.data();
+
+	VkRenderPass render_pass{};
+	VkResult     result = vkCreateRenderPass(a_device, &render_pass_info, cfg::VkAllocator, &render_pass);
+	check_return_status(result, "vkCreateRenderPass");
+
+	return render_pass;
+}
+
+VkRenderPass vk_create_render_pass(VkDevice a_device, const VkAttachmentDescription &a_attachments, const VkSubpassDescription &a_subpasses, const VkSubpassDependency &a_dependencies)
+{
+	VkRenderPassCreateInfo render_pass_info = {};
+	render_pass_info.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	render_pass_info.pNext                  = nullptr;
+	render_pass_info.flags                  = 0;
+	render_pass_info.attachmentCount        = 1;
+	render_pass_info.pAttachments           = &a_attachments;
+	render_pass_info.subpassCount           = 1;
+	render_pass_info.pSubpasses             = &a_subpasses;
+	render_pass_info.dependencyCount        = 1;
+	render_pass_info.pDependencies          = &a_dependencies;
+
+	VkRenderPass render_pass{};
+	VkResult     result = vkCreateRenderPass(a_device, &render_pass_info, cfg::VkAllocator, &render_pass);
+	check_return_status(result, "vkCreateRenderPass");
+
+	return render_pass;
+}
+
+VkAttachmentDescription vk_create_attachment_description(VkFormat a_format, VkSampleCountFlagBits a_samples,
+                                                         VkAttachmentLoadOp  a_load_op,
+                                                         VkAttachmentStoreOp a_store_op,
+                                                         VkAttachmentLoadOp  a_stencil_load_op,
+                                                         VkAttachmentStoreOp a_stencil_store_op,
+                                                         VkImageLayout       a_initial_layout,
+                                                         VkImageLayout       a_final_layout)
+{
+	VkAttachmentDescription attachment_description = {};
+
+	attachment_description.flags          = 0;
+	attachment_description.format         = a_format;
+	attachment_description.samples        = a_samples;                 // VK_SAMPLE_COUNT_1_BIT, VK_SAMPLE_COUNT_2_BIT, VK_SAMPLE_COUNT_4_BIT, VK_SAMPLE_COUNT_8_BIT, VK_SAMPLE_COUNT_16_BIT, 32 and 64 etc
+	attachment_description.loadOp         = a_load_op;                 // VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachment_description.storeOp        = a_store_op;                // VK_ATTACHMENT_STORE_OP_STORE;
+	attachment_description.stencilLoadOp  = a_stencil_load_op;         // VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachment_description.stencilStoreOp = a_stencil_store_op;        // VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachment_description.initialLayout  = a_initial_layout;          // VK_IMAGE_LAYOUT_UNDEFINED;
+	attachment_description.finalLayout    = a_final_layout;            // VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;        // VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	return attachment_description;
+}
+
+VkAttachmentReference vk_create_attachment_reference(uint32_t a_attachment_index, VkImageLayout a_image_layout)
+{
+	VkAttachmentReference attachment_reference = {};
+
+	attachment_reference.attachment = a_attachment_index;
+	attachment_reference.layout     = a_image_layout;        // VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	return attachment_reference;
+}
+
+VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint   a_pipeline_bind_point,
+                                                   VkAttachmentReference a_color_attachment_reference, VkAttachmentReference a_depth_attachment_reference, VkAttachmentReference a_resolve_attachment_reference)
+{
+	VkSubpassDescription subpass_description = {};
+
+	subpass_description.flags                   = 0;
+	subpass_description.pipelineBindPoint       = a_pipeline_bind_point;        // VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass_description.inputAttachmentCount    = 0;
+	subpass_description.pInputAttachments       = nullptr;
+	subpass_description.colorAttachmentCount    = 1;
+	subpass_description.pColorAttachments       = &a_color_attachment_reference;
+	subpass_description.pResolveAttachments     = &a_resolve_attachment_reference;
+	subpass_description.pDepthStencilAttachment = &a_depth_attachment_reference;
+	subpass_description.preserveAttachmentCount = 0;
+	subpass_description.pPreserveAttachments    = nullptr;
+
+	return subpass_description;
+}
+
+VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, VkAttachmentReference a_input_attachment,
+                                                   VkAttachmentReference a_color_attachment_reference, VkAttachmentReference a_depth_attachment_reference, VkAttachmentReference a_resolve_attachment_reference)
+{
+	VkSubpassDescription subpass_description = {};
+
+	subpass_description.flags                   = 0;
+	subpass_description.pipelineBindPoint       = a_pipeline_bind_point;        // VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass_description.inputAttachmentCount    = 1;
+	subpass_description.pInputAttachments       = &a_input_attachment;
+	subpass_description.colorAttachmentCount    = 1;
+	subpass_description.pColorAttachments       = &a_color_attachment_reference;
+	subpass_description.pResolveAttachments     = &a_resolve_attachment_reference;
+	subpass_description.pDepthStencilAttachment = &a_depth_attachment_reference;
+	subpass_description.preserveAttachmentCount = 0;
+	subpass_description.pPreserveAttachments    = nullptr;
+
+	return subpass_description;
+}
+
+VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, std::vector<VkAttachmentReference> a_input_attachments,
+                                                   VkAttachmentReference a_color_attachment_reference, VkAttachmentReference a_depth_attachment_reference, VkAttachmentReference a_resolve_attachment_reference)
+{
+	VkSubpassDescription subpass_description = {};
+
+	subpass_description.flags                   = 0;
+	subpass_description.pipelineBindPoint       = a_pipeline_bind_point;        // VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass_description.inputAttachmentCount    = ror::static_cast_safe<uint32_t>(a_input_attachments.size());
+	subpass_description.pInputAttachments       = a_input_attachments.data();
+	subpass_description.colorAttachmentCount    = 1;
+	subpass_description.pColorAttachments       = &a_color_attachment_reference;
+	subpass_description.pResolveAttachments     = &a_resolve_attachment_reference;
+	subpass_description.pDepthStencilAttachment = &a_depth_attachment_reference;
+	subpass_description.preserveAttachmentCount = 0;
+	subpass_description.pPreserveAttachments    = nullptr;
+
+	return subpass_description;
+}
+
+VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, std::vector<VkAttachmentReference> a_input_attachments, std::vector<VkAttachmentReference> a_color_attachment_reference,
+												   const VkAttachmentReference *a_depth_attachment_reference, const VkAttachmentReference *a_resolve_attachment_reference)
+{
+	VkSubpassDescription subpass_description = {};
+
+	subpass_description.flags                   = 0;
+	subpass_description.pipelineBindPoint       = a_pipeline_bind_point;        // VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass_description.inputAttachmentCount    = ror::static_cast_safe<uint32_t>(a_input_attachments.size());
+	subpass_description.pInputAttachments       = a_input_attachments.data();
+	subpass_description.colorAttachmentCount    = ror::static_cast_safe<uint32_t>(a_color_attachment_reference.size());
+	subpass_description.pColorAttachments       = a_color_attachment_reference.data();
+	subpass_description.pResolveAttachments     = a_resolve_attachment_reference;
+	subpass_description.pDepthStencilAttachment = a_depth_attachment_reference;
+	subpass_description.preserveAttachmentCount = 0;
+	subpass_description.pPreserveAttachments    = nullptr;
+
+	return subpass_description;
+}
+
+VkSubpassDependency2 vk_create_subpass_dependency(uint32_t a_src_subpass, uint32_t a_dst_subpass, VkPipelineStageFlags a_src_stage_mask, VkPipelineStageFlags a_dst_stage_mask,
+                                                  VkAccessFlags a_src_access_mask, VkAccessFlags a_dst_access_mask, VkDependencyFlags a_dependency_flags = 0, int32_t a_view_offset = 0)
+{
+	// For details of how this works read https://www.reddit.com/r/vulkan/comments/s80reu/subpass_dependencies_what_are_those_and_why_do_i/
+
+	VkSubpassDependency2 subpass_dependency = {};
+
+	subpass_dependency.sType           = VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2;
+	subpass_dependency.pNext           = nullptr;
+	subpass_dependency.srcSubpass      = a_src_subpass;            // VK_SUBPASS_EXTERNAL means finish all subpasses from previous renderpasses before continue
+	subpass_dependency.dstSubpass      = a_dst_subpass;            // index of the current subpass for which this dependency exists
+	subpass_dependency.srcStageMask    = a_src_stage_mask;         // All stages we ask Vulkan to finish before moving to dstSubpass like VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	subpass_dependency.dstStageMask    = a_dst_stage_mask;         // All the stages in dstSubpass not allowed to start until after the stages in srcStageMask have completed within srcSubpass
+	subpass_dependency.srcAccessMask   = a_src_access_mask;        // Bitmask of all the Vulkan memory access types used by srcSubpass
+	subpass_dependency.dstAccessMask   = a_dst_access_mask;        // Bitmask of all the Vulkan memory access types we're going to use in dstSubpass like VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	subpass_dependency.dependencyFlags = a_dependency_flags;
+	subpass_dependency.viewOffset      = a_view_offset;
+
+	return subpass_dependency;
 }
 
 }        // namespace rhi
