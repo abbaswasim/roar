@@ -27,6 +27,7 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/vulkan/rordevice.hpp"
@@ -48,25 +49,27 @@ class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 
 	declare_translation_unit_vtable();
 
-	void          upload(rhi::Device &a_device);
-	VkRenderPass *platform_renderpass(uint32_t a_index);
-	VkRenderPass *platform_computepass(uint32_t a_index);
+	void         upload(rhi::Device &a_device);
+	VkRenderPass platform_renderpass(uint32_t a_index);
+	VkRenderPass platform_computepass(uint32_t a_index);
 
 	size_t                     platform_renderpass_count();
 	rhi::RenderCommandEncoder  render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
 	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
 
-	FORCE_INLINE constexpr void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
+	// TODO: Add constexpr when log_critical is removed
+	FORCE_INLINE void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
 	{
 		(void) a_surface;
 		(void) a_index;
+		ror::log_critical("Implement me {}", __FUNCTION__);
 		// auto rp = this->platform_renderpass(a_index);
 		// rp->colorAttachments()->object(0)->setTexture(a_surface->texture());
 	}
 
   protected:
   private:
-	std::vector<VkRenderPass *> m_render_passes{};        //! Platform render pass descriptors, we have a list here because engine subpasses are split into render passes for Vulkan
+	VkRenderPass m_render_pass{};        //! Platform render pass descriptors
 };
 
 declare_rhi_render_type(Renderpass);

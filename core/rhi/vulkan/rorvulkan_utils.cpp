@@ -28,6 +28,9 @@
 #include "resources/rorresource.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
+#include <cstddef>
+#include <filesystem>
+#include <vector>
 
 namespace rhi
 {
@@ -198,6 +201,7 @@ void vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool,
 	VkPipelineStageFlags source_stage{};
 	VkPipelineStageFlags destination_stage{};
 
+	// TODO: Port me to vk_create_image_barrier
 	VkImageMemoryBarrier barrier{};
 	barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier.oldLayout                       = a_old_layout;
@@ -470,6 +474,7 @@ VkBuffer vk_create_buffer(VkDevice a_device, size_t a_size, VkBufferUsageFlags a
 
 VkDeviceMemory vk_allocate_memory(VkDevice a_device, VkDeviceSize a_size, uint32_t a_memory_type_index)
 {
+	// FIXME: Don't forget suballocations because this won't work for anything more than 4096 on most GPUS
 	VkMemoryAllocateInfo allocation_info{};
 	allocation_info.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocation_info.allocationSize  = a_size;                     // a_buffer_mem_req.size;
@@ -732,7 +737,7 @@ VkPipelineDepthStencilStateCreateInfo vk_create_depth_stencil_state(bool a_depth
 	return pipeline_depth_stencil_info;
 }
 
-VkRenderPass vk_create_render_pass(VkDevice a_device, std::vector<VkAttachmentDescription> &&a_attachments, std::vector<VkSubpassDescription> &&a_subpasses, std::vector<VkSubpassDependency> &&a_dependencies)
+VkRenderPass vk_create_render_pass(VkDevice a_device, std::vector<VkAttachmentDescription> &&a_attachments, const std::vector<VkSubpassDescription> &a_subpasses, const std::vector<VkSubpassDependency> &a_dependencies)
 {
 	VkRenderPassCreateInfo render_pass_info = {};
 	render_pass_info.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -843,7 +848,7 @@ VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipelin
 	return subpass_description;
 }
 
-VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, std::vector<VkAttachmentReference> a_input_attachments,
+VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, const std::vector<VkAttachmentReference> &a_input_attachments,
                                                    VkAttachmentReference a_color_attachment_reference, VkAttachmentReference a_depth_attachment_reference, VkAttachmentReference a_resolve_attachment_reference)
 {
 	VkSubpassDescription subpass_description = {};
@@ -862,8 +867,8 @@ VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipelin
 	return subpass_description;
 }
 
-VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, std::vector<VkAttachmentReference> a_input_attachments, std::vector<VkAttachmentReference> a_color_attachment_reference,
-												   const VkAttachmentReference *a_depth_attachment_reference, const VkAttachmentReference *a_resolve_attachment_reference)
+VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, const std::vector<VkAttachmentReference> &a_input_attachments, const std::vector<VkAttachmentReference> &a_color_attachment_reference,
+                                                   const VkAttachmentReference *a_depth_attachment_reference, const VkAttachmentReference *a_resolve_attachment_reference)
 {
 	VkSubpassDescription subpass_description = {};
 
@@ -881,15 +886,15 @@ VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipelin
 	return subpass_description;
 }
 
-VkSubpassDependency2 vk_create_subpass_dependency(uint32_t a_src_subpass, uint32_t a_dst_subpass, VkPipelineStageFlags a_src_stage_mask, VkPipelineStageFlags a_dst_stage_mask,
-                                                  VkAccessFlags a_src_access_mask, VkAccessFlags a_dst_access_mask, VkDependencyFlags a_dependency_flags = 0, int32_t a_view_offset = 0)
+VkSubpassDependency vk_create_subpass_dependency(uint32_t a_src_subpass, uint32_t a_dst_subpass, VkPipelineStageFlags a_src_stage_mask, VkPipelineStageFlags a_dst_stage_mask,
+                                                 VkAccessFlags a_src_access_mask, VkAccessFlags a_dst_access_mask, VkDependencyFlags a_dependency_flags)// , int32_t a_view_offset)
 {
 	// For details of how this works read https://www.reddit.com/r/vulkan/comments/s80reu/subpass_dependencies_what_are_those_and_why_do_i/
 
-	VkSubpassDependency2 subpass_dependency = {};
+	VkSubpassDependency subpass_dependency = {};
 
-	subpass_dependency.sType           = VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2;
-	subpass_dependency.pNext           = nullptr;
+	// subpass_dependency.sType           = VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2;
+	// subpass_dependency.pNext           = nullptr;
 	subpass_dependency.srcSubpass      = a_src_subpass;            // VK_SUBPASS_EXTERNAL means finish all subpasses from previous renderpasses before continue
 	subpass_dependency.dstSubpass      = a_dst_subpass;            // index of the current subpass for which this dependency exists
 	subpass_dependency.srcStageMask    = a_src_stage_mask;         // All stages we ask Vulkan to finish before moving to dstSubpass like VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
@@ -897,7 +902,7 @@ VkSubpassDependency2 vk_create_subpass_dependency(uint32_t a_src_subpass, uint32
 	subpass_dependency.srcAccessMask   = a_src_access_mask;        // Bitmask of all the Vulkan memory access types used by srcSubpass
 	subpass_dependency.dstAccessMask   = a_dst_access_mask;        // Bitmask of all the Vulkan memory access types we're going to use in dstSubpass like VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 	subpass_dependency.dependencyFlags = a_dependency_flags;
-	subpass_dependency.viewOffset      = a_view_offset;
+	// subpass_dependency.viewOffset      = a_view_offset;
 
 	return subpass_dependency;
 }

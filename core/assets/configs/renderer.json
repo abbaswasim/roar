@@ -328,7 +328,7 @@
 						"type":"buffer"
 					},
 					{
-						"index":4,
+						"index":3,
 						"load_action":"clear",
 						"store_action":"store",
 						"type":"buffer"
@@ -549,13 +549,13 @@
 			{
 				"render_targets":[
 					{
-						"index":2,
+						"index":0,
 						"load_action":"clear",
 						"store_action":"store",
 						"type":"color"
 					},
 					{
-						"index":4,
+						"index":3,
 						"load_action":"clear",
 						"store_action":"store",
 						"type":"depth"
@@ -623,13 +623,13 @@
 			{
 				"render_targets":[
 					{
-						"index":2,
+						"index":0,
 						"load_action":"clear",
 						"store_action":"store",
 						"type":"color"
 					},
 					{
-						"index":4,
+						"index":3,
 						"load_action":"clear",
 						"store_action":"store",
 						"type":"depth"
@@ -657,13 +657,13 @@
 			{
 				"render_targets":[
 					{
-						"index":2,
+						"index":0,
 						"load_action":"clear",
 						"store_action":"store",
 						"type":"color"
 					},
 					{
-						"index":4,
+						"index":3,
 						"load_action":"clear",
 						"store_action":"store",
 						"type":"depth"

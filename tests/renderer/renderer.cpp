@@ -3,6 +3,7 @@
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
+#include "rhi/crtp_interfaces/rorrenderpass.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
@@ -12,10 +13,9 @@
 
 namespace ror_test
 {
-
 using RenderTargets = std::vector<rhi::RenderOutputRef<rhi::RenderTarget>>;
 
-void test_render_target(const rhi::RenderTarget &a, const rhi::RenderTarget& b)
+void test_render_target(const rhi::RenderTarget &a, const rhi::RenderTarget &b)
 {
 	EXPECT_EQ(a.m_target_index, b.m_target_index);
 	EXPECT_EQ(&a.m_target_reference.get(), &b.m_target_reference.get());
@@ -115,8 +115,8 @@ TEST(RendererTest, config_load)
 		ror::Vector2ui dimensions{1024, 768};
 
 		// const_cast is only allowed in tests
-		rhi::RenderTarget rt0{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store};
-		rhi::RenderTarget rt1{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store};
+		rhi::RenderTarget rt0{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt1{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
 
 		std::vector<RenderTargets> rirfs{};
 		rirfs.resize(2);
@@ -171,12 +171,11 @@ TEST(RendererTest, config_load)
 		ror::Vector2ui dimensions{1024, 768};
 
 		// const_cast is only allowed in tests
-		rhi::RenderTarget rt0{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store};
-		rhi::RenderTarget rt1{1, const_cast<rhi::TextureImage &>(rtgs[1]), rhi::LoadAction::clear, rhi::StoreAction::store};
-		rhi::RenderTarget rt2{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store};
-		rhi::RenderTarget rt3{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::store};
-		rhi::RenderTarget rt4{4, const_cast<rhi::TextureImage &>(rtgs[4]), rhi::LoadAction::clear, rhi::StoreAction::store};
-
+		rhi::RenderTarget rt0{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt1{1, const_cast<rhi::TextureImage &>(rtgs[1]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt2{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt3{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt4{4, const_cast<rhi::TextureImage &>(rtgs[4]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
 
 		std::vector<RenderTargets> rirfs{};
 		rirfs.resize(2);
@@ -280,7 +279,7 @@ TEST(RendererTest, config_load)
 					                 {rhi::RenderpassType::depth, rhi::RenderpassType::deferred_gbuffer, rhi::RenderpassType::post_process, rhi::RenderpassType::main},
 					                 {rhi::RenderpassState::transient, rhi::RenderpassState::transient, rhi::RenderpassState::transient, rhi::RenderpassState::transient},
 					                 {{}, {}, {}, {}},
-									 iarfs5,
+					                 iarfs5,
 					                 {1, 1, 1, 0},
 					                 {true, true, true, true});
 
