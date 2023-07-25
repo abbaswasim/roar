@@ -11,7 +11,7 @@ verbose=false
 sanitized=false
 pedantic=true
 
-cmake_conf_cmd="cmake -H. -B"
+cmake_conf_cmd="cmake -H. -G Ninja -B"
 cmake_buil_cmd="cmake --build "
 build_folder="build-"
 configure_build_type="-DCMAKE_BUILD_TYPE="
@@ -135,7 +135,7 @@ cmake_buil_cmd+=" $build_build_type"
 cmake_buil_cmd+=" $build_target"
 cmake_buil_cmd+="$target"
 
-cmake_buil_cmd+=" -- -j${NUMCPUS}"
+cmake_buil_cmd+=" -j${NUMCPUS}"
 
 if [ "$type" = "clean" ]; then
 	if [ -d $build_folder ]; then
