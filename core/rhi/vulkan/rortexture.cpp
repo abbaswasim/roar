@@ -116,11 +116,11 @@ void TextureImageVulkan::upload(rhi::Device &a_device)
 		return;
 	}
 
-	auto                              device         = a_device.platform_device();
-	auto                              command_pool   = a_device.platform_transfer_command_pool();
-	auto                              transfer_queue = a_device.platform_transfer_queue();
-	VkBufferUsageFlags                usage          = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	VkSharingMode                     mode           = VK_SHARING_MODE_EXCLUSIVE;        // This is queue sharing mode not CPU vs GPU
+	auto                              device               = a_device.platform_device();
+	auto                              transfer_queue       = a_device.platform_transfer_queue();
+	std::mutex                       &transfer_queue_mutex = a_device.platform_transfer_queue_mutex();
+	VkBufferUsageFlags                usage                = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	VkSharingMode                     mode                 = VK_SHARING_MODE_EXCLUSIVE;        // This is queue sharing mode not CPU vs GPU
 	std::vector<uint32_t>             queue_family_indices{a_device.platform_graphics_queue_index(), a_device.platform_transfer_queue_index()};
 	VkPhysicalDeviceMemoryProperties2 memory_properties = a_device.memory_properties();
 	VkMemoryPropertyFlags             properties        = rhi::to_vulkan_resource_option(rhi::ResourceStorageOption::exclusive);
@@ -198,13 +198,16 @@ void TextureImageVulkan::upload(rhi::Device &a_device)
 		std::vector<VkImage>  texture_images{this->m_image};
 		std::vector<VkBuffer> source_textures{staging_buffer};
 
-		vk_transition_image_layout(device, command_pool, transfer_queue, this->m_image, ror::static_cast_safe<uint32_t>(this->mips().size()), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		vk_copy_staging_buffer_to_image(device, transfer_queue, command_pool, staging_buffer, this->m_image, copy_regions);
-		vk_transition_image_layout(device, command_pool, transfer_queue, this->m_image, ror::static_cast_safe<uint32_t>(this->mips().size()), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, final_layout);
+		VkCommandPool command_pool = vk_create_command_pools(device, a_device.platform_transfer_queue_index(), 0);
+
+		vk_transition_image_layout(device, command_pool, transfer_queue, this->m_image, ror::static_cast_safe<uint32_t>(this->mips().size()), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &transfer_queue_mutex);
+		vk_copy_staging_buffer_to_image(device, transfer_queue, command_pool, staging_buffer, this->m_image, copy_regions, &transfer_queue_mutex);
+		vk_transition_image_layout(device, command_pool, transfer_queue, this->m_image, ror::static_cast_safe<uint32_t>(this->mips().size()), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, final_layout, &transfer_queue_mutex);
 
 		// Cleanup staging buffers
 		vk_destroy_buffer(device, staging_buffer);
 		vk_destroy_memory(device, staging_memory);
+		vk_destroy_command_pools(device, command_pool);
 	}
 
 	this->ready(true);

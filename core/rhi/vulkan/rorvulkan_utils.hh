@@ -104,7 +104,6 @@ FORCE_INLINE void vk_destroy_image_sampler(VkDevice a_device, VkSampler a_sample
 {
 	vkDestroySampler(a_device, a_sampler, cfg::VkAllocator);
 	a_sampler = nullptr;
-
 }
 
 FORCE_INLINE void vk_destroy_render_pass(VkDevice a_device, VkRenderPass a_render_pass)
@@ -112,4 +111,17 @@ FORCE_INLINE void vk_destroy_render_pass(VkDevice a_device, VkRenderPass a_rende
 	vkDestroyRenderPass(a_device, a_render_pass, cfg::VkAllocator);
 	a_render_pass = nullptr;
 }
+
+FORCE_INLINE void vk_destroy_framebuffers(VkDevice a_device, VkFramebuffer a_framebuffer)
+{
+	vkDestroyFramebuffer(a_device, a_framebuffer, cfg::VkAllocator);
+	a_framebuffer = nullptr;
+}
+
+FORCE_INLINE void vk_destroy_fence(VkDevice a_device, VkFence a_fence)
+{
+	vkDestroyFence(a_device, a_fence, cfg::VkAllocator);
+	a_fence = nullptr;
+}
+
 }        // namespace rhi

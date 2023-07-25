@@ -78,7 +78,7 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	FORCE_INLINE virtual ~PhysicalDevice() noexcept override                       = default;
 
 	FORCE_INLINE auto &memory_properties();
-	FORCE_INLINE auto samples_count();
+	FORCE_INLINE auto  samples_count();
 
 	declare_translation_unit_vtable();
 
@@ -158,33 +158,47 @@ class ROAR_ENGINE_ITEM SwapChain final
 
 using Swapchain = SwapChain *;
 
+struct DeviceQueue
+{
+	uint32_t   m_index{0};
+	VkQueue    m_queue{nullptr};
+	std::mutex m_mutex{};        // These will be problematic when I have only one queue, FIXME:
+};
+
 class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 {
   public:
 	FORCE_INLINE               DeviceVulkan()                                = default;        //! Default constructor
-	FORCE_INLINE               DeviceVulkan(const DeviceVulkan &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE               DeviceVulkan(DeviceVulkan &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE DeviceVulkan &operator=(const DeviceVulkan &a_other)        = default;        //! Copy assignment operator
-	FORCE_INLINE DeviceVulkan &operator=(DeviceVulkan &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE               DeviceVulkan(const DeviceVulkan &a_other)     = delete;         //! Copy constructor
+	FORCE_INLINE               DeviceVulkan(DeviceVulkan &&a_other) noexcept = delete;         //! Move constructor
+	FORCE_INLINE DeviceVulkan &operator=(const DeviceVulkan &a_other)        = delete;         //! Copy assignment operator
+	FORCE_INLINE DeviceVulkan &operator=(DeviceVulkan &&a_other) noexcept    = delete;         //! Move assignment operator
 	FORCE_INLINE virtual ~DeviceVulkan() noexcept override                   = default;        //! Destructor
 
-	FORCE_INLINE void            init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
-	FORCE_INLINE VkDevice        platform_device();
-	FORCE_INLINE VkQueue         platform_graphics_queue();
-	FORCE_INLINE VkQueue         platform_compute_queue();
-	FORCE_INLINE VkQueue         platform_present_queue();
-	FORCE_INLINE VkQueue         platform_transfer_queue();
-	FORCE_INLINE uint32_t        platform_graphics_queue_index();
-	FORCE_INLINE uint32_t        platform_compute_queue_index();
-	FORCE_INLINE uint32_t        platform_present_queue_index();
-	FORCE_INLINE uint32_t        platform_transfer_queue_index();
-	FORCE_INLINE VkCommandPool   platform_graphics_command_pool();
-	FORCE_INLINE VkCommandPool   platform_compute_command_pool();
-	FORCE_INLINE VkCommandPool   platform_transfer_command_pool();
-	FORCE_INLINE VkCommandBuffer platform_command_buffer();
-	FORCE_INLINE Swapchain       platform_swapchain();
-	FORCE_INLINE auto           &memory_properties();
-	FORCE_INLINE auto           samples_count();
+	FORCE_INLINE void  init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
+	FORCE_INLINE auto  platform_device();
+	FORCE_INLINE auto  platform_graphics_queue();
+	FORCE_INLINE auto  platform_compute_queue();
+	FORCE_INLINE auto  platform_transfer_queue();
+	FORCE_INLINE auto  platform_present_queue();
+	FORCE_INLINE auto  platform_sparse_queue();
+	FORCE_INLINE auto  platform_protected_queue();
+	FORCE_INLINE auto  platform_graphics_queue_index();
+	FORCE_INLINE auto  platform_compute_queue_index();
+	FORCE_INLINE auto  platform_transfer_queue_index();
+	FORCE_INLINE auto  platform_present_queue_index();
+	FORCE_INLINE auto  platform_sparse_queue_index();
+	FORCE_INLINE auto  platform_protected_queue_index();
+	FORCE_INLINE auto  platform_command_buffer();
+	FORCE_INLINE auto  platform_swapchain();
+	FORCE_INLINE auto  samples_count();
+	FORCE_INLINE auto &memory_properties();
+	FORCE_INLINE auto &platform_graphics_queue_mutex();
+	FORCE_INLINE auto &platform_compute_queue_mutex();
+	FORCE_INLINE auto &platform_transfer_queue_mutex();
+	FORCE_INLINE auto &platform_present_queue_mutex();
+	FORCE_INLINE auto &platform_sparse_queue_mutex();
+	FORCE_INLINE auto &platform_protected_queue_mutex();
 
   protected:
   private:
@@ -193,7 +207,6 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 
 	void create_surface(void *a_window);
 	void create_device();
-	void create_command_pools();
 
 	Instance       m_instance{};
 	PhysicalDevice m_gpu{};
@@ -202,19 +215,12 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	std::any       m_window{};                //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
 	SwapChain      m_swapchain{};             //! Swapchain images abstraction for Vulkan
 
-	uint32_t      m_graphics_queue_index{0};
-	uint32_t      m_present_queue_index{0};
-	uint32_t      m_transfer_queue_index{0};
-	uint32_t      m_compute_queue_index{0};
-	VkQueue       m_graphics_queue{nullptr};
-	VkQueue       m_compute_queue{nullptr};
-	VkQueue       m_transfer_queue{nullptr};
-	VkQueue       m_present_queue{nullptr};
-	VkQueue       m_sparse_queue{nullptr};
-	VkQueue       m_protected_queue{nullptr};
-	VkCommandPool m_graphics_command_pool{nullptr};
-	VkCommandPool m_compute_command_pool{nullptr};
-	VkCommandPool m_transfer_command_pool{nullptr};
+	DeviceQueue m_graphics_queue{};
+	DeviceQueue m_compute_queue{};
+	DeviceQueue m_transfer_queue{};
+	DeviceQueue m_present_queue{};
+	DeviceQueue m_sparse_queue{};
+	DeviceQueue m_protected_queue{};
 
 	declare_translation_unit_vtable();
 };

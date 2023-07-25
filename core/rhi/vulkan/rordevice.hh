@@ -63,13 +63,6 @@ FORCE_INLINE void *resize_ca_vulkan_layer(std::any a_window, VkDevice a_device, 
 	return ca_vulkan_layer;
 }
 
-FORCE_INLINE void DeviceVulkan::create_command_pools()
-{
-	this->m_graphics_command_pool = vk_create_command_pools(this->m_device, this->m_graphics_queue_index, 0);        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
-	this->m_compute_command_pool  = vk_create_command_pools(this->m_device, this->m_compute_queue_index, 0);
-	this->m_transfer_command_pool = vk_create_command_pools(this->m_device, this->m_transfer_queue_index, 0);
-}
-
 // This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
 FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
 {
@@ -77,7 +70,6 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 
 	this->create_surface(a_window);
 	this->create_device();
-	this->create_command_pools();
 
 	if (!this->m_device)
 	{
@@ -102,91 +94,128 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 	resize_callback(e);
 }
 
-FORCE_INLINE VkDevice DeviceVulkan::platform_device()
+FORCE_INLINE auto DeviceVulkan::platform_device()
 {
 	assert(this->m_device && "Vulkan device requested is null");
 
 	return this->m_device;
 }
 
-FORCE_INLINE VkQueue DeviceVulkan::platform_graphics_queue()
+FORCE_INLINE auto DeviceVulkan::platform_graphics_queue()
 {
-	assert(this->m_graphics_queue && "Vulkan graphics queue requested is null");
+	assert(this->m_graphics_queue.m_queue && "Vulkan graphics queue requested is null");
 
-	return this->m_graphics_queue;
+	return this->m_graphics_queue.m_queue;
 }
 
-FORCE_INLINE VkQueue DeviceVulkan::platform_compute_queue()
+FORCE_INLINE auto DeviceVulkan::platform_compute_queue()
 {
-	assert(this->m_compute_queue && "Vulkan compute queue requested is null");
+	assert(this->m_compute_queue.m_queue && "Vulkan compute queue requested is null");
 
-	return this->m_compute_queue;
+	return this->m_compute_queue.m_queue;
 }
 
-FORCE_INLINE VkQueue DeviceVulkan::platform_present_queue()
+FORCE_INLINE auto DeviceVulkan::platform_transfer_queue()
 {
-	assert(this->m_present_queue && "Vulkan present queue requested is null");
+	assert(this->m_transfer_queue.m_queue && "Vulkan transfer queue requested is null");
 
-	return this->m_present_queue;
+	return this->m_transfer_queue.m_queue;
 }
 
-FORCE_INLINE VkQueue DeviceVulkan::platform_transfer_queue()
+FORCE_INLINE auto DeviceVulkan::platform_present_queue()
 {
-	assert(this->m_transfer_queue && "Vulkan transfer queue requested is null");
+	assert(this->m_present_queue.m_queue && "Vulkan present queue requested is null");
 
-	return this->m_transfer_queue;
+	return this->m_present_queue.m_queue;
 }
 
-FORCE_INLINE uint32_t DeviceVulkan::platform_graphics_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_sparse_queue()
 {
-	assert(this->m_graphics_queue && "Vulkan graphics queue requested is null");
+	assert(this->m_sparse_queue.m_queue && "Vulkan sparse queue requested is null");
 
-	return this->m_graphics_queue_index;
+	return this->m_sparse_queue.m_queue;
 }
 
-FORCE_INLINE uint32_t DeviceVulkan::platform_compute_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_protected_queue()
 {
-	assert(this->m_compute_queue && "Vulkan compute queue requested is null");
+	assert(this->m_protected_queue.m_queue && "Vulkan protected queue requested is null");
 
-	return this->m_compute_queue_index;
+	return this->m_protected_queue.m_queue;
 }
 
-FORCE_INLINE uint32_t DeviceVulkan::platform_present_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_graphics_queue_index()
 {
-	assert(this->m_present_queue && "Vulkan present queue requested is null");
+	assert(this->m_graphics_queue.m_queue && "Vulkan graphics queue requested is null");
 
-	return this->m_present_queue_index;
+	return this->m_graphics_queue.m_index;
 }
 
-FORCE_INLINE uint32_t DeviceVulkan::platform_transfer_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_compute_queue_index()
 {
-	assert(this->m_transfer_queue && "Vulkan transfer queue requested is null");
+	assert(this->m_compute_queue.m_queue && "Vulkan compute queue requested is null");
 
-	return this->m_transfer_queue_index;
+	return this->m_compute_queue.m_index;
 }
 
-FORCE_INLINE VkCommandPool DeviceVulkan::platform_graphics_command_pool()
+FORCE_INLINE auto DeviceVulkan::platform_transfer_queue_index()
 {
-	assert(this->m_graphics_command_pool && "Vulkan graphics command pool requested is null");
+	assert(this->m_transfer_queue.m_queue && "Vulkan transfer queue requested is null");
 
-	return this->m_graphics_command_pool;
+	return this->m_transfer_queue.m_index;
 }
 
-FORCE_INLINE VkCommandPool DeviceVulkan::platform_compute_command_pool()
+FORCE_INLINE auto DeviceVulkan::platform_present_queue_index()
 {
-	assert(this->m_compute_command_pool && "Vulkan compute command pool requested is null");
+	assert(this->m_present_queue.m_queue && "Vulkan present queue requested is null");
 
-	return this->m_compute_command_pool;
+	return this->m_present_queue.m_index;
 }
 
-FORCE_INLINE VkCommandPool DeviceVulkan::platform_transfer_command_pool()
+FORCE_INLINE auto DeviceVulkan::platform_sparse_queue_index()
 {
-	assert(this->m_transfer_command_pool && "Vulkan transfer command pool requested is null");
+	assert(this->m_sparse_queue.m_queue && "Vulkan sparse queue requested is null");
 
-	return this->m_transfer_command_pool;
+	return this->m_sparse_queue.m_index;
 }
 
-FORCE_INLINE VkCommandBuffer DeviceVulkan::platform_command_buffer()
+FORCE_INLINE auto DeviceVulkan::platform_protected_queue_index()
+{
+	assert(this->m_protected_queue.m_queue && "Vulkan protected queue requested is null");
+
+	return this->m_protected_queue.m_index;
+}
+
+FORCE_INLINE auto &DeviceVulkan::platform_graphics_queue_mutex()
+{
+	return this->m_graphics_queue.m_mutex;
+}
+
+FORCE_INLINE auto &DeviceVulkan::platform_compute_queue_mutex()
+{
+	return this->m_compute_queue.m_mutex;
+}
+
+FORCE_INLINE auto &DeviceVulkan::platform_transfer_queue_mutex()
+{
+	return this->m_transfer_queue.m_mutex;
+}
+
+FORCE_INLINE auto &DeviceVulkan::platform_present_queue_mutex()
+{
+	return this->m_present_queue.m_mutex;
+}
+
+FORCE_INLINE auto &DeviceVulkan::platform_sparse_queue_mutex()
+{
+	return this->m_sparse_queue.m_mutex;
+}
+
+FORCE_INLINE auto &DeviceVulkan::platform_protected_queue_mutex()
+{
+	return this->m_protected_queue.m_mutex;
+}
+
+FORCE_INLINE auto DeviceVulkan::platform_command_buffer()
 {
 	VkCommandBuffer buffer{nullptr};
 
@@ -209,7 +238,7 @@ FORCE_INLINE VkCommandBuffer DeviceVulkan::platform_command_buffer()
 	return buffer;
 }
 
-FORCE_INLINE rhi::Swapchain DeviceVulkan::platform_swapchain()
+FORCE_INLINE auto DeviceVulkan::platform_swapchain()
 {
 	assert(this->m_swapchain.swapchain() && "Vulkan swapchain is null, can't create swapchain");
 

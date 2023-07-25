@@ -187,23 +187,29 @@ void DeviceVulkan::create_device()
 		delete priority;
 	priorities_pointers.clear();
 
-	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[graphics_index].first].queueFamilyIndex, queue_data.m_indicies[graphics_index].second, &this->m_graphics_queue);
-	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[compute_index].first].queueFamilyIndex, queue_data.m_indicies[compute_index].second, &this->m_compute_queue);
-	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[transfer_index].first].queueFamilyIndex, queue_data.m_indicies[transfer_index].second, &this->m_transfer_queue);
-	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[sparse_index].first].queueFamilyIndex, queue_data.m_indicies[sparse_index].second, &this->m_sparse_queue);
-	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[protected_index].first].queueFamilyIndex, queue_data.m_indicies[protected_index].second, &this->m_protected_queue);
+	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[graphics_index].first].queueFamilyIndex, queue_data.m_indicies[graphics_index].second, &this->m_graphics_queue.m_queue);
+	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[compute_index].first].queueFamilyIndex, queue_data.m_indicies[compute_index].second, &this->m_compute_queue.m_queue);
+	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[transfer_index].first].queueFamilyIndex, queue_data.m_indicies[transfer_index].second, &this->m_transfer_queue.m_queue);
+	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[sparse_index].first].queueFamilyIndex, queue_data.m_indicies[sparse_index].second, &this->m_sparse_queue.m_queue);
+	vkGetDeviceQueue(this->m_device, queues[queue_data.m_indicies[protected_index].first].queueFamilyIndex, queue_data.m_indicies[protected_index].second, &this->m_protected_queue.m_queue);
 
-	this->m_graphics_queue_index = queues[queue_data.m_indicies[graphics_index].first].queueFamilyIndex;
-	this->m_present_queue_index  = this->m_graphics_queue_index;
+	this->m_graphics_queue.m_index = queues[queue_data.m_indicies[graphics_index].first].queueFamilyIndex;
+	this->m_present_queue.m_index  = this->m_graphics_queue.m_index;
 
 	// Graphics and Present queues are the same
-	this->m_present_queue = this->m_graphics_queue;
+	this->m_present_queue.m_queue = this->m_graphics_queue.m_queue;
 
 	// Set transfer queue index as well
-	this->m_transfer_queue_index = queues[queue_data.m_indicies[transfer_index].first].queueFamilyIndex;
+	this->m_transfer_queue.m_index = queues[queue_data.m_indicies[transfer_index].first].queueFamilyIndex;
 
 	// Set compute queue index as well
-	this->m_compute_queue_index = queues[queue_data.m_indicies[compute_index].first].queueFamilyIndex;
+	this->m_compute_queue.m_index = queues[queue_data.m_indicies[compute_index].first].queueFamilyIndex;
+
+	// Set sparse queue index as well
+	this->m_sparse_queue.m_index = queues[queue_data.m_indicies[sparse_index].first].queueFamilyIndex;
+
+	// Set protected queue index as well
+	this->m_protected_queue.m_index = queues[queue_data.m_indicies[protected_index].first].queueFamilyIndex;
 }
 
 }        // namespace rhi

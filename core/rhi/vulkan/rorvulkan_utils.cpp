@@ -30,7 +30,10 @@
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 #include <cstddef>
 #include <filesystem>
+#include <mutex>
 #include <vector>
+
+#define FENCE_TIMEOUT 100000000000
 
 namespace rhi
 {
@@ -194,7 +197,7 @@ VkBufferMemoryBarrier2 vk_create_buffer_barrier(VkBuffer a_buffer, VkPipelineSta
 	return buffer_barrier;
 }
 
-void vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout)
+void vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex)
 {
 	VkCommandBuffer command_buffer = vk_begin_single_use_command_buffer(a_device, a_command_pool);
 
@@ -240,20 +243,22 @@ void vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool,
 
 	vkCmdPipelineBarrier(command_buffer, source_stage, destination_stage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-	vk_end_single_use_command_buffer_and_wait(a_device, command_buffer, a_transfer_queue, a_command_pool);
+	vk_end_single_use_command_buffer_and_wait(a_device, command_buffer, a_transfer_queue, a_command_pool, a_mutex);
 }
 
 void vk_copy_staging_buffer_to_image(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
-                                     VkBuffer a_source, VkImage a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions)
+                                     VkBuffer a_source, VkImage a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions, std::mutex *a_mutex)
 {
 	VkCommandBuffer staging_command_buffer = vk_begin_single_use_command_buffer(a_device, a_command_pool);
+
 	vkCmdCopyBufferToImage(staging_command_buffer, a_source, a_destination, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, ror::static_cast_safe<uint32_t>(buffer_image_copy_regions.size()), buffer_image_copy_regions.data());
-	vk_end_single_use_command_buffer_and_wait(a_device, staging_command_buffer, transfer_queue, a_command_pool);
+
+	vk_end_single_use_command_buffer_and_wait(a_device, staging_command_buffer, transfer_queue, a_command_pool, a_mutex);
 }
 
 // This is taking std::vectors instead of VkBuffer and VkImage so that we only use single cmdbuffer
 void vk_copy_staging_buffers_to_images(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
-                                       std::vector<VkBuffer> &a_source, std::vector<VkImage> &a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions)
+                                       std::vector<VkBuffer> &a_source, std::vector<VkImage> &a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions, std::mutex *a_mutex)
 {
 	VkCommandBuffer staging_command_buffer = vk_begin_single_use_command_buffer(a_device, a_command_pool);
 
@@ -265,7 +270,7 @@ void vk_copy_staging_buffers_to_images(VkDevice a_device, VkQueue transfer_queue
 	for (size_t i = 0; i < a_source.size(); ++i)
 		vkCmdCopyBufferToImage(staging_command_buffer, a_source[i], a_destination[i], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, ror::static_cast_safe<uint32_t>(buffer_image_copy_regions.size()), buffer_image_copy_regions.data());
 
-	vk_end_single_use_command_buffer_and_wait(a_device, staging_command_buffer, transfer_queue, a_command_pool);
+	vk_end_single_use_command_buffer_and_wait(a_device, staging_command_buffer, transfer_queue, a_command_pool, a_mutex);
 }
 
 VkSwapchainKHR vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat &swapchain_format, VkExtent2D a_swapchain_extent)
@@ -651,53 +656,99 @@ VkCommandBuffer vk_begin_single_use_command_buffer(VkDevice a_device, VkCommandP
 	return staging_command_buffer;
 }
 
-void vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, VkFence a_fence)
+// Usage is like
+// auto fence = vk_create_fence(device);
+// auto result = vkResetFences(device, 1, &fence);
+// result = vkQueueWaitIdle(a_queue);
+// check_return_status(result, "vkQueueWaitIdle");
+// vkWaitForFences(device, 1, &fence, VK_TRUE, FENCE_TIMEOUT);
+VkFence vk_create_fence(VkDevice a_device, VkFenceCreateFlags a_flags)
 {
-	auto result = vkQueueSubmit(a_queue, 1, &a_submit_info, a_fence);
-	check_return_status(result, "vkQueueSubmit");
+	(void) FENCE_TIMEOUT;
+
+	VkFenceCreateInfo fence_create_info{};
+
+	fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fence_create_info.pNext = nullptr;
+	fence_create_info.flags = a_flags;        // not VK_FENCE_CREATE_SIGNALED_BIT to start with
+
+	VkFence fence;
+	auto    result = vkCreateFence(a_device, &fence_create_info, cfg::VkAllocator, &fence);
+	check_return_status(result, "vkCreateFence");
+
+	return fence;
 }
 
-void vk_queue_submit(VkQueue a_queue, std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence)
+// https://quick-bench.com/q/0pML2GpVI8eC_J3aZAdK4kDJeHY tests whether having a mutex in single threaded app matters
+// The answer is yes. Try to avoid a lock when you don't need it in single threaded app or otherwise with  an if
+void vk_queue_submit(VkQueue a_queue, uint32_t a_submit_info_count, const VkSubmitInfo *a_submit_info, VkFence a_fence, std::mutex *a_mutex)
 {
-	auto result = vkQueueSubmit(a_queue, ror::static_cast_safe<uint32_t>(a_submit_info.size()), a_submit_info.data(), a_fence);
-	check_return_status(result, "vkQueueSubmit");
+	VkResult result{VK_SUCCESS};
+	if (!a_mutex)
+	{
+		result = vkQueueSubmit(a_queue, a_submit_info_count, a_submit_info, a_fence);
+		check_return_status(result, "vkQueueSubmit");
+	}
+	else
+	{
+		std::scoped_lock<std::mutex> lock{*a_mutex};
+
+		result = vkQueueSubmit(a_queue, a_submit_info_count, a_submit_info, a_fence);
+		check_return_status(result, "vkQueueSubmit");
+	}
 }
 
-void vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence)
+void vk_queue_submit(VkQueue a_queue, std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence, std::mutex *a_mutex)
+{
+	vk_queue_submit(a_queue, ror::static_cast_safe<uint32_t>(a_submit_info.size()), a_submit_info.data(), a_fence, a_mutex);
+}
+
+void vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence, std::mutex *a_mutex)
 {
 	VkSubmitInfo submit_info{};
 	submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submit_info.commandBufferCount = 1;
 	submit_info.pCommandBuffers    = &a_command_buffer;
 
-	vk_queue_submit(a_queue, submit_info, a_fence);
+	vk_queue_submit(a_queue, 1, &submit_info, a_fence, a_mutex);
 }
 
-void vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, std::vector<VkCommandBuffer> a_command_buffers, VkFence a_fence)
+void vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, std::vector<VkCommandBuffer> a_command_buffers, VkFence a_fence, std::mutex *a_mutex)
 {
-	a_submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	a_submit_info.commandBufferCount = ror::static_cast_safe<uint32_t>(a_command_buffers.size());
-	a_submit_info.pCommandBuffers    = a_command_buffers.data();
+	VkSubmitInfo submit_info{a_submit_info};
+	submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.commandBufferCount = ror::static_cast_safe<uint32_t>(a_command_buffers.size());
+	submit_info.pCommandBuffers    = a_command_buffers.data();
 
-	vk_queue_submit(a_queue, a_submit_info, a_fence);
+	vk_queue_submit(a_queue, 1, &submit_info, a_fence, a_mutex);
 }
 
-void vk_queue_wait_idle(VkQueue a_queue)
+void vk_queue_wait_idle(VkQueue a_queue, std::mutex *a_mutex)
 {
-	auto result = vkQueueWaitIdle(a_queue);
-	check_return_status(result, "vkQueueWaitIdle");
+	if (!a_mutex)
+	{
+		auto result = vkQueueWaitIdle(a_queue);
+		check_return_status(result, "vkQueueWaitIdle");
+	}
+	else
+	{
+		std::scoped_lock<std::mutex> lock{*a_mutex};
+
+		auto result = vkQueueWaitIdle(a_queue);
+		check_return_status(result, "vkQueueWaitIdle");
+	}
 }
 
-void vk_end_single_use_command_buffer(VkCommandBuffer a_command_buffer, VkQueue a_queue)
+void vk_end_single_use_command_buffer(VkCommandBuffer a_command_buffer, VkQueue a_queue, std::mutex *a_mutex)
 {
 	vk_end_command_buffer(a_command_buffer);
-	vk_queue_submit(a_queue, a_command_buffer, VK_NULL_HANDLE);
+	vk_queue_submit(a_queue, a_command_buffer, VK_NULL_HANDLE, a_mutex);
 }
 
-void vk_end_single_use_command_buffer_and_wait(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_transfer_queue, VkCommandPool a_command_pool)
+void vk_end_single_use_command_buffer_and_wait(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_transfer_queue, VkCommandPool a_command_pool, std::mutex *a_mutex)
 {
-	vk_end_single_use_command_buffer(a_command_buffer, a_transfer_queue);
-	vk_queue_wait_idle(a_transfer_queue);
+	vk_end_single_use_command_buffer(a_command_buffer, a_transfer_queue, a_mutex);
+	vk_queue_wait_idle(a_transfer_queue, a_mutex);
 	vk_destroy_command_buffer(a_device, a_command_buffer, a_command_pool);
 }
 
@@ -887,7 +938,7 @@ VkSubpassDescription vk_create_subpass_description(VkPipelineBindPoint a_pipelin
 }
 
 VkSubpassDependency vk_create_subpass_dependency(uint32_t a_src_subpass, uint32_t a_dst_subpass, VkPipelineStageFlags a_src_stage_mask, VkPipelineStageFlags a_dst_stage_mask,
-                                                 VkAccessFlags a_src_access_mask, VkAccessFlags a_dst_access_mask, VkDependencyFlags a_dependency_flags)// , int32_t a_view_offset)
+                                                 VkAccessFlags a_src_access_mask, VkAccessFlags a_dst_access_mask, VkDependencyFlags a_dependency_flags)        // , int32_t a_view_offset)
 {
 	// For details of how this works read https://www.reddit.com/r/vulkan/comments/s80reu/subpass_dependencies_what_are_those_and_why_do_i/
 
@@ -905,6 +956,27 @@ VkSubpassDependency vk_create_subpass_dependency(uint32_t a_src_subpass, uint32_
 	// subpass_dependency.viewOffset      = a_view_offset;
 
 	return subpass_dependency;
+}
+
+VkFramebuffer vk_create_framebuffer(VkDevice a_device, VkRenderPass a_renderpass, std::vector<VkImageView> a_attachments, VkExtent2D a_dimensions)
+{
+	VkFramebufferCreateInfo framebuffer_info = {};
+
+	framebuffer_info.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	framebuffer_info.pNext           = nullptr;
+	framebuffer_info.flags           = 0;
+	framebuffer_info.renderPass      = a_renderpass;
+	framebuffer_info.attachmentCount = static_cast<uint32_t>(a_attachments.size());
+	framebuffer_info.pAttachments    = a_attachments.data();
+	framebuffer_info.width           = a_dimensions.width;
+	framebuffer_info.height          = a_dimensions.height;
+	framebuffer_info.layers          = 1;
+
+	VkFramebuffer framebuffer{nullptr};
+	VkResult      result = vkCreateFramebuffer(a_device, &framebuffer_info, cfg::VkAllocator, &framebuffer);
+	check_return_status(result, "vkCreateFramebuffer");
+
+	return framebuffer;
 }
 
 }        // namespace rhi

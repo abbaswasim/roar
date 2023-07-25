@@ -28,6 +28,7 @@
 #include "core/settings/rorsettings.hpp"
 #include "foundation/rormacros.hpp"
 #include "rhi/vulkan/rorvulkan_object.hpp"
+#include <mutex>
 
 namespace cfg
 {
@@ -76,22 +77,22 @@ uint32_t                              vk_find_memory_type(uint32_t a_type_filter
 uint8_t                              *vk_map_memory(VkDevice a_device, VkDeviceMemory a_memory);
 void                                  vk_unmap_memory(VkDevice a_device, VkDeviceMemory a_memory);
 VkCommandBuffer                       vk_begin_single_use_command_buffer(VkDevice a_device, VkCommandPool a_command_pool);
-void                                  vk_end_single_use_command_buffer(VkCommandBuffer a_command_buffer, VkQueue a_queue);
-void                                  vk_end_single_use_command_buffer_and_wait(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_queue, VkCommandPool a_command_pool);
+void                                  vk_end_single_use_command_buffer(VkCommandBuffer a_command_buffer, VkQueue a_queue, std::mutex *a_mutex);
+void                                  vk_end_single_use_command_buffer_and_wait(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_queue, VkCommandPool a_command_pool, std::mutex *a_mutex);
 VkCommandPool                         vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family_index, VkCommandPoolCreateFlags a_flags);        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 VkCommandBuffer                       vk_allocate_command_buffer(VkDevice a_device, VkCommandPool a_command_pool);
 void                                  vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info);
 void                                  vk_end_command_buffer(VkCommandBuffer a_command_buffer);
-void                                  vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, VkFence a_fence);
-void                                  vk_queue_submit(VkQueue a_queue, std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence);
-void                                  vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence);
-void                                  vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, std::vector<VkCommandBuffer> a_command_buffers, VkFence a_fence);
-void                                  vk_queue_wait_idle(VkQueue a_queue);
-void                                  vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout);
+void                                  vk_queue_submit(VkQueue a_queue, uint32_t a_submit_info_count, const VkSubmitInfo *a_submit_info, VkFence a_fence, std::mutex *a_mutex);
+void                                  vk_queue_submit(VkQueue a_queue, std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence, std::mutex *a_mutex);
+void                                  vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence, std::mutex *a_mutex);
+void                                  vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, std::vector<VkCommandBuffer> a_command_buffers, VkFence a_fence, std::mutex *a_mutex);
+void                                  vk_queue_wait_idle(VkQueue a_queue, std::mutex *a_mutex);
+void                                  vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex);
 void                                  vk_copy_staging_buffer_to_image(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
-                                                                      VkBuffer a_source, VkImage a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions);
+                                                                      VkBuffer a_source, VkImage a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions, std::mutex *a_mutex);
 void                                  vk_copy_staging_buffers_to_images(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
-                                                                        std::vector<VkBuffer> &a_source, std::vector<VkImage> &a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions);
+                                                                        std::vector<VkBuffer> &a_source, std::vector<VkImage> &a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions, std::mutex *a_mutex);
 VkRenderPass                          vk_create_render_pass(VkDevice a_device, const VkAttachmentDescription &a_attachments, const VkSubpassDescription &a_subpasses, const VkSubpassDependency &a_dependencies);
 VkRenderPass                          vk_create_render_pass(VkDevice a_device, std::vector<VkAttachmentDescription> &&a_attachments, const std::vector<VkSubpassDescription> &a_subpasses, const std::vector<VkSubpassDependency> &a_dependencies);
 VkAttachmentDescription               vk_create_attachment_description(VkFormat a_format, VkSampleCountFlagBits a_samples = VK_SAMPLE_COUNT_4_BIT,
@@ -111,10 +112,12 @@ VkSubpassDescription                  vk_create_subpass_description(VkPipelineBi
 VkSubpassDescription                  vk_create_subpass_description(VkPipelineBindPoint a_pipeline_bind_point, const std::vector<VkAttachmentReference> &a_input_attachments, const std::vector<VkAttachmentReference> &a_color_attachment_reference,
                                                                     const VkAttachmentReference *a_depth_attachment_reference, const VkAttachmentReference *a_resolve_attachment_reference);
 VkSubpassDependency                   vk_create_subpass_dependency(uint32_t a_src_subpass, uint32_t a_dst_subpass, VkPipelineStageFlags a_src_stage_mask, VkPipelineStageFlags a_dst_stage_mask,
-                                                                   VkAccessFlags a_src_access_mask, VkAccessFlags a_dst_access_mask, VkDependencyFlags a_dependency_flags = 0);//, int32_t a_view_offset = 0);
+                                                                   VkAccessFlags a_src_access_mask, VkAccessFlags a_dst_access_mask, VkDependencyFlags a_dependency_flags = 0);        //, int32_t a_view_offset = 0);
 VkImageMemoryBarrier2                 vk_create_image_barrier(VkImage a_image, VkPipelineStageFlags2 a_src_stage_mask, VkAccessFlags2 a_src_access_mask, VkImageLayout a_old_layout, VkImageLayout a_new_layout,
                                                               VkPipelineStageFlags2 a_dst_stage_mask, VkAccessFlags2 a_dst_access_mask, VkImageAspectFlags a_aspect_mask, uint32_t a_base_mip_level, uint32_t a_mip_level_count);
 VkBufferMemoryBarrier2                vk_create_buffer_barrier(VkBuffer a_buffer, VkPipelineStageFlags2 a_src_stage_mask, VkAccessFlags2 a_src_access_mask, VkPipelineStageFlags2 a_dst_stage_mask, VkAccessFlags2 a_dst_access_mask);
+VkFramebuffer                         vk_create_framebuffer(VkDevice a_device, VkRenderPass a_renderpass, std::vector<VkImageView> a_attachments, VkExtent2D a_dimensions);
+VkFence                               vk_create_fence(VkDevice a_device, VkFenceCreateFlags a_flags = 0);
 
 FORCE_INLINE void vk_destroy_swapchain(VkDevice a_device, VkSwapchainKHR a_swapchain);
 FORCE_INLINE void vk_destroy_imageview(VkDevice a_device, VkImageView a_image_view);
@@ -130,6 +133,8 @@ FORCE_INLINE void vk_destroy_image(VkDevice a_device, VkImage a_image);
 FORCE_INLINE void vk_destroy_image_view(VkDevice a_device, VkImageView a_view);
 FORCE_INLINE void vk_destroy_image_sampler(VkDevice a_device, VkSampler a_sampler);
 FORCE_INLINE void vk_destroy_render_pass(VkDevice a_device);
+FORCE_INLINE void vk_destroy_fence(VkDevice a_device, VkFence a_fence);
+FORCE_INLINE void vk_destroy_framebuffers(VkDevice a_device, VkFramebuffer a_framebuffer);
 
 }        // namespace rhi
 

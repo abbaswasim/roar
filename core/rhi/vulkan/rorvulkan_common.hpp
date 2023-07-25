@@ -139,13 +139,13 @@ constexpr FORCE_INLINE auto to_vulkan_step_function(rhi::StepFunction a_function
 {
 	switch (a_function)
 	{
-	// clang-format off
+			// clang-format off
 	case rhi::StepFunction::vertex:                       return VkVertexInputRate::VK_VERTEX_INPUT_RATE_VERTEX;
 	case rhi::StepFunction::constant:                     assert(0 && "Don't support rhi::StepFunction::constant in Vulkan");
 	case rhi::StepFunction::instance:                     return VkVertexInputRate::VK_VERTEX_INPUT_RATE_INSTANCE;
 	case rhi::StepFunction::patch:                        assert(0 && "Don't support rhi::StepFunction::patch in Vulkan");
 	case rhi::StepFunction::patch_control_point:          assert(0 && "Don't support rhi::StepFunction::patch_control_point in Vulkan");
-	// clang-format on
+			// clang-format on
 	}
 
 	assert(0 && "Shouldn't reach here");

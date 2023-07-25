@@ -129,9 +129,10 @@ void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, 
 
 	if (this->storage_mode() == rhi::ResourceStorageOption::exclusive)
 	{
-		VkDevice                          device         = a_device.platform_device();
-		VkQueue                           transfer_queue = a_device.platform_transfer_queue();
-		VkCommandPool                     command_pool   = a_device.platform_transfer_command_pool();
+		VkDevice                          device               = a_device.platform_device();
+		VkQueue                           transfer_queue       = a_device.platform_transfer_queue();
+		std::mutex                       &transfer_queue_mutex = a_device.platform_transfer_queue_mutex();
+		VkCommandPool                     command_pool         = vk_create_command_pools(device, a_device.platform_transfer_queue_index(), 0);
 		VkBuffer                          staging_buffer{nullptr};
 		VkDeviceMemory                    staging_memory{nullptr};
 		VkBufferCopy                      buffer_buffer_copy_region{};
@@ -156,11 +157,12 @@ void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, 
 		// Now blit it into the GPU resident buffer
 		vkCmdCopyBuffer(staging_command_buffer, staging_buffer, this->m_buffer, 1, &buffer_buffer_copy_region);
 
-		// Note, there is possibility of waiting for fence while these uploads happen but it doesn't work in this architecture, thats why this command does waitIdle
-		vk_end_single_use_command_buffer_and_wait(device, staging_command_buffer, transfer_queue, command_pool);
+		// NOTE: there is possibility of waiting for fence while these uploads happen but it doesn't work in this architecture, thats why this command does waitIdle
+		vk_end_single_use_command_buffer_and_wait(device, staging_command_buffer, transfer_queue, command_pool, &transfer_queue_mutex);
 
 		vk_destroy_memory(device, staging_memory);
 		vk_destroy_buffer(device, staging_buffer);
+		vk_destroy_command_pools(device, command_pool);
 
 		this->ready(true);
 	}
