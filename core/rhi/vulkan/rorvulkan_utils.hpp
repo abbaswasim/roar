@@ -41,7 +41,7 @@ namespace rhi
 
 // TODO: turn some of these smaller functions into inlines
 
-VkDevice                              vk_create_device(VkPhysicalDevice physical_device, std::vector<VkDeviceQueueCreateInfo> &queues);
+VkDevice                              vk_create_device(VkPhysicalDevice physical_device, const std::vector<VkDeviceQueueCreateInfo> &queues);
 VkSwapchainKHR                        vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat &a_format, VkExtent2D a_swapchain_extent);
 VkImageView                           vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, uint32_t a_mip_levels, VkImageAspectFlags a_aspect_flags,
                                                            VkImageViewType    a_type      = VK_IMAGE_VIEW_TYPE_2D,
@@ -51,11 +51,11 @@ VkImageView                           vk_create_image_view(VkDevice a_device, Vk
                                                            VkComponentSwizzle a_a_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY);
 VkImage                               vk_create_image(VkDevice a_device, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage,
                                                       VkImageType a_image_type = VK_IMAGE_TYPE_2D, VkImageTiling a_tiling = VK_IMAGE_TILING_OPTIMAL, VkImageLayout a_initial_layout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                                      VkSharingMode a_sharing_mode = VK_SHARING_MODE_EXCLUSIVE, VkSampleCountFlagBits a_samples_count = VK_SAMPLE_COUNT_1_BIT, std::vector<uint32_t> &&a_queue_family_indices = {});
+                                                      VkSharingMode a_sharing_mode = VK_SHARING_MODE_EXCLUSIVE, VkSampleCountFlagBits a_samples_count = VK_SAMPLE_COUNT_1_BIT, const std::vector<uint32_t> &&a_queue_family_indices = {});
 void                                  vk_create_image_with_memory(VkDevice a_device, VkImage &a_image, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage,
                                                                   VkDeviceMemory &a_memory, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties,
                                                                   VkImageType a_image_type = VK_IMAGE_TYPE_2D, VkImageTiling a_tiling = VK_IMAGE_TILING_OPTIMAL, VkImageLayout a_initial_layout = VK_IMAGE_LAYOUT_UNDEFINED,
-                                                                  VkSharingMode a_sharing_mode = VK_SHARING_MODE_EXCLUSIVE, VkSampleCountFlagBits a_samples_count = VK_SAMPLE_COUNT_1_BIT, std::vector<uint32_t> &&a_queue_family_indices = {});
+                                                                  VkSharingMode a_sharing_mode = VK_SHARING_MODE_EXCLUSIVE, VkSampleCountFlagBits a_samples_count = VK_SAMPLE_COUNT_1_BIT, const std::vector<uint32_t> &&a_queue_family_indices = {});
 VkSampler                             vk_create_image_sampler(VkDevice a_device, VkSamplerAddressMode a_wrap_u, VkSamplerAddressMode a_wrap_v, VkSamplerAddressMode a_wrap_w,
                                                               VkFilter a_min_filter, VkFilter a_mag_filter, VkSamplerMipmapMode a_mip_filter,
                                                               VkBorderColor a_border_color = VK_BORDER_COLOR_INT_OPAQUE_BLACK, bool a_compare = false, VkCompareOp a_comapre_op = VK_COMPARE_OP_ALWAYS,
@@ -65,13 +65,13 @@ VkPipelineDepthStencilStateCreateInfo vk_create_depth_stencil_state(bool a_depth
                                                                     bool a_depth_bound_test = false, float32_t a_min_depth_bound = 0.0f, float32_t a_max_depth_bound = 1.0f);
 VkPipelineShaderStageCreateInfo       vk_create_pipeline_shader_stage(VkShaderStageFlagBits a_shader_stage_flags, const char *a_name, VkShaderModule a_shader_module);
 VkShaderModule                        vk_create_shader_module(VkDevice a_device, const std::vector<uint32_t> &a_spirv_code);
-VkBuffer                              vk_create_buffer(VkDevice a_device, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, std::vector<uint32_t> a_family_queue_indices = {});
+VkBuffer                              vk_create_buffer(VkDevice a_device, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, const std::vector<uint32_t> &a_family_queue_indices = {});
 VkDeviceMemory                        vk_allocate_memory(VkDevice a_device, VkDeviceSize a_size, uint32_t a_memory_type_index);
 VkMemoryRequirements2                 vk_buffer_memory_requirements(VkDevice a_device, VkBuffer a_buffer);
 VkMemoryRequirements2                 vk_image_memory_requirements(VkDevice a_device, VkImage a_image);
 void                                  vk_bind_buffer_memory(VkDevice a_device, VkBuffer a_buffer, VkDeviceMemory a_memory);
 VkDeviceMemory                        vk_bind_buffer_memory(VkDevice a_device, VkBuffer a_buffer, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties);
-void                                  vk_create_buffer_with_memory(VkDevice a_device, VkBuffer &a_buffer, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, std::vector<uint32_t> &a_queue_family_indices,
+void                                  vk_create_buffer_with_memory(VkDevice a_device, VkBuffer &a_buffer, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, const std::vector<uint32_t> &a_queue_family_indices,
                                                                    VkDeviceMemory &a_memory, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties);
 uint32_t                              vk_find_memory_type(uint32_t a_type_filter, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties);
 uint8_t                              *vk_map_memory(VkDevice a_device, VkDeviceMemory a_memory);
@@ -84,17 +84,17 @@ VkCommandBuffer                       vk_allocate_command_buffer(VkDevice a_devi
 void                                  vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info);
 void                                  vk_end_command_buffer(VkCommandBuffer a_command_buffer);
 void                                  vk_queue_submit(VkQueue a_queue, uint32_t a_submit_info_count, const VkSubmitInfo *a_submit_info, VkFence a_fence, std::mutex *a_mutex);
-void                                  vk_queue_submit(VkQueue a_queue, std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence, std::mutex *a_mutex);
+void                                  vk_queue_submit(VkQueue a_queue, const std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence, std::mutex *a_mutex);
 void                                  vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence, std::mutex *a_mutex);
-void                                  vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, std::vector<VkCommandBuffer> a_command_buffers, VkFence a_fence, std::mutex *a_mutex);
+void                                  vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, const std::vector<VkCommandBuffer> &a_command_buffers, VkFence a_fence, std::mutex *a_mutex);
 void                                  vk_queue_wait_idle(VkQueue a_queue, std::mutex *a_mutex);
 void                                  vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex);
 void                                  vk_copy_staging_buffer_to_image(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
-                                                                      VkBuffer a_source, VkImage a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions, std::mutex *a_mutex);
+                                                                      VkBuffer a_source, VkImage a_destination, const std::vector<VkBufferImageCopy> &buffer_image_copy_regions, std::mutex *a_mutex);
 void                                  vk_copy_staging_buffers_to_images(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
-                                                                        std::vector<VkBuffer> &a_source, std::vector<VkImage> &a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions, std::mutex *a_mutex);
+                                                                        const std::vector<VkBuffer> &a_source, const std::vector<VkImage> &a_destination, const std::vector<VkBufferImageCopy> &buffer_image_copy_regions, std::mutex *a_mutex);
 VkRenderPass                          vk_create_render_pass(VkDevice a_device, const VkAttachmentDescription &a_attachments, const VkSubpassDescription &a_subpasses, const VkSubpassDependency &a_dependencies);
-VkRenderPass                          vk_create_render_pass(VkDevice a_device, std::vector<VkAttachmentDescription> &&a_attachments, const std::vector<VkSubpassDescription> &a_subpasses, const std::vector<VkSubpassDependency> &a_dependencies);
+VkRenderPass                          vk_create_render_pass(VkDevice a_device, const std::vector<VkAttachmentDescription> &&a_attachments, const std::vector<VkSubpassDescription> &a_subpasses, const std::vector<VkSubpassDependency> &a_dependencies);
 VkAttachmentDescription               vk_create_attachment_description(VkFormat a_format, VkSampleCountFlagBits a_samples = VK_SAMPLE_COUNT_4_BIT,
                                                                        VkAttachmentLoadOp  a_load_op          = VK_ATTACHMENT_LOAD_OP_CLEAR,
                                                                        VkAttachmentStoreOp a_store_op         = VK_ATTACHMENT_STORE_OP_STORE,
@@ -116,7 +116,7 @@ VkSubpassDependency                   vk_create_subpass_dependency(uint32_t a_sr
 VkImageMemoryBarrier2                 vk_create_image_barrier(VkImage a_image, VkPipelineStageFlags2 a_src_stage_mask, VkAccessFlags2 a_src_access_mask, VkImageLayout a_old_layout, VkImageLayout a_new_layout,
                                                               VkPipelineStageFlags2 a_dst_stage_mask, VkAccessFlags2 a_dst_access_mask, VkImageAspectFlags a_aspect_mask, uint32_t a_base_mip_level, uint32_t a_mip_level_count);
 VkBufferMemoryBarrier2                vk_create_buffer_barrier(VkBuffer a_buffer, VkPipelineStageFlags2 a_src_stage_mask, VkAccessFlags2 a_src_access_mask, VkPipelineStageFlags2 a_dst_stage_mask, VkAccessFlags2 a_dst_access_mask);
-VkFramebuffer                         vk_create_framebuffer(VkDevice a_device, VkRenderPass a_renderpass, std::vector<VkImageView> a_attachments, VkExtent2D a_dimensions);
+VkFramebuffer                         vk_create_framebuffer(VkDevice a_device, VkRenderPass a_renderpass, const std::vector<VkImageView> &a_attachments, VkExtent2D a_dimensions, uint32_t a_layers = 1);
 VkFence                               vk_create_fence(VkDevice a_device, VkFenceCreateFlags a_flags = 0);
 
 FORCE_INLINE void vk_destroy_swapchain(VkDevice a_device, VkSwapchainKHR a_swapchain);

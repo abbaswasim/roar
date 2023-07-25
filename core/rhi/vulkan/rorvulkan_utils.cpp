@@ -68,7 +68,7 @@ VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_
 }
 
 VkImage vk_create_image(VkDevice a_device, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage, VkImageType a_image_type,
-                        VkImageTiling a_tiling, VkImageLayout a_initial_layout, VkSharingMode a_sharing_mode, VkSampleCountFlagBits a_samples_count, std::vector<uint32_t> &&a_queue_family_indices)
+                        VkImageTiling a_tiling, VkImageLayout a_initial_layout, VkSharingMode a_sharing_mode, VkSampleCountFlagBits a_samples_count, const std::vector<uint32_t> &&a_queue_family_indices)
 {
 	VkImageCreateInfo image_info{};
 	image_info.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -247,7 +247,7 @@ void vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool,
 }
 
 void vk_copy_staging_buffer_to_image(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
-                                     VkBuffer a_source, VkImage a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions, std::mutex *a_mutex)
+                                     VkBuffer a_source, VkImage a_destination, const std::vector<VkBufferImageCopy> &buffer_image_copy_regions, std::mutex *a_mutex)
 {
 	VkCommandBuffer staging_command_buffer = vk_begin_single_use_command_buffer(a_device, a_command_pool);
 
@@ -258,7 +258,7 @@ void vk_copy_staging_buffer_to_image(VkDevice a_device, VkQueue transfer_queue, 
 
 // This is taking std::vectors instead of VkBuffer and VkImage so that we only use single cmdbuffer
 void vk_copy_staging_buffers_to_images(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
-                                       std::vector<VkBuffer> &a_source, std::vector<VkImage> &a_destination, std::vector<VkBufferImageCopy> buffer_image_copy_regions, std::mutex *a_mutex)
+                                       std::vector<VkBuffer> &a_source, const std::vector<VkImage> &a_destination, const std::vector<VkBufferImageCopy> &buffer_image_copy_regions, std::mutex *a_mutex)
 {
 	VkCommandBuffer staging_command_buffer = vk_begin_single_use_command_buffer(a_device, a_command_pool);
 
@@ -385,7 +385,7 @@ VkSwapchainKHR vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice 
 	return swapchain;
 }
 
-VkDevice vk_create_device(VkPhysicalDevice physical_device, std::vector<VkDeviceQueueCreateInfo> &queues)
+VkDevice vk_create_device(VkPhysicalDevice physical_device, const std::vector<VkDeviceQueueCreateInfo> &queues)
 {
 	// TODO: Select properties/features you need here
 	VkPhysicalDeviceFeatures physical_device_features{};
@@ -450,7 +450,7 @@ VkShaderModule vk_create_shader_module(VkDevice a_device, const std::vector<uint
 	return shader_module;
 }
 
-VkBuffer vk_create_buffer(VkDevice a_device, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, std::vector<uint32_t> a_queue_family_indices)
+VkBuffer vk_create_buffer(VkDevice a_device, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, const std::vector<uint32_t> &a_queue_family_indices)
 {
 	VkBufferCreateInfo buffer_info{};
 
@@ -560,7 +560,7 @@ VkDeviceMemory vk_bind_image_memory(VkDevice a_device, VkImage a_image, VkPhysic
 	return memory;
 }
 
-void vk_create_buffer_with_memory(VkDevice a_device, VkBuffer &a_buffer, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, std::vector<uint32_t> &a_queue_family_indices,
+void vk_create_buffer_with_memory(VkDevice a_device, VkBuffer &a_buffer, size_t a_size, VkBufferUsageFlags a_usage, VkSharingMode a_sharing_mode, const std::vector<uint32_t> &a_queue_family_indices,
                                   VkDeviceMemory &a_memory, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties)
 {
 	assert(a_buffer == nullptr && "Recreating buffer");
@@ -577,7 +577,7 @@ void vk_create_buffer_with_memory(VkDevice a_device, VkBuffer &a_buffer, size_t 
 void vk_create_image_with_memory(VkDevice a_device, VkImage &a_image, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage,
                                  VkDeviceMemory &a_memory, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties,
                                  VkImageType a_image_type, VkImageTiling a_tiling, VkImageLayout a_initial_layout, VkSharingMode a_sharing_mode, VkSampleCountFlagBits a_samples_count,
-                                 std::vector<uint32_t> &&a_queue_family_indices)
+                                 const std::vector<uint32_t> &&a_queue_family_indices)
 {
 	assert(a_image == nullptr && "Recreating image");
 	assert(a_memory == nullptr && "Recreating memory");
@@ -698,7 +698,7 @@ void vk_queue_submit(VkQueue a_queue, uint32_t a_submit_info_count, const VkSubm
 	}
 }
 
-void vk_queue_submit(VkQueue a_queue, std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence, std::mutex *a_mutex)
+void vk_queue_submit(VkQueue a_queue, const std::vector<VkSubmitInfo> &a_submit_info, VkFence a_fence, std::mutex *a_mutex)
 {
 	vk_queue_submit(a_queue, ror::static_cast_safe<uint32_t>(a_submit_info.size()), a_submit_info.data(), a_fence, a_mutex);
 }
@@ -713,7 +713,7 @@ void vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence 
 	vk_queue_submit(a_queue, 1, &submit_info, a_fence, a_mutex);
 }
 
-void vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, std::vector<VkCommandBuffer> a_command_buffers, VkFence a_fence, std::mutex *a_mutex)
+void vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, const std::vector<VkCommandBuffer> &a_command_buffers, VkFence a_fence, std::mutex *a_mutex)
 {
 	VkSubmitInfo submit_info{a_submit_info};
 	submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -788,7 +788,7 @@ VkPipelineDepthStencilStateCreateInfo vk_create_depth_stencil_state(bool a_depth
 	return pipeline_depth_stencil_info;
 }
 
-VkRenderPass vk_create_render_pass(VkDevice a_device, std::vector<VkAttachmentDescription> &&a_attachments, const std::vector<VkSubpassDescription> &a_subpasses, const std::vector<VkSubpassDependency> &a_dependencies)
+VkRenderPass vk_create_render_pass(VkDevice a_device, const std::vector<VkAttachmentDescription> &&a_attachments, const std::vector<VkSubpassDescription> &a_subpasses, const std::vector<VkSubpassDependency> &a_dependencies)
 {
 	VkRenderPassCreateInfo render_pass_info = {};
 	render_pass_info.sType                  = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -958,7 +958,7 @@ VkSubpassDependency vk_create_subpass_dependency(uint32_t a_src_subpass, uint32_
 	return subpass_dependency;
 }
 
-VkFramebuffer vk_create_framebuffer(VkDevice a_device, VkRenderPass a_renderpass, std::vector<VkImageView> a_attachments, VkExtent2D a_dimensions)
+VkFramebuffer vk_create_framebuffer(VkDevice a_device, VkRenderPass a_renderpass, const std::vector<VkImageView> &a_attachments, VkExtent2D a_dimensions, uint32_t a_layers)
 {
 	VkFramebufferCreateInfo framebuffer_info = {};
 
@@ -970,7 +970,7 @@ VkFramebuffer vk_create_framebuffer(VkDevice a_device, VkRenderPass a_renderpass
 	framebuffer_info.pAttachments    = a_attachments.data();
 	framebuffer_info.width           = a_dimensions.width;
 	framebuffer_info.height          = a_dimensions.height;
-	framebuffer_info.layers          = 1;
+	framebuffer_info.layers          = a_layers;
 
 	VkFramebuffer framebuffer{nullptr};
 	VkResult      result = vkCreateFramebuffer(a_device, &framebuffer_info, cfg::VkAllocator, &framebuffer);
