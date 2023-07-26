@@ -113,13 +113,15 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 	std::vector<VkAttachmentReference>   renderpass_render_target_attachments_references{};
 	std::vector<VkSubpassDescription>    subpasses_descriptions;
 	std::vector<VkSubpassDependency>     subpasses_dependencies;
+	std::vector<VkImageView>             framebuffer_attachments;
 
 	renderpass_render_target_attachments_descriptions.reserve(renderpass_render_targets.size());
 	renderpass_render_target_attachments_references.reserve(renderpass_render_targets.size());
+	framebuffer_attachments.reserve(renderpass_render_targets.size());
 	subpasses_descriptions.reserve(render_supasses.size());
 	subpasses_dependencies.reserve(render_supasses.size());
 
-	// Create vulkan render target descriptions and references
+	// Create vulkan render target descriptions and references and framebuffer attachments
 	VkImageLayout initial_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	VkImageLayout final_layout   = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	for (auto &render_target : renderpass_render_targets)
@@ -139,6 +141,8 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 		VkAttachmentStoreOp store_op{to_vulkan_store_action(render_target.m_store_action)};
 
 		attachments_create_utility(render_target, rti_index, samples, renderpass_render_target_attachments_descriptions, renderpass_render_target_attachments_references, load_op, store_op, initial_layout, final_layout);
+
+		framebuffer_attachments.emplace_back(render_target.m_target_reference.get().image_view());
 
 		rti_index++;
 	}
@@ -246,7 +250,14 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 
 	// TODO: Remove the check ones compute path is defined
 	if (subpasses_descriptions.size() > 0)
+	{
+		VkExtent2D dimensions{};
+		dimensions.width  = this->dimensions().x;
+		dimensions.height = this->dimensions().y;
+
 		this->m_render_pass = vk_create_render_pass(a_device.platform_device(), std::move(renderpass_render_target_attachments_descriptions), std::move(subpasses_descriptions), std::move(subpasses_dependencies));
+		this->m_framebuffer = vk_create_framebuffer(a_device.platform_device(), this->m_render_pass, framebuffer_attachments, dimensions);
+	}
 }
 
 size_t RenderpassVulkan::platform_renderpass_count()

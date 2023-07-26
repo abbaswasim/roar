@@ -69,7 +69,8 @@ class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 
   protected:
   private:
-	VkRenderPass m_render_pass{};        //! Platform render pass descriptors
+	VkRenderPass  m_render_pass{};        //! Platform render pass descriptors
+	VkFramebuffer m_framebuffer{};        //! Platform framebuffer required for vulkan render passes
 };
 
 declare_rhi_render_type(Renderpass);
