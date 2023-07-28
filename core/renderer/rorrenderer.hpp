@@ -70,7 +70,6 @@ class Renderer final : public Configuration<Renderer>
 	void                             upload(rhi::Device &, rhi::BuffersPack &);
 	void                             upload_frame_graphs(rhi::Device &);
 	std::vector<rhi::RenderpassType> render_pass_types() const;
-	std::vector<rhi::RenderpassType> all_render_pass_types() const;
 	void                             deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene);
 	void                             dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device);
 	void                             set_modifier_events(ror::EventSystem &a_event_system);

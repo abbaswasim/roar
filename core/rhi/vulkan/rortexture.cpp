@@ -167,21 +167,28 @@ void TextureImageVulkan::upload(rhi::Device &a_device)
 	}
 
 	// TODO: Convert target to VK_IMAGE_TYPE_2D by using to_vulkan_texture_target(this->target()) at the moment it returns imageviewtype
-	if (this->m_image == nullptr && this->m_image_memory == nullptr)
-		vk_create_image_with_memory(device, this->m_image, this->width(), this->height(), this->depth(), to_vulkan_pixelformat(this->format()),
-		                            ror::static_cast_safe<uint32_t>(this->mips().size()), usage_flags,
-		                            this->m_image_memory, memory_properties.memoryProperties, properties,
-		                            VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL);
-	else
-		ror::log_warn("Recreating image skipping");
+	if (this->m_image != nullptr || this->m_image_memory != nullptr || this->m_image_view != nullptr)
+	{
+		ror::log_warn("Recreating images pervious images are not destroyed");
+
+		vk_destroy_image(device, this->m_image);
+		vk_destroy_memory(device, this->m_image_memory);
+	}
+
+	vk_create_image_with_memory(device, this->m_image, this->width(), this->height(), this->depth(), to_vulkan_pixelformat(this->format()),
+	                            ror::static_cast_safe<uint32_t>(this->mips().size()), usage_flags,
+	                            this->m_image_memory, memory_properties.memoryProperties, properties,
+	                            VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL);
 
 	VkImageAspectFlags aspect_flags{VK_IMAGE_ASPECT_COLOR_BIT};
 
 	if (is_depth)
 		aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-	if (this->m_image_view == nullptr)
-		this->m_image_view = vk_create_image_view(device, this->m_image, to_vulkan_pixelformat(this->format()), ror::static_cast_safe<uint32_t>(this->mips().size()), aspect_flags);
+	if (this->m_image_view != nullptr)
+		vk_destroy_image_view(device, this->m_image_view);
+
+	this->m_image_view = vk_create_image_view(device, this->m_image, to_vulkan_pixelformat(this->format()), ror::static_cast_safe<uint32_t>(this->mips().size()), aspect_flags);
 
 	if (needs_upload)
 	{

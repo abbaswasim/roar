@@ -698,62 +698,62 @@ void Renderer::setup_references()
 {
 	// Lets setup all the refrences, we have to do this last because hopefully everything is loaded by now
 	// All reference are set here except RenderTargets in subpasses which are done earlier
-	for (auto &graph : this->m_frame_graphs)
+	auto render_passes = this->m_current_frame_graph;
+	assert(render_passes && "There must be a current framegraph");
+
+	for (auto &pass : *render_passes)
 	{
-		for (auto &pass : graph.second)
+		// All the parent_ids into parents (refrences)
 		{
-			// All the parent_ids into parents (refrences)
+			auto &pids = pass.parent_ids();
+
+			rhi::Renderpass::Renderpasses ps{};
+
+			assert(pids.size() <= render_passes->size() && "Parent Ids and number of render passes in this graph doesn't match");
+
+			for (auto pid : pids)
 			{
-				auto &pids = pass.parent_ids();
-
-				rhi::Renderpass::Renderpasses ps{};
-
-				assert(pids.size() <= graph.second.size() && "Parent Ids and number of render passes in this graph doesn't match");
-
-				for (auto pid : pids)
-				{
-					assert(pid < graph.second.size() && "Parent Id is out of bound");
-					ps.emplace_back(std::ref(graph.second[pid]));
-				}
-
-				pass.parents(std::move(ps));
+				assert(pid < render_passes->size() && "Parent Id is out of bound");
+				ps.emplace_back(std::ref((*render_passes)[pid]));
 			}
 
-			for (auto &subpass : pass.subpasses())
+			pass.parents(std::move(ps));
+		}
+
+		for (auto &subpass : pass.subpasses())
+		{
+			// All the render input ids into render input references
 			{
-				// All the render input ids into render input references
+				auto &inputs = subpass.rendered_inputs();
+
+				assert(inputs.size() <= this->m_textures.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
+
+				for (auto &input : inputs)
 				{
-					auto &inputs = subpass.rendered_inputs();
-
-					assert(inputs.size() <= this->m_textures.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
-
-					for (auto &input : inputs)
-					{
-						assert(input.m_index < this->m_textures.size() && "Render input Id is out of bound");
-						input.m_render_output = find_rendertarget_reference(graph.second, input.m_index);
-					}
+					assert(input.m_index < this->m_textures.size() && "Render input Id is out of bound");
+					input.m_render_output = find_rendertarget_reference(*render_passes, input.m_index);
 				}
-				// All the subpass input ids into subpass input references
+			}
+			// All the subpass input ids into subpass input references
+			{
+				auto &iads = subpass.input_attachments();
+
+				assert(iads.size() <= this->m_textures.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
+
+				for (auto &rid : iads)
 				{
-					auto &iads = subpass.input_attachments();
-
-					assert(iads.size() <= this->m_textures.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
-
-					for (auto &rid : iads)
-					{
-						assert(rid.m_index < this->m_textures.size() && "Input attachment Id is out of bound");
-						rid.m_render_output = find_rendertarget_reference(graph.second, rid.m_index);
-					}
+					assert(rid.m_index < this->m_textures.size() && "Input attachment Id is out of bound");
+					rid.m_render_output = find_rendertarget_reference(*render_passes, rid.m_index);
 				}
-				// All the buffer input ids into buffer input references
-				{
-					auto &biid = subpass.buffer_inputs();
+			}
+			// All the buffer input ids into buffer input references
+			{
+				auto &biid = subpass.buffer_inputs();
 
-					for (auto &bid : biid)
-					{
-						assert(bid.m_index < this->m_buffers.size() && "Input attachment Id is out of bound");
-						bid.m_render_output = find_renderbuffer_reference(graph.second, bid.m_index);
-					}
+				for (auto &bid : biid)
+				{
+					assert(bid.m_index < this->m_buffers.size() && "Input attachment Id is out of bound");
+					bid.m_render_output = find_renderbuffer_reference(*render_passes, bid.m_index);
 				}
 			}
 		}
@@ -928,6 +928,8 @@ void Renderer::dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_devi
 	ror::Vector2ui dimensions{static_cast<uint32_t>(a_dimensions.x), static_cast<uint32_t>(a_dimensions.y)};
 
 	auto render_passes = this->m_current_frame_graph;
+	assert(render_passes && "There must be a current framegraph");
+
 	for (auto &pass : *render_passes)
 	{
 		auto &render_supasses = pass.subpasses();
@@ -950,37 +952,36 @@ void Renderer::dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_devi
 
 void Renderer::upload_frame_graphs(rhi::Device &a_device)
 {
-	for (auto &graph : this->m_frame_graphs)
+	auto render_passes = this->m_current_frame_graph;
+	assert(render_passes && "There must be a current framegraph");
+	for (auto &pass : *render_passes)
 	{
-		for (auto &pass : graph.second)
+		// Prepare render targets
+		auto pass_render_targets = pass.render_targets();
+		for (auto &render_target : pass_render_targets)
 		{
-			// Prepare render targets
-			auto pass_render_targets = pass.render_targets();
-			for (auto &render_target : pass_render_targets)
+			auto &texture = render_target.m_target_reference.get();
+			if (!texture.ready() || ((texture.width() != pass.dimensions().x) || (texture.height() != pass.dimensions().y)))
 			{
-				auto &texture = render_target.m_target_reference.get();
-				if (!texture.ready() || ((texture.width() != pass.dimensions().x) || (texture.height() != pass.dimensions().y)))
-				{
-					texture.width(pass.dimensions().x);
-					texture.height(pass.dimensions().y);
-					texture.upload(a_device);        // Doesn't necessarily upload a texture to the GPU but creates the texture in the GPU for later use
-				}
+				texture.width(pass.dimensions().x);
+				texture.height(pass.dimensions().y);
+				texture.upload(a_device);        // Doesn't necessarily upload a texture to the GPU but creates the texture in the GPU for later use
 			}
-
-			pass.upload(a_device);
 		}
 
-		// Make sure all the rendered_inputs are ready
-		for (auto &pass : graph.second)
-		{
-			auto pass_render_targets = pass.render_targets();
+		pass.upload(a_device);
+	}
 
-			for (auto &render_target : pass_render_targets)
-			{
-				auto &texture = render_target.m_target_reference.get();
-				(void) texture;
-				assert(texture.ready() && "Required textures are not ready");
-			}
+	// Make sure all the rendered_inputs are ready
+	for (auto &pass : *render_passes)
+	{
+		auto pass_render_targets = pass.render_targets();
+
+		for (auto &render_target : pass_render_targets)
+		{
+			auto &texture = render_target.m_target_reference.get();
+			(void) texture;
+			assert(texture.ready() && "Required textures are not ready");
 		}
 	}
 }
@@ -1024,18 +1025,6 @@ std::vector<rhi::RenderpassType> Renderer::render_pass_types() const
 {
 	assert(this->m_current_frame_graph);
 	return this->render_pass_types(*this->m_current_frame_graph);
-}
-
-std::vector<rhi::RenderpassType> Renderer::all_render_pass_types() const
-{
-	std::vector<rhi::RenderpassType> passes;
-	for (const auto &rps : this->m_frame_graphs)
-	{
-		const auto rpees = this->render_pass_types(rps.second);
-		passes.insert(passes.end(), std::make_move_iterator(rpees.begin()), std::make_move_iterator(rpees.end()));
-	}
-
-	return passes;
 }
 
 // void Renderer::add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer)
