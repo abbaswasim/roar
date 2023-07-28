@@ -37,6 +37,7 @@ include(${ROAR_ROOT_DIR}/build.cmake)
 
 # Always generate compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 option(BUILD_GMOCK "Builds the googlemock subproject" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries by defaul" OFF) # This needs to be set otherwise some dependencies (xxHash) sets it to ON and then other dependencies (glslang) create problems

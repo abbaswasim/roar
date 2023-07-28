@@ -101,11 +101,6 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 	// TODO: Whats left to use from Metal still, but this perhaps goes into framebuffer
 	// auto  bgc            = this->background();
 	// color_attachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
-	// color_attachment->setTexture(render_targets[i].m_target_reference.get().platform_handle());
-	// mtl_render_pass->setRenderTargetWidth(this->dimensions().x);
-	// mtl_render_pass->setRenderTargetHeight(this->dimensions().y);
-	// auto depth = mtl_render_pass->depthAttachment();
-	// depth->setTexture(render_targets[static_cast<uint32_t>(depth_index)].m_target_reference.get().platform_handle());
 	// depth->setClearDepth(ror::settings().m_depth_clear);
 
 	uint32_t                             rti_index = 0;
@@ -162,6 +157,9 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 			assert(render_target.m_render_output != nullptr && "Render output reference can't be null");
 			attachments_create_utility(*render_target.m_render_output, rti_index, samples, renderpass_render_target_attachments_descriptions, renderpass_render_target_attachments_references, load_op, store_op, initial_layout, final_layout);
 			input_attachments_references.emplace_back(std::make_pair(rti_index, render_target.m_render_output));
+
+			// TODO: Understand why am I doing this. shouldn't this only contain all the render targets and not subpass attachments
+			framebuffer_attachments.emplace_back(render_target.m_render_output->m_target_reference.get().image_view());
 
 			rti_index++;
 		}

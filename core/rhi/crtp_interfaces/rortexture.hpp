@@ -98,14 +98,14 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE TextureImageCrtp() = default;        //! Default constructor
   private:
 	bool                       m_ready{false};                                               //! True when the texture is uploaded to the GPU and ready to be used
-	uint32_t                   m_bytes_per_pixel{4};                                         // Bytes per pixel
-	uint64_t                   m_size{0};                                                    // Size of all mipmaps combined in bytes
-	TextureTarget              m_target{TextureTarget::texture_2D};                          // Can be 1D, 2D or 3D etc texture
-	rhi::PixelFormat           m_format{rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb};        // Pixel format of the texture
-	rhi::TextureUsage          m_usage{rhi::TextureUsage::shader_read};                      // What the texture is used for, by default just a read (sample) usage, can be ORed with other usage
-	std::unique_ptr<uint8_t[]> m_data{};                                                     // All mipmaps data
-	std::vector<Mipmap>        m_mips{};                                                     // Will have at least one level, base texture width and height are mip[0] width/height
-	std::string                m_name{};                                                     // Name of the texture, usually given for debugging purposes or the file name
+	uint32_t                   m_bytes_per_pixel{4};                                         //! Bytes per pixel
+	uint64_t                   m_size{0};                                                    //! Size of all mipmaps combined in bytes
+	TextureTarget              m_target{TextureTarget::texture_2D};                          //! Can be 1D, 2D or 3D etc texture
+	rhi::PixelFormat           m_format{rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb};        //! Pixel format of the texture
+	rhi::TextureUsage          m_usage{rhi::TextureUsage::shader_read};                      //! What the texture is used for, by default just a read (sample) usage, can be ORed with other usage
+	std::unique_ptr<uint8_t[]> m_data{};                                                     //! All mipmaps data
+	std::vector<Mipmap>        m_mips{};                                                     //! Will have at least one level, base texture width and height are mip[0] width/height
+	std::string                m_name{};                                                     //! Name of the texture, usually given for debugging purposes or the file name
 };
 
 // static_assert(std::is_trivially_copyable_v<TextureImage>, "TextureImage is not trivially copyable");
@@ -139,13 +139,13 @@ class ROAR_ENGINE_ITEM TextureSamplerCrtp : public ror::Crtp<_type, TextureSampl
   protected:
 	FORCE_INLINE TextureSamplerCrtp() = default;        //! Default constructor
   private:
-	rhi::TextureFilter      m_mag_filter{rhi::TextureFilter::linear};                // Magnification filter
-	rhi::TextureFilter      m_min_filter{rhi::TextureFilter::linear};                // Minification filter
-	rhi::TextureMipFilter   m_mip_mode{rhi::TextureMipFilter::not_mipmapped};        // Mipmapping mode
-	rhi::TextureAddressMode m_wrap_s{rhi::TextureAddressMode::clamp_to_edge};        // Wrapping mode in X direction
-	rhi::TextureAddressMode m_wrap_t{rhi::TextureAddressMode::clamp_to_edge};        // Wrapping mode in Y direction
-	rhi::TextureAddressMode m_wrap_u{rhi::TextureAddressMode::clamp_to_edge};        // Wrapping mode in Z direction
-	rhi::TextureBorder      m_border_color{rhi::TextureBorder::opaque};              // Border color by default is opaque black
+	rhi::TextureFilter      m_mag_filter{rhi::TextureFilter::linear};                //! Magnification filter
+	rhi::TextureFilter      m_min_filter{rhi::TextureFilter::linear};                //! Minification filter
+	rhi::TextureMipFilter   m_mip_mode{rhi::TextureMipFilter::not_mipmapped};        //! Mipmapping mode
+	rhi::TextureAddressMode m_wrap_s{rhi::TextureAddressMode::clamp_to_edge};        //! Wrapping mode in X direction
+	rhi::TextureAddressMode m_wrap_t{rhi::TextureAddressMode::clamp_to_edge};        //! Wrapping mode in Y direction
+	rhi::TextureAddressMode m_wrap_u{rhi::TextureAddressMode::clamp_to_edge};        //! Wrapping mode in Z direction
+	rhi::TextureBorder      m_border_color{rhi::TextureBorder::opaque};              //! Border color by default is opaque black
 };
 
 // static_assert(std::is_trivially_copyable_v<TextureSampler>, "TextureSampler is not trivially copyable");
@@ -169,8 +169,8 @@ class ROAR_ENGINE_ITEM TextureCrtp : public ror::Crtp<_type, TextureCrtp>
   protected:
 	FORCE_INLINE TextureCrtp() = default;        //! Default constructor
   private:
-	rhi::TextureImageHandle   m_texture_image{-1};         // TextureImage handle, -1 means invalid handle which is possible
-	rhi::TextureSamplerHandle m_texture_sampler{0};        // TextureSampler handle, 0 means default sampler
+	rhi::TextureImageHandle   m_texture_image{-1};         //! TextureImage handle, -1 means invalid handle which is possible
+	rhi::TextureSamplerHandle m_texture_sampler{0};        //! TextureSampler handle, 0 means default sampler
 };
 
 // static_assert(std::is_trivially_copyable_v<Texture>, "Texture is not trivially copyable");
