@@ -698,62 +698,64 @@ void Renderer::setup_references()
 {
 	// Lets setup all the refrences, we have to do this last because hopefully everything is loaded by now
 	// All reference are set here except RenderTargets in subpasses which are done earlier
-	auto render_passes = this->m_current_frame_graph;
-	assert(render_passes && "There must be a current framegraph");
-
-	for (auto &pass : *render_passes)
+	// NOTE: I am doing this for all framegraphs loaded from renderer.json otherwise tests crash, which tests all graphs
+	for (auto &graph : this->m_frame_graphs)
 	{
-		// All the parent_ids into parents (refrences)
+		auto &render_passes = graph.second;
+		for (auto &pass : render_passes)
 		{
-			auto &pids = pass.parent_ids();
-
-			rhi::Renderpass::Renderpasses ps{};
-
-			assert(pids.size() <= render_passes->size() && "Parent Ids and number of render passes in this graph doesn't match");
-
-			for (auto pid : pids)
+			// All the parent_ids into parents (refrences)
 			{
-				assert(pid < render_passes->size() && "Parent Id is out of bound");
-				ps.emplace_back(std::ref((*render_passes)[pid]));
-			}
+				auto &pids = pass.parent_ids();
 
-			pass.parents(std::move(ps));
-		}
+				rhi::Renderpass::Renderpasses ps{};
 
-		for (auto &subpass : pass.subpasses())
-		{
-			// All the render input ids into render input references
-			{
-				auto &inputs = subpass.rendered_inputs();
+				assert(pids.size() <= render_passes.size() && "Parent Ids and number of render passes in this graph doesn't match");
 
-				assert(inputs.size() <= this->m_textures.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
-
-				for (auto &input : inputs)
+				for (auto pid : pids)
 				{
-					assert(input.m_index < this->m_textures.size() && "Render input Id is out of bound");
-					input.m_render_output = find_rendertarget_reference(*render_passes, input.m_index);
+					assert(pid < render_passes.size() && "Parent Id is out of bound");
+					ps.emplace_back(std::ref(render_passes[pid]));
 				}
+
+				pass.parents(std::move(ps));
 			}
-			// All the subpass input ids into subpass input references
+
+			for (auto &subpass : pass.subpasses())
 			{
-				auto &iads = subpass.input_attachments();
-
-				assert(iads.size() <= this->m_textures.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
-
-				for (auto &rid : iads)
+				// All the render input ids into render input references
 				{
-					assert(rid.m_index < this->m_textures.size() && "Input attachment Id is out of bound");
-					rid.m_render_output = find_rendertarget_reference(*render_passes, rid.m_index);
+					auto &inputs = subpass.rendered_inputs();
+
+					assert(inputs.size() <= this->m_textures.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
+
+					for (auto &input : inputs)
+					{
+						assert(input.m_index < this->m_textures.size() && "Render input Id is out of bound");
+						input.m_render_output = find_rendertarget_reference(render_passes, input.m_index);
+					}
 				}
-			}
-			// All the buffer input ids into buffer input references
-			{
-				auto &biid = subpass.buffer_inputs();
-
-				for (auto &bid : biid)
+				// All the subpass input ids into subpass input references
 				{
-					assert(bid.m_index < this->m_buffers.size() && "Input attachment Id is out of bound");
-					bid.m_render_output = find_renderbuffer_reference(*render_passes, bid.m_index);
+					auto &iads = subpass.input_attachments();
+
+					assert(iads.size() <= this->m_textures.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
+
+					for (auto &rid : iads)
+					{
+						assert(rid.m_index < this->m_textures.size() && "Input attachment Id is out of bound");
+						rid.m_render_output = find_rendertarget_reference(render_passes, rid.m_index);
+					}
+				}
+				// All the buffer input ids into buffer input references
+				{
+					auto &biid = subpass.buffer_inputs();
+
+					for (auto &bid : biid)
+					{
+						assert(bid.m_index < this->m_buffers.size() && "Input attachment Id is out of bound");
+						bid.m_render_output = find_renderbuffer_reference(render_passes, bid.m_index);
+					}
 				}
 			}
 		}

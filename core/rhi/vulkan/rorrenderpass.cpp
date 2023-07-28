@@ -260,7 +260,6 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 
 size_t RenderpassVulkan::platform_renderpass_count()
 {
-	// return this->m_render_passes.size();
 	return 1ul;
 }
 

@@ -21,6 +21,7 @@ void test_render_target(const rhi::RenderTarget &a, const rhi::RenderTarget &b)
 	EXPECT_EQ(&a.m_target_reference.get(), &b.m_target_reference.get());
 	EXPECT_EQ(a.m_load_action, b.m_load_action);
 	EXPECT_EQ(a.m_store_action, b.m_store_action);
+	EXPECT_EQ(a.m_type , b.m_type);
 }
 
 void test_render_targets(const std::vector<rhi::RenderTarget> a, std::vector<rhi::RenderTarget> b)
@@ -55,7 +56,7 @@ void test_render_pass(const rhi::Renderpass                 rdps,
                       std::vector<rhi::RenderpassState>     a_states,
                       std::vector<RenderTargets>            a_rendered_inputs,
                       std::vector<RenderTargets>            a_input_attachments,
-                      std::vector<uint32_t>                 a_program_ids,
+                      std::vector<int32_t>                  a_program_ids,
                       std::vector<bool>                     a_debug_outputs)
 {
 	auto dimensions     = rdps.dimensions();
@@ -74,7 +75,8 @@ void test_render_pass(const rhi::Renderpass                 rdps,
 	for (auto rsps : rdps.subpasses())
 	{
 		auto name = rsps.name();
-		ror::log_critical("Checking render pass {}", name.c_str());
+		// Enable the logs for debugging
+		// ror::log_info("Checking render pass {}", name.c_str());
 		auto technique         = rsps.technique();
 		auto type              = rsps.type();
 		auto state             = rsps.state();
@@ -90,11 +92,15 @@ void test_render_pass(const rhi::Renderpass                 rdps,
 		EXPECT_EQ(program_id, a_program_ids[iai]);
 		EXPECT_EQ(debug_output, a_debug_outputs[iai]);
 
+		// ror::log_info("Checking render pass attachments {}", name.c_str());
 		EXPECT_EQ(input_attachments.size(), a_input_attachments[iai].size());
 		test_render_target_refs(input_attachments, a_input_attachments[iai]);
 
+		// ror::log_info("Checking render pass outputs {}", name.c_str());
 		EXPECT_EQ(rendered_inputs.size(), a_rendered_inputs[iai].size());
 		test_render_target_refs(rendered_inputs, a_rendered_inputs[iai]);
+
+		// ror::log_info("Checked render pass {}", name.c_str());
 
 		iai++;
 	}
@@ -115,16 +121,17 @@ TEST(RendererTest, config_load)
 		ror::Vector2ui dimensions{1024, 768};
 
 		// const_cast is only allowed in tests
-		rhi::RenderTarget rt0{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
-		rhi::RenderTarget rt1{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt0{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt1{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::discard, rhi::RenderOutputType::depth};
+		rhi::RenderTarget rt2{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
 
 		std::vector<RenderTargets> rirfs{};
 		rirfs.resize(2);
-		rirfs[0].emplace_back(&rt0, 2, rhi::ShaderStage::fragment);
+		rirfs[0].emplace_back(&rt2, 2, rhi::ShaderStage::fragment);
 
 		std::vector<RenderTargets> iarfs{};
 		iarfs.resize(2);
-		iarfs[1].emplace_back(&rt1, 0, rhi::ShaderStage::fragment);
+		iarfs[1].emplace_back(&rt0, 0, rhi::ShaderStage::fragment);
 
 		uint32_t index = 0;
 		for (auto rdps : rdpses)
@@ -133,12 +140,12 @@ TEST(RendererTest, config_load)
 			{
 				case 0:
 					test_render_pass(rdps,
-					                 {rt0},
+					                 {},
 					                 dimensions,
 					                 {},        // Parents
-					                 {"shadowing"},
-					                 {rhi::RenderpassTechnique::fragment},
-					                 {rhi::RenderpassType::shadow},
+					                 {"node_compute_traversal"},
+					                 {rhi::RenderpassTechnique::compute},
+					                 {rhi::RenderpassType::node_transform},
 					                 {rhi::RenderpassState::transient},
 					                 {{}},        // renderered inputs
 					                 {{}},        // input attachments
@@ -147,7 +154,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 1:
 					test_render_pass(rdps,
-					                 {rt1},
+					                 {rt0, rt1},
 					                 dimensions,
 					                 {0},        // Parents
 					                 {"forward_lighting", "tonemap"},
@@ -156,7 +163,7 @@ TEST(RendererTest, config_load)
 					                 {rhi::RenderpassState::transient, rhi::RenderpassState::transient},
 					                 rirfs,
 					                 iarfs,
-					                 {1, 0},
+					                 {-1, -1},
 					                 {true, true});
 					break;
 			}
@@ -176,6 +183,10 @@ TEST(RendererTest, config_load)
 		rhi::RenderTarget rt2{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
 		rhi::RenderTarget rt3{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
 		rhi::RenderTarget rt4{4, const_cast<rhi::TextureImage &>(rtgs[4]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt5{5, const_cast<rhi::TextureImage &>(rtgs[5]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+
+		// rhi::RenderTarget rt0d{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::depth};
+		rhi::RenderTarget rt3d{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::depth};
 
 		std::vector<RenderTargets> rirfs{};
 		rirfs.resize(2);
@@ -184,11 +195,8 @@ TEST(RendererTest, config_load)
 		std::vector<RenderTargets> iarfs5{};
 		iarfs5.resize(4);
 		iarfs5[1].emplace_back(&rt0, 0, rhi::ShaderStage::fragment);
-		iarfs5[1].emplace_back(&rt1, 1, rhi::ShaderStage::fragment);
 		iarfs5[2].emplace_back(&rt0, 0, rhi::ShaderStage::fragment);
-		iarfs5[2].emplace_back(&rt1, 1, rhi::ShaderStage::fragment);
 		iarfs5[3].emplace_back(&rt0, 0, rhi::ShaderStage::fragment);
-		iarfs5[3].emplace_back(&rt1, 1, rhi::ShaderStage::fragment);
 
 		std::vector<RenderTargets> iarfs67{};
 		iarfs67.resize(1);
@@ -201,7 +209,7 @@ TEST(RendererTest, config_load)
 			{
 				case 0:
 					test_render_pass(rdps,
-					                 {rt3},
+					                 {rt4},
 					                 dimensions,
 					                 {},        // Parents
 					                 {"lut"},
@@ -215,7 +223,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 1:
 					test_render_pass(rdps,
-					                 {rt4},
+					                 {rt5},
 					                 dimensions,
 					                 {},        // Parents
 					                 {"compute"},
@@ -271,7 +279,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 5:
 					test_render_pass(rdps,
-					                 {rt2, rt3},
+					                 {rt0, rt3d},
 					                 dimensions,
 					                 {0, 1},        // Parents
 					                 {"depth pre-pass", "g-buffer", "g-buffer-resolve-lighting", "render"},
@@ -286,7 +294,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 6:
 					test_render_pass(rdps,
-					                 {rt2, rt3},
+					                 {rt0, rt3d},
 					                 dimensions,
 					                 {0},        // Parents
 					                 {"bloom"},
@@ -300,7 +308,7 @@ TEST(RendererTest, config_load)
 					break;
 				case 7:
 					test_render_pass(rdps,
-					                 {rt2, rt3},
+					                 {rt0, rt3d},
 					                 dimensions,
 					                 {0},        // Parents
 					                 {"tonemap"},
@@ -321,50 +329,54 @@ TEST(RendererTest, config_load)
 	auto &trgts = rdr.textures();
 	{
 		{
-			EXPECT_EQ(trgts[0].name(), "swapchain");
-			EXPECT_EQ(trgts[0].format(), rhi::PixelFormat::b8g8r8a8_uint32_norm_srgb);
+			EXPECT_EQ(trgts[0].name(), "before_swapchain");
+			EXPECT_EQ(trgts[0].format(), rhi::PixelFormat::b8g8r8a8_uint32_norm);
 		}
 		{
 			EXPECT_EQ(trgts[1].name(), "renderable");
 			EXPECT_EQ(trgts[1].format(), rhi::PixelFormat::r8g8b8a8_uint32_norm);
 		}
 		{
-			EXPECT_EQ(trgts[2].name(), "Shadow");
+			EXPECT_EQ(trgts[2].name(), "shadow");
 			EXPECT_EQ(trgts[2].format(), rhi::PixelFormat::depth32_float32);
 		}
 		{
-			EXPECT_EQ(trgts[3].name(), "Texture1");
-			EXPECT_EQ(trgts[3].format(), rhi::PixelFormat::r8_uint8);
+			EXPECT_EQ(trgts[3].name(), "depth");
+			EXPECT_EQ(trgts[3].format(), rhi::PixelFormat::depth32_float32);
 			EXPECT_EQ(trgts[3].target(), rhi::TextureTarget::texture_2D);
 		}
 		{
-			EXPECT_EQ(trgts[4].name(), "Texture2");
+			EXPECT_EQ(trgts[4].name(), "Texture1");
 			EXPECT_EQ(trgts[4].format(), rhi::PixelFormat::r8_uint8);
 		}
 		{
-			EXPECT_EQ(trgts[5].name(), "Depth_Stencil");
-			EXPECT_EQ(trgts[5].format(), rhi::PixelFormat::depth24_norm_stencil8_uint32);
+			EXPECT_EQ(trgts[5].name(), "Texture2");
+			EXPECT_EQ(trgts[5].format(), rhi::PixelFormat::r8_uint8);
 		}
 		{
-			EXPECT_EQ(trgts[6].name(), "Texture3");
-			EXPECT_EQ(trgts[6].format(), rhi::PixelFormat::b5g6r5_uint16_norm);
-			EXPECT_EQ(trgts[6].target(), rhi::TextureTarget::texture_cube);
+			EXPECT_EQ(trgts[6].name(), "Depth_Stencil");
+			EXPECT_EQ(trgts[6].format(), rhi::PixelFormat::depth24_norm_stencil8_uint32);
 		}
 		{
-			EXPECT_EQ(trgts[7].name(), "Texture4");
-			EXPECT_EQ(trgts[7].format(), rhi::PixelFormat::r8g8b8a8_uint32);
+			EXPECT_EQ(trgts[7].name(), "Texture3");
+			EXPECT_EQ(trgts[7].format(), rhi::PixelFormat::b5g6r5_uint16_norm);
+			EXPECT_EQ(trgts[7].target(), rhi::TextureTarget::texture_cube);
 		}
 		{
-			EXPECT_EQ(trgts[8].name(), "Texture6");
-			EXPECT_EQ(trgts[8].format(), rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);
+			EXPECT_EQ(trgts[8].name(), "Texture4");
+			EXPECT_EQ(trgts[8].format(), rhi::PixelFormat::r8g8b8a8_uint32);
 		}
 		{
-			EXPECT_EQ(trgts[9].name(), "Texture8");
-			EXPECT_EQ(trgts[9].format(), rhi::PixelFormat::r8g8b8a8_uint32);
+			EXPECT_EQ(trgts[9].name(), "Texture6");
+			EXPECT_EQ(trgts[9].format(), rhi::PixelFormat::r8g8b8a8_uint32_norm);
 		}
 		{
-			EXPECT_EQ(trgts[10].name(), "Texture9");
-			EXPECT_EQ(trgts[10].format(), rhi::PixelFormat::r8g8b8a8_int32);
+			EXPECT_EQ(trgts[10].name(), "Texture8");
+			EXPECT_EQ(trgts[10].format(), rhi::PixelFormat::r8g8b8a8_uint32);
+		}
+		{
+			EXPECT_EQ(trgts[11].name(), "Texture9");
+			EXPECT_EQ(trgts[11].format(), rhi::PixelFormat::r8g8b8a8_int32);
 		}
 	}
 
@@ -381,32 +393,26 @@ TEST(RendererTest, config_load)
 		return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 	};
 
-	ASSERT_GT(shdrs.size(), 7);
+	ASSERT_GT(shdrs.size(), 4);
 
 	{
-		EXPECT_TRUE(ends_with(shdrs[0].shader_path().filename(), "default_pbr.vert"));
-		EXPECT_TRUE(ends_with(shdrs[1].shader_path().filename(), "default_pbr.frag"));
-		EXPECT_TRUE(ends_with(shdrs[2].shader_path().filename(), "shadow.vert"));
-		EXPECT_TRUE(ends_with(shdrs[3].shader_path().filename(), "shadow.frag"));
-		EXPECT_TRUE(ends_with(shdrs[4].shader_path().filename(), "depth.vert"));
-		EXPECT_TRUE(ends_with(shdrs[5].shader_path().filename(), "depth.frag"));
-		EXPECT_TRUE(ends_with(shdrs[6].shader_path().filename(), "blur.kern"));
-		EXPECT_TRUE(ends_with(shdrs[7].shader_path().filename(), "explode.comp"));
+		EXPECT_TRUE(ends_with(shdrs[0].shader_path().filename(), "node_transform.glsl.comp"));
+		EXPECT_TRUE(ends_with(shdrs[1].shader_path().filename(), "position.glsl.vert"));
+		EXPECT_TRUE(ends_with(shdrs[2].shader_path().filename(), "position.glsl.frag"));
+		EXPECT_TRUE(ends_with(shdrs[3].shader_path().filename(), "tonemap.glsl.vert"));
+		EXPECT_TRUE(ends_with(shdrs[4].shader_path().filename(), "tonemap.glsl.frag"));
 	}
+
 	// Test programs
 	auto &prg = rdr.programs();
 	{
-		ASSERT_GT(prg.size(), 2);
+		ASSERT_GT(prg.size(), 1);
 		{
-			EXPECT_EQ(prg[0].vertex_id(), 0);
-			EXPECT_EQ(prg[0].fragment_id(), 1);
+			EXPECT_EQ(prg[0].compute_id(), 0);
 		}
 		{
-			EXPECT_EQ(prg[1].vertex_id(), 2);
-			EXPECT_EQ(prg[1].fragment_id(), 3);
-		}
-		{
-			EXPECT_EQ(prg[2].compute_id(), 7);
+			EXPECT_EQ(prg[1].vertex_id(), 1);
+			EXPECT_EQ(prg[1].fragment_id(), 2);
 		}
 	}
 }

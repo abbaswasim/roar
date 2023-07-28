@@ -587,7 +587,7 @@ FORCE_INLINE constexpr bool visualise_mipmaps()
 
 FORCE_INLINE constexpr uint32_t multisample_count()
 {
-	return 8;
+	return 1;
 }
 
 FORCE_INLINE constexpr bool sample_rate_shading_enabled()

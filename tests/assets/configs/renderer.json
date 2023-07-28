@@ -9,6 +9,10 @@
 	"programs":[
 		{
 			"compute":0
+		},
+		{
+			"vertex":1,
+			"fragment":2
 		}
 	],
 	"textures":[
@@ -119,6 +123,10 @@
 					"format":"float32_3x3"
 				},
 				{
+					"name":"viewport",
+					"format":"uint32_4"
+				},
+				{
 					"name":"camera_position",
 					"format":"float32_3"
 				}
@@ -164,7 +172,7 @@
 		},
 		{
 			"name":"node_transform_input",
-			"layout":"std140",
+			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
 			"binding":0,
@@ -320,12 +328,14 @@
 					{
 						"index":2,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"buffer"
 					},
 					{
-						"index":4,
+						"index":3,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"buffer"
 					}
 				],
 				"subpasses":[
@@ -334,6 +344,7 @@
 						"technique":"compute",
 						"type":"node_transform",
 						"state":"transient",
+						"debug_output":true,
 						"buffer_inputs":[
 							{
 								"index" : 5,
@@ -369,12 +380,14 @@
 					{
 						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					},
 					{
 						"index":3,
 						"load_action":"clear",
-						"store_action":"discard"
+						"store_action":"discard",
+						"type":"depth"
 					}
 				],
 				"background":[
@@ -394,6 +407,7 @@
 						"state":"transient",
 						"debug_output":true,
 						"cull_mode" : "back",
+						"render_targets":[0, 1],
 						"rendered_inputs":[
 							{
 								"index" : 2,
@@ -416,6 +430,7 @@
 						"type":"tone_mapping",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0, 1],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -432,7 +447,8 @@
 					{
 						"index":4,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"subpasses":[
@@ -442,6 +458,7 @@
 						"type":"lut",
 						"state":"persistent",
 						"debug_output":true,
+						"render_targets":[0],
 						"program":0
 					}
 				]
@@ -451,7 +468,8 @@
 					{
 						"index":5,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"subpasses":[
@@ -460,6 +478,7 @@
 						"state":"transient",
 						"technique":"compute",
 						"type":"reflection",
+						"render_targets":[0],
 						"program":3
 					}
 				]
@@ -469,7 +488,8 @@
 					{
 						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"subpasses":[
@@ -478,6 +498,7 @@
 						"state":"transient",
 						"technique":"compute",
 						"type":"light_bin",
+						"render_targets":[0],
 						"program":3
 					}
 				]
@@ -487,7 +508,8 @@
 					{
 						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"background":[
@@ -501,6 +523,7 @@
 						"name":"main",
 						"state":"transient",
 						"type":"main",
+						"render_targets":[0],
 						"program":3
 					}
 				]
@@ -510,7 +533,8 @@
 					{
 						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					}
 				],
 				"depends_on":[
@@ -522,6 +546,7 @@
 						"type":"shadow",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0],
 						"program":2
 					}
 				]
@@ -529,14 +554,16 @@
 			{
 				"render_targets":[
 					{
-						"index":2,
+						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					},
 					{
-						"index":4,
+						"index":3,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"depth"
 					}
 				],
 				"depends_on":[
@@ -549,6 +576,7 @@
 						"type":"depth",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0],
 						"program":1
 					},
 					{
@@ -556,6 +584,7 @@
 						"type":"deferred_gbuffer",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[1],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -569,6 +598,7 @@
 						"type":"post_process",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0, 1],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -584,6 +614,7 @@
 						"type":"main",
 						"state":"transient",
 						"debug_output":true,
+						"render_targets":[0],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -597,14 +628,16 @@
 			{
 				"render_targets":[
 					{
-						"index":2,
+						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					},
 					{
-						"index":4,
+						"index":3,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"depth"
 					}
 				],
 				"depends_on":[
@@ -615,6 +648,7 @@
 						"name":"bloom",
 						"type":"post_process",
 						"state":"transient",
+						"render_targets":[0, 1],
 						"subpass_inputs":[
 							{
 								"index" : 0,
@@ -628,14 +662,16 @@
 			{
 				"render_targets":[
 					{
-						"index":2,
+						"index":0,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"color"
 					},
 					{
-						"index":4,
+						"index":3,
 						"load_action":"clear",
-						"store_action":"store"
+						"store_action":"store",
+						"type":"depth"
 					}
 				],
 				"depends_on":[
@@ -646,6 +682,7 @@
 						"name":"tonemap",
 						"type":"post_process",
 						"state":"transient",
+						"render_targets":[0, 1],
 						"subpass_inputs":[
 							{
 								"index" : 0,
