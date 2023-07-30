@@ -133,4 +133,25 @@ void Mesh::update_mesh_data(size_t a_primitive_index, std::unordered_map<rhi::Bu
 
 	vertex_descriptor.update(a_attribs_data, &a_buffers_pack);
 }
+
+bool Mesh::has_morphs(rhi::BufferSemantic a_semantic) const noexcept
+{
+	if (this->m_morph_weights.size() > 0)
+	{
+		for (auto &vd : this->m_morph_targets_vertex_descriptors)
+		{
+			for (auto &va : vd)
+			{
+				auto &attribs = va.attributes();
+				for (auto &attrib : attribs)
+				{
+					if (attrib.semantics() == a_semantic)
+						return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 }        // namespace ror

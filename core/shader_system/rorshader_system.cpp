@@ -656,6 +656,8 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	auto        has_color_0              = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0);
 	auto        has_color_1              = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_1);
 	auto        has_morphs               = mesh.has_morphs();
+	auto        has_morphs_normal        = mesh.has_morphs(rhi::BufferSemantic::vertex_normal);
+	auto        has_morphs_tangent       = mesh.has_morphs(rhi::BufferSemantic::vertex_tangent);
 	auto        is_depth_shadow          = (a_renderpass_type == rhi::RenderpassType::depth || a_renderpass_type == rhi::RenderpassType::shadow);
 
 	std::unordered_map<rhi::BufferSemantic, std::pair<uint32_t, bool>> targets_count{
@@ -733,8 +735,8 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		result.append(vs_skin_position(joint_sets));        // Max 2 joint/weights sets
 	}
 
-#define setup_for_depth_shadow()        \
-	if (has_morphs)                     \
+#define setup_for_depth_shadow(morphs)  \
+	if (has_morphs && morphs)           \
 		replace_next_at("", tmp);       \
 	else                                \
 		replace_next_at("//", tmp);     \
@@ -745,7 +747,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 
 	{
 		auto tmp{vs_set_position_str};
-		setup_for_depth_shadow();
+		setup_for_depth_shadow(true);
 
 		if (is_depth_shadow)
 			replace_next_at("//", tmp);        // Final @ to enable disable out_vertex_position
@@ -760,7 +762,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		if (has_normal)
 		{
 			auto tmp{vs_set_normal_str};
-			setup_for_depth_shadow();
+			setup_for_depth_shadow(has_morphs_normal);
 
 			result.append(tmp);        // Add set_normal
 		}
@@ -768,7 +770,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		if (has_tangent)
 		{
 			auto tmp{vs_set_tangent_str};
-			setup_for_depth_shadow();
+			setup_for_depth_shadow(has_morphs_tangent);
 			result.append(tmp);        // Add set_tangent
 		}
 	}

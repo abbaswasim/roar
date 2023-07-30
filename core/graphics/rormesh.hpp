@@ -90,6 +90,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	FORCE_INLINE constexpr auto  skin_index()                                 const noexcept { return this->m_skin_index;                                          }
 	FORCE_INLINE constexpr auto  hash()                                       const noexcept { return this->m_hash;                                                }
 	FORCE_INLINE constexpr auto &name()                                       const noexcept { return this->m_name;                                                }
+	                       bool  has_morphs(rhi::BufferSemantic a_semantic)   const noexcept;
 	FORCE_INLINE constexpr auto  has_morphs()                                 const noexcept { return (this->m_morph_weights.size() > 0 &&
 																									   this->m_morph_targets_vertex_descriptors.size() > 0);       }
 	FORCE_INLINE constexpr auto &weights()                                          noexcept { return this->m_morph_weights;                                       }
@@ -111,7 +112,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	// Use this method to upload data for a specific mesh primitive
 	// Tuple is made up of buffer semantic, vertex format, data pointer, attribute count and stride
 	// NOTE: use the following two only if you are creating a static mesh. Otherwise do this manually and not using a_buffers_pack
-	void mesh_data(size_t a_primitive_index, const std::vector<std::tuple<rhi::BufferSemantic, rhi::VertexFormat, uint8_t *, uint32_t, uint32_t>>& a_data, rhi::BuffersPack &a_buffers_pack);
+	void mesh_data(size_t a_primitive_index, const std::vector<std::tuple<rhi::BufferSemantic, rhi::VertexFormat, uint8_t *, uint32_t, uint32_t>> &a_data, rhi::BuffersPack &a_buffers_pack);
 	void update_mesh_data(size_t a_primitive_index, std::unordered_map<rhi::BufferSemantic, std::tuple<uint8_t *, uint32_t, uint32_t>> &a_attribs_data, rhi::BuffersPack &a_buffers_pack);
 
 	// TODO: Flatten this into 'Mesh' into 'Models' etc to see if I get cache locallity
