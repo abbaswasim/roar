@@ -1,0 +1,44 @@
+Metal design:
+
+First device is created:
+	id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+
+Metal Layer is created
+	metal_layer = [CAMetalLayer layer];
+
+	Which saves device and pixelformat:
+		metal_layer.device      = device;
+		metal_layer.pixelFormat = pixel_format;
+
+Swapchain is received from Metal Layer
+	swapchain   = [metal_layer nextDrawable];
+
+Queue is created first from Device
+	queue = [device newCommandQueue];
+
+Loop:
+	Command buffer is created from Queue
+		cmd_buffer = [queue commandBuffer];
+
+	Command Encoder is created from Command Buffer with a render pass descriptor, that has updated framebuffer texture from swapchain
+		cmd_encoder = [cmd_buffer renderCommandEncoderWithDescriptor:render_pass_descriptor];
+
+		Encoder takes PSO
+		[cmd_encoder setRenderPipelineState:render_pipeline_state];
+
+		Encoder is used to set textures, buffers and draw primitives
+		[cmd_encoder setVertexBuffer:positions offset:position_offset        atIndex:utl::position_loc_bind];
+		[cmd_encoder setFragmentTexture:texture                              atIndex:0];
+		[cmd_encoder drawIndexedPrimitives:MTLPrimitiveTypeTriangle
+										indexCount:astro_boy_indices_array_count
+										 indexType:MTLIndexTypeUInt32
+									   indexBuffer:indices
+								 indexBufferOffset:0];
+		[cmd_encoder endEncoding];
+
+	Command Buffer is then used to present the swapchain and commit
+		[cmd_buffer presentDrawable:swapchain];
+		[cmd_buffer commit];
+
+
+
