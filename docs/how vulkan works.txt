@@ -1,0 +1,80 @@
+Vulkan design:
+
+Here is a rough overview of how vulkan renders stuff.
+
+First physical device and device are created:
+	vkEnumeratePhysicalDevices();
+	vkCreateDevice(physical_device, &device_create_info, cfg::VkAllocator, &device);
+
+Swapchain is created from device:
+	vkCreateSwapchainKHR(device, &swapchain_create_info, nullptr, &swapchain);
+
+Buffers are created from device:
+	vkCreateBuffer(device, &buffer_info, cfg::VkAllocator, &buffer);
+
+Textures are created from device:
+	vkCreateImage(device, &image_info, nullptr, &image);
+	vkCreateImageView(device, &image_view_create_info, nullptr, &image_view);
+
+Queues are created from Device:
+	vkGetDeviceQueue(device, familyIndex, graphics_index, graphics_queue);
+	vkGetDeviceQueue(device, familyIndex, present_index, present_queue);
+
+Renderpass is created from device:
+	vkCreateRenderPass(device, &render_pass_info, nullptr, &render_pass);
+
+Command buffer is created from device:
+	vkAllocateCommandBuffers(device, &command_buffer_allocation_info, &graphics_command_buffer);
+
+PSOs are created from device:
+	vkCreateGraphicsPipelines(device, pipeline_cache, 1, &graphics_pipeline_create_info, cfg::VkAllocator, &graphics_pipeline);
+
+Loop:
+	Record command buffer, does not have to be in a the loop if constant:
+		vkBeginCommandBuffer(command_buffer, &command_buffer_begin_info);
+		VkRenderPassBeginInfo render_pass_begin_info = {};
+		render_pass_begin_info.renderPass            = render_pass;
+		render_pass_begin_info.framebuffer           = framebuffer;
+
+		vkCmdBeginRenderPass(command_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);        // VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS for secondary
+
+		Command buffer takes PSO:
+		vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphics_pipeline);
+
+		vkCmdSetViewport(command_buffer, 0, 1, &viewport);
+		VkBuffer vertexBuffers[] = {vertex_buffers[0],
+		                            vertex_buffers[1]};
+
+		Command buffer is used to set textures, buffers and draw primitives:
+		vkCmdBindVertexBuffers(command_buffer, 0, 5, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(command_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1, &descriptor_sets[i], 0, nullptr);
+
+		vkCmdDraw(command_buffer, static_cast<uint32_t>(astro_boy_indices_array_count), 1, 0, 0);
+		vkCmdDrawIndexed(command_buffer, astro_boy_indices_array_count, 1, 0, 0, 0);
+
+		vkCmdEndRenderPass(command_buffer);
+
+		vkEndCommandBuffer(command_buffer);
+
+	Submit to queue:
+		vkWaitForFences(device, 1, &queue_fence[current_frame], VK_TRUE, UINT64_MAX);
+		vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, image_available_semaphore[current_frame], VK_NULL_HANDLE, &image_index);
+
+		Needs a submit info that take one or more command buffers and semaphores etc:
+		VkSubmitInfo submit_info{};
+		submit_info.pCommandBuffers = &command_buffer;
+
+		vkResetFences(device, 1, &queue_fence[current_frame]);
+
+		Update our uniform buffers for this frame
+		vkQueueSubmit(graphics_queue, 1, &submit_info, queue_fence[current_frame])
+
+		VkPresentInfoKHR presentInfo{};
+		VkSwapchainKHR swapChains[] = {swapchain};
+
+		presentInfo.swapchainCount  = 1;
+		presentInfo.pSwapchains     = swapChains;
+		presentInfo.pImageIndices   = &image_index;
+
+		vkQueuePresentKHR(present_queue, &presentInfo);

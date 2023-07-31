@@ -1,10 +1,15 @@
 Metal design:
 
+Here is a rough overview of how metal renders stuff.
+First set of calls are Objective-C calls, the second set are MetalCPP calls.
+
 First device is created:
 	id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+	device = MTL::CreateSystemDefaultDevice();
 
 Metal Layer is created
 	metal_layer = [CAMetalLayer layer];
+	metal_layer = get_metal_layer(this->m_window, static_cast<double>(win_width), static_cast<double>(win_height), device);
 
 	Which saves device and pixelformat:
 		metal_layer.device      = device;
@@ -12,19 +17,36 @@ Metal Layer is created
 
 Swapchain is received from Metal Layer
 	swapchain   = [metal_layer nextDrawable];
+	swapchain = reinterpret_cast<CA::MetalDrawable *>(next_drawable(metal_layer));
 
-Queue is created first from Device
+Buffers are created from device:
+	positions      = [device newBufferWithBytes:astro_boy_positions length:astro_boy_positions_array_count * sizeof(float) options:MTLCPUCacheModeDefaultCache];
+	positions      = device->newBuffer(astro_boy_positions_array_count * sizeof(float32_t), MTL::ResourceStorageModeManaged);
+
+Textures are created from device:
+	texture = [device newTextureWithDescriptor:texture_descriptor];
+	texture = device->newTexture(texture_descriptor);
+
+Queue is created from Device
 	queue = [device newCommandQueue];
+	command_queue = device->newCommandQueue();
+
+PSOs are created from device:
+	render_pipeline_state [device newRenderPipelineState:render_pipeline_descriptor]
+	render_pipeline_state = device->newRenderPipelineState(render_pipeline_descriptor);
 
 Loop:
 	Command buffer is created from Queue
 		cmd_buffer = [queue commandBuffer];
+		cmd_buffer = command_queue->commandBuffer();
 
 	Command Encoder is created from Command Buffer with a render pass descriptor, that has updated framebuffer texture from swapchain
 		cmd_encoder = [cmd_buffer renderCommandEncoderWithDescriptor:render_pass_descriptor];
+		cmd_encoder = cmd_buffer->renderCommandEncoder(render_pass_descriptor);
 
 		Encoder takes PSO
 		[cmd_encoder setRenderPipelineState:render_pipeline_state];
+		cmd_encoder->setRenderPipelineState(render_pipeline_state);
 
 		Encoder is used to set textures, buffers and draw primitives
 		[cmd_encoder setVertexBuffer:positions offset:position_offset        atIndex:utl::position_loc_bind];
@@ -36,9 +58,17 @@ Loop:
 								 indexBufferOffset:0];
 		[cmd_encoder endEncoding];
 
+		cmd_encoder->setVertexBuffer(positions, 0, 0);
+		cmd_encoder->setFragmentTexture(texture, 0);
+		cmd_encoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, astro_boy_indices_array_count, MTL::IndexTypeUInt32, indices, 0);
+		cmd_encoder->endEncoding();
+
+
 	Command Buffer is then used to present the swapchain and commit
 		[cmd_buffer presentDrawable:swapchain];
 		[cmd_buffer commit];
+		cmd_buffer->presentDrawable(swapchain);
+		cmd_buffer->commit();
 
 
 
