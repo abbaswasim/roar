@@ -67,6 +67,44 @@ class Instance : public VulkanObject<VkInstance>
 	VkDebugUtilsMessengerEXT m_messenger{nullptr};
 };
 
+static const char *vk_physical_device_type_to_string(VkPhysicalDeviceType a_type)
+{
+	// clang-format off
+	switch (a_type)
+	{
+	case VK_PHYSICAL_DEVICE_TYPE_OTHER:          return "VK_PHYSICAL_DEVICE_TYPE_OTHER";
+	case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
+	case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:   return "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
+	case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:    return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
+	case VK_PHYSICAL_DEVICE_TYPE_CPU:            return "VK_PHYSICAL_DEVICE_TYPE_CPU";
+	case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:       return "VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM";
+	}
+	// clang-format on
+
+	return "UNKNOWN_DEVICE";
+}
+
+static void print_physical_device_properties(const VkPhysicalDeviceProperties &a_properties)
+{
+	auto api_version = a_properties.apiVersion;
+
+	auto major = VK_VERSION_MAJOR(api_version);
+	auto minor = VK_VERSION_MINOR(api_version);
+	auto patch = VK_VERSION_PATCH(api_version);
+
+	ror::log_info("Physical device properties:\nAPI Version:    {}.{}.{}\nDriver version: {}\nVendor ID:      {}\nDevice ID:      {}\nDevice Type:    {}\nDevice Name:    {}",
+	              major, minor, patch,
+	              a_properties.driverVersion,
+	              a_properties.vendorID,
+	              a_properties.deviceID,
+				  vk_physical_device_type_to_string(a_properties.deviceType),
+	              a_properties.deviceName);
+
+	// static_cast<const unsigned char*>(a_properties.pipelineCacheUUID),
+	// VkPhysicalDeviceLimits          a_properties.limits;
+	// VkPhysicalDeviceSparseProperties   a_properties.sparseProperties;
+}
+
 class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 {
   public:
@@ -86,13 +124,14 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	{
 		auto gpus = enumerate_general_property<VkPhysicalDevice, true>(vkEnumeratePhysicalDevices, a_instance.get_handle());
 
-		VkPhysicalDevice physical_device{VK_NULL_HANDLE};
+		VkPhysicalDevice           physical_device{VK_NULL_HANDLE};
+		VkPhysicalDeviceProperties physical_device_properties{};        //! Physical device properties cache
 
 		for (auto gpu : gpus)
 		{
-			vkGetPhysicalDeviceProperties(gpu, &this->m_physical_device_properties);
+			vkGetPhysicalDeviceProperties(gpu, &physical_device_properties);
 
-			if (this->m_physical_device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+			if (physical_device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 			{
 				physical_device = gpu;
 				break;
@@ -105,6 +144,10 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 			assert(gpus.size() > 1);
 			physical_device = gpus[0];
 		}
+
+		// Now when we have settled down on a physical_device lets get its properties, note it might not be physical_device_properties local variable so don't use that
+		vkGetPhysicalDeviceProperties(physical_device, &this->m_physical_device_properties);
+		print_physical_device_properties(this->m_physical_device_properties);
 
 		this->set_handle(physical_device);
 
