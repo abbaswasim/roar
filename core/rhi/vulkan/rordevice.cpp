@@ -27,6 +27,7 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/vulkan/rordevice.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
+#include <cassert>
 
 namespace rhi
 {
@@ -100,6 +101,22 @@ Instance::Instance()
 	debug_messenger_create_info.pfnUserCallback = vk_debug_generic_callback;
 	debug_messenger_create_info.pUserData       = nullptr;        // Optional
 
+	auto api_version = VK_API_VERSION_1_0;
+	// vkEnumerateInstanceVersion can't be nullptr because its vusym function but the real function that it calls could be null
+	// in which case we are on 1.0 but its not supported
+	vkEnumerateInstanceVersion(&api_version);
+
+	auto major = VK_VERSION_MAJOR(api_version);
+	auto minor = VK_VERSION_MINOR(api_version);
+	auto patch = VK_VERSION_PATCH(api_version);
+
+	auto requestd_major = setting.m_vulkan.version_major;
+	auto requestd_minor = setting.m_vulkan.version_minor;
+
+	ror::log_info("Highest vulkan version available : {}.{}.{} and requested version : {}.{}.0", major, minor, patch, requestd_major, requestd_minor);
+
+	assert(major >= requestd_major && minor >= requestd_minor && "Requested vulkan version not available");
+
 	VkInstance        instance_handle{VK_NULL_HANDLE};
 	VkApplicationInfo app_info = {};
 
@@ -110,7 +127,6 @@ Instance::Instance()
 	app_info.pEngineName        = setting.m_engine_name.c_str();
 	app_info.engineVersion      = setting.m_engine_version;
 	app_info.apiVersion         = ror::vulkan_api_version();
-	// Should this be result of vkEnumerateInstanceVersion
 
 	auto extensions = enumerate_properties<VkInstance, VkExtensionProperties>();
 	auto layers     = enumerate_properties<VkInstance, VkLayerProperties>();
