@@ -503,7 +503,7 @@ void ProgramVulkan::upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader
                            rhi::PrimitiveTopology /* a_toplogy */, const char * /* a_pso_name */, bool /* a_subpass_has_depth */, bool /* a_is_depth_shadow */, bool /* a_premultiplied_alpha */)
 {
 	auto *device = a_device.platform_device();
-
+	(void) device;
 	assert(device);
 
 	if (a_vs_shader.module() == nullptr)
@@ -525,6 +525,8 @@ void ProgramVulkan::upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader
 void ProgramVulkan::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack & /* a_buffer_pack */, bool /* a_premultiplied_alpha */)
 {
 	auto *device = a_device.platform_device();
+	(void) device;
+	assert(device);
 
 	// TODO: Add support for non-mesh vertex and fragment pipelines, would require a RenderpassType as a must
 

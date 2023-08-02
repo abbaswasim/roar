@@ -43,6 +43,7 @@
 #	pragma GCC diagnostic ignored "-Wsign-conversion"
 #	pragma GCC diagnostic ignored "-Wstringop-truncation"
 #	pragma GCC diagnostic ignored "-Wstringop-overflow"
+#	pragma GCC diagnostic ignored "-Walloc-size-larger-than="
 #elif defined(_MSVC)
 #else
 #	error Compiler not supported
