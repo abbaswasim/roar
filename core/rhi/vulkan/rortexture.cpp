@@ -196,7 +196,7 @@ void TextureImageVulkan::upload(rhi::Device &a_device)
 		assert(this->size() == this->width() * this->height() * this->bytes_per_pixel());
 
 		properties = rhi::to_vulkan_resource_option(rhi::ResourceStorageOption::managed);        // TODO: Confirm this from vulkan tutorial
-		vk_create_buffer_with_memory(device, staging_buffer, std::max(1ul, static_cast_safe<unsigned long>(this->size())), usage, mode, queue_family_indices, staging_memory, memory_properties.memoryProperties, properties);
+		vk_create_buffer_with_memory(device, staging_buffer, std::max(1ul, ror::static_cast_safe<unsigned long>(this->size())), usage, mode, queue_family_indices, staging_memory, memory_properties.memoryProperties, properties);
 
 		auto texture_data = vk_map_memory(device, staging_memory);
 		memcpy(texture_data, this->data(), this->size());
