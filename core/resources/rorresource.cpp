@@ -163,7 +163,7 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 	std::filesystem::path semantic_path{get_resource_semantic_string(a_semantic)};
 	std::filesystem::path resource_semantic_path{semantic_path / a_path};
 
-	auto &project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
+	auto project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
 
 	// Is it at the root of the project?
 	std::filesystem::path p{project_root_path / a_path};
@@ -327,7 +327,7 @@ Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_
 std::filesystem::path make_resource_path(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
 {
 	assert(a_path != "" && "create_resource is provided empty path");
-	auto &project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
+	auto project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
 
 	std::filesystem::path semantic_path{get_resource_semantic_string(a_semantic)};
 	std::filesystem::path absolute_path{project_root_path / a_parent_path / semantic_path / a_path};
@@ -600,7 +600,7 @@ void Resource::update(bytes_vector &&a_data, bool a_append, bool a_mark_dirty)
 
 std::filesystem::path get_cache_path()
 {
-	auto &project_root_path = get_project_root().path();        // Calling get_project_root without any arguments relies on clients who must call to initalized project_root
+	auto project_root_path = get_project_root().path();        // Calling get_project_root without any arguments relies on clients who must call to initalized project_root
 
 	return project_root_path / ror::settings().m_roar_cache;
 }

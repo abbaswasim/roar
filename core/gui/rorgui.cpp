@@ -246,7 +246,8 @@ uint8_t *generate_shadow_pixels(uint8_t *pixels, int iwidth, int iheight)
 	}
 
 	// Create shadow at offset
-	auto offset = ImGui::GetIO().Fonts->TexGlyphShadowOffset;
+	auto offsetf = ImGui::GetIO().Fonts->TexGlyphShadowOffset;
+	auto offset = ror::Vector2i{static_cast<int>(offsetf.x), static_cast<int>(offsetf.y)};
 
 	for (int y = std::abs(static_cast<int>(offset.y)); y < iheight; y++)
 	{
@@ -446,7 +447,7 @@ void set_imgui_style()
 	style.WindowBorderSize = 1;
 	style.ChildBorderSize  = 1;
 	style.PopupBorderSize  = 1;
-	style.FrameBorderSize  = is3D;
+	style.FrameBorderSize  = static_cast<float32_t>(is3D);
 
 	style.WindowRounding    = 3;
 	style.ChildRounding     = 3;
@@ -502,7 +503,7 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	else        // Assumes classic otherwise
 		ImGui::StyleColorsClassic();
 
-	ImGui::GetStyle().ScaleAllSizes(setting.m_gui.m_scale);        // If you want to make things bigger, should probably be DPI aware
+	ImGui::GetStyle().ScaleAllSizes(static_cast<float32_t>(setting.m_gui.m_scale));        // If you want to make things bigger, should probably be DPI aware
 
 	set_imgui_style();
 
@@ -519,7 +520,7 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 		void *font_data = const_cast<void *>(reinterpret_cast<const void *>(resource_data.data()));
 
 		ImFontConfig font_cfg;
-		font_cfg.SizePixels           = setting.m_gui.m_font_size;
+		font_cfg.SizePixels           = static_cast<float32_t>(setting.m_gui.m_font_size);
 		font_cfg.FontDataOwnedByAtlas = false;                                        // So imgui doesn't delete the resource data from underneath us
 		std::memcpy(font_cfg.Name, font.c_str(), std::min(40ul, font.size()));        // 40 Hard limit on ImGui font name
 
@@ -547,7 +548,7 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	if (this->m_fonts.empty())
 	{
 		ImFontConfig font_cfg;
-		font_cfg.SizePixels = setting.m_gui.m_font_size;
+		font_cfg.SizePixels = static_cast<float32_t>(setting.m_gui.m_font_size);
 		this->m_fonts.emplace_back(io.Fonts->AddFontDefault(&font_cfg));
 	}
 
@@ -685,7 +686,7 @@ static void show_multi_render_view_titles(bool &a_show_render_titles)
 
 	// Make segments
 	for (uint32_t i = 0u; i < segments_count; ++i)
-		segments[i] = segments_size * (i + 1) + segments_size * skew;
+		segments[i] = segments_size * (static_cast<float32_t>(i) + 1) + segments_size * skew;
 
 	const std::string titles[segments_count] = {"Occlusion", "Normal", "Roughness", "Metallic", "Base Color", "Emissive"};
 

@@ -330,7 +330,7 @@ void draw_circle(ImDrawList *a_drawlist, ror::Vector3f a_center, float32_t a_rad
 	a_drawlist->PathClear();
 	for (uint32_t i = 0; i <= segments; ++i)
 	{
-		ror::AxisAnglef axis_angle{ror::Vector3f{a_normal}, i * pi_seg};
+		ror::AxisAnglef axis_angle{ror::Vector3f{a_normal}, static_cast<float32_t>(i) * pi_seg};
 		auto            result{false};
 		auto            rotation = ror::matrix4_rotation(axis_angle);
 		auto            point    = a_center + (rotation * perpendicular);
@@ -373,7 +373,7 @@ void draw_spot_light_bounds(ImDrawList *a_drawlist, const ror::Light &a_light, c
 	auto hand2         = perpendicular * inner_radius;
 
 	uint32_t        segments{20};
-	const float32_t pi_seg{ror_pi * 2.0f / segments};
+	const float32_t pi_seg{ror_pi * 2.0f / static_cast<float32_t>(segments)};
 	auto            result{false};
 	auto            projected_center = ror::project_to_screen(ror::Vector4f{a_light.m_position}, a_view_projection, a_viewport, result);
 
@@ -381,7 +381,7 @@ void draw_spot_light_bounds(ImDrawList *a_drawlist, const ror::Light &a_light, c
 	{
 		for (uint32_t i = 0; i <= segments; ++i)
 		{
-			const ror::AxisAnglef axis_angle{ror::Vector3f{normal}, i * pi_seg};
+			const ror::AxisAnglef axis_angle{ror::Vector3f{normal}, static_cast<float32_t>(i) * pi_seg};
 			const auto            rotation = ror::matrix4_rotation(axis_angle);
 			const auto            point1   = center + rotation * hand1;
 			const auto            point2   = center + rotation * hand2;
@@ -413,13 +413,13 @@ void draw_directional_light_bounds(ImDrawList *a_drawlist, const ror::Light &a_l
 	auto hand1         = perpendicular * size;
 
 	uint32_t        segments{10};
-	const float32_t pi_seg{ror_pi * 2.0f / segments};
+	const float32_t pi_seg{ror_pi * 2.0f / static_cast<float32_t>(segments)};
 	auto            result1{true};
 	auto            result2{false};
 
 	for (uint32_t i = 0; i <= segments; ++i)
 	{
-		ror::AxisAnglef axis_angle{ror::Vector3f{normal}, i * pi_seg};
+		ror::AxisAnglef axis_angle{ror::Vector3f{normal}, static_cast<float32_t>(i) * pi_seg};
 		auto            rotation = ror::matrix4_rotation(axis_angle);
 		auto            point1   = a_light.m_position + (rotation * hand1);
 		auto            point2   = target + (rotation * hand1);

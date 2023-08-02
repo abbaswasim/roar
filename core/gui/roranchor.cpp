@@ -122,13 +122,14 @@ void Anchors::Anchor::draw(ImDrawList *a_drawlist, const ror::Matrix4f &a_view_p
 	}
 	else if (this->m_type == AnchorType::icon)
 	{
+		float icon_size  = static_cast<float32_t>(this->m_icon_size) * 0.5f;
 		if (this->m_clicked)
-			a_drawlist->AddText(nullptr, this->m_icon_size, ImVec2(center.x - this->m_icon_size * 0.5f, center.y - this->m_icon_size * 0.5f), a_color, this->m_icon);
+			a_drawlist->AddText(nullptr, static_cast<float32_t>(this->m_icon_size), ImVec2(center.x - icon_size, center.y - icon_size), a_color, this->m_icon);
 
 		if (this->m_clicked || a_hovering)
-			a_drawlist->AddText(nullptr, this->m_icon_size, ImVec2(center.x - this->m_icon_size * 0.5f, center.y - this->m_icon_size * 0.5f), a_click_color, this->m_icon);
+			a_drawlist->AddText(nullptr, static_cast<float32_t>(this->m_icon_size), ImVec2(center.x - icon_size, center.y - icon_size), a_click_color, this->m_icon);
 		else if (cresult && !this->m_dorment)
-			a_drawlist->AddText(nullptr, this->m_icon_size, ImVec2(center.x - this->m_icon_size * 0.5f, center.y - this->m_icon_size * 0.5f), a_color, this->m_icon);
+			a_drawlist->AddText(nullptr, static_cast<float32_t>(this->m_icon_size), ImVec2(center.x - icon_size, center.y - icon_size), a_color, this->m_icon);
 	}
 	else if (this->m_type == AnchorType::triangle)        // Simplification of bezier to a triangle
 	{
@@ -267,7 +268,7 @@ void Anchors::Anchor::make_ribbon(ImDrawList *a_drawlist, ror::Vector4f new_cent
 
 	for (uint32_t j = 1; j < segments; ++j)
 	{
-		float32_t t   = j * ribon_height_segments;
+		float32_t t   = static_cast<float32_t>(j) * ribon_height_segments;
 		float32_t oi  = 1.0f - t;
 		float32_t is  = t * t;
 		float32_t ois = 2.0f * oi * t;

@@ -761,7 +761,7 @@ std::vector<_type> unpack_normalized(const cgltf_accessor *a_accessor)
 		auto z = (reinterpret_cast<_type *>(ptr))[2];
 		auto w = (reinterpret_cast<_type *>(ptr))[3];
 
-		float32_t sum = x + y + z + w;
+		float32_t sum = static_cast<float32_t>(x + y + z + w);
 
 		if (sum > 0.0f && (sum < type_max<_type>() || sum > type_max<_type>()))
 		{
@@ -915,9 +915,9 @@ static auto generate_grid(ror::Vector2ui a_grid, ror::Vector4f a_grid_color, boo
 		positions.push_back(position.w);
 	};
 
-	float32_t size = static_cast_safe<int32_t>(a_grid.y / 2);
+	float32_t size =ror::static_cast_safe<float32_t>(ror::static_cast_safe<int32_t>(a_grid.y / 2u));
 
-	for (float32_t i = static_cast_safe<float32_t>(a_grid.x); i < size; i += a_grid.x)
+	for (float32_t i = static_cast<float32_t>(a_grid.x); i < size; i += static_cast<float32_t>(a_grid.x))
 	{
 		float32_t tens = 0.5f;
 

@@ -83,7 +83,7 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		if (e.is_compatible<ror::Vector2ui>())
 		{
 			auto vec2 = std::any_cast<ror::Vector2ui>(e.m_payload);
-			this->bounds(vec2.x, vec2.y);
+			this->bounds(static_cast<float32_t>(vec2.x), static_cast<float32_t>(vec2.y));
 		}
 		else
 		{

@@ -59,7 +59,7 @@ class RenderstateCrtp : public ror::Crtp<_type, RenderstateCrtp>
 	bool                      m_depth_write{true};
 };
 
-template <typename _RenderstateDepth> // will get other types as we add more state
+template <typename render_state_depth> // will get other types as we add more state
 class Renderstate final
 {
   public:
@@ -82,11 +82,11 @@ class Renderstate final
 
   protected:
   private:
-	_RenderstateDepth m_depth_state{rhi::DepthCompareFunction::less, true};
-	_RenderstateDepth m_depth_state_less_equal{rhi::DepthCompareFunction::less_equal, true};
-	_RenderstateDepth m_depth_state_equal_no_write{rhi::DepthCompareFunction::equal, false};
-	_RenderstateDepth m_depth_state_always_no_write{rhi::DepthCompareFunction::always, false};
-	_RenderstateDepth m_depth_state_less_no_write{rhi::DepthCompareFunction::less, false};
+	render_state_depth m_depth_state{rhi::DepthCompareFunction::less, true};
+	render_state_depth m_depth_state_less_equal{rhi::DepthCompareFunction::less_equal, true};
+	render_state_depth m_depth_state_equal_no_write{rhi::DepthCompareFunction::equal, false};
+	render_state_depth m_depth_state_always_no_write{rhi::DepthCompareFunction::always, false};
+	render_state_depth m_depth_state_less_no_write{rhi::DepthCompareFunction::less, false};
 };
 
 }        // namespace rhi

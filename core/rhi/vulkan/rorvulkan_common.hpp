@@ -31,6 +31,7 @@
 #include "settings/rorsettings.hpp"
 #include <typeindex>
 #include <unordered_map>
+#include <optional>
 
 namespace vk
 {
@@ -111,7 +112,7 @@ constexpr FORCE_INLINE const char *vk_result_to_string(VkResult a_result)
 	{                                                                                                        \
 		ror::log_critical("Vulkan command {} returned error code {}", funcall, vk_result_to_string(result)); \
 		assert(0 && funcall);                                                                                \
-	}
+	}(void)0
 
 constexpr FORCE_INLINE auto to_vulkan_pixelformat(rhi::PixelFormat a_pixelformat)
 {
@@ -254,7 +255,7 @@ FORCE_INLINE VkSampleCountFlagBits get_sample_count(VkPhysicalDeviceProperties a
 	// Return if required available otherwise go lower until an alternative is available
 	do
 	{
-		if (counts & required)
+		if ((counts & static_cast<uint32_t>(required)) == required)
 			return required;
 
 		required = static_cast<VkSampleCountFlagBits>(required >> 2);

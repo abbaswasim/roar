@@ -194,8 +194,8 @@ class ROAR_ENGINE_ITEM SwapChain final
   protected:
   private:
 	VkSwapchainKHR           m_swapchain{nullptr};
-	std::vector<VkImage>     m_swapchain_images;
-	std::vector<VkImageView> m_swapchain_images_views;
+	std::vector<VkImage>     m_swapchain_images{};
+	std::vector<VkImageView> m_swapchain_images_views{};
 	VkFormat                 m_format{VK_FORMAT_B8G8R8A8_SRGB};
 };
 

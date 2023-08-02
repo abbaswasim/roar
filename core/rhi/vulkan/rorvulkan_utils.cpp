@@ -117,7 +117,7 @@ VkSampler vk_create_image_sampler(VkDevice a_device, VkSamplerAddressMode a_wrap
 	sampler_info.addressModeW = a_wrap_w;        // VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
 	sampler_info.anisotropyEnable = a_enable_anisotropy;
-	sampler_info.maxAnisotropy    = a_max_anisotropy;
+	sampler_info.maxAnisotropy    = static_cast<float32_t>(a_max_anisotropy);
 
 	sampler_info.borderColor             = a_border_color;              // VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 	sampler_info.unnormalizedCoordinates = a_unormalized_coords;        // VK_FALSE means coordinates are in range 0.0 - 1.0 otherwise 0.0 to image size

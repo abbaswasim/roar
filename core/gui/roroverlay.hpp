@@ -94,9 +94,9 @@ class ROAR_ENGINE_ITEM Overlay final
 	void update(bool a_left_released);
 
 	OverlayType   m_type{OverlayType::light};        //! Type of overlay, initially a point light type
-	OverlaySource m_source;                          //! Source vector of this type of Overlays, like lights and cameras
-	uint32_t      m_source_index;                    //! Index inside of the source vector this type of Overlays
-	Anchors       m_anchors;                         //! Multi-purpose anchors used for different types of overlay
+	OverlaySource m_source;                        //! Source vector of this type of Overlays, like lights and cameras
+	uint32_t      m_source_index{};                  //! Index inside of the source vector this type of Overlays
+	Anchors       m_anchors{};                       //! Multi-purpose anchors used for different types of overlay
 };
 
 class ROAR_ENGINE_ITEM Overlays final
@@ -117,7 +117,7 @@ class ROAR_ENGINE_ITEM Overlays final
 
   protected:
   private:
-	std::vector<Overlay> m_overlays;                       //! All overlays in the scene
+	std::vector<Overlay> m_overlays{};                     //! All overlays in the scene
 	ImDrawList          *m_draw_list{nullptr};             //! Drawlist into ImGui data
 	ImFont              *m_roar_icon_font{nullptr};        //! Roar icon font with all the fancy icons
 };

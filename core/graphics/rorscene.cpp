@@ -463,15 +463,15 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 
 uint32_t animation_sampler_type(rhi::VertexFormat a_format)
 {
-	assert(a_format == rhi::VertexFormat::float32_4 ||
-	       a_format == rhi::VertexFormat::float32_3 ||
-	       a_format == rhi::VertexFormat::float32_1 ||
-	       a_format == rhi::VertexFormat::int32_1 ||
-	       a_format == rhi::VertexFormat::uint32_1 ||
-	       a_format == rhi::VertexFormat::int16_1 ||
-	       a_format == rhi::VertexFormat::uint16_1 ||
-	       a_format == rhi::VertexFormat::int8_1 ||
-	       a_format == rhi::VertexFormat::uint8_1 && "sampler format is not in the right format");
+	assert((a_format == rhi::VertexFormat::float32_4 ||
+	        a_format == rhi::VertexFormat::float32_3 ||
+	        a_format == rhi::VertexFormat::float32_1 ||
+	        a_format == rhi::VertexFormat::int32_1 ||
+	        a_format == rhi::VertexFormat::uint32_1 ||
+	        a_format == rhi::VertexFormat::int16_1 ||
+	        a_format == rhi::VertexFormat::uint16_1 ||
+	        a_format == rhi::VertexFormat::int8_1 ||
+	        a_format == rhi::VertexFormat::uint8_1) && "sampler format is not in the right format");
 
 	if (a_format == rhi::VertexFormat::float32_4)
 		return 0;
@@ -516,14 +516,14 @@ void get_animation_sizes(ror::Scene &a_scene,
 				{
 					auto &mesh = model.meshes()[static_cast<size_t>(model_node.m_mesh_index)];
 					if (mesh.has_morphs())
-						a_weights_output_size += mesh.weights_count();
+						a_weights_output_size += ror::static_cast_safe<uint32_t>(mesh.weights_count());
 				}
 			}
 
 			auto current_anim{0u};
 			for (auto &anim : model.animations())
 			{
-				a_animation_size += anim.m_channels.size();
+				a_animation_size += ror::static_cast_safe<uint32_t>(anim.m_channels.size());
 
 				if (current_anim == node.m_animation)
 					a_animation_count++;
@@ -532,8 +532,8 @@ void get_animation_sizes(ror::Scene &a_scene,
 
 				for (auto &sampler : anim.m_samplers)
 				{
-					a_sampler_input_size += sampler.m_input.size();
-					a_sampler_output_size += sampler.m_output.size() / sizeof(float32_t);
+					a_sampler_input_size += ror::static_cast_safe<uint32_t>(sampler.m_input.size());
+					a_sampler_output_size += ror::static_cast_safe<uint32_t>(sampler.m_output.size() / sizeof(float32_t));
 					// a_sampler_output_size = ror::align16(a_sampler_output_size); // TODO: Fix me when other types are supported their start should be aligned
 				}
 			}
@@ -563,7 +563,7 @@ void fill_morph_weights(ror::Scene &a_scene, rhi::ShaderBuffer &a_shader_buffer,
 					if (mesh.has_morphs())
 					{
 						a_shader_buffer.update("morph_weights", morph_offset * sizeof(float32_t), mesh.weights().data(), static_cast_safe<uint32_t>(mesh.weights().size() * sizeof(float32_t)));
-						morph_offset += mesh.weights_count();
+						morph_offset += ror::static_cast_safe<uint32_t>(mesh.weights_count());
 					}
 				}
 			}
@@ -596,7 +596,7 @@ std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> morph_weights_offset
 					if (mesh.has_morphs())
 					{
 						output[node_offset] = std::make_pair(morph_offset, mesh.weights_count());
-						morph_offset += mesh.weights_count();
+						morph_offset += ror::static_cast_safe<uint32_t>(mesh.weights_count());
 					}
 				}
 				node_offset++;
@@ -661,7 +661,7 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 				if (current_anim == node.m_animation)
 					current_anim_data.emplace_back(model_anim_index, static_cast<uint32_t>(anim.m_channels.size()));
 
-				model_anim_index += anim.m_channels.size();
+				model_anim_index += ror::static_cast_safe<uint32_t>(anim.m_channels.size());
 				for (auto &chanl : anim.m_channels)
 				{
 					auto &anim_sampler = anim.m_samplers[chanl.m_sampler_index];
@@ -697,8 +697,8 @@ void fill_animation_buffers(ror::Scene &a_scene, ror::Renderer &a_renderer)
 					                       weights_count};
 
 					// Lets advance the offset
-					sampler_input_offset += anim_sampler.m_input.size();
-					sampler_output_offset += anim_sampler.m_output.size() / sizeof(float32_t);
+					sampler_input_offset += ror::static_cast_safe<uint32_t>(anim_sampler.m_input.size());
+					sampler_output_offset += ror::static_cast_safe<uint32_t>(anim_sampler.m_output.size() / sizeof(float32_t));
 
 					std::memcpy(anim_data_ptr, &channel.x, sizeof(ror::Vector4ui));
 					anim_data_ptr += sizeof(ror::Vector4ui);
@@ -818,7 +818,7 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 						if (mesh.has_morphs())
 						{
 							node_index.z = morph_offset;
-							morph_offset += mesh.weights_count();
+							morph_offset += ror::static_cast_safe<uint32_t>(mesh.weights_count());
 						}
 						else
 						{

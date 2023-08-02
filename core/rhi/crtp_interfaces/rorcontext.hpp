@@ -93,7 +93,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 			cameras[this->m_current_camera_index].disable();
 
 			this->m_current_camera_index++;
-			this->m_current_camera_index = this->m_current_camera_index % cameras_size;
+			this->m_current_camera_index = this->m_current_camera_index % ror::static_cast_safe<uint32_t>(cameras_size);
 
 			cameras[this->m_current_camera_index].enable();
 		};

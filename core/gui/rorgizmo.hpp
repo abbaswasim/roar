@@ -63,8 +63,8 @@ class ROAR_ENGINE_ITEM Gizmo final
 	float32_t m_bezier_ease{1.0f};                       //! Scale for the bezier easing
 	float32_t m_scale_scale[3]{1.0f, 1.0f, 1.0f};        //! Scale on each axis after manipulation
 
-	Anchors     m_anchors_behind;                 //! All the anchors but split into 2 groups because of rendering order
-	Anchors     m_anchors_front;                  //! Some lines needs to be rendererd in the middle of these
+	Anchors     m_anchors_behind{};               //! All the anchors but split into 2 groups because of rendering order
+	Anchors     m_anchors_front{};                //! Some lines needs to be rendererd in the middle of these
 	ImDrawList *m_draw_list{nullptr};             //! Drawlist into ImGui data
 	ImFont     *m_roar_icon_font{nullptr};        //! Roar icon font with all the fancy icons
 };

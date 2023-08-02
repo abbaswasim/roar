@@ -878,7 +878,7 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 
 	uint32_t nodes_count = static_cast_safe<uint32_t>(a_scene.nodes().size());
 	for (auto &model : a_scene.models())
-		nodes_count += model.nodes().size();
+		nodes_count += static_cast_safe<uint32_t>(model.nodes().size());
 
 	model_ubo->update_count("node_model", nodes_count);
 	input_ubo->update_count("trs_transform_input", nodes_count);

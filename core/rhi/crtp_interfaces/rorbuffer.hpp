@@ -43,11 +43,26 @@ namespace rhi
 
 template <bool>
 class DynamicBuffer
-{};
+{
+	FORCE_INLINE             DynamicBuffer();                                               //! Default constructor
+	FORCE_INLINE             DynamicBuffer(DynamicBuffer &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE             DynamicBuffer(const DynamicBuffer &a_other)     = delete;         //! Copy constructor
+	FORCE_INLINE DynamicBuffer &operator=(const DynamicBuffer &a_other)      = delete;         //! Copy assignment operator
+	FORCE_INLINE DynamicBuffer &operator=(DynamicBuffer &&a_other) noexcept  = delete;         //! Move assignment operator
+	FORCE_INLINE virtual ~DynamicBuffer() noexcept                        = default;        //! Destructor
+};
 
 template <>
 class DynamicBuffer<true>
-{};
+{
+public:
+	FORCE_INLINE             DynamicBuffer();                                               //! Default constructor
+	FORCE_INLINE             DynamicBuffer(DynamicBuffer &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE             DynamicBuffer(const DynamicBuffer &a_other)     = delete;         //! Copy constructor
+	FORCE_INLINE DynamicBuffer &operator=(const DynamicBuffer &a_other)      = delete;         //! Copy assignment operator
+	FORCE_INLINE DynamicBuffer &operator=(DynamicBuffer &&a_other) noexcept  = delete;         //! Move assignment operator
+	FORCE_INLINE virtual ~DynamicBuffer() noexcept                        = default;        //! Destructor
+};
 
 using Dynamic = DynamicBuffer<true>;
 using Static  = DynamicBuffer<false>;
