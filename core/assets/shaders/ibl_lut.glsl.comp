@@ -1,0 +1,17 @@
+#version 450
+
+#extension GL_EXT_shader_explicit_arithmetic_types : require
+#extension GL_EXT_shader_16bit_storage : require
+#extension GL_EXT_shader_8bit_storage : require
+
+layout (local_size_x = 32, local_size_y = 32) in;
+layout (binding = 0, rg16f) uniform image2D lut_image;
+
+void main()
+{
+	int node_index = int(gl_GlobalInvocationID);
+	// vec3 rgb = imageLoad(inputImage, ivec2(gl_GlobalInvocationID.x + i, gl_GlobalInvocationID.y + j)).rgb;
+
+	vec4 value = vec4(1.0, 1.0, 0.0, 1.0);
+	imageStore(lut_image, ivec2(gl_GlobalInvocationID.xy), value);
+}
