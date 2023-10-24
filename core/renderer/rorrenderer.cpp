@@ -251,24 +251,25 @@ void Renderer::load_buffers()
 rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
 {
 	// clang-format off
-	if      (a_type == "lut")                return rhi::RenderpassType::lut;
-	else if (a_type == "main")               return rhi::RenderpassType::main;
-	else if (a_type == "depth")              return rhi::RenderpassType::depth;
-	else if (a_type == "shadow")             return rhi::RenderpassType::shadow;
-	else if (a_type == "light_bin")          return rhi::RenderpassType::light_bin;
-	else if (a_type == "reflection")         return rhi::RenderpassType::reflection;
-	else if (a_type == "refraction")         return rhi::RenderpassType::refraction;
-	else if (a_type == "pre_process")        return rhi::RenderpassType::pre_process;
-	else if (a_type == "post_process")       return rhi::RenderpassType::post_process;
-	else if (a_type == "tone_mapping")       return rhi::RenderpassType::tone_mapping;
-	else if (a_type == "forward_light")      return rhi::RenderpassType::forward_light;
-	else if (a_type == "node_transform")     return rhi::RenderpassType::node_transform;
-	else if (a_type == "deferred_gbuffer")   return rhi::RenderpassType::deferred_gbuffer;
-	else if (a_type == "reflection_probes")  return rhi::RenderpassType::reflection_probes;
-	else if (a_type == "image_based_light")  return rhi::RenderpassType::image_based_light;
-	else if (a_type == "ambient_occlusion")  return rhi::RenderpassType::ambient_occlusion;
-	else if (a_type == "skeletal_transform") return rhi::RenderpassType::skeletal_transform;
-	else if (a_type == "deferred_clustered") return rhi::RenderpassType::deferred_clustered;
+	if      (a_type == "lut")                    return rhi::RenderpassType::lut;
+	else if (a_type == "main")                   return rhi::RenderpassType::main;
+	else if (a_type == "depth")                  return rhi::RenderpassType::depth;
+	else if (a_type == "shadow")                 return rhi::RenderpassType::shadow;
+	else if (a_type == "light_bin")              return rhi::RenderpassType::light_bin;
+	else if (a_type == "reflection")             return rhi::RenderpassType::reflection;
+	else if (a_type == "refraction")             return rhi::RenderpassType::refraction;
+	else if (a_type == "pre_process")            return rhi::RenderpassType::pre_process;
+	else if (a_type == "post_process")           return rhi::RenderpassType::post_process;
+	else if (a_type == "tone_mapping")           return rhi::RenderpassType::tone_mapping;
+	else if (a_type == "forward_light")          return rhi::RenderpassType::forward_light;
+	else if (a_type == "node_transform")         return rhi::RenderpassType::node_transform;
+	else if (a_type == "deferred_gbuffer")       return rhi::RenderpassType::deferred_gbuffer;
+	else if (a_type == "reflection_probes")      return rhi::RenderpassType::reflection_probes;
+	else if (a_type == "image_based_light")      return rhi::RenderpassType::image_based_light;
+	else if (a_type == "ambient_occlusion")      return rhi::RenderpassType::ambient_occlusion;
+	else if (a_type == "skeletal_transform")     return rhi::RenderpassType::skeletal_transform;
+	else if (a_type == "deferred_clustered")     return rhi::RenderpassType::deferred_clustered;
+	else if (a_type == "image_based_light_lut")  return rhi::RenderpassType::image_based_light_lut;
 	// clang-format on
 
 	assert(0);
@@ -775,10 +776,8 @@ void Renderer::load_specific()
 
 void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer)
 {
-	(void) a_scene;
 	(void) a_job_system;
 	(void) a_event_system;
-	(void) a_scene;
 	(void) a_buffer_pack;
 	(void) a_device;
 	(void) a_timer;

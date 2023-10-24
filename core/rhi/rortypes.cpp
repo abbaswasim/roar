@@ -825,24 +825,26 @@ std::string renderpass_type_to_string(const rhi::RenderpassType &a_type)
 	// clang-format off
 	switch (a_type)
 	{
-		case rhi::RenderpassType::lut: 					return "lut";
-		case rhi::RenderpassType::main: 				return "main";
-		case rhi::RenderpassType::depth: 				return "depth";
-		case rhi::RenderpassType::shadow: 				return "shadow";
-		case rhi::RenderpassType::light_bin: 			return "light_bin";
-		case rhi::RenderpassType::reflection: 			return "reflection";
-		case rhi::RenderpassType::refraction: 			return "refraction";
-		case rhi::RenderpassType::pre_process: 		    return "pre_process";
-		case rhi::RenderpassType::post_process: 		return "post_process";
-		case rhi::RenderpassType::tone_mapping: 		return "tone_mapping";
-		case rhi::RenderpassType::forward_light: 		return "forward_light";
-		case rhi::RenderpassType::node_transform: 		return "node_transform";
-		case rhi::RenderpassType::deferred_gbuffer: 	return "deferred_gbuffer";
-		case rhi::RenderpassType::reflection_probes: 	return "reflection_probes";
-		case rhi::RenderpassType::image_based_light: 	return "image_based_light";
-		case rhi::RenderpassType::ambient_occlusion: 	return "ambient_occlusion";
-		case rhi::RenderpassType::skeletal_transform: 	return "skeletal_transform";
-	    case rhi::RenderpassType::deferred_clustered:   return "deferred_clustered";
+		case rhi::RenderpassType::lut: 					    return "lut";
+		case rhi::RenderpassType::main: 				    return "main";
+		case rhi::RenderpassType::depth: 				    return "depth";
+		case rhi::RenderpassType::shadow: 				    return "shadow";
+		case rhi::RenderpassType::light_bin: 			    return "light_bin";
+		case rhi::RenderpassType::reflection: 			    return "reflection";
+		case rhi::RenderpassType::refraction: 			    return "refraction";
+		case rhi::RenderpassType::pre_process: 		        return "pre_process";
+		case rhi::RenderpassType::post_process: 		    return "post_process";
+		case rhi::RenderpassType::tone_mapping: 		    return "tone_mapping";
+		case rhi::RenderpassType::forward_light: 		    return "forward_light";
+		case rhi::RenderpassType::node_transform: 		    return "node_transform";
+		case rhi::RenderpassType::deferred_gbuffer: 	    return "deferred_gbuffer";
+		case rhi::RenderpassType::reflection_probes: 	    return "reflection_probes";
+		case rhi::RenderpassType::image_based_light: 	    return "image_based_light";
+		case rhi::RenderpassType::ambient_occlusion: 	    return "ambient_occlusion";
+		case rhi::RenderpassType::skeletal_transform: 	    return "skeletal_transform";
+	    case rhi::RenderpassType::deferred_clustered:       return "deferred_clustered";
+		case rhi::RenderpassType::image_based_light_lut: 	return "image_based_light_lut";
+	    case rhi::RenderpassType::max:                      assert(0 && "rhi::RenderpassType::max is not expected");
 	}
 	// clang-format on
 

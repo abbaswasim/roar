@@ -1,6 +1,9 @@
 {
 	"shaders":[
 		"node_transform.glsl.comp",
+		"ibl_lut.glsl.comp",
+		"ibl_lut.glsl.vert",
+		"ibl_lut.glsl.frag",
 		"position.glsl.vert",
 		"position.glsl.frag",
 		"tonemap.glsl.vert",
@@ -9,6 +12,13 @@
 	"programs":[
 		{
 			"compute":0
+		},
+		{
+			"compute":1
+		},
+		{
+			"vertex":2,
+			"fragment":3
 		}
 	],
 	"textures":[
@@ -61,6 +71,10 @@
 		{
 			"name":"Texture9",
 			"format":"r8g8b8a8_int32"
+		},
+		{
+			"name":"ibl_lut",
+			"format":"r8g8b8a8_uint32"
 		}
 	],
 	"buffers":[
@@ -320,6 +334,26 @@
 		},
 		"forward":[
 			{
+				"render_targets":[
+					{
+						"index":12,
+						"load_action":"clear",
+						"store_action":"store",
+						"type":"color"
+					}
+				],
+				"subpasses":[
+					{
+						"name":"Image_Based_Lighting_LUT",
+						"technique":"compute",
+						"type":"image_based_light_lut",
+						"state":"persistent",
+						"render_targets":[0],
+						"program":1
+					}
+				]
+			},
+			{
 				"render_buffers":[
 					{
 						"index":2,
@@ -392,7 +426,7 @@
 					1.0
 				],
 				"depends_on":[
-					0
+					1
 				],
 				"cull_mode" : "back",
 				"subpasses":[

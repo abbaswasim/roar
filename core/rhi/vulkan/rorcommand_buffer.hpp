@@ -52,7 +52,7 @@ class CommandBufferVulkan final
 		// this->m_buffer = a_device.platform_command_buffer();
 	}
 
-	FORCE_INLINE constexpr VkCommandBuffer *platform_command_buffer() noexcept
+	FORCE_INLINE constexpr VkCommandBuffer platform_command_buffer() noexcept
 	{
 		return this->m_buffer;
 	}
@@ -85,7 +85,8 @@ class CommandBufferVulkan final
   private:
 	FORCE_INLINE CommandBufferVulkan() = default;        //! Default constructor
 
-	VkCommandBuffer *m_buffer{nullptr};
+	VkCommandBuffer m_buffer{nullptr};
+	// VkQueue         m_graphics_queue{nullptr};
 };
 
 declare_rhi_render_type(CommandBuffer);

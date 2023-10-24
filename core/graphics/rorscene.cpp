@@ -104,6 +104,8 @@ constexpr auto to_renderpasstype(uint32_t a_index)
 		case rhi::RenderpassType::ambient_occlusion:    return rpt;
 		case rhi::RenderpassType::skeletal_transform:   return rpt;
 		case rhi::RenderpassType::deferred_clustered:   return rpt;
+		case rhi::RenderpassType::image_based_light_lut:return rpt;
+	    case rhi::RenderpassType::max:                  assert(0 && "Bad renderpass type index");
 			// clang-format on
 	}
 
@@ -112,8 +114,7 @@ constexpr auto to_renderpasstype(uint32_t a_index)
 
 constexpr auto renderpasstype_max()
 {
-	// its not a big deal if in the future more RenderpassTypes are introduced, I will get an exception
-	return static_cast<uint32_t>(rhi::RenderpassType::deferred_clustered);
+	return static_cast<uint32_t>(rhi::RenderpassType::max);
 }
 
 Scene::Scene(std::filesystem::path a_level)
@@ -190,7 +191,6 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 {
 	(void) a_device;
 	(void) a_buffers_pack;
-	(void) a_command_encoder;
 	(void) a_subpass;
 	(void) a_timer;
 	(void) a_event_system;
@@ -471,7 +471,8 @@ uint32_t animation_sampler_type(rhi::VertexFormat a_format)
 	        a_format == rhi::VertexFormat::int16_1 ||
 	        a_format == rhi::VertexFormat::uint16_1 ||
 	        a_format == rhi::VertexFormat::int8_1 ||
-	        a_format == rhi::VertexFormat::uint8_1) && "sampler format is not in the right format");
+	        a_format == rhi::VertexFormat::uint8_1) &&
+	       "sampler format is not in the right format");
 
 	if (a_format == rhi::VertexFormat::float32_4)
 		return 0;
@@ -1486,9 +1487,9 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 	log_warn("About to create {} shaders ", shaders_count * 2 * render_pass_types.size());
 
 	// Two pass approach, first create all the shaders into m_shaders, then allocate each to a job to fill it in with data
-	std::unordered_map<hash_64_t, std::atomic_flag> shader_hash_to_flag{};
-	std::unordered_map<hash_64_t, size_t>           shader_hash_to_index{};
-	std::unordered_set<hash_64_t>                   unique_shaders{};
+	std::unordered_map<hash_64_t, std::atomic_flag> shader_hash_to_flag{};         // Used to check if this is generated or not
+	std::unordered_map<hash_64_t, size_t>           shader_hash_to_index{};        // Keeps the shader index by hash
+	std::unordered_set<hash_64_t>                   unique_shaders{};              // All unique shader hashes
 
 #define create_hash_to_index(shader_hash, shader_type, extension)                                           \
 	{                                                                                                       \

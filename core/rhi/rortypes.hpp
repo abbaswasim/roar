@@ -541,7 +541,9 @@ enum class RenderpassType
 	image_based_light,
 	ambient_occlusion,
 	skeletal_transform,
-	deferred_clustered
+	deferred_clustered,
+	image_based_light_lut,
+	max
 };
 
 enum class RenderpassTechnique

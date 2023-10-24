@@ -92,33 +92,29 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 			mtl_render_pass->setRenderTargetWidth(this->dimensions().x);
 			mtl_render_pass->setRenderTargetHeight(this->dimensions().y);
 
-			int32_t  depth_index            = -1;
 			uint32_t color_index            = 0;
 			auto     subpass_render_targets = subpass.render_targets();
 			for (size_t i = 0; i < subpass_render_targets.size(); ++i)
 			{
 				auto &render_target = renderpass_render_targets[subpass_render_targets[i]];
 				if (is_pixel_format_depth_format(render_target.m_target_reference.get().format()))
-					if (depth_index == -1)
-						depth_index = ror::static_cast_safe<int32_t>(subpass_render_targets[i]);
+				{
+					auto depth_attachment = mtl_render_pass->depthAttachment();
 
-				auto color_attachment = mtl_render_pass->colorAttachments()->object(color_index++);
+					depth_attachment->setClearDepth(ror::settings().m_depth_clear);
+					depth_attachment->setLoadAction(to_metal_load_action(render_target.m_load_action));
+					depth_attachment->setStoreAction(to_metal_store_action(render_target.m_store_action));
+					depth_attachment->setTexture(render_target.m_target_reference.get().platform_handle());
+				}
+				else
+				{
+					auto color_attachment = mtl_render_pass->colorAttachments()->object(color_index++);
 
-				color_attachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
-				color_attachment->setLoadAction(to_metal_load_action(render_target.m_load_action));
-				color_attachment->setStoreAction(to_metal_store_action(render_target.m_store_action));
-				color_attachment->setTexture(render_target.m_target_reference.get().platform_handle());
-			}
-
-			if (depth_index != -1)
-			{
-				auto  depth               = mtl_render_pass->depthAttachment();
-				auto &depth_render_target = renderpass_render_targets[subpass_render_targets[static_cast<uint32_t>(depth_index)]];
-
-				depth->setTexture(depth_render_target.m_target_reference.get().platform_handle());
-				depth->setClearDepth(ror::settings().m_depth_clear);
-				depth->setLoadAction(to_metal_load_action(depth_render_target.m_load_action));
-				depth->setStoreAction(to_metal_store_action(depth_render_target.m_store_action));
+					color_attachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
+					color_attachment->setLoadAction(to_metal_load_action(render_target.m_load_action));
+					color_attachment->setStoreAction(to_metal_store_action(render_target.m_store_action));
+					color_attachment->setTexture(render_target.m_target_reference.get().platform_handle());
+				}
 			}
 
 			this->m_render_passes.emplace_back(mtl_render_pass);

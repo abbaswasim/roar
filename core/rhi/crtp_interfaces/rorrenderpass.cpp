@@ -66,7 +66,7 @@ void Rendersubpass::setup(rhi::ComputeCommandEncoder &a_command_encoder, ror::Re
 	this->bind_input_attachments(a_command_encoder);
 }
 
-bool Rendersubpass::has_depth_attachment(const std::vector<RenderTarget> &a_renderpass_render_targets, const std::vector<uint32_t>& a_subpas_render_targets)
+bool Rendersubpass::has_depth_attachment(const std::vector<RenderTarget> &a_renderpass_render_targets, const std::vector<uint32_t> &a_subpas_render_targets)
 {
 	for (auto &rti : a_subpas_render_targets)
 	{
@@ -95,7 +95,7 @@ void lut_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene,
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void main_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system,
@@ -106,7 +106,7 @@ void main_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void depth_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -116,7 +116,7 @@ void depth_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scen
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -126,7 +126,7 @@ void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sce
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void light_bin_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -136,7 +136,7 @@ void light_bin_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void reflection_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -146,7 +146,7 @@ void reflection_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void refraction_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -156,7 +156,7 @@ void refraction_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void pre_process_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -166,7 +166,7 @@ void pre_process_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void post_process_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -176,7 +176,7 @@ void post_process_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene 
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void tone_mapping_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -204,7 +204,7 @@ void node_transform_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scen
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void deferred_gbuffer_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -214,7 +214,7 @@ void deferred_gbuffer_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Sc
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void reflection_probes_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -224,7 +224,7 @@ void reflection_probes_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::S
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void image_based_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -234,7 +234,17 @@ void image_based_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::S
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
+}
+
+void image_based_light_lut_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
+                            rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass)
+{
+	// clang-format off
+	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
+	// clang-format on
+
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void ambient_occlusion_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -244,7 +254,7 @@ void ambient_occlusion_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::S
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void skeletal_transform_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -254,17 +264,17 @@ void skeletal_transform_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
-void deferred_clustere_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
-                            rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass)
+void deferred_clustered_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
+                             rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass)
 {
 	// clang-format off
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void lut_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -274,7 +284,7 @@ void lut_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void main_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system,
@@ -285,7 +295,7 @@ void main_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scen
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void depth_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -295,7 +305,7 @@ void depth_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_sce
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void shadow_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -305,7 +315,7 @@ void shadow_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_sc
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void light_bin_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -315,7 +325,7 @@ void light_bin_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void reflection_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -325,7 +335,7 @@ void reflection_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void refraction_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -335,7 +345,7 @@ void refraction_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void pre_process_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -345,7 +355,7 @@ void pre_process_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene 
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void post_process_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -355,7 +365,7 @@ void post_process_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void tone_mapping_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -365,7 +375,7 @@ void tone_mapping_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void forward_light_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -375,7 +385,7 @@ void forward_light_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scen
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void node_transform_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -398,7 +408,7 @@ void deferred_gbuffer_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::S
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void reflection_probes_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -408,7 +418,17 @@ void reflection_probes_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
+}
+
+void reflection_probes_pass_lut(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
+                            rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass)
+{
+	// clang-format off
+	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
+	// clang-format on
+
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void image_based_light_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -428,7 +448,7 @@ void ambient_occlusion_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void skeletal_transform_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -438,17 +458,17 @@ void skeletal_transform_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror:
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
-void deferred_clustere_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
-                            rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass)
+void deferred_clustered_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
+                             rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass)
 {
 	// clang-format off
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
 
-	ror::log_critical("{} not implemented, implement me", __FUNCTION__);
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
 }
 
 }        // namespace rhi

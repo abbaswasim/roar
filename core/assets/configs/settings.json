@@ -8,7 +8,7 @@
 	"gui_primitives_count": 30,
 	"gui_primitives_size": 200000,
 	"gui_primitives_index_size": 50000,
-	"debug_mesh_type": 0,
+	"debug_mesh_type": 1,
 	"show_axis": true,
 	"debug_mesh_color" : [0.0, 1.0, 0.0, 0.8],
 	"vsync": false,
@@ -76,7 +76,7 @@
 	"vulkan" :
 	{
 		"version_major" : 1,
-		"version_minor" : 2
+		"version_minor" : 3
 	},
 	"fog" :
 	{

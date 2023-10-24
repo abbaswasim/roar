@@ -173,8 +173,10 @@ void ambient_occlusion_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::S
                             rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
 void skeletal_transform_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
                              rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
-void deferred_clustere_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
-                            rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
+void deferred_clustered_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
+                             rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
+void image_based_light_lut_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
+                                rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
 
 void lut_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
               rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
@@ -210,8 +212,10 @@ void ambient_occlusion_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::
                             rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
 void skeletal_transform_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
                              rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
-void deferred_clustere_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
-                            rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
+void deferred_clustered_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
+                             rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
+void image_based_light_lut_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
+                                rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass);
 
 template <typename _type>
 FORCE_INLINE constexpr void pass_by_type(_type &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -237,7 +241,9 @@ FORCE_INLINE constexpr void pass_by_type(_type &a_command_encoder, ror::Scene &a
 	case rhi::RenderpassType::image_based_light:   image_based_light_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);  break;
 	case rhi::RenderpassType::ambient_occlusion:   ambient_occlusion_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);  break;
 	case rhi::RenderpassType::skeletal_transform:  skeletal_transform_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass); break;
-	case rhi::RenderpassType::deferred_clustered:  deferred_clustere_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);  break;
+	case rhi::RenderpassType::deferred_clustered:  deferred_clustered_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass); break;
+	case rhi::RenderpassType::image_based_light_lut:   image_based_light_lut_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);  break;
+	case rhi::RenderpassType::max:                     assert(0 && "There is no max render pass type");  break;
 	}
 	// clang-format on
 }
@@ -254,35 +260,41 @@ void RenderpassCrtp<_type>::execute(rhi::CommandBuffer &a_command_buffer, ror::S
 
 	assert(this->subpasses().size() == this->platform_renderpass_count() && "Platform renderpasses are not same as subpasses count");
 
-	auto    &subpasses         = this->subpasses();
-	uint32_t render_pass_index = 0;
+	auto       &subpasses         = this->subpasses();
+	uint32_t    render_pass_index = 0;
+	static bool first_frame{true};
 	for (auto &subpass : subpasses)
 	{
-		if (subpass.technique() != rhi::RenderpassTechnique::compute)
+		if (first_frame || subpass.state() == rhi::RenderpassState::transient)
 		{
-			if (subpass.type() == rhi::RenderpassType::main || subpass.type() == rhi::RenderpassType::forward_light)        // TODO: HACK: Remove the forward_light bit and work out if I am last render pass then use me as main pass
-				this->make_final_pass(a_surface, render_pass_index);
+			first_frame = false;
 
-			// FIXME: These command_encoders are leaking or getting destroyed before we commit the command buffer, although its working now
-			rhi::RenderCommandEncoder command_encoder{this->render_encoder(a_command_buffer, render_pass_index++)};
+			if (subpass.technique() != rhi::RenderpassTechnique::compute)
+			{
+				if (subpass.type() == rhi::RenderpassType::main || subpass.type() == rhi::RenderpassType::forward_light)        // TODO: HACK: Remove the forward_light bit and work out if I am last render pass then use me as main pass
+					this->make_final_pass(a_surface, render_pass_index);
 
-			this->setup(command_encoder);
-			subpass.setup(command_encoder, a_renderer);
+				// FIXME: These command_encoders are leaking or getting destroyed before we commit the command buffer, although its working now
+				rhi::RenderCommandEncoder command_encoder{this->render_encoder(a_command_buffer, render_pass_index++)};
 
-			pass_by_type(command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, subpass);
+				this->setup(command_encoder);
+				subpass.setup(command_encoder, a_renderer);
 
-			command_encoder.end_encoding();
-		}
-		else
-		{
-			rhi::ComputeCommandEncoder command_encoder{this->compute_encoder(a_command_buffer, render_pass_index++)};
+				pass_by_type(command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, subpass);
 
-			this->setup(command_encoder);
-			subpass.setup(command_encoder, a_renderer);
+				command_encoder.end_encoding();
+			}
+			else
+			{
+				rhi::ComputeCommandEncoder command_encoder{this->compute_encoder(a_command_buffer, render_pass_index++)};
 
-			pass_by_type(command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, subpass);
+				this->setup(command_encoder);
+				subpass.setup(command_encoder, a_renderer);
 
-			command_encoder.end_encoding();
+				pass_by_type(command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, subpass);
+
+				command_encoder.end_encoding();
+			}
 		}
 	}
 }
