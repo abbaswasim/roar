@@ -24,9 +24,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="1.0164632"
-     inkscape:cx="523.87534"
-     inkscape:cy="543.5514"
+     inkscape:zoom="1.0591639"
+     inkscape:cx="459.32455"
+     inkscape:cy="714.2426"
      inkscape:window-width="1936"
      inkscape:window-height="1354"
      inkscape:window-x="468"
@@ -648,13 +648,6 @@
        cy="244.27055"
        rx="25.747105"
        ry="21.015589" />
-    <rect
-       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.124856;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
-       id="rect2-4-2"
-       width="34.034218"
-       height="3.6776476"
-       x="45.144672"
-       y="222.21112" />
     <ellipse
        style="vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:0.544932;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
        id="path317-6-8-5-8-8-7-5"
@@ -662,30 +655,34 @@
        cy="245.04947"
        rx="34.225338"
        ry="33.206184" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:3.14223px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0858029;stroke-dasharray:none"
-       x="42.664043"
-       y="244.83672"
-       id="text2-4-5"
-       transform="scale(1.0902573,0.91721464)"><tspan
-         sodipodi:role="line"
-         id="tspan2-9-1"
-         style="stroke-width:0.0858029"
-         x="42.664043"
-         y="244.83672">command encoder</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:5.63731px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.153933;stroke-dasharray:none"
-       x="48.589466"
-       y="249.86403"
-       id="text3-3"
-       transform="scale(1.0902574,0.91721463)"><tspan
-         sodipodi:role="line"
-         id="tspan3-9"
-         style="stroke-width:0.153933"
-         x="48.589466"
-         y="249.86403"> </tspan></text>
+    <g
+       id="g4"
+       transform="translate(-14.518188,-0.24980395)">
+      <rect
+         style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.237762;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
+         id="rect2-4-2"
+         width="63.26128"
+         height="7.1749029"
+         x="45.144672"
+         y="222.21112" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:3.14223px;line-height:1.25;font-family:sans-serif;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0858029;stroke-dasharray:none"
+         x="70.476921"
+         y="244.83672"
+         id="text2-4-5"
+         transform="scale(1.0902573,0.91721464)"><tspan
+           sodipodi:role="line"
+           id="tspan2-9-1"
+           style="text-align:center;text-anchor:middle;stroke-width:0.0858029"
+           x="70.476921"
+           y="244.83672">command encoder</tspan><tspan
+           sodipodi:role="line"
+           style="text-align:center;text-anchor:middle;stroke-width:0.0858029"
+           x="70.476921"
+           y="248.7645"
+           id="tspan4">used to encode a single renderpass</tspan></text>
+    </g>
     <rect
        style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.264584;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
        id="rect9"
@@ -805,14 +802,14 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:8.44537px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.211135"
-       x="6.8937855"
-       y="164.494"
+       x="36.870258"
+       y="163.24498"
        id="text9-9"><tspan
          sodipodi:role="line"
          id="tspan9-8"
          style="stroke-width:0.211135"
-         x="6.8937855"
-         y="164.494">Metal Design</tspan></text>
+         x="36.870258"
+         y="163.24498">Metal Design</tspan></text>
     <ellipse
        style="vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:0.415916;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
        id="path317-6-8-5-8-8-7-5-8"
@@ -820,53 +817,49 @@
        cy="230.14964"
        rx="28.238483"
        ry="23.445009" />
-    <g
-       id="g1"
-       transform="translate(-0.76185336)">
-      <rect
-         style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.182419;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
-         id="rect785-0-7"
-         width="31.581469"
-         height="10.696839"
-         x="160.07782"
-         y="224.89464" />
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:2.48192px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.737085;stroke-dasharray:none"
-         x="175.86249"
+    <rect
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.182419;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
+       id="rect785-0-7"
+       width="31.581469"
+       height="10.696839"
+       x="159.31596"
+       y="224.89464" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.48192px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.737085;stroke-dasharray:none"
+       x="175.10063"
+       y="227.83324"
+       id="text481-7-3-9-8-6-6-7-4-1"><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
+         x="175.10063"
          y="227.83324"
-         id="text481-7-3-9-8-6-6-7-4-1"><tspan
-           sodipodi:role="line"
-           style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
-           x="175.86249"
-           y="227.83324"
-           id="tspan1850-2-4-0">set vertex buffer</tspan><tspan
-           sodipodi:role="line"
-           style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
-           x="175.86249"
-           y="230.93564"
-           id="tspan5-0">set fragment texture</tspan><tspan
-           sodipodi:role="line"
-           style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
-           x="175.86249"
-           y="234.03804"
-           id="tspan7-9">draw triangles</tspan><tspan
-           sodipodi:role="line"
-           style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
-           x="175.86249"
-           y="237.14044"
-           id="tspan610-5-7" /><tspan
-           sodipodi:role="line"
-           style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
-           x="175.86249"
-           y="240.24284"
-           id="tspan1733-3-9-1" /><tspan
-           sodipodi:role="line"
-           style="fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
-           x="175.86249"
-           y="243.34523"
-           id="tspan460-6-7-74" /></text>
-    </g>
+         id="tspan1850-2-4-0">set vertex buffer</tspan><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
+         x="175.10063"
+         y="230.93564"
+         id="tspan5-0">set fragment texture</tspan><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
+         x="175.10063"
+         y="234.03804"
+         id="tspan7-9">draw triangles</tspan><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
+         x="175.10063"
+         y="237.14044"
+         id="tspan610-5-7" /><tspan
+         sodipodi:role="line"
+         style="text-align:center;text-anchor:middle;fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
+         x="175.10063"
+         y="240.24284"
+         id="tspan1733-3-9-1" /><tspan
+         sodipodi:role="line"
+         style="fill:#000000;stroke-width:0.737085;stroke-dasharray:none"
+         x="175.10063"
+         y="243.34523"
+         id="tspan460-6-7-74" /></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:7.30603px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.182651"
@@ -990,52 +983,89 @@
          style="stroke-width:0.303252"
          x="156.51703"
          y="196.21971"> </tspan></text>
+    <rect
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.11583;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
+       id="rect2-4-2-1"
+       width="34.815113"
+       height="3.0941322"
+       x="157.69914"
+       y="219.90561" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:3.14223px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0858029;stroke-dasharray:none"
+       x="147.06955"
+       y="242.31802"
+       id="text2-4-5-6"
+       transform="scale(1.0902573,0.91721467)"><tspan
+         sodipodi:role="line"
+         id="tspan2-9-1-1"
+         style="stroke-width:0.0858029"
+         x="147.06955"
+         y="242.31802">start render pass</tspan></text>
     <g
-       id="g11"
-       transform="translate(-4.1068708,-1.5617879)">
+       id="g1">
       <rect
-         style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.11583;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
-         id="rect2-4-2-1"
-         width="34.815113"
+         style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.126213;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
+         id="rect2-4-2-1-3"
+         width="41.33672"
          height="3.0941322"
-         x="161.80602"
-         y="217.23407" />
+         x="154.26756"
+         y="215.00864" />
       <text
          xml:space="preserve"
          style="font-style:normal;font-weight:normal;font-size:3.14223px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0858029;stroke-dasharray:none"
-         x="150.83643"
-         y="239.40535"
-         id="text2-4-5-6"
+         x="142.45271"
+         y="236.97827"
+         id="text2-4-5-6-6"
          transform="scale(1.0902573,0.91721467)"><tspan
            sodipodi:role="line"
-           id="tspan2-9-1-1"
+           id="tspan2-9-1-1-5"
            style="stroke-width:0.0858029"
-           x="150.83643"
-           y="239.40535">start render pass</tspan></text>
+           x="142.45271"
+           y="236.97827">begin command buffer</tspan></text>
     </g>
     <g
-       id="g10"
-       transform="translate(-1.0990888,-14.056091)">
+       id="g2"
+       transform="translate(-1.5600166)">
       <rect
-         style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.11583;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
-         id="rect2-4-2-1-0"
-         width="34.815113"
-         height="3.0941322"
-         x="158.79823"
-         y="258.10904" />
+         style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.119335;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
+         id="rect2-4-2-1-3-1"
+         width="37.955147"
+         height="3.012552"
+         x="157.51837"
+         y="241.86227" />
       <text
          xml:space="preserve"
          style="font-style:normal;font-weight:normal;font-size:3.14223px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0858029;stroke-dasharray:none"
-         x="148.84248"
-         y="283.96957"
-         id="text2-4-5-6-9"
+         x="145.3542"
+         y="266.5119"
+         id="text2-4-5-6-6-8"
          transform="scale(1.0902573,0.91721467)"><tspan
            sodipodi:role="line"
-           id="tspan2-9-1-1-0"
+           id="tspan2-9-1-1-5-7"
            style="stroke-width:0.0858029"
-           x="148.84248"
-           y="283.96957">end render pass</tspan></text>
+           x="145.3542"
+           y="266.5119">end command buffer</tspan></text>
     </g>
+    <rect
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.11583;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
+       id="rect2-4-2-1-0"
+       width="34.815113"
+       height="3.0941322"
+       x="157.69914"
+       y="237.17378" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:3.14223px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.0858029;stroke-dasharray:none"
+       x="147.83438"
+       y="261.14474"
+       id="text2-4-5-6-9"
+       transform="scale(1.0902573,0.91721467)"><tspan
+         sodipodi:role="line"
+         id="tspan2-9-1-1-0"
+         style="stroke-width:0.0858029"
+         x="147.83438"
+         y="261.14474">end render pass</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:5.63731px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.153933;stroke-dasharray:none"
@@ -1048,28 +1078,24 @@
          style="stroke-width:0.153933"
          x="152.01172"
          y="244.26158"> </tspan></text>
-    <g
-       id="g15"
-       transform="translate(0.11186003)">
-      <rect
-         style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.264584;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
-         id="rect9-5"
-         width="49.196316"
-         height="8.850131"
-         x="150.23979"
-         y="203.36005" />
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:5.24242px;line-height:1.25;font-family:sans-serif;vector-effect:non-scaling-stroke;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.143151;stroke-dasharray:none;-inkscape-stroke:hairline"
-         x="153.03505"
-         y="209.74974"
-         id="text10-0"><tspan
-           sodipodi:role="line"
-           id="tspan10-0"
-           style="stroke-width:0.143151"
-           x="153.03505"
-           y="209.74974">command buffer</tspan></text>
-    </g>
+    <rect
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.264584;stroke-linejoin:round;stroke-dasharray:none;-inkscape-stroke:hairline"
+       id="rect9-5"
+       width="49.196316"
+       height="8.850131"
+       x="150.35165"
+       y="203.36005" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.24242px;line-height:1.25;font-family:sans-serif;vector-effect:non-scaling-stroke;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.143151;stroke-dasharray:none;-inkscape-stroke:hairline"
+       x="153.14691"
+       y="209.74974"
+       id="text10-0"><tspan
+         sodipodi:role="line"
+         id="tspan10-0"
+         style="stroke-width:0.143151"
+         x="153.14691"
+         y="209.74974">command buffer</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:8.44537px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.211135"
@@ -1084,14 +1110,14 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:8.44537px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.211135"
-       x="119.65067"
-       y="159.35535"
+       x="145.88008"
+       y="159.10555"
        id="text9-9-0"><tspan
          sodipodi:role="line"
          id="tspan9-8-1"
          style="stroke-width:0.211135"
-         x="119.65067"
-         y="159.35535">Vulkan Design</tspan></text>
+         x="145.88008"
+         y="159.10555">Vulkan Design</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:8.44537px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.211135"
