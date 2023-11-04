@@ -82,9 +82,7 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 {
 	const std::vector<uint8_t> &ktx2_file_data = a_texture_resource.data();
 
-	// Should be done for each transcode
-	basist::etc1_global_selector_codebook sel_codebook(basist::g_global_selector_cb_size, basist::g_global_selector_cb);
-	basist::ktx2_transcoder               dec(&sel_codebook);
+	basist::ktx2_transcoder dec;
 
 	if (!dec.init(ktx2_file_data.data(), ror::static_cast_safe<uint32_t>(ktx2_file_data.size())))
 	{
