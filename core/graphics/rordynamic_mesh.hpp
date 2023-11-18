@@ -55,7 +55,6 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	FORCE_INLINE void device(rhi::Device &a_device)                              { this->m_device              = &a_device;         }  
 	FORCE_INLINE void texture_sampler(rhi::TextureSampler a_sampler)             { this->m_texture_sampler     = a_sampler;         }
 	FORCE_INLINE void shader_program(rhi::Program a_program)                     { this->m_shader_program      = a_program;         }
-	// FORCE_INLINE void vertex_descriptor(rhi::VertexDescriptor a_descriptor)      { this->m_vertex_descriptor   = a_descriptor;      }
 	FORCE_INLINE void vertex_buffer(rhi::Buffer a_vertex_buffer)                 { this->m_vertex_buffer       = a_vertex_buffer;   }
 	FORCE_INLINE void index_buffer(rhi::Buffer a_index_buffer)                   { this->m_index_buffer        = a_index_buffer;    }
 	FORCE_INLINE void topology(rhi::PrimitiveTopology a_topology)                { this->m_topology            = a_topology;        }
@@ -68,7 +67,6 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	FORCE_INLINE const rhi::Buffer           &index_buffer() const noexcept           { return this->m_index_buffer;       }
 	// clang-format on
 
-	// void setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer);
 	void upload_data(const uint8_t *a_vertex_data_pointer, size_t a_vertex_size_in_bytes, uint32_t a_vertex_attributes_count,
 	                 const uint8_t *a_indices_data_pointer = nullptr, size_t a_indices_size_in_bytes = 0, uint32_t a_indices_count = 0);
 

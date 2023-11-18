@@ -1,0 +1,1 @@
+../../../core/assets/shaders/textured_quad.glsl.frag

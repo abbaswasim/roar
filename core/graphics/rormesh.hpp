@@ -105,7 +105,7 @@ class ROAR_ENGINE_ITEM Mesh final
 	FORCE_INLINE constexpr void  program(size_t a_primitive_index, int32_t a_program_index)                      noexcept { this->m_program_indices[a_primitive_index] = a_program_index;           }
 	FORCE_INLINE constexpr void  has_indices(size_t a_primitive_index, bool a_has)                               noexcept { this->m_has_indices_states[a_primitive_index] = a_has;                  }
 
-	// FORCE_INLINE           void  vertex_descriptor(size_t a_primitive_index, rhi::VertexDescriptor a_descriptor) noexcept { this->m_attribute_vertex_descriptors[a_primitive_index] = a_descriptor; }
+	// FORCE_INLINE        void  vertex_descriptor(size_t a_primitive_index, rhi::VertexDescriptor a_descriptor) noexcept { this->m_attribute_vertex_descriptors[a_primitive_index] = a_descriptor; }
 	FORCE_INLINE           void  name(std::string a_name)                                                        noexcept { this->m_name = a_name;                                                  }
 	// clang-format on
 
