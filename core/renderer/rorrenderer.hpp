@@ -83,6 +83,7 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &shaders()                const noexcept { return this->m_shaders;                 }
 	FORCE_INLINE constexpr auto &programs()               const noexcept { return this->m_programs;                }
 	FORCE_INLINE constexpr auto &textures()               const noexcept { return this->m_textures;                }
+	FORCE_INLINE constexpr auto &textures()                     noexcept { return this->m_textures;                }
 	FORCE_INLINE constexpr auto &buffers()                const noexcept { return this->m_buffers;                 }
 	FORCE_INLINE constexpr auto &input_render_targets()   const noexcept { return this->m_input_render_targets;    }
 	FORCE_INLINE constexpr auto &input_render_buffers()   const noexcept { return this->m_input_render_buffers;    }

@@ -1440,9 +1440,11 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
 
 		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
-		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
-		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
-		quad_mesh.setup_shaders(rhi::BlendMode::blend, "quad.glsl.vert", "quad.glsl.frag");
+		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);                    // Moves vertex_descriptor can't use it afterwards
+		quad_mesh.load_texture(a_device);                                         // What if I want to just set the texture, to something I want to display on it
+		auto image_lut = &a_renderer.textures()[12];                              // Only testing, if the LUT texture was displayed on the quad, how would it look like
+		quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		quad_mesh.setup_shaders(rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(reinterpret_cast<const uint8_t *>(&quad_vertex_buffer_interleaved), 5 * 6 * sizeof(float), 6);
 	}

@@ -243,4 +243,13 @@ static const float quad_vertex_buffer_interleaved[] = {
      scale,  scale,  location,     1.0f,  1.0f
 };
 
+static const float quad_vertex_buffer_positions[] = {
+    -scale, -scale,  location,
+     scale, -scale,  location,
+    -scale,  scale,  location,
+    -scale,  scale,  location,
+     scale, -scale,  location,
+     scale,  scale,  location
+};
+
 // clang-format on

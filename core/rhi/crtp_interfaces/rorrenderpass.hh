@@ -26,6 +26,8 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "math/rorvector4.hpp"
+#include "rhi/crtp_interfaces/rorrenderpass.hpp"
+#include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorcompute_command_encoder.hpp"

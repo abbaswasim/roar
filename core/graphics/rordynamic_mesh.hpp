@@ -29,6 +29,7 @@
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rormacros.hpp"
 #include "renderer/rorrenderer.hpp"
+#include "rhi/rortexture.hpp"
 #include "rhi/rordevice.hpp"
 
 namespace ror
@@ -48,6 +49,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	void init_upload(rhi::Device &a_device, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_topology);
 	void render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
 	void load_texture(rhi::Device &a_device, std::filesystem::path a_texure_path = "checker.png");
+	void set_texture(rhi::TextureImage *a_texture = nullptr, rhi::TextureSampler *a_sampler = nullptr);
 	void setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor = nullptr, bool a_has_indices = false);
 	void setup_shaders(rhi::BlendMode a_blend_mode = rhi::BlendMode::blend, std::filesystem::path a_vertex_shader = "triangle.glsl.vert", std::filesystem::path a_fragment_shader = "triangle.glsl.frag");
 
@@ -75,7 +77,9 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	// Render data
 	rhi::Device           *m_device{nullptr};                                    //! Non-Owning pointer to a device that is used to initiliazed this gui
 	rhi::TextureImage      m_texture_image{};                                    //! Texture image, should probably be a list of these at some point
-	rhi::TextureSampler    m_texture_sampler{};                                  //! Texture sampler, the default sampler used to render the UI
+	rhi::TextureSampler    m_texture_sampler{};                                  //! Texture sampler, the default sampler used to render
+	rhi::TextureImage     *m_texture_image_external{nullptr};                    //! Non-Owning pointer of a an external Texture image
+	rhi::TextureSampler   *m_texture_sampler_external{nullptr};                  //! Non-Owning pointer of a an external Texture sampler
 	rhi::Program           m_shader_program{-1, -1};                             //! Program in undefined/uinitialized state
 	rhi::VertexDescriptor  m_vertex_descriptor{};                                //! The vertex descriptor of the UI, that is defined by xy, uv, c of ImGUI vertex buffer
 	rhi::Buffer            m_vertex_buffer{};                                    //! Vertex buffer with interleaved data of of any kind

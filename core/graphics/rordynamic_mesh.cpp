@@ -24,7 +24,8 @@
 // Version: 1.0.0
 
 #include "resources/rorresource.hpp"
-#include "rhi/metal/rordevice.hpp"
+#include "rhi/rordevice.hpp"
+#include "rhi/rortexture.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "rordynamic_mesh.hpp"
@@ -78,6 +79,12 @@ void DynamicMesh::load_texture(rhi::Device &a_device, std::filesystem::path a_te
 	this->m_texture_image.upload(a_device);
 	this->m_texture_sampler.upload(a_device);
 	this->m_has_texture = true;
+}
+
+void DynamicMesh::set_texture(rhi::TextureImage *a_texture, rhi::TextureSampler *a_sampler)
+{
+	this->m_texture_image_external   = a_texture;
+	this->m_texture_sampler_external = a_sampler;
 }
 
 void DynamicMesh::setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor, bool a_has_indices)
@@ -190,6 +197,13 @@ void DynamicMesh::render(const ror::Renderer &a_renderer, rhi::RenderCommandEnco
 		a_encoder.fragment_texture(this->m_texture_image, 0);
 		a_encoder.fragment_sampler(this->m_texture_sampler, 0);
 	}
+
+	// These overrides the loadeded ones
+	if (this->m_texture_image_external)
+		a_encoder.fragment_texture(*this->m_texture_image_external, 0);
+
+	if (this->m_texture_sampler_external)
+		a_encoder.fragment_sampler(*this->m_texture_sampler_external, 0);
 
 	auto shader_buffer = a_renderer.shader_buffer("per_view_uniform");
 	shader_buffer->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
