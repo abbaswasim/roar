@@ -86,12 +86,12 @@ class ROAR_ENGINE_ITEM Gui final
 	EventCallback         m_right_up_callback{};               //! Same but for right click
 	EventCallback         m_mouse_wheel_callback{};            //! Mouse wheel event to scroll up
 	EventCallback         m_tab_key_callback{};                //! Tab key call back to enable disable the UI
-	EventCallback         m_gizmo_toggle_callback{};           //! Call back to enable disable the Gizmo UI
-	EventCallback         m_overlays_toggle_callback{};        //! Call back to enable disable the overlays UI
-	EventCallback         m_settings_toggle_callback{};        //! Call back to enable disable the settings UI
-	EventCallback         m_debug_toggle_callback{};           //! Call back to enable disable the Debug UI
-	EventCallback         m_anchors_toggle_callback{};         //! Tab key call back to enable disable the UI
-	EventCallback         m_demo_windown_callback{};           //! Demo window toggle callback
+	EventCallback         m_gizmo_toggle_callback{};           //! Call back to enable disable the Gizmo UI, keyboard g
+	EventCallback         m_overlays_toggle_callback{};        //! Call back to enable disable the overlays UI, keyboard o
+	EventCallback         m_settings_toggle_callback{};        //! Call back to enable disable the settings UI, keyboard s
+	EventCallback         m_debug_toggle_callback{};           //! Call back to enable disable the Debug UI, keyboard d
+	EventCallback         m_anchors_toggle_callback{};         //! Tab key call back to enable disable the UI, keyboard a
+	EventCallback         m_demo_windown_callback{};           //! Demo window toggle callback, keyboard ?
 	bool                  m_show_demo_window{false};           //! Show ImGui Demo test window
 	bool                  m_show_gizmo{false};                 //! Show Gizmo or not
 	bool                  m_show_overlays{false};              //! Show Overlays or not

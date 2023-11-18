@@ -235,11 +235,13 @@ uint8_t *generate_shadow_pixels(uint8_t *pixels, int iwidth, int iheight)
 	auto height = static_cast<uint32_t>(iheight);
 
 	// First lets make a copy
-	uint8_t *pixels_shadow = new uint8_t[width * height * 4];
-	memcpy(pixels_shadow, pixels, width * height * 4);
+	uint32_t bytes{width * height * 4};
+	int32_t ibytes{iwidth * iheight * 4};
+	uint8_t *pixels_shadow = new uint8_t[bytes];
+	memcpy(pixels_shadow, pixels, bytes);
 
 	// Clear the buffers' green and blue components
-	for (int i = 0; i < iheight * iwidth * 4; i += 4)
+	for (uint32_t i = 0; i < bytes; i += 4)
 	{
 		pixels_shadow[i + 1] = 0;        // green
 		pixels_shadow[i + 2] = 0;        // blue
@@ -247,21 +249,25 @@ uint8_t *generate_shadow_pixels(uint8_t *pixels, int iwidth, int iheight)
 
 	// Create shadow at offset
 	auto offsetf = ImGui::GetIO().Fonts->TexGlyphShadowOffset;
-	auto offset = ror::Vector2i{static_cast<int>(offsetf.x), static_cast<int>(offsetf.y)};
+	auto offset  = ror::Vector2i{static_cast<int>(offsetf.x), static_cast<int>(offsetf.y)};
 
-	for (int y = std::abs(static_cast<int>(offset.y)); y < iheight; y++)
+	for (int y = offset.y; y < iheight; y++)
 	{
-		for (int x = std::abs(static_cast<int>(offset.x)); x < iwidth; x++)
+		for (int x = offset.x; x < iwidth; x++)
 		{
-			uint32_t current_index      = static_cast<uint32_t>(((x * 4) + (iwidth * 4 * y)));
-			uint32_t write_shadow_index = static_cast<uint32_t>((((x + offset.x) * 4) + (iwidth * 4 * (y + offset.y))));
+			int32_t current_index      = static_cast<int32_t>(((x * 4) + (iwidth * 4 * y)));
+			int32_t write_shadow_index = static_cast<int32_t>((((x + offset.x) * 4) + (iwidth * 4 * (y + offset.y))));
 
-			uint8_t current_pixel        = pixels[current_index + 3];
-			uint8_t current_pixel_shadow = pixels[write_shadow_index + 3];
+			if (current_index >= 0 && write_shadow_index >= 0 &&
+				current_index + 3 < ibytes && write_shadow_index + 3 < ibytes)
+			{
+				uint8_t current_pixel        = pixels[current_index + 3];
+				uint8_t current_pixel_shadow = pixels[write_shadow_index + 3];
 
-			// Only write shadow pixels into empty areas
-			if (current_pixel != 0 && current_pixel_shadow == 0)
-				pixels_shadow[write_shadow_index + 2] = pixels[current_index + 3];
+				// Only write shadow pixels into empty areas
+				if (current_pixel != 0 && current_pixel_shadow == 0)
+					pixels_shadow[write_shadow_index + 2] = pixels[current_index + 3];
+			}
 		}
 	}
 
