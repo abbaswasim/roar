@@ -173,7 +173,7 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 
 	if (this->usage() == rhi::TextureUsage::shader_write)
 	{
-		texture_descriptor->setUsage(texture_descriptor->usage() | MTL::TextureUsageShaderWrite);
+		texture_descriptor->setUsage(texture_descriptor->usage() | MTL::TextureUsageShaderWrite | MTL::TextureUsageShaderRead);        // Implied read like the definition of shader_write
 		needs_upload = false;
 	}
 

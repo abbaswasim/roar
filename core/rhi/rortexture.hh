@@ -99,11 +99,11 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 	ror::log_info("Resolution: {}x{}", dec.get_width(), dec.get_height());
 	ror::log_info("Mipmap Levels: {}", dec.get_levels());
 	ror::log_info("Texture Array Size (layers): {}", dec.get_layers());
-	ror::log_info("Total Faces: {} (%s)", dec.get_faces(), (dec.get_faces() == 6) ? "CUBEMAP" : "2D");
+	ror::log_info("Total Faces: {} ({})", dec.get_faces(), (dec.get_faces() == 6) ? "CUBEMAP" : "2D");
 	ror::log_info("Is Texture Video: {}", dec.is_video());
 
 	const bool is_etc1s = dec.get_format() == basist::basis_tex_format::cETC1S;
-	ror::log_info("Supercompression Format: %s", is_etc1s ? "ETC1S" : "UASTC");
+	ror::log_info("Supercompression Format: {}", is_etc1s ? "ETC1S" : "UASTC");
 
 	ror::log_info("Supercompression Scheme: ");
 	switch (dec.get_header().m_supercompression_scheme)
