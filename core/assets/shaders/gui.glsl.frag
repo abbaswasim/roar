@@ -35,8 +35,6 @@ void main()
 	color.rgb    = vec3(srg_to_linear(color.r), srg_to_linear(color.g), srg_to_linear(color.b));
 	base_color.a = srg_to_linear(base_color.a);
 
-	out_color = color * base_color;
-
 	vec4  shadow_color = vec4(0.0, 0.0, 0.0, 1.0);
 	float tex_shadow   = base_color.b;
 

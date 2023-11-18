@@ -199,7 +199,7 @@ class Rendersubpass final
 
 	void setup(rhi::RenderCommandEncoder &a_command_buffer, ror::Renderer &a_renderer);
 	void setup(rhi::ComputeCommandEncoder &a_command_encoder, ror::Renderer &a_renderer);
-	bool has_depth_attachment(const std::vector<RenderTarget> &a_renderpass_render_targets, const std::vector<uint32_t>& a_subpas_render_targets);
+	bool has_depth_attachment(const std::vector<RenderTarget> &a_renderpass_render_targets, const std::vector<uint32_t> &a_subpas_render_targets);
 
   protected:
   private:
@@ -209,12 +209,13 @@ class Rendersubpass final
 	FORCE_INLINE void bind_input_attachments(_type &a_encoder);
 	template <class _type>
 	FORCE_INLINE void bind_buffer_inputs(_type &a_encoder);
+	// FORCE_INLINE void bind_render_targets(rhi::ComputeCommandEncoder &a_encoder, rhi::Renderpass &a_render_pass); // NOTE: To enable if needed
 
 	std::string              m_name{};                                               //! Debug name of this render pass
 	rhi::RenderpassTechnique m_technique{rhi::RenderpassTechnique::fragment};        //! Will this render pass be excuted in fragment or compute
 	rhi::RenderpassType      m_type{rhi::RenderpassType::main};                      //! Is it a shadow, reflection etc or main pass etc
 	rhi::RenderpassState     m_state{rhi::RenderpassState::transient};               //! Do I need to pre-run this once or required every frame
-	std::vector<uint32_t>    m_render_targets{};                                     //! Indices of outputs in Renderpass render targets NOTE: in renderer.json all the indices are pointing to renderpass::render_targets[] 
+	std::vector<uint32_t>    m_render_targets{};                                     //! Indices of outputs in Renderpass render targets NOTE: in renderer.json all the indices are pointing to renderpass::render_targets[]
 	RenderTargets            m_input_attachments{};                                  //! References to input attachments from other subpasses, different from m_render_inputs
 	RenderTargets            m_rendered_inputs{};                                    //! References to texture outputs from other attachments that can be sampled by this subpass as a texture, like shadow map inputs
 	BufferTargets            m_buffer_inputs{};                                      //! References to buffer outputs from other attachments that can be read by this subpass as buffer inputs

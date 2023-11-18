@@ -107,6 +107,7 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/graphics/rormesh.hpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.hpp
   ${ROAR_SOURCE_DIR}/graphics/rorscene.hpp
+  ${ROAR_SOURCE_DIR}/graphics/rordynamic_mesh.hpp
   ${ROAR_SOURCE_DIR}/resources/rorresource.hpp)
 
 set(ROAR_SOURCES
@@ -129,6 +130,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/graphics/rormesh.cpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.cpp
   ${ROAR_SOURCE_DIR}/graphics/rorscene.cpp
+  ${ROAR_SOURCE_DIR}/graphics/rordynamic_mesh.cpp
   ${ROAR_SOURCE_DIR}/platform/rorglfw_wrapper.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortexture.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp

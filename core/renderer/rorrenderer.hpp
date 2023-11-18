@@ -138,7 +138,6 @@ class Renderer final : public Configuration<Renderer>
 	ShaderBufferMap                         m_buffers_mapping{};                              //! All the Shader buffers in m_buffers are now name accessible
 	ShaderCallbackMap                       m_callbacks_mapping{};                            //! All the callbacks that can be used to patch or do something else to shaders
 };
-
 }        // namespace ror
 
 #include "renderer/rorrenderer.hh"

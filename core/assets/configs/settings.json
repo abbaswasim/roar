@@ -42,6 +42,8 @@
 	"generate_debug_mesh" : false,
 	"generate_gui_mesh" : true,
 	"generate_grid_mesh" : true,
+	"generate_cube_mesh" : true,
+	"generate_quad_mesh" : true,
 	"clean_on_boot" : true,
 	"winding" : "counter_clockwise",
 	"application_name" : "Roar Editor",

@@ -31,6 +31,7 @@
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
+#include "graphics/rordynamic_mesh.hpp"
 #include "graphics/rorlight.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
@@ -96,10 +97,10 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 {
   public:
 	FORCE_INLINE        Scene()                             = default;        //! Default constructor
-	FORCE_INLINE        Scene(const Scene &a_other)         = default;        //! Copy constructor
-	FORCE_INLINE        Scene(Scene &&a_other) noexcept     = default;        //! Move constructor
-	FORCE_INLINE Scene &operator=(const Scene &a_other)     = default;        //! Copy assignment operator
-	FORCE_INLINE Scene &operator=(Scene &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE        Scene(const Scene &a_other)         = delete;         //! Copy constructor
+	FORCE_INLINE        Scene(Scene &&a_other) noexcept     = delete;         //! Move constructor
+	FORCE_INLINE Scene &operator=(const Scene &a_other)     = delete;         //! Copy assignment operator
+	FORCE_INLINE Scene &operator=(Scene &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~Scene() noexcept override                 = default;        //! Destructor
 
 	explicit Scene(std::filesystem::path a_level);
@@ -122,6 +123,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
 	void unload();
 	void load_specific();
+	void reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &models()                       noexcept   {  return this->m_models;          }
@@ -136,6 +138,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE                 auto &cameras()                noexcept   {  return this->m_cameras;         }
 	FORCE_INLINE constexpr const auto &lights()           const noexcept   {  return this->m_lights;          }
 	FORCE_INLINE constexpr const auto &bounding_box()     const noexcept   {  return this->m_bounding_box;    }
+	FORCE_INLINE constexpr       auto &dymanic_meshes()   const noexcept   {  return this->m_dynamic_meshes;  }
 	// clang-format on
 
 	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system);
@@ -186,6 +189,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	bool                             m_indices_dirty{true};                                    //! If the scene graph indicies are direty and not uploaded yet
 	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
+	std::vector<ror::DynamicMesh *>  m_dynamic_meshes{};                                       //! Non-Owning pointers to all the dynamic meshes created in the scene rendererd at once in the end
 };
 
 void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);
