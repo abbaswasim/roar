@@ -29,8 +29,8 @@
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rormacros.hpp"
 #include "renderer/rorrenderer.hpp"
-#include "rhi/rortexture.hpp"
 #include "rhi/rordevice.hpp"
+#include "rhi/rortexture.hpp"
 
 namespace ror
 {
@@ -50,7 +50,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	void render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
 	void load_texture(rhi::Device &a_device, std::filesystem::path a_texure_path = "checker.png");
 	void set_texture(rhi::TextureImage *a_texture = nullptr, rhi::TextureSampler *a_sampler = nullptr);
-	void setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor = nullptr, bool a_has_indices = false);
+	void setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor = nullptr);
 	void setup_shaders(rhi::BlendMode a_blend_mode = rhi::BlendMode::blend, std::filesystem::path a_vertex_shader = "triangle.glsl.vert", std::filesystem::path a_fragment_shader = "triangle.glsl.frag");
 
 	// clang-format off
@@ -85,10 +85,12 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	rhi::Buffer            m_vertex_buffer{};                                    //! Vertex buffer with interleaved data of of any kind
 	rhi::Buffer            m_index_buffer{};                                     //! Index buffer with uint16_t type
 	bool                   m_has_texture{false};                                 //! Whether has textures or not
+	bool                   m_has_positions{false};                               //! Whether has positions or using no attributes
 	bool                   m_has_indices{false};                                 //! Whether has index buffer or not
 	bool                   m_has_vertex_shader_buffer{false};                    //! Whether has shader buffer or just using the one from renderer
 	bool                   m_has_fragment_shader_buffer{false};                  //! Whether has shader buffer or just using the one from renderer
 	rhi::PrimitiveTopology m_topology{rhi::PrimitiveTopology::triangles};        //! What are we rendering, default triangles
+	uint32_t               m_vertices_count{0};                                  //! How many vertices are there, this is also saved for each attribute
 	rhi::ShaderBuffer      m_vertex_shader_buffer{"dynamic_mesh_uniform",
                                              rhi::ShaderBufferType::ubo,
                                              rhi::Layout::std140, 0, 0};        //! Mesh specific shader buffer for vertex shader that can be used along side other from the renderer

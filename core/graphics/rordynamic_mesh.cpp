@@ -26,7 +26,6 @@
 #include "resources/rorresource.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rortexture.hpp"
-#include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "rordynamic_mesh.hpp"
 #include <cassert>
@@ -87,12 +86,24 @@ void DynamicMesh::set_texture(rhi::TextureImage *a_texture, rhi::TextureSampler 
 	this->m_texture_sampler_external = a_sampler;
 }
 
-void DynamicMesh::setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor, bool a_has_indices)
+void DynamicMesh::setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor)
 {
 	if (a_descriptor)
 	{
 		this->m_vertex_descriptor = std::move(*a_descriptor);
-		this->m_has_indices       = a_has_indices;
+		for (auto &va : this->m_vertex_descriptor.attributes())
+		{
+			if (va.semantics() == rhi::BufferSemantic::vertex_position)
+			{
+				this->m_has_positions = true;
+				continue;
+			}
+			if (va.semantics() == rhi::BufferSemantic::vertex_index)
+			{
+				this->m_has_indices = true;
+				continue;
+			}
+		}
 	}
 	else        // otherwise lets create a default VD with xyz, uv and rgb indexed values
 	{
@@ -105,7 +116,9 @@ void DynamicMesh::setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor, b
 		rhi::VertexLayout    vlc{0, 36};
 		rhi::VertexAttribute vai{3, 0, 0, 0, 0, 0, rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1};
 		rhi::VertexLayout    vli{0, 0};
-		this->m_has_indices = true;
+
+		this->m_has_positions = true;
+		this->m_has_indices   = true;
 
 		std::vector<rhi::VertexAttribute> vattribs{vap, vat, vac, vai};
 		std::vector<rhi::VertexLayout>    vlayouts{vlp, vlt, vlc, vli};
@@ -152,16 +165,20 @@ void DynamicMesh::upload_data(const uint8_t *a_vertex_data_pointer, size_t a_ver
 {
 	assert(this->m_device);
 
-	rhi::Device &a_device = *this->m_device;
+	rhi::Device &a_device  = *this->m_device;
+	this->m_vertices_count = a_vertex_attributes_count;
 
-	auto &vertex_buffer_attribute = this->m_vertex_descriptor.attribute(rhi::BufferSemantic::vertex_position);
-	vertex_buffer_attribute.count(a_vertex_attributes_count);
+	if (this->m_has_positions)
+	{
+		auto &vertex_buffer_attribute = this->m_vertex_descriptor.attribute(rhi::BufferSemantic::vertex_position);
+		vertex_buffer_attribute.count(a_vertex_attributes_count);
 
-	assert(a_vertex_data_pointer && a_vertex_size_in_bytes > 0 && "No vertex attributes data provided");
+		assert(a_vertex_data_pointer && a_vertex_size_in_bytes > 0 && "No vertex attributes data provided");
 
-	this->m_vertex_buffer.resize(a_device, a_vertex_size_in_bytes);        // Makes sure its atleast as big as vertex_buffer_size (it could be bigger)
-	this->m_vertex_buffer.upload(a_vertex_data_pointer, 0, a_vertex_size_in_bytes);
-	this->m_vertex_buffer.ready(true);
+		this->m_vertex_buffer.resize(a_device, a_vertex_size_in_bytes);        // Makes sure its atleast as big as vertex_buffer_size (it could be bigger)
+		this->m_vertex_buffer.upload(a_vertex_data_pointer, 0, a_vertex_size_in_bytes);
+		this->m_vertex_buffer.ready(true);
+	}
 
 	if (this->m_has_indices)
 	{
@@ -230,13 +247,17 @@ void DynamicMesh::render(const ror::Renderer &a_renderer, rhi::RenderCommandEnco
 			                                  this->m_index_buffer,
 			                                  index_buffer_attribute.buffer_offset() + index_buffer_attribute.offset());
 	}
-	else
+	else if (this->m_has_positions)
 	{
 		auto &vertex_buffer_attribute = this->m_vertex_descriptor.attribute(rhi::BufferSemantic::vertex_position);
 		assert(vertex_buffer_attribute.count() != 0 && "Looks like either there are not vertices in the mesh or no positions are provided");
 
 		if (vertex_buffer_attribute.count() > 0)
 			a_encoder.draw_primitives(this->m_topology, 0, vertex_buffer_attribute.count());
+	}
+	else
+	{
+		a_encoder.draw_primitives(this->m_topology, 0, this->m_vertices_count);
 	}
 }
 
