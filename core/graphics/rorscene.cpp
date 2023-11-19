@@ -1410,8 +1410,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 	this->make_overlays();
 
-	// Lets create a colored and textured cube as well
-
+	// Different tests of dynamic_mesh used for cube, quad and fullscreen quad
 	if (setting.m_generate_cube_mesh)
 	{
 		static ror::DynamicMesh cube_mesh{};
@@ -1440,13 +1439,41 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
 
 		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
-		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);                    // Moves vertex_descriptor can't use it afterwards
-		quad_mesh.load_texture(a_device);                                         // What if I want to just set the texture, to something I want to display on it
-		auto image_lut = &a_renderer.textures()[12];                              // Only testing, if the LUT texture was displayed on the quad, how would it look like
-		quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
+		if (a_renderer.textures().size() > 12)
+		{
+			auto image_lut = &a_renderer.textures()[12];                              // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		}
 		quad_mesh.setup_shaders(rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(reinterpret_cast<const uint8_t *>(&quad_vertex_buffer_interleaved), 5 * 6 * sizeof(float), 6);
+	}
+
+	// NOTE: This fullscreen quad doesn't use any vertex attributes, so this is a unique case of rendering a quad without vertices
+	if (setting.m_generate_fullscreen_quad_mesh)
+	{
+		static ror::DynamicMesh quad_mesh{};
+
+		this->m_dynamic_meshes.emplace_back(std::move(&quad_mesh));
+
+		std::vector<rhi::VertexAttribute> vattribs{};
+		std::vector<rhi::VertexLayout>    vlayouts{};
+
+		rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+
+		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
+		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+		// quad_mesh.load_texture(a_device);                                         // What if I want to just set the texture, to something I want to display on it
+		if (a_renderer.textures().size() > 12)
+		{
+			auto image_lut = &a_renderer.textures()[12];                              // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		}
+		quad_mesh.setup_shaders(rhi::BlendMode::blend, "quad_no_attributes.glsl.vert", "quad_no_attributes.glsl.frag");
+		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
+		quad_mesh.upload_data(nullptr, 0, 6);        // This 6 here means I want to draw 6 vertices without any attributes as given by VertexDescriptor
 	}
 }
 
