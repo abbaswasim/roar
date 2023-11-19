@@ -187,7 +187,7 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 	if (needs_upload)
 	{
 		assert(this->data());
-		assert(this->size() == this->width() * this->height() * this->bytes_per_pixel());
+		assert(this->size() == this->width() * this->height() * this->bytes_per_pixel() && "Looks like image has mipmaps");        // Doesn't work for mipmaps TODO: Implement me
 
 		MTL::CommandQueue       *queue                = a_device.platform_queue();
 		MTL::Buffer             *source_buffer        = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);
@@ -196,6 +196,7 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 
 		assert(queue);
 
+		// TODO: Implement mipmaps, requires a loop over mips
 		blit_command_encoder->copyFromBuffer(source_buffer, 0, bytes_per_row, this->width() * this->height() * this->bytes_per_pixel(), size, this->m_texture, 0, 0, texture_origin);
 		blit_command_encoder->endEncoding();
 

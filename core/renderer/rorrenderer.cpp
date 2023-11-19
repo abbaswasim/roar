@@ -158,6 +158,10 @@ void Renderer::load_textures()
 			if (texture.contains("name"))
 				texture_image.name(texture["name"]);
 
+			if (texture.contains("writeable"))
+				if (texture["writeable"] == true)
+					texture_image.usage(rhi::TextureUsage::shader_write);
+
 			this->m_textures.emplace_back(std::move(texture_image));
 		}
 	}

@@ -74,7 +74,8 @@
 		},
 		{
 			"name":"ibl_lut",
-			"format":"r8g8b8a8_uint32"
+			"format":"r16g16_float32",
+			"writeable": true
 		}
 	],
 	"buffers":[
