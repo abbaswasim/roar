@@ -44,6 +44,7 @@
 	"generate_grid_mesh" : true,
 	"generate_cube_mesh" : false,
 	"generate_quad_mesh" : false,
+	"generate_fullscreen_quad_mesh" : false,
 	"clean_on_boot" : true,
 	"winding" : "counter_clockwise",
 	"application_name" : "Roar Editor",

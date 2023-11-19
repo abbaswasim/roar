@@ -301,6 +301,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_generate_grid_mesh               = setting.get<bool>("generate_grid_mesh");
 		this->m_generate_cube_mesh               = setting.get<bool>("generate_cube_mesh");
 		this->m_generate_quad_mesh               = setting.get<bool>("generate_quad_mesh");
+		this->m_generate_fullscreen_quad_mesh    = setting.get<bool>("generate_fullscreen_quad_mesh");
 
 		this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
 
@@ -415,6 +416,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_generate_grid_mesh{false};
 	bool m_generate_cube_mesh{false};
 	bool m_generate_quad_mesh{false};
+	bool m_generate_fullscreen_quad_mesh{false};
 	bool m_background_srgb_to_linear{false};
 	bool m_force_linear_textures{false};
 	bool m_animate_cpu{false};
