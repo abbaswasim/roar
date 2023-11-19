@@ -1,0 +1,1 @@
+../../../core/assets/shaders/quad_no_attributes.glsl.frag
