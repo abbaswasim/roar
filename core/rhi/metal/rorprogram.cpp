@@ -146,8 +146,11 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 	return mtl_vertex_descriptor;
 }
 
-static auto get_metal_vertex_descriptor(const rhi::VertexDescriptor &a_vertex_descriptor, bool a_depth_shadow)
+static MTL::VertexDescriptor *get_metal_vertex_descriptor(const rhi::VertexDescriptor &a_vertex_descriptor, bool a_depth_shadow)
 {
+	if (a_vertex_descriptor.attributes().size() == 0)
+		return nullptr;
+
 	auto *mtl_vertex_descriptor = MTL::VertexDescriptor::alloc()->init();
 
 	walk_vertex_descriptor_attributes(mtl_vertex_descriptor, a_vertex_descriptor, a_depth_shadow);
@@ -184,7 +187,8 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 
 	render_pipeline_descriptor->setVertexFunction(vs.function());
 	render_pipeline_descriptor->setFragmentFunction(fs.function());
-	render_pipeline_descriptor->setVertexDescriptor(mtl_vertex_descriptor);
+	if (mtl_vertex_descriptor)
+		render_pipeline_descriptor->setVertexDescriptor(mtl_vertex_descriptor);
 
 	if (a_depth)
 		render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);
@@ -232,7 +236,9 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 		return nullptr;
 	}
 
-	mtl_vertex_descriptor->release();
+	if (mtl_vertex_descriptor)
+		mtl_vertex_descriptor->release();
+
 	render_pipeline_descriptor->release();
 
 	if (pError != nullptr)
