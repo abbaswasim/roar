@@ -27,7 +27,7 @@
 #include "rhi/rortypes.hpp"
 #include <SPIRV/GlslangToSpv.h>
 #include <SPIRV/Logger.h>
-#include <StandAlone/ResourceLimits.h>
+#include <glslang/Public/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
 
 namespace rhi
@@ -93,7 +93,7 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
 	// shader.addProcesses();        // Should be something like -DSkinning=ON or -USkinning=Off, not sure
 
 	// TODO: Find out what does this 100 or 110 mean here some people use it like ((EOptionNone & EOptionDefaultDesktop) ? 110 : 100, false)
-	if (!shader.parse(&glslang::DefaultTBuiltInResource, 110, false, messages))
+	if (!shader.parse(GetDefaultResources(), 110, false, messages))
 	{
 		info_log += a_glsl_source;
 		info_log += std::string(shader.getInfoLog()) + "\n" + std::string(shader.getInfoDebugLog());

@@ -40,7 +40,7 @@
 #include <vector>
 
 // Global function to create rhi::TextureImage
-#include "transcoder/basisu_transcoder.h"
+#include "basisu_transcoder.h"
 
 namespace rhi
 {
