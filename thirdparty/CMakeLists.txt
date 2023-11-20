@@ -72,6 +72,13 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 add_subdirectory(glslang)
 build_options(glslang false)                               # Set common build options
 
+set(trgts SPIRV MachineIndependent)
+
+foreach(loop_var_target ${trgts})
+  target_compile_options(${loop_var_target} PRIVATE "-Wno-unused-but-set-variable")
+  target_compile_options(${loop_var_target} PRIVATE "-Wno-unused-parameter")
+endforeach()
+
 cmake_policy(POP)
 
 if (${ROR_RENDER_TYPE_VULKAN})
@@ -106,6 +113,8 @@ set(BASIS_SOURCE_FILES
 add_library(basisu STATIC ${BASIS_SOURCE_FILES})
 target_include_directories(basisu PUBLIC ${BASIS_DIR})
 target_include_directories(basisu PUBLIC ${BASIS_DIR}/transcoder)
+target_compile_options(basisu PRIVATE "-Wno-deprecated-declarations")
+target_compile_options(basisu PRIVATE "-Wno-deprecated-builtins")
 target_compile_options(basisu PUBLIC "-fno-strict-aliasing")
 set_property(TARGET basisu PROPERTY POSITION_INDEPENDENT_CODE ON)
 
