@@ -139,7 +139,7 @@ rhi::TextureImage read_texture_from_cgltf_base64(const cgltf_options *a_options,
 	assert(res == cgltf_result_success && "Base64 decoding failed for image");
 	(void) res;
 
-	rhi::read_texture_from_memory(data, data_size, ti, "cgltf_base64_image");
+	rhi::read_texture_from_memory(data, data_size, ti, false, "cgltf_base64_image");
 
 	// Delete data pointer
 	delete[] data;
@@ -163,7 +163,7 @@ rhi::TextureImage read_texture_from_cgltf_buffer_view(const cgltf_buffer_view *a
 
 	// TODO: Abstract this out into rortexture.cpp
 	cgltf_size data_size{a_buffer_view->size};
-	rhi::read_texture_from_memory(data, data_size, ti, (a_buffer_view->name != nullptr) ? a_buffer_view->name : "cgltf_buffer_view_image");
+	rhi::read_texture_from_memory(data, data_size, ti, false, (a_buffer_view->name != nullptr) ? a_buffer_view->name : "cgltf_buffer_view_image");
 
 	return ti;
 }

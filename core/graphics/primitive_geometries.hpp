@@ -38,6 +38,44 @@ static const float cube_vertex_buffer_interleaved[] = {
      1.0f,-1.0f, 1.0f,    1.0f, 1.0f,    1.0f, 1.0f, 1.0f, 0.5f,
      1.0f, 1.0f, 1.0f,    1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 0.5f
 };
+static const float cube_vertex_position_uv_interleaved[] = {
+    -1.0f,-1.0f,-1.0f,    0.0f, 1.0f,    // -X side
+    -1.0f,-1.0f, 1.0f,    1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,    1.0f, 0.0f,
+    -1.0f, 1.0f, 1.0f,    1.0f, 0.0f,
+    -1.0f, 1.0f,-1.0f,    0.0f, 0.0f,
+    -1.0f,-1.0f,-1.0f,    0.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,    1.0f, 1.0f,    // -Z side
+     1.0f, 1.0f,-1.0f,    0.0f, 0.0f,
+     1.0f,-1.0f,-1.0f,    0.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,    1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,    1.0f, 0.0f,
+     1.0f, 1.0f,-1.0f,    0.0f, 0.0f,
+    -1.0f,-1.0f,-1.0f,    1.0f, 0.0f,    // -Y side
+     1.0f,-1.0f,-1.0f,    1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,    0.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,    1.0f, 0.0f,
+     1.0f,-1.0f, 1.0f,    0.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,    0.0f, 0.0f,
+    -1.0f, 1.0f,-1.0f,    1.0f, 0.0f,    // +Y side
+    -1.0f, 1.0f, 1.0f,    0.0f, 0.0f,
+     1.0f, 1.0f, 1.0f,    0.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,    1.0f, 0.0f,
+     1.0f, 1.0f, 1.0f,    0.0f, 1.0f,
+     1.0f, 1.0f,-1.0f,    1.0f, 1.0f,
+     1.0f, 1.0f,-1.0f,    1.0f, 0.0f,    // +X side
+     1.0f, 1.0f, 1.0f,    0.0f, 0.0f,
+     1.0f,-1.0f, 1.0f,    0.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,    0.0f, 1.0f,
+     1.0f,-1.0f,-1.0f,    1.0f, 1.0f,
+     1.0f, 1.0f,-1.0f,    1.0f, 0.0f,
+    -1.0f, 1.0f, 1.0f,    0.0f, 0.0f,    // +Z side
+    -1.0f,-1.0f, 1.0f,    0.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,    1.0f, 0.0f,
+    -1.0f,-1.0f, 1.0f,    0.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,    1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,    1.0f, 0.0f
+};
 static const float cube_vertex_buffer_position[] = {
     -1.0f,-1.0f,-1.0f,    // -X side
     -1.0f,-1.0f, 1.0f,
@@ -250,6 +288,16 @@ static const float quad_vertex_buffer_positions[] = {
     -scale,  scale,  location,
      scale, -scale,  location,
      scale,  scale,  location
+};
+
+static const float scale2{0.01f};
+static const float quad_vertex_buffer_positions_centered[] = {
+    -scale2, -scale2,  location,
+     scale2, -scale2,  location,
+    -scale2,  scale2,  location,
+    -scale2,  scale2,  location,
+     scale2, -scale2,  location,
+     scale2,  scale2,  location
 };
 
 // clang-format on

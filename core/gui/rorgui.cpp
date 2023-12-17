@@ -35,6 +35,7 @@
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
+#include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffer.hpp"
@@ -236,7 +237,7 @@ uint8_t *generate_shadow_pixels(uint8_t *pixels, int iwidth, int iheight)
 
 	// First lets make a copy
 	uint32_t bytes{width * height * 4};
-	int32_t ibytes{iwidth * iheight * 4};
+	int32_t  ibytes{iwidth * iheight * 4};
 	uint8_t *pixels_shadow = new uint8_t[bytes];
 	memcpy(pixels_shadow, pixels, bytes);
 
@@ -259,7 +260,7 @@ uint8_t *generate_shadow_pixels(uint8_t *pixels, int iwidth, int iheight)
 			int32_t write_shadow_index = static_cast<int32_t>((((x + offset.x) * 4) + (iwidth * 4 * (y + offset.y))));
 
 			if (current_index >= 0 && write_shadow_index >= 0 &&
-				current_index + 3 < ibytes && write_shadow_index + 3 < ibytes)
+			    current_index + 3 < ibytes && write_shadow_index + 3 < ibytes)
 			{
 				uint8_t current_pixel        = pixels[current_index + 3];
 				uint8_t current_pixel_shadow = pixels[write_shadow_index + 3];
@@ -569,7 +570,7 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 
 	auto new_pixels = generate_shadow_pixels(pixels, width, height);
 
-	rhi::fill_texture_from_memory(new_pixels, static_cast<uint32_t>(width), static_cast<uint32_t>(height), 4, this->m_texture_image, "imgui_font_texture");
+	rhi::fill_texture_from_memory(new_pixels, static_cast<uint32_t>(width), static_cast<uint32_t>(height), 4, this->m_texture_image, false, "imgui_font_texture");
 
 	this->m_texture_image.upload(a_device);
 	io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(&this->m_texture_image));
@@ -631,7 +632,6 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 
 static void show_debug_overlay(bool &a_show_debug)
 {
-	ImGuiIO         &io           = ImGui::GetIO();
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration |
 	                                ImGuiWindowFlags_AlwaysAutoResize |
 	                                ImGuiWindowFlags_NoSavedSettings |
@@ -652,12 +652,14 @@ static void show_debug_overlay(bool &a_show_debug)
 		window_flags |= ImGuiWindowFlags_NoMove;
 	}
 
+	static FrameCounter fps;
+
 	ImGui::SetNextWindowBgAlpha(0.35f);        // Transparent background
 	if (ImGui::Begin("Roar Debug...", &a_show_debug, window_flags))
 	{
 		ImGui::Text("Roar Debug:");
 		ImGui::Separator();
-		ImGui::Text("Framerate: (%.1f)", io.Framerate);
+		ImGui::Text("Framerate: (%1.f)", fps.fps(1000));
 	}
 	ImGui::End();
 }

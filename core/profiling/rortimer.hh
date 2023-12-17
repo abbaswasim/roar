@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "foundation/rortypes.hpp"
+#include "foundation/rorutilities.hpp"
 #include "rortimer.hpp"
 #include <chrono>
 #include <ratio>
@@ -68,5 +69,28 @@ FORCE_INLINE double64_t Timer::tick_microseconds()
 FORCE_INLINE double64_t Timer::tick_nanoseconds()
 {
 	return std::chrono::duration<double, std::nano>(this->elapsed()).count();
+}
+
+FORCE_INLINE float32_t FrameCounter::fps(double64_t a_update_interval_ms)
+{
+	auto delta = this->m_timer.tick_milliseconds();
+
+	this->m_accumulated_time += delta;
+	this->m_accumulated_frames++;
+
+	double64_t fraction{0};
+
+	if (this->m_accumulated_time > a_update_interval_ms)
+	{
+		fraction = this->m_accumulated_time - a_update_interval_ms;
+
+		this->m_framerate          = this->m_accumulated_frames;
+		this->m_accumulated_time   = fraction;
+		this->m_accumulated_frames = 0;
+	}
+
+	this->m_framerate = this->m_framerate + static_cast<float32_t>(fraction * this->m_framerate / a_update_interval_ms);
+
+	return 1000.0f * this->m_framerate / static_cast<float32_t>(a_update_interval_ms);        // Turn into frames per "second" irrespective of what the update interval is
 }
 }        // namespace ror

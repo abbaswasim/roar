@@ -61,6 +61,25 @@ class ROAR_ENGINE_ITEM Timer final
 	TimePoint m_previous_time{};
 };
 
+class ROAR_ENGINE_ITEM FrameCounter final
+{
+  public:
+	FORCE_INLINE               FrameCounter()                              = default;        //! Default constructor
+	FORCE_INLINE               FrameCounter(const FrameCounter &other)     = delete;         //! Copy constructor
+	FORCE_INLINE               FrameCounter(FrameCounter &&other) noexcept = delete;         //! Move constructor
+	FORCE_INLINE FrameCounter &operator=(const FrameCounter &other)        = delete;         //! Copy assignment operator
+	FORCE_INLINE FrameCounter &operator=(FrameCounter &&other) noexcept    = delete;         //! Move assignment operator
+	FORCE_INLINE ~FrameCounter() noexcept                                  = default;        //! Destructor
+
+	FORCE_INLINE float32_t fps(double64_t a_update_interval_ms = 500.0);        //! In MiliSeconds Default update internal is half a second
+
+  private:
+	Timer      m_timer{};
+	float32_t  m_framerate{0.0f};
+	uint32_t   m_accumulated_frames{0};
+	double64_t m_accumulated_time{0};
+};
+
 }        // namespace ror
 
 #include "rortimer.hh"

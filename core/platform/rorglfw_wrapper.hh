@@ -32,6 +32,7 @@
 #include "math/rorvector4.hpp"
 #include "platform/rorglfw_wrapper.hpp"
 #include "settings/rorsettings.hpp"
+#include <cassert>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -190,6 +191,32 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 {
 	auto &event_system = glfw_event_system<_type>(a_window);
 	event_system.subscribe(keyboard_esc_click, [a_window](Event &a_event) { (void) a_event; glfwSetWindowShouldClose(a_window, true); });
+	event_system.subscribe(keyboard_enter_command_click, [a_window](Event &a_event) {
+		(void) a_event;
+		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+
+		static bool fullscreen_mode{false};
+		static int  width{};
+		static int  height{};
+		static int  xpos{};
+		static int  ypos{};
+
+		if (!fullscreen_mode)
+		{
+			glfwGetWindowPos(a_window, &xpos, &ypos);
+			glfwGetWindowSize(a_window, &width, &height);
+			assert(monitor && "Primary monitor can't be nullptr");
+
+			const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+			glfwSetWindowMonitor(a_window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+			fullscreen_mode = true;
+		}
+		else
+		{
+			fullscreen_mode = false;
+			glfwSetWindowMonitor(a_window, nullptr, xpos, ypos, width, height, GLFW_DONT_CARE);
+		}
+	});
 
 	// One can use the following type of functions to implement mouse move, left click, scroll etc
 	/*
