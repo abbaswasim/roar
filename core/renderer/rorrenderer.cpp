@@ -1456,7 +1456,7 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 	// Skybox pso requires a reupload because previous it was created without default vertex descriptor, which is no good here
 	skybox_pso->upload(a_device, vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_pso", true, false, false);
-	this->m_cube_map_mesh.setup_program(skybox_pso);
+	this->m_cube_map_mesh.shader_program_external(skybox_pso);
 	this->m_cube_map_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 
 	if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::brdf_lut && brdf_integration_pso != -1)

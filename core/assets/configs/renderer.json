@@ -91,6 +91,8 @@
 		{
 			"name":"brdf_integration_lut",
 			"format":"r16g16_float32",
+			"width" : 1024,
+			"height" : 1024,
 			"writeable": true
 		}
 	],
