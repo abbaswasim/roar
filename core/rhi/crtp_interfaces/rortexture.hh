@@ -77,7 +77,10 @@ FORCE_INLINE auto TextureImageCrtp<_type>::usage() const noexcept
 template <class _type>
 FORCE_INLINE auto TextureImageCrtp<_type>::levels() const noexcept
 {
-	return ror::static_cast_safe<uint32_t>(this->m_mips.size());
+	auto layers = is_texture_array(this->m_target) ? this->m_mips[0].m_depth : 1u;
+	auto faces  = is_texture_cubemap(this->m_target) ? 6u : 1u;
+
+	return ror::static_cast_safe<uint32_t>(this->m_mips.size() / (layers * faces));
 }
 
 template <class _type>
@@ -118,7 +121,8 @@ FORCE_INLINE void TextureImageCrtp<_type>::bytes_per_pixel(uint32_t a_bytes_per_
 template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::format(rhi::PixelFormat a_format) noexcept
 {
-	this->m_format = a_format;
+	this->m_bytes_per_pixel = pixel_format_to_bytes(a_format);
+	this->m_format          = a_format;
 }
 
 template <class _type>
@@ -134,8 +138,17 @@ FORCE_INLINE void TextureImageCrtp<_type>::target(TextureTarget a_target) noexce
 }
 
 template <class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::allocate()
+{
+	size_t size{rhi::calculate_texture_size(this->width(), this->height(), this->depth(), this->format(),
+	                                        this->mipmapped(), rhi::is_texture_cubemap(this->target()), rhi::is_texture_array(this->target()))};
+	this->allocate(size);
+}
+
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::allocate(uint64_t a_size)
 {
+	assert(this->m_size == 0 && "Already allocated, should free first");
 	this->m_size = a_size;
 	auto *ptr    = new uint8_t[this->m_size];
 	this->m_data.reset(ptr);
@@ -154,9 +167,33 @@ FORCE_INLINE void TextureImageCrtp<_type>::ready(bool a_ready) noexcept
 }
 
 template <class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::mipmapped(bool a_mipmapped) noexcept
+{
+	this->m_mipmapped = a_mipmapped;
+}
+
+template <class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::hdr(bool a_hdr) noexcept
+{
+	this->m_hdr = a_hdr;
+}
+
+template <class _type>
 FORCE_INLINE auto TextureImageCrtp<_type>::ready() const noexcept
 {
 	return this->m_ready;
+}
+
+template <class _type>
+FORCE_INLINE auto TextureImageCrtp<_type>::mipmapped() const noexcept
+{
+	return this->m_mipmapped;
+}
+
+template <class _type>
+FORCE_INLINE auto TextureImageCrtp<_type>::hdr() const noexcept
+{
+	return this->m_hdr;
 }
 
 template <class _type>
@@ -206,7 +243,55 @@ FORCE_INLINE void TextureImageCrtp<_type>::reset(uint8_t *a_data, uint64_t a_siz
 template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::push_empty_mip() noexcept
 {
-	this->m_mips.emplace_back();
+	if (this->m_mips.empty())
+		this->m_mips.emplace_back();
+}
+
+// Need to be called once at least an empty mip is setup and has width and height, and format is set
+template <class _type>
+FORCE_INLINE auto TextureImageCrtp<_type>::setup() noexcept
+{
+	assert(this->m_mips.size() && "No mips available");
+
+	uint32_t width{this->width()};
+	uint32_t height{this->height()};
+	uint32_t depth{this->depth()};
+	uint32_t faces{is_texture_cubemap(this->m_target) ? 6u : 1u};
+	uint32_t layers{is_texture_array(this->m_target) ? depth : 1u};
+
+	uint32_t mip_levels_count{this->m_mipmapped ? calculate_texture_mip_levels(width, height, is_texture_array(this->m_target) ? 1 : depth) : 1};
+
+	this->m_mips.resize(mip_levels_count * faces * layers);
+
+	size_t size{0};
+	size_t level_index{0};
+
+	for (size_t layer = 0; layer < layers; ++layer)
+	{
+		for (size_t face = 0; face < faces; ++face)
+		{
+			for (size_t level = 0; level < mip_levels_count; ++level)
+			{
+				uint32_t mip_width  = std::max(1u, width >> level);
+				uint32_t mip_height = std::max(1u, height >> level);
+				uint32_t mip_depth  = std::max(1u, depth >> level);
+
+				auto &miplevel    = this->m_mips[level_index];
+				miplevel.m_width  = mip_width;
+				miplevel.m_height = mip_height;
+				miplevel.m_depth  = mip_depth;
+				miplevel.m_offset = size * this->m_bytes_per_pixel;
+
+				miplevel.m_size = mip_width * mip_height * mip_depth;
+				size += miplevel.m_size;
+				miplevel.m_size *= this->m_bytes_per_pixel;
+
+				++level_index;
+			}
+		}
+	}
+
+	return size * this->m_bytes_per_pixel;
 }
 
 template <class _type>

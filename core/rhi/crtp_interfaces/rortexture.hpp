@@ -45,6 +45,9 @@
 namespace rhi
 {
 
+uint32_t calculate_texture_mip_levels(uint32_t a_width, uint32_t a_height, uint32_t a_depth);
+size_t   calculate_texture_size(uint32_t a_width, uint32_t a_height, uint32_t a_depth, rhi::PixelFormat a_format, bool a_mipmapped = false, bool a_cubemap = false, bool a_array = false);
+
 template <class _type>
 class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCrtp>
 {
@@ -61,6 +64,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 		uint32_t m_height{0};        // Height of this mipmap
 		uint32_t m_depth{1};         // Depth of this mipmap, always 1 unless 3D volume texture
 		uint64_t m_offset{0};        // Offset in the data array inside the TexturImage
+		uint64_t m_size{0};          // Size of this mipmap in bytes
 	};
 
 	FORCE_INLINE auto  handle() const noexcept;
@@ -77,6 +81,8 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE auto &mips() noexcept;
 	FORCE_INLINE auto  size() const noexcept;
 	FORCE_INLINE auto  ready() const noexcept;
+	FORCE_INLINE auto  mipmapped() const noexcept;
+	FORCE_INLINE auto  hdr() const noexcept;
 	FORCE_INLINE auto  name() const noexcept;
 
 	FORCE_INLINE void handle(rhi::TextureHandle) noexcept;
@@ -89,15 +95,21 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE void target(TextureTarget) noexcept;
 	FORCE_INLINE void reset(uint8_t *, uint64_t) noexcept;
 	FORCE_INLINE void push_empty_mip() noexcept;
+	FORCE_INLINE auto setup() noexcept;
+	FORCE_INLINE void allocate();
 	FORCE_INLINE void allocate(uint64_t a_size);
 	FORCE_INLINE void upload(rhi::Device *a_device);
 	FORCE_INLINE void ready(bool) noexcept;
+	FORCE_INLINE void mipmapped(bool) noexcept;
+	FORCE_INLINE void hdr(bool) noexcept;
 	FORCE_INLINE void name(std::string) noexcept;
 
   protected:
 	FORCE_INLINE TextureImageCrtp() = default;        //! Default constructor
   private:
 	bool                       m_ready{false};                                               //! True when the texture is uploaded to the GPU and ready to be used
+	bool                       m_mipmapped{false};                                           //! True when the texture image is suppose to be used as mipmapped as well
+	bool                       m_hdr{false};                                                 //! True when the texture HDR format most probalby 3 components
 	uint32_t                   m_bytes_per_pixel{4};                                         //! Bytes per pixel
 	uint64_t                   m_size{0};                                                    //! Size of all mipmaps combined in bytes
 	TextureTarget              m_target{TextureTarget::texture_2D};                          //! Can be 1D, 2D or 3D etc texture
