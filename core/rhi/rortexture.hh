@@ -35,10 +35,10 @@
 namespace rhi
 {
 
-FORCE_INLINE void read_texture_from_resource(ror::Resource &a_texture_resource, TextureImage &a_texture)
+FORCE_INLINE void read_texture_from_resource(ror::Resource &a_texture_resource, TextureImage &a_texture, bool a_is_hdr)
 {
 	auto &resource_data = a_texture_resource.data();
-	read_texture_from_memory(resource_data.data(), resource_data.size(), a_texture);
+	read_texture_from_memory(resource_data.data(), resource_data.size(), a_texture, a_is_hdr);
 }
 
 static rhi::PixelFormat basis_to_format(basist::transcoder_texture_format a_fmt)
@@ -78,7 +78,7 @@ static rhi::PixelFormat basis_to_format(basist::transcoder_texture_format a_fmt)
 	return rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb;
 }
 
-static void read_texture_basis_universal(ror::Resource &a_texture_resource, TextureImage &a_texture)
+FORCE_INLINE static void read_texture_basis_universal(ror::Resource &a_texture_resource, TextureImage &a_texture)
 {
 	const std::vector<uint8_t> &ktx2_file_data = a_texture_resource.data();
 
@@ -173,6 +173,7 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 		}
 	}
 
+	a_texture.setup();        // This will create way more data than necessary, FIXME:
 	a_texture.allocate(mips_size);
 	a_texture.format(basis_to_format(tex_fmt));
 	a_texture.usage(rhi::TextureUsage::shader_read);
@@ -181,6 +182,8 @@ static void read_texture_basis_universal(ror::Resource &a_texture_resource, Text
 	uint64_t mip_offset   = 0;
 	auto    &texture_mips = a_texture.mips();
 
+	// TODO: FIXME: This order doesn't match in mips order in setup_mips()
+	assert(0);
 	for (uint32_t level_index = 0; level_index < dec.get_levels(); level_index++)
 	{
 		for (uint32_t layer_index = 0; layer_index < total_layers; layer_index++)
@@ -260,32 +263,35 @@ FORCE_INLINE TextureImage read_texture_from_file(const std::filesystem::path &a_
 	// assumes ktx file is basisu ktx. TODO: Should also add support for normal ktx files
 	if (a_absolute_file_name.extension() == ".ktx2")
 		read_texture_basis_universal(texture_resource, texture);
-	else if (a_separate_channels)
-		assert(0 && "Seprate channels not implemented yet");
+	else if (a_absolute_file_name.extension() == ".hdr")
+		read_texture_from_resource(texture_resource, texture, true);
 	else
 		read_texture_from_resource(texture_resource, texture);
+
+	if (a_separate_channels)
+		assert(0 && "Seprate channels not implemented yet");
 
 	return texture;
 }
 
-FORCE_INLINE TextureImage read_texture_1d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels)
-{
-	return read_texture_from_file<TextureTarget::texture_1D>(a_absolute_file_name, a_separate_channels);
-}
+// FORCE_INLINE TextureImage read_texture_1d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels)
+// {
+// 	return read_texture_from_file<TextureTarget::texture_1D>(a_absolute_file_name, a_separate_channels);
+// }
 
 FORCE_INLINE TextureImage read_texture_2d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels)
 {
 	return read_texture_from_file<TextureTarget::texture_2D>(a_absolute_file_name, a_separate_channels);
 }
 
-FORCE_INLINE TextureImage read_texture_3d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels)
-{
-	return read_texture_from_file<TextureTarget::texture_3D>(a_absolute_file_name, a_separate_channels);
-}
+// FORCE_INLINE TextureImage read_texture_3d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels)
+// {
+// 	return read_texture_from_file<TextureTarget::texture_3D>(a_absolute_file_name, a_separate_channels);
+// }
 
-FORCE_INLINE TextureImage read_texture_cube_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels)
-{
-	return read_texture_from_file<TextureTarget::texture_cube>(a_absolute_file_name, a_separate_channels);
-}
+// FORCE_INLINE TextureImage read_texture_cube_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels)
+// {
+// 	return read_texture_from_file<TextureTarget::texture_cube>(a_absolute_file_name, a_separate_channels);
+// }
 
 }        // namespace rhi

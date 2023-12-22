@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2021
+// Copyright (c) 2021-2023
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -25,7 +25,9 @@
 
 #include "profiling/rorlog.hpp"
 #include "rhi/rortexture.hpp"
+#include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
+#include <cassert>
 
 #define STBI_NO_FAILURE_STRINGS
 #define STB_IMAGE_IMPLEMENTATION
@@ -33,10 +35,12 @@
 
 namespace rhi
 {
-
-void fill_texture_from_memory(uint8_t *a_data, uint32_t a_width, uint32_t a_height, uint32_t a_bytes_per_pixel, rhi::TextureImage &a_texture, const std::string &a_name)
+void fill_texture_from_memory(uint8_t *a_data, uint32_t a_width, uint32_t a_height, uint32_t a_bytes_per_pixel, rhi::TextureImage &a_texture, bool a_is_hdr, const std::string &a_name)
 {
-	assert(a_bytes_per_pixel == 4 && "Only 4 bytes per pixel supported at the moment"); // TODO: Fix me, only here because of req_comp == 4 in the following method, and just to be compatible
+	uint32_t expected_bpp = a_is_hdr ? 16 : 4;
+	(void) expected_bpp;
+
+	assert(a_bytes_per_pixel == expected_bpp && "Only 4 bytes per pixel supported at the moment");        // Don't want to deal with anything other than 16 and 4 bytes per pixel
 
 	a_texture.push_empty_mip();
 
@@ -54,9 +58,11 @@ void fill_texture_from_memory(uint8_t *a_data, uint32_t a_width, uint32_t a_heig
 	a_texture.bytes_per_pixel(a_bytes_per_pixel);
 	a_texture.name(a_name);
 	a_texture.usage(rhi::TextureUsage::shader_read);
+	a_texture.hdr(a_is_hdr);
+	a_texture.setup();
 }
 
-void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::TextureImage &a_texture, const std::string &a_name)
+void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::TextureImage &a_texture, bool a_is_hdr, const std::string &a_name)
 {
 	// If req_comp is ever changed from 4 to bpp, make sure ORM[H] texture is swizzled accordingly or separated
 	int32_t w = 0, h = 0, bpp = 0, req_comp = 4;
