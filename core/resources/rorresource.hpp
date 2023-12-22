@@ -139,17 +139,19 @@ class ROAR_ENGINE_ITEM Resource final
 
 	~Resource() noexcept;        //! Destructor
 
-	Resource(std::filesystem::path a_absolute_path, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
+	Resource(std::filesystem::path a_absolute_path, ResourceSemantic a_semantic, bool a_binary = false, bool a_read_only = true, bool a_mapped = false);
 
 	// What will be the best way to send it back in to update data, maybe a string_view
-	const bytes_vector          &data() const;
+	const bytes_vector          &data(bool a_force = false) const;
+	std::string                  data_copy();
 	const std::filesystem::path &absolute_path() const;
+	ResourceSemantic             semantic() const;
 	ResourceExtension            extension() const;
 	void                         create();
 	void                         remove();
 	void                         load();
 	void                         flush();
-	void                         update(bytes_vector &&a_data, bool a_append = false, bool a_mark_dirty = false);
+	void                         update(bytes_vector &&a_data, uint32_t a_force, bool a_append, bool a_mark_dirty);
 
   protected:
   private:
@@ -160,6 +162,7 @@ class ROAR_ENGINE_ITEM Resource final
 
 	std::filesystem::path m_absolute_path{};                              // Path to the resource
 	ResourceExtension     m_extension{ResourceExtension::unknown};        // Extension of the resource loaded for further processing down the pipeline
+	ResourceSemantic      m_semantic{ResourceSemantic::misc};             // Semantic of this Resource
 	bytes_vector          m_data{};                                       // Pointer to its data
 	bool                  m_binary_file{false};                           // True if its a binary file and false if its text file
 	bool                  m_read_only{true};                              // If readonly we can optimise synchronisation and perhaps map it instead

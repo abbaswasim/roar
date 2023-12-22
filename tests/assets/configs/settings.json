@@ -13,6 +13,7 @@
 	"renderer_config" : "renderer.json",
 	"buffer_increment": 10000000,
 	"force_rgba_textures" : true,
+	"resolve_includes_depth" : 10,
 	"roar_args": {
 		"arg1" : "arguno",
 		"arg2" : 2,

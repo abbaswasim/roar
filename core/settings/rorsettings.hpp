@@ -81,6 +81,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_gui_primitives_count      = setting.get<uint32_t>("gui_primitives_count");
 		this->m_gui_primitives_index_size = setting.get<uint32_t>("gui_primitives_index_size");
 		this->m_gui_primitives_size       = setting.get<uint32_t>("gui_primitives_size");
+		this->m_resolve_includes_depth    = setting.get<uint32_t>("resolve_includes_depth");
 
 		auto av = setting.get<std::vector<uint32_t>>("application_version");
 		if (av.size() >= 3)
@@ -393,6 +394,7 @@ class ROAR_ENGINE_ITEM Settings final
 	int32_t  m_generic_numbers[generic_numbers_count];        //! This is used to limit things or render a specific node etc, each number is decremented by Ctr + N and increment by CMD + N
 	uint32_t m_application_version{0};
 	uint32_t m_engine_version{0};
+	uint32_t m_resolve_includes_depth{10};        //! How many levels deep should the includes searching go
 
 	bool m_clean_on_boot{false};
 	bool m_visualise_mipmaps{false};

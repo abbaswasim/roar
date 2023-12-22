@@ -25,6 +25,7 @@
 
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorshader.hpp"
+#include "foundation/rorresolve_includes.hpp"
 
 namespace rhi
 {
@@ -43,14 +44,20 @@ template <class _type>
 FORCE_INLINE void ShaderCrtp<_type>::source(const std::string &a_source)
 {
 	assert(this->m_shader);
-	this->m_shader->update({a_source.begin(), a_source.end()}, false, false);
+	// This update is thread safe 1. because Resource is thread safe unless data() is called on it, and 2. because no data() can be called on shaders, only data_copy() is allowed and force is false as well
+	this->m_shader->update({a_source.begin(), a_source.end()}, false, false, false);
 }
 
 template <class _type>
 FORCE_INLINE void ShaderCrtp<_type>::compile()
 {
 	std::string info_log;
-	if (!compile_to_spirv(this->source(), this->m_type, "main", this->m_spirv, info_log))
+
+	// Doing a resolve_includes() very late here so I don't have to do it for small snipets multiple times
+	std::string shader_source{this->source()};
+	ror::resolve_includes(shader_source, ror::ResourceSemantic::shaders, false);
+
+	if (!compile_to_spirv(shader_source, this->m_type, "main", this->m_spirv, info_log))
 	{
 		ror::log_critical("Shader to SPIR-V conversion failed shader :{}\n \n{}", this->shader_path().c_str(), info_log.c_str());
 	}
@@ -59,10 +66,17 @@ FORCE_INLINE void ShaderCrtp<_type>::compile()
 }
 
 template <class _type>
+FORCE_INLINE void ShaderCrtp<_type>::reload()
+{
+	this->m_shader->load();
+}
+
+template <class _type>
 FORCE_INLINE constexpr auto ShaderCrtp<_type>::source() const noexcept
 {
 	assert(this->m_shader);
-	return std::string(reinterpret_cast<const char *>(this->m_shader->data().data()), this->m_shader->data().size());
+	// Calling data_copy here, although its slow and creates a copy its thread safe compared to data(), which is not allowed on shaders
+	return this->m_shader->data_copy();
 }
 
 template <class _type>
@@ -101,13 +115,13 @@ template <class _type>
 auto ShaderCrtp<_type>::write_source() const noexcept
 {
 	auto &setting = ror::settings();
-	auto name = this->generated_name();
+	auto  name    = this->generated_name();
 	if (setting.m_write_generated_shaders)
 	{
 		auto source = this->source();
 		{
 			auto &resource = ror::resource(name + ".glsl", ror::ResourceSemantic::caches, ror::ResourceAction::create, "generated_shaders");
-			resource.update({source.begin(), source.end()}, false, true);
+			resource.update({source.begin(), source.end()}, false, false, true);
 		}
 	}
 

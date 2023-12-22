@@ -277,7 +277,7 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 	return project_root_path / file_with_timestamp;
 }
 
-static Resource &cache_resource(const std::filesystem::path &a_absolute_path)
+static Resource &cache_resource(const std::filesystem::path &a_absolute_path, ResourceSemantic a_semantic)
 {
 	using ResourceCache = std::unordered_map<std::filesystem::path, std::shared_ptr<Resource>, PathHash>;
 
@@ -295,7 +295,7 @@ static Resource &cache_resource(const std::filesystem::path &a_absolute_path)
 		return *found->second;
 	}
 
-	auto pointer = std::make_shared<Resource>(a_absolute_path);
+	auto pointer = std::make_shared<Resource>(a_absolute_path, a_semantic);
 	assert(pointer);
 
 	auto result = resource_cache.insert(std::make_pair(a_absolute_path, pointer));
@@ -312,7 +312,7 @@ Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_
 	assert(a_path != "" && "load_resource is provided empty path");
 
 	auto  absolute_path = find_resource(a_path, a_semantic);
-	auto &resource      = cache_resource(absolute_path);
+	auto &resource      = cache_resource(absolute_path, a_semantic);
 	resource.load();
 	return resource;
 }
@@ -347,7 +347,7 @@ std::filesystem::path make_resource_path(const std::filesystem::path &a_path, Re
 Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
 {
 	auto  absolute_path = make_resource_path(a_path, a_semantic, a_parent_path);
-	auto &resource      = cache_resource(absolute_path);
+	auto &resource      = cache_resource(absolute_path, a_semantic);
 
 	resource.create();
 	return resource;
@@ -361,7 +361,7 @@ Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic 
 Resource &make_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
 {
 	auto  absolute_path = make_resource_path(a_path, a_semantic, a_parent_path);
-	auto &resource      = cache_resource(absolute_path);
+	auto &resource      = cache_resource(absolute_path, a_semantic);
 
 	return resource;
 }
@@ -388,8 +388,8 @@ Resource::~Resource() noexcept
 	this->write_or_unmap();
 }
 
-Resource::Resource(std::filesystem::path a_absolute_path, bool a_binary, bool a_read_only, bool a_mapped) :
-    m_absolute_path(a_absolute_path), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
+Resource::Resource(std::filesystem::path a_absolute_path, ResourceSemantic a_semantic, bool a_binary, bool a_read_only, bool a_mapped) :
+    m_absolute_path(a_absolute_path), m_semantic(a_semantic), m_binary_file(a_binary), m_read_only(a_read_only), m_mapped(a_mapped)
 {
 	if (!this->m_absolute_path.is_absolute())
 	{
@@ -566,9 +566,24 @@ void Resource::generate_uuid()
 	this->m_uuid = ror::hash_128(path.c_str(), path.size());
 }
 
-const std::vector<uint8_t> &Resource::data() const
+// NOTE: The a_force argument is important. If someone is going to force requesting m_data by reference of a Resource
+// They must be 100% sure its not been updated by some other thread
+const std::vector<uint8_t> &Resource::data(bool a_force) const
 {
+	(void) a_force;
+
+	assert(this->m_semantic != ror::ResourceSemantic::shaders || a_force && "Data can't be returned by reference for shaders and its not forced");
+
 	return this->m_data;
+}
+
+std::string Resource::data_copy()
+{
+	assert(this->m_semantic == ror::ResourceSemantic::shaders);        // This is not strictly necessary but could be costly otherwise
+
+	std::lock_guard<std::mutex> lock(this->m_mutex);
+
+	return {this->m_data.begin(), this->m_data.end()};
 }
 
 const std::filesystem::path &Resource::absolute_path() const
@@ -581,8 +596,23 @@ ResourceExtension Resource::extension() const
 	return this->m_extension;
 }
 
-void Resource::update(bytes_vector &&a_data, bool a_append, bool a_mark_dirty)
+ResourceSemantic Resource::semantic() const
 {
+	return this->m_semantic;
+}
+
+// NOTE: The a_force argument is important. If someone is going to force an update of a Resource
+// They must be 100% sure its not used concurrently
+void Resource::update(bytes_vector &&a_data, uint32_t a_force, bool a_append, bool a_mark_dirty)
+{
+	// If we are going to update a resource it can't be anything but a shader that is usually used concurrently
+	// In this case data(), which provides reference to m_data won't be safe, hence that is blocked, shaders can only use data_copy
+	// Anything else that is not used concurrently can use this but we can't guarantee it, so we block this and allow data() instead
+	assert(this->m_semantic == ror::ResourceSemantic::shaders || a_force == 1 && "Updating a non-shader resource means references to it will be invalid, can't use data() on such resource");
+
+	if (a_force)
+		log_info("Force updating resource {}", this->absolute_path().c_str());
+
 	std::lock_guard<std::mutex> lock(this->m_mutex);
 
 	if (a_append)

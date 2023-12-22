@@ -376,7 +376,7 @@ uint8_t *generate_shadow_pixels(uint8_t *pixels, int iwidth, int iheight)
 			}
 		}
 
-		gui_texture.update({data.begin(), data.end()}, false, true);
+		gui_texture.update({data.begin(), data.end()}, true, false, true);        // Force updating the Resource because I am sure no one else is using it
 		gui_texture.flush();
 	}
 

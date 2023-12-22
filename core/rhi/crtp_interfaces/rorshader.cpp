@@ -133,6 +133,7 @@ bool compile_to_spirv(const std::string          &a_glsl_source,
 
 	spv::SpvBuildLogger logger;
 
+	spirv.clear();
 	glslang::GlslangToSpv(*intermediate, spirv, &logger);
 
 	info_log += logger.getAllMessages() + "\n";

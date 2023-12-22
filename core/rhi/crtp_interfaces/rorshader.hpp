@@ -71,6 +71,7 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	FORCE_INLINE void           compile();
 	FORCE_INLINE void           source(const std::string &a_source);
 	FORCE_INLINE constexpr auto source() const noexcept;
+	FORCE_INLINE void           reload();
 
   protected:
 	FORCE_INLINE      ShaderCrtp() = default;        //! Default constructor

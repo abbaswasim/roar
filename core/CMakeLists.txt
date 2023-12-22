@@ -45,6 +45,7 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/foundation/rorcommon.hpp
   ${ROAR_SOURCE_DIR}/foundation/rorcache.hpp
   ${ROAR_SOURCE_DIR}/foundation/rorcache.hh
+  ${ROAR_SOURCE_DIR}/foundation/rorresolve_includes.hpp
   ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hpp
   ${ROAR_SOURCE_DIR}/common_structure/rorgraph.hh
   ${ROAR_SOURCE_DIR}/math/rorvector2.hpp
@@ -116,6 +117,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/profiling/rortimer.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorjobsystem.cpp
+  ${ROAR_SOURCE_DIR}/foundation/rorresolve_includes.cpp
   ${ROAR_SOURCE_DIR}/event_system/rorevent_system.cpp
   ${ROAR_SOURCE_DIR}/command_line/rorcommand_line.cpp
   ${ROAR_SOURCE_DIR}/bounds/rorbounding.cpp
