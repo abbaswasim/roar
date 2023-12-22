@@ -44,6 +44,7 @@
 	"generate_gui_mesh" : true,
 	"generate_grid_mesh" : true,
 	"generate_cube_mesh" : false,
+	"generate_cube_map" : false,
 	"generate_quad_mesh" : false,
 	"generate_fullscreen_quad_mesh" : false,
 	"generate_pink_textures" : true,

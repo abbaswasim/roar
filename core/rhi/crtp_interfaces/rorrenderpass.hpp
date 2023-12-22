@@ -270,7 +270,6 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 
 	FORCE_INLINE void setup(rhi::RenderCommandEncoder &a_command_encoder);
 	FORCE_INLINE void setup(rhi::ComputeCommandEncoder &a_command_encoder);
-	// FORCE_INLINE void execute(rhi::CommandBuffer &a_command_buffer, rhi::Swapchain a_surface);
 
 	FORCE_INLINE void execute(rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface,
 	                          ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,
@@ -278,11 +277,12 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 
   protected:
   private:
+	void bind_render_targets(rhi::ComputeCommandEncoder &a_command_encoder);
 	void bind_render_buffers(rhi::ComputeCommandEncoder &a_command_encoder);
 
 	std::vector<Rendersubpass> m_subpasses{};                                    //! All the subpasses in this render pass
-	std::vector<RenderTarget>  m_render_targets{};                               //! Output attachments (images), NOTE: in rorrenderer.json, these render_targets::index is index in textures[] 
-	std::vector<RenderBuffer>  m_render_buffers{};                               //! Output attachments (buffers), NOTE: in rorrenderer.json, these render_buffers::index is index in buffers[] 
+	std::vector<RenderTarget>  m_render_targets{};                               //! Output attachments (images), NOTE: in rorrenderer.json, these render_targets::index is index in textures[]
+	std::vector<RenderBuffer>  m_render_buffers{};                               //! Output attachments (buffers), NOTE: in rorrenderer.json, these render_buffers::index is index in buffers[]
 	ror::Vector4f              m_background{0.14f, 0.14f, 0.14f, 1.0f};          //! Background color of this render pass we will use to clear it with
 	ror::Vector2ui             m_dimensions{1024, 768};                          //! Dimensions for this renderpass if provided will override frame graph dimensions
 	std::vector<uint32_t>      m_parent_ids{};                                   //! All passes that need to complete before this can run

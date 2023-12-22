@@ -23,10 +23,13 @@
 //
 // Version: 1.0.0
 
+#include "event_system/rorevent_handles.hpp"
 #include "graphics/rorscene.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
+#include "rhi/rorbuffer.hpp"
+#include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 #include <vector>
@@ -64,6 +67,9 @@ void Rendersubpass::setup(rhi::ComputeCommandEncoder &a_command_encoder, ror::Re
 	this->bind_render_inputs(a_command_encoder);
 	this->bind_buffer_inputs(a_command_encoder);
 	this->bind_input_attachments(a_command_encoder);
+
+	// NOTE: Also need to add bind_render_targets(), special case for compute, but that requires renderpass which is not available here
+	// This is why its done in RenderpassCrt::setup instead
 }
 
 bool Rendersubpass::has_depth_attachment(const std::vector<RenderTarget> &a_renderpass_render_targets, const std::vector<uint32_t> &a_subpas_render_targets)
@@ -445,16 +451,29 @@ void image_based_light_lut_pass(rhi::ComputeCommandEncoder &a_command_encoder, r
                                 rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Rendersubpass &a_subpass)
 {
 	// clang-format off
-	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
+	(void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer;
 	// clang-format on
 
-	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
+	auto program_id = a_subpass.program_id();
 
-	(void) a_device;
-	(void) a_subpass;
-	(void) a_timer;
-	(void) a_event_system;
+	assert(program_id != -1 && "No program provided for image_based_light_lut_pass");
 
+	auto &compute_pso       = a_renderer.programs()[static_cast<size_t>(program_id)];
+	auto  per_frame_uniform = a_renderer.shader_buffer("per_frame_uniform");
+
+	// Encode the pipeline state object and its parameters.
+	a_command_encoder.compute_pipeline_state(compute_pso);
+	per_frame_uniform->buffer_bind(a_command_encoder, rhi::ShaderStage::compute);
+
+	auto lut_image_index = a_renderer.brdf_integration_lut_index();
+	assert(lut_image_index != -1 && "Can't run a lut pass on no image available");
+
+	auto &lut_image = a_renderer.images()[static_cast<size_t>(lut_image_index)];
+
+	// Calculate a threadgroup size.
+	uint32_t max_thread_group_size = 32;
+	// Encode the compute command.
+	a_command_encoder.dispatch_threads({lut_image.width(), lut_image.height(), 1}, {max_thread_group_size, max_thread_group_size, 1});
 }
 
 void ambient_occlusion_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,

@@ -63,7 +63,7 @@ template <class _type>
 FORCE_INLINE void Rendersubpass::bind_input_attachments(_type &a_encoder)
 {
 	auto     render_inputs  = this->input_attachments();
-	uint32_t starting_index = 21;        // TODO: Abstract out this starting index
+	uint32_t starting_index = 1;        // TODO: Abstract out this starting index
 	bind_input_textures(a_encoder, render_inputs, starting_index);
 }
 
@@ -76,6 +76,35 @@ FORCE_INLINE void Rendersubpass::bind_buffer_inputs(_type &a_encoder)        // 
 		assert(buffer_input.m_render_output && "Render reference shouldn't be null");
 		auto &br = buffer_input.m_render_output->m_target_reference.get();
 		br.buffer_bind(a_encoder, buffer_input.m_stage);
+	}
+}
+
+// NOTE: Enable me if ever needed per render target enabling
+// Only possible for compute encoders, for render encoders its done at render pass creation time
+// FORCE_INLINE void Rendersubpass::bind_render_targets(rhi::ComputeCommandEncoder &a_encoder, rhi::Renderpass &a_render_pass)
+// {
+// 	uint32_t starting_index = 0;        // TODO: Abstract out this starting index, this is only valid for compute anyways
+// 	auto &renderpass_rts = a_render_pass.render_targets();
+// 	auto &subpass_rt_indices        = this->render_targets();
+
+// 	for (auto &srti : subpass_rt_indices)
+// 	{
+// 		assert(srti < renderpass_rts.size() && "Render target out of bound");
+// 		auto &rt = renderpass_rts[srti].m_target_reference.get();
+// 		rt.bind(a_encoder, rhi::ShaderStage::compute, starting_index++);
+// 	}
+// }
+
+// Looks like at least metal doesn't support render_buffers from non-compute and compute requires these to be enabled here, not in renderpass creation time
+template <class _type>
+FORCE_INLINE void RenderpassCrtp<_type>::bind_render_targets(rhi::ComputeCommandEncoder &a_encoder)
+{
+	uint32_t starting_index = 0;        // TODO: Make sure shader is patched with this index for the whole render pass
+	auto     render_targets = this->render_targets();
+	for (auto &render_target : render_targets)
+	{
+		auto &rt = render_target.m_target_reference.get();
+		rt.bind(a_encoder, rhi::ShaderStage::compute, starting_index++);
 	}
 }
 
@@ -136,9 +165,9 @@ void RenderpassCrtp<_type>::setup(rhi::ComputeCommandEncoder &a_command_encoder)
 	(void) setting;
 	(void) a_command_encoder;
 
+	// Lets bind all render targets in one go for each render pass coming later, this saves us having to do this for each render pass
+	this->bind_render_targets(a_command_encoder);
 	this->bind_render_buffers(a_command_encoder);
-
-	// Do compute setup here
 }
 
 void lut_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -226,24 +255,24 @@ FORCE_INLINE constexpr void pass_by_type(_type &a_command_encoder, ror::Scene &a
 	// clang-format off
 	switch (a_subpass.type())
 	{
-	case rhi::RenderpassType::lut:                 lut_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);                break;
-	case rhi::RenderpassType::main:                main_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);               break;
-	case rhi::RenderpassType::depth:               depth_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);              break;
-	case rhi::RenderpassType::shadow:              shadow_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);             break;
-	case rhi::RenderpassType::light_bin:           light_bin_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);          break;
-	case rhi::RenderpassType::reflection:          reflection_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);         break;
-	case rhi::RenderpassType::refraction:          refraction_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);         break;
-	case rhi::RenderpassType::pre_process:         pre_process_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);        break;
-	case rhi::RenderpassType::post_process:        post_process_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);       break;
-	case rhi::RenderpassType::tone_mapping:        tone_mapping_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);       break;
-	case rhi::RenderpassType::forward_light:       forward_light_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);      break;
-	case rhi::RenderpassType::node_transform:      node_transform_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);     break;
-	case rhi::RenderpassType::deferred_gbuffer:    deferred_gbuffer_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);   break;
-	case rhi::RenderpassType::reflection_probes:   reflection_probes_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);  break;
-	case rhi::RenderpassType::image_based_light:   image_based_light_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);  break;
-	case rhi::RenderpassType::ambient_occlusion:   ambient_occlusion_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);  break;
-	case rhi::RenderpassType::skeletal_transform:  skeletal_transform_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass); break;
-	case rhi::RenderpassType::deferred_clustered:  deferred_clustered_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass); break;
+	case rhi::RenderpassType::lut:                     lut_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);                    break;
+	case rhi::RenderpassType::main:                    main_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);                   break;
+	case rhi::RenderpassType::depth:                   depth_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);                  break;
+	case rhi::RenderpassType::shadow:                  shadow_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);                 break;
+	case rhi::RenderpassType::light_bin:               light_bin_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);              break;
+	case rhi::RenderpassType::reflection:              reflection_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);             break;
+	case rhi::RenderpassType::refraction:              refraction_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);             break;
+	case rhi::RenderpassType::pre_process:             pre_process_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);            break;
+	case rhi::RenderpassType::post_process:            post_process_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);           break;
+	case rhi::RenderpassType::tone_mapping:            tone_mapping_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);           break;
+	case rhi::RenderpassType::forward_light:           forward_light_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);          break;
+	case rhi::RenderpassType::node_transform:          node_transform_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);         break;
+	case rhi::RenderpassType::deferred_gbuffer:        deferred_gbuffer_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);       break;
+	case rhi::RenderpassType::reflection_probes:       reflection_probes_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);      break;
+	case rhi::RenderpassType::image_based_light:       image_based_light_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);      break;
+	case rhi::RenderpassType::ambient_occlusion:       ambient_occlusion_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);      break;
+	case rhi::RenderpassType::skeletal_transform:      skeletal_transform_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);     break;
+	case rhi::RenderpassType::deferred_clustered:      deferred_clustered_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);     break;
 	case rhi::RenderpassType::image_based_light_lut:   image_based_light_lut_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_subpass);  break;
 	case rhi::RenderpassType::max:                     assert(0 && "There is no max render pass type");  break;
 	}
@@ -277,6 +306,8 @@ void RenderpassCrtp<_type>::execute(rhi::CommandBuffer &a_command_buffer, ror::S
 					this->make_final_pass(a_surface, render_pass_index);
 
 				// FIXME: These command_encoders are leaking or getting destroyed before we commit the command buffer, although its working now
+				// Actually, the metal encoders are autoreleased, since I am not releasing those in RenderCommandEncoder dtors
+				// Maybe all we need is to make sure we have an autorelease block around this
 				rhi::RenderCommandEncoder command_encoder{this->render_encoder(a_command_buffer, render_pass_index++)};
 
 				this->setup(command_encoder);

@@ -69,6 +69,7 @@ class ProgramCrtp : public ror::Crtp<_type, ProgramCrtp>
 	int32_t m_compute_id{-1};
 	int32_t m_tile_id{-1};
 	int32_t m_mesh_id{-1};
+	// NOTE: If any other types are added make sure to add it into load_programs shader mapping in renderer.cpp
 };
 
 }        // namespace rhi
