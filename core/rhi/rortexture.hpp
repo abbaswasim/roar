@@ -54,6 +54,9 @@ FORCE_INLINE void read_texture_from_resource(ror::Resource &a_texture_resource, 
 template <TextureTarget _target>
 FORCE_INLINE TextureImage read_texture_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
 
+void write_ppm(std::filesystem::path a_path, uint32_t a_width, uint32_t a_height, std::vector<uint8_t> &a_data);
+void write_ppm(std::filesystem::path a_path, uint32_t a_width, uint32_t a_height, std::vector<float32_t> &a_data);
+
 // FORCE_INLINE TextureImage read_texture_1d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
 FORCE_INLINE TextureImage read_texture_2d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
 // FORCE_INLINE TextureImage read_texture_3d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);

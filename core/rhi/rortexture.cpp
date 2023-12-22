@@ -23,6 +23,8 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorsystem.hpp"
+#include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
@@ -35,21 +37,96 @@
 
 namespace rhi
 {
+
+ror::Vector4f reinhard_tone_mapping(ror::Vector4f color)
+{
+	return color / (color + ror::Vector4f(1.0f));
+}
+
+void write_ppm(std::filesystem::path a_path, uint32_t a_width, uint32_t a_height, std::vector<uint8_t> &a_data)
+{
+	(void) a_data;
+	auto    &output_texture = ror::resource(a_path, ror::ResourceSemantic::textures, ror::ResourceAction::create);
+	uint8_t *pixel_data     = a_data.data();
+
+	assert(a_data.size() == (a_width * a_height * 4) && "Can only write RGBA ppm images");
+
+	std::string w{std::to_string(a_width)};
+	std::string h{std::to_string(a_height)};
+
+	std::vector<uint8_t> ppm_data{};
+	ppm_data.reserve(a_width * a_height * 3 + 17);        // 17 is the header size assuming texture size of 9999 max
+	ppm_data.push_back('P');
+	ppm_data.push_back('6');
+	ppm_data.push_back('\n');
+	for (auto &wc : w)
+		ppm_data.push_back(static_cast<uint8_t>(wc));
+	ppm_data.push_back(' ');
+	for (auto &hc : h)
+		ppm_data.push_back(static_cast<uint8_t>(hc));
+	ppm_data.push_back('\n');
+	ppm_data.push_back('2');
+	ppm_data.push_back('5');
+	ppm_data.push_back('5');
+	ppm_data.push_back('\n');
+
+	for (uint32_t i = 0; i < a_height; i++)
+	{
+		for (uint32_t j = 0; j < a_width; j++)
+		{
+			for (uint32_t k = 0; k < 3; ++k)        // Ignoring 4th component Alpha
+				ppm_data.push_back(pixel_data[((j * 4) + (a_width * 4 * i)) + k] % 256);
+		}
+	}
+
+	output_texture.update({ppm_data.begin(), ppm_data.end()}, true, false, true);        // Force updating the Resource because I am sure no one else is using it
+	output_texture.flush();
+}
+
+void write_ppm(std::filesystem::path a_path, uint32_t a_width, uint32_t a_height, std::vector<float32_t> &a_data)
+{
+	size_t               size = a_width * a_height * 4u;
+	std::vector<uint8_t> ldr_data;
+	ldr_data.resize(size);
+
+	for (size_t i = 0; i < size; i += 4)
+	{
+		ror::Vector4f v;
+
+		v.x = a_data[i + 0];
+		v.y = a_data[i + 1];
+		v.z = a_data[i + 2];
+		v.w = a_data[i + 3];
+
+		auto t = reinhard_tone_mapping(v);
+
+		ldr_data[i + 0] = static_cast<uint8_t>(t.x * 255.0f);
+		ldr_data[i + 1] = static_cast<uint8_t>(t.y * 255.0f);
+		ldr_data[i + 2] = static_cast<uint8_t>(t.z * 255.0f);
+		ldr_data[i + 3] = static_cast<uint8_t>(t.w * 255.0f);
+	}
+
+	write_ppm(a_path, a_width, a_height, ldr_data);
+}
+
 void fill_texture_from_memory(uint8_t *a_data, uint32_t a_width, uint32_t a_height, uint32_t a_bytes_per_pixel, rhi::TextureImage &a_texture, bool a_is_hdr, const std::string &a_name)
 {
 	uint32_t expected_bpp = a_is_hdr ? 16 : 4;
 	(void) expected_bpp;
 
-	assert(a_bytes_per_pixel == expected_bpp && "Only 4 bytes per pixel supported at the moment");        // Don't want to deal with anything other than 16 and 4 bytes per pixel
+	assert(a_bytes_per_pixel == expected_bpp && "Only 4/16 bytes per pixel supported at the moment");        // Don't want to deal with anything other than 16 and 4 bytes per pixel
 
 	a_texture.push_empty_mip();
 
 	// By default consider everything sRGB.
 	// glTF base color and emissive needs to be sRGB because of that everything else needs to be explicitly set to linear
-	if (ror::settings().m_force_linear_textures)
-		a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm);
-	else
-		a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);
+	if (!a_is_hdr)
+	{
+		if (ror::settings().m_force_linear_textures)
+			a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm);
+		else
+			a_texture.format(rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb);
+	}
 
 	a_texture.reset(a_data, static_cast<uint64_t>(a_width * a_height * a_bytes_per_pixel));        // a_texture now owns the new_data pointer
 	a_texture.width(a_width);
@@ -67,23 +144,27 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 	// If req_comp is ever changed from 4 to bpp, make sure ORM[H] texture is swizzled accordingly or separated
 	int32_t w = 0, h = 0, bpp = 0, req_comp = 4;
 
-	if (!ror::settings().m_force_rgba_textures)
+	auto &setting = ror::settings();
+
+	if (!setting.m_force_rgba_textures)
 		ror::log_critical("Reading 4 component textures but force_rgba_textures isn't set in settings.json");
 
 	uint8_t *new_data{nullptr};
 
-	int32_t x = 0, y = 0, comp = 4;
-	int     res = stbi_info_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &x, &y, &comp);
-	assert(res && "stbi_info_from_memory failed");
-	(void) res;
-	bool was_hd = a_is_hdr;
-	a_is_hdr    = false;
 	if (a_is_hdr)
 	{
 		// Sanity check, checking hdr is always 3 but we are expanding it using stbi_image
-		assert(comp == 3 && "HDR format must have 3 components");
+		if constexpr (ror::get_build() == ror::BuildType::build_debug)
+		{
+			int32_t x = 0, y = 0, comp = 4;
+			int     res = stbi_info_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &x, &y, &comp);
+			assert(res && "stbi_info_from_memory failed");
+			(void) res;
 
-		// TODO: Use the following avaialable hdr formats in metal
+			assert(comp == 3 && "HDR format must have 3 components");
+		}
+
+		// TODO: Use the following available hdr formats in metal
 		// PixelFormatRG11B10Float = 92,
 		// PixelFormatRGB9E5Float = 93,
 
@@ -94,15 +175,18 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 		// stbi_hdr_to_ldr_gamma(2.2f);
 		// stbi_hdr_to_ldr_scale(1.0f);
 
+		stbi_set_flip_vertically_on_load(true);
 		auto *new_float_data = stbi_loadf_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
-		new_data             = reinterpret_cast<uint8_t *>(new_float_data);
+		stbi_set_flip_vertically_on_load(false);
+		new_data = reinterpret_cast<uint8_t *>(new_float_data);
 	}
 	else
 	{
-		stbi_set_flip_vertically_on_load(was_hd);
 		new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
-		stbi_set_flip_vertically_on_load(false);
 	}
+
+	// Incase testing of the image is requird if its loaded correctly or not
+	// write_ppm("image_loaded_data.ppm", static_cast<uint32_t>(w), static_cast<uint32_t>(h), a_is_hdr ? reinterpre_cast<float32_t*>(new_data) : new_data);
 
 	// This will now consume the new_data pointer so no need to clean it up
 	fill_texture_from_memory(new_data, static_cast<uint32_t>(w), static_cast<uint32_t>(h), static_cast<uint32_t>(req_comp * (a_is_hdr ? 4 : 1)), a_texture, a_is_hdr, a_name);
