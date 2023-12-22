@@ -23,8 +23,10 @@
 //
 // Version: 1.0.0
 
+#include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rordevice.hpp"
+#include "rhi/rorrender_command_encoder.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "rordynamic_mesh.hpp"
@@ -196,7 +198,10 @@ void DynamicMesh::upload_data(const uint8_t *a_vertex_data_pointer, size_t a_ver
 // NOTE: Make sure you have called this->upload_data(); before calling render or any other separate calls to set things up
 void DynamicMesh::render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder)
 {
-	a_encoder.render_pipeline_state(this->m_shader_program);        // Includes alpha blend state
+	if (this->m_shader_program_external)
+		a_encoder.render_pipeline_state(*this->m_shader_program_external);
+	else
+		a_encoder.render_pipeline_state(this->m_shader_program);        // Includes alpha blend state
 
 	auto &attributes = this->m_vertex_descriptor.attributes();
 	for (auto &attrib : attributes)
@@ -259,6 +264,81 @@ void DynamicMesh::render(const ror::Renderer &a_renderer, rhi::RenderCommandEnco
 	{
 		a_encoder.draw_primitives(this->m_topology, 0, this->m_vertices_count);
 	}
+}
+
+// Creates a default descriptor with nothing in it. This can be used to render no attributes geometry like the fullscreen quad
+rhi::VertexDescriptor create_default_descriptor()
+{
+	std::vector<rhi::VertexAttribute> vattribs{};
+	std::vector<rhi::VertexLayout>    vlayouts{};
+
+	rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+
+	return vertex_descriptor;
+}
+
+// Creates a float3 positions descriptor
+rhi::VertexDescriptor create_p_float3_descriptor()
+{
+	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vlp{0, 12};                                                                                       // binding, stride, rate, multiplier, function
+
+	std::vector<rhi::VertexAttribute> vattribs{vap};
+	std::vector<rhi::VertexLayout>    vlayouts{vlp};
+
+	rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+
+	return vertex_descriptor;
+}
+
+// Creates a float3 positions and uint16 index descriptor
+rhi::VertexDescriptor create_p_float3_i_uint16_descriptor()
+{
+	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vlp{0, 12};                                                                                       // binding, stride, rate, multiplier, function
+	rhi::VertexAttribute vip{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1};            // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vli{0, 0};                                                                                        // binding, stride, rate, multiplier, function
+
+	std::vector<rhi::VertexAttribute> vattribs{vap, vip};
+	std::vector<rhi::VertexLayout>    vlayouts{vlp, vli};
+
+	rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+
+	return vertex_descriptor;
+}
+
+// Creates a float3 positions, float2 uv descriptor
+rhi::VertexDescriptor create_p_float3_t_float2_descriptor()
+{
+	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vlp{0, 20};                                                                                       // binding, stride, rate, multiplier, function
+	rhi::VertexAttribute vat{1, 12, 1, 0, 0, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
+	rhi::VertexLayout    vlt{0, 20};
+
+	std::vector<rhi::VertexAttribute> vattribs{vap, vat};
+	std::vector<rhi::VertexLayout>    vlayouts{vlp, vlt};
+
+	rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+
+	return vertex_descriptor;
+}
+
+// Creates a float3 positions, float2 uv and uint16 index descriptor
+rhi::VertexDescriptor create_p_float3_t_float2_i_uint16_descriptor()
+{
+	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vlp{0, 20};                                                                                       // binding, stride, rate, multiplier, function
+	rhi::VertexAttribute vat{1, 12, 1, 0, 0, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
+	rhi::VertexLayout    vlt{0, 20};
+	rhi::VertexAttribute vip{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vli{0, 0};                                                                                    // binding, stride, rate, multiplier, function
+
+	std::vector<rhi::VertexAttribute> vattribs{vap, vat, vip};
+	std::vector<rhi::VertexLayout>    vlayouts{vlp, vlt, vli};
+
+	rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+
+	return vertex_descriptor;
 }
 
 }        // namespace ror

@@ -28,12 +28,14 @@
 #include "camera/rorcamera.hpp"
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rormacros.hpp"
-#include "renderer/rorrenderer.hpp"
 #include "rhi/rordevice.hpp"
+#include "rhi/rorprogram.hpp"
 #include "rhi/rortexture.hpp"
+#include "rhi/rorvertex_description.hpp"
 
 namespace ror
 {
+class Renderer;
 
 class ROAR_ENGINE_ITEM DynamicMesh final
 {
@@ -54,19 +56,22 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	void setup_shaders(rhi::BlendMode a_blend_mode = rhi::BlendMode::blend, std::filesystem::path a_vertex_shader = "triangle.glsl.vert", std::filesystem::path a_fragment_shader = "triangle.glsl.frag");
 
 	// clang-format off
-	FORCE_INLINE void device(rhi::Device &a_device)                              { this->m_device              = &a_device;         }  
-	FORCE_INLINE void texture_sampler(rhi::TextureSampler a_sampler)             { this->m_texture_sampler     = a_sampler;         }
-	FORCE_INLINE void shader_program(rhi::Program a_program)                     { this->m_shader_program      = a_program;         }
-	FORCE_INLINE void vertex_buffer(rhi::Buffer a_vertex_buffer)                 { this->m_vertex_buffer       = a_vertex_buffer;   }
-	FORCE_INLINE void index_buffer(rhi::Buffer a_index_buffer)                   { this->m_index_buffer        = a_index_buffer;    }
-	FORCE_INLINE void topology(rhi::PrimitiveTopology a_topology)                { this->m_topology            = a_topology;        }
+	FORCE_INLINE void device(rhi::Device &a_device)                              { this->m_device                       = &a_device;         }
+	FORCE_INLINE void texture_sampler(rhi::TextureSampler a_sampler)             { this->m_texture_sampler              = a_sampler;         }
+	FORCE_INLINE void shader_program(rhi::Program a_program)                     { this->m_shader_program               = a_program;         }
+	FORCE_INLINE void shader_program_external(rhi::Program *a_program)           { this->m_shader_program_external      = a_program;         }
+	FORCE_INLINE void vertex_buffer(rhi::Buffer a_vertex_buffer)                 { this->m_vertex_buffer                = a_vertex_buffer;   }
+	FORCE_INLINE void index_buffer(rhi::Buffer a_index_buffer)                   { this->m_index_buffer                 = a_index_buffer;    }
+	FORCE_INLINE void topology(rhi::PrimitiveTopology a_topology)                { this->m_topology                     = a_topology;        }
+	FORCE_INLINE void has_indices(bool a_has_indices)                            { this->m_has_indices                  = a_has_indices;     }
 
-	FORCE_INLINE       rhi::TextureImage     &texture_image() noexcept                { return this->m_texture_image; 	   }
-	FORCE_INLINE       rhi::TextureSampler   &texture_sampler() noexcept              { return this->m_texture_sampler;    }
-	FORCE_INLINE const rhi::Program          &shader_program() const noexcept         { return this->m_shader_program;     }
-	FORCE_INLINE const rhi::VertexDescriptor &vertex_descriptor() const noexcept      { return this->m_vertex_descriptor;  }
-	FORCE_INLINE const rhi::Buffer           &vertex_buffer() const noexcept          { return this->m_vertex_buffer;      }
-	FORCE_INLINE const rhi::Buffer           &index_buffer() const noexcept           { return this->m_index_buffer;       }
+	FORCE_INLINE       rhi::TextureImage     &texture_image() noexcept                { return this->m_texture_image;           }
+	FORCE_INLINE       rhi::TextureSampler   &texture_sampler() noexcept              { return this->m_texture_sampler;         }
+	FORCE_INLINE const rhi::Program          &shader_program() const noexcept         { return this->m_shader_program;          }
+	FORCE_INLINE const rhi::Program          *shader_program_external() const noexcept{ return this->m_shader_program_external; }
+	FORCE_INLINE const rhi::VertexDescriptor &vertex_descriptor() const noexcept      { return this->m_vertex_descriptor;       }
+	FORCE_INLINE const rhi::Buffer           &vertex_buffer() const noexcept          { return this->m_vertex_buffer;           }
+	FORCE_INLINE const rhi::Buffer           &index_buffer() const noexcept           { return this->m_index_buffer;            }
 	// clang-format on
 
 	void upload_data(const uint8_t *a_vertex_data_pointer, size_t a_vertex_size_in_bytes, uint32_t a_vertex_attributes_count,
@@ -81,6 +86,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	rhi::TextureImage     *m_texture_image_external{nullptr};                    //! Non-Owning pointer of a an external Texture image
 	rhi::TextureSampler   *m_texture_sampler_external{nullptr};                  //! Non-Owning pointer of a an external Texture sampler
 	rhi::Program           m_shader_program{-1, -1};                             //! Program in undefined/uinitialized state
+	rhi::Program          *m_shader_program_external{nullptr};                   //! Non-Owning point to a an exteranl program that overrides its own program if valid
 	rhi::VertexDescriptor  m_vertex_descriptor{};                                //! The vertex descriptor of the UI, that is defined by xy, uv, c of ImGUI vertex buffer
 	rhi::Buffer            m_vertex_buffer{};                                    //! Vertex buffer with interleaved data of of any kind
 	rhi::Buffer            m_index_buffer{};                                     //! Index buffer with uint16_t type
@@ -98,5 +104,20 @@ class ROAR_ENGINE_ITEM DynamicMesh final
                                                rhi::ShaderBufferType::ubo,
                                                rhi::Layout::std140, 0, 0};        //! Mesh specific shader buffer for fragment shader that can be used along side other from the renderer
 };
+
+// Creates a default descriptor with nothing in it. This can be used to render no attributes geometry like the fullscreen quad
+rhi::VertexDescriptor create_default_descriptor();
+
+// Creates a float3 positions descriptor
+rhi::VertexDescriptor create_p_float3_descriptor();
+
+// Creates a float3 positions and uint16 index descriptor
+rhi::VertexDescriptor create_p_float3_i_uint16_descriptor();
+
+// Creates a float3 positions, float2 uv descriptor
+rhi::VertexDescriptor create_p_float3_t_float2_descriptor();
+
+// Creates a float3 positions, float2 uv and uint16 index descriptor
+rhi::VertexDescriptor create_p_float3_t_float2_i_uint16_descriptor();
 
 }        // namespace ror
