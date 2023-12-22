@@ -30,3 +30,6 @@ ycm_extra_conf.template
 to_copy
 tests/assets/models/*
 baba_yaga_generated_shaders
+core/assets/textures/interstellar_large.jpg
+core/assets/textures/stormydays_large.jpg
+core/assets/textures/violentdays_large.jpg

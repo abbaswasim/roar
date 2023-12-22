@@ -70,12 +70,42 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 	if (!ror::settings().m_force_rgba_textures)
 		ror::log_critical("Reading 4 component textures but force_rgba_textures isn't set in settings.json");
 
-	auto *new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
+	uint8_t *new_data{nullptr};
 
-	bpp = req_comp;
+	int32_t x = 0, y = 0, comp = 4;
+	int     res = stbi_info_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &x, &y, &comp);
+	assert(res && "stbi_info_from_memory failed");
+	(void) res;
+	bool was_hd = a_is_hdr;
+	a_is_hdr = false;
+	if (a_is_hdr)
+	{
+		// Sanity check, checking hdr is always 3 but we are expanding it using stbi_image
+		assert(comp == 3 && "HDR format must have 3 components");
+
+		// TODO: Use the following avaialable hdr formats in metal
+		// PixelFormatRG11B10Float = 92,
+		// PixelFormatRGB9E5Float = 93,
+
+		// Currently due to how stb image can only convert each channel to 32-bit float, I have to use the following 128bit format
+		// r32g32b32a32_float128         = PlatformPixelFormatRGBA32Float == PixelFormatRGBA32Float = 125,
+
+		// Following are used to control stbi hdr to ldr conversion if any ldr image is loaded via the 'f' interface, but this is not relevant for me
+		// stbi_hdr_to_ldr_gamma(2.2f);
+		// stbi_hdr_to_ldr_scale(1.0f);
+
+		auto *new_float_data = stbi_loadf_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
+		new_data             = reinterpret_cast<uint8_t *>(new_float_data);
+	}
+	else
+	{
+		stbi_set_flip_vertically_on_load(was_hd);
+		new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
+		stbi_set_flip_vertically_on_load(false);
+	}
 
 	// This will now consume the new_data pointer so no need to clean it up
-	fill_texture_from_memory(new_data, static_cast<uint32_t>(w), static_cast<uint32_t>(h), static_cast<uint32_t>(bpp), a_texture, a_name);
+	fill_texture_from_memory(new_data, static_cast<uint32_t>(w), static_cast<uint32_t>(h), static_cast<uint32_t>(req_comp * (a_is_hdr ? 4 : 1)), a_texture, a_is_hdr, a_name);
 }
 
 }        // namespace rhi

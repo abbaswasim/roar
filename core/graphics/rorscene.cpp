@@ -113,6 +113,7 @@ constexpr auto to_renderpasstype(uint32_t a_index)
 	}
 
 	assert(0);
+	return rpt;
 };
 
 constexpr auto renderpasstype_max()

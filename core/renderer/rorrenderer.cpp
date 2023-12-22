@@ -316,6 +316,7 @@ void read_into_texture_image(rhi::TextureImage &a_texture_image, nlohmann::json 
 		if (a_texture_image.mipmapped())
 		{
 			assert(size_in_bytes == size && "Mipmapped texture sizes don't match");
+			(void) size_in_bytes;
 		}
 		else
 		{
@@ -1454,8 +1455,9 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 		skybox_pso        = &this->programs()[static_cast<uint32_t>(brdf_integration_pso)];
 	}
 
-	// Skybox pso requires a reupload because previous it was created without default vertex descriptor, which is no good here
+	// Skybox pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
 	skybox_pso->upload(a_device, vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_pso", true, false, false);
+
 	this->m_cube_map_mesh.shader_program_external(skybox_pso);
 	this->m_cube_map_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 
