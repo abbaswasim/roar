@@ -301,8 +301,10 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_generate_gui_mesh                = setting.get<bool>("generate_gui_mesh");
 		this->m_generate_grid_mesh               = setting.get<bool>("generate_grid_mesh");
 		this->m_generate_cube_mesh               = setting.get<bool>("generate_cube_mesh");
+		this->m_generate_cube_map                = setting.get<bool>("generate_cube_map");
 		this->m_generate_quad_mesh               = setting.get<bool>("generate_quad_mesh");
 		this->m_generate_fullscreen_quad_mesh    = setting.get<bool>("generate_fullscreen_quad_mesh");
+		this->m_generate_pink_textures           = setting.get<bool>("generate_pink_textures");
 
 		this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
 
@@ -317,6 +319,10 @@ class ROAR_ENGINE_ITEM Settings final
 
 			this->m_default_vertex_descriptor.attributes.push_back({semantic, format});
 		}
+
+		this->m_environment.m_visible = setting.get<bool>("environment:visible");
+		this->m_environment.m_mode    = get_environment_mode(setting.get<std::string>("environment:mode"));
+		this->m_environment.m_mipmap  = setting.get<uint32_t>("environment:mipmap");
 	}
 
 	// clang-format off
@@ -365,6 +371,35 @@ class ROAR_ENGINE_ITEM Settings final
 			a_event_system.subscribe(key_ni_cmd_clk, generic_increment);
 			a_event_system.subscribe(key_ni_ctr_clk, generic_decrement);
 		}
+	}
+
+	struct Environment
+	{
+		enum class VisualizeMode
+		{
+			skybox,
+			irradiance,
+			radiance,
+			brdf_lut
+		};
+
+		bool          m_visible{true};
+		VisualizeMode m_mode{VisualizeMode::skybox};
+		uint32_t      m_mipmap{0};
+	};
+
+	Environment::VisualizeMode get_environment_mode(std::string a_mode)
+	{
+		if (a_mode == "skybox")
+			return Environment::VisualizeMode::skybox;
+		else if (a_mode == "irradiance")
+			return Environment::VisualizeMode::irradiance;
+		else if (a_mode == "radiance")
+			return Environment::VisualizeMode::radiance;
+		else if (a_mode == "brdf_lut")
+			return Environment::VisualizeMode::brdf_lut;
+
+		return Environment::VisualizeMode::skybox;
 	}
 
 	std::string m_roar_title{};
@@ -419,6 +454,9 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_generate_cube_mesh{false};
 	bool m_generate_quad_mesh{false};
 	bool m_generate_fullscreen_quad_mesh{false};
+	bool m_generate_cube_map{false};
+	bool m_generate_splat_mesh{false};
+	bool m_generate_pink_textures{false};
 	bool m_background_srgb_to_linear{false};
 	bool m_force_linear_textures{false};
 	bool m_animate_cpu{false};
@@ -536,6 +574,8 @@ class ROAR_ENGINE_ITEM Settings final
 	};
 
 	Gui m_gui{};
+
+	Environment m_environment{};
 
   protected:
   private:

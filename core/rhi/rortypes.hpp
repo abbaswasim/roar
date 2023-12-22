@@ -850,6 +850,7 @@ constexpr uint32_t pixel_format_to_bits(PixelFormat a_pixel_format)
 		case PixelFormat::astc_10x10_hdr:
 		case PixelFormat::astc_12x10_hdr:
 		case PixelFormat::astc_12x12_hdr:
+			assert(0);        // This needs to be divided by the number of pixels in the block
 			return 128;
 		case PixelFormat::gbgr422:
 		case PixelFormat::bgrg422:
@@ -1213,7 +1214,7 @@ constexpr auto primitve_toplogy_to_class(PrimitiveTopology a_toplogy)
 {
 	switch (a_toplogy)
 	{
-		// clang-format off
+			// clang-format off
 		case PrimitiveTopology::points:              return PrimitiveTopologyClass::point;
 		case PrimitiveTopology::lines:
 		case PrimitiveTopology::lines_strip:         return PrimitiveTopologyClass::line;
@@ -1242,6 +1243,37 @@ constexpr bool is_attribute_required_in_pass(rhi::BufferSemantic a_semantic, boo
 		else
 			return false;
 	}
+
+	return false;
+}
+
+constexpr bool is_texture_cubemap(rhi::TextureTarget a_target)
+{
+	if (a_target == rhi::TextureTarget::texture_cube ||
+		a_target == rhi::TextureTarget::texture_cube_array)
+		return true;
+
+	return false;
+}
+
+constexpr bool is_texture_array(rhi::TextureTarget a_target)
+{
+	if (a_target == rhi::TextureTarget::texture_1D_array ||
+		a_target == rhi::TextureTarget::texture_2D_array ||
+		a_target == rhi::TextureTarget::texture_2D_MS_array ||
+		a_target == rhi::TextureTarget::texture_cube_array)
+		return true;
+
+	return false;
+}
+
+constexpr bool is_texture_2d(rhi::TextureTarget a_target)
+{
+	if (a_target == rhi::TextureTarget::texture_2D ||
+		a_target == rhi::TextureTarget::texture_2D_array ||
+		a_target == rhi::TextureTarget::texture_2D_MS ||
+		a_target == rhi::TextureTarget::texture_2D_MS_array)
+		return true;
 
 	return false;
 }
@@ -1281,6 +1313,11 @@ bool                   is_pixel_format_depth_format(const rhi::PixelFormat a_for
 std::string            renderpass_type_to_string(const rhi::RenderpassType &a_type);
 
 const auto format_to_bytes = vertex_format_to_bytes;
+
+constexpr uint32_t pixel_format_to_bytes(rhi::PixelFormat a_pixel_format)
+{
+	return pixel_format_to_bits(a_pixel_format) / 8;
+}
 
 // Specialisation of these are defined in different places
 template <typename _semantic_type>
