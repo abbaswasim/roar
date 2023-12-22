@@ -68,6 +68,8 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha);
 	void upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode,
 	            rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
+	void upload(rhi::Device &a_device, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders, rhi::BlendMode a_blend_mode,
+				rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
 
 	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept
 	{

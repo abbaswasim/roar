@@ -99,7 +99,8 @@ FORCE_INLINE void BufferMetal::resize(rhi::Device &a_device, size_t a_length)
 	else
 	{
 		// Lets adjust the size
-		this->m_buffer->autorelease();                                                // Showing interest for this to be released somewhere in the future, unlike immidiate release()
+		this->m_buffer->autorelease();        // Showing interest for this to be released somewhere in the future, unlike immidiate release()
+		this->m_buffer = nullptr;
 		this->init(a_device, a_length + (a_length / 4), this->m_storage_mode);        // Append an extra quarter of what is required for future
 	}
 }

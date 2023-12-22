@@ -73,13 +73,25 @@ class CommandBufferMetal final
 		this->m_buffer->waitUntilCompleted();
 	}
 
-	FORCE_INLINE constexpr void release() noexcept
+	FORCE_INLINE constexpr void release() const noexcept
 	{
 		this->m_buffer->release();
 	}
 
-	FORCE_INLINE rhi::RenderCommandEncoder render_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index);
-	FORCE_INLINE rhi::ComputeCommandEncoder compute_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index);
+	FORCE_INLINE void addCompletedHandler(const std::function<void()> &a_function)
+	{
+		this->m_buffer->addCompletedHandler([a_function](MTL::CommandBuffer *cmd_buffer) {
+			a_function();
+			(void) cmd_buffer;
+			// cmd_buffer->release(); // Remember can't release here because multiple completed handlers could be defined which will result in multiple releases
+		});
+	}
+
+	// These set of encoder getters might look redundant but they are not. Can be used without a renderpass
+	rhi::RenderCommandEncoder  render_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index);
+	rhi::ComputeCommandEncoder compute_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index);
+	rhi::ComputeCommandEncoder compute_encoder();
+	rhi::ComputeCommandEncoder compute_encoder_concurrent();
 
   protected:
   private:

@@ -139,10 +139,11 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 {
 	MTL::Device            *device             = a_device.platform_device();
 	MTL::TextureDescriptor *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
-	auto                    tex_bpp            = this->bytes_per_pixel();
-	uint32_t                bytes_per_row      = tex_bpp * this->width();
 	MTL::Origin             texture_origin{0, 0, 0};
 	MTL::Size               size{this->width(), this->height(), this->depth()};
+	bool                    is_array = is_texture_array(this->target());
+	bool                    is_cube  = is_texture_cubemap(this->target());
+	// bool                    is_3d    = this->target() == rhi::TextureTarget::texture_3D; // TODO: Workout what you need to do about this
 
 	assert(device);
 
@@ -157,7 +158,7 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 	texture_descriptor->setHeight(this->height());
 	texture_descriptor->setPixelFormat(to_metal_pixelformat(this->format()));
 	texture_descriptor->setTextureType(to_metal_texture_target(this->target()));
-	texture_descriptor->setMipmapLevelCount(this->mips().size());
+	texture_descriptor->setMipmapLevelCount(this->levels());
 	texture_descriptor->setUsage(MTL::TextureUsageUnknown);
 
 	bool needs_upload = true;
@@ -184,10 +185,13 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 
 	this->m_texture = device->newTexture(texture_descriptor);
 
-	if (needs_upload)
+	if (needs_upload || this->data())
 	{
+		auto &last_mip = this->mips().back();
+		(void) last_mip;
+
 		assert(this->data());
-		assert(this->size() == this->width() * this->height() * this->bytes_per_pixel() && "Looks like image has mipmaps");        // Doesn't work for mipmaps TODO: Implement me
+		assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
 
 		MTL::CommandQueue       *queue                = a_device.platform_queue();
 		MTL::Buffer             *source_buffer        = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);
@@ -196,8 +200,30 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 
 		assert(queue);
 
-		// TODO: Implement mipmaps, requires a loop over mips
-		blit_command_encoder->copyFromBuffer(source_buffer, 0, bytes_per_row, this->width() * this->height() * this->bytes_per_pixel(), size, this->m_texture, 0, 0, texture_origin);
+		size_t layers{is_array ? this->depth() : 1};
+		size_t faces{is_cube ? 6ul : 1ul};
+		size_t levels{this->levels()};
+		size_t level_index{0};
+
+		assert(layers == 1 && "Don't support array textured yet, implement me");
+
+		for (size_t layer = 0; layer < layers; ++layer)
+		{
+			for (size_t face = 0; face < faces; ++face)
+			{
+				for (size_t level = 0; level < levels; ++level)
+				{
+					auto &miplevel = this->mips()[level_index];
+
+					size = MTL::Size{miplevel.m_width, miplevel.m_height, miplevel.m_depth};
+					blit_command_encoder->copyFromBuffer(source_buffer, miplevel.m_offset, miplevel.m_width * this->bytes_per_pixel(), miplevel.m_width * miplevel.m_height * this->bytes_per_pixel(), size,
+					                                     this->m_texture, face, level, texture_origin);
+
+					++level_index;
+				}
+			}
+		}
+
 		blit_command_encoder->endEncoding();
 
 		command_buffer->addCompletedHandler([this, source_buffer](MTL::CommandBuffer *) {this->ready(true); source_buffer->release(); });

@@ -32,6 +32,7 @@
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 
+#include <Metal/MTLComputePass.hpp>
 #include <Metal/MTLPixelFormat.hpp>
 #include <Metal/MTLRenderPass.hpp>
 #include <Metal/MTLResource.hpp>
@@ -163,6 +164,12 @@ rhi::ComputeCommandEncoder RenderpassMetal::compute_encoder(rhi::CommandBuffer &
 {
 	return rhi::ComputeCommandEncoder{a_command_buffer.platform_command_buffer()->computeCommandEncoder(this->platform_computepass(a_index))};
 }
+
+rhi::ComputeCommandEncoder RenderpassMetal::compute_encoder(rhi::CommandBuffer &a_command_buffer, MTL::ComputePassDescriptor *a_pass_descriptor)
+{
+	return rhi::ComputeCommandEncoder{a_command_buffer.platform_command_buffer()->computeCommandEncoder(a_pass_descriptor)};
+}
+
 
 }        // namespace rhi
 

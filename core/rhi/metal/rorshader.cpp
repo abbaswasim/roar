@@ -116,7 +116,7 @@ void ShaderMetal::platform_source()
 			// Calls write_source which writes out original shader source in this case GLSL and returns the name it used
 			{
 				auto &resource = ror::resource(name + ".msl", ror::ResourceSemantic::caches, ror::ResourceAction::create, "generated_shaders");
-				resource.update({this->m_msl_source.begin(), this->m_msl_source.end()}, false, true);
+				resource.update({this->m_msl_source.begin(), this->m_msl_source.end()}, false, false, true);        // Update is safe because we are the only ones using resource
 			}
 		}
 	}
@@ -126,6 +126,9 @@ void ShaderMetal::upload(rhi::Device &a_device)
 {
 	MTL::Device *device = a_device.platform_device();
 	NS::Error   *pError = nullptr;
+
+	if (this->m_msl_Library)
+		this->m_msl_Library->release();
 
 	this->m_msl_Library = device->newLibrary(NS::String::string(this->m_msl_source.c_str(), NS::UTF8StringEncoding), nullptr, &pError);
 

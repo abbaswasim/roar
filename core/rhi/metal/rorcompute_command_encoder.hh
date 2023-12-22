@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "foundation/rorcompiler_workarounds.hpp"
+#include "rhi/metal/rorcommand_buffer.hpp"
 #include "rhi/metal/rorcompute_command_encoder.hpp"
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/metal/rormetal_common.hpp"
@@ -74,8 +75,10 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::sampler(rhi::TextureSampler &
 	this->m_encoder->setSamplerState(a_sampler.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::dispatch_threads(const ror::Vector3ui &a_threads_per_grid, const ror::Vector3ui &a_threads_per_threadgroup) noexcept
 {
+	// NOTE: threads_pre_grid are the total number of threads in all dimensions
+	// and threads_per_threadgroup is the size of the threadgroup in vulkan terminology
 	MTL::Size threads_per_grid        = MTL::Size::Make(a_threads_per_grid.x, a_threads_per_grid.y, a_threads_per_grid.z);
 	MTL::Size threads_per_threadgroup = MTL::Size::Make(a_threads_per_threadgroup.x, a_threads_per_threadgroup.y, a_threads_per_threadgroup.z);
 
@@ -87,9 +90,8 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::end_encoding() noexcept
 	this->m_encoder->endEncoding();
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::release() noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::release() const noexcept
 {
 	this->m_encoder->release();
 }
-
 }        // namespace rhi

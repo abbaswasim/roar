@@ -25,22 +25,33 @@
 
 #include "foundation/rormacros.hpp"
 #include "rhi/metal/rorcommand_buffer.hpp"
-#include "rhi/rorrender_command_encoder.hpp"
 #include "rhi/rorcompute_command_encoder.hpp"
+#include "rhi/rorrender_command_encoder.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
 namespace rhi
 {
-
-FORCE_INLINE rhi::RenderCommandEncoder CommandBuffer::render_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index)
+// These set of encoder getters might look redundant but they are not. Can be used without a renderpass
+rhi::RenderCommandEncoder CommandBuffer::render_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index)
 {
 	return rhi::RenderCommandEncoder{this->m_buffer->renderCommandEncoder(a_render_pass.platform_renderpass(a_index))};
 }
 
-FORCE_INLINE rhi::ComputeCommandEncoder CommandBuffer::compute_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index)
+rhi::ComputeCommandEncoder CommandBuffer::compute_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index)
 {
 	return rhi::ComputeCommandEncoder{this->m_buffer->computeCommandEncoder(a_render_pass.platform_computepass(a_index))};
+}
+
+rhi::ComputeCommandEncoder CommandBuffer::compute_encoder()
+{
+	return rhi::ComputeCommandEncoder{this->m_buffer->computeCommandEncoder()};
+}
+
+// This means all commands in the command buffer can be executed in parallel
+rhi::ComputeCommandEncoder CommandBuffer::compute_encoder_concurrent()
+{
+	return rhi::ComputeCommandEncoder{this->m_buffer->computeCommandEncoder(MTL::DispatchType::DispatchTypeConcurrent)};
 }
 
 }        // namespace rhi

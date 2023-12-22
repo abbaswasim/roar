@@ -59,9 +59,9 @@ class ComputeCommandEncoderMetal final
 	FORCE_INLINE constexpr void buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept;
+	FORCE_INLINE constexpr void dispatch_threads(const ror::Vector3ui &a_threads_per_grid, const ror::Vector3ui &a_threads_per_threadgroup) noexcept;
 	FORCE_INLINE constexpr void end_encoding() noexcept;
-	FORCE_INLINE constexpr void release() noexcept;
+	FORCE_INLINE constexpr void release() const noexcept;
 
   protected:
   private:

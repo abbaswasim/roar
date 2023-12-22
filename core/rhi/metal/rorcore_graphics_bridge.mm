@@ -58,6 +58,13 @@ void *get_metal_layer(std::any a_window,               // NSWindow
 	return layer;
 }
 
+// TODO: Probably better to use the metalCPP way of getting this;
+/*
+#import <QuartzCore/QuartzCore.hpp>
+
+CA::MetalLayer*    pMetalLayer    = layer associated with the view;
+CA::MetalDrawable* pMetalDrawable = pMetalLayer->nextDrawable();
+*/
 void *next_drawable(void *a_layer)
 {
 	CAMetalLayer *metalLayer = (__bridge static_cast<CAMetalLayer *>(a_layer));

@@ -23,7 +23,9 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorutilities.hpp"
 #include "rhi/metal/rorprogram.hpp"
+#include <cassert>
 
 namespace rhi
 {

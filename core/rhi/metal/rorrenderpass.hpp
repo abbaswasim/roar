@@ -57,6 +57,7 @@ class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 	size_t                     platform_renderpass_count();
 	rhi::RenderCommandEncoder  render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
 	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
+	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, MTL::ComputePassDescriptor *a_pass_descriptor);
 
 	FORCE_INLINE constexpr void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
 	{
