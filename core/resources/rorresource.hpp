@@ -127,6 +127,7 @@ std::filesystem::path find_resource(const std::filesystem::path &, ResourceSeman
 
 /**
  * A generic resource class to load all resources into, its thread safe and it does not need need to be externally synchronised
+ * But if data() is used to access the m_data member variable directly clients must either not call update() or synchronise it
  */
 class ROAR_ENGINE_ITEM Resource final
 {

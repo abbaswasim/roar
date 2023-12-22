@@ -579,7 +579,7 @@ const std::vector<uint8_t> &Resource::data(bool a_force) const
 
 std::string Resource::data_copy()
 {
-	assert(this->m_semantic == ror::ResourceSemantic::shaders);        // This is not strictly necessary but could be costly otherwise
+	assert(this->m_semantic == ror::ResourceSemantic::shaders || this->m_semantic == ror::ResourceSemantic::misc);        // This is not strictly necessary but could be costly otherwise
 
 	std::lock_guard<std::mutex> lock(this->m_mutex);
 

@@ -77,7 +77,7 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 	assert(res && "stbi_info_from_memory failed");
 	(void) res;
 	bool was_hd = a_is_hdr;
-	a_is_hdr = false;
+	a_is_hdr    = false;
 	if (a_is_hdr)
 	{
 		// Sanity check, checking hdr is always 3 but we are expanding it using stbi_image
