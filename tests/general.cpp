@@ -22,6 +22,7 @@
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
+#include "foundation/rorresolve_includes.hpp"
 #include <atomic>
 #include <cassert>
 #include <cstdint>
@@ -36,6 +37,7 @@
 #include <vector>
 
 #include "graphics/rormodel.hpp"
+#include "resources/rorresource.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorrender_data.hpp"
@@ -651,4 +653,17 @@ TEST(RoarGeneral, project_unproject)
 	}
 }
 
+TEST(RoarGeneral, shader_includes)
+{
+	auto &shader     = ror::load_resource("misc/main.frag", ror::ResourceSemantic::misc);
+	auto &res_shader = ror::load_resource("misc/result.frag", ror::ResourceSemantic::misc);
+
+	ror::resolve_includes(shader, ror::ResourceSemantic::misc);
+
+	std::string resolved_shader_code{reinterpret_cast<const char *>(shader.data().data()), shader.data().size()};
+	std::string res_shader_code{reinterpret_cast<const char *>(res_shader.data().data()), res_shader.data().size()};
+
+	EXPECT_EQ(res_shader_code.length(), resolved_shader_code.length());
+	EXPECT_EQ(res_shader_code, resolved_shader_code);
+}
 }        // namespace ror_test

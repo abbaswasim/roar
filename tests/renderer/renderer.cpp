@@ -110,7 +110,7 @@ TEST(RendererTest, config_load)
 {
 	ror::Renderer rdr;
 
-	auto &rtgs  = rdr.textures();
+	auto &rtgs  = rdr.images();
 	auto &fgphs = rdr.frame_graphs();
 
 	std::vector<std::vector<uint32_t>> empty_indices{};
@@ -326,7 +326,7 @@ TEST(RendererTest, config_load)
 	}
 
 	// Test render targets
-	auto &trgts = rdr.textures();
+	auto &trgts = rdr.images();
 	{
 		{
 			EXPECT_EQ(trgts[0].name(), "before_swapchain");
