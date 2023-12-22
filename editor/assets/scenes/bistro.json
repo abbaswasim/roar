@@ -15,7 +15,7 @@
 			"name":"root"
 		},
 		{
-			"name":"BabaYagas",
+			"name":"Bistro",
 			"translation":[
 				0.0,
 				0.0,
@@ -32,11 +32,11 @@
 				1.0,
 				1.0
 			],
-			"path":"baba_yagas_hut/scene.gltf",
+			"path":"bistro/bistro_final.gltf",
 			"bvh":true
 		},
 		{
-			"name":"boy1",
+			"name":"boy",
 			"path":"astro_boy_gltf/astro_boy.gltf",
 			"animation":2,
 			"translation":[
@@ -57,7 +57,7 @@
 			]
 		},
 		{
-			"name":"boy2",
+			"name":"boy",
 			"path":"astro_boy_gltf/astro_boy.gltf",
 			"animation":2,
 			"translation":[
@@ -78,7 +78,7 @@
 			]
 		},
 		{
-			"name":"boy3",
+			"name":"boy",
 			"path":"astro_boy_gltf/astro_boy.gltf",
 			"animation":2,
 			"translation":[
