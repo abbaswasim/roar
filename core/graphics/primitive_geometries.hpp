@@ -38,6 +38,7 @@ static const float cube_vertex_buffer_interleaved[] = {
      1.0f,-1.0f, 1.0f,    1.0f, 1.0f,    1.0f, 1.0f, 1.0f, 0.5f,
      1.0f, 1.0f, 1.0f,    1.0f, 0.0f,    1.0f, 1.0f, 1.0f, 0.5f
 };
+
 static const float cube_vertex_position_uv_interleaved[] = {
     -1.0f,-1.0f,-1.0f,    0.0f, 1.0f,    // -X side
     -1.0f,-1.0f, 1.0f,    1.0f, 1.0f,
@@ -76,6 +77,7 @@ static const float cube_vertex_position_uv_interleaved[] = {
      1.0f,-1.0f, 1.0f,    1.0f, 1.0f,
      1.0f, 1.0f, 1.0f,    1.0f, 0.0f
 };
+
 static const float cube_vertex_buffer_position[] = {
     -1.0f,-1.0f,-1.0f,    // -X side
     -1.0f,-1.0f, 1.0f,
@@ -114,6 +116,7 @@ static const float cube_vertex_buffer_position[] = {
      1.0f,-1.0f, 1.0f,
      1.0f, 1.0f, 1.0f
 };
+
 static const float cube_vertex_buffer_uv[] = {
     0.0f, 1.0f,    // -X side
     1.0f, 1.0f,

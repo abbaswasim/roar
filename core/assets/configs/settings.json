@@ -46,6 +46,7 @@
 	"generate_cube_mesh" : false,
 	"generate_quad_mesh" : false,
 	"generate_fullscreen_quad_mesh" : false,
+	"generate_pink_textures" : true,
 	"clean_on_boot" : true,
 	"winding" : "counter_clockwise",
 	"application_name" : "Roar Editor",
@@ -198,5 +199,11 @@
 			"NoH",
 			"VoH"
 		]
+	},
+	"environment" :
+	{
+		"visible" : true,
+		"mode" : "radiance",
+		"mipmap" : 0
 	}
 }

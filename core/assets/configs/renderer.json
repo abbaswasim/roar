@@ -2,6 +2,12 @@
 	"shaders":[
 		"node_transform.glsl.comp",
 		"ibl_lut.glsl.comp",
+		"ibl_irradiance.glsl.comp",
+		"ibl_radiance.glsl.comp",
+		"ibl_skybox.glsl.vert",
+		"ibl_skybox.glsl.frag",
+		"ibl_skybox_brdf_integration.glsl.vert",
+		"ibl_skybox_brdf_integration.glsl.frag",
 		"ibl_lut.glsl.vert",
 		"ibl_lut.glsl.frag",
 		"position.glsl.vert",
@@ -17,8 +23,18 @@
 			"compute":1
 		},
 		{
-			"vertex":2,
-			"fragment":3
+			"compute":2
+		},
+		{
+			"compute":3
+		},
+		{
+			"vertex":4,
+			"fragment":5
+		},
+		{
+			"vertex":6,
+			"fragment":7
 		}
 	],
 	"textures":[
@@ -73,9 +89,72 @@
 			"format":"r8g8b8a8_int32"
 		},
 		{
-			"name":"ibl_lut",
+			"name":"brdf_integration_lut",
 			"format":"r16g16_float32",
 			"writeable": true
+		}
+	],
+	"samplers":[
+		{
+			"mag_filter":"nearest",
+			"min_filter":"nearest",
+			"mip_filter":"not_mipmapped",
+			"wrap_s":"clamp_to_edge",
+			"wrap_t":"clamp_to_edge",
+			"wrap_u":"clamp_to_edge",
+			"border":"opaque"
+		},
+		{
+			"mag_filter":"linear",
+			"min_filter":"linear",
+			"mip_filter":"not_mipmapped"
+		},
+		{
+			"mag_filter":"linear",
+			"min_filter":"linear",
+			"mip_filter":"linear"
+		}
+	],
+	"environment": 0,
+	"environments":[
+		{
+			"name": "Footprint Court",
+			"skybox_pso": 4,
+			"radiance_pso": 3,
+			"irradiance_pso": 2,
+			"brdf_integration_pso": 5,
+			"skybox_sampler": 1,
+			"input_sampler": 1,
+			"irradiance_sampler": 1,
+			"radiance_sampler": 2,
+			"brdf_integration": 12,
+			"input": {
+				"name":"Footprint_Court/Footprint_Court_2k.hdr",
+				"format":"r32g32b32a32_float128",
+				"target": "2D"
+			},
+			"irradiance": {
+				"name":"irradiance_map",
+				"format":"r8g8b8a8_uint32_norm",
+				"size" : 1024,
+				"target": "CUBE",
+				"writeable": true
+			},
+			"radiance": {
+				"name":"radiance_map",
+				"format":"r8g8b8a8_uint32_norm",
+				"size" : 1024,
+				"target": "CUBE",
+				"writeable": true,
+				"mipmapped": true
+			},
+			"skybox": {
+				"name":"skybox_cubemap",
+				"format":"r8g8b8a8_uint32_norm",
+				"size" : 1024,
+				"target": "CUBE",
+				"writeable": true
+			}
 		}
 	],
 	"buffers":[

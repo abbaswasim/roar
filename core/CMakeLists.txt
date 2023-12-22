@@ -133,6 +133,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/graphics/rormodel.cpp
   ${ROAR_SOURCE_DIR}/graphics/rorscene.cpp
   ${ROAR_SOURCE_DIR}/graphics/rordynamic_mesh.cpp
+  ${ROAR_SOURCE_DIR}/geometry/rorgeometry_utilities.cpp
   ${ROAR_SOURCE_DIR}/platform/rorglfw_wrapper.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortexture.cpp
   ${ROAR_SOURCE_DIR}/rhi/rortypes.cpp
@@ -144,6 +145,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rorshader.cpp
   ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rorrenderpass.cpp
   ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rortexture.cpp
+  ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rorcompute_dispatch.cpp
   ${ROAR_SOURCE_DIR}/shader_system/rorshader_system.cpp
   ${ROAR_SOURCE_DIR}/configuration/rorsettings_configuration.cpp
   ${ROAR_SOURCE_DIR}/renderer/rorrenderer.cpp

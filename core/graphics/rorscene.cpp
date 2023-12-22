@@ -55,6 +55,7 @@
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rortexture.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rorprogram.hpp"
@@ -964,6 +965,10 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 	for (auto &dm : this->m_dynamic_meshes)
 		dm->render(a_renderer, a_encoder);
 
+	// Lets render all the renderer dynamic mesh, usually it only has a skybox cubmap
+	for (auto &dm : a_renderer.dynamic_meshes())
+		dm->render(a_renderer, a_encoder);
+
 	// Lets update the UI elements
 	// TODO: Should move out of scene and into global end of frame renderpass
 	auto &setting = ror::settings();
@@ -1415,40 +1420,67 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	{
 		static ror::DynamicMesh cube_mesh{};
 
-		this->m_dynamic_meshes.emplace_back(std::move(&cube_mesh));
-
 		cube_mesh.init_upload(a_device, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles);
 		cube_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_interleaved), 9 * 36 * sizeof(float), 36,
 		                      reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
+
+		this->m_dynamic_meshes.emplace_back(std::move(&cube_mesh));
+	}
+
+	if (setting.m_generate_cube_map)
+	{
+		static ror::DynamicMesh cube_map_mesh{};
+
+		rhi::VertexDescriptor vertex_descriptor = create_p_float3_descriptor();
+
+		cube_map_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
+		cube_map_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+		cube_map_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
+		auto &envs = a_renderer.environments();
+		auto &env  = envs[0];
+		if (/* DISABLES CODE */ (1))
+		{
+			auto irradiance_image   = &a_renderer.images()[env.irradiance()];                  // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto irradiance_sampler = &a_renderer.samplers()[env.irradiance_sampler()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
+
+			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(irradiance_image),
+			                          const_cast<rhi::TextureSampler *>(irradiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		}
+		else
+		{
+			auto radiance_image   = &a_renderer.images()[env.radiance()];                  // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto radiance_sampler = &a_renderer.samplers()[env.radiance_sampler()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
+
+			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(radiance_image),
+			                          const_cast<rhi::TextureSampler *>(radiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		}
+		cube_map_mesh.setup_shaders(rhi::BlendMode::blend, "equirectangular_cubemap.glsl.vert", "equirectangular_cubemap.glsl.frag");
+		cube_map_mesh.topology(rhi::PrimitiveTopology::triangles);
+		cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_position), 3 * 36 * sizeof(float), 36,
+		                          reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
+
+		this->m_dynamic_meshes.emplace_back(std::move(&cube_map_mesh));
 	}
 
 	if (setting.m_generate_quad_mesh)
 	{
 		static ror::DynamicMesh quad_mesh{};
 
-		this->m_dynamic_meshes.emplace_back(std::move(&quad_mesh));
-
-		rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
-		rhi::VertexLayout    vlp{0, 20};                                                                                       // binding, stride, rate, multiplier, function
-		rhi::VertexAttribute vat{1, 12, 1, 0, 0, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
-		rhi::VertexLayout    vlt{0, 20};
-
-		std::vector<rhi::VertexAttribute> vattribs{vap, vat};
-		std::vector<rhi::VertexLayout>    vlayouts{vlp, vlt};
-
-		rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+		rhi::VertexDescriptor vertex_descriptor = create_p_float3_t_float2_descriptor();
 
 		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
 		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
-		if (a_renderer.textures().size() > 12)
+		if (a_renderer.images().size() > 12)
 		{
-			auto image_lut = &a_renderer.textures()[12];                              // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto image_lut = &a_renderer.images()[12];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
 			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 		}
 		quad_mesh.setup_shaders(rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(reinterpret_cast<const uint8_t *>(&quad_vertex_buffer_interleaved), 5 * 6 * sizeof(float), 6);
+
+		this->m_dynamic_meshes.emplace_back(std::move(&quad_mesh));
 	}
 
 	// NOTE: This fullscreen quad doesn't use any vertex attributes, so this is a unique case of rendering a quad without vertices
@@ -1456,24 +1488,21 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	{
 		static ror::DynamicMesh quad_mesh{};
 
-		this->m_dynamic_meshes.emplace_back(std::move(&quad_mesh));
-
-		std::vector<rhi::VertexAttribute> vattribs{};
-		std::vector<rhi::VertexLayout>    vlayouts{};
-
-		rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+		rhi::VertexDescriptor vertex_descriptor = create_default_descriptor();
 
 		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
 		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 		// quad_mesh.load_texture(a_device);                                         // What if I want to just set the texture, to something I want to display on it
-		if (a_renderer.textures().size() > 12)
+		if (a_renderer.images().size() > 12)
 		{
-			auto image_lut = &a_renderer.textures()[12];                              // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto image_lut = &a_renderer.images()[12];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
 			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 		}
 		quad_mesh.setup_shaders(rhi::BlendMode::blend, "quad_no_attributes.glsl.vert", "quad_no_attributes.glsl.frag");
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(nullptr, 0, 6);        // This 6 here means I want to draw 6 vertices without any attributes as given by VertexDescriptor
+
+		this->m_dynamic_meshes.emplace_back(std::move(&quad_mesh));
 	}
 }
 

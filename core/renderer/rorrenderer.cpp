@@ -32,12 +32,19 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "geometry/rorgeometry_utilities.hpp"
+#include "graphics/primitive_geometries.hpp"
+#include "graphics/rordynamic_mesh.hpp"
+#include "graphics/rorenvironment.hpp"
 #include "graphics/rorscene.hpp"
 #include "math/rorvector_functions.hpp"
 #include "profiling/rorlog.hpp"
+#include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/crtp_interfaces/rorcompute_dispatch.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
+#include "rhi/rorshader.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorcommand_buffer.hpp"
@@ -50,10 +57,15 @@
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
+#include "watchcat/rorwatchcat.hpp"
 #include <cassert>
 #include <filesystem>
+#include <iterator>
+#include <nlohmann/json.hpp>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace ror
@@ -76,12 +88,85 @@ rhi::TextureTarget string_to_texture_target(const std::string &a_target)
 	return rhi::TextureTarget::texture_2D;
 }
 
+rhi::TextureFilter string_to_texture_filter(const std::string &a_filter)
+{
+	if (a_filter == "nearest")
+		return rhi::TextureFilter::nearest;
+	else if (a_filter == "linear")
+		return rhi::TextureFilter::linear;
+	else
+		assert(0 && "Implement other texture filter support");
+
+	return rhi::TextureFilter::nearest;
+}
+
+rhi::TextureMipFilter string_to_texture_mip_filter(const std::string &a_filter)
+{
+	if (a_filter == "not_mipmapped")
+		return rhi::TextureMipFilter::not_mipmapped;
+	else if (a_filter == "nearest")
+		return rhi::TextureMipFilter::nearest;
+	else if (a_filter == "linear")
+		return rhi::TextureMipFilter::linear;
+	else
+		assert(0 && "Implement other texture mip filter support");
+
+	return rhi::TextureMipFilter::not_mipmapped;
+}
+
+rhi::TextureAddressMode string_to_texture_address_mode(const std::string &a_filter)
+{
+	if (a_filter == "clamp_to_edge")
+		return rhi::TextureAddressMode::clamp_to_edge;
+	else if (a_filter == "mirror_clamp_to_edge")
+		return rhi::TextureAddressMode::mirror_clamp_to_edge;
+	else if (a_filter == "repeat")
+		return rhi::TextureAddressMode::repeat;
+	else if (a_filter == "mirror_repeat")
+		return rhi::TextureAddressMode::mirror_repeat;
+	else if (a_filter == "clamp_to_zero")
+		return rhi::TextureAddressMode::clamp_to_zero;
+	else if (a_filter == "clamp_to_border_color")
+		return rhi::TextureAddressMode::clamp_to_border_color;
+	else
+		assert(0 && "Implement other texture address modes support");
+
+	return rhi::TextureAddressMode::clamp_to_edge;
+}
+
+rhi::TextureBorder string_to_texture_border(const std::string &a_filter)
+{
+	if (a_filter == "transparent")
+		return rhi::TextureBorder::transparent;
+	else if (a_filter == "opaque")
+		return rhi::TextureBorder::opaque;
+	else if (a_filter == "white")
+		return rhi::TextureBorder::white;
+	else
+		assert(0 && "Implement other texture border types support");
+
+	return rhi::TextureBorder::transparent;
+}
+
+void Renderer::update_shader(rhi::Device &a_device, std::string &a_shader)        // a_shader is the name/path of the shader in renderer or anywhere else like the scene
+{
+	auto shader_callbacks = this->m_update_callbacks_mapping.find(a_shader);
+	if (shader_callbacks != this->m_update_callbacks_mapping.end())
+	{
+		ror::log_info("Calling all update shader_callbacks on {}", a_shader.c_str());
+		for (auto &shader_callback : shader_callbacks->second)
+		{
+			shader_callback(a_device, *this);
+		}
+	}
+}
+
 void Renderer::patch_shader(rhi::Shader &a_shader, std::string &a_shader_name)
 {
 	auto shader_callback = this->m_callbacks_mapping.find(a_shader_name);
 	if (shader_callback != this->m_callbacks_mapping.end())
 	{
-		ror::log_info("Calling shader_callback on {}", a_shader_name.c_str());
+		ror::log_info("Calling patch shader_callback on {}", a_shader_name.c_str());
 		auto shader_source = a_shader.source();
 		shader_callback->second(shader_source, *this);
 		a_shader.source(shader_source);
@@ -128,6 +213,148 @@ void Renderer::load_programs()
 			}
 		}
 	}
+
+	// Now lets create shader records and do the mapping
+	int32_t shader_id{0};
+	for (auto &shader : this->m_shaders)
+	{
+		ShaderRecord shader_record{};
+		shader_record.m_shader = &shader;
+		shader_record.m_id     = shader_id++;
+
+		for (auto &program : this->m_programs)
+		{
+			if (program.vertex_id() == shader_record.m_id ||
+			    program.fragment_id() == shader_record.m_id ||
+			    program.compute_id() == shader_record.m_id ||
+			    program.mesh_id() == shader_record.m_id ||
+			    program.tile_id() == shader_record.m_id)
+			{
+				shader_record.m_programs.emplace_back(&program);
+			}
+		}
+
+		this->m_shaders_mapping[shader.shader_path().filename()] = std::move(shader_record);
+	}
+}
+
+// Only works for RGBA (LDR/HDR) Images
+void make_texture_pink(rhi::TextureImage &a_texture_image)
+{
+	assert(a_texture_image.data());
+
+	auto *ptr = a_texture_image.data();
+
+	for (size_t i = 0; i < a_texture_image.size();)
+	{
+		if (a_texture_image.hdr())
+		{
+			float32_t *fptr = reinterpret_cast<float32_t *>(ptr);
+
+			fptr[i + 0] = 1.0f;
+			fptr[i + 1] = 20.0f / 255.0f;
+			fptr[i + 2] = 147.0f / 255.0f;
+			fptr[i + 3] = 1.0f;
+
+			i += 16;
+		}
+		else
+		{
+			ptr[i + 0] = 255;
+			ptr[i + 1] = 20;
+			ptr[i + 2] = 147;
+			ptr[i + 3] = 255;
+
+			i += 4;
+		}
+	}
+}
+
+void read_into_texture_image(rhi::TextureImage &a_texture_image, nlohmann::json &a_texture, bool a_allocate, rhi::TextureUsage a_usage)
+{
+	a_texture_image.push_empty_mip();
+
+	assert(a_texture.contains("name") && a_texture.contains("format") && "Texture must specify name and format");
+	a_texture_image.format(rhi::string_to_pixel_format(a_texture["format"]));        // This also sets bytes_per_pixel
+	a_texture_image.usage(a_usage);                                                  // Is also changed/updated later in reading framegraphs
+
+	if (a_texture.contains("width"))
+		a_texture_image.width(a_texture["width"]);
+
+	if (a_texture.contains("height"))
+		a_texture_image.height(a_texture["height"]);
+
+	if (a_texture.contains("size"))
+	{
+		a_texture_image.width(a_texture["size"]);
+		a_texture_image.height(a_texture["size"]);
+	}
+
+	if (a_texture.contains("depth"))
+		a_texture_image.depth(a_texture["depth"]);
+
+	if (a_texture.contains("target"))
+		a_texture_image.target(string_to_texture_target(a_texture["target"]));
+
+	if (a_texture.contains("name"))        // Name is also used as path
+		a_texture_image.name(a_texture["name"]);
+
+	if (a_texture.contains("writeable"))
+		if (a_texture["writeable"] == true)
+			a_texture_image.usage(rhi::TextureUsage::shader_write);
+
+	auto size_in_bytes{0ul};
+	if (a_texture.contains("mipmapped"))
+		a_texture_image.mipmapped(a_texture["mipmapped"]);
+
+	size_in_bytes = a_texture_image.setup();
+
+	if (a_allocate)
+	{
+		size_t size{rhi::calculate_texture_size(a_texture_image.width(), a_texture_image.height(), a_texture_image.depth(), a_texture_image.format(),
+		                                        a_texture_image.mipmapped(), rhi::is_texture_cubemap(a_texture_image.target()), rhi::is_texture_array(a_texture_image.target()))};
+		if (a_texture_image.mipmapped())
+		{
+			assert(size_in_bytes == size && "Mipmapped texture sizes don't match");
+		}
+		else
+		{
+			size_t manual_size = a_texture_image.width() * a_texture_image.height() * a_texture_image.depth() * a_texture_image.bytes_per_pixel() * (rhi::is_texture_cubemap(a_texture_image.target()) ? 6 : 1);
+			assert(manual_size == size && "Mipmapped texture sizes don't match");
+			(void) manual_size;
+		}
+
+		a_texture_image.allocate(size);        // This could also be allocate() but I am doing more validation here just in case
+
+		if (settings().m_generate_pink_textures)
+			make_texture_pink(a_texture_image);
+
+		// a_texture_image.reset(a_size);
+	}
+}
+
+void read_into_texture_sampler(rhi::TextureSampler &a_texture_sampler, nlohmann::json &a_sampler)
+{
+	if (a_sampler.contains("mag_filter"))
+		a_texture_sampler.mag_filter(string_to_texture_filter(a_sampler["mag_filter"]));
+
+	if (a_sampler.contains("min_filter"))
+		a_texture_sampler.min_filter(string_to_texture_filter(a_sampler["min_filter"]));
+
+	if (a_sampler.contains("mip_filter"))
+		a_texture_sampler.mip_mode(string_to_texture_mip_filter(a_sampler["mip_filter"]));
+
+	if (a_sampler.contains("wrap_s"))
+		a_texture_sampler.wrap_s(string_to_texture_address_mode(a_sampler["wrap_s"]));
+
+	if (a_sampler.contains("wrap_t"))
+		a_texture_sampler.wrap_t(string_to_texture_address_mode(a_sampler["wrap_t"]));
+
+	if (a_sampler.contains("wrap_u"))
+		a_texture_sampler.wrap_u(string_to_texture_address_mode(a_sampler["wrap_u"]));
+
+	if (a_sampler.contains("border"))
+		a_texture_sampler.border_color(string_to_texture_border(a_sampler["border"]));
 }
 
 void Renderer::load_textures()
@@ -140,34 +367,134 @@ void Renderer::load_textures()
 			rhi::TextureImage texture_image;
 			texture_image.push_empty_mip();
 
-			assert(texture.contains("format") && "Texture must specifiy format");
-			texture_image.format(rhi::string_to_pixel_format(texture["format"]));
-			texture_image.usage(rhi::TextureUsage::render_target);        // Is also changed/updated later in reading framegraphs
-
 			// Not allocated render target, will be allocated when needed in render passes and properties set
-			// texture.allocate();
-			// texture.reset();
-			// texture.width();
-			// texture.height();
-			// texture.depth(1u);
-			// texture.bytes_per_pixel();
+			read_into_texture_image(texture_image, texture, false, rhi::TextureUsage::render_target);        // render_target use is also changed/updated later in reading framegraphs
 
-			if (texture.contains("target"))
-				texture_image.target(string_to_texture_target(texture["target"]));
-
-			if (texture.contains("name"))
-				texture_image.name(texture["name"]);
-
-			if (texture.contains("writeable"))
-				if (texture["writeable"] == true)
-					texture_image.usage(rhi::TextureUsage::shader_write);
-
-			this->m_textures.emplace_back(std::move(texture_image));
+			this->m_images.emplace_back(std::move(texture_image));
 		}
 	}
 	else
 	{
 		ror::log_critical("Renderer config should contain textures description but found nothing");
+	}
+}
+
+void Renderer::load_samplers()
+{
+	if (this->m_json_file.contains("samplers"))
+	{
+		auto samplers = this->m_json_file["samplers"];
+		for (auto &sampler : samplers)
+		{
+			rhi::TextureSampler texture_sampler;
+
+			read_into_texture_sampler(texture_sampler, sampler);
+
+			this->m_samplers.emplace_back(std::move(texture_sampler));
+		}
+	}
+	else
+	{
+		ror::log_critical("Renderer config should contain sampler description but found nothing");
+	}
+}
+
+int32_t Renderer::brdf_integration_lut_index(std::string a_name)
+{
+	auto index{-1};
+	for (auto &texture : this->m_images)
+	{
+		++index;
+
+		if (texture.name() == a_name)
+			return index;
+	}
+
+	return index;
+}
+
+void Renderer::load_environments()
+{
+	if (this->m_json_file.contains("environments"))
+	{
+		auto environments = this->m_json_file["environments"];
+		for (auto &environment : environments)
+		{
+			assert(environment.contains("name") &&
+			       environment.contains("input") &&
+			       environment.contains("skybox_pso") &&
+			       environment.contains("radiance_pso") &&
+			       environment.contains("irradiance_pso") &&
+			       environment.contains("skybox_sampler") &&
+			       environment.contains("radiance_sampler") &&
+			       environment.contains("irradiance_sampler") &&
+			       "Environments must specifiy these parameters");
+
+			ror::IBLEnvironment ibl_environment;
+			ibl_environment.name(environment["name"]);
+			ibl_environment.skybox_pso(environment["skybox_pso"]);
+			ibl_environment.radiance_pso(environment["radiance_pso"]);
+			ibl_environment.irradiance_pso(environment["irradiance_pso"]);
+			ibl_environment.skybox_sampler(environment["skybox_sampler"]);
+			ibl_environment.radiance_sampler(environment["radiance_sampler"]);
+			ibl_environment.irradiance_sampler(environment["irradiance_sampler"]);
+
+			// Find brdf_integration_lut in textures
+			auto lut_index = this->brdf_integration_lut_index();
+			assert(lut_index != -1 && "No brdf_integration_lut index found in the textures");
+
+			if (environment.contains("brdf_integration"))
+			{
+				auto env_lut_index = environment["brdf_integration"];
+				assert(env_lut_index < this->m_images.size() && "Out of bound brdf_intgration_lut index");
+				assert(lut_index == env_lut_index && "brdf_intgration_lut index doesn't match one available in textures");
+
+				ibl_environment.brdf_integration(env_lut_index);
+			}
+			else
+				ibl_environment.brdf_integration(static_cast<uint32_t>(lut_index));
+
+			if (environment.contains("brdf_integration_pso"))
+				ibl_environment.brdf_integration_pso(environment["brdf_integration_pso"]);
+
+#define read_env_texture(name, s)                                                                              \
+	rhi::TextureImage name##_texture_image;                                                                    \
+	name##_texture_image.push_empty_mip();                                                                     \
+	if (environment.contains(#name))                                                                           \
+	{                                                                                                          \
+		auto texture_description = environment[#name];                                                         \
+		read_into_texture_image(name##_texture_image, texture_description, s, rhi::TextureUsage::shader_read); \
+	}                                                                                                          \
+	else                                                                                                       \
+	{                                                                                                          \
+		assert(0 && "Add empty cubemap");                                                                      \
+	}                                                                                                          \
+	ibl_environment.name(static_cast_safe<uint32_t>(this->m_images.size()));                                   \
+	this->m_images.emplace_back(std::move(name##_texture_image));                                              \
+	(void) 0
+
+			read_env_texture(input, false);
+			read_env_texture(irradiance, true);
+			read_env_texture(radiance, true);
+			read_env_texture(skybox, true);
+
+			this->m_environments.emplace_back(std::move(ibl_environment));
+
+#undef read_env_texture
+		}
+	}
+	else
+	{
+		ror::log_info("No environments available in renderer config");
+	}
+
+	if (this->m_json_file.contains("environment"))
+		this->m_current_environment = this->m_json_file["environment"];
+
+	if (this->m_current_environment == -1 && this->m_environments.size())
+	{
+		ror::log_info("No environments chosen from the provided environment, choosing the first one now");
+		this->m_current_environment = 0;
 	}
 }
 
@@ -623,7 +950,7 @@ void Renderer::load_frame_graphs()
 		for (auto &forward_pass : forward_passes)
 		{
 			ror::Vector2ui dimensions{static_cast<uint32_t>(this->m_dimensions.x), static_cast<uint32_t>(this->m_dimensions.y)};
-			read_render_pass(forward_pass, this->m_frame_graphs["forward"], dimensions, this->m_textures, this->m_buffers);
+			read_render_pass(forward_pass, this->m_frame_graphs["forward"], dimensions, this->m_images, this->m_buffers);
 		}
 	}
 
@@ -633,7 +960,7 @@ void Renderer::load_frame_graphs()
 		for (auto &deferred_pass : deferred_passes)
 		{
 			ror::Vector2ui dimensions{static_cast<uint32_t>(this->m_dimensions.x), static_cast<uint32_t>(this->m_dimensions.y)};
-			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], dimensions, this->m_textures, this->m_buffers);
+			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], dimensions, this->m_images, this->m_buffers);
 		}
 	}
 
@@ -660,7 +987,7 @@ const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector
 	}
 
 	// If we don't have this render target lets create one
-	assert(a_index < this->m_textures.size() && "Index is out of bound in the textures array");
+	assert(a_index < this->m_images.size() && "Index is out of bound in the textures array");
 	rhi::LoadAction       load_action{rhi::LoadAction::clear};
 	rhi::StoreAction      store_action{rhi::StoreAction::store};
 	rhi::RenderOutputType type{rhi::RenderOutputType::color};
@@ -668,7 +995,7 @@ const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector
 	if (this->m_input_render_targets.size() == 0)
 		this->m_input_render_targets.reserve(20);        // Should be enough otherwise an error will happen which I will know about
 
-	this->m_input_render_targets.emplace_back(a_index, this->m_textures[a_index], load_action, store_action, type);
+	this->m_input_render_targets.emplace_back(a_index, this->m_images[a_index], load_action, store_action, type);
 
 	return &this->m_input_render_targets.back();        // back is ok here because this vector can't be reallocated
 }
@@ -731,11 +1058,11 @@ void Renderer::setup_references()
 				{
 					auto &inputs = subpass.rendered_inputs();
 
-					assert(inputs.size() <= this->m_textures.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
+					assert(inputs.size() <= this->m_images.size() && "Rendered Ids and number of render targets in the renderer doesn't match");
 
 					for (auto &input : inputs)
 					{
-						assert(input.m_index < this->m_textures.size() && "Render input Id is out of bound");
+						assert(input.m_index < this->m_images.size() && "Render input Id is out of bound");
 						input.m_render_output = find_rendertarget_reference(render_passes, input.m_index);
 					}
 				}
@@ -743,11 +1070,11 @@ void Renderer::setup_references()
 				{
 					auto &iads = subpass.input_attachments();
 
-					assert(iads.size() <= this->m_textures.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
+					assert(iads.size() <= this->m_images.size() && "Subpass input attachment Ids and number of subpasses in this render pass doesn't match");
 
 					for (auto &rid : iads)
 					{
-						assert(rid.m_index < this->m_textures.size() && "Input attachment Id is out of bound");
+						assert(rid.m_index < this->m_images.size() && "Input attachment Id is out of bound");
 						rid.m_render_output = find_rendertarget_reference(render_passes, rid.m_index);
 					}
 				}
@@ -774,6 +1101,8 @@ void Renderer::load_specific()
 	this->load_buffers();
 	this->load_programs();
 	this->load_textures();
+	this->load_samplers();
+	this->load_environments();
 	this->load_frame_graphs();
 	this->setup_references();
 }
@@ -790,8 +1119,9 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 	if (surface)
 	{
-		// TODO: Create a command_buffer per render_pass,
-		// also need to move this inside execute to be able to stop and restart another command buffer because of compute passes
+		this->update_shader_update_candidates(a_device, a_buffer_pack);
+
+		// Only one command_buffer is enough per frame, but the update_shader_update_candidates might have created, commited and closed its own
 		rhi::CommandBuffer command_buffer{a_device};
 		auto              &render_passes = this->current_frame_graph();
 
@@ -799,9 +1129,11 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 			render_pass.execute(command_buffer, a_scene, surface, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, *this);
 
 		command_buffer.present_drawable(surface);
+
+		command_buffer.addCompletedHandler([]() {});
 		command_buffer.commit();
 
-		// TODO: Pipeline the render passes and remove this
+		// TODO: Pipeline the render passes and remove this, its a performance killer
 		command_buffer.wait_until_completed();
 		command_buffer.release();
 		surface->release();
@@ -990,8 +1322,248 @@ void Renderer::upload_frame_graphs(rhi::Device &a_device)
 	}
 }
 
+void Renderer::upload_remaining_textures(rhi::Device &a_device)
+{
+	// Not all textures are uploaded as part of render passes as render targets, here we upload the rest
+	for (auto &texture : this->m_images)
+	{
+		std::filesystem::path texture_path{texture.name()};
+		if (!texture.ready())
+		{
+			if (texture_path.extension() != "")
+			{
+				auto &texture_file = ror::load_resource(texture_path, ror::ResourceSemantic::textures);
+				bool  is_hdr       = texture_path.extension() == ".hdr" || texture_path.extension() == ".exr";
+
+				rhi::read_texture_from_resource(texture_file, texture, is_hdr);
+			}
+
+			if (texture.size() > 0)
+				texture.upload(a_device);
+		}
+	}
+
+	// Hack in cubemap texture with numbers
+	{
+		rhi::TextureImage txp;
+		rhi::TextureImage txn;
+		rhi::TextureImage typ;
+		rhi::TextureImage tyn;
+		rhi::TextureImage tzp;
+		rhi::TextureImage tzn;
+
+		auto &x_p = ror::load_resource("cube_map/x_p.png", ror::ResourceSemantic::textures);
+		auto &x_n = ror::load_resource("cube_map/x_n.png", ror::ResourceSemantic::textures);
+		auto &y_p = ror::load_resource("cube_map/y_p.png", ror::ResourceSemantic::textures);
+		auto &y_n = ror::load_resource("cube_map/y_n.png", ror::ResourceSemantic::textures);
+		auto &z_p = ror::load_resource("cube_map/z_p.png", ror::ResourceSemantic::textures);
+		auto &z_n = ror::load_resource("cube_map/z_n.png", ror::ResourceSemantic::textures);
+
+		rhi::read_texture_from_resource(x_p, txp, false);
+		rhi::read_texture_from_resource(x_n, txn, false);
+		rhi::read_texture_from_resource(y_p, typ, false);
+		rhi::read_texture_from_resource(y_n, tyn, false);
+		rhi::read_texture_from_resource(z_p, tzp, false);
+		rhi::read_texture_from_resource(z_n, tzn, false);
+
+		auto &texture = this->m_images[14];
+		(void) texture;
+
+		auto ptr = texture.data();
+
+		memcpy(ptr + texture.mips()[0].m_offset, txp.data(), texture.mips()[0].m_size);
+		memcpy(ptr + texture.mips()[1].m_offset, txn.data(), texture.mips()[1].m_size);
+		memcpy(ptr + texture.mips()[2].m_offset, typ.data(), texture.mips()[2].m_size);
+		memcpy(ptr + texture.mips()[3].m_offset, tyn.data(), texture.mips()[3].m_size);
+		memcpy(ptr + texture.mips()[4].m_offset, tzp.data(), texture.mips()[4].m_size);
+		memcpy(ptr + texture.mips()[5].m_offset, tzn.data(), texture.mips()[5].m_size);
+
+		texture.upload(a_device);
+
+		// this->m_images.emplace_back(std::move(txp));
+		// this->m_images.emplace_back(std::move(txn));
+		// this->m_images.emplace_back(std::move(typ));
+		// this->m_images.emplace_back(std::move(tyn));
+		// this->m_images.emplace_back(std::move(tzp));
+		// this->m_images.emplace_back(std::move(tzn));
+	}
+}
+
+void Renderer::upload_samplers(rhi::Device &a_device)
+{
+	for (auto &sampler : this->m_samplers)
+	{
+		sampler.upload(a_device);
+	}
+}
+
+uint32_t Renderer::environment_visualize_mode(uint32_t a_environment_index)
+{
+	assert(a_environment_index < this->environments().size() && "Environment index out of bound");
+
+	auto &setting = ror::settings();
+	auto &envs    = this->environments();
+	auto &env     = envs[a_environment_index];
+
+	if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::radiance)
+		return env.radiance();
+	else if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::irradiance)
+		return env.irradiance();
+	else if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::brdf_lut)
+		return env.brdf_integration();
+	else if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::skybox)
+		return env.skybox();
+
+	return env.skybox();
+}
+
+void Renderer::create_environment_mesh(rhi::Device &a_device)
+{
+	if (this->environments().size() == 0 || this->m_current_environment == -1)
+	{
+		ror::log_critical("Can't create environment meshe, no environments available or selected");
+		return;
+	}
+
+	auto &setting = ror::settings();
+
+	// First we create a single cubemap mesh for all of the environment skyboxes we will use
+	rhi::VertexDescriptor vertex_descriptor = create_p_float3_i_uint16_descriptor();
+
+	this->m_cube_map_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
+
+	auto &envs = this->environments();
+	auto &env  = envs[static_cast<size_t>(this->m_current_environment)];
+
+	std::vector<ror::Vector3f>          positions;        // Cube positions, used if brdf_integration is chosen to be visualised
+	std::vector<ror::Vector3<uint16_t>> indices;          // Cube indices, used if brdf_integration is chosen to be visualised
+
+	auto    *skybox_pso           = &this->programs()[env.skybox_pso()];
+	uint32_t map_index            = this->environment_visualize_mode(static_cast<uint32_t>(this->m_current_environment));
+	int32_t  brdf_integration_pso = env.brdf_integration_pso();
+	auto     skybox_image         = &this->images()[map_index];
+	auto     skybox_sampler       = &this->samplers()[env.skybox_sampler()];
+
+	this->m_cube_map_mesh.set_texture(skybox_image, skybox_sampler);
+
+	make_box_triangles_indexed(positions, indices);
+
+	if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::brdf_lut && brdf_integration_pso != -1)
+	{
+		vertex_descriptor = create_p_float3_t_float2_i_uint16_descriptor();
+		skybox_pso        = &this->programs()[static_cast<uint32_t>(brdf_integration_pso)];
+	}
+
+	// Skybox pso requires a reupload because previous it was created without default vertex descriptor, which is no good here
+	skybox_pso->upload(a_device, vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_pso", true, false, false);
+	this->m_cube_map_mesh.setup_program(skybox_pso);
+	this->m_cube_map_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+
+	if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::brdf_lut && brdf_integration_pso != -1)
+		this->m_cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_position_uv_interleaved), 5 * 36 * sizeof(float), 36,
+		                                  reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
+	else
+		this->m_cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(positions.data()), positions.size() * sizeof(float32_t) * 3, static_cast_safe<uint32_t>(positions.size()),
+		                                  reinterpret_cast<const uint8_t *>(indices.data()), indices.size() * 3 * sizeof(uint16_t), static_cast_safe<uint32_t>(indices.size() * 3));
+
+	// Now we save a reference to it in the dynamic meshes within the renderer
+	this->m_dynamic_meshes.emplace_back(&this->m_cube_map_mesh);
+}
+
+void Renderer::upload_environments(rhi::Device &a_device)
+{
+	this->create_environment_mesh(a_device);
+
+	Timer t;
+
+	// auto &radiance = this->m_images[environment.radiance()];
+	// auto &irradiance_sampler = this->m_samplers[environment.irradiance_sampler()];
+	// auto &radiance_pso   = this->programs()[static_cast<size_t>(environment.radiance_pso())];
+	// auto &radiance = this->m_images[environment.radiance()];
+	// auto &irradiance_sampler = this->m_samplers[environment.irradiance_sampler()];
+
+	static rhi::ShaderBuffer mipmaps_shader_buffer{"Light",
+	                                               rhi::ShaderBufferType::ubo,
+	                                               rhi::Layout::std140,
+	                                               0, 0};
+
+	for (auto &environment : this->m_environments)
+	{
+		auto env_update_lambda = [&](rhi::Device &, ror::Renderer &) {
+			auto &input      = this->m_images[environment.input()];
+			auto &irradiance = this->m_images[environment.irradiance()];
+			auto &radiance = this->m_images[environment.radiance()];
+			auto &skybox     = this->m_images[environment.skybox()];
+
+			auto &irradiance_pso = this->programs()[static_cast<size_t>(environment.irradiance_pso())];
+
+			std::vector<rhi::TextureImage *> images{&input, &irradiance, &radiance, &skybox};
+			rhi::compute_dispatch_and_wait(a_device, {irradiance.width(), irradiance.height(), 6}, {32, 32, 1}, irradiance_pso, images, mipmaps_shader_buffer, []() {});
+		};
+
+		env_update_lambda(a_device, *this);        // Lets do the actual update and also register as shader update
+
+		auto &irradiance_pso = this->programs()[static_cast<size_t>(environment.irradiance_pso())];
+		auto &shader         = this->shaders()[static_cast<size_t>(irradiance_pso.compute_id())];
+		this->m_update_callbacks_mapping[shader.shader_path().filename()].push_back(env_update_lambda);
+
+		// irradiance.upload(a_device);
+		// radiance.upload(a_device);
+	}
+
+	ror::log_info("Uploading all environments took {} nanoseconds.", t.tick());        // TODO: If time is too much, make compute_dispatch_and_wait into command_buffer
+}
+
+void Renderer::push_shader_update_candidate(std::string a_shader)
+{
+	this->m_shaders_update_candidates.emplace_back(ShaderUpdateRecord{2, a_shader});        // Pushes an ShaderUpdateRecord
+}
+
+void Renderer::update_shader_update_candidates(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
+{
+	for (auto &shader_candidate : this->m_shaders_update_candidates)
+	{
+		--shader_candidate.m_counter;
+
+		if (shader_candidate.m_counter <= 0)
+		{
+			ShaderRecord &shader_record = this->m_shaders_mapping[shader_candidate.m_shader];
+
+			shader_record.m_shader->reload();
+			shader_record.m_shader->compile();
+			shader_record.m_shader->upload(a_device);
+
+			for (auto &program : shader_record.m_programs)
+				program->upload(a_device, this->m_shaders, a_buffer_pack, false);
+
+			this->update_shader(a_device, shader_candidate.m_shader);
+		}
+	}
+
+	this->m_shaders_update_candidates.remove_if([](ShaderUpdateRecord &shader_record) { return shader_record.m_counter <= 0; });
+}
+
+void setup_shader_watcher(Renderer *a_renderer)
+{
+	std::vector<std::filesystem::path> paths{};
+
+	// TODO: Think about how we give it path from within editor
+	// paths.emplace_back("/System/Volumes/Data/personal/roar_engine/editor");
+	paths.emplace_back("/System/Volumes/Data/personal/roar_engine/core/assets/shaders");
+
+	static ror::WatchCat watcher(
+	    paths, [a_renderer](std::vector<ror::WatchCatEvent> events) {
+		    for (auto e : events)
+			    if (e.m_type == ror::WatchCatEventType::change)
+				    a_renderer->push_shader_update_candidate(e.m_path.filename());
+	    },
+	    0.00001f);
+}
+
 void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 {
+	setup_shader_watcher(this);
+
 	for (auto &shader : this->m_shaders)
 	{
 		shader.compile();
@@ -1005,7 +1577,11 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 	for (auto &render_target : this->m_input_render_targets)
 		render_target.m_target_reference.get().upload(a_device);
 
+	// NOTE: Order is important, don't re-order, upload_remaining_textures needs to be called before environments are called
 	this->upload_frame_graphs(a_device);
+	this->upload_remaining_textures(a_device);
+	this->upload_samplers(a_device);
+	this->upload_environments(a_device);
 
 	this->m_render_state.upload(a_device);
 }

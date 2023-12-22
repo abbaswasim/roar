@@ -29,6 +29,8 @@
 #include "core/foundation/rorcrtp.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
+#include "graphics/rordynamic_mesh.hpp"
+#include "graphics/rorenvironment.hpp"
 #include "math/rorvector2.hpp"
 #include "profiling/rortimer.hpp"
 #include "rhi/rorbuffer.hpp"
@@ -67,23 +69,33 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE                     Renderer();        //! Default constructor
 	void                             render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer);
 	void                             load_specific();
-	void                             upload(rhi::Device &, rhi::BuffersPack &);
-	void                             upload_frame_graphs(rhi::Device &);
+	void                             upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack);
+	void                             upload_frame_graphs(rhi::Device &a_device);
+	void                             upload_environments(rhi::Device &a_device);
 	std::vector<rhi::RenderpassType> render_pass_types() const;
 	void                             deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene);
 	void                             dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device);
 	void                             set_modifier_events(ror::EventSystem &a_event_system);
 	void                             reset_sets_bindings();
 	void                             set_render_mode(uint32_t a_render_mode);
+	int32_t                          brdf_integration_lut_index(std::string a_name = "brdf_integration_lut");
+	void                             push_shader_update_candidate(std::string a_shader);
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &buffers()                      noexcept { return this->m_buffers;                 }
 	FORCE_INLINE constexpr auto &program(size_t a_index)  const          { return this->m_programs[a_index];       }
 	FORCE_INLINE constexpr auto &shaders()                const noexcept { return this->m_shaders;                 }
+	FORCE_INLINE constexpr auto &shaders()                      noexcept { return this->m_shaders;                 }
 	FORCE_INLINE constexpr auto &programs()               const noexcept { return this->m_programs;                }
+	FORCE_INLINE constexpr auto &programs()                     noexcept { return this->m_programs;                }
+	FORCE_INLINE constexpr auto &images()                 const noexcept { return this->m_images;                  }
+	FORCE_INLINE constexpr auto &images()                       noexcept { return this->m_images;                  }
+	FORCE_INLINE constexpr auto &samplers()               const noexcept { return this->m_samplers;                }
+	FORCE_INLINE constexpr auto &samplers()                     noexcept { return this->m_samplers;                }
 	FORCE_INLINE constexpr auto &textures()               const noexcept { return this->m_textures;                }
 	FORCE_INLINE constexpr auto &textures()                     noexcept { return this->m_textures;                }
+	FORCE_INLINE constexpr auto &environments()           const noexcept { return this->m_environments;            }
 	FORCE_INLINE constexpr auto &buffers()                const noexcept { return this->m_buffers;                 }
 	FORCE_INLINE constexpr auto &input_render_targets()   const noexcept { return this->m_input_render_targets;    }
 	FORCE_INLINE constexpr auto &input_render_buffers()   const noexcept { return this->m_input_render_buffers;    }
@@ -92,6 +104,7 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &viewport()               const noexcept { return this->m_viewport;                }
 	FORCE_INLINE constexpr auto &frame_graphs()           const noexcept { return this->m_frame_graphs;            }
 	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
+	FORCE_INLINE constexpr auto &dynamic_meshes()         const noexcept { return this->m_dynamic_meshes;          }
 
 	FORCE_INLINE           auto shader_buffer(const std::string& a_name)                           const           { return this->m_buffers_mapping.at(a_name);   }
 
@@ -102,10 +115,25 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
 	// clang-format on
 
-	using InputRenderTargets = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
-	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
-	using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderBuffer *>;
-	using ShaderCallbackMap  = std::unordered_map<std::string, std::function<void(std::string &, ror::Renderer &)>>;
+	struct ShaderRecord
+	{
+		rhi::Shader                *m_shader{nullptr};        //! Which shader am I, its name/path is saved in the mapping itself
+		std::vector<rhi::Program *> m_programs{};             //! Which programs am I used in
+		int32_t                     m_id{-1};                 //! What's my id in the list of shaders in renderer
+	};
+
+	struct ShaderUpdateRecord
+	{
+		int32_t     m_counter{2};        //! When this counter reaches 0 it will be executed, this is to defer it to later frames, by default gives 3 frames
+		std::string m_shader;
+	};
+
+	using InputRenderTargets      = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
+	using InputBufferTargets      = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
+	using ShaderBufferMap         = std::unordered_map<std::string, rhi::ShaderBuffer *>;
+	using ShaderCallbackMap       = std::unordered_map<std::string, std::function<void(std::string &, ror::Renderer &)>>;
+	using ShaderUpdateCallbackMap = std::unordered_map<std::string, std::vector<std::function<void(rhi::Device &, ror::Renderer &)>>>;
+	using ShaderRecordsMap        = std::unordered_map<std::string, ShaderRecord>;
 
   protected:
   private:
@@ -117,17 +145,29 @@ class Renderer final : public Configuration<Renderer>
 	void                             generate_shader_buffers_mapping();
 	void                             generate_shader_callbacks_mapping();
 
-	void patch_shader(rhi::Shader &a_shader, std::string &a_shader_name);
-	void load_programs();
-	void load_frame_graphs();
-	void load_textures();
-	void load_buffers();
-	void load_buffer_templates();
-	void setup_references();
+	void upload_remaining_textures(rhi::Device &a_device);
+	void upload_samplers(rhi::Device &a_device);
+
+	void     update_shader(rhi::Device &a_device, std::string &a_shader);
+	void     patch_shader(rhi::Shader &a_shader, std::string &a_shader_name);
+	void     update_shader_update_candidates(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack);
+	uint32_t environment_visualize_mode(uint32_t a_environment_index);
+	void     create_environment_mesh(rhi::Device &a_device);
+	void     load_programs();
+	void     load_frame_graphs();
+	void     load_textures();
+	void     load_samplers();
+	void     load_environments();
+	void     load_buffers();
+	void     load_buffer_templates();
+	void     setup_references();
 
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
 	std::vector<rhi::Program>               m_programs{};                                     //! All the global shader programs
-	std::vector<rhi::TextureImage>          m_textures{};                                     //! All the textures some render passes might want to write into
+	std::vector<rhi::TextureImage>          m_images{};                                       //! All the texture images some render passes might want to write into
+	std::vector<rhi::TextureSampler>        m_samplers{};                                     //! All samplers in the renderer, usually should only have a mipmapped and non-mipmapped sampler, but could have more
+	std::vector<rhi::Texture>               m_textures{};                                     //! All textures the renderer has loaded. This is only used to associate samplers with images
+	std::vector<ror::IBLEnvironment>        m_environments{};                                 //! All the IBL environments, referring to textures within m_textures
 	std::vector<rhi::ShaderBuffer>          m_buffers{};                                      //! All the buffers some render passes might want to write into
 	ror::Vector4f                           m_dimensions{1024.0f, 768.0f, 1.0f, 1.0f};        //! Dimensions of the renderer framebuffers, if not provided will use from window, overriden by renderer.json, z, w are scaling factors
 	ror::Vector4i                           m_viewport{0, 0, 1024, 768};                      //! Viewport to use to render into the render targets, RTs can override it
@@ -136,8 +176,14 @@ class Renderer final : public Configuration<Renderer>
 	rhi::Renderstate<rhi::RenderstateDepth> m_render_state{};                                 //! Almost all the render state that the renderer requires will be stored here, currently only uses depth state
 	InputRenderTargets                      m_input_render_targets{};                         //! Render targets that are not directly associated with any render pass but required to be filled in before rendering starts
 	InputBufferTargets                      m_input_render_buffers{};                         //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
+	std::list<ShaderUpdateRecord>           m_shaders_update_candidates{};                    //! Shaders there were updated on disk recently and needs updating in the renderer
+	ShaderRecordsMap                        m_shaders_mapping{};                              //! All the Shaders mapped by its name to a ShaderRecord
 	ShaderBufferMap                         m_buffers_mapping{};                              //! All the Shader buffers in m_buffers are now name accessible
 	ShaderCallbackMap                       m_callbacks_mapping{};                            //! All the callbacks that can be used to patch or do something else to shaders
+	ShaderUpdateCallbackMap                 m_update_callbacks_mapping{};                     //! All the callbacks that can be used to update shaders and their programs
+	std::vector<ror::DynamicMesh *>         m_dynamic_meshes{};                               //! Non-Owning pointers to all the dynamic meshes created in the renderer should be rendererd at the end, mostly has cubemap mes
+	ror::DynamicMesh                        m_cube_map_mesh{};                                //! Single instance of a cubemap mesh used by all environments
+	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use
 };
 }        // namespace ror
 
