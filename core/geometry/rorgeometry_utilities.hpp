@@ -28,7 +28,6 @@
 #include "foundation/rortypes.hpp"
 #include "math/rorvector_functions.hpp"
 #include "rhi/rortypes.hpp"
-#include "thirdparty/include_convhull_3d.hpp"
 
 namespace ror
 {
