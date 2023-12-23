@@ -36,14 +36,14 @@ namespace rhi
 {
 
 void compute_dispatch(rhi::CommandBuffer &a_command_buffer, const ror::Vector3ui &a_dispatch_size, const ror::Vector3ui &a_threadroup_size,
-                      const rhi::Program &a_compute_pso, std::vector<rhi::TextureImage *> &a_images, rhi::ShaderBuffer &a_shader_buffer, std::function<void()> a_completion_handler);
+                      const rhi::Program &a_compute_pso, const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers, rhi::ShaderBuffer &a_shader_buffer, std::function<void()> a_completion_handler);
 
 // Very heavy weight dispatch that creates its own command buffer and waits untill its completed
 void compute_dispatch_and_wait(rhi::Device &a_device, const ror::Vector3ui &a_dispatch_size, const ror::Vector3ui &a_threadroup_size,
-                               const rhi::Program &a_compute_pso, std::vector<rhi::TextureImage *> &a_images, rhi::ShaderBuffer &a_shader_buffer, std::function<void()> a_completion_handler);
+                               const rhi::Program &a_compute_pso, const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers, rhi::ShaderBuffer &a_shader_buffer, std::function<void()> a_completion_handler);
 
 // Slightly less heavy weight dispatch which returns the command buffer you need to wait and release later
-auto compute_dispatch_create_command_buffer(rhi::Device &a_device, const ror::Vector3ui &a_dispatch_size, const ror::Vector3ui &a_threadroup_size,
-                                            const rhi::Program &a_compute_pso, std::vector<rhi::TextureImage *> &a_images, rhi::ShaderBuffer &a_shader_buffer, std::function<void()> a_completion_handler);
+rhi::CommandBuffer compute_dispatch_create_command_buffer(rhi::Device &a_device, const ror::Vector3ui &a_dispatch_size, const ror::Vector3ui &a_threadroup_size,
+                                                          const rhi::Program &a_compute_pso, const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers, rhi::ShaderBuffer &a_shader_buffer, std::function<void()> a_completion_handler);
 
 }        // namespace rhi

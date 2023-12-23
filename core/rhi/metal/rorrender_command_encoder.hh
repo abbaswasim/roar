@@ -48,137 +48,137 @@ FORCE_INLINE RenderCommandEncoder::RenderCommandEncoderMetal(MTL::RenderCommandE
     m_encoder(a_encoder)
 {}
 
-FORCE_INLINE constexpr void RenderCommandEncoder::viewport(ror::Vector4d a_viewport_rectangle, ror::Vector2d a_near_far) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::viewport(ror::Vector4d a_viewport_rectangle, ror::Vector2d a_near_far) const noexcept
 {
 	this->m_encoder->setViewport(MTL::Viewport{a_viewport_rectangle.x, a_viewport_rectangle.y, a_viewport_rectangle.z, a_viewport_rectangle.w, a_near_far.x, a_near_far.y});
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::scissor(ror::Vector4ui a_scissor_rectangle) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::scissor(ror::Vector4ui a_scissor_rectangle) const noexcept
 {
 	this->m_encoder->setScissorRect(MTL::ScissorRect{a_scissor_rectangle.x, a_scissor_rectangle.y, a_scissor_rectangle.z, a_scissor_rectangle.w});
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::front_facing_winding(rhi::PrimitiveWinding a_winding) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::front_facing_winding(rhi::PrimitiveWinding a_winding) const noexcept
 {
 	this->m_encoder->setFrontFacingWinding(to_metal_winding(a_winding));
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) const noexcept
 {
 	this->m_encoder->setDepthStencilState(a_depth_stencil.depth_state());
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMode a_cull_mode) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMode a_cull_mode) const noexcept
 {
 	this->m_encoder->setCullMode(to_metal_cull_mode(a_cull_mode));
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::render_pipeline_state(const rhi::Program &a_render_pipeline_state) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::render_pipeline_state(const rhi::Program &a_render_pipeline_state) const noexcept
 {
 	this->m_encoder->setRenderPipelineState(a_render_pipeline_state.render_pipeline_state());
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setFragmentBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setTileBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer_offset(uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer_offset(const uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setVertexBufferOffset(a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setFragmentBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer_offset(uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer_offset(const uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setFragmentBufferOffset(a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setTileBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::fragment_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setFragmentTexture(a_texture.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::vertex_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setVertexTexture(a_texture.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::tile_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::tile_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setTileTexture(a_texture.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::fragment_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setFragmentSamplerState(a_sampler.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::vertex_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setVertexSamplerState(a_sampler.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::tile_sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::tile_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setTileSamplerState(a_sampler.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::draw_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count)
+FORCE_INLINE constexpr void RenderCommandEncoder::draw_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count) const noexcept
 {
 	this->m_encoder->drawPrimitives(to_metal_primitive_topoloy(a_topology), a_vertex_start, a_vertex_count);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::draw_primitives_instanced(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count, uint32_t a_instance_count)
+FORCE_INLINE constexpr void RenderCommandEncoder::draw_primitives_instanced(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count, uint32_t a_instance_count) const noexcept
 {
 	this->m_encoder->drawPrimitives(to_metal_primitive_topoloy(a_topology), a_vertex_start, a_vertex_count, a_instance_count);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uintptr_t a_offset) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uintptr_t a_offset) const noexcept
 {
 	this->m_encoder->drawIndexedPrimitives(to_metal_primitive_topoloy(a_topology), a_index_count, to_metal_indexformat(a_format), a_indices.platform_buffer(), a_offset);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_indices, uintptr_t a_offset) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_indices, uintptr_t a_offset) const noexcept
 {
 	this->m_encoder->drawIndexedPrimitives(to_metal_primitive_topoloy(a_topology), a_index_count, to_metal_indexformat(a_format), a_indices.platform_buffer(), a_offset);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::end_encoding() noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::end_encoding() const noexcept
 {
 	this->m_encoder->endEncoding();
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::release() noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::release() const noexcept
 {
 	this->m_encoder->release();
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) const noexcept
 {
 	this->m_encoder->setTriangleFillMode(to_metal_triangle_fill_mode(a_fill_mode));
 }

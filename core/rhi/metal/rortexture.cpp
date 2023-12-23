@@ -91,7 +91,7 @@ FORCE_INLINE constexpr MTL::SamplerAddressMode to_metal_texture_address_mode(rhi
 	return static_cast<MTL::SamplerAddressMode>(a_mode);
 }
 
-void TextureImageMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureImageMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.fragment_texture(*this, a_index);
@@ -103,7 +103,7 @@ void TextureImageMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::
 		a_command_encoder.tile_texture(*this, a_index);
 }
 
-void TextureImageMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureImageMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.texture(*this, a_index);
@@ -113,7 +113,7 @@ void TextureImageMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi:
 	}
 }
 
-void TextureSamplerMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureSamplerMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.fragment_sampler(*this, a_index);
@@ -125,7 +125,7 @@ void TextureSamplerMetal::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi
 		a_command_encoder.tile_sampler(*this, a_index);
 }
 
-void TextureSamplerMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureSamplerMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.sampler(*this, a_index);

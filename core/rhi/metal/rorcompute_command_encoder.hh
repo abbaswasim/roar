@@ -50,32 +50,32 @@ FORCE_INLINE ComputeCommandEncoder::ComputeCommandEncoderMetal(MTL::ComputeComma
     m_encoder(a_encoder)
 {}
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) const noexcept
 {
 	this->m_encoder->setComputePipelineState(a_compute_pipeline_state.compute_pipeline_state());
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setTexture(a_texture.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept
 {
 	this->m_encoder->setSamplerState(a_sampler.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::dispatch_threads(const ror::Vector3ui &a_threads_per_grid, const ror::Vector3ui &a_threads_per_threadgroup) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::dispatch_threads(const ror::Vector3ui &a_threads_per_grid, const ror::Vector3ui &a_threads_per_threadgroup) const noexcept
 {
 	// NOTE: threads_pre_grid are the total number of threads in all dimensions
 	// and threads_per_threadgroup is the size of the threadgroup in vulkan terminology
@@ -85,7 +85,7 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::dispatch_threads(const ror::V
 	this->m_encoder->dispatchThreads(threads_per_grid, threads_per_threadgroup);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::end_encoding() noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::end_encoding() const noexcept
 {
 	this->m_encoder->endEncoding();
 }

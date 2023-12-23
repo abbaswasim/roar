@@ -44,12 +44,12 @@
 #include "resources/rorresource.hpp"
 #include "rhi/crtp_interfaces/rorcompute_dispatch.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
-#include "rhi/rorshader.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrenderpass.hpp"
+#include "rhi/rorshader.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rorshader_input.hpp"
@@ -436,6 +436,7 @@ void Renderer::load_environments()
 			ibl_environment.skybox_pso(environment["skybox_pso"]);
 			ibl_environment.radiance_pso(environment["radiance_pso"]);
 			ibl_environment.irradiance_pso(environment["irradiance_pso"]);
+			ibl_environment.input_sampler(environment["input_sampler"]);
 			ibl_environment.skybox_sampler(environment["skybox_sampler"]);
 			ibl_environment.radiance_sampler(environment["radiance_sampler"]);
 			ibl_environment.irradiance_sampler(environment["irradiance_sampler"]);
@@ -1494,13 +1495,19 @@ void Renderer::upload_environments(rhi::Device &a_device)
 		auto env_update_lambda = [&](rhi::Device &, ror::Renderer &) {
 			auto &input      = this->m_images[environment.input()];
 			auto &irradiance = this->m_images[environment.irradiance()];
-			auto &radiance = this->m_images[environment.radiance()];
+			auto &radiance   = this->m_images[environment.radiance()];
 			auto &skybox     = this->m_images[environment.skybox()];
+
+			auto &input_smplr = this->m_samplers[environment.input_sampler()];
+			// auto &irradiance_smplr = this->m_samplers[environment.irradiance_sampler()];
+			// auto &radiance_smplr   = this->m_samplers[environment.radiance_sampler()];
+			// auto &skybox_smplr     = this->m_samplers[environment.skybox_sampler()];
 
 			auto &irradiance_pso = this->programs()[static_cast<size_t>(environment.irradiance_pso())];
 
-			std::vector<rhi::TextureImage *> images{&input, &irradiance, &radiance, &skybox};
-			rhi::compute_dispatch_and_wait(a_device, {irradiance.width(), irradiance.height(), 6}, {32, 32, 1}, irradiance_pso, images, mipmaps_shader_buffer, []() {});
+			const std::vector<const rhi::TextureImage *>   images{&input, &irradiance, &radiance, &skybox};
+			const std::vector<const rhi::TextureSampler *> samplers{&input_smplr};
+			rhi::compute_dispatch_and_wait(a_device, {irradiance.width(), irradiance.height(), 6}, {32, 32, 1}, irradiance_pso, images, samplers, mipmaps_shader_buffer, []() {});
 		};
 
 		env_update_lambda(a_device, *this);        // Lets do the actual update and also register as shader update

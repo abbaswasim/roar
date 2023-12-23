@@ -29,9 +29,9 @@
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "math/rortransform.hpp"
-#include "rhi/rortexture.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorshader_buffer.hpp"
+#include "rhi/rortexture.hpp"
 #include "roar_export_import.hpp"
 #include <string>
 
@@ -60,6 +60,7 @@ class ROAR_ENGINE_ITEM IBLEnvironment final
 	FORCE_INLINE void irradiance_pso(uint32_t a_index)              { this->m_irradiance_pso = a_index;          }
 	FORCE_INLINE void brdf_integration_pso(int32_t a_index)         { this->m_brdf_integration_pso = a_index;    }
 	FORCE_INLINE void brdf_integration(uint32_t a_index)            { this->m_brdf_integration = a_index;        }
+	FORCE_INLINE void input_sampler(uint32_t a_index)               { this->m_input_sampler_id = a_index;        }
 	FORCE_INLINE void skybox_sampler(uint32_t a_index)              { this->m_skybox_sampler_id = a_index;       }
 	FORCE_INLINE void radiance_sampler(uint32_t a_index)            { this->m_radiance_sampler_id = a_index;     }
 	FORCE_INLINE void irradiance_sampler(uint32_t a_index)          { this->m_irradiance_sampler_id = a_index;   }
@@ -75,6 +76,7 @@ class ROAR_ENGINE_ITEM IBLEnvironment final
 	FORCE_INLINE constexpr auto irradiance_pso()      const noexcept { return this->m_irradiance_pso;          }
 	FORCE_INLINE constexpr auto brdf_integration_pso()const noexcept { return this->m_brdf_integration_pso;    }
 	FORCE_INLINE constexpr auto brdf_integration()    const noexcept { return this->m_brdf_integration;        }
+	FORCE_INLINE constexpr auto input_sampler()       const noexcept { return this->m_input_sampler_id;        }
 	FORCE_INLINE constexpr auto skybox_sampler()      const noexcept { return this->m_skybox_sampler_id;       }
 	FORCE_INLINE constexpr auto radiance_sampler()    const noexcept { return this->m_radiance_sampler_id;     }
 	FORCE_INLINE constexpr auto irradiance_sampler()  const noexcept { return this->m_irradiance_sampler_id;   }
@@ -88,13 +90,14 @@ class ROAR_ENGINE_ITEM IBLEnvironment final
 	uint32_t              m_skybox{0};                       //! Index of skybox environment cube map texture in renderer textures that is used as it is
 	uint32_t              m_radiance{0};                     //! Index of radiance cube map texture in renderer textures
 	uint32_t              m_irradiance{0};                   //! Index of irradiance cube map texture in renderer textures
+	uint32_t              m_brdf_integration{0};             //! Index of brdf_integration lut texture in renderer textures
 	uint32_t              m_skybox_pso{0};                   //! Index of skybox cube map pso in renderer programs
 	uint32_t              m_radiance_pso{0};                 //! Index of radiance cube map pso in renderer programs
 	uint32_t              m_irradiance_pso{0};               //! Index of irradiance cube map pso in renderer programs
-	uint32_t              m_brdf_integration{0};             //! Index of brdf_integration lut texture in renderer textures
+	int32_t               m_brdf_integration_pso{0};         //! Index of brdf_integration_pso renderer programs, only used for debugging visualisation
+	uint32_t              m_input_sampler_id{0};             //! Index of input cube map sampler in renderer samplers
 	uint32_t              m_skybox_sampler_id{0};            //! Index of skybox cube map sampler in renderer samplers
 	uint32_t              m_radiance_sampler_id{0};          //! Index of radiance cube map sampler in renderer samplers
-	int32_t               m_brdf_integration_pso{0};         //! Index of brdf_integration_pso renderer programs, only used for debugging visualisation
 	uint32_t              m_irradiance_sampler_id{0};        //! Index of irradiance cube map sampler in renderer samplers
 };
 

@@ -45,8 +45,8 @@ class ROAR_ENGINE_ITEM TextureImageMetal : public TextureImageCrtp<TextureImageM
 
 	FORCE_INLINE constexpr auto platform_handle() const noexcept;
 
-	void bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
-	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+	void bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept;
+	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept;
 
   protected:
   private:
@@ -62,8 +62,8 @@ class ROAR_ENGINE_ITEM TextureSamplerMetal : public TextureSamplerCrtp<TextureSa
 
 	FORCE_INLINE constexpr auto platform_handle() const noexcept;
 
-	void bind(rhi::RenderCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
-	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+	void bind(rhi::RenderCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept;
+	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept;
 
   protected:
   private:
