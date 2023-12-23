@@ -31,6 +31,7 @@
 	"renderer_config" : "renderer.json",
 	"resolve_includes_depth" : 10,
 	"force_rgba_textures" : true,
+	"force_ldr_textures" : false,
 	"print_generated_shaders" : false,
 	"print_generated_msl_shaders" : false,
 	"print_generated_glsl_shaders" : false,

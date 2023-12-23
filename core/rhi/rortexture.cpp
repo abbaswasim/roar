@@ -151,6 +151,11 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 
 	uint8_t *new_data{nullptr};
 
+	stbi_set_flip_vertically_on_load(a_is_hdr);
+
+	if (setting.m_force_ldr_textures)
+		a_is_hdr = false;
+
 	if (a_is_hdr)
 	{
 		// Sanity check, checking hdr is always 3 but we are expanding it using stbi_image
@@ -175,15 +180,15 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 		// stbi_hdr_to_ldr_gamma(2.2f);
 		// stbi_hdr_to_ldr_scale(1.0f);
 
-		stbi_set_flip_vertically_on_load(true);
 		auto *new_float_data = stbi_loadf_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
-		stbi_set_flip_vertically_on_load(false);
 		new_data = reinterpret_cast<uint8_t *>(new_float_data);
 	}
 	else
 	{
 		new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
 	}
+
+	stbi_set_flip_vertically_on_load(false);
 
 	// Incase testing of the image is requird if its loaded correctly or not
 	// write_ppm("image_loaded_data.ppm", static_cast<uint32_t>(w), static_cast<uint32_t>(h), a_is_hdr ? reinterpre_cast<float32_t*>(new_data) : new_data);

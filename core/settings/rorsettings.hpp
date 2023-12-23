@@ -105,6 +105,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_fullscreen                = setting.get<bool>("fullscreen");
 		this->m_resizable                 = setting.get<bool>("resizable");
 		this->m_force_rgba_textures       = setting.get<bool>("force_rgba_textures");
+		this->m_force_ldr_textures        = setting.get<bool>("force_ldr_textures");
 		this->m_background_srgb_to_linear = setting.get<bool>("background_to_srgb");
 		this->m_force_linear_textures     = setting.get<bool>("force_linear_textures");
 		this->m_animate_cpu               = setting.get<bool>("animate_cpu");
@@ -441,6 +442,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_resizable{false};
 	bool m_fog_enabled{false};
 	bool m_force_rgba_textures{false};
+	bool m_force_ldr_textures{false};
 	bool m_print_generated_shaders{false};
 	bool m_print_generated_msl_shaders{false};
 	bool m_print_generated_glsl_shaders{false};
