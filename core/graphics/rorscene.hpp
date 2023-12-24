@@ -103,7 +103,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE Scene &operator=(Scene &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~Scene() noexcept override                 = default;        //! Destructor
 
-	explicit Scene(std::filesystem::path a_level);
+	explicit Scene(std::filesystem::path a_level, ror::EventSystem &a_event_system);
 
 	FORCE_INLINE Node *get_entity() const;
 	FORCE_INLINE Node *get_root() const;
@@ -121,14 +121,15 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	void update(double64_t a_milli_seconds);
 	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
+	void shutdown(ror::EventSystem &a_event_system);
 	void unload();
 	void load_specific();
 	void reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto &models()                       noexcept   {  return this->m_models;          }
-	FORCE_INLINE constexpr auto &nodes()                        noexcept   {  return this->m_nodes;           }
-	FORCE_INLINE constexpr auto &models()                 const noexcept   {  return this->m_models;          }
+	FORCE_INLINE constexpr       auto &models()                 noexcept   {  return this->m_models;          }
+	FORCE_INLINE constexpr       auto &nodes()                  noexcept   {  return this->m_nodes;           }
+	FORCE_INLINE constexpr       auto &models()           const noexcept   {  return this->m_models;          }
 	FORCE_INLINE constexpr const auto &nodes()            const noexcept   {  return this->m_nodes;           }
 	FORCE_INLINE constexpr const auto &nodes_side_data()  const noexcept   {  return this->m_nodes_data;      }
 	FORCE_INLINE constexpr const auto &particles()        const noexcept   {  return this->m_particles;       }
@@ -154,6 +155,15 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		rhi::Program program{-1, -1};
 	};
 
+	struct Grid
+	{
+		int32_t node_id{-1};
+		int32_t model_id{-1};
+	};
+
+	void init(ror::EventSystem &a_event_system);
+	void install_input_handlers(ror::EventSystem &a_event_system);
+	void uninstall_input_handlers(ror::EventSystem &a_event_system);
 	void make_overlays();
 	void read_nodes();
 	void read_lights();
@@ -190,6 +200,8 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
 	std::vector<ror::DynamicMesh *>  m_dynamic_meshes{};                                       //! Non-Owning pointers to all the dynamic meshes created in the scene rendererd at once in the end
+	Grid                             m_grid{};                                                 //! References to the grid for easy access
+	EventCallback                    m_semi_column_key_callback{};                             //! Semi column key call back to enable disable the grid
 };
 
 void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);

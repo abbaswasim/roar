@@ -55,12 +55,12 @@
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rortexture.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader_buffer.hpp"
+#include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
@@ -121,8 +121,9 @@ constexpr auto renderpasstype_max()
 	return static_cast<uint32_t>(rhi::RenderpassType::max);
 }
 
-Scene::Scene(std::filesystem::path a_level)
+Scene::Scene(std::filesystem::path a_level, ror::EventSystem &a_event_system)
 {
+	this->init(a_event_system);
 	this->load(a_level, ResourceSemantic::scenes);
 }
 
@@ -935,7 +936,7 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 			size_t node_data_index = 0;
 			for (auto &model_node : model.nodes())
 			{
-				if (model_node.m_mesh_index != -1)
+				if (model_node.m_mesh_index != -1 && model_node.m_visible)
 				{
 					auto &mesh = meshes[static_cast<size_t>(model_node.m_mesh_index)];
 					model_nodes_data[node_data_index].bind(a_encoder, rhi::ShaderStage::vertex);
@@ -1006,6 +1007,12 @@ void Scene::update_bounding_box()
 			this->m_bounding_box.add_bounding(box);
 		}
 		node_id++;
+	}
+
+	auto extent = this->m_bounding_box.maximum() - this->m_bounding_box.minimum();
+	if (extent.x < 0.5f || extent.y < 0.5f)
+	{
+		this->m_bounding_box.set(ror::Vector3f(-1.0f), ror::Vector3f(1.0f));
 	}
 }
 
@@ -1092,6 +1099,9 @@ void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::functio
 	// Add scene nodes for this model
 	auto node_index = this->m_nodes.size();
 	this->add_model_node(static_cast_safe<int32_t>(a_model_index));        // Doing this outside nested jobs because its not thread safe
+
+	this->m_grid.node_id  = static_cast_safe<int32_t>(0);        // 0 because Grid only have one node in it
+	this->m_grid.model_id = static_cast_safe<int32_t>(a_model_index);
 
 	// kick off grid generation job
 	auto grid_job_handle   = a_job_system.push_job(grid_generation_job, a_model_index, node_index);
@@ -1505,6 +1515,37 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 		this->m_dynamic_meshes.emplace_back(std::move(&quad_mesh));
 	}
+}
+
+void Scene::init(ror::EventSystem &a_event_system)
+{
+	this->m_semi_column_key_callback = [this](ror::Event &) {
+		auto &setting = ror::settings();
+		if (setting.m_generate_grid_mesh)
+		{
+			auto model_id = static_cast_safe<size_t>(this->m_grid.model_id);
+			auto node_id  = static_cast_safe<size_t>(this->m_grid.node_id);
+			this->m_models[model_id].nodes()[node_id].m_visible =
+			    !this->m_models[model_id].nodes()[node_id].m_visible;
+		}
+	};
+
+	install_input_handlers(a_event_system);
+}
+
+void Scene::shutdown(ror::EventSystem &a_event_system)
+{
+	uninstall_input_handlers(a_event_system);
+}
+
+void Scene::install_input_handlers(ror::EventSystem &a_event_system)
+{
+	a_event_system.subscribe(keyboard_semicolon_click, this->m_semi_column_key_callback);
+}
+
+void Scene::uninstall_input_handlers(ror::EventSystem &a_event_system)
+{
+	a_event_system.unsubscribe(keyboard_semicolon_click, this->m_semi_column_key_callback);
 }
 
 void Scene::make_overlays()

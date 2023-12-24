@@ -47,6 +47,7 @@ class ROAR_ENGINE_ITEM Node
 	FORCE_INLINE Node &operator=(Node &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Node() noexcept                         = default;        //! Destructor
 
+	bool                  m_visible{true};                                            //! Whether its visible or not
 	int32_t               m_parent{-1};                                               //! Parent of the nodes, should be init with -1
 	int32_t               m_mesh_index{-1};                                           //! Mesh index of the nodes, should be init with -1
 	int32_t               m_skin_index{-1};                                           //! Skin index, not node index, should be init with -1

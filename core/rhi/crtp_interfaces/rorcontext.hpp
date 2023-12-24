@@ -145,6 +145,8 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		// Shutdown glslang library via our wrapper, calling glslang directly means we need to link it with editor which creaates all kinds of issues
 		glslang_wrapper_finalize_process();
 
+		this->m_scene.shutdown(this->m_event_system);
+
 		this->m_buffer_pack->free();
 		this->m_job_system->stop();
 
@@ -155,7 +157,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	// FORCE_INLINE ContextCrtp() = default;
 	FORCE_INLINE ContextCrtp() :
 	    m_job_system(&ror::get_job_system()),
-	    m_scene(ror::settings().m_default_scene),
+	    m_scene(ror::settings().m_default_scene, m_event_system),
 	    m_buffer_pack(&rhi::get_buffers_pack())
 	{
 		this->m_current_device = std::make_shared<Device>();
