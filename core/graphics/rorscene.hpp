@@ -155,12 +155,6 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		rhi::Program program{-1, -1};
 	};
 
-	struct Grid
-	{
-		int32_t node_id{-1};
-		int32_t model_id{-1};
-	};
-
 	void init(ror::EventSystem &a_event_system);
 	void install_input_handlers(ror::EventSystem &a_event_system);
 	void uninstall_input_handlers(ror::EventSystem &a_event_system);
@@ -200,7 +194,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
 	std::vector<ror::DynamicMesh *>  m_dynamic_meshes{};                                       //! Non-Owning pointers to all the dynamic meshes created in the scene rendererd at once in the end
-	Grid                             m_grid{};                                                 //! References to the grid for easy access
+	int32_t                          m_grid_model_id{-1};                                      //! References to the grid for easy access
 	EventCallback                    m_semi_column_key_callback{};                             //! Semi column key call back to enable disable the grid
 };
 

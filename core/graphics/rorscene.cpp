@@ -1100,8 +1100,7 @@ void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::functio
 	auto node_index = this->m_nodes.size();
 	this->add_model_node(static_cast_safe<int32_t>(a_model_index));        // Doing this outside nested jobs because its not thread safe
 
-	this->m_grid.node_id  = static_cast_safe<int32_t>(0);        // 0 because Grid only have one node in it
-	this->m_grid.model_id = static_cast_safe<int32_t>(a_model_index);
+	this->m_grid_model_id = static_cast_safe<int32_t>(a_model_index);
 
 	// kick off grid generation job
 	auto grid_job_handle   = a_job_system.push_job(grid_generation_job, a_model_index, node_index);
@@ -1523,10 +1522,9 @@ void Scene::init(ror::EventSystem &a_event_system)
 		auto &setting = ror::settings();
 		if (setting.m_generate_grid_mesh)
 		{
-			auto model_id = static_cast_safe<size_t>(this->m_grid.model_id);
-			auto node_id  = static_cast_safe<size_t>(this->m_grid.node_id);
-			this->m_models[model_id].nodes()[node_id].m_visible =
-			    !this->m_models[model_id].nodes()[node_id].m_visible;
+			auto model_id = static_cast_safe<size_t>(this->m_grid_model_id);
+			for (auto &node : this->m_models[model_id].nodes())
+				node.m_visible = !node.m_visible;
 		}
 	};
 
