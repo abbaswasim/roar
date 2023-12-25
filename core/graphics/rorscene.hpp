@@ -194,8 +194,8 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
 	std::vector<ror::DynamicMesh *>  m_dynamic_meshes{};                                       //! Non-Owning pointers to all the dynamic meshes created in the scene rendererd at once in the end
-	int32_t                          m_grid_model_id{-1};                                      //! References to the grid for easy access
-	EventCallback                    m_semi_column_key_callback{};                             //! Semi column key call back to enable disable the grid
+	int32_t                          m_grid_model_id{-1};                                      //! Reference to the grid for easy access
+	EventCallback                    m_semi_colon_key_callback{};                              //! Semi colon key call back to enable disable the grid
 };
 
 void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);

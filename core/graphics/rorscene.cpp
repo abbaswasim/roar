@@ -1518,7 +1518,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 void Scene::init(ror::EventSystem &a_event_system)
 {
-	this->m_semi_column_key_callback = [this](ror::Event &) {
+	this->m_semi_colon_key_callback = [this](ror::Event &) {
 		auto &setting = ror::settings();
 		if (setting.m_generate_grid_mesh)
 		{
@@ -1538,12 +1538,12 @@ void Scene::shutdown(ror::EventSystem &a_event_system)
 
 void Scene::install_input_handlers(ror::EventSystem &a_event_system)
 {
-	a_event_system.subscribe(keyboard_semicolon_click, this->m_semi_column_key_callback);
+	a_event_system.subscribe(keyboard_semicolon_click, this->m_semi_colon_key_callback);
 }
 
 void Scene::uninstall_input_handlers(ror::EventSystem &a_event_system)
 {
-	a_event_system.unsubscribe(keyboard_semicolon_click, this->m_semi_column_key_callback);
+	a_event_system.unsubscribe(keyboard_semicolon_click, this->m_semi_colon_key_callback);
 }
 
 void Scene::make_overlays()
