@@ -99,11 +99,12 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_clean_on_boot             = setting.get<bool>("clean_on_boot");
 		this->m_visualise_mipmaps         = setting.get<bool>("visualise_mipmaps");
 		this->m_vertical_sync             = setting.get<bool>("vsync");
-		this->m_window_transparent        = setting.get<bool>("window_transparent");
-		this->m_window_premultiplied      = setting.get<bool>("window_premultiplied");
-		this->m_window_prerotated         = setting.get<bool>("window_prerotated");
+		this->m_window.m_transparent      = setting.get<bool>("window:transparent");
+		this->m_window.m_premultiplied    = setting.get<bool>("window:premultiplied");
+		this->m_window.m_prerotated       = setting.get<bool>("window:prerotated");
 		this->m_fullscreen                = setting.get<bool>("fullscreen");
 		this->m_resizable                 = setting.get<bool>("resizable");
+		this->m_always_on_top             = setting.get<bool>("always_on_top");
 		this->m_force_rgba_textures       = setting.get<bool>("force_rgba_textures");
 		this->m_force_ldr_textures        = setting.get<bool>("force_ldr_textures");
 		this->m_background_srgb_to_linear = setting.get<bool>("background_to_srgb");
@@ -136,11 +137,11 @@ class ROAR_ENGINE_ITEM Settings final
 			auto w = setting.get<uint32_t>("window:width");
 			auto h = setting.get<uint32_t>("window:height");
 
-			if (x > 0 && y > 0 && w > 0 && h > 0)
-				this->m_window_dimensions = ror::Vector4i(static_cast<int32_t>(x), static_cast<int32_t>(y), static_cast<int32_t>(w), static_cast<int32_t>(h));
+			if (w > 0 && h > 0)
+				this->m_window.m_dimensions = ror::Vector4i(static_cast<int32_t>(x), static_cast<int32_t>(y), static_cast<int32_t>(w), static_cast<int32_t>(h));
 		}
 
-		this->m_viewport = this->m_window_dimensions;
+		this->m_viewport = this->m_window.m_dimensions;
 
 		auto winding = setting.get<std::string>("winding");
 
@@ -151,12 +152,12 @@ class ROAR_ENGINE_ITEM Settings final
 		auto depth_stencil_format = setting.get<std::string>("window:depth_stencil_format");
 
 		if (color_format != "")
-			this->m_pixel_format = rhi::string_to_pixel_format(color_format);
+			this->m_window.m_pixel_format = rhi::string_to_pixel_format(color_format);
 
 		if (depth_stencil_format != "")
-			this->m_depth_stencil_format = rhi::string_to_pixel_format(depth_stencil_format);
+			this->m_window.m_depth_stencil_format = rhi::string_to_pixel_format(depth_stencil_format);
 
-		this->m_window_buffer_count = setting.get<uint32_t>("window:buffer_count");
+		this->m_window.m_buffer_count = setting.get<uint32_t>("window:buffer_count");
 
 		{
 			auto x = setting.get<uint32_t>("viewport:x");
@@ -422,7 +423,8 @@ class ROAR_ENGINE_ITEM Settings final
 	uint32_t m_unit{1};                      //! 1 == meter, 1000 == km etc, to use the unit multiply it with your quantities
 	uint32_t m_threads_multiplier{2};        //! How many more threads should the job system create on top of available cores. Remember this is a multiplier
 	uint32_t m_buffer_increment{1};
-	uint32_t m_multisample_count{8};
+	uint32_t m_multisample_count{4};
+	uint32_t m_depth_buffer_bits{16};
 	uint32_t m_debug_mesh_count{1000};
 	uint32_t m_gui_primitives_count{10};                      // 10 times
 	uint32_t m_gui_primitives_size{1000000};                  // About 1.0 MB size of the vertex buffer
@@ -435,11 +437,9 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_clean_on_boot{false};
 	bool m_visualise_mipmaps{false};
 	bool m_vertical_sync{false};
-	bool m_window_transparent{false};
-	bool m_window_premultiplied{false};
-	bool m_window_prerotated{false};
 	bool m_fullscreen{false};
 	bool m_resizable{false};
+	bool m_always_on_top{false};
 	bool m_fog_enabled{false};
 	bool m_force_rgba_textures{false};
 	bool m_force_ldr_textures{false};
@@ -470,12 +470,20 @@ class ROAR_ENGINE_ITEM Settings final
 	ror::Vector4f m_ambient_light_color{0.2f, 0.2f, 0.2f, 1.0f};
 	ror::Vector4f m_fog_color{0.5f, 0.5f, 0.5f, 1.0f};
 
-	ror::Vector4i m_window_dimensions{0, 0, 1024, 768};
-	ror::Vector4i m_viewport{0, 0, 1024, 768};
-	uint32_t      m_window_buffer_count{3};
+	struct Window
+	{
+		bool             m_transparent{false};
+		bool             m_premultiplied{false};
+		bool             m_prerotated{false};
+		uint32_t         m_buffer_count{3};
+		rhi::PixelFormat m_pixel_format{rhi::PixelFormat::r8g8b8a8_uint32_norm};
+		rhi::PixelFormat m_depth_stencil_format{rhi::PixelFormat::depth24_norm_stencil8_uint32};
+		ror::Vector4i    m_dimensions{0, 0, 1024, 768};
+	};
 
-	rhi::PixelFormat m_pixel_format{rhi::PixelFormat::r8g8b8a8_uint32_norm};
-	rhi::PixelFormat m_depth_stencil_format{rhi::PixelFormat::depth24_norm_stencil8_uint32};
+	Window m_window{};
+
+	ror::Vector4i m_viewport{0, 0, 1024, 768};
 
 	rhi::PrimitiveWinding m_primitive_winding{rhi::PrimitiveWinding::counter_clockwise};
 
@@ -635,9 +643,10 @@ FORCE_INLINE constexpr bool visualise_mipmaps()
 	return false;
 }
 
-FORCE_INLINE constexpr uint32_t multisample_count()
+FORCE_INLINE uint32_t multisample_count()
 {
-	return 1;
+	auto &setting = ror::settings();
+	return setting.m_multisample_count;
 }
 
 FORCE_INLINE constexpr bool sample_rate_shading_enabled()
@@ -658,17 +667,20 @@ FORCE_INLINE auto vsync()
 
 FORCE_INLINE auto window_transparent()
 {
-	return false;
+	auto &setting = ror::settings();
+	return setting.m_window.m_transparent;
 }
 
 FORCE_INLINE auto window_premultiplied()
 {
-	return false;
+	auto &setting = ror::settings();
+	return setting.m_window.m_premultiplied;
 }
 
 FORCE_INLINE auto window_prerotated()
 {
-	return false;
+	auto &setting = ror::settings();
+	return setting.m_window.m_prerotated;
 }
 
 }        // namespace ror
