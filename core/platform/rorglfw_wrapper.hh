@@ -41,7 +41,7 @@ namespace ror
 {
 
 template <class _type>
-GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_height)
+GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_height, int a_depth_bits, int a_samples, bool a_resizable, bool a_always_on_top)
 {
 	if (!glfwInit())
 	{
@@ -49,14 +49,13 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 		exit(EXIT_FAILURE);
 	}
 
-	// TODO: Get these from settings
-	glfwWindowHint(GLFW_DEPTH_BITS, 16);
-	glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+	glfwWindowHint(GLFW_DEPTH_BITS, a_depth_bits);
+	glfwWindowHint(GLFW_SAMPLES, a_samples);
+	glfwWindowHint(GLFW_RESIZABLE, a_resizable);
+	glfwWindowHint(GLFW_FLOATING, a_always_on_top);
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-	// TODO: Get title etc from settings
 	auto window = glfwCreateWindow(a_width, a_height, a_window_title.c_str(), nullptr, nullptr);
 
 	if (!window)
@@ -82,7 +81,8 @@ template <class _type>
 GLFWwindowWrapper<_type>::GLFWwindowWrapper(_type *a_pointer) noexcept
 {
 	auto &settings = ror::settings();
-	this->m_window = glfw_create_window<_type>(settings.m_roar_title, static_cast<int32_t>(settings.m_window_dimensions.z), static_cast<int32_t>(settings.m_window_dimensions.w));
+	this->m_window = glfw_create_window<_type>(settings.m_roar_title, static_cast<int32_t>(settings.m_window.m_dimensions.z), static_cast<int32_t>(settings.m_window.m_dimensions.w),
+	                                           static_cast<int32_t>(settings.m_depth_buffer_bits), static_cast<int32_t>(settings.m_multisample_count), settings.m_resizable, settings.m_always_on_top);
 	glfwSetWindowUserPointer(this->m_window, a_pointer);
 	glfw_register_for_global_events<_type>(this->m_window);
 }

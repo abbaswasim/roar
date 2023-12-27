@@ -49,7 +49,7 @@ namespace ror
 {
 
 template <class _type>
-GLFWwindow *glfw_create_window(int a_width, int a_height);
+GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_height, int a_depth_bits, int a_samples, bool a_resizable, bool a_always_on_top);
 
 EventCode     glfw_key_to_event_code(int a_key);
 EventModifier glfw_key_to_event_modifier(int a_mode);
