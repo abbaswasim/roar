@@ -61,7 +61,7 @@ FORCE_INLINE void *resize_ca_metal_layer(std::any a_window, MTL::Device *a_devic
 }
 
 // This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
-FORCE_INLINE void DeviceMetal::init(std::any a_platform_window, void* a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
+FORCE_INLINE void DeviceMetal::init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
 {
 	(void) a_window;
 
@@ -77,7 +77,7 @@ FORCE_INLINE void DeviceMetal::init(std::any a_platform_window, void* a_window, 
 
 	auto resize_callback = [this, a_platform_window, &settings](ror::Event &a_event) {
 		auto           size         = a_event.get_payload<ror::Vector2ui>();
-		uint32_t       pixel_format = ror::static_cast_safe<uint32_t>(to_metal_pixelformat(settings.m_pixel_format));
+		uint32_t       pixel_format = ror::static_cast_safe<uint32_t>(to_metal_pixelformat(settings.m_window.m_pixel_format));
 		ror::Vector2ui dimensions{size.x, size.y};
 
 		release_layer(this->m_ca_metal_layer);
@@ -98,7 +98,7 @@ FORCE_INLINE void DeviceMetal::init(std::any a_platform_window, void* a_window, 
 	}
 }
 
-FORCE_INLINE MTL::Device *DeviceMetal::platform_device()
+FORCE_INLINE MTL::Device *DeviceMetal::platform_device() const
 {
 	assert(this->m_device && "Metal device requested is null");
 	return this->m_device;
