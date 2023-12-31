@@ -26,8 +26,11 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "rhi/rorbuffer.hpp"
+#include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/rortexture.hpp"
 
 #include <Metal/MTLCommandBuffer.hpp>
 
@@ -53,7 +56,7 @@ class CommandBufferMetal final
 		this->m_buffer = a_device.platform_command_buffer();
 	}
 
-	FORCE_INLINE constexpr MTL::CommandBuffer *platform_command_buffer() noexcept
+	FORCE_INLINE constexpr MTL::CommandBuffer *platform_command_buffer() const noexcept
 	{
 		return this->m_buffer;
 	}
@@ -101,4 +104,9 @@ class CommandBufferMetal final
 };
 
 declare_rhi_render_type(CommandBuffer);
+
+rhi::Buffer read_pixels(rhi::Device &a_device, rhi::TextureImage a_texture, uint32_t a_face, uint32_t a_level);
+void        texture_to_texture(rhi::Device &a_device, rhi::TextureImage &a_source_texture, rhi::TextureImage &a_destination_texture, uint32_t a_face, uint32_t a_level);
+void        texture_to_mipmapped_texture(const rhi::CommandBuffer &a_command_buffer, rhi::TextureImage &a_source_texture, ror::Vector2ui a_source_origin, rhi::TextureImage &a_destination_texture, uint32_t a_destination_face, uint32_t a_destination_level);
+void        texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, rhi::TextureImage &a_source_texture, rhi::TextureImage &a_destination_texture);
 }        // namespace rhi
