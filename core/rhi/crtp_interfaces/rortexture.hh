@@ -227,6 +227,14 @@ FORCE_INLINE auto &TextureImageCrtp<_type>::mips() noexcept
 }
 
 template <class _type>
+FORCE_INLINE auto &TextureImageCrtp<_type>::mip(size_t a_index) noexcept
+{
+	assert(a_index < this->m_mips.size() && "Out of bound index for mipmap levels");
+
+	return this->m_mips[a_index];
+}
+
+template <class _type>
 FORCE_INLINE auto TextureImageCrtp<_type>::size() const noexcept
 {
 	return this->m_size;
