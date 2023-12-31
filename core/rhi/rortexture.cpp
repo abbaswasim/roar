@@ -181,7 +181,7 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 		// stbi_hdr_to_ldr_scale(1.0f);
 
 		auto *new_float_data = stbi_loadf_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
-		new_data = reinterpret_cast<uint8_t *>(new_float_data);
+		new_data             = reinterpret_cast<uint8_t *>(new_float_data);
 	}
 	else
 	{
@@ -195,6 +195,27 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 
 	// This will now consume the new_data pointer so no need to clean it up
 	fill_texture_from_memory(new_data, static_cast<uint32_t>(w), static_cast<uint32_t>(h), static_cast<uint32_t>(req_comp * (a_is_hdr ? 4 : 1)), a_texture, a_is_hdr, a_name);
+}
+
+TextureImage make_texture(rhi::Device &a_device, rhi::PixelFormat a_format, uint32_t a_width, uint32_t a_height,
+                          rhi::TextureTarget a_target, rhi::TextureUsage a_usage, bool a_mipmapped)
+{
+	rhi::TextureImage texture_image{};
+
+	texture_image.format(a_format);
+	texture_image.mipmapped(a_mipmapped);
+	texture_image.target(a_target);
+	texture_image.push_empty_mip();
+	texture_image.width(a_width);
+	texture_image.height(a_height);
+	texture_image.usage(a_usage);
+
+	auto size = texture_image.setup();
+
+	texture_image.allocate(size);
+	texture_image.upload(a_device);
+
+	return texture_image;
 }
 
 }        // namespace rhi

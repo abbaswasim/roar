@@ -28,6 +28,7 @@
 // #include "foundation/rortypes.hpp"
 #include "foundation/rormacros.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/rortypes.hpp"
 
 #if defined(ROR_RENDER_TYPE_VULKAN)
 #	include "rhi/vulkan/rortexture.hpp"
@@ -61,6 +62,9 @@ void write_ppm(std::filesystem::path a_path, uint32_t a_width, uint32_t a_height
 FORCE_INLINE TextureImage read_texture_2d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
 // FORCE_INLINE TextureImage read_texture_3d_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
 // FORCE_INLINE TextureImage read_texture_cube_from_file(const std::filesystem::path &a_absolute_file_name, bool a_separate_channels = false);
+
+TextureImage make_texture(rhi::Device &a_device, rhi::PixelFormat a_format, uint32_t a_width, uint32_t a_height,
+                          rhi::TextureTarget a_target = rhi::TextureTarget::texture_2D, rhi::TextureUsage a_usage = rhi::TextureUsage::shader_read, bool a_mipmapped = false);
 
 }        // namespace rhi
 
