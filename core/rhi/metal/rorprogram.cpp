@@ -274,7 +274,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 	*/
 }
 
-void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass, bool a_premultiplied_alpha)
+void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass, bool a_premultiplied_alpha)
 {
 	auto        is_depth_shadow = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
 	auto       *device          = a_device.platform_device();
@@ -318,7 +318,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, mtl_vertex_descriptor, material.m_blend_mode, mesh.primitive_type(a_prim_index), mesh.name().c_str(), a_subpass.has_depth(), a_premultiplied_alpha);
 }
 
-void ProgramMetal::upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode,
+void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode,
                           rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
@@ -341,7 +341,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader,
 	this->m_pipeline_state      = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
 }
 
-void ProgramMetal::upload(rhi::Device &a_device, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
+void ProgramMetal::upload(const rhi::Device &a_device, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
 {
 	auto vs_id = this->vertex_id();
 	auto fs_id = this->fragment_id();
@@ -385,7 +385,7 @@ void ProgramMetal::upload(rhi::Device &a_device, const rhi::VertexDescriptor &a_
 	}
 }
 
-void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha)
+void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
 
@@ -432,6 +432,34 @@ void ProgramMetal::upload(rhi::Device &a_device, const std::vector<rhi::Shader> 
 			ror::log_critical("Metal compute program creation failed with error: {}", pError->localizedDescription()->utf8String());
 			return;
 		}
+	}
+}
+
+void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders)
+{
+	auto       *device = a_device.platform_device();
+	auto        cs_id  = this->compute_id();
+	const auto &cs     = a_shaders[static_cast<size_t>(cs_id)];
+
+	if (cs.function() == nullptr)
+	{
+		ror::log_critical("Compute function can't be null or empty");
+		return;
+	}
+
+	// Don't need a descriptor but its possible to have one and create a compute pipeline from that
+	// auto      *compute_pipeline_descriptor = MTL::ComputePipelineDescriptor::alloc()->init();
+	// assert(compute_pipeline_descriptor && "Can't allocate metal compute pipeline descriptor");
+	NS::Error *pError = nullptr;
+
+	assert(device);
+
+	this->m_pipeline_state = device->newComputePipelineState(cs.function(), &pError);
+
+	if (!this->compute_pipeline_state())
+	{
+		ror::log_critical("Metal compute program creation failed with error: {}", pError->localizedDescription()->utf8String());
+		return;
 	}
 }
 }        // namespace rhi
