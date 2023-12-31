@@ -85,11 +85,13 @@ FORCE_INLINE void _box_points_internal(const _type &a_minimum, const _type &a_ma
  * @param      a_vertex_buffer Corners are returned here
  */
 template <class _type>
-FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a_maximum, std::vector<_type> &a_vertex_buffer)
+FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a_maximum, std::vector<_type> &a_vertex_buffer, bool a_clock_wise)
 {
 	static_assert(!(std::is_same<_type, Vector4<typename _type::value_type>>::value), "Can't create a 4D Cube\n");
 
-	const size_t indices[] = {0, 1, 2, 1, 3, 2, 5, 4, 6, 5, 6, 7, 0, 2, 6, 4, 0, 6, 1, 5, 3, 5, 7, 3, 3, 7, 2, 7, 6, 2, 0, 4, 1, 4, 5, 1};
+	const size_t indices_ccw[] = {0, 1, 2, 1, 3, 2, 5, 4, 6, 5, 6, 7, 0, 2, 6, 4, 0, 6, 1, 5, 3, 5, 7, 3, 3, 7, 2, 7, 6, 2, 0, 4, 1, 4, 5, 1};
+	const size_t indices_cw[] =  {0, 2, 1, 1, 2, 3, 5, 6, 4, 5, 7, 6, 0, 6, 2, 4, 6, 0, 1, 3, 5, 5, 3, 7, 3, 2, 7, 7, 2, 6, 0, 1, 4, 4, 1, 5};
+
 	uint32_t     corners   = 8;
 	uint32_t     triangles = 12;
 
@@ -104,6 +106,7 @@ FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a
 
 	// Lets calculate index buffer and triangles
 	a_vertex_buffer.reserve(a_vertex_buffer.size() + triangles * 9);
+	const auto indices = a_clock_wise ? indices_cw : indices_ccw;
 	for (uint32_t i = 0; i < triangles; ++i)
 	{
 		a_vertex_buffer.emplace_back(vertex_buffer[indices[3 * i]]);
@@ -118,9 +121,12 @@ FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a
  * @param      a_triangles Amount of triangles requested (2 for a box, 12 for a Cube)
  */
 template <class _index_type = uint32_t>
-FORCE_INLINE void _box_triangles_indices_internal(uint32_t a_triangles, std::vector<ror::Vector3<_index_type>> &a_index_buffer)
+FORCE_INLINE void _box_triangles_indices_internal(uint32_t a_triangles, std::vector<ror::Vector3<_index_type>> &a_index_buffer, bool a_clock_wise)
 {
-	const std::vector<ror::Vector3<_index_type>> indices{{0, 1, 2}, {1, 3, 2}, {5, 4, 6}, {5, 6, 7}, {0, 2, 6}, {4, 0, 6}, {1, 5, 3}, {5, 7, 3}, {3, 7, 2}, {7, 6, 2}, {0, 4, 1}, {4, 5, 1}};
+	const std::vector<ror::Vector3<_index_type>> indices_ccw{{0, 1, 2}, {1, 3, 2}, {5, 4, 6}, {5, 6, 7}, {0, 2, 6}, {4, 0, 6}, {1, 5, 3}, {5, 7, 3}, {3, 7, 2}, {7, 6, 2}, {0, 4, 1}, {4, 5, 1}};
+	const std::vector<ror::Vector3<_index_type>> indices_cw {{0, 2, 1}, {1, 2, 3}, {5, 6, 4}, {5, 7, 6}, {0, 6, 2}, {4, 6, 0}, {1, 3, 5}, {5, 3, 7}, {3, 2, 7}, {7, 2, 6}, {0, 1, 4}, {4, 1, 5}};
+
+	const auto indices = a_clock_wise ? indices_cw : indices_ccw;
 	a_index_buffer.reserve(a_index_buffer.size() + a_triangles);
 	std::copy(indices.begin(), indices.begin() + a_triangles, std::back_inserter(a_index_buffer));
 }
@@ -161,44 +167,44 @@ FORCE_INLINE void _box_lines_indices_internal(uint32_t a_lines, std::vector<ror:
 }
 
 template <class _type>
-FORCE_INLINE void make_box_triangles(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum)
+FORCE_INLINE void make_box_triangles(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum, bool a_clock_wise)
 {
-	_box_triangles_internal(a_minimum, a_maximum, a_vertex_buffer);
+	_box_triangles_internal(a_minimum, a_maximum, a_vertex_buffer, a_clock_wise);
 }
 
 template <class _type>
-FORCE_INLINE void make_box_triangles(const _type &a_size, const _type &a_origin, std::vector<_type> &a_vertex_buffer)
+FORCE_INLINE void make_box_triangles(const _type &a_size, const _type &a_origin, std::vector<_type> &a_vertex_buffer, bool a_clock_wise)
 {
 	_type half_size = (a_size / 2);
 	_type minimum{a_origin - half_size}, maximum{half_size + a_origin};
 
-	_box_triangles_internal(minimum, maximum, a_vertex_buffer);
+	_box_triangles_internal(minimum, maximum, a_vertex_buffer, a_clock_wise);
 }
 
 template <class _type>
-FORCE_INLINE void make_box_triangles(float32_t a_size, const _type &a_origin, std::vector<_type> &a_vertex_buffer)
+FORCE_INLINE void make_box_triangles(float32_t a_size, const _type &a_origin, std::vector<_type> &a_vertex_buffer, bool a_clock_wise)
 {
-	make_box_triangles(_type(a_size), a_origin, a_vertex_buffer);
+	make_box_triangles(_type(a_size), a_origin, a_vertex_buffer, a_clock_wise);
 }
 
 template <class _type>
-FORCE_INLINE void make_box_triangles(float32_t a_size, std::vector<_type> &a_vertex_buffer)
+FORCE_INLINE void make_box_triangles(float32_t a_size, std::vector<_type> &a_vertex_buffer, bool a_clock_wise)
 {
-	make_box_triangles(_type(a_size), _type(0), a_vertex_buffer);
+	make_box_triangles(_type(a_size), _type(0), a_vertex_buffer, a_clock_wise);
 }
 
 template <class _type>
-FORCE_INLINE std::vector<_type> make_box_triangles(float32_t a_size)
+FORCE_INLINE std::vector<_type> make_box_triangles(float32_t a_size, bool a_clock_wise)
 {
 	std::vector<_type> a_vertex_buffer;
-	make_box_triangles(_type(a_size), _type(0), a_vertex_buffer);
+	make_box_triangles(_type(a_size), _type(0), a_vertex_buffer, a_clock_wise);
 	return a_vertex_buffer;
 }
 
 template <class _type, class _index_type>
 FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a_origin,
                                              std::vector<_type>                     &a_vertex_buffer,
-                                             std::vector<ror::Vector3<_index_type>> &a_index_buffer)
+                                             std::vector<ror::Vector3<_index_type>> &a_index_buffer, bool a_clock_wise)
 {
 	uint32_t triangles = 12;
 	if constexpr (std::is_same<_type, Vector2<typename _type::value_type>>::value)
@@ -210,13 +216,13 @@ FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a
 	_type minimum{a_origin - half_size}, maximum{half_size + a_origin};
 
 	_box_points_internal(minimum, maximum, a_vertex_buffer);
-	_box_triangles_indices_internal(triangles, a_index_buffer);
+	_box_triangles_indices_internal(triangles, a_index_buffer, a_clock_wise);
 }
 
 template <class _type, class _index_type>
-FORCE_INLINE void make_box_triangles_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector3<_index_type>> &a_index_buffer)
+FORCE_INLINE void make_box_triangles_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector3<_index_type>> &a_index_buffer, bool a_clock_wise)
 {
-	make_box_triangles_indexed(_type(1), _type(0), a_vertex_buffer, a_index_buffer);
+	make_box_triangles_indexed(_type(1), _type(0), a_vertex_buffer, a_index_buffer, a_clock_wise);
 }
 
 // Same set of functions for box but this time for lines instead of triangles

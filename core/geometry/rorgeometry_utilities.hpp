@@ -38,7 +38,7 @@ namespace ror
  * @param      a_vertex_buffer A vector to append the vertices created to
  */
 template <class _type>
-FORCE_INLINE void make_box_triangles(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum);
+FORCE_INLINE void make_box_triangles(std::vector<_type> &a_vertex_buffer, const _type &a_minimum, const _type &a_maximum, bool a_clock_wise = false);
 
 /**
  * @brief      Creates a Box with a_size in all 3 or 2 dimensions
@@ -47,7 +47,7 @@ FORCE_INLINE void make_box_triangles(std::vector<_type> &a_vertex_buffer, const 
  * @param      a_output A vector to append the vertices created to
  */
 template <class _type>
-FORCE_INLINE void make_box_triangles(const _type &a_size, const _type &a_origin, std::vector<_type> &a_output);
+FORCE_INLINE void make_box_triangles(const _type &a_size, const _type &a_origin, std::vector<_type> &a_output, bool a_clock_wise = false);
 
 /**
  * @brief      Creates a Box with size in all 3 or 2 dimensions
@@ -56,7 +56,7 @@ FORCE_INLINE void make_box_triangles(const _type &a_size, const _type &a_origin,
  * @param      a_output A vector to append the vertices created to
  */
 template <class _type>
-FORCE_INLINE void make_box_triangles(float32_t a_size, const _type &a_origin, std::vector<_type> &a_output);
+FORCE_INLINE void make_box_triangles(float32_t a_size, const _type &a_origin, std::vector<_type> &a_output, bool a_clock_wise = false);
 
 /**
  * @brief      Creates a Box with size in all 3 or 2 dimensions at origin
@@ -64,7 +64,7 @@ FORCE_INLINE void make_box_triangles(float32_t a_size, const _type &a_origin, st
  * @param      a_output A vector to append the vertices created to
  */
 template <class _type>
-FORCE_INLINE void make_box_triangles(float32_t a_size, std::vector<_type> &a_output);
+FORCE_INLINE void make_box_triangles(float32_t a_size, std::vector<_type> &a_output, bool a_clock_wise = false);
 
 /**
  * @brief      Creates a Box with size in all 3 or 2 dimensions at origin
@@ -84,7 +84,7 @@ FORCE_INLINE std::vector<_type> make_box_triangles(float32_t a_size);
 template <class _type, class _index_type = uint32_t>
 FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a_origin,
                                              std::vector<_type>                     &a_vertex_buffer,
-                                             std::vector<ror::Vector3<_index_type>> &a_index_buffer);
+                                             std::vector<ror::Vector3<_index_type>> &a_index_buffer, bool a_clock_wise = false);
 
 /**
  * @brief      Creates a Box with unit size 3 or 2 dimensions at the origin
@@ -92,7 +92,7 @@ FORCE_INLINE void make_box_triangles_indexed(const _type &a_size, const _type &a
  * @param      a_index_buffer A vector to append the indices created to
  */
 template <class _type, class _index_type = uint32_t>
-FORCE_INLINE void make_box_triangles_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector3<_index_type>> &a_index_buffer);
+FORCE_INLINE void make_box_triangles_indexed(std::vector<_type> &a_vertex_buffer, std::vector<ror::Vector3<_index_type>> &a_index_buffer, bool a_clock_wise = false);
 
 // TODO: Provide option for inward or outward normals
 
