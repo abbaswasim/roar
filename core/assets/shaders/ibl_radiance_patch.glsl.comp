@@ -55,6 +55,7 @@ vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
 	return normalize(sampleVec);
 }
 
+// based on https://github.com/JoeyDeVries/LearnOpenGL/tree/master/src/6.pbr/2.2.2.ibl_specular_textured
 vec4 prefilter(vec3 N, float roughness)
 {
 	// make the simplifying assumption that V equals R equals the normal
@@ -62,7 +63,7 @@ vec4 prefilter(vec3 N, float roughness)
 	vec3 V = R;
 
 	uint sample_count = 1024u * in_sizes.miplevels;
-	sample_count      = max(sample_count, uint(sample_count * clamp(in_sizes.roughness, 0.0, 1.0)));        // This needs to be scaled up by roughness higher roughness means more samples in corresponding lower mipLevel
+	sample_count      = max(sample_count, uint(sample_count * clamp(in_sizes.roughness, 0.0, 1.0)));        // Scaled up by roughness where higher roughness means more samples in corresponding lower mipLevel
 
 	vec3  prefilteredColor = vec3(0.0);
 	float totalWeight      = 0.0;

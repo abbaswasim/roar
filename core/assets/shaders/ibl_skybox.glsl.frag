@@ -17,7 +17,7 @@ layout(location = 0) out vec4 out_color;
 void main()
 {
 	vec3 direction_vector = get_base_direction_vector();
-	vec4 base_color = texture(cube_map, direction_vector);
+	vec4 base_color       = textureLod(cube_map, direction_vector, 0);
 
 	out_color = base_color;
 }

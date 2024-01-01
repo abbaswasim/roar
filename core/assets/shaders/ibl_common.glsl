@@ -20,16 +20,23 @@ vec2 world_to_spherical(vec3 v)
 	uv *= inv_atan;
 	uv += 0.5;
 
-	uv.y = 1.0 - uv.y;
+	// uv.y = 1.0 - uv.y; // If Y is not flipped anywhere else, it can be done here too
 
 	return uv;
 }
 
-vec3 invocation_to_direction(vec2 cube_size)
+vec2 get_uv(vec2 cube_size)
 {
 	vec2 xy = vec2(gl_GlobalInvocationID.xy);
+	return xy / cube_size;
+}
 
-	vec3 uvz = vec3(((xy / cube_size) * 2.0) - 1.0, 1.0);        // Normalize then scale to -1 to 1
+vec3 invocation_to_direction(vec2 cube_size)
+{
+	vec2 uv = get_uv(cube_size);
+	uv.y    = 1.0 - uv.y;
+
+	vec3 uvz = vec3((uv * 2.0) - 1.0, 1.0);        // Normalize then scale to -1 to 1
 	uvz      = normalize(uvz);
 
 	return uvz;
@@ -38,7 +45,7 @@ vec3 invocation_to_direction(vec2 cube_size)
 // Rotates the vector in (x, y, positive z) to all other 6 sides
 void rotate_to_cube_face(uint face, inout vec3 uvz)
 {
-	if (face == 0)              // +X
+	if (face == 0)        // +X
 	{
 		uvz.xz = uvz.zx;
 		uvz.z *= -1;
@@ -48,12 +55,12 @@ void rotate_to_cube_face(uint face, inout vec3 uvz)
 		uvz.xz = uvz.zx;
 		uvz.x *= -1;
 	}
-	else if (face == 2)        // +Y
+	else if (face == 3)        // -Y, NOTE: the index is swapped here to make it obvious, the rotation for +Y is actually the one for -Y, I do this instead of flipping Y uv coordinate
 	{
 		uvz.yz = uvz.zy;
 		uvz.y *= -1;
 	}
-	else if (face == 3)        // -Y
+	else if (face == 2)        // +Y
 	{
 		uvz.yz = uvz.zy;
 		uvz.z *= -1;
@@ -106,7 +113,7 @@ For each cube face gives offset to its location in the following single mip-patc
 */
 vec4 patch_offset(uint face, uint w, uint h)
 {
-	if (face == 0)              // +x
+	if (face == 0)        // +x
 	{
 		return vec4(w, 0, 2 * w, h);
 	}

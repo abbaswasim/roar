@@ -4,15 +4,14 @@ layout(binding = 0) uniform sampler2D equirectangular_image;
 
 layout(binding = 1, rgba8) uniform image2D irradiance_patch_image;
 layout(binding = 2, rgba8) uniform image2D skybox_hdr_patch_image;
-layout(binding = 3, rgba8) uniform image2D skybox_patch_image;
+layout(binding = 3, rgba8) uniform image2D skybox_ldr_patch_image;
 
 layout(std140, set = 0, binding = 0) uniform sizes
 {
 	uvec4 mip_offset_size;
 	float roughness;
 	uint  miplevels;
-}
-in_sizes;
+} in_sizes;
 
 #include <ibl_common.glsl>
 
@@ -82,6 +81,6 @@ void main()
 	vec4 offset = patch_offset(xyz.z, w, h);
 
 	imageStore(skybox_hdr_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), skybox_patch_output);
-	imageStore(skybox_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), skybox_patch_output);
+	imageStore(skybox_ldr_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), skybox_patch_output);
 	imageStore(irradiance_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), irradiance_patch_output);
 }
