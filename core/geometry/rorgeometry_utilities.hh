@@ -89,11 +89,11 @@ FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a
 {
 	static_assert(!(std::is_same<_type, Vector4<typename _type::value_type>>::value), "Can't create a 4D Cube\n");
 
-	const size_t indices_ccw[] = {0, 1, 2, 1, 3, 2, 5, 4, 6, 5, 6, 7, 0, 2, 6, 4, 0, 6, 1, 5, 3, 5, 7, 3, 3, 7, 2, 7, 6, 2, 0, 4, 1, 4, 5, 1};
-	const size_t indices_cw[] =  {0, 2, 1, 1, 2, 3, 5, 6, 4, 5, 7, 6, 0, 6, 2, 4, 6, 0, 1, 3, 5, 5, 3, 7, 3, 2, 7, 7, 2, 6, 0, 1, 4, 4, 1, 5};
+	const size_t indices_ccw[] = {1, 3, 5, 5, 3, 7, 4, 6, 0, 0, 6, 2, 4, 0, 5, 5, 0, 1, 2, 6, 3, 3, 6, 7, 0, 2, 1, 1, 2, 3, 5, 7, 4, 4, 7, 6};
+	const size_t indices_cw[]  = {1, 5, 3, 5, 7, 3, 4, 0, 6, 0, 2, 6, 4, 5, 0, 5, 1, 0, 2, 3, 6, 3, 7, 6, 0, 1, 2, 1, 3, 2, 5, 4, 7, 4, 6, 7};
 
-	uint32_t     corners   = 8;
-	uint32_t     triangles = 12;
+	uint32_t corners   = 8;
+	uint32_t triangles = 12;
 
 	if constexpr (std::is_same<_type, Vector2<typename _type::value_type>>::value)
 	{
@@ -123,8 +123,9 @@ FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a
 template <class _index_type = uint32_t>
 FORCE_INLINE void _box_triangles_indices_internal(uint32_t a_triangles, std::vector<ror::Vector3<_index_type>> &a_index_buffer, bool a_clock_wise)
 {
-	const std::vector<ror::Vector3<_index_type>> indices_ccw{{0, 1, 2}, {1, 3, 2}, {5, 4, 6}, {5, 6, 7}, {0, 2, 6}, {4, 0, 6}, {1, 5, 3}, {5, 7, 3}, {3, 7, 2}, {7, 6, 2}, {0, 4, 1}, {4, 5, 1}};
-	const std::vector<ror::Vector3<_index_type>> indices_cw {{0, 2, 1}, {1, 2, 3}, {5, 6, 4}, {5, 7, 6}, {0, 6, 2}, {4, 6, 0}, {1, 3, 5}, {5, 3, 7}, {3, 2, 7}, {7, 2, 6}, {0, 1, 4}, {4, 1, 5}};
+	// Order of indices is +x, -x, +y, -y, +z, -z
+	const std::vector<ror::Vector3<_index_type>> indices_ccw{{1, 3, 5}, {5, 3, 7}, {4, 6, 0}, {0, 6, 2}, {4, 0, 5}, {5, 0, 1}, {2, 6, 3}, {3, 6, 7}, {0, 2, 1}, {1, 2, 3}, {5, 7, 4}, {4, 7, 6}};
+	const std::vector<ror::Vector3<_index_type>> indices_cw{{1, 5, 3}, {5, 7, 3}, {4, 0, 6}, {0, 2, 6}, {4, 5, 0}, {5, 1, 0}, {2, 3, 6}, {3, 7, 6}, {0, 1, 2}, {1, 3, 2}, {5, 4, 7}, {4, 6, 7}};
 
 	const auto indices = a_clock_wise ? indices_cw : indices_ccw;
 	a_index_buffer.reserve(a_index_buffer.size() + a_triangles);
