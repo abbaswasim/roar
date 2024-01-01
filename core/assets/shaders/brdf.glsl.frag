@@ -86,7 +86,7 @@ float D_GGX(float roughness, float NoH, const vec3 h)
 	// enough precision).
 	// Overall this yields better performance, keeping all computations in mediump
 #if defined(TARGET_MOBILE)
-	vec3  NxH                = cross(shading_normal, h);
+	vec3  NxH                = cross(N, h);
 	float oneMinusNoHSquared = dot(NxH, NxH);
 #else
 	float oneMinusNoHSquared = 1.0 - NoH * NoH;

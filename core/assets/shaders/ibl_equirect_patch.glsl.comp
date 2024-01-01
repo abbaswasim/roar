@@ -1,0 +1,87 @@
+#version 450
+
+layout(binding = 0) uniform sampler2D equirectangular_image;
+
+layout(binding = 1, rgba8) uniform image2D irradiance_patch_image;
+layout(binding = 2, rgba8) uniform image2D skybox_hdr_patch_image;
+layout(binding = 3, rgba8) uniform image2D skybox_patch_image;
+
+layout(std140, set = 0, binding = 0) uniform sizes
+{
+	uvec4 mip_offset_size;
+	float roughness;
+	uint  miplevels;
+}
+in_sizes;
+
+#include <ibl_common.glsl>
+
+vec4 cubify(vec3 uvz)
+{
+	vec2 uv = cubemap_sampling_uvs(uvz);
+	return texture(equirectangular_image, uv);
+}
+
+// based on https://github.com/JoeyDeVries/LearnOpenGL/tree/master/src/6.pbr/2.2.2.ibl_specular_textured
+vec4 convolute(vec3 N)
+{
+	vec4 FragColor;
+	// The world vector acts as the normal of a tangent surface
+	// from the origin, aligned to WorldPos. Given this normal, calculate all
+	// incoming radiance of the environment. The result of this radiance
+	// is the radiance of light coming from -Normal direction, which is what
+	// we use in the PBR shader to sample irradiance.
+	// vec3 N = normalize(WorldPos);
+
+	vec3 irradiance = vec3(0.0);
+
+	// tangent space calculation from origin point
+	vec3 up    = vec3(0.0, 1.0, 0.0);
+	vec3 right = normalize(cross(up, N));
+	up         = normalize(cross(N, right));
+
+	float sampleDelta = 0.025;
+	float nrSamples   = 0.0;
+	for (float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta)
+	{
+		for (float theta = 0.0; theta < 0.5 * PI; theta += sampleDelta)
+		{
+			// spherical to cartesian (in tangent space)
+			vec3 tangentSample = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+
+			// tangent space to world
+			vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;
+
+			vec2 uv = cubemap_sampling_uvs(sampleVec);
+			irradiance += texture(equirectangular_image, uv).rgb * cos(theta) * sin(theta);
+
+			nrSamples++;
+		}
+	}
+
+	irradiance = PI * irradiance * (1.0 / float(nrSamples));
+
+	FragColor = vec4(irradiance, 1.0);
+
+	return FragColor;
+}
+
+void main()
+{
+	const uint w         = in_sizes.mip_offset_size.z;
+	const uint h         = in_sizes.mip_offset_size.w;
+	ivec3      xyz       = ivec3(gl_GlobalInvocationID.xyz);
+	vec2       cube_size = vec2(w, h);        // Cubemap image size, also the amount of total invocations in x,y, but not z
+
+	vec3 uvz = invocation_to_direction(cube_size);
+	rotate_to_cube_face(xyz.z, uvz);
+
+	vec4 skybox_patch_output     = cubify(uvz);
+	vec4 irradiance_patch_output = convolute(uvz);
+
+	vec4 offset = patch_offset(xyz.z, w, h);
+
+	imageStore(skybox_hdr_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), skybox_patch_output);
+	imageStore(skybox_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), skybox_patch_output);
+	imageStore(irradiance_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), irradiance_patch_output);
+}

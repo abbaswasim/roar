@@ -1,0 +1,122 @@
+#version 450
+
+layout(binding = 0) uniform samplerCube radiance_input_image;
+
+layout(binding = 1, rgba8) uniform image2D radiance_output_image;
+
+layout(std140, set = 0, binding = 0) uniform sizes
+{
+	uvec4 mip_offset_size;
+	float roughness;
+	uint  miplevels;
+} in_sizes;
+
+#include <ibl_common.glsl>
+
+// Although I am using filament's D_GGX for rendering, I prefer to use this D_GGX for prefiltering of IBL radiance cubemap
+// This gives me better stair case like miplevels for progressive roughness
+float DistributionGGX(float NdotH, float roughness)
+{
+	float a  = roughness * roughness;
+	float a2 = a * a;
+	// float NdotH  = max(dot(N, H), 0.0);
+	float NdotH2 = NdotH * NdotH;
+
+	float nom   = a2;
+	float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+	denom       = PI * denom * denom;
+
+	return nom / denom;
+}
+
+// Based on Karis 2014
+vec3 ImportanceSampleGGX(vec2 Xi, vec3 N, float roughness)
+{
+	float a = roughness * roughness;
+
+	float phi      = 2.0 * PI * Xi.x;
+	float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a * a - 1.0) * Xi.y));
+	float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+	// Construct tangent space vector
+	// From spherical coordinates to cartesian coordinates - halfway vector
+	vec3 H;
+	H.x = cos(phi) * sinTheta;
+	H.y = sin(phi) * sinTheta;
+	H.z = cosTheta;
+
+	// from tangent-space H vector to world-space sample vector
+	vec3 up        = abs(N.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+	vec3 tangent   = normalize(cross(up, N));
+	vec3 bitangent = cross(N, tangent);
+
+	vec3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
+
+	return normalize(sampleVec);
+}
+
+vec4 prefilter(vec3 N, float roughness)
+{
+	// make the simplifying assumption that V equals R equals the normal
+	vec3 R = N;
+	vec3 V = R;
+
+	uint sample_count = 1024u * in_sizes.miplevels;
+	sample_count      = max(sample_count, uint(sample_count * clamp(in_sizes.roughness, 0.0, 1.0)));        // This needs to be scaled up by roughness higher roughness means more samples in corresponding lower mipLevel
+
+	vec3  prefilteredColor = vec3(0.0);
+	float totalWeight      = 0.0;
+	float resolution       = in_sizes.mip_offset_size.z;        // resolution of source cubemap (per face)
+
+	for (uint i = 0u; i < sample_count; ++i)
+	{
+		// generates a sample vector that's biased towards the preferred alignment direction (importance sampling).
+		vec2 Xi = Hammersley(i, sample_count);
+		vec3 H  = ImportanceSampleGGX(Xi, N, roughness);
+		vec3 L  = normalize(2.0 * dot(V, H) * H - V);
+
+		float NdotL = max(dot(N, L), 0.0);
+
+		if (NdotL > 0.0)
+		{
+			// sample from the environment's mip level based on roughness/pdf
+			float NdotH = max(dot(N, H), 0.0);
+			float HdotV = max(dot(H, V), 0.0);
+			float D     = DistributionGGX(NdotH, roughness);
+			float pdf   = D * NdotH / (4.0 * HdotV) + 0.0001;
+
+			float saSample = 1.0 / (float(sample_count) * pdf + 0.0001);        // Solid angle for current sample, bigger for less likely samples
+			float saTexel  = 4.0 * PI / (6.0 * resolution * resolution);        // Solid angle for pixel
+
+			// float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel); // Can try this one as well, because the following one creates nans for roughness == 0.0
+			float mipLevel = max(0.5 * log2(saSample / saTexel), 0.0);
+
+			prefilteredColor += textureLod(radiance_input_image, L, mipLevel).rgb * NdotL;
+
+			totalWeight += NdotL;
+		}
+	}
+
+	prefilteredColor = prefilteredColor / totalWeight;
+
+	vec4 FragColor = vec4(prefilteredColor, 1.0);
+
+	return FragColor;
+}
+
+void main()
+{
+	const uint w         = in_sizes.mip_offset_size.z;
+	const uint h         = in_sizes.mip_offset_size.w;
+	ivec3      xyz       = ivec3(gl_GlobalInvocationID.xyz);
+	vec2       cube_size = vec2(w, h);        // Cubemap image size, also the amount of total invocations in x,y, but not z
+
+	vec3 uvz = invocation_to_direction(cube_size);
+	rotate_to_cube_face(xyz.z, uvz);
+
+	vec4 radiance_output = prefilter(uvz, in_sizes.roughness);
+
+	vec4 offset = patch_offset(xyz.z, w, h);
+
+	imageStore(radiance_output_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), radiance_output);
+}
