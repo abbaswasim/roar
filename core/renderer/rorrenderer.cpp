@@ -1434,21 +1434,21 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 	this->m_cube_map_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
 
-	auto &envs = this->environments();
-	auto &env  = envs[static_cast<size_t>(this->m_current_environment)];
+	auto &env = this->current_environment();
 
-	std::vector<ror::Vector3f>          positions;        // Cube positions, used if brdf_integration is chosen to be visualised
-	std::vector<ror::Vector3<uint16_t>> indices;          // Cube indices, used if brdf_integration is chosen to be visualised
+	std::vector<ror::Vector3f>          positions;        // Cube positions, used if anything other than brdf_integration is chosen to be visualised
+	std::vector<ror::Vector3<uint16_t>> indices;          // Cube indices, used if anything other thanif brdf_integration is chosen to be visualised
 
-	auto    *skybox_pso           = &this->programs()[env.skybox_pso()];
+	rhi::Program *skybox_pso{nullptr};
+	skybox_pso                    = &this->programs()[env.skybox_pso()];
 	uint32_t map_index            = this->environment_visualize_mode(static_cast<uint32_t>(this->m_current_environment));
 	int32_t  brdf_integration_pso = env.brdf_integration_pso();
 	auto     skybox_image         = &this->images()[map_index];
-	auto     skybox_sampler       = &this->samplers()[env.skybox_sampler()];
+	auto     skybox_sampler       = &this->samplers()[env.skybox_sampler()];        // Using skybox sampler because this is what I need at runtime
 
-	this->m_cube_map_mesh.set_texture(skybox_image, skybox_sampler);
+	this->m_cube_map_mesh.set_texture(skybox_image, skybox_sampler);        // Would probably need refresh if images or samplers are resized
 
-	make_box_triangles_indexed(positions, indices);
+	make_box_triangles_indexed(positions, indices);        // Final argument tells create inside out box
 
 	if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::brdf_lut && brdf_integration_pso != -1)
 	{
@@ -1456,11 +1456,25 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 		skybox_pso        = &this->programs()[static_cast<uint32_t>(brdf_integration_pso)];
 	}
 
-	// Skybox pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
-	skybox_pso->upload(a_device, vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_pso", true, false, false);
-
 	this->m_cube_map_mesh.shader_program_external(skybox_pso);
 	this->m_cube_map_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+
+	auto skybox_update_lambda = [](rhi::Device & device, ror::Renderer & renderer) {
+
+		// Skybox pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
+		auto &descriptor = renderer.m_cube_map_mesh.vertex_descriptor();
+		auto  pso        = renderer.m_cube_map_mesh.shader_program_external();
+
+		pso->upload(device, descriptor, renderer.m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_pso", true, false, false);
+	};
+
+	skybox_update_lambda(a_device, *this);
+
+	auto &vs_shader = this->shaders()[static_cast<size_t>(skybox_pso->vertex_id())];
+	this->m_update_callbacks_mapping[vs_shader.shader_path().filename()].push_back(skybox_update_lambda);
+
+	auto &fs_shader = this->shaders()[static_cast<size_t>(skybox_pso->fragment_id())];
+	this->m_update_callbacks_mapping[fs_shader.shader_path().filename()].push_back(skybox_update_lambda);
 
 	if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::brdf_lut && brdf_integration_pso != -1)
 		this->m_cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_position_uv_interleaved), 5 * 36 * sizeof(float), 36,
