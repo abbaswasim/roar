@@ -660,7 +660,9 @@ TEST(RoarGeneral, shader_includes)
 	std::string res_shader_code{reinterpret_cast<const char *>(res_shader.data().data()), res_shader.data().size()};
 	std::string resolved_shader_code{reinterpret_cast<const char *>(shader.data().data()), shader.data().size()};
 
-	ror::resolve_includes(resolved_shader_code, ror::ResourceSemantic::misc, false);
+	std::vector<std::string> includes;
+
+	ror::resolve_includes(resolved_shader_code, ror::ResourceSemantic::misc, false, includes);
 
 	EXPECT_EQ(res_shader_code.length(), resolved_shader_code.length());
 	EXPECT_EQ(res_shader_code, resolved_shader_code);

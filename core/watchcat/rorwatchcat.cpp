@@ -30,7 +30,7 @@
 
 namespace ror
 {
-void WatchCat::notify(std::vector<WatchCatEvent> a_events)
+void WatchCat::notify(const std::vector<WatchCatEvent> &a_events)
 {
 	this->m_callback(a_events);
 }

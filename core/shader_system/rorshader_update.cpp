@@ -43,7 +43,7 @@ ShaderUpdater::ShaderUpdater()
 	paths.emplace_back(m_starting_path);
 
 	this->m_watcher = std::make_unique<ror::WatchCat>(
-	    paths, [this](std::vector<ror::WatchCatEvent> events) {
+	    paths, [this](const std::vector<ror::WatchCatEvent> &events) {
 		    for (auto e : events)
 			    if (e.m_type == ror::WatchCatEventType::change)
 				    this->push_shader_update_record(2, e.m_path.filename());
@@ -123,38 +123,36 @@ void ShaderUpdater::resolve_updates(rhi::Device &a_device)
 
 				// auto res = unique_records.emplace(hash);
 				// if (res.second)
+				auto &programs = program_record.m_programs;
+				auto &shaders  = program_record.m_shaders;
+				auto &program  = programs[static_cast<size_t>(program_record.m_program_id)];
+
+				std::vector<int32_t> shader_ids = {program.vertex_id(), program.fragment_id(), program.compute_id(), program.mesh_id(), program.tile_id()};
+
+				for (auto shader_id : shader_ids)
 				{
-					auto &programs = program_record.m_programs;
-					auto &shaders  = program_record.m_shaders;
-					auto &program  = programs[static_cast<size_t>(program_record.m_program_id)];
-
-					std::vector<int32_t> shader_ids = {program.vertex_id(), program.fragment_id(), program.compute_id(), program.mesh_id(), program.tile_id()};
-
-					for (auto shader_id : shader_ids)
+					if (shader_id != -1 && shader_id < static_cast<int32_t>(shaders.size()))
 					{
-						if (shader_id != -1 && shader_id < static_cast<int32_t>(shaders.size()))
+						auto &shader = shaders[static_cast<size_t>(shader_id)];
+
+						std::string shader_name = shader.shader_path().filename();
+						auto       &inc         = shader.includes();
+						auto        include     = std::find(inc.begin(), inc.end(), shader_record.m_shader);
+
+						if (shader_name == shader_record.m_shader || include != inc.end())
 						{
-							auto &shader = shaders[static_cast<size_t>(shader_id)];
+							shader.reload();
+							shader.compile();
+							shader.upload(a_device);
 
-							std::string shader_name = shader.shader_path().filename();
-							auto       &inc         = shader.includes();
-							auto        include     = std::find(inc.begin(), inc.end(), shader_record.m_shader);
-
-							if (shader_name == shader_record.m_shader || include != inc.end())
+							program_record.m_callback(a_device);        // This must have a call to program.upload()
+						}
+						else        // This means the user takes responsibility and knows this shader is a dependency
+						{
+							auto dependency = std::find(dependencies.begin(), dependencies.end(), shader_record.m_shader);
+							if (dependency != dependencies.end())
 							{
-								shader.reload();
-								shader.compile();
-								shader.upload(a_device);
-
-								program_record.m_callback(a_device);        // This must have a call to program.upload()
-							}
-							else        // This means the user takes responsibility and knows this shader is a dependency
-							{
-								auto dependency = std::find(dependencies.begin(), dependencies.end(), shader_record.m_shader);
-								if (dependency != dependencies.end())
-								{
-									program_record.m_callback(a_device);        // This must have a call to shader.source(), shader.compile(), shader.upload() and program.upload()
-								}
+								program_record.m_callback(a_device);        // This must have a call to shader.source(), shader.compile(), shader.upload() and program.upload()
 							}
 						}
 					}

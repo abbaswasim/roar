@@ -59,7 +59,7 @@ struct WatchCatEvent
 
 class PlatformData;
 
-using watchcat_callback = std::function<void(std::vector<WatchCatEvent>)>;
+using watchcat_callback = std::function<void(const std::vector<WatchCatEvent>&)>;
 
 /**
  * Creates a watcher responsible for reporting filesystem events in specific paths
@@ -87,7 +87,7 @@ class ROAR_ENGINE_ITEM WatchCat final
 	float32_t                          get_latency() const;
 	void                               run();                                              // Start watching the paths
 	void                               stop();                                             // Stop watching the paths
-	void                               notify(std::vector<WatchCatEvent> a_events);        // Calls the callback with the events from platform specific callbacks, don't call directly. Its only public because the callback that calls it needs to see it
+	void                               notify(const std::vector<WatchCatEvent> &a_events);        // Calls the callback with the events from platform specific callbacks, don't call directly. Its only public because the callback that calls it needs to see it
 
   protected:
   private:

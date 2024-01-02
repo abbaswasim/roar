@@ -62,7 +62,7 @@ class ROAR_ENGINE_ITEM ShaderUpdater final
 
 	struct ShaderUpdateRecord
 	{
-		FORCE_INLINE ShaderUpdateRecord(int32_t a_counter, std::string a_shader) :
+		FORCE_INLINE ShaderUpdateRecord(int32_t a_counter, const std::string &a_shader) :
 		    m_counter(a_counter), m_shader(a_shader)
 		{}
 
