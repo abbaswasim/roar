@@ -147,6 +147,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rortexture.cpp
   ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rorcompute_dispatch.cpp
   ${ROAR_SOURCE_DIR}/shader_system/rorshader_system.cpp
+  ${ROAR_SOURCE_DIR}/shader_system/rorshader_update.cpp
   ${ROAR_SOURCE_DIR}/configuration/rorsettings_configuration.cpp
   ${ROAR_SOURCE_DIR}/renderer/rorrenderer.cpp
   ${ROAR_SOURCE_DIR}/resources/rorprojectroot.cpp)

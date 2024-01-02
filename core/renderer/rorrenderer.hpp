@@ -109,11 +109,9 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
 	FORCE_INLINE constexpr auto &dynamic_meshes()         const noexcept { return this->m_dynamic_meshes;          }
 	FORCE_INLINE constexpr auto canonical_cube()          const noexcept { return this->m_canonical_cube;          }
-	FORCE_INLINE constexpr auto &update_callbacks_mapping()     noexcept { return this->m_update_callbacks_mapping;}
-
 
 	FORCE_INLINE           auto shader_buffer(const std::string& a_name)                           const           { return this->m_buffers_mapping.at(a_name);   }
-	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];            }
+	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];}
 
 	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
 	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }
@@ -122,26 +120,10 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
 	// clang-format on
 
-	struct ShaderRecord
-	{
-		rhi::Shader                *m_shader{nullptr};        //! Which shader am I, its name/path is saved in the mapping itself
-		std::vector<rhi::Program *> m_programs{};             //! Which programs am I used in
-		int32_t                     m_id{-1};                 //! What's my id in the list of shaders in renderer
-	};
-
-	struct ShaderUpdateRecord
-	{
-		int32_t     m_counter{2};        //! When this counter reaches 0 it will be executed, this is to defer it to later frames, by default gives 3 frames
-		std::string m_shader;
-	};
-
 	using InputRenderTargets      = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
 	using InputBufferTargets      = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
-	using ShaderBufferMap         = std::unordered_map<std::string, rhi::ShaderBuffer *>;
 	using ShaderCallbackMap       = std::unordered_map<std::string, std::function<void(std::string &, ror::Renderer &)>>;
-	using ShaderUpdateCallbackMap = std::unordered_map<std::string, std::vector<std::function<void(rhi::Device &, ror::Renderer &)>>>;
-	using ShaderRecordsMap        = std::unordered_map<std::string, ShaderRecord>;
-
+	using ShaderBufferMap         = std::unordered_map<std::string, rhi::ShaderBuffer *>;
 
 	rhi::TextureImage *m_skybox_hdr_patch_ti{nullptr};
 	rhi::TextureImage *m_skybox_ldr_patch_ti{nullptr};
@@ -163,7 +145,6 @@ class Renderer final : public Configuration<Renderer>
 
 	void     update_shader(rhi::Device &a_device, std::string &a_shader);
 	void     patch_shader(rhi::Shader &a_shader, std::string &a_shader_name);
-	void     update_shader_update_candidates(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack);
 	uint32_t environment_visualize_mode(uint32_t a_environment_index);
 	void     create_environment_mesh(rhi::Device &a_device);
 	void     load_programs();
@@ -189,11 +170,8 @@ class Renderer final : public Configuration<Renderer>
 	rhi::Renderstate<rhi::RenderstateDepth> m_render_state{};                                 //! Almost all the render state that the renderer requires will be stored here, currently only uses depth state
 	InputRenderTargets                      m_input_render_targets{};                         //! Render targets that are not directly associated with any render pass but required to be filled in before rendering starts
 	InputBufferTargets                      m_input_render_buffers{};                         //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
-	std::list<ShaderUpdateRecord>           m_shaders_update_candidates{};                    //! Shaders there were updated on disk recently and needs updating in the renderer
-	ShaderRecordsMap                        m_shaders_mapping{};                              //! All the Shaders mapped by its name to a ShaderRecord
 	ShaderBufferMap                         m_buffers_mapping{};                              //! All the Shader buffers in m_buffers are now name accessible
 	ShaderCallbackMap                       m_callbacks_mapping{};                            //! All the callbacks that can be used to patch or do something else to shaders
-	ShaderUpdateCallbackMap                 m_update_callbacks_mapping{};                     //! All the callbacks that can be used to update shaders and their programs
 	std::vector<ror::DynamicMesh *>         m_dynamic_meshes{};                               //! Non-Owning pointers to all the dynamic meshes created in the renderer should be rendererd at the end, mostly has cubemap mes
 	ror::DynamicMesh                        m_cube_map_mesh{};                                //! Single instance of a cubemap mesh used by all environments
 	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use

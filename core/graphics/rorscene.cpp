@@ -64,6 +64,7 @@
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
+#include "shader_system/rorshader_update.hpp"
 #include <array>
 #include <cassert>
 #include <cmath>
@@ -447,8 +448,9 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		enable_material_component(material.m_height, textures, images, samplers, binding_index, a_dd);
 		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
-		if (a_scene.has_shadows())
-			binding_index++;        // To be consistent with shader_system.cpp
+		// NOTE: Enable if binding_index used for anything else after this
+		// if (a_scene.has_shadows())
+		// 	binding_index++;        // To be consistent with shader_system.cpp
 
 		if (a_mesh.has_indices(prim_id))
 		{
@@ -1557,7 +1559,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
 		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
-		quad_mesh.load_texture(a_device);                                         // What if I want to just set the texture, to something I want to display on it
+		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
 		if (a_renderer.images().size() > 12)
 		{
 			auto image_lut = &a_renderer.images()[12];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
@@ -1612,7 +1614,7 @@ void Scene::make_overlays()
 
 hash_64_t pass_aware_vertex_hash(rhi::RenderpassType a_passtype, const ror::Mesh &a_mesh, size_t a_prim_index, const std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>> &a_skins)
 {
-	// NOTE: If every need to change how this hashing works, make sure to change in rormodel.cpp hash gen as well.
+	// NOTE: If ever need to change how this hashing works, make sure to change in rormodel.cpp hash gen as well.
 	// Ideally it should be abstracted out
 	hash_64_t vertex_hash{};
 
@@ -1808,8 +1810,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 					{
 						auto &fs_shader_index = shader_hash_to_index[fs_hash];
 						auto &fs_shader       = this->m_shaders[fs_shader_index];
-						auto has_shadows = this->m_has_shadows; // Creating local variable so I don't pass along this pointer
-						auto  fs_job_handle   = a_job_system.push_job([prim_index, passtype, has_shadows, &fs_shader, &mesh, &model, &a_renderer]() -> auto {
+						auto  fs_job_handle   = a_job_system.push_job([prim_index, passtype, has_shadows = this->m_has_shadows, &fs_shader, &mesh, &model, &a_renderer]() -> auto {
                             auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
                             fs_shader.source(fs);
                             fs_shader.compile();
@@ -1854,6 +1855,90 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 
 	// Just a cleanup for global programs
 	this->m_global_programs.clear();
+
+	this->push_shader_updates(a_renderer);
+}
+
+rhi::Rendersubpass *get_render_pass_by_types(const ror::Renderer &a_renderer, rhi::RenderpassType a_type)
+{
+	for (auto &rp : a_renderer.current_frame_graph())
+	{
+		auto &subpasses = rp.subpasses();
+		for (auto &srp : subpasses)
+		{
+			if (srp.type() == a_type)
+				return &srp;
+		}
+	}
+
+	return nullptr;
+}
+
+void Scene::push_shader_updates(const ror::Renderer &a_renderer)
+{
+	const std::vector<rhi::RenderpassType> render_pass_types = a_renderer.render_pass_types();
+
+	auto &dependencies = ror::mesh_shaders_dependencies();
+	auto &updator      = shader_updater();
+	auto  has_shadows  = this->m_has_shadows;
+	auto &shaders      = this->m_shaders;
+
+	size_t records{0};
+
+	std::unordered_set<hash_64_t> unique_shaders{};        // All unique shader hashes
+
+	for (auto &passtype : render_pass_types)
+	{
+		auto               &programs = this->m_programs[passtype];
+		rhi::Rendersubpass *subpass  = get_render_pass_by_types(a_renderer, passtype);
+		assert(subpass != nullptr && "Can't find subpass by type");
+		for (auto &model : this->m_models)
+		{
+			uint32_t mesh_index = 0;
+			for (auto &mesh : model.meshes())
+			{
+				for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+				{
+					auto vs_update = [&model, this, mesh_index, prim_index, passtype, &a_renderer, subpass, &mesh](rhi::Device &device) {
+						auto &prgs = this->m_programs[passtype];
+						auto &prg  = prgs[static_cast<size_t>(mesh.program(prim_index))];
+						if (prg.vertex_id() != -1)
+						{
+							auto  vs   = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype, a_renderer);
+							auto &shdr = this->m_shaders[static_cast<size_t>(prg.vertex_id())];
+							shdr.source(vs);
+							shdr.compile();
+							shdr.upload(device);
+
+							prg.upload(device, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), *subpass, false);
+						}
+					};
+					auto fs_update = [&model, &mesh, this, mesh_index, prim_index, passtype, &a_renderer, subpass, has_shadows](rhi::Device &device) {
+						auto &prgs = this->m_programs[passtype];
+						auto &prg  = prgs[static_cast<size_t>(mesh.program(prim_index))];
+						if (prg.fragment_id() != -1)
+						{
+							auto  fs   = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
+							auto &shdr = this->m_shaders[static_cast<size_t>(prg.fragment_id())];
+							shdr.source(fs);
+							shdr.compile();
+							shdr.upload(device);
+
+							prg.upload(device, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), *subpass, false);
+						}
+					};
+
+					updator.push_program_record(mesh.program(prim_index), programs, shaders, vs_update, &dependencies);
+					updator.push_program_record(mesh.program(prim_index), programs, shaders, fs_update, &dependencies);
+
+					records += 2;
+				}
+				++mesh_index;
+			}
+		}
+	}
+
+	log_critical("Amount of shader update records created {}", records);
 }
 
 void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system)

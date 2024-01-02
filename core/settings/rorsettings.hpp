@@ -304,6 +304,8 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_generate_grid_mesh               = setting.get<bool>("generate_grid_mesh");
 		this->m_generate_cube_mesh               = setting.get<bool>("generate_cube_mesh");
 		this->m_generate_cube_map                = setting.get<bool>("generate_cube_map");
+		this->m_generate_canonical_cube_map      = setting.get<bool>("generate_canonical_cube_map");
+		this->m_invert_canonical_cube_map        = setting.get<bool>("invert_canonical_cube_map");
 		this->m_generate_quad_mesh               = setting.get<bool>("generate_quad_mesh");
 		this->m_generate_fullscreen_quad_mesh    = setting.get<bool>("generate_fullscreen_quad_mesh");
 		this->m_generate_pink_textures           = setting.get<bool>("generate_pink_textures");
@@ -457,7 +459,8 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_generate_quad_mesh{false};
 	bool m_generate_fullscreen_quad_mesh{false};
 	bool m_generate_cube_map{false};
-	bool m_generate_splat_mesh{false};
+	bool m_generate_canonical_cube_map{false};
+	bool m_invert_canonical_cube_map{false};
 	bool m_generate_pink_textures{false};
 	bool m_background_srgb_to_linear{false};
 	bool m_force_linear_textures{false};

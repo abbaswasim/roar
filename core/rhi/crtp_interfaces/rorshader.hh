@@ -55,7 +55,8 @@ FORCE_INLINE void ShaderCrtp<_type>::compile()
 
 	// Doing a resolve_includes() very late here so I don't have to do it for small snipets multiple times
 	std::string shader_source{this->source()};
-	ror::resolve_includes(shader_source, ror::ResourceSemantic::shaders, false);
+	this->m_includes.clear();
+	ror::resolve_includes(shader_source, ror::ResourceSemantic::shaders, false, this->m_includes);
 
 	if (!compile_to_spirv(shader_source, this->m_type, "main", this->m_spirv, info_log))
 	{

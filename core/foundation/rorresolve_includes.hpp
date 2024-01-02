@@ -46,7 +46,7 @@ namespace ror
  * @return     return            true if we managed to replace the a_source with data from its includes, false other
  */
 // bool resolve_includes(std::string &a_source, uint32_t &a_level, ror::ResourceSemantic a_semantic = ror::ResourceSemantic::shaders, bool a_with_markers = false);
-bool resolve_includes(std::string &a_source, uint32_t &a_level, ror::ResourceSemantic a_semantic, bool a_with_markers);
+bool resolve_includes(std::string &a_source, uint32_t &a_level, ror::ResourceSemantic a_semantic, bool a_with_markers, std::vector<std::string> &a_includes);
 
 /**
  * @brief      Resolves includes in a source string
@@ -58,6 +58,6 @@ bool resolve_includes(std::string &a_source, uint32_t &a_level, ror::ResourceSem
  * @return     return void
  */
 // void resolve_includes(std::string &a_input, ror::ResourceSemantic a_semantic = ror::ResourceSemantic::shaders, bool a_with_markers = false);
-void resolve_includes(std::string &a_input, ror::ResourceSemantic a_semantic, bool a_with_markers);
+void resolve_includes(std::string &a_input, ror::ResourceSemantic a_semantic, bool a_with_markers, std::vector<std::string> &a_includes);
 
 }        // namespace ror

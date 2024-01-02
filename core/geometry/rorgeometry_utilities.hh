@@ -91,6 +91,7 @@ FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a
 
 	const size_t indices_ccw[] = {1, 3, 5, 5, 3, 7, 4, 6, 0, 0, 6, 2, 4, 0, 5, 5, 0, 1, 2, 6, 3, 3, 6, 7, 0, 2, 1, 1, 2, 3, 5, 7, 4, 4, 7, 6};
 	const size_t indices_cw[]  = {1, 5, 3, 5, 7, 3, 4, 0, 6, 0, 2, 6, 4, 5, 0, 5, 1, 0, 2, 3, 6, 3, 7, 6, 0, 1, 2, 1, 3, 2, 5, 4, 7, 4, 6, 7};
+	auto         indices       = a_clock_wise ? indices_cw : indices_ccw;
 
 	uint32_t corners   = 8;
 	uint32_t triangles = 12;
@@ -99,6 +100,10 @@ FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a
 	{
 		corners   = 4;
 		triangles = 2;
+
+		const size_t indices_ccw_2d[] = {0, 2, 1, 1, 2, 3};
+		const size_t indices_cw_2d[]  = {0, 1, 2, 1, 3, 2};
+		indices                       = a_clock_wise ? indices_cw_2d : indices_ccw_2d;
 	}
 
 	std::vector<_type> vertex_buffer;
@@ -106,7 +111,6 @@ FORCE_INLINE void _box_triangles_internal(const _type &a_minimum, const _type &a
 
 	// Lets calculate index buffer and triangles
 	a_vertex_buffer.reserve(a_vertex_buffer.size() + triangles * 9);
-	const auto indices = a_clock_wise ? indices_cw : indices_ccw;
 	for (uint32_t i = 0; i < triangles; ++i)
 	{
 		a_vertex_buffer.emplace_back(vertex_buffer[indices[3 * i]]);
@@ -126,8 +130,16 @@ FORCE_INLINE void _box_triangles_indices_internal(uint32_t a_triangles, std::vec
 	// Order of indices is +x, -x, +y, -y, +z, -z
 	const std::vector<ror::Vector3<_index_type>> indices_ccw{{1, 3, 5}, {5, 3, 7}, {4, 6, 0}, {0, 6, 2}, {4, 0, 5}, {5, 0, 1}, {2, 6, 3}, {3, 6, 7}, {0, 2, 1}, {1, 2, 3}, {5, 7, 4}, {4, 7, 6}};
 	const std::vector<ror::Vector3<_index_type>> indices_cw{{1, 5, 3}, {5, 7, 3}, {4, 0, 6}, {0, 2, 6}, {4, 5, 0}, {5, 1, 0}, {2, 3, 6}, {3, 7, 6}, {0, 1, 2}, {1, 3, 2}, {5, 4, 7}, {4, 6, 7}};
+	auto                                         indices = a_clock_wise ? indices_cw : indices_ccw;
 
-	const auto indices = a_clock_wise ? indices_cw : indices_ccw;
+	if (a_triangles == 2)
+	{
+		const std::vector<ror::Vector3<_index_type>> indices_ccw_2d{{0, 2, 1}, {1, 2, 3}};
+		const std::vector<ror::Vector3<_index_type>> indices_cw_2d{{0, 1, 2}, {1, 3, 2}};
+
+		indices = a_clock_wise ? indices_cw_2d : indices_ccw_2d;
+	}
+
 	a_index_buffer.reserve(a_index_buffer.size() + a_triangles);
 	std::copy(indices.begin(), indices.begin() + a_triangles, std::back_inserter(a_index_buffer));
 }

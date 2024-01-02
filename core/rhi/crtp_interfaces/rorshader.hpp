@@ -63,6 +63,7 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	FORCE_INLINE constexpr void  upload()                       const noexcept { this->underlying().upload();            }
 	FORCE_INLINE constexpr void  type(rhi::ShaderType a_type)         noexcept { this->m_type = a_type;                  }
 	FORCE_INLINE constexpr void  hash(hash_64_t a_hash)               noexcept { this->m_hash = a_hash;                  }
+	FORCE_INLINE constexpr auto& includes()                     const noexcept { return this->m_includes;                }
 	// clang-format on
 
 	/**
@@ -84,10 +85,11 @@ class ShaderCrtp : public ror::Crtp<_type, ShaderCrtp>
 	FORCE_INLINE void platform_source()      { this->underlying().platform_source(); }
 	// clang-format on
 
-	hash_64_t             m_hash{};                               //! Shader hash that can be used to query this shader by hash
-	rhi::ShaderType       m_type{rhi::ShaderType::vertex};        //! Shader type could be vertex, fragment, compute etc
-	ror::Resource        *m_shader{nullptr};                      //! non-owning pointer to a resource that has the shader source
-	std::vector<uint32_t> m_spirv{};                              //! SPIR-V compiled version of the source code for this shader
+	hash_64_t                m_hash{};                               //! Shader hash that can be used to query this shader by hash
+	rhi::ShaderType          m_type{rhi::ShaderType::vertex};        //! Shader type could be vertex, fragment, compute etc
+	ror::Resource           *m_shader{nullptr};                      //! non-owning pointer to a resource that has the shader source
+	std::vector<uint32_t>    m_spirv{};                              //! SPIR-V compiled version of the source code for this shader
+	std::vector<std::string> m_includes{};                           //! All the include paths found in the shader
 };
 
 bool compile_to_spirv(const std::string          &a_glsl_source,

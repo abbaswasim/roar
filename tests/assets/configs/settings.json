@@ -4,9 +4,6 @@
 	"visualise_mipmaps": false,
 	"multisample_count": 8,
 	"vsync": false,
-	"window_transparent": true,
-	"window_premultiplied": false,
-	"window_prerotated": false,
 	"zoom_speed": 3.1400001049041748,
 	"buffers_format": "buffers_format.json",
 	"roar_cache": ".roar_cache",
@@ -37,6 +34,20 @@
 		"spread" : 2048,
 		"y_axis" : false,
 		"color" : [1.0, 1.0, 1.0, 1.0]
+	},
+	"window" :
+	{
+		"x" : 0,
+		"y" : 0,
+		"width" : 1024,
+		"height" : 768,
+		"bpp" : 72,
+		"transparent": true,
+		"premultiplied": false,
+		"prerotated": false,
+		"color_format" : "b8g8r8a8_uint32_norm_srgb",
+		"depth_stencil_format" : "depth32_float32",
+		"buffer_count" : 3
 	},
 	"gui" :
 	{

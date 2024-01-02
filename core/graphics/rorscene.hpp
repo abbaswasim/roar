@@ -172,6 +172,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void generate_debug_model(const std::function<bool(size_t)> &a_upload_lambda, size_t a_model_index, rhi::BuffersPack &a_buffer_pack);
 	void add_model_node(int32_t a_model_index);
 	void add_node();
+	void push_shader_updates(const ror::Renderer &a_renderer);
 
 	void create_global_program(const char *a_vertex_shader, const char *a_fragment_shader, size_t a_node_id, size_t a_model_id);
 	auto find_global_program(rhi::RenderpassType a_passtype, uint32_t a_model_id, uint32_t a_mesh_id, size_t a_prim_id, Scene::GlobalProgram **a_global_program);

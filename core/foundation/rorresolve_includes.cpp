@@ -36,9 +36,10 @@ namespace ror
  * @param      a_level           Which level are we currently iterating on.
  * @param      a_semantic        The semantic of the input data type for searching around in the project folders
  * @param      a_with_markers    A flag for debugging purposes if we want to see which file was included where
+ * @param      a_includes        A vector of all includes found in the file(s)
  * @return     return            true if we managed to replace the a_source with data from its includes, false other
  */
-bool resolve_includes(std::string &a_source, uint32_t &a_level, ror::ResourceSemantic a_semantic, bool a_with_markers)
+bool resolve_includes(std::string &a_source, uint32_t &a_level, ror::ResourceSemantic a_semantic, bool a_with_markers, std::vector<std::string> &a_includes)
 {
 	auto levels = ror::settings().m_resolve_includes_depth;
 
@@ -73,6 +74,8 @@ bool resolve_includes(std::string &a_source, uint32_t &a_level, ror::ResourceSem
 			std::string file_name{filename_matches[0].str()};
 			file_name = file_name.substr(1, file_name.length() - 2);
 
+			a_includes.push_back(file_name);
+
 			auto       &shader_resource = ror::load_resource(file_name, a_semantic);
 			std::string shader_code{shader_resource.data_copy()};
 
@@ -103,13 +106,13 @@ bool resolve_includes(std::string &a_source, uint32_t &a_level, ror::ResourceSem
  * @param      a_with_markers    A flag for debugging purposes if we want to see which file was included where
  * @return     return void
  */
-void resolve_includes(std::string &a_input, ror::ResourceSemantic a_semantic, bool a_with_markers)
+void resolve_includes(std::string &a_input, ror::ResourceSemantic a_semantic, bool a_with_markers, std::vector<std::string> &a_includes)
 {
 	uint32_t level  = 0;
 	bool     result = false;
 	do
 	{
-		result = resolve_includes(a_input, level, a_semantic, a_with_markers);
+		result = resolve_includes(a_input, level, a_semantic, a_with_markers, a_includes);
 	} while (result && level < 10);
 }
 

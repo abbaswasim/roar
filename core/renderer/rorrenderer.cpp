@@ -43,10 +43,9 @@
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rorrenderpass.hpp"
-#include "rhi/rorcompute_dispatch.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorcommand_buffer.hpp"
+#include "rhi/rorcompute_dispatch.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader.hpp"
@@ -57,6 +56,7 @@
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
+#include "shader_system/rorshader_update.hpp"
 #include "watchcat/rorwatchcat.hpp"
 #include <cassert>
 #include <filesystem>
@@ -147,19 +147,6 @@ rhi::TextureBorder string_to_texture_border(const std::string &a_filter)
 	return rhi::TextureBorder::transparent;
 }
 
-void Renderer::update_shader(rhi::Device &a_device, std::string &a_shader)        // a_shader is the name/path of the shader in renderer or anywhere else like the scene
-{
-	auto shader_callbacks = this->m_update_callbacks_mapping.find(a_shader);
-	if (shader_callbacks != this->m_update_callbacks_mapping.end())
-	{
-		ror::log_info("Calling all update shader_callbacks on {}", a_shader.c_str());
-		for (auto &shader_callback : shader_callbacks->second)
-		{
-			shader_callback(a_device, *this);
-		}
-	}
-}
-
 void Renderer::patch_shader(rhi::Shader &a_shader, std::string &a_shader_name)
 {
 	auto shader_callback = this->m_callbacks_mapping.find(a_shader_name);
@@ -174,44 +161,15 @@ void Renderer::patch_shader(rhi::Shader &a_shader, std::string &a_shader_name)
 
 void Renderer::push_shader_record(rhi::Shader &a_shader, int32_t a_shader_id)
 {
-	ShaderRecord shader_record{};
-	shader_record.m_shader = &a_shader;        // FIXME: Remove reference from here, source of problems in the future
-	shader_record.m_id     = a_shader_id;
-
-	for (auto &program : this->m_programs)
-	{
-		if (program.vertex_id() == shader_record.m_id ||
-		    program.fragment_id() == shader_record.m_id ||
-		    program.compute_id() == shader_record.m_id ||
-		    program.mesh_id() == shader_record.m_id ||
-		    program.tile_id() == shader_record.m_id)
-		{
-			shader_record.m_programs.emplace_back(&program);
-		}
-	}
-
-	this->m_shaders_mapping[a_shader.shader_path().filename()] = std::move(shader_record);
+	(void) a_shader;
+	(void) a_shader_id;
 }
 
 void Renderer::push_dependent_shader_record(rhi::Shader &a_shader, int32_t a_shader_id, std::string a_filename)
 {
-	ShaderRecord shader_record{};
-	shader_record.m_shader = &a_shader;
-	shader_record.m_id     = a_shader_id;
-
-	for (auto &program : this->m_programs)
-	{
-		if (program.vertex_id() == shader_record.m_id ||
-		    program.fragment_id() == shader_record.m_id ||
-		    program.compute_id() == shader_record.m_id ||
-		    program.mesh_id() == shader_record.m_id ||
-		    program.tile_id() == shader_record.m_id)
-		{
-			shader_record.m_programs.emplace_back(&program);
-		}
-	}
-
-	this->m_shaders_mapping[a_filename] = std::move(shader_record);
+	(void) a_shader;
+	(void) a_shader_id;
+	(void) a_filename;
 }
 
 void Renderer::load_programs()
@@ -1150,7 +1108,7 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 	if (surface)
 	{
-		this->update_shader_update_candidates(a_device, a_buffer_pack);
+		shader_updater().resolve_updates(a_device);
 
 		// Only one command_buffer is enough per frame, but the update_shader_update_candidates might have created, commited and closed its own
 		rhi::CommandBuffer command_buffer{a_device};
@@ -1474,7 +1432,7 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 	this->m_cube_map_mesh.set_texture(skybox_image, skybox_sampler);        // Would probably need refresh if images or samplers are resized
 
-	make_box_triangles_indexed(positions, indices);        // Final argument tells create inside out box
+	make_box_triangles_indexed(positions, indices, false);        // Final argument tells create inside out box
 
 	if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::brdf_lut && brdf_integration_pso != -1)
 	{
@@ -1495,12 +1453,6 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 	skybox_update_lambda(a_device, *this);
 
-	auto &vs_shader = this->shaders()[static_cast<size_t>(skybox_pso->vertex_id())];
-	this->m_update_callbacks_mapping[vs_shader.shader_path().filename()].push_back(skybox_update_lambda);
-
-	auto &fs_shader = this->shaders()[static_cast<size_t>(skybox_pso->fragment_id())];
-	this->m_update_callbacks_mapping[fs_shader.shader_path().filename()].push_back(skybox_update_lambda);
-
 	if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::brdf_lut && brdf_integration_pso != -1)
 		this->m_cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_position_uv_interleaved), 5 * 36 * sizeof(float), 36,
 		                                  reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
@@ -1514,7 +1466,7 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32_t a_mip_height, rhi::Program &a_pso,
                              const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers,
-                             rhi::ShaderBuffer &a_mipmaps_shader_buffer, const char *a_state)
+                             rhi::ShaderBuffer &a_mipmaps_shader_buffer, bool a_is_radiance = false)
 {
 	auto           mip_levels_count = rhi::calculate_texture_mip_levels(a_mip_width, a_mip_height, 1);
 	ror::Vector4ui mip_offset_size{0, 0, a_mip_width, a_mip_width};
@@ -1526,15 +1478,18 @@ static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32
 
 		float roughness = static_cast<float>(level) / static_cast<float>(mip_levels_count);        // I have tried different curves mapping of levels to roughness but the linear one looks nicer
 
-		ror::log_info("Building environment {} map level {}", a_state, level);
+		ror::log_info("Building environment {} map level {}", a_is_radiance ? "radiance" : "irradiance", level);
 
 		mip_offset_size.z = mip_width;
 		mip_offset_size.w = mip_height;
 
 		a_mipmaps_shader_buffer.buffer_map();
 		a_mipmaps_shader_buffer.update("mip_offset_size", &mip_offset_size);
-		a_mipmaps_shader_buffer.update("roughness", &roughness);
-		a_mipmaps_shader_buffer.update("miplevels", &mip_levels_count);
+		if (a_is_radiance)
+		{
+			a_mipmaps_shader_buffer.update("roughness", &roughness);
+			a_mipmaps_shader_buffer.update("miplevels", &mip_levels_count);
+		}
 		a_mipmaps_shader_buffer.buffer_unmap();
 
 		rhi::compute_dispatch_and_wait(a_device, {mip_offset_size.z, mip_offset_size.w, 6}, {32, 32, 1}, a_pso, a_images, a_samplers, a_mipmaps_shader_buffer, []() {});
@@ -1547,13 +1502,7 @@ static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32
 // Will setup all environment related cubemaps, requires a ShaderBuffer that can be used to provide mip sizes and roughness etc
 void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
 {
-	rhi::ShaderBuffer mipmaps_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
-
-	mipmaps_shader_buffer.add_entry("mip_offset_size", rhi::Format::uint32_4);
-	mipmaps_shader_buffer.add_entry("roughness", rhi::Format::float32_1);
-	mipmaps_shader_buffer.add_entry("miplevels", rhi::Format::uint32_1);
-	mipmaps_shader_buffer.upload(a_device);
-	mipmaps_shader_buffer.ready(true);
+	auto &updator = shader_updater();
 
 	// TODO: Use different size for each
 	auto &skbox = a_renderer.images()[a_environment.skybox()];
@@ -1584,38 +1533,66 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		make_texture_pink(radiance_patch_ti);
 	}
 
-	auto &input          = a_renderer.images()[a_environment.input()];
-	auto &skybox         = a_renderer.images()[a_environment.skybox()];
-	auto &radiance       = a_renderer.images()[a_environment.radiance()];
-	auto &irradiance     = a_renderer.images()[a_environment.irradiance()];
-	auto &input_smplr    = a_renderer.samplers()[a_environment.input_sampler()];
-	auto &irradiance_pso = a_renderer.programs()[a_environment.irradiance_pso()];
-	auto &radiance_pso   = a_renderer.programs()[a_environment.radiance_pso()];
+	auto irradiance_lambda = [env_width, &a_environment, &a_renderer](rhi::Device &device) {
+		auto &input          = a_renderer.images()[a_environment.input()];
+		auto &skybox         = a_renderer.images()[a_environment.skybox()];
+		auto &irradiance     = a_renderer.images()[a_environment.irradiance()];
+		auto &input_smplr    = a_renderer.samplers()[a_environment.input_sampler()];
+		auto &irradiance_pso = a_renderer.programs()[a_environment.irradiance_pso()];
 
-	const std::vector<const rhi::TextureImage *>   irradiance_images{&input, &irradiance_patch_ti, &skybox_hdr_patch_ti, &skybox_ldr_patch_ti};
-	const std::vector<const rhi::TextureImage *>   radiance_images{&skybox_hdr_ti, &radiance_patch_ti};
-	const std::vector<const rhi::TextureSampler *> samplers{&input_smplr};
+		const std::vector<const rhi::TextureImage *>   irradiance_images{&input, &irradiance_patch_ti, &skybox_hdr_patch_ti, &skybox_ldr_patch_ti};
+		const std::vector<const rhi::TextureSampler *> samplers{&input_smplr};
 
-	// a_renderer.push_dependent_shader_record(a_renderer.shaders()[static_cast<size_t>(irradiance_pso.compute_id())], static_cast<int32_t>(irradiance_pso_id), "ibl_common.glsl");
+		rhi::ShaderBuffer sizes_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
 
-	// First we create patches and do convolution for irradiance map
-	patch_mip_levels(a_device, env_width, env_width, irradiance_pso, irradiance_images, samplers, mipmaps_shader_buffer, "irradiance");
+		sizes_shader_buffer.add_entry("mip_offset_size", rhi::Format::uint32_4);
+		sizes_shader_buffer.upload(device);
+		sizes_shader_buffer.ready(true);
 
-	// Then we turn it into a skybox ldr/hdr and irradiance cubemap
-	// Remember this doesn't work in completion handler, something to do with command buffer inside command buffer
-	rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, skybox_ldr_patch_ti, skybox);
-	rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, skybox_hdr_patch_ti, skybox_hdr_ti);
-	rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, irradiance_patch_ti, irradiance);
+		// First we create patches and do convolution for irradiance map
+		patch_mip_levels(device, env_width, env_width, irradiance_pso, irradiance_images, samplers, sizes_shader_buffer);
+
+		// Then we turn it into a skybox ldr/hdr and irradiance cubemap
+		// Remember this doesn't work in completion handler, something to do with command buffer inside command buffer
+		rhi::texture_patch_to_mipmapped_cubemap_texture(device, skybox_ldr_patch_ti, skybox);
+		rhi::texture_patch_to_mipmapped_cubemap_texture(device, skybox_hdr_patch_ti, skybox_hdr_ti);
+		rhi::texture_patch_to_mipmapped_cubemap_texture(device, irradiance_patch_ti, irradiance);
+	};
+
+	irradiance_lambda(a_device);
+
+	updator.push_program_record(static_cast<int32_t>(a_environment.irradiance_pso()), a_renderer.programs(), a_renderer.shaders(), irradiance_lambda);
 
 	// By this point skybox in LD and HDR are ready in cubemap form, irradiance map is also ready in cubemap form.
 	// Now we need to create radiance cubemap but we need to prefilter the skybox_hdr to do that, write it out to a patch image again
 	// And then write it out to a final irradiance cubemap
 
-	// First we create a prefiltered patch
-	patch_mip_levels(a_device, env_width, env_width, radiance_pso, radiance_images, samplers, mipmaps_shader_buffer, "radiance");
+	auto radiance_lambda = [env_width, &a_environment, &a_renderer](rhi::Device &device) {
+		auto &input_sampler = a_renderer.samplers()[a_environment.input_sampler()];
+		auto &radiance_pso  = a_renderer.programs()[a_environment.radiance_pso()];
+		auto &radiance      = a_renderer.images()[a_environment.radiance()];
 
-	// Then we turn it into a cubemap
-	rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, radiance_patch_ti, radiance);
+		const std::vector<const rhi::TextureImage *>   radiance_images{&skybox_hdr_ti, &radiance_patch_ti};
+		const std::vector<const rhi::TextureSampler *> radiance_samplers{&input_sampler};
+
+		rhi::ShaderBuffer mipmaps_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
+
+		mipmaps_shader_buffer.add_entry("mip_offset_size", rhi::Format::uint32_4);
+		mipmaps_shader_buffer.add_entry("roughness", rhi::Format::float32_1);
+		mipmaps_shader_buffer.add_entry("miplevels", rhi::Format::uint32_1);
+		mipmaps_shader_buffer.upload(device);
+		mipmaps_shader_buffer.ready(true);
+
+		// First we create a prefiltered patch
+		patch_mip_levels(device, env_width, env_width, radiance_pso, radiance_images, radiance_samplers, mipmaps_shader_buffer, true);
+
+		// Then we turn it into a cubemap
+		rhi::texture_patch_to_mipmapped_cubemap_texture(device, radiance_patch_ti, radiance);
+	};
+
+	radiance_lambda(a_device);
+
+	updator.push_program_record(static_cast<int32_t>(a_environment.radiance_pso()), a_renderer.programs(), a_renderer.shaders(), radiance_lambda);
 }
 
 // This method works in the following way:
@@ -1656,57 +1633,8 @@ void Renderer::upload_environments(rhi::Device &a_device)
 	ror::log_info("Uploading all environments took {} nanoseconds.", t.tick());        // TODO: If time is too much, make compute_dispatch_and_wait into command_buffer
 }
 
-void Renderer::push_shader_update_candidate(std::string a_shader)
-{
-	this->m_shaders_update_candidates.emplace_back(ShaderUpdateRecord{2, a_shader});        // Pushes an ShaderUpdateRecord
-}
-
-void Renderer::update_shader_update_candidates(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
-{
-	for (auto &shader_candidate : this->m_shaders_update_candidates)
-	{
-		--shader_candidate.m_counter;
-
-		if (shader_candidate.m_counter <= 0)
-		{
-			ShaderRecord &shader_record = this->m_shaders_mapping[shader_candidate.m_shader];
-			assert(shader_record.m_shader && shader_record.m_programs.size() && "Shader record is null");
-
-			shader_record.m_shader->reload();
-			shader_record.m_shader->compile();
-			shader_record.m_shader->upload(a_device);
-
-			for (auto &program : shader_record.m_programs)
-				program->upload(a_device, this->m_shaders, a_buffer_pack, false);
-
-			this->update_shader(a_device, shader_candidate.m_shader);
-		}
-	}
-
-	this->m_shaders_update_candidates.remove_if([](ShaderUpdateRecord &shader_record) { return shader_record.m_counter <= 0; });
-}
-
-void setup_shader_watcher(Renderer *a_renderer)
-{
-	std::vector<std::filesystem::path> paths{};
-
-	// TODO: Think about how we give it path from within editor
-	// paths.emplace_back("/System/Volumes/Data/personal/roar_engine/editor");
-	paths.emplace_back("/System/Volumes/Data/personal/roar_engine/core/assets/shaders");
-
-	static ror::WatchCat watcher(
-	    paths, [a_renderer](std::vector<ror::WatchCatEvent> events) {
-		    for (auto e : events)
-			    if (e.m_type == ror::WatchCatEventType::change)
-				    a_renderer->push_shader_update_candidate(e.m_path.filename());
-	    },
-	    0.00001f);
-}
-
 void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 {
-	setup_shader_watcher(this);
-
 	for (auto &shader : this->m_shaders)
 	{
 		shader.compile();
@@ -1714,8 +1642,20 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 	}
 
 	// This upload used default vertex descriptor which is no good for much but good enough for some
+	int32_t program_id{0};
 	for (auto &program : this->m_programs)
-		program.upload(a_device, this->m_shaders, a_buffer_pack, false);        // TODO: Retrieve pre-multiplied state from renderer for each shader
+	{
+		auto program_update = [&program, this, &a_buffer_pack](rhi::Device &device) {
+			program.upload(device, this->m_shaders, a_buffer_pack, false);        // TODO: Retrieve pre-multiplied state from renderer for each shader
+		};
+
+		program_update(a_device);
+
+		// Lets also create a shader update entry, remember this one is using standard program.upload().
+		// It might not enough for some things which requires a complex vertex descriptor, push that lambda for the same shader later as well
+		auto &updator = shader_updater();
+		updator.push_program_record(program_id++, this->m_programs, this->m_shaders, program_update);
+	}
 
 	// Upload all render targets now, render buffers are deffered after scenes are loaded
 	for (auto &render_target : this->m_input_render_targets)

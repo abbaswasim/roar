@@ -73,7 +73,7 @@ FORCE_INLINE void make_box_triangles(float32_t a_size, std::vector<_type> &a_out
  * @return     return A vector to append the vertices created to
  */
 template <class _type>
-FORCE_INLINE std::vector<_type> make_box_triangles(float32_t a_size);
+FORCE_INLINE std::vector<_type> make_box_triangles(float32_t a_size, bool a_clock_wise = true);
 
 /**
  * @brief      Creates a Box with a_size in all 3 or 2 dimensions

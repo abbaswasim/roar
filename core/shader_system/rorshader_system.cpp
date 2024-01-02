@@ -1595,5 +1595,24 @@ void node_transform_glsl_comp(std::string &a_input, const ror::Renderer &a_rende
 	replace_next_at(a_renderer.shader_buffer("current_animations")->to_glsl_string(), a_input);
 }
 
+std::vector<std::string> &mesh_shaders_dependencies()
+{
+	// Keep updating when some shaders are not picked up by the shader update system
+	// Ideally could be read from disk, but that will also read lots of other junk
+	static std::vector<std::string> deps{
+	    "tbn.glsl.frag",
+	    "getters.glsl.frag",
+	    "render_modes.glsl.frag",
+	    "ibl_reference.glsl.frag",
+	    "brdf.glsl.frag",
+	    "temporary_structs.glsl.frag",
+	    "shadows.glsl.frag",
+	    "shading_standard.glsl.frag",
+	    "lighting.glsl.frag",
+	    "main.glsl.frag"};
+
+	return deps;
+}
+
 // End of fragment shader code
 }        // namespace ror

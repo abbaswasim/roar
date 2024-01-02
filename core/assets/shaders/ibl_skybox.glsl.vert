@@ -24,7 +24,7 @@ float scale = 100.0;
 void set_position()
 {
 	out_vertex_position = in_vertex_position;
-	// out_vertex_position.x *= -1;        // Since our environment is inside out we flip the X axis to see it correctly
+	out_vertex_position.x *= -1;        // Since our environment is inside out we flip the X axis to see it correctly
 
 	gl_Position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * vec4(in_vertex_position.xyz * scale, 1.0);
 

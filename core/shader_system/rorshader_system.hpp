@@ -61,5 +61,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 // std::string generate_primitive_vertex_shader(const ror::Mesh &a_mesh, uint32_t a_index);
 std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const materials_vector &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, const ror::Renderer &a_renderer, bool a_has_shadow = false);
 
+std::vector<std::string>& mesh_shaders_dependencies();
+
 void node_transform_glsl_comp(std::string &a_input, const ror::Renderer &a_renderer);
 }        // namespace ror

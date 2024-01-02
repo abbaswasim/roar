@@ -228,9 +228,9 @@ TEST(RoarGeneral, settings_test)
 	EXPECT_EQ(config.get<bool>("visualise_mipmaps"), false);
 	EXPECT_EQ(config.get<uint32_t>("multisample_count"), 8);
 	EXPECT_EQ(config.get<bool>("vsync"), false);
-	EXPECT_EQ(config.get<bool>("window_transparent"), true);
-	EXPECT_EQ(config.get<bool>("window_premultiplied"), false);
-	EXPECT_EQ(config.get<bool>("window_prerotated"), false);
+	EXPECT_EQ(config.get<bool>("window:transparent"), true);
+	EXPECT_EQ(config.get<bool>("window:premultiplied"), false);
+	EXPECT_EQ(config.get<bool>("window:prerotated"), false);
 	EXPECT_FLOAT_EQ(config.get<float32_t>("zoom_speed"), 3.1400001049041748f);
 	EXPECT_EQ(config.get<std::string>("buffers_format"), "buffers_format.json");
 	EXPECT_EQ(config.get<std::string>("roar_cache"), ".roar_cache");
@@ -254,9 +254,9 @@ TEST(RoarGeneral, settings_test)
 	EXPECT_EQ(sett.m_visualise_mipmaps, false);
 	EXPECT_EQ(sett.m_multisample_count, 8);
 	EXPECT_EQ(sett.m_vertical_sync, false);
-	EXPECT_EQ(sett.m_window_transparent, true);
-	EXPECT_EQ(sett.m_window_premultiplied, false);
-	EXPECT_EQ(sett.m_window_prerotated, false);
+	EXPECT_EQ(sett.m_window.m_transparent, true);
+	EXPECT_EQ(sett.m_window.m_premultiplied, false);
+	EXPECT_EQ(sett.m_window.m_prerotated, false);
 	EXPECT_FLOAT_EQ(sett.m_zoom_speed, 3.1400001049041748f);
 	EXPECT_EQ(sett.m_buffers_format, "buffers_format.json");
 	EXPECT_EQ(sett.m_roar_cache, ".roar_cache");

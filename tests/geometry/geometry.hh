@@ -45,8 +45,8 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 	ror::make_box_triangles(size, origin , output);
 #endif
 
-	const uint32_t indices_tris[]  = {0, 1, 2, 1, 3, 2, 5, 4, 6, 5, 6, 7, 0, 2, 6, 4, 0, 6, 1, 5, 3, 5, 7, 3, 3, 7, 2, 7, 6, 2, 0, 4, 1, 4, 5, 1};
-	const size_t   indices_lines[] = {0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 1, 5, 2, 6, 3, 7, 4, 5, 5, 7, 7, 6, 6, 4};
+	const uint32_t indices_tris[]  = {1, 5, 3, 5, 7, 3, 4, 0, 6, 0, 2, 6, 4, 5, 0, 5, 1, 0, 2, 3, 6, 3, 7, 6, 0, 1, 2, 1, 3, 2, 5, 4, 7, 4, 6, 7};
+	const size_t indices_lines[] = {0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 1, 5, 2, 6, 3, 7, 4, 5, 5, 7, 7, 6, 6, 4};
 
 	if constexpr (std::is_same<TypeParam, float32_t>::value || std::is_same<TypeParam, double64_t>::value)
 	{
@@ -110,6 +110,7 @@ TYPED_TEST(GeometryTest, cube_test_3d)
 			{
 				// Use overload
 				std::vector<ror::Vector3<TypeParam>> output = ror::make_box_triangles<ror::Vector3<TypeParam>>(static_cast<float32_t>(size.x));
+
 				for (size_t i = 0; i < 36; ++i)
 				{
 					test_vector3_equal(res_tris[i], output[i]);
