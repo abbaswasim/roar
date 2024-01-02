@@ -29,6 +29,7 @@
 #include "core/foundation/rorcrtp.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
+#include "foundation/rorutilities.hpp"
 #include "graphics/rordynamic_mesh.hpp"
 #include "graphics/rorenvironment.hpp"
 #include "math/rorvector2.hpp"
@@ -80,6 +81,8 @@ class Renderer final : public Configuration<Renderer>
 	void                             set_render_mode(uint32_t a_render_mode);
 	int32_t                          brdf_integration_lut_index(std::string a_name = "brdf_integration_lut");
 	void                             push_shader_update_candidate(std::string a_shader);
+	void                             push_shader_record(rhi::Shader &a_shader, int32_t a_shader_id);
+	void                             push_dependent_shader_record(rhi::Shader &a_shader, int32_t a_shader_id, std::string a_name);
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off
@@ -105,8 +108,12 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &frame_graphs()           const noexcept { return this->m_frame_graphs;            }
 	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
 	FORCE_INLINE constexpr auto &dynamic_meshes()         const noexcept { return this->m_dynamic_meshes;          }
+	FORCE_INLINE constexpr auto canonical_cube()          const noexcept { return this->m_canonical_cube;          }
+	FORCE_INLINE constexpr auto &update_callbacks_mapping()     noexcept { return this->m_update_callbacks_mapping;}
+
 
 	FORCE_INLINE           auto shader_buffer(const std::string& a_name)                           const           { return this->m_buffers_mapping.at(a_name);   }
+	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];            }
 
 	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
 	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }
@@ -134,6 +141,12 @@ class Renderer final : public Configuration<Renderer>
 	using ShaderCallbackMap       = std::unordered_map<std::string, std::function<void(std::string &, ror::Renderer &)>>;
 	using ShaderUpdateCallbackMap = std::unordered_map<std::string, std::vector<std::function<void(rhi::Device &, ror::Renderer &)>>>;
 	using ShaderRecordsMap        = std::unordered_map<std::string, ShaderRecord>;
+
+
+	rhi::TextureImage *m_skybox_hdr_patch_ti{nullptr};
+	rhi::TextureImage *m_skybox_ldr_patch_ti{nullptr};
+	rhi::TextureImage *m_irradiance_patch_ti{nullptr};
+	rhi::TextureImage *m_radiance_patch_ti{nullptr};
 
   protected:
   private:
@@ -184,6 +197,7 @@ class Renderer final : public Configuration<Renderer>
 	std::vector<ror::DynamicMesh *>         m_dynamic_meshes{};                               //! Non-Owning pointers to all the dynamic meshes created in the renderer should be rendererd at the end, mostly has cubemap mes
 	ror::DynamicMesh                        m_cube_map_mesh{};                                //! Single instance of a cubemap mesh used by all environments
 	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use
+	uint32_t                                m_canonical_cube{};                               //! Canonical cube for debugging purposes
 };
 }        // namespace ror
 

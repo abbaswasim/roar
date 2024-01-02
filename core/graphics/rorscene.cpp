@@ -447,6 +447,9 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		enable_material_component(material.m_height, textures, images, samplers, binding_index, a_dd);
 		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
+		if (a_scene.has_shadows())
+			binding_index++;        // To be consistent with shader_system.cpp
+
 		if (a_mesh.has_indices(prim_id))
 		{
 			auto &index_buffer_attribute = vertex_attributes.attribute(rhi::BufferSemantic::vertex_index);
@@ -968,6 +971,8 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 		dm->render(a_renderer, a_encoder);
 
 	// Lets render all the renderer dynamic mesh, usually it only has a skybox cubmap
+	// TODO: Check why the order of this and the one above matters, if scene dynamic meshes are rendererd first nothing shows
+	this->reset_to_default_state(a_renderer, a_encoder);
 	for (auto &dm : a_renderer.dynamic_meshes())
 		dm->render(a_renderer, a_encoder);
 
@@ -1471,6 +1476,25 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 		this->m_dynamic_meshes.emplace_back(std::move(&cube_map_mesh));
 	}
+	if (setting.m_generate_canonical_cube_map)
+	{
+		static ror::DynamicMesh canonical_cube{};
+
+		rhi::VertexDescriptor vertex_descriptor = create_p_float3_t_float2_descriptor();
+
+		canonical_cube.init(a_device, rhi::PrimitiveTopology::triangles);
+		canonical_cube.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+		canonical_cube.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
+		auto &canonical_cube_image = a_renderer.images()[a_renderer.canonical_cube()];
+
+		canonical_cube.set_texture(const_cast<rhi::TextureImage *>(&canonical_cube_image));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		canonical_cube.setup_shaders(rhi::BlendMode::blend, "canonical_cubemap.glsl.vert", "canonical_cubemap.glsl.frag");
+		canonical_cube.topology(rhi::PrimitiveTopology::triangles);
+		canonical_cube.upload_data(reinterpret_cast<const uint8_t *>(setting.m_invert_canonical_cube_map ? &cube_vertex_position_uv_interleaved_inverted : &cube_vertex_position_uv_interleaved), 5 * 36 * sizeof(float), 36,
+		                           reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
+
+		this->m_dynamic_meshes.emplace_back(std::move(&canonical_cube));
+	}
 
 	if (setting.m_generate_quad_mesh)
 	{
@@ -1481,11 +1505,42 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
 		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
-		if (a_renderer.images().size() > 12)
-		{
-			auto image_lut = &a_renderer.images()[12];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
-			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
-		}
+
+		static const auto keyboard_up_down   = create_event_handle(EventType::keyboard, EventCode::up, EventModifier::none, EventState::down);
+		static const auto keyboard_down_down = create_event_handle(EventType::keyboard, EventCode::down, EventModifier::none, EventState::down);
+		static size_t     id                 = 0;
+
+		static std::vector<rhi::TextureImage *> env_images{a_renderer.m_skybox_hdr_patch_ti, a_renderer.m_irradiance_patch_ti, a_renderer.m_skybox_ldr_patch_ti, a_renderer.m_radiance_patch_ti};
+		static std::vector<std::string>         env_image_names{"m_skybox_hdr_patch_ti", "m_irradiance_patch_ti", "m_skybox_ldr_patch_ti", "m_radiance_patch_ti"};
+
+		quad_mesh.set_texture(a_renderer.m_radiance_patch_ti);
+
+		static EventCallback up_key_callback = [](ror::Event &) {
+			id++;
+			if (id < env_images.size())
+			{
+				quad_mesh.set_texture(env_images[id]);
+				log_critical("Using skybox texture {} = {}", id, env_image_names[id].c_str());
+			}
+			else
+				id = env_images.size();
+		};
+		static EventCallback down_key_callback = [](ror::Event &) {
+			if (id > 0)
+			{
+				--id;
+				quad_mesh.set_texture(env_images[id]);
+				log_critical("Using skybox texture {} = {}", id, env_image_names[id].c_str());
+			}
+		};
+
+		a_event_system.subscribe(keyboard_up_down, up_key_callback);
+		a_event_system.subscribe(keyboard_down_down, down_key_callback);
+
+		// }
+		// auto image_lut = &a_renderer.images()[a_renderer.current_environment().input()];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
+		// quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+
 		quad_mesh.setup_shaders(rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(reinterpret_cast<const uint8_t *>(&quad_vertex_buffer_interleaved), 5 * 6 * sizeof(float), 6);
@@ -1502,7 +1557,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
 		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
-		// quad_mesh.load_texture(a_device);                                         // What if I want to just set the texture, to something I want to display on it
+		quad_mesh.load_texture(a_device);                                         // What if I want to just set the texture, to something I want to display on it
 		if (a_renderer.images().size() > 12)
 		{
 			auto image_lut = &a_renderer.images()[12];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
@@ -1626,12 +1681,9 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 
 	// For each render pass in the framegraph create programs the model meshes can use
 
-	// The has_shadows variable is used to tell any fragment shaders for any pass generated to use shadow mapping, this is NOT about shadow pass itself
-	bool has_shadows = false;
-
 	for (auto &passtype : render_pass_types)
 		if (passtype == rhi::RenderpassType::shadow)
-			has_shadows = true;
+			this->m_has_shadows = true;
 
 	// This should be shaders_count * 2 * render_passes.size();
 	// Then fill me up in a loop before entering the next loop with jobs in it
@@ -1756,6 +1808,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 					{
 						auto &fs_shader_index = shader_hash_to_index[fs_hash];
 						auto &fs_shader       = this->m_shaders[fs_shader_index];
+						auto has_shadows = this->m_has_shadows; // Creating local variable so I don't pass along this pointer
 						auto  fs_job_handle   = a_job_system.push_job([prim_index, passtype, has_shadows, &fs_shader, &mesh, &model, &a_renderer]() -> auto {
                             auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
                             fs_shader.source(fs);

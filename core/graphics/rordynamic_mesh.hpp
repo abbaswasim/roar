@@ -69,6 +69,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	FORCE_INLINE       rhi::TextureSampler   &texture_sampler() noexcept              { return this->m_texture_sampler;         }
 	FORCE_INLINE const rhi::Program          &shader_program() const noexcept         { return this->m_shader_program;          }
 	FORCE_INLINE const rhi::Program          *shader_program_external() const noexcept{ return this->m_shader_program_external; }
+	FORCE_INLINE       rhi::Program          *shader_program_external() noexcept      { return this->m_shader_program_external; }
 	FORCE_INLINE const rhi::VertexDescriptor &vertex_descriptor() const noexcept      { return this->m_vertex_descriptor;       }
 	FORCE_INLINE const rhi::Buffer           &vertex_buffer() const noexcept          { return this->m_vertex_buffer;           }
 	FORCE_INLINE const rhi::Buffer           &index_buffer() const noexcept           { return this->m_index_buffer;            }

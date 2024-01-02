@@ -23,7 +23,7 @@
 //
 // Version: 1.0.0
 
-#include "rhi/crtp_interfaces/rorcompute_dispatch.hpp"
+#include "rhi/rorcompute_dispatch.hpp"
 #include "rhi/rortypes.hpp"
 
 namespace rhi

@@ -2,8 +2,8 @@
 	"shaders":[
 		"node_transform.glsl.comp",
 		"ibl_lut.glsl.comp",
-		"ibl_irradiance.glsl.comp",
-		"ibl_radiance.glsl.comp",
+		"ibl_equirect_patch.glsl.comp",
+		"ibl_radiance_patch.glsl.comp",
 		"ibl_skybox.glsl.vert",
 		"ibl_skybox.glsl.frag",
 		"ibl_skybox_brdf_integration.glsl.vert",
@@ -125,7 +125,7 @@
 			"radiance_pso": 3,
 			"irradiance_pso": 2,
 			"brdf_integration_pso": 5,
-			"skybox_sampler": 1,
+			"skybox_sampler": 2,
 			"input_sampler": 1,
 			"irradiance_sampler": 1,
 			"radiance_sampler": 2,
@@ -137,14 +137,15 @@
 			},
 			"irradiance": {
 				"name":"irradiance_map",
-				"format":"r8g8b8a8_uint32_norm",
+				"format":"r32g32b32a32_float128",
 				"size" : 1024,
 				"target": "CUBE",
-				"writeable": true
+				"writeable": true,
+				"mipmapped": true
 			},
 			"radiance": {
 				"name":"radiance_map",
-				"format":"r8g8b8a8_uint32_norm",
+				"format":"r32g32b32a32_float128",
 				"size" : 1024,
 				"target": "CUBE",
 				"writeable": true,
@@ -155,7 +156,8 @@
 				"format":"r8g8b8a8_uint32_norm",
 				"size" : 1024,
 				"target": "CUBE",
-				"writeable": true
+				"writeable": true,
+				"mipmapped": true
 			}
 		}
 	],

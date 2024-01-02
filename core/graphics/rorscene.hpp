@@ -140,6 +140,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr const auto &lights()           const noexcept   {  return this->m_lights;          }
 	FORCE_INLINE constexpr const auto &bounding_box()     const noexcept   {  return this->m_bounding_box;    }
 	FORCE_INLINE constexpr       auto &dymanic_meshes()   const noexcept   {  return this->m_dynamic_meshes;  }
+	FORCE_INLINE constexpr       auto  has_shadows()      const noexcept   {  return this->m_has_shadows;     }
 	// clang-format on
 
 	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system);
@@ -192,6 +193,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	ror::BoundingBoxf                m_bounding_box{};                                         //! Scene bounding box, a combination of its models in object space
 	bool                             m_indices_dirty{true};                                    //! If the scene graph indicies are direty and not uploaded yet
 	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
+	bool                             m_has_shadows{false};                                     //! To tell any fragment shaders for any pass generated to use shadow mapping, this is NOT about shadow pass itself
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
 	std::vector<ror::DynamicMesh *>  m_dynamic_meshes{};                                       //! Non-Owning pointers to all the dynamic meshes created in the scene rendererd at once in the end
 	int32_t                          m_grid_model_id{-1};                                      //! Reference to the grid for easy access

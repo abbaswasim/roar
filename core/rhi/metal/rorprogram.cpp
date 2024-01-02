@@ -49,6 +49,7 @@ namespace rhi
 define_translation_unit_vtable(ProgramMetal)
 {}
 
+
 /*
 Metal vertex attributes to shader and buffer mapping
 
