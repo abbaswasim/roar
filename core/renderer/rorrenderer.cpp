@@ -65,6 +65,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -233,21 +234,23 @@ void make_texture_pink(rhi::TextureImage &a_texture_image)
 	{
 		if (a_texture_image.hdr())
 		{
-			float32_t *fptr = reinterpret_cast<float32_t *>(ptr);
+			float32_t *fptr = reinterpret_cast<float32_t *>(ptr + i);
 
-			fptr[i + 0] = 1.0f;
-			fptr[i + 1] = 20.0f / 255.0f;
-			fptr[i + 2] = 147.0f / 255.0f;
-			fptr[i + 3] = 1.0f;
+			fptr[0] = 1.0f;
+			fptr[1] = 20.0f / 255.0f;
+			fptr[2] = 147.0f / 255.0f;
+			fptr[3] = 1.0f;
 
 			i += 16;
 		}
 		else
 		{
-			ptr[i + 0] = 255;
-			ptr[i + 1] = 20;
-			ptr[i + 2] = 147;
-			ptr[i + 3] = 255;
+			uint8_t *cptr = reinterpret_cast<uint8_t *>(ptr + i);
+
+			cptr[0] = 255;
+			cptr[1] = 20;
+			cptr[2] = 147;
+			cptr[3] = 255;
 
 			i += 4;
 		}
@@ -466,6 +469,8 @@ void Renderer::load_environments()
 			read_env_texture(irradiance, true);
 			read_env_texture(radiance, true);
 			read_env_texture(skybox, true);
+
+			ibl_environment.path(input_texture_image.name());
 
 			this->m_environments.emplace_back(std::move(ibl_environment));
 
@@ -1108,7 +1113,7 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 	if (surface)
 	{
-		shader_updater().resolve_updates(a_device);
+		shader_updater().resolve_updates(a_device, a_job_system);
 
 		// Only one command_buffer is enough per frame, but the update_shader_update_candidates might have created, commited and closed its own
 		rhi::CommandBuffer command_buffer{a_device};
@@ -1499,6 +1504,19 @@ static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32
 	}
 }
 
+std::string environment_name(ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
+{
+	auto &skybox     = a_renderer.images()[a_environment.skybox()];
+	auto &irradiance = a_renderer.images()[a_environment.irradiance()];
+	auto &radiance   = a_renderer.images()[a_environment.radiance()];
+
+	std::string env_name = a_environment.name();
+	std::replace(env_name.begin(), env_name.end(), ' ', '_');
+	env_name += "_" + std::to_string(skybox.width()) + "_" + std::to_string(irradiance.width()) + "_" + std::to_string(radiance.width()) + "_";
+
+	return env_name;
+}
+
 // Will setup all environment related cubemaps, requires a ShaderBuffer that can be used to provide mip sizes and roughness etc
 void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
 {
@@ -1513,11 +1531,11 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 	uint32_t env_height_4x{env_width * 4};
 
 	// The 5 temporary textures 1 HDR cubemap and 4 patches required, all static because used for multiple environments and used in a lambda for shader updates
-	static rhi::TextureImage skybox_hdr_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width, env_width, rhi::TextureTarget::texture_cube, rhi::TextureUsage::shader_write, true)};
-	static rhi::TextureImage skybox_hdr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write)};
+	static rhi::TextureImage skybox_hdr_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width, env_width, rhi::TextureTarget::texture_cube, rhi::TextureUsage::shader_write, true, false)};
+	static rhi::TextureImage skybox_hdr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, false, true)};
 	static rhi::TextureImage skybox_ldr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r8g8b8a8_uint32_norm, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write)};
-	static rhi::TextureImage irradiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write)};
-	static rhi::TextureImage radiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write)};
+	static rhi::TextureImage irradiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, false, true)};
+	static rhi::TextureImage radiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, false, true)};
 
 	a_renderer.m_skybox_hdr_patch_ti = &skybox_hdr_patch_ti;
 	a_renderer.m_skybox_ldr_patch_ti = &skybox_ldr_patch_ti;
@@ -1533,7 +1551,16 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		make_texture_pink(radiance_patch_ti);
 	}
 
-	auto irradiance_lambda = [env_width, &a_environment, &a_renderer](rhi::Device &device) {
+	static auto write_env_image = [env_width_2x, env_height_4x, &a_device](const std::string &name, const rhi::TextureImage &a_texture, bool hdr) {
+		rhi::Buffer buffer = read_pixels(a_device, a_texture, 0, 0);
+		auto        data   = buffer.map();
+		if (hdr)
+			rhi::write_hdr(name, env_width_2x, env_height_4x, reinterpret_cast<float32_t *>(data), true);
+		else
+			rhi::write_tga(name, env_width_2x, env_height_4x, data, true);
+	};
+
+	auto irradiance_lambda = [env_width, &a_environment, &a_renderer](rhi::Device &device, ShaderCache) {
 		auto &input          = a_renderer.images()[a_environment.input()];
 		auto &skybox         = a_renderer.images()[a_environment.skybox()];
 		auto &irradiance     = a_renderer.images()[a_environment.irradiance()];
@@ -1557,17 +1584,15 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		rhi::texture_patch_to_mipmapped_cubemap_texture(device, skybox_ldr_patch_ti, skybox);
 		rhi::texture_patch_to_mipmapped_cubemap_texture(device, skybox_hdr_patch_ti, skybox_hdr_ti);
 		rhi::texture_patch_to_mipmapped_cubemap_texture(device, irradiance_patch_ti, irradiance);
+
+		std::string env_name = environment_name(a_renderer, a_environment);
+
+		// Write out to cache the textures generated for next time
+		write_env_image(env_name + "irradiance.hdr", irradiance_patch_ti, true);
+		write_env_image(env_name + "skybox.tga", skybox_ldr_patch_ti, false);
 	};
 
-	irradiance_lambda(a_device);
-
-	updator.push_program_record(static_cast<int32_t>(a_environment.irradiance_pso()), a_renderer.programs(), a_renderer.shaders(), irradiance_lambda);
-
-	// By this point skybox in LD and HDR are ready in cubemap form, irradiance map is also ready in cubemap form.
-	// Now we need to create radiance cubemap but we need to prefilter the skybox_hdr to do that, write it out to a patch image again
-	// And then write it out to a final irradiance cubemap
-
-	auto radiance_lambda = [env_width, &a_environment, &a_renderer](rhi::Device &device) {
+	auto radiance_lambda = [env_width, &a_environment, &a_renderer](rhi::Device &device, ShaderCache) {
 		auto &input_sampler = a_renderer.samplers()[a_environment.input_sampler()];
 		auto &radiance_pso  = a_renderer.programs()[a_environment.radiance_pso()];
 		auto &radiance      = a_renderer.images()[a_environment.radiance()];
@@ -1588,10 +1613,57 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 
 		// Then we turn it into a cubemap
 		rhi::texture_patch_to_mipmapped_cubemap_texture(device, radiance_patch_ti, radiance);
+
+		std::string env_name = environment_name(a_renderer, a_environment);
+
+		// Write out to cache the textures generated for next time
+		write_env_image(env_name + "radiance.hdr", radiance_patch_ti, true);
 	};
 
-	radiance_lambda(a_device);
+	if (!settings().m_environment.m_rebuild)
+	{
+		std::string env_name        = environment_name(a_renderer, a_environment);
+		std::string skybox_name     = env_name + "skybox.tga";
+		std::string irradiance_name = env_name + "irradiance.hdr";
+		std::string radiance_name   = env_name + "radiance.hdr";
 
+		if (check_resource(skybox_name, ror::ResourceSemantic::textures) &&
+		    check_resource(irradiance_name, ror::ResourceSemantic::textures) &&
+		    check_resource(radiance_name, ror::ResourceSemantic::textures))
+		{
+			auto &skybox_rc       = ror::load_resource(skybox_name, ror::ResourceSemantic::textures);
+			auto &irradiance_rcti = ror::load_resource(irradiance_name, ror::ResourceSemantic::textures);
+			auto &radiance_rc     = ror::load_resource(radiance_name, ror::ResourceSemantic::textures);
+
+			rhi::read_texture_from_resource(skybox_rc, skybox_ldr_patch_ti, false);
+			rhi::read_texture_from_resource(irradiance_rcti, irradiance_patch_ti, true);
+			rhi::read_texture_from_resource(radiance_rc, radiance_patch_ti, true);
+
+			skybox_ldr_patch_ti.upload(a_device);
+			irradiance_patch_ti.upload(a_device);
+			radiance_patch_ti.upload(a_device);
+
+			auto &skybox     = a_renderer.images()[a_environment.skybox()];
+			auto &irradiance = a_renderer.images()[a_environment.irradiance()];
+			auto &radiance   = a_renderer.images()[a_environment.radiance()];
+
+			rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, skybox_ldr_patch_ti, skybox);
+			rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, irradiance_patch_ti, irradiance);
+			rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, radiance_patch_ti, radiance);
+		}
+		else
+		{
+			irradiance_lambda(a_device, nullptr);
+
+			// By this point skybox in LD and HDR are ready in cubemap form, irradiance map is also ready in cubemap form.
+			// Now we need to create radiance cubemap but we need to prefilter the skybox_hdr to do that, write it out to a patch image again
+			// And then write it out to a final irradiance cubemap
+
+			radiance_lambda(a_device, nullptr);
+		}
+	}
+
+	updator.push_program_record(static_cast<int32_t>(a_environment.irradiance_pso()), a_renderer.programs(), a_renderer.shaders(), irradiance_lambda);
 	updator.push_program_record(static_cast<int32_t>(a_environment.radiance_pso()), a_renderer.programs(), a_renderer.shaders(), radiance_lambda);
 }
 
@@ -1645,11 +1717,11 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 	int32_t program_id{0};
 	for (auto &program : this->m_programs)
 	{
-		auto program_update = [&program, this, &a_buffer_pack](rhi::Device &device) {
+		auto program_update = [&program, this, &a_buffer_pack](rhi::Device &device, std::unordered_set<hash_64_t> *) {
 			program.upload(device, this->m_shaders, a_buffer_pack, false);        // TODO: Retrieve pre-multiplied state from renderer for each shader
 		};
 
-		program_update(a_device);
+		program_update(a_device, nullptr);
 
 		// Lets also create a shader update entry, remember this one is using standard program.upload().
 		// It might not enough for some things which requires a complex vertex descriptor, push that lambda for the same shader later as well

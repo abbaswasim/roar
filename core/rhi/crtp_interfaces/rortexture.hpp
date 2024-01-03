@@ -79,7 +79,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE auto *data() const noexcept;
 	FORCE_INLINE auto *data() noexcept;
 	FORCE_INLINE auto &mips() noexcept;
-	FORCE_INLINE auto &mip(size_t a_index) noexcept;
+	FORCE_INLINE auto &mip(size_t a_index) const noexcept;
 	FORCE_INLINE auto  size() const noexcept;
 	FORCE_INLINE auto  ready() const noexcept;
 	FORCE_INLINE auto  mipmapped() const noexcept;

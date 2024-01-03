@@ -35,6 +35,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb/stb_image_write.h"
+
 namespace rhi
 {
 
@@ -43,13 +46,70 @@ ror::Vector4f reinhard_tone_mapping(ror::Vector4f color)
 	return color / (color + ror::Vector4f(1.0f));
 }
 
-void write_ppm(std::filesystem::path a_path, uint32_t a_width, uint32_t a_height, std::vector<uint8_t> &a_data)
+static void _stbi_write_function(void *a_context, void *a_data, int a_size)
 {
-	(void) a_data;
-	auto    &output_texture = ror::resource(a_path, ror::ResourceSemantic::textures, ror::ResourceAction::create);
-	uint8_t *pixel_data     = a_data.data();
+	auto *ptr = reinterpret_cast<std::pair<std::vector<uint8_t> *, size_t> *>(a_context);
 
-	assert(a_data.size() == (a_width * a_height * 4) && "Can only write RGBA ppm images");
+	assert(ptr->second + static_cast<size_t>(a_size) <= ptr->first->size());
+
+	memcpy(ptr->first->data() + ptr->second, a_data, static_cast<size_t>(a_size));
+
+	ptr->second += static_cast<size_t>(a_size);
+}
+
+void write_hdr(const std::filesystem::path &a_path, uint32_t a_width, uint32_t a_height, float32_t *a_pixel_data, bool a_overwrite)
+{
+	auto &output_texture = ror::resource(a_path, ror::ResourceSemantic::textures, ror::ResourceAction::make);
+
+	if (a_overwrite)
+		output_texture.remove();
+
+	int32_t comp = 4;
+
+	std::vector<uint8_t> tga_data{};
+	tga_data.resize(a_width * a_height * static_cast<uint32_t>(comp) * 3);        // We only write out RGB data for HDR
+	std::pair<std::vector<uint8_t> *, size_t> ptr_offset = std::make_pair(&tga_data, 0);
+
+	void *context = reinterpret_cast<void *>(&ptr_offset);
+
+	stbi_flip_vertically_on_write(true);
+	auto res = stbi_write_hdr_to_func(_stbi_write_function, context, static_cast<int32_t>(a_width), static_cast<int32_t>(a_height), comp, a_pixel_data);
+	stbi_flip_vertically_on_write(false);
+
+	if (res == 0)
+		ror::log_critical("Couldn't write file {}", a_path.c_str());
+
+	output_texture.update({tga_data.begin(), tga_data.end()}, true, false, true);        // Force updating the Resource because I am sure no one else is using it
+	output_texture.flush();
+}
+
+void write_tga(const std::filesystem::path &a_path, uint32_t a_width, uint32_t a_height, uint8_t *a_pixel_data, bool a_overwrite)
+{
+	auto &output_texture = ror::resource(a_path, ror::ResourceSemantic::textures, ror::ResourceAction::make);
+
+	if (a_overwrite)
+		output_texture.remove();
+
+	int32_t comp = 4;
+
+	std::vector<uint8_t> tga_data{};
+	tga_data.resize(a_width * a_height * static_cast<uint32_t>(comp));
+	std::pair<std::vector<uint8_t> *, size_t> ptr_offset = std::make_pair(&tga_data, 0);
+
+	void *context = reinterpret_cast<void *>(&ptr_offset);
+
+	auto res = stbi_write_tga_to_func(_stbi_write_function, context, static_cast<int32_t>(a_width), static_cast<int32_t>(a_height), comp, a_pixel_data);
+
+	if (res == 0)
+		ror::log_critical("Couldn't write file {}", a_path.c_str());
+
+	output_texture.update({tga_data.begin(), tga_data.end()}, true, false, true);        // Force updating the Resource because I am sure no one else is using it
+	output_texture.flush();
+}
+
+void write_ppm(const std::filesystem::path &a_path, uint32_t a_width, uint32_t a_height, uint8_t *a_pixel_data)
+{
+	auto &output_texture = ror::resource(a_path, ror::ResourceSemantic::textures, ror::ResourceAction::make);
 
 	std::string w{std::to_string(a_width)};
 	std::string h{std::to_string(a_height)};
@@ -75,7 +135,7 @@ void write_ppm(std::filesystem::path a_path, uint32_t a_width, uint32_t a_height
 		for (uint32_t j = 0; j < a_width; j++)
 		{
 			for (uint32_t k = 0; k < 3; ++k)        // Ignoring 4th component Alpha
-				ppm_data.push_back(pixel_data[((j * 4) + (a_width * 4 * i)) + k] % 256);
+				ppm_data.push_back(a_pixel_data[((j * 4) + (a_width * 4 * i)) + k] % 256);
 		}
 	}
 
@@ -83,8 +143,18 @@ void write_ppm(std::filesystem::path a_path, uint32_t a_width, uint32_t a_height
 	output_texture.flush();
 }
 
-void write_ppm(std::filesystem::path a_path, uint32_t a_width, uint32_t a_height, std::vector<float32_t> &a_data)
+void write_ppm(const std::filesystem::path &a_path, uint32_t a_width, uint32_t a_height, std::vector<uint8_t> &a_data)
 {
+	assert(a_data.size() == (a_width * a_height * 4) && "Can only write RGBA ppm images");
+
+	uint8_t *pixel_data = a_data.data();
+	write_ppm(a_path, a_width, a_height, pixel_data);
+}
+
+[[noreturn]] void write_ppm(const std::filesystem::path &a_path, uint32_t a_width, uint32_t a_height, std::vector<float32_t> &a_data)
+{
+	assert(0 && "Not well tested method for HDR data, don't use");
+
 	size_t               size = a_width * a_height * 4u;
 	std::vector<uint8_t> ldr_data;
 	ldr_data.resize(size);
@@ -198,7 +268,7 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 }
 
 TextureImage make_texture(rhi::Device &a_device, rhi::PixelFormat a_format, uint32_t a_width, uint32_t a_height,
-                          rhi::TextureTarget a_target, rhi::TextureUsage a_usage, bool a_mipmapped)
+                          rhi::TextureTarget a_target, rhi::TextureUsage a_usage, bool a_mipmapped, bool a_is_hdr)
 {
 	rhi::TextureImage texture_image{};
 
@@ -209,6 +279,7 @@ TextureImage make_texture(rhi::Device &a_device, rhi::PixelFormat a_format, uint
 	texture_image.width(a_width);
 	texture_image.height(a_height);
 	texture_image.usage(a_usage);
+	texture_image.hdr(a_is_hdr);
 
 	auto size = texture_image.setup();
 

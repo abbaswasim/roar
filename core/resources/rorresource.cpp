@@ -366,6 +366,19 @@ Resource &make_resource(const std::filesystem::path &a_path, ResourceSemantic a_
 	return resource;
 }
 
+/**
+ * Can be used to check if a resource in exits in the project folders or not
+ */
+bool check_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
+{
+	auto  absolute_path = make_resource_path(a_path, a_semantic, a_parent_path);
+
+	if (std::filesystem::exists(absolute_path))
+		return true;
+
+	return false;
+}
+
 Resource &resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, ResourceAction a_action, const std::filesystem::path &a_parent_path)
 {
 	switch (a_action)

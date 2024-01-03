@@ -186,6 +186,7 @@ class ROAR_ENGINE_ITEM Resource final
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
 Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path = {});
 Resource &make_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path = {});
+bool      check_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path = {});
 
 /**
  * Uses the above 3 methods based on a_action

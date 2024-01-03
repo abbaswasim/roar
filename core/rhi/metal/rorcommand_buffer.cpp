@@ -62,7 +62,7 @@ rhi::ComputeCommandEncoder CommandBuffer::compute_encoder_concurrent()
 }
 
 // Very heavy waight glReadPixel style read pixels, shouldn't be used at run time
-rhi::Buffer read_pixels(rhi::Device &a_device, rhi::TextureImage &a_texture, uint32_t a_face, uint32_t a_level)
+rhi::Buffer read_pixels(rhi::Device &a_device, const rhi::TextureImage &a_texture, uint32_t a_face, uint32_t a_level)
 {
 	rhi::CommandBuffer  command_buffer{a_device};
 	MTL::CommandBuffer *cmd_buffer = command_buffer.platform_command_buffer();
@@ -94,7 +94,7 @@ rhi::Buffer read_pixels(rhi::Device &a_device, rhi::TextureImage &a_texture, uin
 }
 
 // Very heavy waight texture to texture copy, shouldn't be used at run time
-void texture_to_texture(rhi::Device &a_device, rhi::TextureImage &a_source_texture, rhi::TextureImage &a_destination_texture, uint32_t a_face, uint32_t a_level)
+void texture_to_texture(rhi::Device &a_device, const rhi::TextureImage &a_source_texture, const rhi::TextureImage &a_destination_texture, uint32_t a_face, uint32_t a_level)
 {
 	rhi::CommandBuffer  command_buffer{a_device};
 	MTL::CommandBuffer *cmd_buffer = command_buffer.platform_command_buffer();
@@ -116,7 +116,7 @@ void texture_to_texture(rhi::Device &a_device, rhi::TextureImage &a_source_textu
 	cmd_buffer->waitUntilCompleted();        // Heavy wait wait before we can read data from read_buffer.
 }
 
-void texture_to_mipmapped_texture(const rhi::CommandBuffer &a_command_buffer, rhi::TextureImage &a_source_texture, ror::Vector2ui a_source_origin, rhi::TextureImage &a_destination_texture, uint32_t a_destination_face, uint32_t a_destination_level)
+void texture_to_mipmapped_texture(const rhi::CommandBuffer &a_command_buffer, const rhi::TextureImage &a_source_texture, ror::Vector2ui a_source_origin, const rhi::TextureImage &a_destination_texture, uint32_t a_destination_face, uint32_t a_destination_level)
 {
 	MTL::CommandBuffer *cmd_buffer = a_command_buffer.platform_command_buffer();
 
@@ -131,7 +131,7 @@ void texture_to_mipmapped_texture(const rhi::CommandBuffer &a_command_buffer, rh
 	blit_encoder->endEncoding();
 }
 
-void texture_to_mipmapped_texture(MTL::BlitCommandEncoder *a_blit_encoder, rhi::TextureImage &a_source_texture, ror::Vector2ui a_source_origin, rhi::TextureImage &a_destination_texture, uint32_t a_destination_face, uint32_t a_destination_level)
+void texture_to_mipmapped_texture(MTL::BlitCommandEncoder *a_blit_encoder, const rhi::TextureImage &a_source_texture, ror::Vector2ui a_source_origin, const rhi::TextureImage &a_destination_texture, uint32_t a_destination_face, uint32_t a_destination_level)
 {
 	auto        mip = a_destination_texture.mip(a_destination_level);
 	MTL::Size   size{mip.m_width, mip.m_height, 1};
@@ -141,7 +141,7 @@ void texture_to_mipmapped_texture(MTL::BlitCommandEncoder *a_blit_encoder, rhi::
 	a_blit_encoder->copyFromTexture(a_source_texture.platform_handle(), 0, 0, source_origin, size, a_destination_texture.platform_handle(), a_destination_face, a_destination_level, destination_origin);
 }
 
-void texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, rhi::TextureImage &a_source_texture, rhi::TextureImage &a_destination_texture)
+void texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, const rhi::TextureImage &a_source_texture, const rhi::TextureImage &a_destination_texture)
 {
 	auto w = a_destination_texture.width();
 	auto h = a_destination_texture.height();

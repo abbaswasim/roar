@@ -25,15 +25,20 @@
 
 #pragma once
 
+#include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorprogram.hpp"
 #include "watchcat/rorwatchcat.hpp"
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 namespace ror
 {
+using ShaderCache    = std::unordered_set<hash_64_t> *;
+using UpdateCallback = std::function<void(rhi::Device &, ShaderCache)>;
+
 class ROAR_ENGINE_ITEM ShaderUpdater final
 {
   public:
@@ -45,19 +50,19 @@ class ROAR_ENGINE_ITEM ShaderUpdater final
 	ShaderUpdater();                  //! constructor
 	~ShaderUpdater() noexcept;        //! Destructor
 
-	void push_program_record(int32_t a_program_id, std::vector<rhi::Program> &a_programs, std::vector<rhi::Shader> &a_shaders, std::function<void(rhi::Device &)> a_callback, std::vector<std::string> *a_dependencies = nullptr);
-	void resolve_updates(rhi::Device &a_device);
+	void push_program_record(int32_t a_program_id, std::vector<rhi::Program> &a_programs, std::vector<rhi::Shader> &a_shaders, UpdateCallback a_callback, std::vector<std::string> *a_dependencies = nullptr);
+	void resolve_updates(rhi::Device &a_device, ror::JobSystem &a_job_system);
 
 	struct ProgramRecord
 	{
-		FORCE_INLINE ProgramRecord(int32_t a_program_id, std::vector<rhi::Program> &a_programs, std::vector<rhi::Shader> &a_shaders, std::function<void(rhi::Device &)> a_callback) :
+		FORCE_INLINE ProgramRecord(int32_t a_program_id, std::vector<rhi::Program> &a_programs, std::vector<rhi::Shader> &a_shaders, UpdateCallback a_callback) :
 		    m_program_id(a_program_id), m_programs(a_programs), m_shaders(a_shaders), m_callback(a_callback)
 		{}
 
-		int32_t                            m_program_id{-1};        //! What's my program id in the list of programs in target m_programs
-		std::vector<rhi::Program>         &m_programs;              //! Programs target in some list in clients
-		std::vector<rhi::Shader>          &m_shaders;               //! Shaders target in some list in clients
-		std::function<void(rhi::Device &)> m_callback{};            //! Callback that will be used to update the target program
+		int32_t                    m_program_id{-1};        //! What's my program id in the list of programs in target m_programs
+		std::vector<rhi::Program> &m_programs;              //! Programs target in some list in clients
+		std::vector<rhi::Shader>  &m_shaders;               //! Shaders target in some list in clients
+		UpdateCallback             m_callback{};            //! Callback that will be used to update the target program
 	};
 
 	struct ShaderUpdateRecord

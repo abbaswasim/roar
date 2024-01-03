@@ -105,8 +105,8 @@ class CommandBufferMetal final
 
 declare_rhi_render_type(CommandBuffer);
 
-rhi::Buffer read_pixels(rhi::Device &a_device, rhi::TextureImage a_texture, uint32_t a_face, uint32_t a_level);
-void        texture_to_texture(rhi::Device &a_device, rhi::TextureImage &a_source_texture, rhi::TextureImage &a_destination_texture, uint32_t a_face, uint32_t a_level);
-void        texture_to_mipmapped_texture(const rhi::CommandBuffer &a_command_buffer, rhi::TextureImage &a_source_texture, ror::Vector2ui a_source_origin, rhi::TextureImage &a_destination_texture, uint32_t a_destination_face, uint32_t a_destination_level);
-void        texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, rhi::TextureImage &a_source_texture, rhi::TextureImage &a_destination_texture);
+rhi::Buffer read_pixels(rhi::Device &a_device, const rhi::TextureImage &a_texture, uint32_t a_face, uint32_t a_level);
+void        texture_to_texture(rhi::Device &a_device, const rhi::TextureImage &a_source_texture, const rhi::TextureImage &a_destination_texture, uint32_t a_face, uint32_t a_level);
+void        texture_to_mipmapped_texture(const rhi::CommandBuffer &a_command_buffer, const rhi::TextureImage &a_source_texture, ror::Vector2ui a_source_origin, const rhi::TextureImage &a_destination_texture, uint32_t a_destination_face, uint32_t a_destination_level);
+void        texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, const rhi::TextureImage &a_source_texture, const rhi::TextureImage &a_destination_texture);
 }        // namespace rhi

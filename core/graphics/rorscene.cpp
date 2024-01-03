@@ -56,6 +56,7 @@
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffers_pack.hpp"
+#include "rhi/rordevice.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorrenderpass.hpp"
@@ -71,6 +72,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <mutex>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -1856,6 +1858,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 	// Just a cleanup for global programs
 	this->m_global_programs.clear();
 
+	// Sign up all shaders for updates
 	this->push_shader_updates(a_renderer);
 }
 
@@ -1883,9 +1886,9 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 	auto  has_shadows  = this->m_has_shadows;
 	auto &shaders      = this->m_shaders;
 
-	size_t records{0};
+	static std::mutex cache_mutex;        // Mutex to lock the lambda cache access
 
-	std::unordered_set<hash_64_t> unique_shaders{};        // All unique shader hashes
+	size_t records{0};
 
 	for (auto &passtype : render_pass_types)
 	{
@@ -1899,46 +1902,59 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 			{
 				for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
 				{
-					auto vs_update = [&model, this, mesh_index, prim_index, passtype, &a_renderer, subpass, &mesh](rhi::Device &device) {
+					auto shader_update = [&model, this, mesh_index, prim_index, passtype, &a_renderer, subpass, &mesh, has_shadows](rhi::Device &device, std::unordered_set<hash_64_t> *cache) {
+						assert(cache && "Scene shaders can't be re-created without a cache, otherwise it takes too long");
 						auto &prgs = this->m_programs[passtype];
 						auto &prg  = prgs[static_cast<size_t>(mesh.program(prim_index))];
 						if (prg.vertex_id() != -1)
 						{
-							auto  vs   = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype, a_renderer);
 							auto &shdr = this->m_shaders[static_cast<size_t>(prg.vertex_id())];
-							shdr.source(vs);
-							shdr.compile();
-							shdr.upload(device);
-
-							prg.upload(device, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), *subpass, false);
+							bool  cache_hit;
+							{
+								std::lock_guard<std::mutex> lock{cache_mutex};
+								auto                        res = cache->emplace(shdr.hash());
+								cache_hit                       = res.second;
+							}
+							if (cache_hit)
+							{
+								auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype, a_renderer);
+								shdr.source(vs);
+								shdr.compile();
+								shdr.upload(device);
+							}
 						}
-					};
-					auto fs_update = [&model, &mesh, this, mesh_index, prim_index, passtype, &a_renderer, subpass, has_shadows](rhi::Device &device) {
-						auto &prgs = this->m_programs[passtype];
-						auto &prg  = prgs[static_cast<size_t>(mesh.program(prim_index))];
+
 						if (prg.fragment_id() != -1)
 						{
-							auto  fs   = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
 							auto &shdr = this->m_shaders[static_cast<size_t>(prg.fragment_id())];
-							shdr.source(fs);
-							shdr.compile();
-							shdr.upload(device);
-
-							prg.upload(device, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), *subpass, false);
+							bool  cache_hit;
+							{
+								std::lock_guard<std::mutex> lock{cache_mutex};
+								auto                        res = cache->emplace(shdr.hash());
+								cache_hit                       = res.second;
+							}
+							if (cache_hit)
+							{
+								auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
+								shdr.source(fs);
+								shdr.compile();
+								shdr.upload(device);
+							}
 						}
+
+						prg.upload(device, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), *subpass, false);
 					};
 
-					updator.push_program_record(mesh.program(prim_index), programs, shaders, vs_update, &dependencies);
-					updator.push_program_record(mesh.program(prim_index), programs, shaders, fs_update, &dependencies);
+					updator.push_program_record(mesh.program(prim_index), programs, shaders, shader_update, &dependencies);
 
-					records += 2;
+					records++;
 				}
 				++mesh_index;
 			}
 		}
 	}
 
-	log_critical("Amount of shader update records created {}", records);
+	ror::log_info("{} Shader update records created for the scene programs", records);
 }
 
 void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system)

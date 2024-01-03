@@ -57,7 +57,7 @@ ShaderUpdater::~ShaderUpdater() noexcept
 		this->m_watcher->stop();
 }
 
-void ShaderUpdater::push_program_record(int32_t a_program_id, std::vector<rhi::Program> &a_programs, std::vector<rhi::Shader> &a_shaders, std::function<void(rhi::Device &)> a_callback, std::vector<std::string> *a_dependencies)
+void ShaderUpdater::push_program_record(int32_t a_program_id, std::vector<rhi::Program> &a_programs, std::vector<rhi::Shader> &a_shaders, UpdateCallback a_callback, std::vector<std::string> *a_dependencies)
 {
 	std::lock_guard<std::mutex> lock{this->m_mutex};
 
@@ -79,12 +79,12 @@ void ShaderUpdater::push_program_record(int32_t a_program_id, std::vector<rhi::P
 			// Also create mapping for all of its includes
 			for (auto &incs : shader.includes())
 				this->m_shader_programs_mapping[incs].emplace_back(record_id);
-
-			if (a_dependencies)
-				for (auto &dependency : *a_dependencies)
-					this->m_shader_programs_mapping[dependency].emplace_back(record_id);
 		}
 	}
+
+	if (a_dependencies)
+		for (auto &dependency : *a_dependencies)
+			this->m_shader_programs_mapping[dependency].emplace_back(record_id);
 
 	this->m_program_records.emplace_back(a_program_id, a_programs, a_shaders, a_callback);
 }
@@ -96,15 +96,17 @@ void ShaderUpdater::push_shader_update_record(int32_t a_counter, std::string a_s
 	this->m_shaders_update_records.emplace_back(a_counter, a_shader);
 }
 
-// TODO: Add some cacheing, at the moment it doesn't work for big scenes in debug mode
-// All the programs using a shader needs to be updated there is no other way and its taking too long
-void ShaderUpdater::resolve_updates(rhi::Device &a_device)
+void ShaderUpdater::resolve_updates(rhi::Device &a_device, ror::JobSystem &a_job_system)
 {
-	// TODO: Maybe in the future could make each thread take an update, but this is for debugging purposes only anyways, not critical
 	std::lock_guard<std::mutex> lock{this->m_mutex};
-	const auto                 &dependencies = ror::mesh_shaders_dependencies();
 
-	// std::unordered_set<hash_64_t> unique_records{};        // All unique record hashes
+	std::unordered_set<hash_64_t>     unique_records{};        // All unique record hashes, so we don't process same record again, this one is probably not needed
+	std::unordered_set<hash_64_t>     unique_shaders{};        // All unique shader hashes, used for not having to build many shaders here than required
+	std::unordered_set<hash_64_t>     shader_cache{};          // All unique shader hashes used for update callbacks
+	std::vector<ror::JobHandle<bool>> job_handles;
+	job_handles.reserve(this->m_shader_programs_mapping.size() * 2);        // Should be enough, still a conservative estimate
+
+	log_set_level(LogLevel::error);        // Lets not create too much noise when this happenes
 
 	for (auto &shader_record : this->m_shaders_update_records)
 	{
@@ -117,50 +119,69 @@ void ShaderUpdater::resolve_updates(rhi::Device &a_device)
 			{
 				auto &program_record = this->m_program_records[program_record_id];
 
-				// hash_64_t hash = hash_64(&program_record.m_program_id, sizeof(program_record.m_program_id));
-				// hash_combine_64(hash, reinterpret_cast<hash_64_t &>(program_record.m_programs));
-				// hash_combine_64(hash, reinterpret_cast<hash_64_t &>(program_record.m_shaders));
+				hash_64_t hash = hash_64(&program_record.m_program_id, sizeof(program_record.m_program_id));
+				hash_combine_64(hash, reinterpret_cast<hash_64_t &>(program_record.m_programs));
+				hash_combine_64(hash, reinterpret_cast<hash_64_t &>(program_record.m_shaders));
 
-				// auto res = unique_records.emplace(hash);
-				// if (res.second)
-				auto &programs = program_record.m_programs;
-				auto &shaders  = program_record.m_shaders;
-				auto &program  = programs[static_cast<size_t>(program_record.m_program_id)];
-
-				std::vector<int32_t> shader_ids = {program.vertex_id(), program.fragment_id(), program.compute_id(), program.mesh_id(), program.tile_id()};
-
-				for (auto shader_id : shader_ids)
+				auto res = unique_records.emplace(hash);
+				if (res.second)
 				{
-					if (shader_id != -1 && shader_id < static_cast<int32_t>(shaders.size()))
+					auto &programs = program_record.m_programs;
+					auto &shaders  = program_record.m_shaders;
+					auto &program  = programs[static_cast<size_t>(program_record.m_program_id)];
+
+					std::vector<int32_t> shader_ids = {program.vertex_id(), program.fragment_id(), program.compute_id(), program.mesh_id(), program.tile_id()};
+
+					for (auto shader_id : shader_ids)
 					{
-						auto &shader = shaders[static_cast<size_t>(shader_id)];
-
-						std::string shader_name = shader.shader_path().filename();
-						auto       &inc         = shader.includes();
-						auto        include     = std::find(inc.begin(), inc.end(), shader_record.m_shader);
-
-						if (shader_name == shader_record.m_shader || include != inc.end())
+						if (shader_id != -1 && shader_id < static_cast<int32_t>(shaders.size()))
 						{
-							shader.reload();
-							shader.compile();
-							shader.upload(a_device);
+							auto &shader = shaders[static_cast<size_t>(shader_id)];
 
-							program_record.m_callback(a_device);        // This must have a call to program.upload()
-						}
-						else        // This means the user takes responsibility and knows this shader is a dependency
-						{
-							auto dependency = std::find(dependencies.begin(), dependencies.end(), shader_record.m_shader);
-							if (dependency != dependencies.end())
+							res = unique_shaders.emplace(shader.hash());
+							if (res.second)
 							{
-								program_record.m_callback(a_device);        // This must have a call to shader.source(), shader.compile(), shader.upload() and program.upload()
+								auto prog_job_handle = a_job_system.push_job([&shader, &shader_record, &a_device]() -> auto {
+									std::string shader_name = shader.shader_path().filename();
+									auto       &inc         = shader.includes();
+									auto        include     = std::find(inc.begin(), inc.end(), shader_record.m_shader);
+
+									// Simple case, shader exists on disk and it might or might not have includes
+									if (shader_name == shader_record.m_shader || include != inc.end())
+									{
+										shader.reload();
+										shader.compile();
+										shader.upload(a_device);
+									}
+									// More complex case, its a dependency but not clear how to build the shader with this dependency,
+									// probably needs a source creation like what scene does for each model part
+									// This means the user takes responsibility and knows this shader is a dependency
+
+									return true;
+								});
+
+								job_handles.emplace_back(std::move(prog_job_handle));        // Since we know these are unique shaders, no need to mutex lock them
 							}
 						}
 					}
 				}
 			}
+
+			for (auto &jh : job_handles)
+				if (!jh.data())
+					ror::log_critical("Can't update program required for the scene.");
+
+			for (auto &program_record_id : program_record_ids)
+			{
+				auto &program_record = this->m_program_records[program_record_id];
+				program_record.m_callback(a_device, &shader_cache);        // This must have a call to program.upload()
+				                                                           // Incase of dependency it must have a call to shader.source(), shader.compile(), shader.upload() and program.upload()
+			}
 		}
 	}
 
 	this->m_shaders_update_records.remove_if([](ShaderUpdateRecord &shader_record) { return shader_record.m_counter <= 0; });
+
+	log_set_level(LogLevel::trace);        // Reset the log levels
 }
 }        // namespace ror
