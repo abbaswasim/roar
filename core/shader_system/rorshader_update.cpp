@@ -45,7 +45,7 @@ ShaderUpdater::ShaderUpdater()
 	if (!setting.m_watch_shaders)
 		return;
 
-	if (setting.m_watch_shaders && setting.m_shaders_watch_path.empty())
+	if (setting.m_shaders_watch_path.empty())
 		ror::log_critical("Trying to watch empty shaders folder, shader watching won't work");
 
 	std::filesystem::path              m_starting_path{std::filesystem::path{roar_dir} / setting.m_shaders_watch_path};        // TODO: Think about how we give it path from within editor
