@@ -119,15 +119,14 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
 	// void cpu_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
 
-	void update(double64_t a_milli_seconds);
+	void update(ror::Renderer &a_renderer, ror::Timer &a_timer);
 	void update_from_data();
-	void setup_cameras(ror::EventSystem &a_event_system);
+	void setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
 	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
 	void shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system);
 	void unload();
 	void load_specific();
 	void reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
-	void update_cameras(ror::Renderer &a_renderer);
 	void fill_scene_data();
 
 	// clang-format off
@@ -150,17 +149,17 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device);
 
 	// Some stuff that we want to save and restore for a scene after its changed, like camera position etc
-	class ROAR_ENGINE_ITEM SceneData : public Configuration<SceneData>
+	class ROAR_ENGINE_ITEM SceneState : public Configuration<SceneState>
 	{
 	  public:
-		FORCE_INLINE            SceneData()                             = default;        //! Default constructor
-		FORCE_INLINE            SceneData(const SceneData &a_other)     = delete;         //! Copy constructor
-		FORCE_INLINE            SceneData(SceneData &&a_other) noexcept = delete;         //! Move constructor
-		FORCE_INLINE SceneData &operator=(const SceneData &a_other)     = delete;         //! Copy assignment operator
-		FORCE_INLINE SceneData &operator=(SceneData &&a_other) noexcept = delete;         //! Move assignment operator
-		FORCE_INLINE ~SceneData() noexcept override                     = default;        //! Destructor
+		FORCE_INLINE             SceneState()                              = default;        //! Default constructor
+		FORCE_INLINE             SceneState(const SceneState &a_other)     = delete;         //! Copy constructor
+		FORCE_INLINE             SceneState(SceneState &&a_other) noexcept = delete;         //! Move constructor
+		FORCE_INLINE SceneState &operator=(const SceneState &a_other)      = delete;         //! Copy assignment operator
+		FORCE_INLINE SceneState &operator=(SceneState &&a_other) noexcept  = delete;         //! Move assignment operator
+		FORCE_INLINE ~SceneState() noexcept override                       = default;        //! Destructor
 
-		explicit SceneData(std::filesystem::path a_data_path);
+		explicit SceneState(std::filesystem::path a_data_path);
 
 		declare_translation_unit_vtable();
 
@@ -183,6 +182,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		float32_t  m_camera_y_mag{1.0f};                            //! Height of the orthographics camera
 		CameraMode m_camera_mode{CameraMode::orbit};                //! Default orbit camera
 		CameraType m_camera_type{CameraType::perspective};          //! Default perspective camera
+		bool       m_is_valid{false};                               //! Is the data valid to be used by the system
 	};
 
   private:
@@ -239,7 +239,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	std::vector<ror::DynamicMesh *>  m_dynamic_meshes{};                                       //! Non-Owning pointers to all the dynamic meshes created in the scene rendererd at once in the end
 	int32_t                          m_grid_model_id{-1};                                      //! Reference to the grid for easy access
 	EventCallback                    m_semi_colon_key_callback{};                              //! Semi colon key call back to enable disable the grid
-	SceneData                        m_scene_data;                                             //! All the scene data that can be saved and restored to and from disk
+	SceneState                       m_scene_state;                                            //! All the scene data that can be saved and restored to and from disk
 	uint32_t                         m_current_camera_index{0};                                //! Camera to use to render the scene
 };
 

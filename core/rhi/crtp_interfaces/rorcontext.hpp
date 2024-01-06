@@ -70,6 +70,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		// Load all the models now in a deferred way
 		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer, this->m_event_system, *this->m_buffer_pack);
 		this->m_scene.upload(*this->m_job_system, this->m_renderer, *this->m_current_device);
+		this->m_scene.setup_cameras(this->m_renderer, this->m_event_system);
 
 		this->m_renderer.deferred_buffer_upload(*this->m_current_device, this->m_scene);
 
@@ -123,7 +124,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	// FORCE_INLINE ContextCrtp() = default;
 	FORCE_INLINE ContextCrtp() :
 	    m_job_system(&ror::get_job_system()),
-	    m_scene(ror::settings().m_default_scene, m_renderer, m_event_system),
+	    m_scene(ror::settings().m_default_scene, m_event_system),
 	    m_buffer_pack(&rhi::get_buffers_pack())
 	{
 		this->m_current_device = std::make_shared<Device>();

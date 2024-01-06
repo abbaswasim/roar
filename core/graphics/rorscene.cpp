@@ -127,20 +127,20 @@ constexpr auto renderpasstype_max()
 }
 
 Scene::Scene(std::filesystem::path a_level, ror::EventSystem &a_event_system) :
-    m_scene_data(std::filesystem::path{a_level}.stem().string() + "_data.json")
+    m_scene_state(std::filesystem::path{a_level}.stem().string() + "_data.json")
 {
 	this->init(a_event_system);
 	this->load(a_level, ResourceSemantic::scenes);
-	this->setup_cameras(a_event_system);
-	this->update_from_data();
 }
 
-define_translation_unit_vtable(Scene::SceneData)
+define_translation_unit_vtable(Scene::SceneState)
 {}
 
-void Scene::setup_cameras(ror::EventSystem &a_event_system)
+void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_system)
 {
 	auto &cameras = this->cameras();
+	auto  dims    = a_renderer.dimensions();
+	auto  bbox    = this->bounding_box();
 
 	ror::EventCallback camera_cycle_callback = [this, &cameras](ror::Event &) {
 		size_t cameras_size{cameras.size()};
@@ -153,6 +153,12 @@ void Scene::setup_cameras(ror::EventSystem &a_event_system)
 		cameras[this->m_current_camera_index].enable();
 	};
 
+	for (auto &cam : cameras)
+	{
+		cam.bounds(dims.x, dims.y);
+		cam.volume(bbox.minimum(), bbox.maximum());
+	}
+
 	a_event_system.subscribe(ror::keyboard_c_click, camera_cycle_callback);
 
 	// Setup cameras
@@ -160,35 +166,40 @@ void Scene::setup_cameras(ror::EventSystem &a_event_system)
 		camera.init(a_event_system);
 
 	cameras[m_current_camera_index].enable();
+
+	this->update_from_data();
 }
 
 void Scene::update_from_data()
 {
+	if (!this->m_scene_state.m_is_valid || !settings().m_load_scene_state)
+		return;
+
 	// take the SceneData and fill stuff from it
 	// Since we wrote out current camera now we read it in
 	auto &camera = this->m_cameras[0];
-	camera.mode(this->m_scene_data.m_camera_mode);
+	camera.mode(this->m_scene_state.m_camera_mode);
 
-	camera.set_parameters(this->m_scene_data.m_camera_type,
-	                      this->m_scene_data.m_camera_width,
-	                      this->m_scene_data.m_camera_height,
-	                      this->m_scene_data.m_camera_z_near,
-	                      this->m_scene_data.m_camera_z_far,
-	                      this->m_scene_data.m_camera_center,
-	                      this->m_scene_data.m_camera_eye,
-	                      this->m_scene_data.m_camera_up,
-	                      this->m_scene_data.m_camera_right,
-	                      this->m_scene_data.m_camera_forward,
-	                      this->m_scene_data.m_camera_minimum,
-	                      this->m_scene_data.m_camera_maximum,
-	                      this->m_scene_data.m_camera_y_fov,
-	                      this->m_scene_data.m_camera_x_mag,
-	                      this->m_scene_data.m_camera_y_mag);
+	camera.set_parameters(this->m_scene_state.m_camera_type,
+	                      this->m_scene_state.m_camera_width,
+	                      this->m_scene_state.m_camera_height,
+	                      this->m_scene_state.m_camera_z_near,
+	                      this->m_scene_state.m_camera_z_far,
+	                      this->m_scene_state.m_camera_center,
+	                      this->m_scene_state.m_camera_eye,
+	                      this->m_scene_state.m_camera_up,
+	                      this->m_scene_state.m_camera_right,
+	                      this->m_scene_state.m_camera_forward,
+	                      this->m_scene_state.m_camera_minimum,
+	                      this->m_scene_state.m_camera_maximum,
+	                      this->m_scene_state.m_camera_y_fov,
+	                      this->m_scene_state.m_camera_x_mag,
+	                      this->m_scene_state.m_camera_y_mag);
 
 	camera.set_from_parameters();
 }
 
-Scene::SceneData::SceneData(std::filesystem::path a_data_path)
+Scene::SceneState::SceneState(std::filesystem::path a_data_path)
 {
 	this->load(a_data_path, ResourceSemantic::scenes);
 }
@@ -200,8 +211,11 @@ ror::Vector3f read_vector3(json a_json_object)
 	return ror::Vector3f{c[0], c[1], c[2]};
 }
 
-void Scene::SceneData::load_specific()
+void Scene::SceneState::load_specific()
 {
+	if (!settings().m_load_scene_state)
+		return;
+
 	if (this->m_json_file.contains("current_camera"))
 	{
 		auto &camera = this->m_json_file["current_camera"];
@@ -260,6 +274,8 @@ void Scene::SceneData::load_specific()
 			if (orthographic.contains("ymag"))
 				this->m_camera_y_mag = orthographic["ymag"];
 		}
+
+		this->m_is_valid = true;
 	}
 }
 
@@ -277,7 +293,7 @@ void replace_next_at(_type a_value, std::string &a_result)
 	a_result.replace(index, 1, replacement);
 }
 
-void Scene::SceneData::write_specific()
+void Scene::SceneState::write_specific()
 {
 	if (this->m_json_file.contains("current_camera"))
 	{
@@ -333,9 +349,15 @@ void Scene::SceneData::write_specific()
 		replace_next_at(this->m_camera_x_mag, patch_str);
 		replace_next_at(this->m_camera_y_mag, patch_str);
 
-		json patch = json::parse(patch_str);
-
-		camera.patch_inplace(patch);
+		try
+		{
+			json patch = json::parse(patch_str);
+			camera.patch_inplace(patch);
+		}
+		catch (const json::exception &e)
+		{
+			log_critical("Scene state write failed with message {}", e.what());
+		}
 	}
 }
 
@@ -1097,24 +1119,24 @@ void Scene::reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommand
 
 void Scene::fill_scene_data()
 {
-	auto &camera = this->m_cameras[0];
+	auto &camera = this->m_cameras[this->m_current_camera_index];
 
-	this->m_scene_data.m_camera_center  = camera.center();
-	this->m_scene_data.m_camera_eye     = camera.eye();
-	this->m_scene_data.m_camera_right   = camera.right();
-	this->m_scene_data.m_camera_up      = camera.up();
-	this->m_scene_data.m_camera_forward = camera.forward();
-	this->m_scene_data.m_camera_minimum = camera.minimum();
-	this->m_scene_data.m_camera_maximum = camera.maximum();
-	this->m_scene_data.m_camera_y_fov   = camera.y_fov();
-	this->m_scene_data.m_camera_z_near  = camera.z_near();
-	this->m_scene_data.m_camera_z_far   = camera.z_far();
-	this->m_scene_data.m_camera_width   = camera.width();
-	this->m_scene_data.m_camera_height  = camera.height();
-	this->m_scene_data.m_camera_x_mag   = camera.x_mag();
-	this->m_scene_data.m_camera_y_mag   = camera.y_mag();
-	this->m_scene_data.m_camera_mode    = camera.mode();
-	this->m_scene_data.m_camera_type    = camera.type();
+	this->m_scene_state.m_camera_center  = camera.center();
+	this->m_scene_state.m_camera_eye     = camera.eye();
+	this->m_scene_state.m_camera_right   = camera.right();
+	this->m_scene_state.m_camera_up      = camera.up();
+	this->m_scene_state.m_camera_forward = camera.forward();
+	this->m_scene_state.m_camera_minimum = camera.minimum();
+	this->m_scene_state.m_camera_maximum = camera.maximum();
+	this->m_scene_state.m_camera_y_fov   = camera.y_fov();
+	this->m_scene_state.m_camera_z_near  = camera.z_near();
+	this->m_scene_state.m_camera_z_far   = camera.z_far();
+	this->m_scene_state.m_camera_width   = camera.width();
+	this->m_scene_state.m_camera_height  = camera.height();
+	this->m_scene_state.m_camera_x_mag   = camera.x_mag();
+	this->m_scene_state.m_camera_y_mag   = camera.y_mag();
+	this->m_scene_state.m_camera_mode    = camera.mode();
+	this->m_scene_state.m_camera_type    = camera.type();
 }
 
 void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
@@ -1240,13 +1262,10 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 		ror::gui().render(a_renderer, a_encoder, this->m_cameras[0], a_event_system);        // TODO: Fix the camera
 }
 
-void Scene::update(double64_t a_milli_seconds)
+void Scene::update(ror::Renderer &a_renderer, ror::Timer &a_timer)
 {
-	(void) a_milli_seconds;
-}
+	(void) a_timer;
 
-void Scene::update_cameras(ror::Renderer &a_renderer)
-{
 	auto &camera = this->m_cameras[this->m_current_camera_index];
 	camera.update(a_renderer);
 }
@@ -1850,8 +1869,11 @@ void Scene::init(ror::EventSystem &a_event_system)
 
 void Scene::shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system)
 {
-	this->fill_scene_data();
-	this->m_scene_data.write(std::filesystem::path{a_level}.stem().string() + "_data.json", ror::ResourceSemantic::scenes);
+	if (settings().m_save_scene_state)
+	{
+		this->fill_scene_data();
+		this->m_scene_state.write(std::filesystem::path{a_level}.stem().string() + "_data.json", ror::ResourceSemantic::scenes);
+	}
 	uninstall_input_handlers(a_event_system);
 }
 
@@ -2227,7 +2249,8 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 		shader.upload(a_device);
 	}
 
-	auto program_upload_job = [](rhi::Device &a_local_device, rhi::Program &a_program, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass) -> auto {
+	auto program_upload_job = [](rhi::Device &a_local_device, rhi::Program &a_program, const std::vector<rhi::Shader> &a_shaders,
+	                             const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass) -> auto {
 		a_program.upload(a_local_device, a_shaders, a_model, a_mesh_index, a_prim_index, a_subpass, false);
 
 		return true;

@@ -96,6 +96,8 @@ class ROAR_ENGINE_ITEM Settings final
 		for (size_t i = 0; i < generic_numbers_count; ++i)
 			this->m_generic_numbers[i] = 0;
 
+		this->m_save_scene_state          = setting.get<bool>("save_scene_state");
+		this->m_load_scene_state          = setting.get<bool>("load_scene_state");
 		this->m_clean_on_boot             = setting.get<bool>("clean_on_boot");
 		this->m_visualise_mipmaps         = setting.get<bool>("visualise_mipmaps");
 		this->m_vertical_sync             = setting.get<bool>("vsync");
@@ -438,6 +440,8 @@ class ROAR_ENGINE_ITEM Settings final
 	uint32_t m_engine_version{0};
 	uint32_t m_resolve_includes_depth{10};        //! How many levels deep should the includes searching go
 
+	bool m_save_scene_state{true};
+	bool m_load_scene_state{true};
 	bool m_clean_on_boot{false};
 	bool m_visualise_mipmaps{false};
 	bool m_vertical_sync{false};
