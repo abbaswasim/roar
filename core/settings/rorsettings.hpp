@@ -61,14 +61,15 @@ class ROAR_ENGINE_ITEM Settings final
 	{
 		auto setting = ror::get_settings();        // This is config settings that will load settings.json, then we cache it in Settings object
 
-		this->m_roar_title       = setting.get<std::string>("title");
-		this->m_roar_cache       = setting.get<std::string>("roar_cache");
-		this->m_default_scene    = setting.get<std::string>("default_scene");
-		this->m_buffers_format   = setting.get<std::string>("buffers_format");
-		this->m_working_dir      = setting.get<std::string>("working_dir");
-		this->m_renderer_config  = setting.get<std::string>("renderer_config");
-		this->m_application_name = setting.get<std::string>("application_name");
-		this->m_engine_name      = setting.get<std::string>("engine_name");
+		this->m_roar_title         = setting.get<std::string>("title");
+		this->m_roar_cache         = setting.get<std::string>("roar_cache");
+		this->m_default_scene      = setting.get<std::string>("default_scene");
+		this->m_buffers_format     = setting.get<std::string>("buffers_format");
+		this->m_working_dir        = setting.get<std::string>("working_dir");
+		this->m_renderer_config    = setting.get<std::string>("renderer_config");
+		this->m_application_name   = setting.get<std::string>("application_name");
+		this->m_engine_name        = setting.get<std::string>("engine_name");
+		this->m_shaders_watch_path = setting.get<std::string>("shaders_watch_path");
 
 		this->m_zoom_speed  = setting.get<float32_t>("zoom_speed");
 		this->m_depth_clear = setting.get<float32_t>("depth");
@@ -301,6 +302,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_print_generated_fragment_shaders = setting.get<bool>("print_generated_fragment_shaders");
 		this->m_print_generated_compute_shaders  = setting.get<bool>("print_generated_compute_shaders");
 		this->m_write_generated_shaders          = setting.get<bool>("write_generated_shaders");
+		this->m_watch_shaders                    = setting.get<bool>("watch_shaders");
 		this->m_generate_debug_mesh              = setting.get<bool>("generate_debug_mesh");
 		this->m_generate_gui_mesh                = setting.get<bool>("generate_gui_mesh");
 		this->m_generate_grid_mesh               = setting.get<bool>("generate_grid_mesh");
@@ -418,6 +420,7 @@ class ROAR_ENGINE_ITEM Settings final
 	std::string m_renderer_config{"renderer.json"};
 	std::string m_application_name{"Roar Editor"};
 	std::string m_engine_name{"Roar"};
+	std::string m_shaders_watch_path{};
 
 	std::vector<std::string> m_clean_dirs{};        //! Directories to clean on boot
 
@@ -458,6 +461,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_print_generated_fragment_shaders{false};
 	bool m_print_generated_compute_shaders{false};
 	bool m_write_generated_shaders{false};
+	bool m_watch_shaders{false};
 	bool m_generate_debug_mesh{false};
 	bool m_generate_gui_mesh{false};
 	bool m_generate_grid_mesh{false};

@@ -39,6 +39,8 @@
 	"print_generated_fragment_shaders" : false,
 	"print_generated_compute_shaders" : false,
 	"write_generated_shaders" : false,
+	"watch_shaders" : false,
+	"shaders_watch_path" : "core/assets/shaders",
 	"clamp_material_roughness" : true,
 	"clamp_material_metallic" : true,
 	"generate_debug_mesh" : false,

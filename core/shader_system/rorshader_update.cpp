@@ -25,7 +25,9 @@
 
 #include "foundation/rortypes.hpp"
 #include "profiling/rorlog.hpp"
+#include "project_setup.hpp"
 #include "rorshader_update.hpp"
+#include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include "watchcat/rorwatchcat.hpp"
 #include <filesystem>
@@ -38,7 +40,15 @@ namespace ror
 
 ShaderUpdater::ShaderUpdater()
 {
-	std::filesystem::path              m_starting_path{"/System/Volumes/Data/personal/roar_engine/core/assets/shaders"};        // TODO: Think about how we give it path from within editor like "/System/Volumes/Data/personal/roar_engine/editor"
+	auto &setting = ror::settings();
+
+	if (!setting.m_watch_shaders)
+		return;
+
+	if (setting.m_watch_shaders && setting.m_shaders_watch_path.empty())
+		ror::log_critical("Trying to watch empty shaders folder, shader watching won't work");
+
+	std::filesystem::path              m_starting_path{std::filesystem::path{roar_dir} / setting.m_shaders_watch_path};        // TODO: Think about how we give it path from within editor
 	std::vector<std::filesystem::path> paths{};
 	paths.emplace_back(m_starting_path);
 
@@ -53,6 +63,9 @@ ShaderUpdater::ShaderUpdater()
 
 ShaderUpdater::~ShaderUpdater() noexcept
 {
+	if (!ror::settings().m_watch_shaders)
+		return;
+
 	if (this->m_watcher)
 		this->m_watcher->stop();
 }

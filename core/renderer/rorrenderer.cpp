@@ -57,7 +57,6 @@
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include "shader_system/rorshader_update.hpp"
-#include "watchcat/rorwatchcat.hpp"
 #include <cassert>
 #include <filesystem>
 #include <iterator>

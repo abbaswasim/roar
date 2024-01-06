@@ -166,10 +166,10 @@ void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_s
 
 	cameras[m_current_camera_index].enable();
 
-	this->update_from_data();
+	this->update_from_scene_state();
 }
 
-void Scene::update_from_data()
+void Scene::update_from_scene_state()
 {
 	if (!this->m_scene_state.m_is_valid || !settings().m_load_scene_state)
 		return;
@@ -1851,7 +1851,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	}
 }
 
-#define scene_state_name "_data.json"
+#define scene_state_name "_state.json"
 
 void Scene::init(const std::filesystem::path &a_level, ror::EventSystem &a_event_system)
 {

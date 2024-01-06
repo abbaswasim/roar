@@ -120,7 +120,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	// void cpu_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
 
 	void update(ror::Renderer &a_renderer, ror::Timer &a_timer);
-	void update_from_data();
+	void update_from_scene_state();
 	void setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
 	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
 	void shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system);
