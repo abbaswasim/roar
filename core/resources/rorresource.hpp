@@ -152,7 +152,7 @@ class ROAR_ENGINE_ITEM Resource final
 	void                         remove();
 	void                         load();
 	void                         flush();
-	void                         update(bytes_vector &&a_data, uint32_t a_force, bool a_append, bool a_mark_dirty);
+	void                         update(bytes_vector &&a_data, bool a_force, bool a_append, bool a_mark_dirty);
 
   protected:
   private:
@@ -184,6 +184,7 @@ class ROAR_ENGINE_ITEM Resource final
  * @return     Reference to heap allocated Resource object. Client doesn't need to worry about memory management
  */
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
+Resource &get_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic);
 Resource &create_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path = {});
 Resource &make_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path = {});
 bool      check_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path = {});

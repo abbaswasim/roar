@@ -305,14 +305,25 @@ static Resource &cache_resource(const std::filesystem::path &a_absolute_path, Re
 }
 
 /**
+ * Can be used to access previously created resource.
+ * If it wasn't created before it will be created but in empty state
+ */
+Resource& get_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
+{
+	assert(a_path != "" && "get_resource is provided empty path");
+
+	auto  absolute_path = find_resource(a_path, a_semantic);
+	auto &resource      = cache_resource(absolute_path, a_semantic);
+
+	return resource;
+}
+
+/**
  * Can be used to load resources relative to project_root anywhere in different folders
  */
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
 {
-	assert(a_path != "" && "load_resource is provided empty path");
-
-	auto  absolute_path = find_resource(a_path, a_semantic);
-	auto &resource      = cache_resource(absolute_path, a_semantic);
+	auto &resource      = get_resource(a_path, a_semantic);
 	resource.load();
 	return resource;
 }
@@ -616,12 +627,12 @@ ResourceSemantic Resource::semantic() const
 
 // NOTE: The a_force argument is important. If someone is going to force an update of a Resource
 // They must be 100% sure its not used concurrently
-void Resource::update(bytes_vector &&a_data, uint32_t a_force, bool a_append, bool a_mark_dirty)
+void Resource::update(bytes_vector &&a_data, bool a_force, bool a_append, bool a_mark_dirty)
 {
 	// If we are going to update a resource it can't be anything but a shader that is usually used concurrently
 	// In this case data(), which provides reference to m_data won't be safe, hence that is blocked, shaders can only use data_copy
 	// Anything else that is not used concurrently can use this but we can't guarantee it, so we block this and allow data() instead
-	assert(this->m_semantic == ror::ResourceSemantic::shaders || a_force == 1 && "Updating a non-shader resource means references to it will be invalid, can't use data() on such resource");
+	assert(this->m_semantic == ror::ResourceSemantic::shaders || a_force == true && "Updating a non-shader resource means references to it will be invalid, can't use data() on such resource");
 
 	if (a_force)
 		log_info("Force updating resource {}", this->absolute_path().c_str());
