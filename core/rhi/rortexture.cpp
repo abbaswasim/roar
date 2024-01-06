@@ -30,6 +30,8 @@
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 #include <cassert>
+#include <cstddef>
+#include <cstring>
 
 #define STBI_NO_FAILURE_STRINGS
 #define STB_IMAGE_IMPLEMENTATION

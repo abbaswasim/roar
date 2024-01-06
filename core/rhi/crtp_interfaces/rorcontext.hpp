@@ -69,7 +69,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 
 		// Load all the models now in a deferred way
 		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer, this->m_event_system, *this->m_buffer_pack);
-		this->m_scene.upload(*this->m_job_system, this->m_renderer, *this->m_current_device, this->m_event_system);
+		this->m_scene.upload(*this->m_job_system, this->m_renderer, *this->m_current_device);
 
 		this->m_renderer.deferred_buffer_upload(*this->m_current_device, this->m_scene);
 
@@ -78,49 +78,15 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 
 	FORCE_INLINE void tick()
 	{
-		auto &job_system   = this->job_system();
 		auto &event_system = this->event_system();
+		auto &job_system   = this->job_system();
 		auto &scene        = this->scene();
-		auto &cameras      = scene.cameras();
 		auto &buffer_pack  = this->buffer_pack();
 		auto &device       = this->device();
 		auto &renderer     = this->renderer();
 		auto &timer        = this->timer();
 
-		ror::EventCallback camera_cycle_callback = [this, &cameras](ror::Event &) {
-			size_t cameras_size{cameras.size()};
-
-			cameras[this->m_current_camera_index].disable();
-
-			this->m_current_camera_index++;
-			this->m_current_camera_index = this->m_current_camera_index % ror::static_cast_safe<uint32_t>(cameras_size);
-
-			cameras[this->m_current_camera_index].enable();
-		};
-
-		auto &camera = cameras[this->m_current_camera_index];
-
-		static bool enable_camera = true;
-
-		if (enable_camera)
-		{
-			auto dims = renderer.dimensions();
-			auto bbox = scene.bounding_box();
-
-			for (auto &cam : cameras)
-			{
-				cam.bounds(dims.x, dims.y);
-				cam.volume(bbox.minimum(), bbox.maximum());
-			}
-
-			camera.enable();
-			enable_camera = false;
-
-			event_system.subscribe(ror::keyboard_c_click, camera_cycle_callback);
-		}
-
-		camera.update(renderer);
-
+		scene.update(renderer, timer);
 		renderer.render(scene, job_system, event_system, buffer_pack, device, timer);
 
 		this->underlying().tick_derived();
@@ -145,7 +111,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		// Shutdown glslang library via our wrapper, calling glslang directly means we need to link it with editor which creaates all kinds of issues
 		glslang_wrapper_finalize_process();
 
-		this->m_scene.shutdown(this->m_event_system);
+		this->m_scene.shutdown(ror::settings().m_default_scene, this->m_event_system);
 
 		this->m_buffer_pack->free();
 		this->m_job_system->stop();
@@ -157,7 +123,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	// FORCE_INLINE ContextCrtp() = default;
 	FORCE_INLINE ContextCrtp() :
 	    m_job_system(&ror::get_job_system()),
-	    m_scene(ror::settings().m_default_scene, m_event_system),
+	    m_scene(ror::settings().m_default_scene, m_renderer, m_event_system),
 	    m_buffer_pack(&rhi::get_buffers_pack())
 	{
 		this->m_current_device = std::make_shared<Device>();
@@ -168,13 +134,12 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 	ror::Timer                           m_timer{};                        //! Main timer for the system
 	ror::JobSystem                      *m_job_system{nullptr};            //! Non-owning job system alias that will be used by the whole application
 	ror::EventSystem                     m_event_system{};                 //! An event system that the application can use,
+	ror::Renderer                        m_renderer{};                     //! Renderer that will be used by the context to render stuff
 	ror::Scene                           m_scene{};                        //! A scene we want to render
 	rhi::BuffersPack                    *m_buffer_pack{nullptr};           //! A non-owning alias to the global buffers pack
 	std::vector<std::shared_ptr<Device>> m_devices{};                      //! List of devices in the system
 	std::shared_ptr<Device>              m_current_device{nullptr};        //! Current device we are using, only one device possible at a time
-	ror::Renderer                        m_renderer{};                     //! Renderer that will be used by the context to render stuff
 	ror::Vector4ui                       m_frame_dimensions{};             //! current frame dimensions updated by looking up current window and framebuffer sizes
-	uint32_t                             m_current_camera_index{0};        //! Camera to use to render the scene
 };
 
 }        // namespace rhi
