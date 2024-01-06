@@ -78,8 +78,13 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE OrbitCamera &operator=(OrbitCamera &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~OrbitCamera() noexcept                                  = default;        //! Destructor
 
+	FORCE_INLINE void set_from_parameters();
 	FORCE_INLINE void bounds(float32_t a_width, float32_t a_height);
 	FORCE_INLINE void volume(Vector3f a_minimum, Vector3f a_maximum);
+	FORCE_INLINE void center(Vector3f a_center);
+	FORCE_INLINE void up(Vector3f a_up);
+	FORCE_INLINE void right(Vector3f a_right);
+	FORCE_INLINE void forward(Vector3f a_forward);
 	FORCE_INLINE void zoom(double64_t a_zoom_delta);
 	FORCE_INLINE void mode(CameraMode a_mode);
 	FORCE_INLINE void type(CameraType a_type);
@@ -89,8 +94,9 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE void ratio(float32_t a_far);
 	FORCE_INLINE void width(float32_t a_far);
 	FORCE_INLINE void height(float32_t a_far);
-	FORCE_INLINE void xmag(float32_t a_xmag);
-	FORCE_INLINE void ymag(float32_t a_ymag);
+	FORCE_INLINE void x_mag(float32_t a_x_mag);
+	FORCE_INLINE void y_mag(float32_t a_y_mag);
+	FORCE_INLINE void y_fov(float32_t a_y_fov);
 	void              init(EventSystem &a_event_system);
 	void              enable();
 	void              disable();
@@ -100,14 +106,53 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	// clang-format off
 	FORCE_INLINE constexpr auto& view()          const noexcept { return this->m_view;          }
 	FORCE_INLINE constexpr auto& eye()           const noexcept { return this->m_eye;           }
+	FORCE_INLINE constexpr auto& up()            const noexcept { return this->m_up;            }
+	FORCE_INLINE constexpr auto& right()         const noexcept { return this->m_right;         }
+	FORCE_INLINE constexpr auto& forward()       const noexcept { return this->m_forward;       }
 	FORCE_INLINE constexpr auto& projection()    const noexcept { return this->m_projection;    }
+	FORCE_INLINE constexpr auto& center()        const noexcept { return this->m_center;        }
+	FORCE_INLINE constexpr auto& minimum()       const noexcept { return this->m_minimum;       }
+	FORCE_INLINE constexpr auto& maximum()       const noexcept { return this->m_maximum;       }
+	FORCE_INLINE constexpr auto& type()          const noexcept { return this->m_type;          }
+	FORCE_INLINE constexpr auto& mode()          const noexcept { return this->m_mode;          }
+	FORCE_INLINE constexpr auto& x_mag()         const noexcept { return this->m_x_mag;         }
+	FORCE_INLINE constexpr auto& y_mag()         const noexcept { return this->m_y_mag;         }
+	FORCE_INLINE constexpr auto& y_fov()         const noexcept { return this->m_y_fov;         }
+	FORCE_INLINE constexpr auto& z_near()        const noexcept { return this->m_z_near;        }
+	FORCE_INLINE constexpr auto& z_far()         const noexcept { return this->m_z_far;         }
+	FORCE_INLINE constexpr auto& width()         const noexcept { return this->m_width;         }
+	FORCE_INLINE constexpr auto& height()        const noexcept { return this->m_height;        }
+	FORCE_INLINE constexpr auto& aspect_ratio()  const noexcept { return this->m_aspect_ratio;  }
 	// clang-format on
+	void set_parameters(CameraType a_type, float32_t a_width, float32_t a_height,
+	                    float32_t a_near, float32_t a_far,
+	                    Vector3f a_center, Vector3f a_eye,
+	                    Vector3f a_up, Vector3f a_right, Vector3f a_forward,
+	                    Vector3f a_minimum, Vector3f a_maximum,
+	                    float32_t a_y_fov, float32_t a_x_mag, float32_t a_y_mag)
+	{
+		this->m_type    = a_type;
+		this->m_width   = a_width;
+		this->m_height  = a_height;
+		this->m_z_near  = a_near;
+		this->m_z_far   = a_far;
+		this->m_center  = a_center;
+		this->m_eye     = a_eye;
+		this->m_up      = a_up;
+		this->m_right   = a_right;
+		this->m_forward = a_forward;
+		this->m_minimum = a_minimum;
+		this->m_maximum = a_maximum;
+		this->m_y_fov   = a_y_fov;
+		this->m_x_mag   = a_x_mag;
+		this->m_y_mag   = a_y_mag;
+	}
 
   private:
 	void reset();
 	void setup();
 	void update_vectors();
-	void update_view();
+	void update_view(Vector3f a_up = Vector3f{0.0, 1.0, 0.0});
 	void update_normal();
 	void update_projection();
 	void rotate(float32_t a_x_rotation, float32_t a_y_rotation);
@@ -139,8 +184,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t     m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
 	float32_t     m_width{1024.0f};                         //! Width of the rectangle it needs to fill
 	float32_t     m_height{768.0f};                         //! Height of the rectangle it needs to fill
-	float32_t     m_xmag{1.0f};                             //! Width of the orthographics camera
-	float32_t     m_ymag{1.0f};                             //! Height of the orthographics camera
+	float32_t     m_x_mag{1.0f};                            //! Width of the orthographics camera
+	float32_t     m_y_mag{1.0f};                            //! Height of the orthographics camera
 	CameraMode    m_mode{CameraMode::orbit};                //! Default orbit camera
 	CameraType    m_type{CameraType::perspective};          //! Default perspective camera
 	EventSystem  *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around

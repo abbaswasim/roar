@@ -104,13 +104,11 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		}
 	};
 
-	this->m_mode_callback = [this](ror::Event &e) {
-		(void) e;
+	this->m_mode_callback = [this](ror::Event &) {
 		this->m_mode = this->m_mode == CameraMode::orbit ? CameraMode::fps : CameraMode::orbit;
 	};
 
-	this->m_reset_callback = [this](ror::Event &e) {
-		(void) e;
+	this->m_reset_callback = [this](ror::Event &) {
 		this->reset();
 	};
 
@@ -147,14 +145,13 @@ void OrbitCamera::update_vectors()
 	this->m_forward.z = -this->m_view.m_values[10];
 }
 
-void OrbitCamera::update_view()
+void OrbitCamera::update_view(Vector3f a_up)        // Up default is {0.0f, 1.0f, 0.0f} the real world up vector to orient itself
 {
 	// Applying a translation matrix to a vector should have no effect. We can achieve this by setting the vector’s w component to 0, which zeroes out the translational component of a transformation matrix.
 	// On the other hand, we need points to be able to translate, so we set their w component to 1. This gives us the 3D translation results we want.
 
 	// Another way to calculate view transformation is to take the inverse of the camera’s model-to-world transformation.
-	static const Vector3f up{0.0f, 1.0f, 0.0f};        //! World Up vector to orient itself
-	this->m_view = ror::make_look_at(this->m_eye, this->m_center, up);
+	this->m_view = ror::make_look_at(this->m_eye, this->m_center, a_up);
 
 	this->update_vectors();
 }
@@ -177,7 +174,7 @@ void OrbitCamera::update_projection()
 	}
 	else
 	{
-		auto mag  = std::max(this->m_xmag, this->m_ymag);
+		auto mag  = std::max(this->m_x_mag, this->m_y_mag);
 		auto xmag = (mag * aspect) * 0.5f;
 		auto ymag = mag * 0.5f;
 

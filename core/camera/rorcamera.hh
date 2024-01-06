@@ -40,6 +40,12 @@ void OrbitCamera::bounds(float32_t a_width, float32_t a_height)
 	this->update_view();
 }
 
+void OrbitCamera::set_from_parameters()
+{
+	this->update_projection();
+	this->update_view(this->m_up);
+}
+
 void OrbitCamera::zoom(double64_t a_zoom_delta)
 {
 	auto delta = (camera_sensitivity * 10.0f * static_cast<float32_t>(a_zoom_delta));
@@ -64,8 +70,8 @@ void OrbitCamera::forward(double64_t a_zoom_delta)
 	translation = ror::matrix4_translation(this->m_forward * -delta);
 	this->m_eye = translation * this->m_eye;
 
-	this->m_xmag += delta;
-	this->m_ymag += delta;
+	this->m_x_mag += delta;
+	this->m_y_mag += delta;
 
 	this->update_projection();
 	this->update_vectors();
@@ -125,6 +131,34 @@ void OrbitCamera::volume(Vector3f a_minimum, Vector3f a_maximum)
 	this->setup();
 }
 
+void OrbitCamera::center(Vector3f a_center)
+{
+	this->m_center = a_center;
+
+	this->setup();
+}
+
+void OrbitCamera::up(Vector3f a_up)
+{
+	this->m_up = a_up;
+
+	this->setup();
+}
+
+void OrbitCamera::right(Vector3f a_right)
+{
+	this->m_right = a_right;
+
+	this->setup();
+}
+
+void OrbitCamera::forward(Vector3f a_forward)
+{
+	this->m_forward = a_forward;
+
+	this->setup();
+}
+
 void OrbitCamera::mode(CameraMode a_mode)
 {
 	this->m_mode = a_mode;
@@ -179,16 +213,23 @@ void OrbitCamera::height(float32_t a_height)
 	this->update_projection();
 }
 
-void OrbitCamera::xmag(float32_t a_xmag)
+void OrbitCamera::x_mag(float32_t a_x_mag)
 {
-	this->m_xmag = a_xmag;
+	this->m_x_mag = a_x_mag;
 
 	this->update_projection();
 }
 
-void OrbitCamera::ymag(float32_t a_ymag)
+void OrbitCamera::y_mag(float32_t a_y_mag)
 {
-	this->m_ymag = a_ymag;
+	this->m_y_mag = a_y_mag;
+
+	this->update_projection();
+}
+
+void OrbitCamera::y_fov(float32_t a_y_fov)
+{
+	this->m_y_fov = a_y_fov;
 
 	this->update_projection();
 }
