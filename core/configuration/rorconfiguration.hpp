@@ -53,6 +53,21 @@ class ROAR_ENGINE_ITEM Configuration : public Crtp<_type, Configuration>
 		this->underlying().load_specific();
 	}
 
+	void write(std::filesystem::path a_config_path, ResourceSemantic a_semantic = ResourceSemantic::configs)
+	{
+		// Called before this write because clients must be setting things up, unlike load
+		this->underlying().write_specific();
+
+		auto &resource = get_resource(a_config_path, a_semantic);        // This time access cached resource
+
+		bytes_vector data{};
+		std::string  json_string{this->m_json_file.dump(4)};
+
+		data.insert(data.begin(), json_string.begin(), json_string.end());
+
+		resource.update({data.begin(), data.end()}, true, false, true);        // Force updating the Resource because I am sure no one else is using it
+	}
+
   protected:
 	FORCE_INLINE Configuration() = default;        //! Default constructor
   private:
