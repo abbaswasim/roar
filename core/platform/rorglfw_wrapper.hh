@@ -168,6 +168,8 @@ void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button
 		*draging = false;
 	};
 
+	// Since this is using the same coordinates as mouse move, this will only work if inserted before a move
+	// This way drag relies on previous frame move changing mouse position and then using this frame drag to calculate delta
 	auto drag_test = [draging, &event_system, a_mouse_button](Event &a_event) {
 		if (*draging)
 		{
@@ -182,7 +184,7 @@ void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button
 
 	event_system.subscribe(mouse_down_handle, drag_set);
 	event_system.subscribe(mouse_click_handle, drag_reset);
-	event_system.subscribe(mouse_move, drag_test);
+	event_system.subscribe_early(mouse_move, drag_test);        // Needs to be before any other move, read above
 }
 
 // Some global glfw events registration
