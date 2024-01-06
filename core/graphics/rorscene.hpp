@@ -103,7 +103,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE Scene &operator=(Scene &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~Scene() noexcept override                 = default;        //! Destructor
 
-	explicit Scene(std::filesystem::path a_level, ror::EventSystem &a_event_system);
+	explicit Scene(const std::filesystem::path &a_level, ror::EventSystem &a_event_system);
 
 	FORCE_INLINE Node *get_entity() const;
 	FORCE_INLINE Node *get_root() const;
@@ -159,7 +159,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		FORCE_INLINE SceneState &operator=(SceneState &&a_other) noexcept  = delete;         //! Move assignment operator
 		FORCE_INLINE ~SceneState() noexcept override                       = default;        //! Destructor
 
-		explicit SceneState(std::filesystem::path a_data_path);
+		void init(std::filesystem::path a_data_path);
 
 		declare_translation_unit_vtable();
 
@@ -196,7 +196,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		rhi::Program program{-1, -1};
 	};
 
-	void init(ror::EventSystem &a_event_system);
+	void init(const std::filesystem::path &a_level, ror::EventSystem &a_event_system);
 	void install_input_handlers(ror::EventSystem &a_event_system);
 	void uninstall_input_handlers(ror::EventSystem &a_event_system);
 	void make_overlays();

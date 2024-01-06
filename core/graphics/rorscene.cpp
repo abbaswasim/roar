@@ -126,10 +126,9 @@ constexpr auto renderpasstype_max()
 	return static_cast<uint32_t>(rhi::RenderpassType::max);
 }
 
-Scene::Scene(std::filesystem::path a_level, ror::EventSystem &a_event_system) :
-    m_scene_state(std::filesystem::path{a_level}.stem().string() + "_data.json")
+Scene::Scene(const std::filesystem::path &a_level, ror::EventSystem &a_event_system)
 {
-	this->init(a_event_system);
+	this->init(a_level, a_event_system);
 	this->load(a_level, ResourceSemantic::scenes);
 }
 
@@ -199,7 +198,7 @@ void Scene::update_from_data()
 	camera.set_from_parameters();
 }
 
-Scene::SceneState::SceneState(std::filesystem::path a_data_path)
+void Scene::SceneState::init(std::filesystem::path a_data_path)
 {
 	this->load(a_data_path, ResourceSemantic::scenes);
 }
@@ -1852,7 +1851,9 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	}
 }
 
-void Scene::init(ror::EventSystem &a_event_system)
+#define scene_state_name "_data.json"
+
+void Scene::init(const std::filesystem::path &a_level, ror::EventSystem &a_event_system)
 {
 	this->m_semi_colon_key_callback = [this](ror::Event &) {
 		auto &setting = ror::settings();
@@ -1865,6 +1866,38 @@ void Scene::init(ror::EventSystem &a_event_system)
 	};
 
 	install_input_handlers(a_event_system);
+
+	auto state_file = std::filesystem::path{a_level}.stem().string() + scene_state_name;
+
+	try
+	{
+		this->m_scene_state.init(state_file);
+	}
+	catch (const json::exception &e)
+	{
+		log_critical("Scene state file not found or its invalid {}", e.what());
+
+		auto  abs_path       = find_resource(a_level, ror::ResourceSemantic::scenes);
+		auto  abs_state_path = std::filesystem::path{abs_path}.stem().string() + scene_state_name;
+		auto &re             = ror::resource(abs_state_path, ror::ResourceSemantic::scenes, ror::ResourceAction::create, "assets");
+
+		bytes_vector data{};
+		std::string  empty_state_contents{"{\"current_camera\": {}}"};
+
+		data.insert(data.begin(), empty_state_contents.begin(), empty_state_contents.end());
+		re.update({data.begin(), data.end()}, true, false, true);        // Force updating the Resource because I am sure no one else is using it
+		re.flush();
+
+		try
+		{
+			this->m_scene_state.init(state_file);
+			this->m_scene_state.m_is_valid = false;
+		}
+		catch (const json::exception &e)
+		{
+			log_critical("After creating empty scene state file loading failed with error {}", e.what());
+		}
+	}
 }
 
 void Scene::shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system)
@@ -1872,10 +1905,12 @@ void Scene::shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_sy
 	if (settings().m_save_scene_state)
 	{
 		this->fill_scene_data();
-		this->m_scene_state.write(std::filesystem::path{a_level}.stem().string() + "_data.json", ror::ResourceSemantic::scenes);
+		this->m_scene_state.write(std::filesystem::path{a_level}.stem().string() + scene_state_name, ror::ResourceSemantic::scenes);
 	}
 	uninstall_input_handlers(a_event_system);
 }
+
+#undef scene_state_name
 
 void Scene::install_input_handlers(ror::EventSystem &a_event_system)
 {

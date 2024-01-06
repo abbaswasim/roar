@@ -308,7 +308,7 @@ static Resource &cache_resource(const std::filesystem::path &a_absolute_path, Re
  * Can be used to access previously created resource.
  * If it wasn't created before it will be created but in empty state
  */
-Resource& get_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
+Resource &get_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
 {
 	assert(a_path != "" && "get_resource is provided empty path");
 
@@ -323,7 +323,7 @@ Resource& get_resource(const std::filesystem::path &a_path, ResourceSemantic a_s
  */
 Resource &load_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic)
 {
-	auto &resource      = get_resource(a_path, a_semantic);
+	auto &resource = get_resource(a_path, a_semantic);
 	resource.load();
 	return resource;
 }
@@ -382,7 +382,7 @@ Resource &make_resource(const std::filesystem::path &a_path, ResourceSemantic a_
  */
 bool check_resource(const std::filesystem::path &a_path, ResourceSemantic a_semantic, const std::filesystem::path &a_parent_path)
 {
-	auto  absolute_path = make_resource_path(a_path, a_semantic, a_parent_path);
+	auto absolute_path = make_resource_path(a_path, a_semantic, a_parent_path);
 
 	if (std::filesystem::exists(absolute_path))
 		return true;
