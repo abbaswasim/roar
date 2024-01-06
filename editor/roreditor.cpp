@@ -61,7 +61,13 @@ int main(int argc, char *argv[])
 
 	// Command line argument has preference over settings in this case
 	if (ror::settings().m_default_scene != editor_default_scene)
-		ror::settings().m_default_scene = editor_default_scene;
+	{
+		auto scene_path = std::filesystem::path{editor_default_scene};
+		if (!scene_path.has_extension())
+			scene_path += ".json";
+
+		ror::settings().m_default_scene = scene_path;
+	}
 
 	ror::UnixApp app1{};
 
