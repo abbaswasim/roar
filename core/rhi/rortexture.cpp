@@ -151,34 +151,6 @@ void write_ppm(const std::filesystem::path &a_path, uint32_t a_width, uint32_t a
 	write_ppm(a_path, a_width, a_height, pixel_data);
 }
 
-[[noreturn]] void write_ppm(const std::filesystem::path &a_path, uint32_t a_width, uint32_t a_height, std::vector<float32_t> &a_data)
-{
-	assert(0 && "Not well tested method for HDR data, don't use");
-
-	size_t               size = a_width * a_height * 4u;
-	std::vector<uint8_t> ldr_data;
-	ldr_data.resize(size);
-
-	for (size_t i = 0; i < size; i += 4)
-	{
-		ror::Vector4f v;
-
-		v.x = a_data[i + 0];
-		v.y = a_data[i + 1];
-		v.z = a_data[i + 2];
-		v.w = a_data[i + 3];
-
-		auto t = reinhard_tone_mapping(v);
-
-		ldr_data[i + 0] = static_cast<uint8_t>(t.x * 255.0f);
-		ldr_data[i + 1] = static_cast<uint8_t>(t.y * 255.0f);
-		ldr_data[i + 2] = static_cast<uint8_t>(t.z * 255.0f);
-		ldr_data[i + 3] = static_cast<uint8_t>(t.w * 255.0f);
-	}
-
-	write_ppm(a_path, a_width, a_height, ldr_data);
-}
-
 void fill_texture_from_memory(uint8_t *a_data, uint32_t a_width, uint32_t a_height, uint32_t a_bytes_per_pixel, rhi::TextureImage &a_texture, bool a_is_hdr, const std::string &a_name)
 {
 	uint32_t expected_bpp = a_is_hdr ? 16 : 4;
