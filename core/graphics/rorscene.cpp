@@ -72,7 +72,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <filesystem>
 #include <mutex>
+#include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -124,10 +126,217 @@ constexpr auto renderpasstype_max()
 	return static_cast<uint32_t>(rhi::RenderpassType::max);
 }
 
-Scene::Scene(std::filesystem::path a_level, ror::EventSystem &a_event_system)
+Scene::Scene(std::filesystem::path a_level, ror::EventSystem &a_event_system) :
+    m_scene_data(std::filesystem::path{a_level}.stem().string() + "_data.json")
 {
 	this->init(a_event_system);
 	this->load(a_level, ResourceSemantic::scenes);
+	this->setup_cameras(a_event_system);
+	this->update_from_data();
+}
+
+define_translation_unit_vtable(Scene::SceneData)
+{}
+
+void Scene::setup_cameras(ror::EventSystem &a_event_system)
+{
+	auto &cameras = this->cameras();
+
+	ror::EventCallback camera_cycle_callback = [this, &cameras](ror::Event &) {
+		size_t cameras_size{cameras.size()};
+
+		cameras[this->m_current_camera_index].disable();
+
+		this->m_current_camera_index++;
+		this->m_current_camera_index = this->m_current_camera_index % ror::static_cast_safe<uint32_t>(cameras_size);
+
+		cameras[this->m_current_camera_index].enable();
+	};
+
+	a_event_system.subscribe(ror::keyboard_c_click, camera_cycle_callback);
+
+	// Setup cameras
+	for (auto &camera : this->m_cameras)
+		camera.init(a_event_system);
+
+	cameras[m_current_camera_index].enable();
+}
+
+void Scene::update_from_data()
+{
+	// take the SceneData and fill stuff from it
+	// Since we wrote out current camera now we read it in
+	auto &camera = this->m_cameras[0];
+	camera.mode(this->m_scene_data.m_camera_mode);
+
+	camera.set_parameters(this->m_scene_data.m_camera_type,
+	                      this->m_scene_data.m_camera_width,
+	                      this->m_scene_data.m_camera_height,
+	                      this->m_scene_data.m_camera_z_near,
+	                      this->m_scene_data.m_camera_z_far,
+	                      this->m_scene_data.m_camera_center,
+	                      this->m_scene_data.m_camera_eye,
+	                      this->m_scene_data.m_camera_up,
+	                      this->m_scene_data.m_camera_right,
+	                      this->m_scene_data.m_camera_forward,
+	                      this->m_scene_data.m_camera_minimum,
+	                      this->m_scene_data.m_camera_maximum,
+	                      this->m_scene_data.m_camera_y_fov,
+	                      this->m_scene_data.m_camera_x_mag,
+	                      this->m_scene_data.m_camera_y_mag);
+
+	camera.set_from_parameters();
+}
+
+Scene::SceneData::SceneData(std::filesystem::path a_data_path)
+{
+	this->load(a_data_path, ResourceSemantic::scenes);
+}
+
+ror::Vector3f read_vector3(json a_json_object)
+{
+	std::array<float32_t, 3> c = a_json_object;
+
+	return ror::Vector3f{c[0], c[1], c[2]};
+}
+
+void Scene::SceneData::load_specific()
+{
+	if (this->m_json_file.contains("current_camera"))
+	{
+		auto &camera = this->m_json_file["current_camera"];
+		if (camera.contains("center"))
+			this->m_camera_center = read_vector3(camera["center"]);
+		if (camera.contains("eye"))
+			this->m_camera_eye = read_vector3(camera["eye"]);
+		if (camera.contains("right"))
+			this->m_camera_right = read_vector3(camera["right"]);
+		if (camera.contains("up"))
+			this->m_camera_up = read_vector3(camera["up"]);
+		if (camera.contains("forward"))
+			this->m_camera_forward = read_vector3(camera["forward"]);
+		if (camera.contains("minimum"))
+			this->m_camera_minimum = read_vector3(camera["minimum"]);
+		if (camera.contains("maximum"))
+			this->m_camera_maximum = read_vector3(camera["maximum"]);
+		if (camera.contains("znear"))
+			this->m_camera_z_near = camera["znear"];
+		if (camera.contains("zfar"))
+			this->m_camera_z_far = camera["zfar"];
+		if (camera.contains("width"))
+			this->m_camera_width = camera["width"];
+		if (camera.contains("height"))
+			this->m_camera_height = camera["height"];
+
+		if (camera.contains("mode"))
+		{
+			auto mode = camera["mode"];
+			if (mode == "fps")
+				this->m_camera_mode = CameraMode::fps;
+			else
+				this->m_camera_mode = CameraMode::orbit;
+		}
+		if (camera.contains("type"))
+		{
+			auto type = camera["type"];
+			if (type == "orthographic")
+				this->m_camera_type = CameraType::orthographic;
+			else
+				this->m_camera_type = CameraType::perspective;
+		}
+
+		if (camera.contains("perspective"))
+		{
+			auto &perspective = camera["perspective"];
+			if (perspective.contains("yfov"))
+				this->m_camera_y_fov = perspective["yfov"];
+		}
+
+		if (camera.contains("orthographic"))
+		{
+			auto &orthographic = camera["orthographic"];
+			if (orthographic.contains("xmag"))
+				this->m_camera_x_mag = orthographic["xmag"];
+			if (orthographic.contains("ymag"))
+				this->m_camera_y_mag = orthographic["ymag"];
+		}
+	}
+}
+
+template <typename _type>
+void replace_next_at(_type a_value, std::string &a_result)
+{
+	auto index = a_result.find_first_of('@');
+	assert(index != std::string::npos);
+	std::string replacement{};
+	if constexpr (std::is_arithmetic_v<_type>)
+		replacement = std::to_string(a_value);
+	else
+		replacement = a_value;
+
+	a_result.replace(index, 1, replacement);
+}
+
+void Scene::SceneData::write_specific()
+{
+	if (this->m_json_file.contains("current_camera"))
+	{
+		auto &camera = this->m_json_file["current_camera"];
+
+		std::string patch_str = std::string(R"(
+            [
+                { "op": "add", "path": "/type", "value": "@" },
+                { "op": "add", "path": "/width", "value": @ },
+                { "op": "add", "path": "/height", "value": @ },
+                { "op": "add", "path": "/zfar", "value": @ },
+                { "op": "add", "path": "/znear", "value": @ },
+                { "op": "add", "path": "/center", "value": [@, @, @] },
+                { "op": "add", "path": "/eye", "value": [@, @, @] },
+                { "op": "add", "path": "/up", "value": [@, @, @] },
+                { "op": "add", "path": "/right", "value": [@, @, @] },
+                { "op": "add", "path": "/forward", "value": [@, @, @] },
+                { "op": "add", "path": "/minimum", "value": [@, @, @] },
+                { "op": "add", "path": "/maximum", "value": [@, @, @] },
+                { "op": "add", "path": "/mode", "value": "@" },
+                { "op": "add", "path": "/perspective", "value": {"yfov":@} },
+                { "op": "add", "path": "/orthographic", "value":{"xmag":@, "ymag":@} }
+            ])");
+
+		replace_next_at(this->m_camera_type == ror::CameraType::perspective ? "perspective" : "orthographic", patch_str);
+		replace_next_at(this->m_camera_width, patch_str);
+		replace_next_at(this->m_camera_height, patch_str);
+		replace_next_at(this->m_camera_z_far, patch_str);
+		replace_next_at(this->m_camera_z_near, patch_str);
+		replace_next_at(this->m_camera_center.x, patch_str);
+		replace_next_at(this->m_camera_center.y, patch_str);
+		replace_next_at(this->m_camera_center.z, patch_str);
+		replace_next_at(this->m_camera_eye.x, patch_str);
+		replace_next_at(this->m_camera_eye.y, patch_str);
+		replace_next_at(this->m_camera_eye.z, patch_str);
+		replace_next_at(this->m_camera_up.x, patch_str);
+		replace_next_at(this->m_camera_up.y, patch_str);
+		replace_next_at(this->m_camera_up.z, patch_str);
+		replace_next_at(this->m_camera_right.x, patch_str);
+		replace_next_at(this->m_camera_right.y, patch_str);
+		replace_next_at(this->m_camera_right.z, patch_str);
+		replace_next_at(this->m_camera_forward.x, patch_str);
+		replace_next_at(this->m_camera_forward.y, patch_str);
+		replace_next_at(this->m_camera_forward.z, patch_str);
+		replace_next_at(this->m_camera_minimum.x, patch_str);
+		replace_next_at(this->m_camera_minimum.y, patch_str);
+		replace_next_at(this->m_camera_minimum.z, patch_str);
+		replace_next_at(this->m_camera_maximum.x, patch_str);
+		replace_next_at(this->m_camera_maximum.y, patch_str);
+		replace_next_at(this->m_camera_maximum.z, patch_str);
+		replace_next_at(this->m_camera_mode == ror::CameraMode::fps ? "fps" : "orbit", patch_str);
+		replace_next_at(this->m_camera_y_fov, patch_str);
+		replace_next_at(this->m_camera_x_mag, patch_str);
+		replace_next_at(this->m_camera_y_mag, patch_str);
+
+		json patch = json::parse(patch_str);
+
+		camera.patch_inplace(patch);
+	}
 }
 
 template <typename _node_type>
@@ -450,9 +659,30 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		enable_material_component(material.m_height, textures, images, samplers, binding_index, a_dd);
 		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
-		// NOTE: Enable if binding_index used for anything else after this
-		// if (a_scene.has_shadows())
-		// 	binding_index++;        // To be consistent with shader_system.cpp
+		// Incase binding_index used for anything else after this
+		if (a_scene.has_shadows())
+			binding_index++;        // To be consistent with shader_system.cpp
+
+		if (settings().m_environment.m_visible)
+		{
+			auto &renderer_images        = a_renderer.images();
+			auto &env                    = a_renderer.current_environment();
+			auto &skybox_image           = renderer_images[static_cast_safe<size_t>(env.skybox())];
+			auto &brdf_integration_image = renderer_images[static_cast_safe<size_t>(env.brdf_integration())];
+			auto &irradiance_image       = renderer_images[static_cast_safe<size_t>(env.irradiance())];
+			auto &radiance_image         = renderer_images[static_cast_safe<size_t>(env.radiance())];
+
+			auto &sampler = a_renderer.samplers()[static_cast_safe<size_t>(env.skybox_sampler())];
+
+			a_dd.encoder->fragment_sampler(sampler, binding_index);
+			a_dd.encoder->fragment_texture(brdf_integration_image, binding_index++);
+			a_dd.encoder->fragment_sampler(sampler, binding_index);
+			a_dd.encoder->fragment_texture(skybox_image, binding_index++);        // This behaviour matches what's in the shader_system.cpp
+			a_dd.encoder->fragment_sampler(sampler, binding_index);
+			a_dd.encoder->fragment_texture(irradiance_image, binding_index++);
+			a_dd.encoder->fragment_sampler(sampler, binding_index);
+			a_dd.encoder->fragment_texture(radiance_image, binding_index++);
+		}
 
 		if (a_mesh.has_indices(prim_id))
 		{
@@ -865,6 +1095,28 @@ void Scene::reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommand
 	a_encoder.scissor({0, 0, static_cast<uint32_t>(dimensions.x), static_cast<uint32_t>(dimensions.y)});
 }
 
+void Scene::fill_scene_data()
+{
+	auto &camera = this->m_cameras[0];
+
+	this->m_scene_data.m_camera_center  = camera.center();
+	this->m_scene_data.m_camera_eye     = camera.eye();
+	this->m_scene_data.m_camera_right   = camera.right();
+	this->m_scene_data.m_camera_up      = camera.up();
+	this->m_scene_data.m_camera_forward = camera.forward();
+	this->m_scene_data.m_camera_minimum = camera.minimum();
+	this->m_scene_data.m_camera_maximum = camera.maximum();
+	this->m_scene_data.m_camera_y_fov   = camera.y_fov();
+	this->m_scene_data.m_camera_z_near  = camera.z_near();
+	this->m_scene_data.m_camera_z_far   = camera.z_far();
+	this->m_scene_data.m_camera_width   = camera.width();
+	this->m_scene_data.m_camera_height  = camera.height();
+	this->m_scene_data.m_camera_x_mag   = camera.x_mag();
+	this->m_scene_data.m_camera_y_mag   = camera.y_mag();
+	this->m_scene_data.m_camera_mode    = camera.mode();
+	this->m_scene_data.m_camera_type    = camera.type();
+}
+
 void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
 {
 	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
@@ -991,6 +1243,12 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 void Scene::update(double64_t a_milli_seconds)
 {
 	(void) a_milli_seconds;
+}
+
+void Scene::update_cameras(ror::Renderer &a_renderer)
+{
+	auto &camera = this->m_cameras[this->m_current_camera_index];
+	camera.update(a_renderer);
 }
 
 void Scene::update_bounding_box()
@@ -1590,8 +1848,10 @@ void Scene::init(ror::EventSystem &a_event_system)
 	install_input_handlers(a_event_system);
 }
 
-void Scene::shutdown(ror::EventSystem &a_event_system)
+void Scene::shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system)
 {
+	this->fill_scene_data();
+	this->m_scene_data.write(std::filesystem::path{a_level}.stem().string() + "_data.json", ror::ResourceSemantic::scenes);
 	uninstall_input_handlers(a_event_system);
 }
 
@@ -1957,7 +2217,7 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 	ror::log_info("{} Shader update records created for the scene programs", records);
 }
 
-void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system)
+void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device)
 {
 	auto render_passes = a_renderer.current_frame_graph();
 
@@ -2019,10 +2279,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 
 	// Upload cameras
 	for (auto &camera : this->m_cameras)
-	{
-		camera.init(a_event_system);
 		camera.upload(a_device);
-	}
 
 	// Upload all nodes shader buffers
 	for (auto &node : this->m_nodes_data)
@@ -2169,11 +2426,11 @@ void Scene::read_cameras()
 					{
 						if (key == "xmag")
 						{
-							cam.xmag(value);
+							cam.x_mag(value);
 						}
 						if (key == "ymag")
 						{
-							cam.ymag(value);
+							cam.y_mag(value);
 						}
 						if (key == "znear")
 						{

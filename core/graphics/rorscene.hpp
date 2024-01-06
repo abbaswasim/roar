@@ -120,11 +120,15 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	// void cpu_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
 
 	void update(double64_t a_milli_seconds);
+	void update_from_data();
+	void setup_cameras(ror::EventSystem &a_event_system);
 	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
-	void shutdown(ror::EventSystem &a_event_system);
+	void shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system);
 	void unload();
 	void load_specific();
 	void reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
+	void update_cameras(ror::Renderer &a_renderer);
+	void fill_scene_data();
 
 	// clang-format off
 	FORCE_INLINE constexpr       auto &models()                 noexcept   {  return this->m_models;          }
@@ -143,7 +147,43 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr       auto  has_shadows()      const noexcept   {  return this->m_has_shadows;     }
 	// clang-format on
 
-	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device);
+
+	// Some stuff that we want to save and restore for a scene after its changed, like camera position etc
+	class ROAR_ENGINE_ITEM SceneData : public Configuration<SceneData>
+	{
+	  public:
+		FORCE_INLINE            SceneData()                             = default;        //! Default constructor
+		FORCE_INLINE            SceneData(const SceneData &a_other)     = delete;         //! Copy constructor
+		FORCE_INLINE            SceneData(SceneData &&a_other) noexcept = delete;         //! Move constructor
+		FORCE_INLINE SceneData &operator=(const SceneData &a_other)     = delete;         //! Copy assignment operator
+		FORCE_INLINE SceneData &operator=(SceneData &&a_other) noexcept = delete;         //! Move assignment operator
+		FORCE_INLINE ~SceneData() noexcept override                     = default;        //! Destructor
+
+		explicit SceneData(std::filesystem::path a_data_path);
+
+		declare_translation_unit_vtable();
+
+		void load_specific();
+		void write_specific();
+
+		Vector3f   m_camera_center{0.0f, 0.0f, 0.0f};               //! Target position in worldspace
+		Vector3f   m_camera_eye{0.0f, 0.0f, 1.0f};                  //! Eye position in worldspace
+		Vector3f   m_camera_right{1.0f, 0.0f, 0.0f};                //! Right vector in camera's frame of reference
+		Vector3f   m_camera_up{0.0f, 1.0f, 0.0f};                   //! Up vector in camera's frame of reference
+		Vector3f   m_camera_forward{0.0f, 0.0f, -1.0f};             //! Forward vector in camera's frame of reference
+		Vector3f   m_camera_minimum{-50.0f, -50.0f, -50.0f};        //! Minimum bound of the bounding volume that the camera will always make sure to see fully
+		Vector3f   m_camera_maximum{50.0f, 50.0f, 50.0f};           //! Maximum bound of the bounding volume that the camera will always make sure to see fully
+		float32_t  m_camera_y_fov{60.0f};                           //! Y-FOV of the camera
+		float32_t  m_camera_z_near{0.1f};                           //! z-near of the camera
+		float32_t  m_camera_z_far{1000.0f};                         //! z-far of the camera
+		float32_t  m_camera_width{1024.0f};                         //! Width of the rectangle it needs to fill
+		float32_t  m_camera_height{768.0f};                         //! Height of the rectangle it needs to fill
+		float32_t  m_camera_x_mag{1.0f};                            //! Width of the orthographics camera
+		float32_t  m_camera_y_mag{1.0f};                            //! Height of the orthographics camera
+		CameraMode m_camera_mode{CameraMode::orbit};                //! Default orbit camera
+		CameraType m_camera_type{CameraType::perspective};          //! Default perspective camera
+	};
 
   private:
 	struct GlobalProgram
@@ -199,6 +239,8 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	std::vector<ror::DynamicMesh *>  m_dynamic_meshes{};                                       //! Non-Owning pointers to all the dynamic meshes created in the scene rendererd at once in the end
 	int32_t                          m_grid_model_id{-1};                                      //! Reference to the grid for easy access
 	EventCallback                    m_semi_colon_key_callback{};                              //! Semi colon key call back to enable disable the grid
+	SceneData                        m_scene_data;                                             //! All the scene data that can be saved and restored to and from disk
+	uint32_t                         m_current_camera_index{0};                                //! Camera to use to render the scene
 };
 
 void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);
