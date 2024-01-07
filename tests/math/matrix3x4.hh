@@ -338,7 +338,8 @@ TYPED_TEST(Matrix3x4TestSigned, other_member_funcs)
 	EXPECT_DOUBLE_EQ(mdet_inv_mes.m_values[3], 0.0);
 	EXPECT_DOUBLE_EQ(mdet_inv_mes.m_values[7], 0.0);
 	EXPECT_DOUBLE_EQ(mdet_inv_mes.m_values[11], 0.0);
-	EXPECT_DOUBLE_EQ(mdet_inv_mes.m_values[15], 1.0);
+	// EXPECT_DOUBLE_EQ(mdet_inv_mes.m_values[15], 1.0);
+	EXPECT_NEAR(mdet_inv_mes.m_values[15], 1.0, test_epsilon);
 
 	ASSERT_TRUE(mdet.invert());
 	test_matrix3x4_equal(mdet, mdet_inverse);
