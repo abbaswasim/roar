@@ -173,6 +173,12 @@ FORCE_INLINE void TextureImageCrtp<_type>::mipmapped(bool a_mipmapped) noexcept
 }
 
 template <class _type>
+FORCE_INLINE void TextureImageCrtp<_type>::mip_gen_mode(rhi::TextureMipGenMode a_gen_mode) noexcept
+{
+	this->m_mip_gen_mode = a_gen_mode;
+}
+
+template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::hdr(bool a_hdr) noexcept
 {
 	this->m_hdr = a_hdr;
@@ -188,6 +194,12 @@ template <class _type>
 FORCE_INLINE auto TextureImageCrtp<_type>::mipmapped() const noexcept
 {
 	return this->m_mipmapped;
+}
+
+template <class _type>
+FORCE_INLINE auto TextureImageCrtp<_type>::mip_gen_mode() const noexcept
+{
+	return this->m_mip_gen_mode;
 }
 
 template <class _type>

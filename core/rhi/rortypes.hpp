@@ -413,6 +413,12 @@ enum class TextureMipFilter
 	linear        = PlatformTextureMipFilterLinear
 };
 
+enum class TextureMipGenMode
+{
+	manual,
+	automatic
+};
+
 enum class TextureTransfer
 {
 	linear,

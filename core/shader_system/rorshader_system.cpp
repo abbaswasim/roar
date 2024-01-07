@@ -1146,6 +1146,14 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 	if (a_add_shadow_map)
 		output_append("shadow_map_sampler;\n");
 
+	if (ror::settings().m_environment.m_visible)
+	{
+		output.append(set_binding + std::to_string(binding++) + ") uniform sampler2D brdf_integration_sampler;\n");
+		output.append(set_binding + std::to_string(binding++) + ") uniform samplerCube skybox_sampler;\n");
+		output.append(set_binding + std::to_string(binding++) + ") uniform samplerCube irradiance_sampler;\n");
+		output.append(set_binding + std::to_string(binding++) + ") uniform samplerCube radiance_sampler;\n");
+	}
+
 	return output;
 }
 

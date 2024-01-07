@@ -83,8 +83,10 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE auto  size() const noexcept;
 	FORCE_INLINE auto  ready() const noexcept;
 	FORCE_INLINE auto  mipmapped() const noexcept;
+	FORCE_INLINE auto  mip_gen_mode() const noexcept;
 	FORCE_INLINE auto  hdr() const noexcept;
 	FORCE_INLINE auto  name() const noexcept;
+	FORCE_INLINE auto  setup() noexcept;
 
 	FORCE_INLINE void handle(rhi::TextureHandle) noexcept;
 	FORCE_INLINE void width(uint32_t) noexcept;
@@ -96,12 +98,12 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE void target(TextureTarget) noexcept;
 	FORCE_INLINE void reset(uint8_t *, uint64_t) noexcept;
 	FORCE_INLINE void push_empty_mip() noexcept;
-	FORCE_INLINE auto setup() noexcept;
 	FORCE_INLINE void allocate();
 	FORCE_INLINE void allocate(uint64_t a_size);
 	FORCE_INLINE void upload(rhi::Device *a_device);
 	FORCE_INLINE void ready(bool) noexcept;
 	FORCE_INLINE void mipmapped(bool) noexcept;
+	FORCE_INLINE void mip_gen_mode(rhi::TextureMipGenMode) noexcept;
 	FORCE_INLINE void hdr(bool) noexcept;
 	FORCE_INLINE void name(std::string) noexcept;
 
@@ -114,6 +116,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	uint32_t                   m_bytes_per_pixel{4};                                         //! Bytes per pixel
 	uint64_t                   m_size{0};                                                    //! Size of all mipmaps combined in bytes
 	TextureTarget              m_target{TextureTarget::texture_2D};                          //! Can be 1D, 2D or 3D etc texture
+	TextureMipGenMode          m_mip_gen_mode{TextureMipGenMode::manual};                    //! If mipmapped, how are they mipmappes generated, manually provided or generated using API
 	rhi::PixelFormat           m_format{rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb};        //! Pixel format of the texture
 	rhi::TextureUsage          m_usage{rhi::TextureUsage::shader_read};                      //! What the texture is used for, by default just a read (sample) usage, can be ORed with other usage
 	std::unique_ptr<uint8_t[]> m_data{};                                                     //! All mipmaps data

@@ -548,6 +548,26 @@ rhi::TextureSampler cgltf_sampler_to_sampler(const cgltf_sampler *a_sampler)
 #undef REPEAT
 }
 
+static void force_sampler_mipmaps(rhi::TextureSampler &a_sampler)
+{
+	a_sampler.mip_mode(rhi::TextureMipFilter::linear);
+	a_sampler.min_filter(rhi::TextureFilter::linear);
+	a_sampler.mag_filter(rhi::TextureFilter::linear);
+}
+
+static void force_image_mipmaps(rhi::TextureImage &a_image)
+{
+	a_image.mipmapped(true);
+	a_image.mip_gen_mode(rhi::TextureMipGenMode::automatic);
+	a_image.setup();
+}
+
+static void force_mipmaps(rhi::TextureImage &a_image, rhi::TextureSampler &a_sampler)
+{
+	force_image_mipmaps(a_image);
+	force_sampler_mipmaps(a_sampler);
+}
+
 rhi::PrimitiveTopology cglf_primitive_to_primitive_topology(cgltf_primitive_type a_type)
 {
 	// clang-format off
@@ -915,7 +935,7 @@ static auto generate_grid(ror::Vector2ui a_grid, ror::Vector4f a_grid_color, boo
 		positions.push_back(position.w);
 	};
 
-	float32_t size =ror::static_cast_safe<float32_t>(ror::static_cast_safe<int32_t>(a_grid.y / 2u));
+	float32_t size = ror::static_cast_safe<float32_t>(ror::static_cast_safe<int32_t>(a_grid.y / 2u));
 
 	for (float32_t i = static_cast<float32_t>(a_grid.x); i < size; i += static_cast<float32_t>(a_grid.x))
 	{
@@ -2210,6 +2230,20 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 		update_materials_textures_to_linear(this->m_materials, this->m_textures, this->m_images);
 
 #endif
+		if (ror::settings().m_force_mipmapped_textures)
+			for (auto &t : this->m_textures)
+			{
+				auto tih = t.texture_image();
+				auto tsh = t.texture_sampler();
+
+				assert(tih >= 0 && "Texture Image is invalid");
+				assert(tsh >= 0 && "Texture Sampler is invalid");
+
+				auto &ti = this->m_images[static_cast<size_t>(tih)];
+				auto &ts = this->m_samplers[static_cast<size_t>(tsh)];
+
+				force_mipmaps(ti, ts);
+			}
 
 		cgltf_free(data);
 	}

@@ -154,6 +154,11 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 		return;
 	}
 
+	// For mipmapping to work, you need 3 things to be setup correctly
+	// 1. All mip-levels properly setup either manually or via blit encoder
+	// 2. Have mip levels setup correctly in the texture descriptor
+	// 3. Have a mipmapped sampler setup and attached to the shader
+
 	texture_descriptor->setWidth(this->width());
 	texture_descriptor->setHeight(this->height());
 	texture_descriptor->setPixelFormat(to_metal_pixelformat(this->format()));
@@ -187,11 +192,27 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 
 	if (needs_upload || this->data())
 	{
-		auto &last_mip = this->mips().back();
+		auto &last_mip  = this->mips().back();
+		auto &first_mip = this->mips()[0];
 		(void) last_mip;
+		(void) first_mip;
 
 		assert(this->data());
-		assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
+		if (this->mip_gen_mode() == rhi::TextureMipGenMode::manual && this->mipmapped())
+		{
+			assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
+		}
+		else
+		{
+			if (is_cube)
+			{
+				assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
+			}
+			else
+			{
+				assert(this->size() == (first_mip.m_width * first_mip.m_height * first_mip.m_depth * this->bytes_per_pixel()) && "Image size doesn't match the expected texture size");
+			}
+		}
 
 		MTL::CommandQueue       *queue                = a_device.platform_queue();
 		MTL::Buffer             *source_buffer        = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);
@@ -199,10 +220,11 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 		MTL::BlitCommandEncoder *blit_command_encoder = command_buffer->blitCommandEncoder();
 
 		assert(queue);
+		assert(this->mip_gen_mode() == rhi::TextureMipGenMode::automatic || this->mip_gen_mode() == rhi::TextureMipGenMode::manual && "Not supported mip gen mode");
 
 		size_t layers{is_array ? this->depth() : 1};
 		size_t faces{is_cube ? 6ul : 1ul};
-		size_t levels{this->levels()};
+		size_t levels{this->mip_gen_mode() == rhi::TextureMipGenMode::manual ? this->levels() : 1u};        // If Gen mode is manual, expect data to be ready
 		size_t level_index{0};
 
 		assert(layers == 1 && "Don't support array textured yet, implement me");
@@ -223,6 +245,9 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 				}
 			}
 		}
+
+		if (this->mipmapped() && this->mip_gen_mode() == rhi::TextureMipGenMode::automatic && this->levels() > 1)
+			blit_command_encoder->generateMipmaps(this->m_texture);
 
 		blit_command_encoder->endEncoding();
 

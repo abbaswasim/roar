@@ -241,12 +241,13 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 	fill_texture_from_memory(new_data, static_cast<uint32_t>(w), static_cast<uint32_t>(h), static_cast<uint32_t>(req_comp * (a_is_hdr ? 4 : 1)), a_texture, a_is_hdr, a_name);
 }
 
-TextureImage make_texture(rhi::Device &a_device, rhi::PixelFormat a_format, uint32_t a_width, uint32_t a_height,
-                          rhi::TextureTarget a_target, rhi::TextureUsage a_usage, bool a_mipmapped, bool a_is_hdr)
+TextureImage make_texture(rhi::Device &a_device, rhi::PixelFormat a_format, uint32_t a_width, uint32_t a_height, rhi::TextureTarget a_target,
+						  rhi::TextureUsage a_usage, rhi::TextureMipGenMode a_gen_mode, bool a_mipmapped, bool a_is_hdr)
 {
 	rhi::TextureImage texture_image{};
 
 	texture_image.format(a_format);
+	texture_image.mip_gen_mode(a_gen_mode);
 	texture_image.mipmapped(a_mipmapped);
 	texture_image.target(a_target);
 	texture_image.push_empty_mip();
@@ -258,7 +259,7 @@ TextureImage make_texture(rhi::Device &a_device, rhi::PixelFormat a_format, uint
 	auto size = texture_image.setup();
 
 	texture_image.allocate(size);
-	texture_image.upload(a_device);
+	texture_image.upload(a_device);        // TODO: Move out since it doesn't make much sense, or receive a data ptr
 
 	return texture_image;
 }

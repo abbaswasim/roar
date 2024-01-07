@@ -112,6 +112,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_force_ldr_textures        = setting.get<bool>("force_ldr_textures");
 		this->m_background_srgb_to_linear = setting.get<bool>("background_to_srgb");
 		this->m_force_linear_textures     = setting.get<bool>("force_linear_textures");
+		this->m_force_mipmapped_textures  = setting.get<bool>("force_mipmapped_textures");
 		this->m_animate_cpu               = setting.get<bool>("animate_cpu");
 		this->m_clamp_material_roughness  = setting.get<bool>("clamp_material_roughness");
 		this->m_clamp_material_metallic   = setting.get<bool>("clamp_material_metallic");
@@ -474,6 +475,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_generate_pink_textures{false};
 	bool m_background_srgb_to_linear{false};
 	bool m_force_linear_textures{false};
+	bool m_force_mipmapped_textures{false};
 	bool m_animate_cpu{false};
 	bool m_clamp_material_roughness{false};
 	bool m_clamp_material_metallic{false};

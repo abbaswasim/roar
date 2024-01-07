@@ -1361,7 +1361,7 @@ void Renderer::upload_remaining_textures(rhi::Device &a_device)
 
 		this->m_canonical_cube = static_cast<uint32_t>(this->m_images.size());
 
-		rhi::TextureImage cube{rhi::make_texture(a_device, rhi::PixelFormat::b8g8r8a8_uint32_norm, txp.width(), txp.height(), rhi::TextureTarget::texture_cube, rhi::TextureUsage::shader_read, false)};
+		rhi::TextureImage cube{rhi::make_texture(a_device, rhi::PixelFormat::b8g8r8a8_uint32_norm, txp.width(), txp.height(), rhi::TextureTarget::texture_cube, rhi::TextureUsage::shader_read, rhi::TextureMipGenMode::automatic, false)};
 
 		auto ptr = cube.data();
 
@@ -1529,12 +1529,12 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 	uint32_t env_width_2x{env_width * 2};
 	uint32_t env_height_4x{env_width * 4};
 
-	// The 5 temporary textures 1 HDR cubemap and 4 patches required, all static because used for multiple environments and used in a lambda for shader updates
-	static rhi::TextureImage skybox_hdr_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width, env_width, rhi::TextureTarget::texture_cube, rhi::TextureUsage::shader_write, true, false)};
-	static rhi::TextureImage skybox_hdr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, false, true)};
-	static rhi::TextureImage skybox_ldr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r8g8b8a8_uint32_norm, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write)};
-	static rhi::TextureImage irradiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, false, true)};
-	static rhi::TextureImage radiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, false, true)};
+	// The 5 temporary textures 1 HDR cubemap and 4 patches required, all static because used for multiple environments and used in a lambda for shader updates, All of these are rhi::TextureImage types
+	static auto skybox_hdr_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width, env_width, rhi::TextureTarget::texture_cube, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, true, false)};
+	static auto skybox_hdr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, true)};
+	static auto skybox_ldr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r8g8b8a8_uint32_norm, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, false)};
+	static auto irradiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, true)};
+	static auto radiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, true)};
 
 	a_renderer.m_skybox_hdr_patch_ti = &skybox_hdr_patch_ti;
 	a_renderer.m_skybox_ldr_patch_ti = &skybox_ldr_patch_ti;
