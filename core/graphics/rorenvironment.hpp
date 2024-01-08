@@ -59,6 +59,7 @@ class ROAR_ENGINE_ITEM IBLEnvironment final
 	FORCE_INLINE void radiance_pso(uint32_t a_index)                { this->m_radiance_pso = a_index;            }
 	FORCE_INLINE void irradiance_pso(uint32_t a_index)              { this->m_irradiance_pso = a_index;          }
 	FORCE_INLINE void brdf_integration_pso(int32_t a_index)         { this->m_brdf_integration_pso = a_index;    }
+	FORCE_INLINE void skybox_render_pso(uint32_t a_index)           { this->m_skybox_render_pso = a_index;       }
 	FORCE_INLINE void brdf_integration(uint32_t a_index)            { this->m_brdf_integration = a_index;        }
 	FORCE_INLINE void input_sampler(uint32_t a_index)               { this->m_input_sampler_id = a_index;        }
 	FORCE_INLINE void skybox_sampler(uint32_t a_index)              { this->m_skybox_sampler_id = a_index;       }
@@ -75,6 +76,7 @@ class ROAR_ENGINE_ITEM IBLEnvironment final
 	FORCE_INLINE constexpr auto radiance_pso()        const noexcept { return this->m_radiance_pso;            }
 	FORCE_INLINE constexpr auto irradiance_pso()      const noexcept { return this->m_irradiance_pso;          }
 	FORCE_INLINE constexpr auto brdf_integration_pso()const noexcept { return this->m_brdf_integration_pso;    }
+	FORCE_INLINE constexpr auto skybox_render_pso()   const noexcept { return this->m_skybox_render_pso;       }
 	FORCE_INLINE constexpr auto brdf_integration()    const noexcept { return this->m_brdf_integration;        }
 	FORCE_INLINE constexpr auto input_sampler()       const noexcept { return this->m_input_sampler_id;        }
 	FORCE_INLINE constexpr auto skybox_sampler()      const noexcept { return this->m_skybox_sampler_id;       }
@@ -95,6 +97,7 @@ class ROAR_ENGINE_ITEM IBLEnvironment final
 	uint32_t              m_radiance_pso{0};                 //! Index of radiance cube map pso in renderer programs
 	uint32_t              m_irradiance_pso{0};               //! Index of irradiance cube map pso in renderer programs
 	int32_t               m_brdf_integration_pso{0};         //! Index of brdf_integration_pso renderer programs, only used for debugging visualisation
+	uint32_t              m_skybox_render_pso{0};            //! Index of skybox cube map pso in renderer programs to use for rendering the skybox
 	uint32_t              m_input_sampler_id{0};             //! Index of input cube map sampler in renderer samplers
 	uint32_t              m_skybox_sampler_id{0};            //! Index of skybox cube map sampler in renderer samplers
 	uint32_t              m_radiance_sampler_id{0};          //! Index of radiance cube map sampler in renderer samplers

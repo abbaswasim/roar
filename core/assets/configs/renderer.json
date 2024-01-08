@@ -2,7 +2,8 @@
 	"shaders":[
 		"node_transform.glsl.comp",
 		"ibl_lut.glsl.comp",
-		"ibl_equirect_patch.glsl.comp",
+		"ibl_skybox_patch.glsl.comp",
+		"ibl_irradiance_patch.glsl.comp",
 		"ibl_radiance_patch.glsl.comp",
 		"ibl_skybox.glsl.vert",
 		"ibl_skybox.glsl.frag",
@@ -29,12 +30,15 @@
 			"compute":3
 		},
 		{
-			"vertex":4,
-			"fragment":5
+			"compute":4
 		},
 		{
-			"vertex":6,
-			"fragment":7
+			"vertex":5,
+			"fragment":6
+		},
+		{
+			"vertex":7,
+			"fragment":8
 		}
 	],
 	"textures":[
@@ -121,10 +125,11 @@
 	"environments":[
 		{
 			"name": "Footprint Court",
-			"skybox_pso": 4,
-			"radiance_pso": 3,
-			"irradiance_pso": 2,
-			"brdf_integration_pso": 5,
+			"skybox_pso": 2,
+			"radiance_pso": 4,
+			"irradiance_pso": 3,
+			"brdf_integration_pso": 6,
+			"skybox_render_pso": 5,
 			"skybox_sampler": 2,
 			"input_sampler": 1,
 			"irradiance_sampler": 1,

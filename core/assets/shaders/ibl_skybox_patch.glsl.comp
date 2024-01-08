@@ -1,0 +1,36 @@
+#version 450
+
+layout(binding = 0) uniform sampler2D equirectangular_image;
+
+layout(binding = 1, rgba8) uniform image2D skybox_patch_image;
+
+layout(std140, set = 0, binding = 0) uniform sizes
+{
+	uvec4 mip_offset_size;
+} in_sizes;
+
+#include <ibl_common.glsl>
+
+vec4 cubify(vec3 uvz)
+{
+	vec2 uv = cubemap_sampling_uvs(uvz);
+	return texture(equirectangular_image, uv);
+}
+
+void main()
+{
+	const uint w = in_sizes.mip_offset_size.z;
+	const uint h = in_sizes.mip_offset_size.w;
+
+	ivec3 xyz       = ivec3(gl_GlobalInvocationID.xyz);
+	vec2  cube_size = vec2(w, h);        // Cubemap image size, also the amount of total invocations in x,y, but not z
+
+	vec3 uvz = invocation_to_direction(cube_size);
+	rotate_to_cube_face(xyz.z, uvz);
+
+	vec4 skybox_patch_output     = cubify(uvz);
+
+	vec4 offset = patch_offset(xyz.z, w, h);
+
+	imageStore(skybox_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), skybox_patch_output);
+}

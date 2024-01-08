@@ -3,8 +3,6 @@
 layout(binding = 0) uniform sampler2D equirectangular_image;
 
 layout(binding = 1, rgba8) uniform image2D irradiance_patch_image;
-layout(binding = 2, rgba8) uniform image2D skybox_hdr_patch_image;
-layout(binding = 3, rgba8) uniform image2D skybox_ldr_patch_image;
 
 layout(std140, set = 0, binding = 0) uniform sizes
 {
@@ -73,12 +71,9 @@ void main()
 	vec3 uvz = invocation_to_direction(cube_size);
 	rotate_to_cube_face(xyz.z, uvz);
 
-	vec4 skybox_patch_output     = cubify(uvz);
 	vec4 irradiance_patch_output = convolute(uvz);
 
 	vec4 offset = patch_offset(xyz.z, w, h);
 
-	imageStore(skybox_hdr_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), skybox_patch_output);
-	imageStore(skybox_ldr_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), skybox_patch_output);
 	imageStore(irradiance_patch_image, xyz.xy + ivec2(offset.xy + in_sizes.mip_offset_size.xy), irradiance_patch_output);
 }

@@ -415,6 +415,7 @@ void Renderer::load_environments()
 			       environment.contains("skybox_pso") &&
 			       environment.contains("radiance_pso") &&
 			       environment.contains("irradiance_pso") &&
+			       environment.contains("skybox_render_pso") &&
 			       environment.contains("skybox_sampler") &&
 			       environment.contains("radiance_sampler") &&
 			       environment.contains("irradiance_sampler") &&
@@ -425,6 +426,7 @@ void Renderer::load_environments()
 			ibl_environment.skybox_pso(environment["skybox_pso"]);
 			ibl_environment.radiance_pso(environment["radiance_pso"]);
 			ibl_environment.irradiance_pso(environment["irradiance_pso"]);
+			ibl_environment.skybox_render_pso(environment["skybox_render_pso"]);
 			ibl_environment.input_sampler(environment["input_sampler"]);
 			ibl_environment.skybox_sampler(environment["skybox_sampler"]);
 			ibl_environment.radiance_sampler(environment["radiance_sampler"]);
@@ -1411,7 +1413,7 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 {
 	if (this->environments().size() == 0 || this->m_current_environment == -1)
 	{
-		ror::log_critical("Can't create environment meshe, no environments available or selected");
+		ror::log_critical("Can't create environment mesh, no environments available or selected");
 		return;
 	}
 
@@ -1427,24 +1429,24 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 	std::vector<ror::Vector3f>          positions;        // Cube positions, used if anything other than brdf_integration is chosen to be visualised
 	std::vector<ror::Vector3<uint16_t>> indices;          // Cube indices, used if anything other thanif brdf_integration is chosen to be visualised
 
-	rhi::Program *skybox_pso{nullptr};
-	skybox_pso                    = &this->programs()[env.skybox_pso()];
+	rhi::Program *skybox_render_pso{nullptr};
+	skybox_render_pso             = &this->programs()[env.skybox_render_pso()];
 	uint32_t map_index            = this->environment_visualize_mode(static_cast<uint32_t>(this->m_current_environment));
 	int32_t  brdf_integration_pso = env.brdf_integration_pso();
 	auto     skybox_image         = &this->images()[map_index];
 	auto     skybox_sampler       = &this->samplers()[env.skybox_sampler()];        // Using skybox sampler because this is what I need at runtime
 
-	this->m_cube_map_mesh.set_texture(skybox_image, skybox_sampler);        // Would probably need refresh if images or samplers are resized
+	this->m_cube_map_mesh.set_texture(skybox_image, skybox_sampler);        // Would probably need refresh if images or samplers vectors are resized
 
-	make_box_triangles_indexed(positions, indices, false);        // Final argument tells create inside out box
+	make_box_triangles_indexed(positions, indices, false);        // Final argument tells create inside-out box
 
 	if (setting.m_environment.m_mode == Settings::Environment::VisualizeMode::brdf_lut && brdf_integration_pso != -1)
 	{
 		vertex_descriptor = create_p_float3_t_float2_i_uint16_descriptor();
-		skybox_pso        = &this->programs()[static_cast<uint32_t>(brdf_integration_pso)];
+		skybox_render_pso = &this->programs()[static_cast<uint32_t>(brdf_integration_pso)];
 	}
 
-	this->m_cube_map_mesh.shader_program_external(skybox_pso);
+	this->m_cube_map_mesh.shader_program_external(skybox_render_pso);
 	this->m_cube_map_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 
 	auto skybox_update_lambda = [](rhi::Device &device, ror::Renderer &renderer) {
@@ -1452,7 +1454,7 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 		auto &descriptor = renderer.m_cube_map_mesh.vertex_descriptor();
 		auto  pso        = renderer.m_cube_map_mesh.shader_program_external();
 
-		pso->upload(device, descriptor, renderer.m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_pso", true, false, false);
+		pso->upload(device, descriptor, renderer.m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_render_pso", true, false, false);
 	};
 
 	skybox_update_lambda(a_device, *this);
@@ -1503,15 +1505,45 @@ static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32
 	}
 }
 
-std::string environment_name(ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
+std::string environment_name(ror::IBLEnvironment &a_environment)
 {
-	auto &skybox     = a_renderer.images()[a_environment.skybox()];
-	auto &irradiance = a_renderer.images()[a_environment.irradiance()];
-	auto &radiance   = a_renderer.images()[a_environment.radiance()];
-
 	std::string env_name = a_environment.name();
 	std::replace(env_name.begin(), env_name.end(), ' ', '_');
-	env_name += "_" + std::to_string(skybox.width()) + "_" + std::to_string(irradiance.width()) + "_" + std::to_string(radiance.width()) + "_";
+
+	return env_name;
+}
+
+std::string environment_name_sky(ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
+{
+	// auto &skybox     = a_renderer.images()[a_environment.skybox()];
+	// auto &irradiance = a_renderer.images()[a_environment.irradiance()];
+	// auto &radiance   = a_renderer.images()[a_environment.radiance()];
+	// env_name += "_" + std::to_string(skybox.width()) + "_" + std::to_string(irradiance.width()) + "_" + std::to_string(radiance.width()) + "_";
+
+	auto &skybox     = a_renderer.images()[a_environment.skybox()];
+
+	auto env_name = environment_name(a_environment);
+	env_name += "_" + std::to_string(skybox.width()) + "_";
+
+	return env_name;
+}
+
+std::string environment_name_irradiance(ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
+{
+	auto &irradiance     = a_renderer.images()[a_environment.irradiance()];
+
+	auto env_name = environment_name(a_environment);
+	env_name += "_" + std::to_string(irradiance.width()) + "_";
+
+	return env_name;
+}
+
+std::string environment_name_radiance(ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
+{
+	auto &radiance     = a_renderer.images()[a_environment.radiance()];
+
+	auto env_name = environment_name(a_environment);
+	env_name += "_" + std::to_string(radiance.width()) + "_";
 
 	return env_name;
 }
@@ -1524,33 +1556,44 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 	// TODO: Use different size for each
 	auto &skbox = a_renderer.images()[a_environment.skybox()];
 	auto &irrad = a_renderer.images()[a_environment.irradiance()];
+	auto &rad   = a_renderer.images()[a_environment.radiance()];
 
-	uint32_t env_width{std::max(skbox.width(), irrad.width())};
-	uint32_t env_width_2x{env_width * 2};
-	uint32_t env_height_4x{env_width * 4};
+	uint32_t sky_env_width{skbox.width()};
+	uint32_t sky_env_width_2x{sky_env_width * 2};
+	uint32_t sky_env_height_4x{sky_env_width * 4};
+
+	uint32_t irr_env_width{irrad.width()};
+	uint32_t irr_env_width_2x{irr_env_width * 2};
+	uint32_t irr_env_height_4x{irr_env_width * 4};
+
+	uint32_t rad_env_width{rad.width()};
+	uint32_t rad_env_width_2x{rad_env_width * 2};
+	uint32_t rad_env_height_4x{rad_env_width * 4};
 
 	// The 5 temporary textures 1 HDR cubemap and 4 patches required, all static because used for multiple environments and used in a lambda for shader updates, All of these are rhi::TextureImage types
-	static auto skybox_hdr_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width, env_width, rhi::TextureTarget::texture_cube, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, true, false)};
-	static auto skybox_hdr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, true)};
-	static auto skybox_ldr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r8g8b8a8_uint32_norm, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, false)};
-	static auto irradiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, true)};
-	static auto radiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, env_width_2x, env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, true)};
+	// They are used in that order as defined here
+	static auto skybox_ldr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r8g8b8a8_uint32_norm, sky_env_width_2x, sky_env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, false)};
+	static auto radiance_hdr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, rad_env_width_2x, rad_env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, true)};
+	static auto irradiance_hdr_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, irr_env_width_2x, irr_env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, true)};
 
-	a_renderer.m_skybox_hdr_patch_ti = &skybox_hdr_patch_ti;
+	static auto radiance_hdr_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, rad_env_width, rad_env_width, rhi::TextureTarget::texture_cube, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, true, false)};
+	static auto radiance_patch_ti{rhi::make_texture(a_device, rhi::PixelFormat::r32g32b32a32_float128, rad_env_width_2x, rad_env_height_4x, rhi::TextureTarget::texture_2D, rhi::TextureUsage::shader_write, rhi::TextureMipGenMode::manual, false, true)};
+
 	a_renderer.m_skybox_ldr_patch_ti = &skybox_ldr_patch_ti;
-	a_renderer.m_irradiance_patch_ti = &irradiance_patch_ti;
+	a_renderer.m_skybox_hdr_patch_ti = &radiance_hdr_patch_ti;
+	a_renderer.m_irradiance_patch_ti = &irradiance_hdr_patch_ti;
 	a_renderer.m_radiance_patch_ti   = &radiance_patch_ti;
 
 	if (ror::settings().m_generate_pink_textures)
 	{
-		make_texture_pink(skybox_hdr_ti);
-		make_texture_pink(skybox_hdr_patch_ti);
+		make_texture_pink(radiance_hdr_ti);
+		make_texture_pink(radiance_hdr_patch_ti);
 		make_texture_pink(skybox_ldr_patch_ti);
-		make_texture_pink(irradiance_patch_ti);
+		make_texture_pink(irradiance_hdr_patch_ti);
 		make_texture_pink(radiance_patch_ti);
 	}
 
-	static auto write_env_image = [env_width_2x, env_height_4x, &a_device](const std::string &name, const rhi::TextureImage &a_texture, bool hdr) {
+	static auto write_env_image = [&a_device](const std::string &name, const rhi::TextureImage &a_texture, bool hdr, uint32_t env_width_2x, uint32_t env_height_4x) {
 		rhi::Buffer buffer = read_pixels(a_device, a_texture, 0, 0);
 		auto        data   = buffer.map();
 		if (hdr)
@@ -1559,14 +1602,17 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 			rhi::write_tga(name, env_width_2x, env_height_4x, data, true);
 	};
 
-	auto irradiance_lambda = [env_width, &a_environment, &a_renderer](rhi::Device &device, ShaderCache) {
+	auto irradiance_lambda = [&a_environment, &a_renderer, sky_env_width, irr_env_width, rad_env_width, irr_env_height_4x, sky_env_height_4x, irr_env_width_2x, sky_env_width_2x](rhi::Device &device, ShaderCache) {
 		auto &input          = a_renderer.images()[a_environment.input()];
 		auto &skybox         = a_renderer.images()[a_environment.skybox()];
 		auto &irradiance     = a_renderer.images()[a_environment.irradiance()];
 		auto &input_smplr    = a_renderer.samplers()[a_environment.input_sampler()];
+		auto &skybox_pso     = a_renderer.programs()[a_environment.skybox_pso()];
 		auto &irradiance_pso = a_renderer.programs()[a_environment.irradiance_pso()];
 
-		const std::vector<const rhi::TextureImage *>   irradiance_images{&input, &irradiance_patch_ti, &skybox_hdr_patch_ti, &skybox_ldr_patch_ti};
+		const std::vector<const rhi::TextureImage *>   skybox_images{&input, &skybox_ldr_patch_ti};
+		const std::vector<const rhi::TextureImage *>   radiance_images{&input, &radiance_hdr_patch_ti};
+		const std::vector<const rhi::TextureImage *>   irradiance_images{&input, &irradiance_hdr_patch_ti};
 		const std::vector<const rhi::TextureSampler *> samplers{&input_smplr};
 
 		rhi::ShaderBuffer sizes_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
@@ -1575,28 +1621,36 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		sizes_shader_buffer.upload(device);
 		sizes_shader_buffer.ready(true);
 
-		// First we create patches and do convolution for irradiance map
-		patch_mip_levels(device, env_width, env_width, irradiance_pso, irradiance_images, samplers, sizes_shader_buffer);
+		// First we create patche for sky ldr image
+		patch_mip_levels(device, sky_env_width, sky_env_width, skybox_pso, skybox_images, samplers, sizes_shader_buffer);
+
+		// Then we create patche for sky hdr image
+		// I am using the skybox_pso here because its the same work, but seprate dispatch because sizes might differ
+		patch_mip_levels(device, rad_env_width, rad_env_width, skybox_pso, radiance_images, samplers, sizes_shader_buffer);
+
+		// Then we do convolution for irradiance map and create a patch image
+		patch_mip_levels(device, irr_env_width, irr_env_width, irradiance_pso, irradiance_images, samplers, sizes_shader_buffer);
 
 		// Then we turn it into a skybox ldr/hdr and irradiance cubemap
 		// Remember this doesn't work in completion handler, something to do with command buffer inside command buffer
 		rhi::texture_patch_to_mipmapped_cubemap_texture(device, skybox_ldr_patch_ti, skybox);
-		rhi::texture_patch_to_mipmapped_cubemap_texture(device, skybox_hdr_patch_ti, skybox_hdr_ti);
-		rhi::texture_patch_to_mipmapped_cubemap_texture(device, irradiance_patch_ti, irradiance);
+		rhi::texture_patch_to_mipmapped_cubemap_texture(device, radiance_hdr_patch_ti, radiance_hdr_ti);
+		rhi::texture_patch_to_mipmapped_cubemap_texture(device, irradiance_hdr_patch_ti, irradiance);
 
-		std::string env_name = environment_name(a_renderer, a_environment);
+		std::string env_name_sky = environment_name_sky(a_renderer, a_environment);
+		std::string env_name_irr = environment_name_irradiance(a_renderer, a_environment);
 
 		// Write out to cache the textures generated for next time
-		write_env_image(env_name + "irradiance.hdr", irradiance_patch_ti, true);
-		write_env_image(env_name + "skybox.tga", skybox_ldr_patch_ti, false);
+		write_env_image(env_name_irr + "irradiance.hdr", irradiance_hdr_patch_ti, true, irr_env_width_2x, irr_env_height_4x);
+		write_env_image(env_name_sky + "skybox.tga", skybox_ldr_patch_ti, false, sky_env_width_2x, sky_env_height_4x);
 	};
 
-	auto radiance_lambda = [env_width, &a_environment, &a_renderer](rhi::Device &device, ShaderCache) {
+	auto radiance_lambda = [&a_environment, &a_renderer, rad_env_width, rad_env_width_2x, rad_env_height_4x](rhi::Device &device, ShaderCache) {
 		auto &input_sampler = a_renderer.samplers()[a_environment.input_sampler()];
 		auto &radiance_pso  = a_renderer.programs()[a_environment.radiance_pso()];
 		auto &radiance      = a_renderer.images()[a_environment.radiance()];
 
-		const std::vector<const rhi::TextureImage *>   radiance_images{&skybox_hdr_ti, &radiance_patch_ti};
+		const std::vector<const rhi::TextureImage *>   radiance_images{&radiance_hdr_ti, &radiance_patch_ti};
 		const std::vector<const rhi::TextureSampler *> radiance_samplers{&input_sampler};
 
 		rhi::ShaderBuffer mipmaps_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
@@ -1608,38 +1662,40 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		mipmaps_shader_buffer.ready(true);
 
 		// First we create a prefiltered patch
-		patch_mip_levels(device, env_width, env_width, radiance_pso, radiance_images, radiance_samplers, mipmaps_shader_buffer, true);
+		patch_mip_levels(device, rad_env_width, rad_env_width, radiance_pso, radiance_images, radiance_samplers, mipmaps_shader_buffer, true);
 
 		// Then we turn it into a cubemap
 		rhi::texture_patch_to_mipmapped_cubemap_texture(device, radiance_patch_ti, radiance);
 
-		std::string env_name = environment_name(a_renderer, a_environment);
+		std::string env_name_rad = environment_name_radiance(a_renderer, a_environment);
 
 		// Write out to cache the textures generated for next time
-		write_env_image(env_name + "radiance.hdr", radiance_patch_ti, true);
+		write_env_image(env_name_rad + "radiance.hdr", radiance_patch_ti, true, rad_env_width_2x, rad_env_height_4x);
 	};
 
 	if (!settings().m_environment.m_rebuild)
 	{
-		std::string env_name        = environment_name(a_renderer, a_environment);
-		std::string skybox_name     = env_name + "skybox.tga";
-		std::string irradiance_name = env_name + "irradiance.hdr";
-		std::string radiance_name   = env_name + "radiance.hdr";
+		std::string env_name_sky        = environment_name_sky(a_renderer, a_environment);
+		std::string env_name_irr        = environment_name_irradiance(a_renderer, a_environment);
+		std::string env_name_rad        = environment_name_radiance(a_renderer, a_environment);
+		std::string skybox_name     = env_name_sky + "skybox.tga";
+		std::string irradiance_name = env_name_irr + "irradiance.hdr";
+		std::string radiance_name   = env_name_rad + "radiance.hdr";
 
 		if (check_resource(skybox_name, ror::ResourceSemantic::textures) &&
 		    check_resource(irradiance_name, ror::ResourceSemantic::textures) &&
 		    check_resource(radiance_name, ror::ResourceSemantic::textures))
 		{
-			auto &skybox_rc       = ror::load_resource(skybox_name, ror::ResourceSemantic::textures);
-			auto &irradiance_rcti = ror::load_resource(irradiance_name, ror::ResourceSemantic::textures);
-			auto &radiance_rc     = ror::load_resource(radiance_name, ror::ResourceSemantic::textures);
+			auto &skybox_rc     = ror::load_resource(skybox_name, ror::ResourceSemantic::textures);
+			auto &irradiance_rc = ror::load_resource(irradiance_name, ror::ResourceSemantic::textures);
+			auto &radiance_rc   = ror::load_resource(radiance_name, ror::ResourceSemantic::textures);
 
 			rhi::read_texture_from_resource(skybox_rc, skybox_ldr_patch_ti, false);
-			rhi::read_texture_from_resource(irradiance_rcti, irradiance_patch_ti, true);
+			rhi::read_texture_from_resource(irradiance_rc, irradiance_hdr_patch_ti, true);
 			rhi::read_texture_from_resource(radiance_rc, radiance_patch_ti, true);
 
 			skybox_ldr_patch_ti.upload(a_device);
-			irradiance_patch_ti.upload(a_device);
+			irradiance_hdr_patch_ti.upload(a_device);
 			radiance_patch_ti.upload(a_device);
 
 			auto &skybox     = a_renderer.images()[a_environment.skybox()];
@@ -1647,7 +1703,7 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 			auto &radiance   = a_renderer.images()[a_environment.radiance()];
 
 			rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, skybox_ldr_patch_ti, skybox);
-			rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, irradiance_patch_ti, irradiance);
+			rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, irradiance_hdr_patch_ti, irradiance);
 			rhi::texture_patch_to_mipmapped_cubemap_texture(a_device, radiance_patch_ti, radiance);
 		}
 		else
@@ -1668,7 +1724,7 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 
 // This method works in the following way:
 // Step 0:
-//    Create 5 temporary textures 1 HDR cubemap and 1 LDR patch and 3 HDR patches
+//    Create 5 temporary textures 1 HDR cubemap, 1 LDR patch and 3 HDR patches
 // For each environment do the following:
 // Step 1:
 //     load input HDR image (equirectangular supported at the moment)
