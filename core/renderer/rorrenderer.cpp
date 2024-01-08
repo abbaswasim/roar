@@ -1520,7 +1520,7 @@ std::string environment_name_sky(ror::Renderer &a_renderer, ror::IBLEnvironment 
 	// auto &radiance   = a_renderer.images()[a_environment.radiance()];
 	// env_name += "_" + std::to_string(skybox.width()) + "_" + std::to_string(irradiance.width()) + "_" + std::to_string(radiance.width()) + "_";
 
-	auto &skybox     = a_renderer.images()[a_environment.skybox()];
+	auto &skybox = a_renderer.images()[a_environment.skybox()];
 
 	auto env_name = environment_name(a_environment);
 	env_name += "_" + std::to_string(skybox.width()) + "_";
@@ -1530,7 +1530,7 @@ std::string environment_name_sky(ror::Renderer &a_renderer, ror::IBLEnvironment 
 
 std::string environment_name_irradiance(ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
 {
-	auto &irradiance     = a_renderer.images()[a_environment.irradiance()];
+	auto &irradiance = a_renderer.images()[a_environment.irradiance()];
 
 	auto env_name = environment_name(a_environment);
 	env_name += "_" + std::to_string(irradiance.width()) + "_";
@@ -1540,7 +1540,7 @@ std::string environment_name_irradiance(ror::Renderer &a_renderer, ror::IBLEnvir
 
 std::string environment_name_radiance(ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
 {
-	auto &radiance     = a_renderer.images()[a_environment.radiance()];
+	auto &radiance = a_renderer.images()[a_environment.radiance()];
 
 	auto env_name = environment_name(a_environment);
 	env_name += "_" + std::to_string(radiance.width()) + "_";
@@ -1675,9 +1675,9 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 
 	if (!settings().m_environment.m_rebuild)
 	{
-		std::string env_name_sky        = environment_name_sky(a_renderer, a_environment);
-		std::string env_name_irr        = environment_name_irradiance(a_renderer, a_environment);
-		std::string env_name_rad        = environment_name_radiance(a_renderer, a_environment);
+		std::string env_name_sky    = environment_name_sky(a_renderer, a_environment);
+		std::string env_name_irr    = environment_name_irradiance(a_renderer, a_environment);
+		std::string env_name_rad    = environment_name_radiance(a_renderer, a_environment);
 		std::string skybox_name     = env_name_sky + "skybox.tga";
 		std::string irradiance_name = env_name_irr + "irradiance.hdr";
 		std::string radiance_name   = env_name_rad + "radiance.hdr";
