@@ -36,6 +36,8 @@
 namespace rhi
 {
 
+const rhi::RenderTarget &subpass_render_target(const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass a_subpass, size_t a_index);
+
 }        // namespace rhi
 
 #include "rhi/rorrenderpass.hh"

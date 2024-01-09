@@ -142,6 +142,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/rhi/rorshader_buffer.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorshader_buffer_template.cpp
   ${ROAR_SOURCE_DIR}/rhi/rorshader.cpp
+  ${ROAR_SOURCE_DIR}/rhi/rorrenderpass.cpp
   ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rorshader.cpp
   ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rorrenderpass.cpp
   ${ROAR_SOURCE_DIR}/rhi/crtp_interfaces/rortexture.cpp

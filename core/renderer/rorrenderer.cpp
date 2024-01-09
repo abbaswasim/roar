@@ -968,6 +968,8 @@ void Renderer::load_frame_graphs()
 		else
 			this->m_current_frame_graph = &this->m_frame_graphs["deferred"];
 	}
+
+	this->setup_final_pass();
 }
 
 const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index)
@@ -1454,7 +1456,13 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 		auto &descriptor = renderer.m_cube_map_mesh.vertex_descriptor();
 		auto  pso        = renderer.m_cube_map_mesh.shader_program_external();
 
-		pso->upload(device, descriptor, renderer.m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_render_pso", true, false, false);
+		// TODO: Get final pass and subpass
+		rhi::Renderpass    *pass{nullptr};
+		rhi::Rendersubpass *subpass{nullptr};
+
+		renderer.get_final_pass_subpass(&pass, &subpass);
+
+		pso->upload(device, *pass, *subpass, descriptor, renderer.m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_render_pso", true, false, false);
 	};
 
 	skybox_update_lambda(a_device, *this);
@@ -1827,6 +1835,50 @@ void Renderer::generate_shader_buffers_mapping()
 void Renderer::generate_shader_callbacks_mapping()
 {
 	this->m_callbacks_mapping.emplace("node_transform.glsl.comp", node_transform_glsl_comp);
+}
+
+void Renderer::setup_final_pass()
+{
+	uint32_t pass_index{0};
+	for (auto &pass : this->current_frame_graph())
+	{
+		for (auto &subpass : pass.subpasses())
+		{
+			if (subpass.technique() != rhi::RenderpassTechnique::compute)
+			{
+				// TODO: Remove the forward_light bit and work out if I am last render pass then use me as main pass
+				if (subpass.type() == rhi::RenderpassType::main || subpass.type() == rhi::RenderpassType::forward_light)
+				{
+					this->m_final_pass = pass_index;
+					return;
+				}
+			}
+		}
+		pass_index++;
+	}
+
+	assert(0 && "Haven't found a final pass");
+}
+
+void Renderer::get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const
+{
+	auto &pass = this->current_frame_graph()[this->final_pass()];
+
+	*a_pass = &pass;
+
+	for (auto &subpass : pass.subpasses())
+	{
+		if (subpass.technique() != rhi::RenderpassTechnique::compute)
+		{
+			if (subpass.type() == rhi::RenderpassType::main || subpass.type() == rhi::RenderpassType::forward_light)
+			{
+				*a_subpass = &subpass;
+				break;
+			}
+		}
+	}
+
+	assert(*a_subpass);
 }
 
 }        // namespace ror

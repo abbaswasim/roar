@@ -83,6 +83,7 @@ class Renderer final : public Configuration<Renderer>
 	void                             push_shader_update_candidate(std::string a_shader);
 	void                             push_shader_record(rhi::Shader &a_shader, int32_t a_shader_id);
 	void                             push_dependent_shader_record(rhi::Shader &a_shader, int32_t a_shader_id, std::string a_name);
+	void                             get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass ) const;
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off
@@ -120,10 +121,10 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
 	// clang-format on
 
-	using InputRenderTargets      = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
-	using InputBufferTargets      = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
-	using ShaderCallbackMap       = std::unordered_map<std::string, std::function<void(std::string &, ror::Renderer &)>>;
-	using ShaderBufferMap         = std::unordered_map<std::string, rhi::ShaderBuffer *>;
+	using InputRenderTargets = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
+	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
+	using ShaderCallbackMap  = std::unordered_map<std::string, std::function<void(std::string &, ror::Renderer &)>>;
+	using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderBuffer *>;
 
 	rhi::TextureImage *m_skybox_hdr_patch_ti{nullptr};
 	rhi::TextureImage *m_skybox_ldr_patch_ti{nullptr};
@@ -155,6 +156,7 @@ class Renderer final : public Configuration<Renderer>
 	void     load_buffers();
 	void     load_buffer_templates();
 	void     setup_references();
+	void     setup_final_pass();
 
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
 	std::vector<rhi::Program>               m_programs{};                                     //! All the global shader programs
@@ -176,6 +178,7 @@ class Renderer final : public Configuration<Renderer>
 	ror::DynamicMesh                        m_cube_map_mesh{};                                //! Single instance of a cubemap mesh used by all environments
 	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use
 	uint32_t                                m_canonical_cube{};                               //! Canonical cube for debugging purposes
+	uint32_t                                m_final_pass{};                                   //! Index of the final pass in the render pass chains in framegraph
 };
 }        // namespace ror
 

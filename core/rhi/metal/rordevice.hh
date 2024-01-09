@@ -104,7 +104,7 @@ FORCE_INLINE MTL::Device *DeviceMetal::platform_device() const
 	return this->m_device;
 }
 
-FORCE_INLINE MTL::CommandQueue *DeviceMetal::platform_queue()
+FORCE_INLINE MTL::CommandQueue *DeviceMetal::platform_queue() const 
 {
 	assert(this->m_command_queue && "Metal device requested is null");
 	return this->m_command_queue;

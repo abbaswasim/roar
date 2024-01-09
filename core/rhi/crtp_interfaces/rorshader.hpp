@@ -107,7 +107,7 @@ void glslang_wrapper_finalize_process();
 template <typename _type>
 FORCE_INLINE _type load_shader(const std::filesystem::path &a_shader_path);
 template <typename _type>
-FORCE_INLINE _type build_shader(rhi::Device &a_device, const std::filesystem::path &a_shader_path);
+FORCE_INLINE _type build_shader(const rhi::Device &a_device, const std::filesystem::path &a_shader_path);
 
 }        // namespace rhi
 

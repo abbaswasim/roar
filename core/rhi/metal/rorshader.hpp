@@ -50,7 +50,7 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 	{}
 
 	void platform_source();
-	void upload(rhi::Device &a_device);
+	void upload(const rhi::Device &a_device);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto      *function()   const  noexcept   {      return this->m_main_function;     }

@@ -49,7 +49,7 @@ class ROAR_ENGINE_ITEM Gui final
 	Gui();                  //! Default constructor
 	~Gui() noexcept;        //! Destructor
 
-	void  init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void  init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
 	void  render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system);
 	auto &overlays() {return this->m_overlays;}
 
@@ -101,7 +101,7 @@ class ROAR_ENGINE_ITEM Gui final
 	bool                  m_show_render_titles{false};         //! Show titles for Multi-Render View
 
 	// Render data
-	rhi::Device          *m_device{nullptr};               //! Non-Owning pointer to a device that is used to initiliazed this gui
+	const rhi::Device    *m_device{nullptr};               //! Non-Owning pointer to a device that is used to initiliazed this gui
 	rhi::TextureImage     m_texture_image{};               //! Texture image, should probably be a list of these at some point
 	rhi::TextureSampler   m_texture_sampler{};             //! Texture sampler, the default sampler used to render the UI
 	rhi::Program          m_shader_program{-1, -1};        //! Program in undefined/uinitialized state

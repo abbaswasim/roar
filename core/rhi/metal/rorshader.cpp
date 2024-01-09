@@ -122,7 +122,7 @@ void ShaderMetal::platform_source()
 	}
 }
 
-void ShaderMetal::upload(rhi::Device &a_device)
+void ShaderMetal::upload(const rhi::Device &a_device)
 {
 	MTL::Device *device = a_device.platform_device();
 	NS::Error   *pError = nullptr;

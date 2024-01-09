@@ -135,7 +135,7 @@ void TextureSamplerMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rh
 	}
 }
 
-void TextureImageMetal::upload(rhi::Device &a_device)
+void TextureImageMetal::upload(const rhi::Device &a_device)
 {
 	MTL::Device            *device             = a_device.platform_device();
 	MTL::TextureDescriptor *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
@@ -260,7 +260,7 @@ void TextureImageMetal::upload(rhi::Device &a_device)
 	texture_descriptor->release();
 }
 
-void TextureSamplerMetal::upload(rhi::Device &a_device)
+void TextureSamplerMetal::upload(const rhi::Device &a_device)
 {
 	MTL::Device            *device             = a_device.platform_device();
 	MTL::SamplerDescriptor *sampler_descriptor = MTL::SamplerDescriptor::alloc()->init();

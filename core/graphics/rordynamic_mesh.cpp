@@ -60,9 +60,9 @@ namespace ror
  * @param      a_device        The device to use
  * @param      a_topology      Whether its a triangle or point soup etc
  */
-void DynamicMesh::init(rhi::Device &a_device, rhi::PrimitiveTopology a_topology)
+void DynamicMesh::init(const rhi::Device &a_device, rhi::PrimitiveTopology a_topology)
 {
-	this->device(a_device);
+	this->device(&a_device);
 
 	auto &setting = ror::settings();
 
@@ -72,7 +72,7 @@ void DynamicMesh::init(rhi::Device &a_device, rhi::PrimitiveTopology a_topology)
 	this->m_topology = a_topology;
 }
 
-void DynamicMesh::load_texture(rhi::Device &a_device, std::filesystem::path a_texure_path)
+void DynamicMesh::load_texture(const rhi::Device &a_device, std::filesystem::path a_texure_path)
 {
 	auto &texture = ror::load_resource(a_texure_path, ror::ResourceSemantic::textures);
 	rhi::read_texture_from_resource(texture, this->m_texture_image);
@@ -148,7 +148,7 @@ void DynamicMesh::setup_shaders(rhi::BlendMode a_blend_mode, std::filesystem::pa
  * @param      a_blend_mode    The blend mode for the mesh
  * @param      a_topology      Whether its a triangle or point soup etc
  */
-void DynamicMesh::init_upload(rhi::Device &a_device, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_topology)
+void DynamicMesh::init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_topology)
 {
 	this->init(a_device, a_topology);
 
@@ -156,7 +156,7 @@ void DynamicMesh::init_upload(rhi::Device &a_device, rhi::BlendMode a_blend_mode
 	// Load default texture of a checker
 	this->load_texture(a_device);
 	this->setup_vertex_descriptor();
-	this->setup_shaders(a_blend_mode);
+	this->setup_shaders(a_renderer, a_blend_mode);
 
 	// this->m_shader_buffer.add_entry("orthographic_projection", rhi::Format::float32_4x4);
 	// this->m_shader_buffer.upload(a_device, rhi::ResourceStorageOption::managed);
@@ -167,8 +167,8 @@ void DynamicMesh::upload_data(const uint8_t *a_vertex_data_pointer, size_t a_ver
 {
 	assert(this->m_device);
 
-	rhi::Device &a_device  = *this->m_device;
-	this->m_vertices_count = a_vertex_attributes_count;
+	const rhi::Device &a_device = *this->m_device;
+	this->m_vertices_count      = a_vertex_attributes_count;
 
 	if (this->m_has_positions)
 	{

@@ -41,7 +41,7 @@ declare_rhi_render_type(ComputeCommandEncoder);
 class ROAR_ENGINE_ITEM TextureImageMetal : public TextureImageCrtp<TextureImageMetal>
 {
   public:
-	void upload(rhi::Device &a_device);
+	void upload(const rhi::Device &a_device);
 
 	FORCE_INLINE constexpr auto platform_handle() const noexcept;
 
@@ -58,7 +58,7 @@ class ROAR_ENGINE_ITEM TextureImageMetal : public TextureImageCrtp<TextureImageM
 class ROAR_ENGINE_ITEM TextureSamplerMetal : public TextureSamplerCrtp<TextureSamplerMetal>
 {
   public:
-	void upload(rhi::Device &a_device);
+	void upload(const rhi::Device &a_device);
 
 	FORCE_INLINE constexpr auto platform_handle() const noexcept;
 

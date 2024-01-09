@@ -1689,7 +1689,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	}
 
 	// Lets create and upload the stuff required for the UI as well
-	auto gui_gen_job_handle = a_job_system.push_job([&a_device, &a_event_system, &setting]() -> auto {if (setting.m_generate_gui_mesh) ror::gui().init_upload(a_device, a_event_system); return true; });
+	auto gui_gen_job_handle = a_job_system.push_job([&a_device, &a_renderer, &a_event_system, &setting]() -> auto {if (setting.m_generate_gui_mesh) ror::gui().init_upload(a_device, a_renderer, a_event_system); return true; });
 
 	this->read_programs();        // Now do this because I can only do this after the all the models are loaded and glslang is initialized, it can't be done in the config load
 
@@ -1715,7 +1715,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	{
 		static ror::DynamicMesh cube_mesh{};
 
-		cube_mesh.init_upload(a_device, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles);
+		cube_mesh.init_upload(a_device, a_renderer, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles);
 		cube_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_interleaved), 9 * 36 * sizeof(float), 36,
 		                      reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
 
@@ -1749,7 +1749,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(radiance_image),
 			                          const_cast<rhi::TextureSampler *>(radiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 		}
-		cube_map_mesh.setup_shaders(rhi::BlendMode::blend, "equirectangular_cubemap.glsl.vert", "equirectangular_cubemap.glsl.frag");
+		cube_map_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "equirectangular_cubemap.glsl.vert", "equirectangular_cubemap.glsl.frag");
 		cube_map_mesh.topology(rhi::PrimitiveTopology::triangles);
 		cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_position), 3 * 36 * sizeof(float), 36,
 		                          reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
@@ -1768,7 +1768,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		auto &canonical_cube_image = a_renderer.images()[a_renderer.canonical_cube()];
 
 		canonical_cube.set_texture(const_cast<rhi::TextureImage *>(&canonical_cube_image));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
-		canonical_cube.setup_shaders(rhi::BlendMode::blend, "canonical_cubemap.glsl.vert", "canonical_cubemap.glsl.frag");
+		canonical_cube.setup_shaders(a_renderer, rhi::BlendMode::blend, "canonical_cubemap.glsl.vert", "canonical_cubemap.glsl.frag");
 		canonical_cube.topology(rhi::PrimitiveTopology::triangles);
 		canonical_cube.upload_data(reinterpret_cast<const uint8_t *>(setting.m_invert_canonical_cube_map ? &cube_vertex_position_uv_interleaved_inverted : &cube_vertex_position_uv_interleaved), 5 * 36 * sizeof(float), 36,
 		                           reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
@@ -1821,7 +1821,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		// auto image_lut = &a_renderer.images()[a_renderer.current_environment().input()];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
 		// quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 
-		quad_mesh.setup_shaders(rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
+		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(reinterpret_cast<const uint8_t *>(&quad_vertex_buffer_interleaved), 5 * 6 * sizeof(float), 6);
 
@@ -1843,7 +1843,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 			auto image_lut = &a_renderer.images()[12];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
 			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 		}
-		quad_mesh.setup_shaders(rhi::BlendMode::blend, "quad_no_attributes.glsl.vert", "quad_no_attributes.glsl.frag");
+		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "quad_no_attributes.glsl.vert", "quad_no_attributes.glsl.frag");
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(nullptr, 0, 6);        // This 6 here means I want to draw 6 vertices without any attributes as given by VertexDescriptor
 
@@ -2196,77 +2196,76 @@ rhi::Rendersubpass *get_render_pass_by_types(const ror::Renderer &a_renderer, rh
 
 void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 {
-	const std::vector<rhi::RenderpassType> render_pass_types = a_renderer.render_pass_types();
-
-	auto &dependencies = ror::mesh_shaders_dependencies();
-	auto &updator      = shader_updater();
-	auto  has_shadows  = this->m_has_shadows;
-	auto &shaders      = this->m_shaders;
+	auto  render_passes = a_renderer.current_frame_graph();
+	auto &dependencies  = ror::mesh_shaders_dependencies();
+	auto &updator       = shader_updater();
+	auto  has_shadows   = this->m_has_shadows;
+	auto &shaders       = this->m_shaders;
 
 	static std::mutex cache_mutex;        // Mutex to lock the lambda cache access
 
 	size_t records{0};
-
-	for (auto &passtype : render_pass_types)
+	for (auto &pass : render_passes)
 	{
-		auto               &programs = this->m_programs[passtype];
-		rhi::Rendersubpass *subpass  = get_render_pass_by_types(a_renderer, passtype);
-		assert(subpass != nullptr && "Can't find subpass by type");
-		for (auto &model : this->m_models)
+		for (auto &subpass : pass.subpasses())
 		{
-			uint32_t mesh_index = 0;
-			for (auto &mesh : model.meshes())
+			auto &programs = this->m_programs[subpass.type()];
+			for (auto &model : this->m_models)
 			{
-				for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+				uint32_t mesh_index = 0;
+				for (auto &mesh : model.meshes())
 				{
-					auto shader_update = [&model, this, mesh_index, prim_index, passtype, &a_renderer, subpass, &mesh, has_shadows](rhi::Device &device, std::unordered_set<hash_64_t> *cache) {
-						assert(cache && "Scene shaders can't be re-created without a cache, otherwise it takes too long");
-						auto &prgs = this->m_programs[passtype];
-						auto &prg  = prgs[static_cast<size_t>(mesh.program(prim_index))];
-						if (prg.vertex_id() != -1)
-						{
-							auto &shdr = this->m_shaders[static_cast<size_t>(prg.vertex_id())];
-							bool  cache_hit;
+					for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+					{
+						auto shader_update = [&model, this, mesh_index, prim_index, &a_renderer, pass, subpass, &mesh, has_shadows](rhi::Device &device, std::unordered_set<hash_64_t> *cache) {
+							assert(cache && "Scene shaders can't be re-created without a cache, otherwise it takes too long");
+							auto &prgs = this->m_programs[subpass.type()];
+							auto &prg  = prgs[static_cast<size_t>(mesh.program(prim_index))];
+							if (prg.vertex_id() != -1)
 							{
-								std::lock_guard<std::mutex> lock{cache_mutex};
-								auto                        res = cache->emplace(shdr.hash());
-								cache_hit                       = res.second;
+								auto &shdr = this->m_shaders[static_cast<size_t>(prg.vertex_id())];
+								bool  cache_hit;
+								{
+									std::lock_guard<std::mutex> lock{cache_mutex};
+									auto                        res = cache->emplace(shdr.hash());
+									cache_hit                       = res.second;
+								}
+								if (cache_hit)
+								{
+									auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), subpass.type(), a_renderer);
+									shdr.source(vs);
+									shdr.compile();
+									shdr.upload(device);
+								}
 							}
-							if (cache_hit)
+
+							if (prg.fragment_id() != -1)
 							{
-								auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype, a_renderer);
-								shdr.source(vs);
-								shdr.compile();
-								shdr.upload(device);
+								auto &shdr = this->m_shaders[static_cast<size_t>(prg.fragment_id())];
+								bool  cache_hit;
+								{
+									std::lock_guard<std::mutex> lock{cache_mutex};
+									auto                        res = cache->emplace(shdr.hash());
+									cache_hit                       = res.second;
+								}
+								if (cache_hit)
+								{
+									auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), subpass.type(), a_renderer, has_shadows);
+									shdr.source(fs);
+									shdr.compile();
+									shdr.upload(device);
+								}
 							}
-						}
 
-						if (prg.fragment_id() != -1)
-						{
-							auto &shdr = this->m_shaders[static_cast<size_t>(prg.fragment_id())];
-							bool  cache_hit;
-							{
-								std::lock_guard<std::mutex> lock{cache_mutex};
-								auto                        res = cache->emplace(shdr.hash());
-								cache_hit                       = res.second;
-							}
-							if (cache_hit)
-							{
-								auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
-								shdr.source(fs);
-								shdr.compile();
-								shdr.upload(device);
-							}
-						}
+							prg.upload(device, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), pass, subpass, false);
+						};
 
-						prg.upload(device, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), *subpass, false);
-					};
+						updator.push_program_record(mesh.program(prim_index), programs, shaders, shader_update, &dependencies);
 
-					updator.push_program_record(mesh.program(prim_index), programs, shaders, shader_update, &dependencies);
-
-					records++;
+						records++;
+					}
+					++mesh_index;
 				}
-				++mesh_index;
 			}
 		}
 	}
@@ -2285,8 +2284,8 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 	}
 
 	auto program_upload_job = [](rhi::Device &a_local_device, rhi::Program &a_program, const std::vector<rhi::Shader> &a_shaders,
-	                             const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass) -> auto {
-		a_program.upload(a_local_device, a_shaders, a_model, a_mesh_index, a_prim_index, a_subpass, false);
+	                             const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass) -> auto {
+		a_program.upload(a_local_device, a_shaders, a_model, a_mesh_index, a_prim_index, a_pass, a_subpass, false);
 
 		return true;
 	};
@@ -2317,6 +2316,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 						                                               std::cref(model),
 						                                               mesh_index,
 						                                               static_cast_safe<uint32_t>(prim_index),
+						                                               std::ref(pass),
 						                                               std::ref(subpass));
 
 						job_handles.emplace_back(std::move(upload_job_handle));

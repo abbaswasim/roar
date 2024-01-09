@@ -47,16 +47,16 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	FORCE_INLINE DynamicMesh &operator=(DynamicMesh &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~DynamicMesh() noexcept                                  = default;        //! Destructor
 
-	void init(rhi::Device &a_device, rhi::PrimitiveTopology a_topology);
-	void init_upload(rhi::Device &a_device, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_topology);
+	void init(const rhi::Device &a_device, rhi::PrimitiveTopology a_topology);
+	void init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_topology);
 	void render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
-	void load_texture(rhi::Device &a_device, std::filesystem::path a_texure_path = "checker.png");
+	void load_texture(const rhi::Device &a_device, std::filesystem::path a_texure_path = "checker.png");
 	void set_texture(rhi::TextureImage *a_texture = nullptr, rhi::TextureSampler *a_sampler = nullptr);
 	void setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor = nullptr);
-	void setup_shaders(rhi::BlendMode a_blend_mode = rhi::BlendMode::blend, std::filesystem::path a_vertex_shader = "triangle.glsl.vert", std::filesystem::path a_fragment_shader = "triangle.glsl.frag");
+	void setup_shaders(const ror::Renderer &a_renderer, rhi::BlendMode a_blend_mode = rhi::BlendMode::blend, std::filesystem::path a_vertex_shader = "triangle.glsl.vert", std::filesystem::path a_fragment_shader = "triangle.glsl.frag");
 
 	// clang-format off
-	FORCE_INLINE void device(rhi::Device &a_device)                              { this->m_device                       = &a_device;         }
+	FORCE_INLINE void device(const rhi::Device *a_device)                        { this->m_device                       = a_device;         }
 	FORCE_INLINE void texture_sampler(rhi::TextureSampler a_sampler)             { this->m_texture_sampler              = a_sampler;         }
 	FORCE_INLINE void shader_program(rhi::Program a_program)                     { this->m_shader_program               = a_program;         }
 	FORCE_INLINE void shader_program_external(rhi::Program *a_program)           { this->m_shader_program_external      = a_program;         }
@@ -81,7 +81,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
   protected:
   private:
 	// Render data
-	rhi::Device           *m_device{nullptr};                                    //! Non-Owning pointer to a device that is used to initiliazed this gui
+	const rhi::Device     *m_device{nullptr};                                    //! Non-Owning pointer to a device that is used to initiliazed this gui
 	rhi::TextureImage      m_texture_image{};                                    //! Texture image, should probably be a list of these at some point
 	rhi::TextureSampler    m_texture_sampler{};                                  //! Texture sampler, the default sampler used to render
 	rhi::TextureImage     *m_texture_image_external{nullptr};                    //! Non-Owning pointer of a an external Texture image

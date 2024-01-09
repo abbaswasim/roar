@@ -482,7 +482,7 @@ void set_imgui_style()
 #endif
 }
 
-void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
+void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system)
 {
 	this->m_device = &a_device;
 
@@ -598,7 +598,13 @@ void Gui::init_upload(rhi::Device &a_device, ror::EventSystem &a_event_system)
 	auto vs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.vert");
 	auto fs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.frag");
 
-	this->m_shader_program.upload(a_device, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
+	// Needs final pass stuff
+	rhi::Renderpass *pass{nullptr};
+	rhi::Rendersubpass *subpass{nullptr};
+
+	a_renderer.get_final_pass_subpass(&pass, &subpass);
+
+	this->m_shader_program.upload(a_device, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, *pass, *subpass, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
 
 	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
 	this->m_index_buffer.init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
@@ -877,7 +883,7 @@ void Gui::upload_draw_data(ImDrawData *a_draw_data)
 {
 	assert(this->m_device);
 
-	rhi::Device &a_device = *this->m_device;
+	const rhi::Device &a_device = *this->m_device;
 
 	if (!a_draw_data)
 		return;

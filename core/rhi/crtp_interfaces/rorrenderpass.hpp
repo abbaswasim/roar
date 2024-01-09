@@ -174,6 +174,7 @@ class Rendersubpass final
 	FORCE_INLINE constexpr auto &input_attachments()      const noexcept { return this->m_input_attachments;     }
 	FORCE_INLINE constexpr auto &rendered_inputs()        const noexcept { return this->m_rendered_inputs;       }
 	FORCE_INLINE constexpr auto &buffer_inputs()          const noexcept { return this->m_buffer_inputs;         }
+	FORCE_INLINE constexpr auto &render_targets()         const noexcept { return this->m_render_targets;        }
 	FORCE_INLINE constexpr auto &render_targets()               noexcept { return this->m_render_targets;        }
 	FORCE_INLINE constexpr auto &input_attachments()            noexcept { return this->m_input_attachments;     }
 	FORCE_INLINE constexpr auto &rendered_inputs()              noexcept { return this->m_rendered_inputs;       }
