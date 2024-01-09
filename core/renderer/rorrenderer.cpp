@@ -721,7 +721,9 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			// Emplaces a RenderTarget
 			assert(index < a_textures.size() && "Index is out of bound for render targets provided");
 
-			rts.emplace_back(index, a_textures[index], load_action, store_action, type);
+			rhi::RenderTarget::TextureReference tr{index, &a_textures};
+
+			rts.emplace_back(index, std::move(tr), load_action, store_action, type);
 		}
 
 		// Check if there are any depth buffers attached or not
@@ -764,7 +766,9 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			// Emplaces a RenderTarget
 			assert(index < a_buffers.size() && "Index is out of bound for render buffers provided");
 
-			rbs.emplace_back(index, a_buffers[index], load_action, store_action, type);
+			rhi::RenderBuffer::ShaderBufferReference sr{index, &a_buffers};
+
+			rbs.emplace_back(index, std::move(sr), load_action, store_action, type);
 		}
 
 		render_pass.render_buffers(std::move(rbs));
@@ -992,7 +996,8 @@ const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector
 	if (this->m_input_render_targets.size() == 0)
 		this->m_input_render_targets.reserve(20);        // Should be enough otherwise an error will happen which I will know about
 
-	this->m_input_render_targets.emplace_back(a_index, this->m_images[a_index], load_action, store_action, type);
+	rhi::RenderTarget::TextureReference tr{a_index, &this->m_images};
+	this->m_input_render_targets.emplace_back(a_index, std::move(tr), load_action, store_action, type);
 
 	return &this->m_input_render_targets.back();        // back is ok here because this vector can't be reallocated
 }
@@ -1017,7 +1022,8 @@ const rhi::RenderBuffer *Renderer::find_renderbuffer_reference(const std::vector
 	if (this->m_input_render_buffers.size() == 0)
 		this->m_input_render_buffers.reserve(20);        // Should be enough otherwise an error will happen which I will know about
 
-	this->m_input_render_buffers.emplace_back(a_index, this->m_buffers[a_index], load_action, store_action, type);
+	rhi::RenderBuffer::ShaderBufferReference br{a_index, &this->m_buffers};
+	this->m_input_render_buffers.emplace_back(a_index, std::move(br), load_action, store_action, type);
 
 	return &this->m_input_render_buffers.back();        // back is ok here because this vector can't be reallocated
 }

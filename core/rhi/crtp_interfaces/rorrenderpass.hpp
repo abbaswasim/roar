@@ -81,10 +81,31 @@ class RenderOutput
 	declare_translation_unit_vtable();
 };
 
+template <typename _type>
+struct VectorReference
+{
+	VectorReference(uint32_t a_index, std::vector<_type> *a_vector) :
+	    m_index(a_index), m_reference(a_vector)
+	{}
+
+	uint32_t            m_index;                     //! Index to rhi::ShaderBuffer target buffer in renderer m_buffers
+	std::vector<_type> *m_reference{nullptr};        //! Reference to the container where m_index is indexing, non-owning
+
+	auto &get() const
+	{
+		assert(this->m_reference && this->m_index < this->m_reference->size() && "Reference wasn't set correctly");
+		return (*this->m_reference)[static_cast<size_t>(m_index)];
+	}
+
+  private:
+	VectorReference()
+	{}
+};
+
 class RenderTarget final : public RenderOutput
 {
   public:
-	using TextureReference = std::reference_wrapper<rhi::TextureImage>;
+	using TextureReference = VectorReference<rhi::TextureImage>;
 
 	FORCE_INLINE               RenderTarget()                                = delete;         //! Default constructor
 	FORCE_INLINE               RenderTarget(const RenderTarget &a_other)     = default;        //! Copy constructor
@@ -93,7 +114,7 @@ class RenderTarget final : public RenderOutput
 	FORCE_INLINE RenderTarget &operator=(RenderTarget &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE ~RenderTarget() noexcept override                           = default;        //! Destructor
 
-	FORCE_INLINE RenderTarget(uint32_t a_target, rhi::TextureImage &a_target_reference, LoadAction a_load_action, StoreAction a_store_action, RenderOutputType a_type) :
+	FORCE_INLINE RenderTarget(uint32_t a_target, TextureReference a_target_reference, LoadAction a_load_action, StoreAction a_store_action, RenderOutputType a_type) :
 	    RenderOutput(a_target, a_load_action, a_store_action, a_type), m_target_reference(a_target_reference)
 	{}
 
@@ -112,7 +133,7 @@ define_type_to_shader_semantics(RenderTarget)
 class RenderBuffer final : public RenderOutput
 {
   public:
-	using ShaderBufferReference = std::reference_wrapper<ShaderBuffer>;
+	using ShaderBufferReference = VectorReference<rhi::ShaderBuffer>;
 
 	FORCE_INLINE               RenderBuffer()                                = delete;         //! Default constructor
 	FORCE_INLINE               RenderBuffer(const RenderBuffer &a_other)     = default;        //! Copy constructor
@@ -121,11 +142,11 @@ class RenderBuffer final : public RenderOutput
 	FORCE_INLINE RenderBuffer &operator=(RenderBuffer &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE ~RenderBuffer() noexcept override                           = default;        //! Destructor
 
-	FORCE_INLINE RenderBuffer(uint32_t a_target, ShaderBuffer &a_target_reference, LoadAction a_load_action, StoreAction a_store_action, RenderOutputType a_type) :
+	FORCE_INLINE RenderBuffer(uint32_t a_target, ShaderBufferReference a_target_reference, LoadAction a_load_action, StoreAction a_store_action, RenderOutputType a_type) :
 	    RenderOutput(a_target, a_load_action, a_store_action, a_type), m_target_reference(a_target_reference)
 	{}
 
-	ShaderBufferReference m_target_reference;        //! Reference to buffer
+	ShaderBufferReference m_target_reference;        //! Reference to target buffer
 
   protected:
   private:
