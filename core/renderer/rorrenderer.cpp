@@ -1485,7 +1485,7 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32_t a_mip_height, rhi::Program &a_pso,
                              const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers,
-                             rhi::ShaderBuffer &a_mipmaps_shader_buffer, bool a_is_radiance = false)
+                             rhi::ShaderBuffer &a_mipmaps_shader_buffer, const char* a_stage, bool a_is_radiance = false)
 {
 	auto           mip_levels_count = rhi::calculate_texture_mip_levels(a_mip_width, a_mip_height, 1);
 	ror::Vector4ui mip_offset_size{0, 0, a_mip_width, a_mip_width};
@@ -1495,9 +1495,10 @@ static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32
 		uint32_t mip_width  = std::max(1u, a_mip_width >> level);
 		uint32_t mip_height = std::max(1u, a_mip_height >> level);
 
-		float roughness = static_cast<float>(level) / static_cast<float>(mip_levels_count);        // I have tried different curves mapping of levels to roughness but the linear one looks nicer
+		float roughness = static_cast<float>(level + 1) / static_cast<float>(mip_levels_count);        // I have tried different curves mapping of levels to roughness but the linear one looks nicer
+		roughness = std::clamp(roughness, 0.0f, 1.0f);
 
-		ror::log_info("Building environment {} map level {}", a_is_radiance ? "radiance" : "irradiance", level);
+		ror::log_info("Building environment {} map level {}", a_stage, level);
 
 		mip_offset_size.z = mip_width;
 		mip_offset_size.w = mip_height;
@@ -1635,14 +1636,14 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		sizes_shader_buffer.ready(true);
 
 		// First we create patche for sky ldr image
-		patch_mip_levels(device, sky_env_width, sky_env_width, skybox_pso, skybox_images, samplers, sizes_shader_buffer);
+		patch_mip_levels(device, sky_env_width, sky_env_width, skybox_pso, skybox_images, samplers, sizes_shader_buffer, "skybox image");
 
 		// Then we create patche for sky hdr image
 		// I am using the skybox_pso here because its the same work, but seprate dispatch because sizes might differ
-		patch_mip_levels(device, rad_env_width, rad_env_width, skybox_pso, radiance_images, samplers, sizes_shader_buffer);
+		patch_mip_levels(device, rad_env_width, rad_env_width, skybox_pso, radiance_images, samplers, sizes_shader_buffer, "radiance skybox");
 
 		// Then we do convolution for irradiance map and create a patch image
-		patch_mip_levels(device, irr_env_width, irr_env_width, irradiance_pso, irradiance_images, samplers, sizes_shader_buffer);
+		patch_mip_levels(device, irr_env_width, irr_env_width, irradiance_pso, irradiance_images, samplers, sizes_shader_buffer, "irradiance convolution");
 
 		// Then we turn it into a skybox ldr/hdr and irradiance cubemap
 		// Remember this doesn't work in completion handler, something to do with command buffer inside command buffer
@@ -1675,7 +1676,7 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		mipmaps_shader_buffer.ready(true);
 
 		// First we create a prefiltered patch
-		patch_mip_levels(device, rad_env_width, rad_env_width, radiance_pso, radiance_images, radiance_samplers, mipmaps_shader_buffer, true);
+		patch_mip_levels(device, rad_env_width, rad_env_width, radiance_pso, radiance_images, radiance_samplers, mipmaps_shader_buffer, "radiance filtering", true);
 
 		// Then we turn it into a cubemap
 		rhi::texture_patch_to_mipmapped_cubemap_texture(device, radiance_patch_ti, radiance);
@@ -1780,7 +1781,6 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 	for (auto &program : this->m_programs)
 	{
 		auto program_update = [&program, this, &a_buffer_pack](rhi::Device &device, std::unordered_set<hash_64_t> *) {
-
 			rhi::Renderpass    *pass{nullptr};
 			rhi::Rendersubpass *subpass{nullptr};
 
