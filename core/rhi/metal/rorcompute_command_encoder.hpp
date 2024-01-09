@@ -63,8 +63,6 @@ class ComputeCommandEncoderMetal final
 	FORCE_INLINE constexpr void end_encoding() const noexcept;
 	FORCE_INLINE constexpr void release() const noexcept;
 
-	FORCE_INLINE constexpr uint32_t max_workgroup_size() const noexcept;
-
 	void compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) const noexcept;
 
   protected:

@@ -88,4 +88,5 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::release() const noexcept
 {
 	this->m_encoder->release();
 }
+
 }        // namespace rhi

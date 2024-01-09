@@ -143,7 +143,7 @@
 			"irradiance": {
 				"name":"irradiance_map",
 				"format":"r32g32b32a32_float128",
-				"size" : 1024,
+				"size" : 512,
 				"target": "CUBE",
 				"writeable": true,
 				"mipmapped": true
@@ -151,7 +151,7 @@
 			"radiance": {
 				"name":"radiance_map",
 				"format":"r32g32b32a32_float128",
-				"size" : 1024,
+				"size" : 512,
 				"target": "CUBE",
 				"writeable": true,
 				"mipmapped": true

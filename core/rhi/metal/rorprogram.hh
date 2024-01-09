@@ -39,5 +39,4 @@ FORCE_INLINE ProgramMetal::~ProgramMetal() noexcept
 	         std::get<MTL::ComputePipelineState *>(this->m_pipeline_state))
 		std::get<MTL::ComputePipelineState *>(this->m_pipeline_state)->release();
 }
-
 }        // namespace rhi
