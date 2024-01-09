@@ -10,8 +10,8 @@ vec4 get_lit_color(const Material material, const Fragment fragment)
 
 	apply_image_based_lighting(material, fragment, color);
 	apply_directional_lighting(material, fragment, color);
-	apply_point_lighting(material, fragment, color);
-	apply_spot_lighting(material, fragment, color);
+	// apply_point_lighting(material, fragment, color);
+	// apply_spot_lighting(material, fragment, color);
 
 	return vec4(color, 0.0);
 }

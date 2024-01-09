@@ -27,7 +27,6 @@
 #include "foundation/rorsystem.hpp"
 #include "math/rorvector4.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
-#include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorcompute_command_encoder.hpp"
@@ -55,7 +54,8 @@ template <class _type>
 FORCE_INLINE void Rendersubpass::bind_render_inputs(_type &a_encoder)
 {
 	auto     render_inputs  = this->rendered_inputs();
-	uint32_t starting_index = 20;        // TODO: Abstract out this starting index
+	uint32_t starting_index = 15;                                                           // TODO: Abstract out this starting index
+	assert(render_inputs.size() < 5 && "Fix the starting index for render inputs");        // 5 because there might be other textures/inputs earlier as well
 	bind_input_textures(a_encoder, render_inputs, starting_index);
 }
 
@@ -63,7 +63,8 @@ template <class _type>
 FORCE_INLINE void Rendersubpass::bind_input_attachments(_type &a_encoder)
 {
 	auto     render_inputs  = this->input_attachments();
-	uint32_t starting_index = 1;        // TODO: Abstract out this starting index
+	uint32_t starting_index = 20;                                                          // TODO: Abstract out this starting index
+	assert(render_inputs.size() < 5 && "Fix the starting index for render inputs");        // 5 because its used after render_inputs so need enough space
 	bind_input_textures(a_encoder, render_inputs, starting_index);
 }
 

@@ -29,9 +29,9 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
 #include "rhi/rordevice.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/rorshader.hpp"
-#include "rhi/rorrenderpass.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
 
@@ -65,13 +65,13 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	{}
 
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
-				const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha);
-	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass,const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha);
-	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass,const rhi::Rendersubpass &a_subpass, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader,
-				const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name,
-				bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
+	            const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha);
+	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha);
+	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader,
+	            const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name,
+	            bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders,
-				rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
+	            rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders);
 
 	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept
@@ -95,6 +95,7 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 
   private:
 	declare_translation_unit_vtable();
+	void release();
 
 	std::variant<MTL::RenderPipelineState *, MTL::ComputePipelineState *> m_pipeline_state{};        //! This program will contain either Render or Compute pipeline state
 };

@@ -21,12 +21,13 @@ layout(std140, set = 0, binding = 20) uniform per_view_uniform
 	vec3 camera_position;
 } in_per_view_uniforms;
 
-layout(std430, set = 0, binding = 27) readonly buffer nodes_model
+// Hard coded bindings, needs updating if anything changes
+layout(std430, set = 0, binding = 21) readonly buffer nodes_model
 {
     mat4 node_model_mat4[];
 } in_nodes_model;
 
-layout(std140, set = 0, binding = 28) uniform nodes_offsets
+layout(std140, set = 0, binding = 22) uniform nodes_offsets
 {
 	uvec4 node_offsets;
 } in_nodes_offsets;

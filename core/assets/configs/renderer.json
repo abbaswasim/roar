@@ -95,8 +95,6 @@
 		{
 			"name":"brdf_integration_lut",
 			"format":"r16g16_float32",
-			"width" : 1024,
-			"height" : 1024,
 			"writeable": true
 		}
 	],
@@ -423,6 +421,8 @@
 		},
 		"forward":[
 			{
+				"width" : 1024,
+				"height" : 1024,
 				"render_targets":[
 					{
 						"index":12,
@@ -560,6 +560,26 @@
 			}
 		],
 		"deferred":[
+			{
+				"render_targets":[
+					{
+						"index":12,
+						"load_action":"clear",
+						"store_action":"store",
+						"type":"color"
+					}
+				],
+				"subpasses":[
+					{
+						"name":"Image_Based_Lighting_LUT",
+						"technique":"compute",
+						"type":"image_based_light_lut",
+						"state":"persistent",
+						"render_targets":[0],
+						"program":1
+					}
+				]
+			},
 			{
 				"render_targets":[
 					{

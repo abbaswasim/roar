@@ -120,7 +120,7 @@ class ROAR_ENGINE_ITEM Mesh final
 
 	// NOTE: m_parts, m_primitive_types and m_has_indices_states are not BufferAllocated,
 	// because they will not be sent into the GPU, so don't need them in a big buffer
-	// TODO: Although to save on its allocation costs, one can BufferAllocate those as well
+	// to save on its allocation costs, one can BufferAllocate those as well
 
   private:
 	std::vector<hash_64_t>                                  m_vertex_hashes{};                           //! All the parts has a specific hash of its vertex shaders due to its VertexDescriptors etc
@@ -137,6 +137,9 @@ class ROAR_ENGINE_ITEM Mesh final
 	int32_t                                                 m_skin_index{-1};                            //! If the mesh has Skin their index is saved here, Should be init with -1
 	hash_64_t                                               m_hash{0};                                   //! Hash of this mesh depending on most of its properties
 	std::string                                             m_name{"generic_mesh"};                      //! Name of this mesh
+
+	// TODO: Due to the following spec in glTF need to add Node weights
+	// When an instantiated mesh has morph targets, it MUST use morph weights specified with the node.weights property. When the latter is undefined, mesh.weights property MUST be used instead.
 };
 
 }        // namespace ror

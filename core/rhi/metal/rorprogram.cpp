@@ -49,7 +49,6 @@ namespace rhi
 define_translation_unit_vtable(ProgramMetal)
 {}
 
-
 /*
 Metal vertex attributes to shader and buffer mapping
 
@@ -290,7 +289,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 }
 
 void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
-						  const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha)
+                          const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha)
 {
 	auto        is_depth_shadow = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
 	auto       *device          = a_device.platform_device();
@@ -330,13 +329,27 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_
 		return;
 	}
 
+	this->release();
+
 	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_model.meshes(), a_mesh_index, a_prim_index, is_depth_shadow);
 	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, a_renderpass, a_subpass, mtl_vertex_descriptor, material.m_blend_mode, mesh.primitive_type(a_prim_index), mesh.name().c_str(), a_subpass.has_depth(), a_premultiplied_alpha);
 }
 
+void ProgramMetal::release()
+{
+	auto rps = this->render_pipeline_state();
+	auto cps = this->compute_pipeline_state();
+
+	if (rps)
+		rps->release();
+
+	if (cps)
+		cps->release();
+}
+
 void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader,
-						  const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name,
-						  bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
+                          const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name,
+                          bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
 
@@ -354,12 +367,14 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_
 		return;
 	}
 
+	this->release();
+
 	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_vertex_descriptor, a_is_depth_shadow);
 	this->m_pipeline_state      = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, a_renderpass, a_subpass, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
 }
 
 void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders,
-						  rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
+                          rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
 {
 	auto vs_id = this->vertex_id();
 	auto fs_id = this->fragment_id();
@@ -393,6 +408,8 @@ void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_render
 		auto *device = a_device.platform_device();
 		assert(device);
 
+		this->release();
+
 		this->m_pipeline_state = device->newComputePipelineState(cs.function(), &pError);
 
 		if (!this->compute_pipeline_state())
@@ -409,6 +426,8 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_
 
 	// TODO: Add support for non-mesh vertex and fragment pipelines, would require a RenderpassType as a must
 
+	this->release();
+
 	auto vs_id = this->vertex_id();
 	auto fs_id = this->fragment_id();
 	auto cs_id = this->compute_id();
@@ -420,6 +439,7 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_
 	{
 		const auto &vs = a_shaders[static_cast<size_t>(vs_id)];
 		const auto &fs = a_shaders[static_cast<size_t>(fs_id)];
+
 		if (vs.function() != nullptr && fs.function() != nullptr)
 		{
 			auto *mtl_vertex_descriptor = get_default_mtl_vertex_descriptor(a_buffer_pack);
@@ -471,6 +491,8 @@ void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Sh
 	NS::Error *pError = nullptr;
 
 	assert(device);
+
+	this->release();
 
 	this->m_pipeline_state = device->newComputePipelineState(cs.function(), &pError);
 

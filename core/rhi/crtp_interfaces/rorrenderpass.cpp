@@ -191,6 +191,8 @@ void tone_mapping_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene 
 	// clang-format off
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_subpass;
 	// clang-format on
+
+	// ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void forward_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
