@@ -28,7 +28,6 @@
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/metal/rormetal_common.hpp"
 #include "rhi/metal/rorrender_command_encoder.hpp"
-#include "rhi/rorprogram.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
 
@@ -71,11 +70,6 @@ FORCE_INLINE constexpr void RenderCommandEncoder::depth_stencil_state(const rhi:
 FORCE_INLINE constexpr void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMode a_cull_mode) const noexcept
 {
 	this->m_encoder->setCullMode(to_metal_cull_mode(a_cull_mode));
-}
-
-FORCE_INLINE constexpr void RenderCommandEncoder::render_pipeline_state(const rhi::Program &a_render_pipeline_state) const noexcept
-{
-	this->m_encoder->setRenderPipelineState(a_render_pipeline_state.render_pipeline_state());
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept

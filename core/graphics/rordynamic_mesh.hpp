@@ -86,7 +86,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	rhi::TextureSampler    m_texture_sampler{};                                  //! Texture sampler, the default sampler used to render
 	rhi::TextureImage     *m_texture_image_external{nullptr};                    //! Non-Owning pointer of a an external Texture image
 	rhi::TextureSampler   *m_texture_sampler_external{nullptr};                  //! Non-Owning pointer of a an external Texture sampler
-	rhi::Program           m_shader_program{-1, -1};                             //! Program in undefined/uinitialized state
+	rhi::Program           m_shader_program{-1, -1};                             //! Since we have one of this or next external, its only guaranteed to render in main pass
 	rhi::Program          *m_shader_program_external{nullptr};                   //! Non-Owning point to a an exteranl program that overrides its own program if valid
 	rhi::VertexDescriptor  m_vertex_descriptor{};                                //! The vertex descriptor of the UI, that is defined by xy, uv, c of ImGUI vertex buffer
 	rhi::Buffer            m_vertex_buffer{};                                    //! Vertex buffer with interleaved data of of any kind

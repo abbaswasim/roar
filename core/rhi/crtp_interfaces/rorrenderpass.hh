@@ -302,6 +302,7 @@ void RenderpassCrtp<_type>::execute(rhi::CommandBuffer &a_command_buffer, ror::S
 
 			if (subpass.technique() != rhi::RenderpassTechnique::compute)
 			{
+				// TODO: use renderer final pass here
 				if (subpass.type() == rhi::RenderpassType::main || subpass.type() == rhi::RenderpassType::forward_light)        // TODO: HACK: Remove the forward_light bit and work out if I am last render pass then use me as main pass
 					this->make_final_pass(a_surface, render_pass_index);
 

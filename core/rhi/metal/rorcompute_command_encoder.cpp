@@ -24,7 +24,14 @@
 // Version: 1.0.0
 
 #include "rhi/metal/rorcompute_command_encoder.hpp"
+#include "rhi/rorprogram.hpp"
 
 namespace rhi
 {
+
+void ComputeCommandEncoder::compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) const noexcept
+{
+	this->m_encoder->setComputePipelineState(a_compute_pipeline_state.compute_pipeline_state());
+}
+
 }        // namespace rhi

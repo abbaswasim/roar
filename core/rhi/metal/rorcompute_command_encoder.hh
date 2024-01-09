@@ -31,7 +31,6 @@
 #include "rhi/rorprogram.hpp"
 #include "rhi/rortypes.hpp"
 #include <Metal/MTLTypes.hpp>
-#include <_types/_uint32_t.h>
 #include <cassert>
 
 namespace rhi
@@ -49,11 +48,6 @@ FORCE_INLINE ComputeCommandEncoder::~ComputeCommandEncoderMetal() noexcept
 FORCE_INLINE ComputeCommandEncoder::ComputeCommandEncoderMetal(MTL::ComputeCommandEncoder *a_encoder) :
     m_encoder(a_encoder)
 {}
-
-FORCE_INLINE constexpr void ComputeCommandEncoder::compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) const noexcept
-{
-	this->m_encoder->setComputePipelineState(a_compute_pipeline_state.compute_pipeline_state());
-}
 
 FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {

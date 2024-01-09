@@ -599,7 +599,7 @@ void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_render
 	auto fs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.frag");
 
 	// Needs final pass stuff
-	rhi::Renderpass *pass{nullptr};
+	rhi::Renderpass    *pass{nullptr};
 	rhi::Rendersubpass *subpass{nullptr};
 
 	a_renderer.get_final_pass_subpass(&pass, &subpass);

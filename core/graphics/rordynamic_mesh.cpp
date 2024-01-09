@@ -129,13 +129,19 @@ void DynamicMesh::setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor)
 	}
 }
 
-void DynamicMesh::setup_shaders(rhi::BlendMode a_blend_mode, std::filesystem::path a_vertex_shader, std::filesystem::path a_fragment_shader)
+void DynamicMesh::setup_shaders(const ror::Renderer &a_renderer, rhi::BlendMode a_blend_mode, std::filesystem::path a_vertex_shader, std::filesystem::path a_fragment_shader)
 {
 	// Create shader program
 	auto vs_shader = rhi::build_shader<rhi::Shader>(*this->m_device, a_vertex_shader);
 	auto fs_shader = rhi::build_shader<rhi::Shader>(*this->m_device, a_fragment_shader);
 
-	this->m_shader_program.upload(*this->m_device, vs_shader, fs_shader, this->m_vertex_descriptor, a_blend_mode, this->m_topology, "tri_pso", true, false, false);
+	rhi::Renderpass    *pass{nullptr};
+	rhi::Rendersubpass *subpass{nullptr};
+
+	a_renderer.get_final_pass_subpass(&pass, &subpass);
+
+	// This means it is only guaranteed to render in last/main render pass
+	this->m_shader_program.upload(*this->m_device, vs_shader, fs_shader, this->m_vertex_descriptor, a_blend_mode, *pass, *subpass, this->m_topology, "tri_pso", true, false, false);
 }
 
 /**

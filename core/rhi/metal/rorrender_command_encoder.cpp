@@ -24,7 +24,13 @@
 // Version: 1.0.0
 
 #include "rhi/metal/rorrender_command_encoder.hpp"
+#include "rhi/rorprogram.hpp"
 
 namespace rhi
 {
+
+void RenderCommandEncoder::render_pipeline_state(const rhi::Program &a_render_pipeline_state) const noexcept
+{
+	this->m_encoder->setRenderPipelineState(a_render_pipeline_state.render_pipeline_state());
+}
 }        // namespace rhi

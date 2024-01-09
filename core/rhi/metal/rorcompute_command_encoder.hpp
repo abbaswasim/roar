@@ -42,6 +42,7 @@ namespace rhi
 {
 
 class ProgramMetal;
+
 declare_rhi_render_type(Program);
 
 class ComputeCommandEncoderMetal final
@@ -54,7 +55,6 @@ class ComputeCommandEncoderMetal final
 	FORCE_INLINE ~ComputeCommandEncoderMetal() noexcept;
 	FORCE_INLINE explicit ComputeCommandEncoderMetal(MTL::ComputeCommandEncoder *a_encoder);
 
-	FORCE_INLINE constexpr void compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) const noexcept;
 	FORCE_INLINE constexpr void buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept;
@@ -64,6 +64,8 @@ class ComputeCommandEncoderMetal final
 	FORCE_INLINE constexpr void release() const noexcept;
 
 	FORCE_INLINE constexpr uint32_t max_workgroup_size() const noexcept;
+
+	void compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) const noexcept;
 
   protected:
   private:

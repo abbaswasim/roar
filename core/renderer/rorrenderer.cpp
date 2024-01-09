@@ -1456,7 +1456,6 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 		auto &descriptor = renderer.m_cube_map_mesh.vertex_descriptor();
 		auto  pso        = renderer.m_cube_map_mesh.shader_program_external();
 
-		// TODO: Get final pass and subpass
 		rhi::Renderpass    *pass{nullptr};
 		rhi::Rendersubpass *subpass{nullptr};
 
@@ -1775,7 +1774,14 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 	for (auto &program : this->m_programs)
 	{
 		auto program_update = [&program, this, &a_buffer_pack](rhi::Device &device, std::unordered_set<hash_64_t> *) {
-			program.upload(device, this->m_shaders, a_buffer_pack, false);        // TODO: Retrieve pre-multiplied state from renderer for each shader
+
+			rhi::Renderpass    *pass{nullptr};
+			rhi::Rendersubpass *subpass{nullptr};
+
+			// TODO: Perhaps this should be lighting pass if these are programs are for IBLs
+			this->get_final_pass_subpass(&pass, &subpass);
+
+			program.upload(device, *pass, *subpass, this->m_shaders, a_buffer_pack, false);        // TODO: Retrieve pre-multiplied state from renderer for each shader
 		};
 
 		program_update(a_device, nullptr);
@@ -1862,7 +1868,7 @@ void Renderer::setup_final_pass()
 
 void Renderer::get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const
 {
-	auto &pass = this->current_frame_graph()[this->final_pass()];
+	auto &pass = this->current_frame_graph()[this->m_final_pass];
 
 	*a_pass = &pass;
 

@@ -27,8 +27,8 @@
 #include "graphics/rormodel.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/metal/rormetal_common.hpp"
-#include "rhi/metal/rorprogram.hpp"
-#include "rhi/metal/rorshader.hpp"
+#include "rhi/rorcommand_buffer.hpp"
+#include "rhi/rorprogram.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"
@@ -202,27 +202,40 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 
 	// Why there are colorAttachments in MTLRenderPipelineDescriptors as well as MTLRenderPassDescriptor the explanation is
 	// https://stackoverflow.com/questions/44118942/what-is-colorattachmentn-in-metal but it boils down to how expensive these are to change
-	// TODO: Add support for how ever many attachments we might have which is driven by render pass type
-	ror::log_error("Fix colorAttachments() in render pipeline descriptor");
-	auto colorAttachment = render_pipeline_descriptor->colorAttachments()->object(0);
-
-	colorAttachment->setPixelFormat(MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB);
-	colorAttachment->setRgbBlendOperation(MTL::BlendOperationAdd);
-	colorAttachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
-	colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
-	// colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
-	colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorSourceAlpha);
-	colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-	colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-
-	colorAttachment->setBlendingEnabled(false);
-
-	if (a_blend_mode == rhi::BlendMode::blend)
+	uint32_t attachment_index{0};
+	for (auto &rt_index : a_render_subpass.render_targets())
 	{
-		colorAttachment->setBlendingEnabled(true);
+		auto            &rendertarget            = subpass_render_target(a_renderpass, a_render_subpass, rt_index);
+		rhi::PixelFormat attachment_format       = rendertarget.m_target_reference.get().format();
+		auto             attachment_format_metal = to_metal_pixelformat(attachment_format);
 
-		if (a_premultiplied_alpha)
-			colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
+		auto colorAttachment = render_pipeline_descriptor->colorAttachments()->object(attachment_index++);
+
+		if (is_pixel_format_depth_format(attachment_format))
+		{
+			render_pipeline_descriptor->setDepthAttachmentPixelFormat(attachment_format_metal);
+		}
+		else
+		{
+			colorAttachment->setPixelFormat(attachment_format_metal);
+			colorAttachment->setRgbBlendOperation(MTL::BlendOperationAdd);
+			colorAttachment->setAlphaBlendOperation(MTL::BlendOperationAdd);
+			colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+			// colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+			colorAttachment->setSourceAlphaBlendFactor(MTL::BlendFactorSourceAlpha);
+			colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+			colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+
+			colorAttachment->setBlendingEnabled(false);
+
+			if (a_blend_mode == rhi::BlendMode::blend)
+			{
+				colorAttachment->setBlendingEnabled(true);
+
+				if (a_premultiplied_alpha)
+					colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
+			}
+		}
 	}
 
 	render_pipeline_descriptor->setLabel(NS::String::string(a_label, NS::StringEncoding::UTF8StringEncoding));
@@ -277,7 +290,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 }
 
 void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index,
-						  const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, bool a_premultiplied_alpha)
+                          const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, bool a_premultiplied_alpha)
 {
 	auto        is_depth_shadow = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
 	auto       *device          = a_device.platform_device();
@@ -322,7 +335,7 @@ void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Sh
 }
 
 void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode,
-						  const rhi::Renderpass &a_pass,const rhi::Rendersubpass &a_subpass, 
+                          const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass,
                           rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
@@ -341,9 +354,8 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Shader &a_vs_s
 		return;
 	}
 
-
-	auto              *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_vertex_descriptor, a_is_depth_shadow);
-	this->m_pipeline_state                   = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, a_pass, a_subpass, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
+	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_vertex_descriptor, a_is_depth_shadow);
+	this->m_pipeline_state      = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, a_pass, a_subpass, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
 }
 
 void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
@@ -390,7 +402,7 @@ void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_pass, 
 	}
 }
 
-void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha)
+void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
 

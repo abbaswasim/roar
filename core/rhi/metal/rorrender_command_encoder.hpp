@@ -60,7 +60,6 @@ class RenderCommandEncoderMetal final
 	FORCE_INLINE constexpr void front_facing_winding(rhi::PrimitiveWinding a_winding) const noexcept;
 	FORCE_INLINE constexpr void depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) const noexcept;
 	FORCE_INLINE constexpr void cull_mode(rhi::PrimitiveCullMode a_cull_mode) const noexcept;
-	FORCE_INLINE constexpr void render_pipeline_state(const rhi::Program &a_render_pipeline_state) const noexcept;
 	FORCE_INLINE constexpr void vertex_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void fragment_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void tile_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
@@ -82,6 +81,8 @@ class RenderCommandEncoderMetal final
 	FORCE_INLINE constexpr void end_encoding() const noexcept;
 	FORCE_INLINE constexpr void release() const noexcept;
 	FORCE_INLINE constexpr void triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) const noexcept;
+
+	void render_pipeline_state(const rhi::Program &a_render_pipeline_state) const noexcept;
 
 	// clang-format off
 	FORCE_INLINE constexpr auto platform_encoder() const noexcept { return this->m_encoder; }
