@@ -604,7 +604,7 @@ void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_render
 
 	a_renderer.get_final_pass_subpass(&pass, &subpass);
 
-	this->m_shader_program.upload(a_device, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, *pass, *subpass, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
+	this->m_shader_program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
 
 	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
 	this->m_index_buffer.init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode

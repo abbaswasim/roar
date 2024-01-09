@@ -2257,7 +2257,7 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 								}
 							}
 
-							prg.upload(device, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), pass, subpass, false);
+							prg.upload(device, pass, subpass, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), false);
 						};
 
 						updator.push_program_record(mesh.program(prim_index), programs, shaders, shader_update, &dependencies);
@@ -2285,7 +2285,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 
 	auto program_upload_job = [](rhi::Device &a_local_device, rhi::Program &a_program, const std::vector<rhi::Shader> &a_shaders,
 	                             const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass) -> auto {
-		a_program.upload(a_local_device, a_shaders, a_model, a_mesh_index, a_prim_index, a_pass, a_subpass, false);
+		a_program.upload(a_local_device, a_pass, a_subpass, a_shaders, a_model, a_mesh_index, a_prim_index, false);
 
 		return true;
 	};

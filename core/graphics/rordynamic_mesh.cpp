@@ -141,7 +141,7 @@ void DynamicMesh::setup_shaders(const ror::Renderer &a_renderer, rhi::BlendMode 
 	a_renderer.get_final_pass_subpass(&pass, &subpass);
 
 	// This means it is only guaranteed to render in last/main render pass
-	this->m_shader_program.upload(*this->m_device, vs_shader, fs_shader, this->m_vertex_descriptor, a_blend_mode, *pass, *subpass, this->m_topology, "tri_pso", true, false, false);
+	this->m_shader_program.upload(*this->m_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, a_blend_mode, this->m_topology, "tri_pso", true, false, false);
 }
 
 /**

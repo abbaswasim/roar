@@ -289,8 +289,8 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 	*/
 }
 
-void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index,
-                          const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, bool a_premultiplied_alpha)
+void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
+						  const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha)
 {
 	auto        is_depth_shadow = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
 	auto       *device          = a_device.platform_device();
@@ -334,9 +334,9 @@ void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Sh
 	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, a_renderpass, a_subpass, mtl_vertex_descriptor, material.m_blend_mode, mesh.primitive_type(a_prim_index), mesh.name().c_str(), a_subpass.has_depth(), a_premultiplied_alpha);
 }
 
-void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode,
-                          const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass,
-                          rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
+void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader,
+						  const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name,
+						  bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
 
@@ -355,10 +355,11 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Shader &a_vs_s
 	}
 
 	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_vertex_descriptor, a_is_depth_shadow);
-	this->m_pipeline_state      = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, a_pass, a_subpass, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
+	this->m_pipeline_state      = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, a_renderpass, a_subpass, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
 }
 
-void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
+void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders,
+						  rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
 {
 	auto vs_id = this->vertex_id();
 	auto fs_id = this->fragment_id();
@@ -372,7 +373,7 @@ void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_pass, 
 		const auto &vs = a_shaders[static_cast<size_t>(vs_id)];
 		const auto &fs = a_shaders[static_cast<size_t>(fs_id)];
 
-		this->upload(a_device, vs, fs, a_vertex_descriptor, a_blend_mode, a_pass, a_subpass, a_toplogy, a_pso_name, a_subpass_has_depth, a_is_depth_shadow, a_premultiplied_alpha);
+		this->upload(a_device, a_renderpass, a_subpass, vs, fs, a_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_is_depth_shadow, a_premultiplied_alpha);
 	}
 	else
 	{
