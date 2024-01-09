@@ -71,10 +71,12 @@ Light get_spot_light(const Material material, const Fragment fragment, const uin
 	return light;
 }
 
+#include <ibl_lighting.glsl.frag>
+
 void apply_image_based_lighting(const Material material, const Fragment fragment, inout vec3 color)
 {
-	vec3 Fd = vec3(0.0);
-	vec3 Fr = vec3(0.0);
+	vec3 Fd = ibl_radiance_lambertian(fragment.normal, fragment.view, fragment.roughness, fragment.diffuse_color, fragment.F0, 1.0);
+	vec3 Fr = ibl_radiance_ggx(fragment.normal, fragment.view, fragment.roughness, fragment.F0, 1.0);
 
 	color += Fd + Fr;
 }

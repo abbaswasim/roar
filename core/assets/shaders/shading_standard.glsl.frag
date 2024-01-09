@@ -29,5 +29,4 @@ vec3 shading_standard(const Fragment fragment, const Light light)
 
 	return (color * light.color) * (light.intensity * light.attenuation * NoL * light.shadow * fragment.occlusion);
 }
-
 // End of filament's shading_model_standard.fs shader

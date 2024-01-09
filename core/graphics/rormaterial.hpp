@@ -106,7 +106,7 @@ class ROAR_ENGINE_ITEM Material final
 	Component<ror::Color4f> m_base_color{};                                   //! Premultiplied linear RGB like filament, loader takes care of this // TODO: Fix the pre-multiplied bit
 	Component<ror::Color4f> m_diffuse_color{};                                //! Specular Glossyness specific diffuse color, either will have a factor or texture not both default of (1.0, 1.0, 1.0, 1.0)
 	Component<ror::Color4f> m_specular_glossyness{};                          //! Specular Glossyness specific vec3 Specular and float Glossyness factors default (1.0, 1.0, 1.0) and 1.0 or provided via a texture
-	Component<ror::Color4f> m_emissive{};                                     //! Used for lit objects, a texture and emissive RGB color with emissive strength in A component of the factor
+	Component<ror::Color4f> m_emissive{};                                     //! Used for lit objects, a texture and emissive RGB color with emissive strength in A component of the factor, no support for emissive strength yet
 	Component<ror::Color4f> m_anisotropy{};                                   //! xyz is directions of anisotophy, mutually exclusive with texture, w is factor [-1 1] defines if anisotropy is along or perpendicular to direction
 	Component<ror::Color2f> m_transmission{};                                 //! 1.0 means stuff is fully transparent, Also called Opacity in UE4, factor is transmission factor and internal roughness, m_roughness is external surface roughness
 	Component<ror::Color3f> m_sheen_color{};                                  //! What should be the color of the sheen. Factor is the default color

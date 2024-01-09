@@ -255,7 +255,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 	  render_pipeline_descriptor->setStencilAttachmentPixelFormat();
 	  render_pipeline_descriptor->setVertexBuffers();
 	  render_pipeline_descriptor->setFragmentBuffers();
-	  render_pipeline_descriptor->setSampleCount(); // deprecated, find out how to do multisampling otherwise
+	  render_pipeline_descriptor->setRasterSampleCount();
 	  render_pipeline_descriptor->setTessellationPartitionMode();
 	  render_pipeline_descriptor->setMaxTessellationFactor();
 	  render_pipeline_descriptor->setTessellationFactorScaleEnabled();

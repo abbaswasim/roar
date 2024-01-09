@@ -35,14 +35,12 @@ void main()
 
 	vec4 diffuse_specular_color = get_lit_color(material, fragment);
 	vec4 emissive_color         = get_emissive_color(material);
-	// vec4 ambient_color         = vec4(1.01, 1.01, 1.01, 0.0);
 
 	diffuse_specular_color.a = material.base_color.a;
 	emissive_color.rgb *= emissive_color.a;
 	emissive_color.a = 0.0;
 
 	out_color  = diffuse_specular_color + emissive_color;
-	// out_color *=  ambient_color;
 	@out_color = material.base_color;        // If the material is unlit this will be uncommented otherwise left commented
 
 	set_render_mode(material, fragment);

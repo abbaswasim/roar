@@ -44,7 +44,7 @@
 	"textures":[
 		{
 			"name":"before_swapchain",
-			"format":"b8g8r8a8_uint32_norm"
+			"format":"b8g8r8a8_uint32_norm_srgb"
 		},
 		{
 			"name":"renderable",

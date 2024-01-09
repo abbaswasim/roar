@@ -206,7 +206,7 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 		this->buffer_copy(a_value, entry->m_offset + a_offset, a_size);
 	}
 
-	void upload(rhi::Device &a_device, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::managed)
+	void upload(const rhi::Device &a_device, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::managed)
 	{
 		// Alignment on size is Metal requirement but won't hurt in Vulkan either (https://github.com/gpuweb/gpuweb/issues/425)
 		auto aligned_size = ror::static_cast_safe<uint32_t>(ror::align16(this->m_shader_buffer_template.size()));
@@ -228,8 +228,8 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	FORCE_INLINE ShaderBufferCrtp() = default;        //! Default constructor
   private:
 	// clang-format off
-	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_offset, size_t a_length) noexcept          { this->underlying().buffer_copy(a_data, a_offset, a_length);    }
-	FORCE_INLINE           void  buffer_init(rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->underlying().buffer_init(a_device, a_size, a_mode);      }
+	FORCE_INLINE constexpr void  buffer_copy(const uint8_t *a_data, size_t a_offset, size_t a_length) noexcept                { this->underlying().buffer_copy(a_data, a_offset, a_length);    }
+	FORCE_INLINE           void  buffer_init(const rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->underlying().buffer_init(a_device, a_size, a_mode);      }
 	// clang-format on
 
 	FORCE_INLINE Entry get_entry(const entry_variant_vector &a_data, size_t &a_index, bool &a_in_struct)
@@ -313,12 +313,12 @@ class ShaderBufferBase : public ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>,
 
 	// clang-format off
 	template<typename _encoder_type>
-	FORCE_INLINE constexpr void  buffer_bind(_encoder_type& a_encoder, rhi::ShaderStage a_stage)                        { this->bind(a_encoder, a_stage, this->offset(), this->binding());  }
+	FORCE_INLINE constexpr void  buffer_bind(_encoder_type& a_encoder, rhi::ShaderStage a_stage)                              { this->bind(a_encoder, a_stage, this->offset(), this->binding());  }
 	template<typename _encoder_type>
-	FORCE_INLINE constexpr void  buffer_bind(_encoder_type& a_encoder, rhi::ShaderStage a_stage, uintptr_t a_binding)   { this->bind(a_encoder, a_stage, this->offset(), a_binding);        }
-	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept        { this->unmap(); this->m_mapped_address = nullptr;                  }
-	FORCE_INLINE constexpr void  buffer_map()                                                           noexcept        { this->m_mapped_address = this->map();                             }
-	FORCE_INLINE constexpr void  buffer_init(rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->init(a_device, a_size, a_mode);                             }
+	FORCE_INLINE constexpr void  buffer_bind(_encoder_type& a_encoder, rhi::ShaderStage a_stage, uintptr_t a_binding)         { this->bind(a_encoder, a_stage, this->offset(), a_binding);        }
+	FORCE_INLINE constexpr void  buffer_unmap()                                                         noexcept              { this->unmap(); this->m_mapped_address = nullptr;                  }
+	FORCE_INLINE constexpr void  buffer_map()                                                           noexcept              { this->m_mapped_address = this->map();                             }
+	FORCE_INLINE constexpr void  buffer_init(const rhi::Device& a_device, uint32_t a_size, rhi::ResourceStorageOption a_mode) { this->init(a_device, a_size, a_mode);                             }
 	// clang-format on
 
 	FORCE_INLINE void buffer_copy(const uint8_t *a_data, size_t a_offset, size_t a_length)

@@ -1743,8 +1743,6 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 // Can discard all 4 patch textures
 void Renderer::upload_environments(rhi::Device &a_device)
 {
-	Timer t;
-
 	auto &setting = ror::settings();
 
 	if (!setting.m_environment.m_visible)
@@ -1753,11 +1751,7 @@ void Renderer::upload_environments(rhi::Device &a_device)
 	this->create_environment_mesh(a_device);
 
 	for (auto &environment : this->m_environments)
-	{
 		setup_environment(a_device, *this, environment);
-	}
-
-	ror::log_info("Uploading all environments took {} nanoseconds.", t.tick());        // TODO: If time is too much, make compute_dispatch_and_wait into command_buffer
 }
 
 void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)

@@ -33,6 +33,7 @@
 #include "settings/rorsettings.hpp"
 
 #include <Metal/MTLComputePass.hpp>
+#include <Metal/MTLDevice.hpp>
 #include <Metal/MTLPixelFormat.hpp>
 #include <Metal/MTLRenderPass.hpp>
 #include <Metal/MTLResource.hpp>
@@ -69,15 +70,40 @@ MTL::StoreAction to_metal_store_action(rhi::StoreAction a_action)
 	}
 }
 
+MTL::Texture *make_msaa_render_target(MTL::Device *a_device, uint32_t a_width, uint32_t a_height, rhi::PixelFormat a_format)
+{
+	MTL::TextureDescriptor *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
+
+	texture_descriptor->setWidth(a_width);
+	texture_descriptor->setHeight(a_height);
+	texture_descriptor->setPixelFormat(to_metal_pixelformat(a_format));
+	texture_descriptor->setTextureType(MTL::TextureType2DMultisample);
+	texture_descriptor->setMipmapLevelCount(1);
+	texture_descriptor->setUsage(MTL::TextureUsageRenderTarget);
+	texture_descriptor->setStorageMode(MTL::StorageModePrivate);
+	texture_descriptor->setSampleCount(ror::settings().m_multisample_count);
+
+	MTL::Texture *texture = a_device->newTexture(texture_descriptor);
+	assert(texture && "Can't create MSAA texture");
+
+	texture_descriptor->release();
+
+	return texture;
+}
+
 void RenderpassMetal::upload(rhi::Device &a_device)
 {
-	(void) a_device;
 	// For subpass/programmable blending rendering (only available in iOS) you would use a single command encoder created from the first render pass
 	// For your geometry pass the render targets "store" becomes "dont_care" and set storageMode to "memoryLess" == transient in Roar
 
-	auto  bgc                       = this->background();
-	auto &renderpass_render_targets = this->render_targets();
-	auto &render_supasses           = this->subpasses();
+	// API specific resolve textures, I don't care much about as long as they are alive
+	static std::vector<MTL::Texture *> msaa_textures{};
+
+	MTL::Device *device                    = a_device.platform_device();
+	auto         bgc                       = this->background();
+	auto        &renderpass_render_targets = this->render_targets();
+	auto        &render_supasses           = this->subpasses();
+	auto         multi_sample_count        = ror::multisample_count();
 
 	this->m_render_passes.clear();
 	this->m_render_passes.reserve(render_supasses.size());
@@ -92,20 +118,32 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 
 			mtl_render_pass->setRenderTargetWidth(this->dimensions().x);
 			mtl_render_pass->setRenderTargetHeight(this->dimensions().y);
+			mtl_render_pass->setDefaultRasterSampleCount(multi_sample_count);
 
 			uint32_t color_index            = 0;
 			auto     subpass_render_targets = subpass.render_targets();
 			for (size_t i = 0; i < subpass_render_targets.size(); ++i)
 			{
-				auto &render_target = renderpass_render_targets[subpass_render_targets[i]];
-				if (is_pixel_format_depth_format(render_target.m_target_reference.get().format()))
+				auto         &render_target = renderpass_render_targets[subpass_render_targets[i]];
+				auto         &render_texture = render_target.m_target_reference.get();
+
+				MTL::Texture *msaa_texture{nullptr};
+				if (multi_sample_count > 1)
+					msaa_texture = make_msaa_render_target(device, this->dimensions().x, this->dimensions().y, render_texture.format());
+
+				if (is_pixel_format_depth_format(render_texture.format()))
 				{
 					auto depth_attachment = mtl_render_pass->depthAttachment();
 
 					depth_attachment->setClearDepth(ror::settings().m_depth_clear);
 					depth_attachment->setLoadAction(to_metal_load_action(render_target.m_load_action));
 					depth_attachment->setStoreAction(to_metal_store_action(render_target.m_store_action));
-					depth_attachment->setTexture(render_target.m_target_reference.get().platform_handle());
+
+					// We don't care about depth MS resolve so don't provide any resolve texture
+					if (multi_sample_count > 1)
+						depth_attachment->setTexture(msaa_texture);
+					else
+						depth_attachment->setTexture(render_texture.platform_handle());
 				}
 				else
 				{
@@ -113,9 +151,22 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 
 					color_attachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
 					color_attachment->setLoadAction(to_metal_load_action(render_target.m_load_action));
-					color_attachment->setStoreAction(to_metal_store_action(render_target.m_store_action));
-					color_attachment->setTexture(render_target.m_target_reference.get().platform_handle());
+
+					if (multi_sample_count > 1)
+					{
+						color_attachment->setTexture(msaa_texture);
+						color_attachment->setResolveTexture(render_texture.platform_handle());
+						color_attachment->setStoreAction(MTL::StoreActionMultisampleResolve);
+					}
+					else
+					{
+						color_attachment->setStoreAction(to_metal_store_action(render_target.m_store_action));
+						color_attachment->setTexture(render_texture.platform_handle());
+					}
 				}
+
+				if (multi_sample_count > 1)
+					msaa_textures.emplace_back(msaa_texture);
 			}
 
 			this->m_render_passes.emplace_back(mtl_render_pass);
@@ -169,7 +220,6 @@ rhi::ComputeCommandEncoder RenderpassMetal::compute_encoder(rhi::CommandBuffer &
 {
 	return rhi::ComputeCommandEncoder{a_command_buffer.platform_command_buffer()->computeCommandEncoder(a_pass_descriptor)};
 }
-
 
 }        // namespace rhi
 

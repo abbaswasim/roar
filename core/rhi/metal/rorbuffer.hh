@@ -42,7 +42,7 @@ void BufferMetal::release()
 		this->m_buffer->release();
 }
 
-FORCE_INLINE void BufferMetal::init(rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
+FORCE_INLINE void BufferMetal::init(const rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
 {
 	if (a_size_in_bytes == 0)
 		ror::log_warn("Creating a buffer of size {}", a_size_in_bytes);
@@ -55,7 +55,7 @@ FORCE_INLINE void BufferMetal::init(rhi::Device &a_device, size_t a_size_in_byte
 	this->m_buffer      = device->newBuffer(std::max(1ul, a_size_in_bytes), rhi::to_metal_resource_option(this->storage_mode()));
 }
 
-FORCE_INLINE void BufferMetal::init(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
+FORCE_INLINE void BufferMetal::init(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
 {
 	this->init(a_device, a_size_in_bytes, a_mode);
 	this->upload(a_device, a_data_pointer, a_size_in_bytes);
@@ -92,7 +92,7 @@ FORCE_INLINE constexpr void BufferMetal::unmap() noexcept
 	this->unmap(0, this->m_buffer->length());
 }
 
-FORCE_INLINE void BufferMetal::resize(rhi::Device &a_device, size_t a_length)
+FORCE_INLINE void BufferMetal::resize(const rhi::Device &a_device, size_t a_length)
 {
 	if (this->m_buffer->length() > a_length)
 		return;
@@ -105,7 +105,7 @@ FORCE_INLINE void BufferMetal::resize(rhi::Device &a_device, size_t a_length)
 	}
 }
 
-void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes)
+void BufferMetal::upload(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes)
 {
 	/*
 	For buffers in the device address space, align the offset to the data type consumed by the vertex function (which is always less than or equal to 16 bytes).
@@ -116,7 +116,7 @@ void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, s
 	this->upload(a_device, a_data_pointer, 0, a_size_in_bytes);
 }
 
-void BufferMetal::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
+void BufferMetal::upload(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
 {
 	// Some sanity checks first
 	assert(this->m_buffer && "Called upload on uninitialized buffer, call init() first");

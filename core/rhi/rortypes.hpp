@@ -612,6 +612,8 @@ enum class StoreAction
 {
 	store,
 	discard,
+	// multisample_resolve,              // This means store resolved texture
+	// multisample_store_resolve,        // This means store the MS data as well as resolved texture, will be expensive
 	dont_care
 };
 
@@ -1256,7 +1258,7 @@ constexpr bool is_attribute_required_in_pass(rhi::BufferSemantic a_semantic, boo
 constexpr bool is_texture_cubemap(rhi::TextureTarget a_target)
 {
 	if (a_target == rhi::TextureTarget::texture_cube ||
-		a_target == rhi::TextureTarget::texture_cube_array)
+	    a_target == rhi::TextureTarget::texture_cube_array)
 		return true;
 
 	return false;
@@ -1265,9 +1267,9 @@ constexpr bool is_texture_cubemap(rhi::TextureTarget a_target)
 constexpr bool is_texture_array(rhi::TextureTarget a_target)
 {
 	if (a_target == rhi::TextureTarget::texture_1D_array ||
-		a_target == rhi::TextureTarget::texture_2D_array ||
-		a_target == rhi::TextureTarget::texture_2D_MS_array ||
-		a_target == rhi::TextureTarget::texture_cube_array)
+	    a_target == rhi::TextureTarget::texture_2D_array ||
+	    a_target == rhi::TextureTarget::texture_2D_MS_array ||
+	    a_target == rhi::TextureTarget::texture_cube_array)
 		return true;
 
 	return false;
@@ -1276,9 +1278,9 @@ constexpr bool is_texture_array(rhi::TextureTarget a_target)
 constexpr bool is_texture_2d(rhi::TextureTarget a_target)
 {
 	if (a_target == rhi::TextureTarget::texture_2D ||
-		a_target == rhi::TextureTarget::texture_2D_array ||
-		a_target == rhi::TextureTarget::texture_2D_MS ||
-		a_target == rhi::TextureTarget::texture_2D_MS_array)
+	    a_target == rhi::TextureTarget::texture_2D_array ||
+	    a_target == rhi::TextureTarget::texture_2D_MS ||
+	    a_target == rhi::TextureTarget::texture_2D_MS_array)
 		return true;
 
 	return false;

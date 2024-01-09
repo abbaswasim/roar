@@ -30,6 +30,7 @@
 #include "rhi/metal/rorcommand_buffer.hpp"
 #include "rhi/metal/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "settings/rorsettings.hpp"
 
 #include <Metal/MTLRenderPass.hpp>
 
@@ -59,10 +60,13 @@ class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
 	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, MTL::ComputePassDescriptor *a_pass_descriptor);
 
-	FORCE_INLINE constexpr void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
+	FORCE_INLINE void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
 	{
 		auto rp = this->platform_renderpass(a_index);
-		rp->colorAttachments()->object(0)->setTexture(a_surface->texture());
+		if (ror::multisample_count() > 1)
+			rp->colorAttachments()->object(0)->setResolveTexture(a_surface->texture());
+		else
+			rp->colorAttachments()->object(0)->setTexture(a_surface->texture());
 	}
 
   protected:

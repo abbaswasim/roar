@@ -660,8 +660,7 @@ FORCE_INLINE constexpr bool visualise_mipmaps()
 
 FORCE_INLINE uint32_t multisample_count()
 {
-	auto &setting = ror::settings();
-	return setting.m_multisample_count;
+	return ror::settings().m_multisample_count;
 }
 
 FORCE_INLINE constexpr bool sample_rate_shading_enabled()
