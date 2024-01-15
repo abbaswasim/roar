@@ -68,6 +68,7 @@ enum class EventType : uint32_t
 enum class EventCode : uint32_t
 {
 	none = 0,
+	left_mouse, middle_mouse, right_mouse,
 	n0, n1, n2, n3, n4, n5, n6, n7, n8, n9,
 	num0, num1, num2, num3, num4, num5, num6, num7, num8, num9,
 	a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z,
@@ -88,9 +89,6 @@ enum class EventModifier : uint32_t
 	option,
 	caps_lock,
 	num_lock,
-	left_mouse,
-	middle_mouse,
-	right_mouse,
 	max
 };
 
