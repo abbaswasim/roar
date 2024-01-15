@@ -169,6 +169,21 @@ const Vector3d negative_zaxis3d(0.0, 0.0, -1.0);
 const Vector3d min_vector3d(std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min());
 const Vector3d max_vector3d(std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max());
 
+const Vector3f white3f(1.0f, 1.0f, 1.0f);
+const Vector3f black3f(0.0f, 0.0f, 0.0f);
+
+const Color3f red3f(1.0f, 0.0f, 0.0f);
+const Color3f green3f(0.0f, 1.0f, 0.0f);
+const Color3f blue3f(0.0f, 0.0f, 1.0f);
+
+const Color3i red3i(255, 0, 0);
+const Color3i green3i(0, 255, 0);
+const Color3i blue3i(0, 0, 255);
+
+const Color3ui red3ui(255, 0, 0);
+const Color3ui green3ui(0, 255, 0);
+const Color3ui blue3ui(0, 0, 255);
+
 template <class _type>
 using vector3_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type;
 

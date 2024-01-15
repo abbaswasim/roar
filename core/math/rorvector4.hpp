@@ -169,6 +169,21 @@ const Vector4d zero_point4d(0.0, 0.0, 0.0, 1.0);
 const Vector4d min_point4d(std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min(), 1.0f);
 const Vector4d max_point4d(std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max(), 1.0f);
 
+const Vector4f white4f(1.0f, 1.0f, 1.0f, 1.0f);
+const Vector4f black4f(0.0f, 0.0f, 0.0f, 1.0f);
+
+const Color4f red4f(1.0f, 0.0f, 0.0f, 1.0f);
+const Color4f green4f(0.0f, 1.0f, 0.0f, 1.0f);
+const Color4f blue4f(0.0f, 0.0f, 1.0f, 1.0f);
+
+const Color4i red4i(255, 0, 0, 255);
+const Color4i green4i(0, 255, 0, 255);
+const Color4i blue4i(0, 0, 255, 255);
+
+const Color4ui red4ui(255, 0, 0, 255);
+const Color4ui green4ui(0, 255, 0, 255);
+const Color4ui blue4ui(0, 0, 255, 255);
+
 template <class _type>
 using vector4_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector4<typename _type::value_type>>::value>::type;
 
