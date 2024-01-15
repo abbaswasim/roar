@@ -329,6 +329,38 @@ rhi::VertexDescriptor create_p_float3_t_float2_descriptor()
 	return vertex_descriptor;
 }
 
+// Creates a float2 positions, float2 uv descriptor
+rhi::VertexDescriptor create_p_float2_t_float2_descriptor()
+{
+	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_2};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vlp{0, 16};                                                                                       // binding, stride, rate, multiplier, function
+	rhi::VertexAttribute vat{1, 12, 1, 0, 0, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
+	rhi::VertexLayout    vlt{0, 16};
+
+	std::vector<rhi::VertexAttribute> vattribs{vap, vat};
+	std::vector<rhi::VertexLayout>    vlayouts{vlp, vlt};
+
+	rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+
+	return vertex_descriptor;
+}
+
+// Creates a float3 positions, float3 color descriptor
+rhi::VertexDescriptor create_p_float3_c_float3_descriptor()
+{
+	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vlp{0, 24};                                                                                       // binding, stride, rate, multiplier, function
+	rhi::VertexAttribute vat{1, 12, 1, 0, 0, 0, rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_3};
+	rhi::VertexLayout    vlt{0, 24};
+
+	std::vector<rhi::VertexAttribute> vattribs{vap, vat};
+	std::vector<rhi::VertexLayout>    vlayouts{vlp, vlt};
+
+	rhi::VertexDescriptor vertex_descriptor{vattribs, vlayouts};
+
+	return vertex_descriptor;
+}
+
 // Creates a float3 positions, float2 uv and uint16 index descriptor
 rhi::VertexDescriptor create_p_float3_t_float2_i_uint16_descriptor()
 {

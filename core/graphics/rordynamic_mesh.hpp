@@ -118,6 +118,12 @@ rhi::VertexDescriptor create_p_float3_i_uint16_descriptor();
 // Creates a float3 positions, float2 uv descriptor
 rhi::VertexDescriptor create_p_float3_t_float2_descriptor();
 
+// Creates a float2 positions, float2 uv descriptor
+rhi::VertexDescriptor create_p_float2_t_float2_descriptor();
+
+// Creates a float3 positions, float3 color descriptor
+rhi::VertexDescriptor create_p_float3_c_float3_descriptor();
+
 // Creates a float3 positions, float2 uv and uint16 index descriptor
 rhi::VertexDescriptor create_p_float3_t_float2_i_uint16_descriptor();
 

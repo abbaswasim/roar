@@ -83,7 +83,7 @@ void OrbitCamera::update_position_function(double64_t &a_x_new_position, double6
 	this->m_y_position = static_cast<float>(a_y_new_position);
 }
 
-void OrbitCamera::left_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
+void OrbitCamera::left_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position, float32_t a_scale)
 {
 	auto x_delta = this->m_x_position - a_x_new_position;
 	auto y_delta = this->m_y_position - a_y_new_position;
@@ -91,10 +91,10 @@ void OrbitCamera::left_key_drag(double64_t &a_x_new_position, double64_t &a_y_ne
 	this->m_x_position = static_cast<float>(a_x_new_position);
 	this->m_y_position = static_cast<float>(a_y_new_position);
 
-	this->rotate(static_cast<float32_t>(x_delta), static_cast<float32_t>(y_delta));
+	this->rotate(static_cast<float32_t>(x_delta * a_scale), static_cast<float32_t>(y_delta * a_scale));
 }
 
-void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
+void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position, float32_t a_scale)
 {
 	auto x_delta = this->m_x_position - a_x_new_position;
 	auto y_delta = this->m_y_position - a_y_new_position;
@@ -102,8 +102,8 @@ void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_n
 	this->m_x_position = static_cast<float>(a_x_new_position);
 	this->m_y_position = static_cast<float>(a_y_new_position);
 
-	auto delta_x = this->m_right * (camera_sensitivity * static_cast<float32_t>(-x_delta));
-	auto delta_y = this->m_up * (camera_sensitivity * static_cast<float32_t>(y_delta));
+	auto delta_x = this->m_right * (camera_sensitivity * static_cast<float32_t>(-x_delta * a_scale));
+	auto delta_y = this->m_up * (camera_sensitivity * static_cast<float32_t>(y_delta * a_scale));
 
 	auto translation = ror::matrix4_translation(delta_x + delta_y);
 	this->m_view *= translation;
@@ -117,10 +117,11 @@ void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_n
 	this->update_vectors();
 }
 
-void OrbitCamera::middle_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position)
+void OrbitCamera::middle_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position, float32_t a_scale)
 {
 	(void) a_x_new_position;
 	(void) a_y_new_position;
+	(void) a_scale;
 }
 
 void OrbitCamera::volume(Vector3f a_minimum, Vector3f a_maximum)

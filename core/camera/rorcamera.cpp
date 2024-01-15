@@ -53,29 +53,22 @@ void OrbitCamera::init(EventSystem &a_event_system)
 	this->m_drag_callback = [this](ror::Event &e) {
 		if (e.is_compatible<ror::Vector2d>())
 		{
-			auto vec2     = std::any_cast<ror::Vector2d>(e.m_payload);
-			auto modifier = event_modifier(e.m_handle);
-			switch (modifier)
-			{
-				case EventModifier::left_mouse:
-					this->left_key_drag(vec2.x, vec2.y);
-					break;
-				case EventModifier::middle_mouse:
-					this->middle_key_drag(vec2.x, vec2.y);
-					break;
-				case EventModifier::right_mouse:
-					this->right_key_drag(vec2.x, vec2.y);
-					break;
-				case EventModifier::none:
-				case EventModifier::shift:
-				case EventModifier::control:
-				case EventModifier::command:
-				case EventModifier::option:
-				case EventModifier::caps_lock:
-				case EventModifier::num_lock:
-				case EventModifier::max:
-					return;
-			}
+			float scale    = 1.0f;
+			auto  vec2     = std::any_cast<ror::Vector2d>(e.m_payload);
+			auto  code     = event_code(e.m_handle);
+			auto  modifier = event_modifier(e.m_handle);
+
+			if (modifier == EventModifier::command)
+				scale = 0.01f;
+			else if (modifier == EventModifier::control)
+				scale = 2.5f;
+
+			if (code == EventCode::left_mouse)
+				this->left_key_drag(vec2.x, vec2.y, scale);
+			else if (code == EventCode::middle_mouse)
+				this->middle_key_drag(vec2.x, vec2.y, scale);
+			else if (code == EventCode::right_mouse)
+				this->right_key_drag(vec2.x, vec2.y, scale);
 		}
 	};
 
@@ -94,7 +87,18 @@ void OrbitCamera::init(EventSystem &a_event_system)
 	this->m_zoom_callback = [this](ror::Event &e) {
 		if (e.is_compatible<ror::Vector2d>())
 		{
-			auto vec2 = std::any_cast<ror::Vector2d>(e.m_payload);
+			float32_t scale = 1.0f;
+
+			auto vec2     = std::any_cast<ror::Vector2d>(e.m_payload);
+			auto modifier = event_modifier(e.m_handle);
+
+			if (modifier == EventModifier::command)
+				scale = 0.01f;
+			else if (modifier == EventModifier::control)
+				scale = 2.5f;
+
+			vec2 *= scale;
+
 			this->zoom(vec2.x);
 			this->forward(-vec2.y);
 		}
@@ -235,10 +239,18 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(mouse_left_mouse_drag, this->m_drag_callback);
 	this->m_event_system->subscribe(mouse_middle_mouse_drag, this->m_drag_callback);
 	this->m_event_system->subscribe(mouse_right_mouse_drag, this->m_drag_callback);
+	this->m_event_system->subscribe(mouse_left_mouse_command_drag, this->m_drag_callback);
+	this->m_event_system->subscribe(mouse_middle_mouse_command_drag, this->m_drag_callback);
+	this->m_event_system->subscribe(mouse_right_mouse_command_drag, this->m_drag_callback);
+	this->m_event_system->subscribe(mouse_left_mouse_control_drag, this->m_drag_callback);
+	this->m_event_system->subscribe(mouse_middle_mouse_control_drag, this->m_drag_callback);
+	this->m_event_system->subscribe(mouse_right_mouse_control_drag, this->m_drag_callback);
 
 	this->m_event_system->subscribe(buffer_resize, this->m_resize_callback);
 
 	this->m_event_system->subscribe(mouse_scroll, this->m_zoom_callback);
+	this->m_event_system->subscribe(mouse_command_scroll, this->m_zoom_callback);
+	this->m_event_system->subscribe(mouse_control_scroll, this->m_zoom_callback);
 
 	this->m_event_system->subscribe(keyboard_space_click, this->m_mode_callback);
 	this->m_event_system->subscribe(keyboard_r_click, this->m_reset_callback);
@@ -251,10 +263,18 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_left_mouse_drag, this->m_drag_callback);
 	this->m_event_system->unsubscribe(mouse_middle_mouse_drag, this->m_drag_callback);
 	this->m_event_system->unsubscribe(mouse_right_mouse_drag, this->m_drag_callback);
+	this->m_event_system->unsubscribe(mouse_left_mouse_command_drag, this->m_drag_callback);
+	this->m_event_system->unsubscribe(mouse_middle_mouse_command_drag, this->m_drag_callback);
+	this->m_event_system->unsubscribe(mouse_right_mouse_command_drag, this->m_drag_callback);
+	this->m_event_system->unsubscribe(mouse_left_mouse_control_drag, this->m_drag_callback);
+	this->m_event_system->unsubscribe(mouse_middle_mouse_control_drag, this->m_drag_callback);
+	this->m_event_system->unsubscribe(mouse_right_mouse_control_drag, this->m_drag_callback);
 
 	this->m_event_system->unsubscribe(buffer_resize, this->m_resize_callback);
 
 	this->m_event_system->unsubscribe(mouse_scroll, this->m_zoom_callback);
+	this->m_event_system->unsubscribe(mouse_command_scroll, this->m_zoom_callback);
+	this->m_event_system->unsubscribe(mouse_control_scroll, this->m_zoom_callback);
 
 	this->m_event_system->unsubscribe(keyboard_space_click, this->m_mode_callback);
 	this->m_event_system->unsubscribe(keyboard_r_click, this->m_reset_callback);
