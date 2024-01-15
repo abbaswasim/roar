@@ -153,7 +153,7 @@ FORCE_INLINE EventSystem &glfw_event_system(GLFWwindow *a_window)
 }
 
 template <class _type>
-void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button)
+void glfw_register_drag_event(GLFWwindow *a_window, EventCode a_mouse_button, EventModifier a_modifier)
 {
 	auto                 &event_system = glfw_event_system<_type>(a_window);
 	std::shared_ptr<bool> draging      = std::make_shared<bool>(false);        //! Using a pointer here because it needs to be captured by reference in the lambdas below
@@ -170,21 +170,23 @@ void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button
 
 	// Since this is using the same coordinates as mouse move, this will only work if inserted before a move
 	// This way drag relies on previous frame move changing mouse position and then using this frame drag to calculate delta
-	auto drag_test = [draging, &event_system, a_mouse_button](Event &a_event) {
+	auto drag_test = [a_window, draging, &event_system, a_mouse_button](Event &a_event) {
 		if (*draging)
 		{
-			auto event_handle = create_event_handle(EventType::mouse, EventCode::none, a_mouse_button, EventState::drag);
-			auto payload      = a_event.get_payload<ror::Vector2d>();
+			EventModifier em           = glfw_window_modifier_state(a_window);
+			auto          event_handle = create_event_handle(EventType::mouse, a_mouse_button, em, EventState::drag);
+			auto          payload      = a_event.get_payload<ror::Vector2d>();
 			event_system.notify({event_handle, true, payload});
 		}
 	};
 
-	auto mouse_down_handle  = create_event_handle(EventType::mouse, EventCode::none, a_mouse_button, EventState::down);
-	auto mouse_click_handle = create_event_handle(EventType::mouse, EventCode::none, a_mouse_button, EventState::click);
+	auto mouse_down_handle  = create_event_handle(EventType::mouse, a_mouse_button, a_modifier, EventState::down);
+	auto mouse_click_handle = create_event_handle(EventType::mouse, a_mouse_button, a_modifier, EventState::click);
+	auto mouse_move_handle  = create_event_handle(EventType::mouse, EventCode::none, a_modifier, EventState::move);
 
 	event_system.subscribe(mouse_down_handle, drag_set);
 	event_system.subscribe(mouse_click_handle, drag_reset);
-	event_system.subscribe_early(mouse_move, drag_test);        // Needs to be before any other move, read above
+	event_system.subscribe_early(mouse_move_handle, drag_test);        // Needs to be before any other move, read above
 }
 
 // Some global glfw events registration
@@ -232,9 +234,21 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 	event_system.subscribe(mouse_middle_mouse_drag, [](Event &a_event) { (void) a_event; std::cout << "middle draging" << std::endl; });
 	*/
 
-	glfw_register_drag_event<_type>(a_window, EventModifier::left_mouse);
-	glfw_register_drag_event<_type>(a_window, EventModifier::right_mouse);
-	glfw_register_drag_event<_type>(a_window, EventModifier::middle_mouse);
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::none);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::none);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::none);
+
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::command);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::command);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::command);
+
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::control);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::control);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::control);
+
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::shift);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::shift);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::shift);
 }
 
 template <class _instance, class _surface>
@@ -260,7 +274,7 @@ void glfw_key_callback(GLFWwindow *a_window, int a_key, int a_scancode, int a_ac
 	(void) a_scancode;
 
 	EventCode     ec = glfw_key_to_event_code(a_key);
-	EventModifier em = glfw_key_to_event_modifier(a_mode);
+	EventModifier em = glfw_mode_to_event_modifier(a_mode);
 	EventState    es = glfw_action_to_event_state(a_action);
 
 	auto  event_handle = create_event_handle(EventType::keyboard, ec, em, es);
@@ -282,19 +296,21 @@ void glfw_buffer_resize_callback(GLFWwindow *a_window, int a_width, int a_height
 template <class _type>
 void glfw_mouse_move_callback(GLFWwindow *a_window, double a_x_pos, double a_y_pos)
 {
-	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({ror::mouse_move, true, ror::Vector2d{a_x_pos, a_y_pos}});
+	auto         &event_system      = glfw_event_system<_type>(a_window);
+	EventModifier em                = glfw_window_modifier_state(a_window);
+	auto          mouse_move_handle = create_event_handle(EventType::mouse, EventCode::none, em, EventState::move);
+
+	event_system.notify({mouse_move_handle, true, ror::Vector2d{a_x_pos, a_y_pos}});
 }
 
 template <class _type>
 void glfw_mouse_button_callback(GLFWwindow *a_window, int a_button, int a_action, int a_flags)
 {
-	(void) a_flags;
-
-	EventModifier em = glfw_button_to_event_modifier(a_button);
+	EventModifier em = glfw_flag_to_event_modifier(a_flags);
+	EventCode     ec = glfw_button_to_event_code(a_button);
 	EventState    es = glfw_action_to_event_state(a_action);
 
-	auto  event_handle = create_event_handle(EventType::mouse, EventCode::none, em, es);
+	auto  event_handle = create_event_handle(EventType::mouse, ec, em, es);
 	auto &event_system = glfw_event_system<_type>(a_window);
 	event_system.notify({event_handle, true});
 }
@@ -303,7 +319,11 @@ template <class _type>
 void glfw_mouse_scroll_callback(GLFWwindow *a_window, double a_x_offset, double a_y_offset)
 {
 	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({ror::mouse_scroll, true, ror::Vector2d{a_x_offset, a_y_offset}});
+
+	EventModifier em           = glfw_window_modifier_state(a_window);
+	auto          event_handle = create_event_handle(EventType::mouse, EventCode::none, em, EventState::scroll);
+
+	event_system.notify({event_handle, true, ror::Vector2d{a_x_offset, a_y_offset}});
 }
 
 template <class _type>

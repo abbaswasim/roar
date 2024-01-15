@@ -160,7 +160,7 @@ EventCode glfw_key_to_event_code(int a_key)
 	return ror::EventCode::none;
 }
 
-EventModifier glfw_key_to_event_modifier(int a_mode)
+EventModifier glfw_mode_to_event_modifier(int a_mode)
 {
 	// clang-format off
 	switch (a_mode)
@@ -177,6 +177,24 @@ EventModifier glfw_key_to_event_modifier(int a_mode)
 	return {};
 }
 
+EventModifier glfw_flag_to_event_modifier(int a_flag)
+{
+	if ((a_flag & GLFW_MOD_SHIFT) == GLFW_MOD_SHIFT)
+		return EventModifier::shift;
+	else if ((a_flag & GLFW_MOD_CONTROL) == GLFW_MOD_CONTROL)
+		return EventModifier::control;
+	else if ((a_flag & GLFW_MOD_ALT) == GLFW_MOD_ALT)
+		return EventModifier::option;
+	else if ((a_flag & GLFW_MOD_SUPER) == GLFW_MOD_SUPER)
+		return EventModifier::command;
+	else if ((a_flag & GLFW_MOD_CAPS_LOCK) == GLFW_MOD_CAPS_LOCK)
+		return EventModifier::caps_lock;
+	else if ((a_flag & GLFW_MOD_NUM_LOCK) == GLFW_MOD_NUM_LOCK)
+		return EventModifier::num_lock;
+
+	return EventModifier::none;
+}
+
 EventState glfw_action_to_event_state(int a_action)
 {
 	// clang-format off
@@ -191,18 +209,52 @@ EventState glfw_action_to_event_state(int a_action)
 	return {};
 }
 
-EventModifier glfw_button_to_event_modifier(int a_mode)
+EventCode glfw_button_to_event_code(int a_button)
 {
 	// clang-format off
-	switch (a_mode)
+	switch (a_button)
 	{
-		case GLFW_MOUSE_BUTTON_LEFT:	return EventModifier::left_mouse;
-		case GLFW_MOUSE_BUTTON_RIGHT:	return EventModifier::right_mouse;
-		case GLFW_MOUSE_BUTTON_MIDDLE:  return EventModifier::middle_mouse;
+		case GLFW_MOUSE_BUTTON_LEFT:	return EventCode::left_mouse;
+		case GLFW_MOUSE_BUTTON_RIGHT:	return EventCode::right_mouse;
+		case GLFW_MOUSE_BUTTON_MIDDLE:  return EventCode::middle_mouse;
 	}
 	// clang-format on
 	return {};
 }
+
+EventModifier glfw_window_modifier_state(GLFWwindow *a_window)
+{
+	auto krd = glfwGetKey(a_window, GLFW_KEY_RIGHT_SUPER);
+	auto kld = glfwGetKey(a_window, GLFW_KEY_LEFT_SUPER);
+	if (krd == GLFW_PRESS || kld == GLFW_PRESS)
+		return EventModifier::command;
+
+	auto krc = glfwGetKey(a_window, GLFW_KEY_RIGHT_CONTROL);
+	auto klc = glfwGetKey(a_window,GLFW_KEY_LEFT_CONTROL);
+	if (krc == GLFW_PRESS || klc == GLFW_PRESS)
+		return EventModifier::control;
+
+	auto krs = glfwGetKey(a_window, GLFW_KEY_RIGHT_SHIFT);
+	auto kls = glfwGetKey(a_window,GLFW_KEY_LEFT_SHIFT);
+	if (krs == GLFW_PRESS || kls == GLFW_PRESS)
+		return EventModifier::shift;
+
+	auto kra = glfwGetKey(a_window, GLFW_KEY_RIGHT_ALT);
+	auto kla = glfwGetKey(a_window,GLFW_KEY_LEFT_ALT);
+	if (kra == GLFW_PRESS || kla == GLFW_PRESS)
+		return EventModifier::option;
+
+	auto krp = glfwGetKey(a_window, GLFW_KEY_CAPS_LOCK);
+	if (krp == GLFW_PRESS)
+		return EventModifier::caps_lock;
+
+	auto krn = glfwGetKey(a_window, GLFW_KEY_NUM_LOCK);
+	if (krn == GLFW_PRESS)
+		return EventModifier::num_lock;
+
+	return EventModifier::none;
+}
+
 
 void glfw_error_callback(int a_error, const char *a_description)
 {

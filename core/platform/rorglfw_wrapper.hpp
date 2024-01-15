@@ -52,9 +52,11 @@ template <class _type>
 GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_height, int a_depth_bits, int a_samples, bool a_resizable, bool a_always_on_top);
 
 EventCode     glfw_key_to_event_code(int a_key);
-EventModifier glfw_key_to_event_modifier(int a_mode);
+EventCode     glfw_button_to_event_code(int a_button);
+EventModifier glfw_mode_to_event_modifier(int a_mode);
+EventModifier glfw_flag_to_event_modifier(int a_flag);
+EventModifier glfw_window_modifier_state(GLFWwindow *a_window);
 EventState    glfw_action_to_event_state(int a_state);
-EventModifier glfw_button_to_event_modifier(int a_mode);
 
 void glfw_error_callback(int a_error, const char *a_description);
 template <class _type>
@@ -82,7 +84,7 @@ template <class _type>
 void glfw_register_for_global_events(GLFWwindow *a_window);
 
 template <class _instance, class _surface>
-auto glfw_create_surface(_instance a_instance, _surface &a_surface, void* a_window);
+auto glfw_create_surface(_instance a_instance, _surface &a_surface, void *a_window);
 
 template <class _type>
 class ROAR_ENGINE_ITEM GLFWwindowWrapper final
