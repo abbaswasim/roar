@@ -1,0 +1,1 @@
+../../../core/assets/shaders/debug_shadow_map_textured_quads.glsl.frag

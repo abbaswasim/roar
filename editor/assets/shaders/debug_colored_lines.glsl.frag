@@ -1,0 +1,1 @@
+../../../core/assets/shaders/debug_colored_lines.glsl.frag

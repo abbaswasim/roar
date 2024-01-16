@@ -688,18 +688,19 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
 		// Incase binding_index used for anything else after this
-		auto &renderer_images        = a_renderer.images();
-		auto &renderer_samplers        = a_renderer.samplers();
+		auto &renderer_images   = a_renderer.images();
+		auto &renderer_samplers = a_renderer.samplers();
 		if (a_scene.has_shadows())
 		{
-			auto *shadow_texture     = a_renderer.get_shadow_texture();
+			auto *shadow_texture = a_renderer.get_shadow_texture();
+			if (shadow_texture)
+			{
+				auto &image   = renderer_images[static_cast_safe<size_t>(shadow_texture->texture_image())];
+				auto &sampler = renderer_samplers[static_cast_safe<size_t>(shadow_texture->texture_sampler())];
 
-			auto &image = renderer_images[static_cast_safe<size_t>(shadow_texture->texture_image())];
-			auto &sampler = renderer_samplers[static_cast_safe<size_t>(shadow_texture->texture_sampler())];
-
-			a_dd.encoder->fragment_texture(image, binding_index);
-			a_dd.encoder->fragment_sampler(sampler, binding_index);
-
+				a_dd.encoder->fragment_texture(image, binding_index);
+				a_dd.encoder->fragment_sampler(sampler, binding_index);
+			}
 			binding_index++;        // To be consistent with shader_system.cpp
 		}
 

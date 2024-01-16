@@ -1,0 +1,1 @@
+../../../core/assets/shaders/debug_textured_quads.glsl.vert
