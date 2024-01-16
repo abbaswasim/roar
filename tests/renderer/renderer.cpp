@@ -121,9 +121,9 @@ TEST(RendererTest, config_load)
 		ror::Vector2ui dimensions{1024, 768};
 
 		// const_cast is only allowed in tests
-		rhi::RenderTarget rt0{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
-		rhi::RenderTarget rt1{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::discard, rhi::RenderOutputType::depth};
-		rhi::RenderTarget rt2{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt0{0, {0, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt1{3, {3, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::discard, rhi::RenderOutputType::depth};
+		rhi::RenderTarget rt2{2, {2, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
 
 		std::vector<RenderTargets> rirfs{};
 		rirfs.resize(2);
@@ -178,15 +178,15 @@ TEST(RendererTest, config_load)
 		ror::Vector2ui dimensions{1024, 768};
 
 		// const_cast is only allowed in tests
-		rhi::RenderTarget rt0{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
-		rhi::RenderTarget rt1{1, const_cast<rhi::TextureImage &>(rtgs[1]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
-		rhi::RenderTarget rt2{2, const_cast<rhi::TextureImage &>(rtgs[2]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
-		rhi::RenderTarget rt3{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
-		rhi::RenderTarget rt4{4, const_cast<rhi::TextureImage &>(rtgs[4]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
-		rhi::RenderTarget rt5{5, const_cast<rhi::TextureImage &>(rtgs[5]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt0{0, {0, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt1{1, {1, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt2{2, {2, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt3{3, {3, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt4{4, {4, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
+		rhi::RenderTarget rt5{5, {5, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::color};
 
 		// rhi::RenderTarget rt0d{0, const_cast<rhi::TextureImage &>(rtgs[0]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::depth};
-		rhi::RenderTarget rt3d{3, const_cast<rhi::TextureImage &>(rtgs[3]), rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::depth};
+		rhi::RenderTarget rt3d{3, {3, &rtgs}, rhi::LoadAction::clear, rhi::StoreAction::store, rhi::RenderOutputType::depth};
 
 		std::vector<RenderTargets> rirfs{};
 		rirfs.resize(2);

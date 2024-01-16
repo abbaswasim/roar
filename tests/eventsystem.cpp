@@ -87,12 +87,12 @@ TEST(EventSystemTest, subscribe_many_subscribers)
 	event_state.subscribe(keyboard_a_click, [&sub1](ror::Event &e) { sub1.sub1_func1(e); });
 	event_state.subscribe(keyboard_a_click, [&sub2](ror::Event &e) { sub2.sub2_func1(e); });
 	event_state.subscribe(keyboard_a_click, [&cam1](ror::Event &e) { cam1.mouse_move(e); });
-	event_state.subscribe(create_event_handle(ror::EventType::mouse, ror::EventCode::none, ror::EventModifier::left_mouse, ror::EventState::down), [&cam1](ror::Event &e) { cam1.mouse_move(e); });
+	event_state.subscribe(create_event_handle(ror::EventType::mouse, ror::EventCode::left_mouse, ror::EventModifier::none, ror::EventState::down), [&cam1](ror::Event &e) { cam1.mouse_move(e); });
 
 	auto camera_move = [&cam1](ror::Event &e) { cam1.mouse_move(e); };
 
-	event_state.subscribe(create_event_handle(ror::EventType::mouse, ror::EventCode::none, ror::EventModifier::left_mouse, ror::EventState::down), camera_move);
-	event_state.unsubscribe(create_event_handle(ror::EventType::mouse, ror::EventCode::none, ror::EventModifier::left_mouse, ror::EventState::down), camera_move);
+	event_state.subscribe(create_event_handle(ror::EventType::mouse, ror::EventCode::left_mouse, ror::EventModifier::none, ror::EventState::down), camera_move);
+	event_state.unsubscribe(create_event_handle(ror::EventType::mouse, ror::EventCode::left_mouse, ror::EventModifier::none, ror::EventState::down), camera_move);
 }
 
 class Counter
