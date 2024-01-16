@@ -36,6 +36,7 @@
 #include "rhi/rordevice.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
+#include "rorfrustum.hpp"
 #include "settings/rorsettings.hpp"
 #include <functional>
 
@@ -53,6 +54,7 @@ namespace ror
 
 const float32_t camera_sensitivity = 0.05f;
 const float32_t camera_speed       = 1.0f;
+const size_t    cascade_count      = 4;
 
 enum class CameraType
 {
@@ -100,7 +102,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	void              init(EventSystem &a_event_system);
 	void              enable();
 	void              disable();
-	void              update(Renderer &a_renderer);
+	void              update(const Renderer &a_renderer) const;
 	void              upload(rhi::Device &a_device);
 
 	// clang-format off
@@ -124,33 +126,19 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE constexpr auto& height()        const noexcept { return this->m_height;        }
 	FORCE_INLINE constexpr auto& aspect_ratio()  const noexcept { return this->m_aspect_ratio;  }
 	// clang-format on
-	void set_parameters(CameraType a_type, float32_t a_width, float32_t a_height,
-	                    float32_t a_near, float32_t a_far,
-	                    Vector3f a_center, Vector3f a_eye,
-	                    Vector3f a_up, Vector3f a_right, Vector3f a_forward,
-	                    Vector3f a_minimum, Vector3f a_maximum,
-	                    float32_t a_y_fov, float32_t a_x_mag, float32_t a_y_mag)
-	{
-		this->m_type    = a_type;
-		this->m_width   = a_width;
-		this->m_height  = a_height;
-		this->m_z_near  = a_near;
-		this->m_z_far   = a_far;
-		this->m_center  = a_center;
-		this->m_eye     = a_eye;
-		this->m_up      = a_up;
-		this->m_right   = a_right;
-		this->m_forward = a_forward;
-		this->m_minimum = a_minimum;
-		this->m_maximum = a_maximum;
-		this->m_y_fov   = a_y_fov;
-		this->m_x_mag   = a_x_mag;
-		this->m_y_mag   = a_y_mag;
-	}
+	FORCE_INLINE constexpr auto &frustum_corners(size_t a_index) const;
+	FORCE_INLINE constexpr auto &frustum_center(size_t a_index) const;
+	FORCE_INLINE void            set_parameters(CameraType a_type, float32_t a_width, float32_t a_height,
+	                                            float32_t a_near, float32_t a_far,
+	                                            Vector3f a_center, Vector3f a_eye,
+	                                            Vector3f a_up, Vector3f a_right, Vector3f a_forward,
+	                                            Vector3f a_minimum, Vector3f a_maximum,
+	                                            float32_t a_y_fov, float32_t a_x_mag, float32_t a_y_mag);
 
   private:
 	void reset();
 	void setup();
+	void setup_frustums();
 	void update_vectors();
 	void update_view(Vector3f a_up = Vector3f{0.0, 1.0, 0.0});
 	void update_normal();
@@ -188,6 +176,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t     m_y_mag{1.0f};                            //! Height of the orthographics camera
 	CameraMode    m_mode{CameraMode::orbit};                //! Default orbit camera
 	CameraType    m_type{CameraType::perspective};          //! Default perspective camera
+	Frustum       m_frustums[cascade_count];                //! Frustums for all the cascades, max 4 splits
 	EventSystem  *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around
 	EventCallback m_move_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_drag_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
@@ -196,6 +185,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	EventCallback m_frambuffer_resize_callback{};           //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_mode_callback{};                        //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_reset_callback{};                       //! Reset lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_frustum_callback{};                     //! Frustum snapshop lambda function that will be used to subscribe and unsubscribe this camera with event system
 };
 }        // namespace ror
 

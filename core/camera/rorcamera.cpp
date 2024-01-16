@@ -116,6 +116,10 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		this->reset();
 	};
 
+	this->m_frustum_callback= [this](ror::Event &) {
+		this->setup_frustums();
+	};
+
 	this->m_event_system = &a_event_system;
 }
 
@@ -169,12 +173,15 @@ void OrbitCamera::update_projection()
 		// assumes square pixels, if ever there is evidence of non-square pixels, provided by windowing system i.e. glfw use it here instead
 		this->m_projection = ror::make_perspective(ror::to_radians(this->m_y_fov), aspect, this->m_z_near, this->m_z_far);
 
+		// NOTE: This is problematic. The projection is no longer invertable, the result is wrong, and shows up when an NDC space is inverse transformed
+		// by inverse of view projection. The z-coordinate ends up in the positive side while it should be facing the camera its behind
+		// TODO: Have a think about making this work
 		// Make infinite projections matrix
-		float a_z_near = 0.1f;
-		float epsilon  = 0.00000024f;
 
-		this->m_projection.m_values[10] = epsilon - 1.0f;
-		this->m_projection.m_values[14] = (epsilon - 2.0f) * a_z_near;
+		// float a_z_near = 0.1f;
+		// float epsilon  = 0.00000024f;
+		// this->m_projection.m_values[10] = epsilon - 1.0f;
+		// this->m_projection.m_values[14] = (epsilon - 2.0f) * a_z_near;
 	}
 	else
 	{
@@ -186,6 +193,15 @@ void OrbitCamera::update_projection()
 	}
 }
 
+void OrbitCamera::setup_frustums()
+{
+	this->update_projection();
+	auto view_projection = this->m_projection * this->m_view;
+
+	const size_t cascade_index{0};
+	this->m_frustums[cascade_index].setup(view_projection);
+}
+
 void OrbitCamera::setup()
 {
 	auto diagonal  = (this->m_maximum - this->m_minimum);
@@ -195,6 +211,7 @@ void OrbitCamera::setup()
 	this->m_eye.z  = ((std::max(diagonal.x, diagonal.y) / 2.0f) / std::tan(ror::to_radians(this->m_y_fov / 2)));
 
 	this->update_view();
+	this->setup_frustums();
 }
 
 void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
@@ -254,6 +271,7 @@ void OrbitCamera::enable()
 
 	this->m_event_system->subscribe(keyboard_space_click, this->m_mode_callback);
 	this->m_event_system->subscribe(keyboard_r_click, this->m_reset_callback);
+	this->m_event_system->subscribe(keyboard_f_click, this->m_frustum_callback);
 }
 
 void OrbitCamera::disable()
@@ -277,10 +295,10 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_control_scroll, this->m_zoom_callback);
 
 	this->m_event_system->unsubscribe(keyboard_space_click, this->m_mode_callback);
-	this->m_event_system->unsubscribe(keyboard_r_click, this->m_reset_callback);
+	this->m_event_system->unsubscribe(keyboard_f_click, this->m_frustum_callback);
 }
 
-void OrbitCamera::update(Renderer &a_renderer)
+void OrbitCamera::update(const Renderer &a_renderer) const
 {
 	// TODO: Don't update me if nothing has changed
 	auto per_view_uniform = a_renderer.shader_buffer("per_view_uniform");
