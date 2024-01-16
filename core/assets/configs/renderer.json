@@ -17,6 +17,7 @@
 		"debug_colored_lines.glsl.frag",
 		"debug_textured_quads.glsl.vert",
 		"debug_textured_quads.glsl.frag",
+		"debug_shadow_map_textured_quads.glsl.frag",
 		"tonemap.glsl.vert",
 		"tonemap.glsl.frag"
 	],
@@ -51,6 +52,10 @@
 		{
 			"vertex":15,
 			"fragment":16
+		},
+		{
+			"vertex":15,
+			"fragment":17
 		}
 	],
 	"textures":[
@@ -64,7 +69,8 @@
 		},
 		{
 			"name":"shadow",
-			"format":"depth32_float32"
+			"format":"depth32_float32",
+			"sampler" : 2
 		},
 		{
 			"name":"depth",
@@ -134,6 +140,7 @@
 	"debug_data":{
 		"colored_lines_pso" : 7,
 		"textured_quads_pso" : 8,
+		"shadow_map_textured_quads_pso" : 9,
 		"default_sampler" : 2,
 		"shadow_texture" : 2
 	},
@@ -146,14 +153,11 @@
 			"irradiance_pso": 3,
 			"brdf_integration_pso": 6,
 			"skybox_render_pso": 5,
-			"skybox_sampler": 2,
-			"input_sampler": 1,
-			"irradiance_sampler": 1,
-			"radiance_sampler": 2,
 			"brdf_integration": 12,
 			"input": {
 				"name":"Footprint_Court/Footprint_Court_2k.hdr",
 				"format":"r32g32b32a32_float128",
+				"sampler": 1,
 				"target": "2D"
 			},
 			"irradiance": {
@@ -161,6 +165,7 @@
 				"format":"r32g32b32a32_float128",
 				"size" : 512,
 				"target": "CUBE",
+				"sampler": 1,
 				"writeable": true,
 				"mipmapped": true
 			},
@@ -169,6 +174,7 @@
 				"format":"r32g32b32a32_float128",
 				"size" : 512,
 				"target": "CUBE",
+				"sampler": 2,
 				"writeable": true,
 				"mipmapped": true
 			},
@@ -177,6 +183,7 @@
 				"format":"r8g8b8a8_uint32_norm",
 				"size" : 1024,
 				"target": "CUBE",
+				"sampler": 2,
 				"writeable": true,
 				"mipmapped": true
 			}

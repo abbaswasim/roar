@@ -398,6 +398,18 @@ rhi::TextureSamplerHandle TextureCrtp<_type>::texture_sampler()
 {
 	return this->m_texture_sampler;
 }
+
+template <class _type>
+rhi::TextureImageHandle TextureCrtp<_type>::texture_image() const
+{
+	return this->m_texture_image;
+}
+template <class _type>
+rhi::TextureSamplerHandle TextureCrtp<_type>::texture_sampler() const
+{
+	return this->m_texture_sampler;
+}
+
 template <class _type>
 void TextureCrtp<_type>::texture_image(rhi::TextureImageHandle a_handle)
 {

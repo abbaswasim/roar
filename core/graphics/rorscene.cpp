@@ -164,7 +164,7 @@ void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_s
 	for (auto &camera : this->m_cameras)
 		camera.init(a_event_system);
 
-	cameras[m_current_camera_index].enable();
+	cameras[this->m_current_camera_index].enable();
 
 	this->update_from_scene_state();
 }
@@ -573,6 +573,13 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 			pso = &a_renderer.program(static_cast<size_t>(subpass.program_id()));
 
 		assert(pso && "There should be a PSO available for the mesh primitive");
+
+		if (!pso->render_pipeline_state())
+		{
+			ror::log_critical("Mesh primitive {} pso is null", prim_id);
+			continue;
+		}
+
 		a_dd.encoder->render_pipeline_state(*pso);
 
 		if (material.m_double_sided)
@@ -681,12 +688,23 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		enable_material_component(material.m_subsurface_color, textures, images, samplers, binding_index, a_dd);
 
 		// Incase binding_index used for anything else after this
+		auto &renderer_images        = a_renderer.images();
+		auto &renderer_samplers        = a_renderer.samplers();
 		if (a_scene.has_shadows())
+		{
+			auto *shadow_texture     = a_renderer.get_shadow_texture();
+
+			auto &image = renderer_images[static_cast_safe<size_t>(shadow_texture->texture_image())];
+			auto &sampler = renderer_samplers[static_cast_safe<size_t>(shadow_texture->texture_sampler())];
+
+			a_dd.encoder->fragment_texture(image, binding_index);
+			a_dd.encoder->fragment_sampler(sampler, binding_index);
+
 			binding_index++;        // To be consistent with shader_system.cpp
+		}
 
 		if (settings().m_environment.m_visible)
 		{
-			auto &renderer_images        = a_renderer.images();
 			auto &env                    = a_renderer.current_environment();
 			auto &skybox_image           = renderer_images[static_cast_safe<size_t>(env.skybox())];
 			auto &brdf_integration_image = renderer_images[static_cast_safe<size_t>(env.brdf_integration())];
@@ -1105,14 +1123,16 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 	}
 }
 
-void Scene::reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder)
+void Scene::reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass)
 {
-	auto dimensions = a_renderer.dimensions();
+	(void) a_subpass;
+
+	auto dimensions = a_pass.dimensions();
 
 	a_encoder.cull_mode(rhi::PrimitiveCullMode::back);                               // No face culling
 	a_encoder.front_facing_winding(rhi::PrimitiveWinding::counter_clockwise);        // What apis like Metal requires
 	a_encoder.depth_stencil_state(a_renderer.render_state().depth_state_less_equal());
-	a_encoder.viewport({0.0f, 0.0f, dimensions.x, dimensions.y}, {0.0f, 1.0f});
+	a_encoder.viewport({0.0f, 0.0f, static_cast<float32_t>(dimensions.x), static_cast<float32_t>(dimensions.y)}, {0.0f, 1.0f});
 	a_encoder.scissor({0, 0, static_cast<uint32_t>(dimensions.x), static_cast<uint32_t>(dimensions.y)});
 }
 
@@ -1138,7 +1158,7 @@ void Scene::fill_scene_data()
 	this->m_scene_state.m_camera_type    = camera.type();
 }
 
-void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
+void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
 {
 	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
 
@@ -1242,31 +1262,38 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 		}
 	}
 
-	// Lets render all the dynamic meshes before we render GUI
-	this->reset_to_default_state(a_renderer, a_encoder);
-	for (auto &dm : this->m_dynamic_meshes)
-		dm->render(a_renderer, a_encoder);
+	// Don't render dynamic meshes in shadow pass
+	assert(a_pass.subpasses().size() && "There are no subpasses in the renderpass");
+	if (a_pass.subpasses()[0].type() != rhi::RenderpassType::shadow)
+	{
+		// Lets render all the dynamic meshes before we render GUI
+		this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
+		for (auto &dm : this->m_dynamic_meshes)
+			dm.render(a_renderer, a_encoder);
 
-	// Lets render all the renderer dynamic mesh, usually it only has a skybox cubmap
-	// TODO: Check why the order of this and the one above matters, if scene dynamic meshes are rendererd first nothing shows
-	this->reset_to_default_state(a_renderer, a_encoder);
-	for (auto &dm : a_renderer.dynamic_meshes())
-		dm->render(a_renderer, a_encoder);
+		// Lets render all the renderer dynamic mesh, usually it only has a skybox cubmap
+		// TODO: Check why the order of this and the one above matters, if scene dynamic meshes are rendererd first nothing shows
+		this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
+		for (auto &dm : a_renderer.dynamic_meshes())
+			dm->render(a_renderer, a_encoder);
 
-	// Lets update the UI elements
-	// TODO: Should move out of scene and into global end of frame renderpass
-	auto &setting = ror::settings();
+		// Lets update the UI elements
+		// TODO: Should move out of scene and into global end of frame renderpass
+		auto &setting = ror::settings();
 
-	if (setting.m_generate_gui_mesh && setting.m_gui.m_visible)
-		ror::gui().render(a_renderer, a_encoder, this->m_cameras[0], a_event_system);        // TODO: Fix the camera
+		if (setting.m_generate_gui_mesh && setting.m_gui.m_visible)
+			ror::gui().render(a_renderer, a_encoder, this->m_cameras[0], a_event_system);        // TODO: Fix the camera
+	}
 }
 
 void Scene::update(ror::Renderer &a_renderer, ror::Timer &a_timer)
 {
 	(void) a_timer;
+	(void) a_renderer;
 
-	auto &camera = this->m_cameras[this->m_current_camera_index];
-	camera.update(a_renderer);
+	// auto &camera = this->m_cameras[this->m_current_camera_index];
+	// a_renderer.upload_debug_geometry2(camera);
+	// camera.update(a_renderer);
 }
 
 void Scene::update_bounding_box()
@@ -1713,18 +1740,18 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	// Different tests of dynamic_mesh used for cube, quad and fullscreen quad
 	if (setting.m_generate_cube_mesh)
 	{
-		static ror::DynamicMesh cube_mesh{};
+		ror::DynamicMesh cube_mesh{};
 
 		cube_mesh.init_upload(a_device, a_renderer, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles);
 		cube_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_interleaved), 9 * 36 * sizeof(float), 36,
 		                      reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
 
-		this->m_dynamic_meshes.emplace_back(std::move(&cube_mesh));
+		this->m_dynamic_meshes.emplace_back(std::move(cube_mesh));
 	}
 
 	if (setting.m_generate_cube_map)
 	{
-		static ror::DynamicMesh cube_map_mesh{};
+		ror::DynamicMesh cube_map_mesh{};
 
 		rhi::VertexDescriptor vertex_descriptor = create_p_float3_descriptor();
 
@@ -1735,16 +1762,16 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		auto &env  = envs[0];
 		if (/* DISABLES CODE */ (1))
 		{
-			auto irradiance_image   = &a_renderer.images()[env.irradiance()];                  // Only testing, if the LUT texture was displayed on the quad, how would it look like
-			auto irradiance_sampler = &a_renderer.samplers()[env.irradiance_sampler()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto irradiance_image   = &a_renderer.images()[env.irradiance()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto irradiance_sampler = &a_renderer.samplers()[env.irradiance_sampler()];
 
 			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(irradiance_image),
 			                          const_cast<rhi::TextureSampler *>(irradiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 		}
 		else
 		{
-			auto radiance_image   = &a_renderer.images()[env.radiance()];                  // Only testing, if the LUT texture was displayed on the quad, how would it look like
-			auto radiance_sampler = &a_renderer.samplers()[env.radiance_sampler()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto radiance_image   = &a_renderer.images()[env.radiance()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto radiance_sampler = &a_renderer.samplers()[env.radiance_sampler()];
 
 			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(radiance_image),
 			                          const_cast<rhi::TextureSampler *>(radiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
@@ -1754,11 +1781,11 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_position), 3 * 36 * sizeof(float), 36,
 		                          reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
 
-		this->m_dynamic_meshes.emplace_back(std::move(&cube_map_mesh));
+		this->m_dynamic_meshes.emplace_back(std::move(cube_map_mesh));
 	}
 	if (setting.m_generate_canonical_cube_map)
 	{
-		static ror::DynamicMesh canonical_cube{};
+		ror::DynamicMesh canonical_cube{};
 
 		rhi::VertexDescriptor vertex_descriptor = create_p_float3_t_float2_descriptor();
 
@@ -1773,65 +1800,32 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		canonical_cube.upload_data(reinterpret_cast<const uint8_t *>(setting.m_invert_canonical_cube_map ? &cube_vertex_position_uv_interleaved_inverted : &cube_vertex_position_uv_interleaved), 5 * 36 * sizeof(float), 36,
 		                           reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
 
-		this->m_dynamic_meshes.emplace_back(std::move(&canonical_cube));
+		this->m_dynamic_meshes.emplace_back(std::move(canonical_cube));
 	}
 
 	if (setting.m_generate_quad_mesh)
 	{
-		static ror::DynamicMesh quad_mesh{};
+		ror::DynamicMesh quad_mesh{};
 
 		rhi::VertexDescriptor vertex_descriptor = create_p_float3_t_float2_descriptor();
+
+		auto image_lut = &a_renderer.images()[2];
 
 		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
 		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
-
-		static const auto keyboard_up_down   = create_event_handle(EventType::keyboard, EventCode::up, EventModifier::none, EventState::down);
-		static const auto keyboard_down_down = create_event_handle(EventType::keyboard, EventCode::down, EventModifier::none, EventState::down);
-		static size_t     id                 = 0;
-
-		static std::vector<rhi::TextureImage *> env_images{a_renderer.m_skybox_hdr_patch_ti, a_renderer.m_irradiance_patch_ti, a_renderer.m_skybox_ldr_patch_ti, a_renderer.m_radiance_patch_ti};
-		static std::vector<std::string>         env_image_names{"m_skybox_hdr_patch_ti", "m_irradiance_patch_ti", "m_skybox_ldr_patch_ti", "m_radiance_patch_ti"};
-
-		quad_mesh.set_texture(a_renderer.m_radiance_patch_ti);
-
-		static EventCallback up_key_callback = [](ror::Event &) {
-			id++;
-			if (id < env_images.size())
-			{
-				quad_mesh.set_texture(env_images[id]);
-				log_critical("Using skybox texture {} = {}", id, env_image_names[id].c_str());
-			}
-			else
-				id = env_images.size();
-		};
-		static EventCallback down_key_callback = [](ror::Event &) {
-			if (id > 0)
-			{
-				--id;
-				quad_mesh.set_texture(env_images[id]);
-				log_critical("Using skybox texture {} = {}", id, env_image_names[id].c_str());
-			}
-		};
-
-		a_event_system.subscribe(keyboard_up_down, up_key_callback);
-		a_event_system.subscribe(keyboard_down_down, down_key_callback);
-
-		// }
-		// auto image_lut = &a_renderer.images()[a_renderer.current_environment().input()];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
-		// quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
-
+		quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));
 		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(reinterpret_cast<const uint8_t *>(&quad_vertex_buffer_interleaved), 5 * 6 * sizeof(float), 6);
 
-		this->m_dynamic_meshes.emplace_back(std::move(&quad_mesh));
+		this->m_dynamic_meshes.emplace_back(std::move(quad_mesh));
 	}
 
 	// NOTE: This fullscreen quad doesn't use any vertex attributes, so this is a unique case of rendering a quad without vertices
 	if (setting.m_generate_fullscreen_quad_mesh)
 	{
-		static ror::DynamicMesh quad_mesh{};
+		ror::DynamicMesh quad_mesh{};
 
 		rhi::VertexDescriptor vertex_descriptor = create_default_descriptor();
 
@@ -1840,14 +1834,15 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
 		if (a_renderer.images().size() > 12)
 		{
-			auto image_lut = &a_renderer.images()[12];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto image_lut = a_renderer.m_skybox_hdr_patch_ti;
+			// auto image_lut = &a_renderer.images()[2];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
 			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 		}
 		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "quad_no_attributes.glsl.vert", "quad_no_attributes.glsl.frag");
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(nullptr, 0, 6);        // This 6 here means I want to draw 6 vertices without any attributes as given by VertexDescriptor
 
-		this->m_dynamic_meshes.emplace_back(std::move(&quad_mesh));
+		this->m_dynamic_meshes.emplace_back(std::move(quad_mesh));
 	}
 }
 
@@ -2156,6 +2151,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 			(void) s;
 			assert(s.second.test_and_set() == true && "Not all unique shaders are generated");
 		}
+
 		for (auto &passtype1 : render_pass_types)
 		{
 			auto &pass_programs1 = this->m_programs[passtype1];
@@ -2353,6 +2349,23 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 
 	// Special treatment of weights UBO that needs filling up from mesh static weights unlike other ones, although these might get animated later
 	// Thats why its uploaded in renderer
+
+	// Sanity check that all pipelines for all render passes are generated correctly
+	const std::vector<rhi::RenderpassType> render_pass_types = a_renderer.render_pass_types();
+
+	for (auto &passtype1 : render_pass_types)
+	{
+		auto &pass_programs1 = this->m_programs[passtype1];
+
+		for (auto &pprgs : pass_programs1)
+		{
+			auto rsp = pprgs.render_pipeline_state();
+			auto csp = pprgs.compute_pipeline_state();
+
+			if (rsp == nullptr && csp == nullptr)
+				ror::log_critical("Pass type {}, program {} is null {}, {}", rhi::renderpass_type_to_string(passtype1), reinterpret_cast<void *>(&pprgs), reinterpret_cast<void *>(rsp), reinterpret_cast<void *>(csp));
+		}
+	}
 }
 
 void Scene::read_nodes()

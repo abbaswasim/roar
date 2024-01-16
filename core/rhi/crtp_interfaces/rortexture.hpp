@@ -177,8 +177,14 @@ class ROAR_ENGINE_ITEM TextureCrtp : public ror::Crtp<_type, TextureCrtp>
 	FORCE_INLINE TextureCrtp &operator=(TextureCrtp &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~TextureCrtp() noexcept override                 = default;        //! Destructor
 
+	FORCE_INLINE TextureCrtp(rhi::TextureImageHandle a_image_handle, rhi::TextureSamplerHandle a_sampler_handle) :
+	    m_texture_image(a_image_handle), m_texture_sampler(a_sampler_handle)
+	{}
+
 	rhi::TextureImageHandle   texture_image();
 	rhi::TextureSamplerHandle texture_sampler();
+	rhi::TextureImageHandle   texture_image() const;
+	rhi::TextureSamplerHandle texture_sampler() const;
 	void                      texture_image(rhi::TextureImageHandle a_handle);
 	void                      texture_sampler(rhi::TextureSamplerHandle a_handle);
 

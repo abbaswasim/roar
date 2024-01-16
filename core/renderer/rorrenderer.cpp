@@ -49,6 +49,7 @@
 #include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorcompute_dispatch.hpp"
 #include "rhi/rordevice.hpp"
+#include "rhi/rorhandles.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rorshader_buffer.hpp"
@@ -234,6 +235,8 @@ void Renderer::load_debug_data()
 			this->m_debug_data.m_colored_lines_pso = debug_data["colored_lines_pso"];
 		if (debug_data.contains("textured_quads_pso"))
 			this->m_debug_data.m_textured_quads_pso = debug_data["textured_quads_pso"];
+		if (debug_data.contains("shadow_map_textured_quads_pso"))
+			this->m_debug_data.m_shadow_map_textured_quads_pso = debug_data["shadow_map_textured_quads_pso"];
 		if (debug_data.contains("default_sampler"))
 			this->m_debug_data.m_default_sampler = debug_data["default_sampler"];
 		if (debug_data.contains("shadow_texture"))
@@ -376,7 +379,15 @@ void Renderer::load_textures()
 			// Not allocated render target, will be allocated when needed in render passes and properties set
 			read_into_texture_image(texture_image, texture, false, rhi::TextureUsage::render_target);        // render_target use is also changed/updated later in reading framegraphs
 
+			auto image = static_cast<rhi::TextureImageHandle>(static_cast<int32_t>(this->m_images.size()));
 			this->m_images.emplace_back(std::move(texture_image));
+
+			rhi::TextureSamplerHandle sampler{0};
+
+			if (texture.contains("sampler"))
+				sampler = static_cast<rhi::TextureSamplerHandle>(texture["sampler"]);
+
+			this->m_textures.emplace_back(image, sampler);
 		}
 	}
 	else
@@ -435,9 +446,6 @@ void Renderer::load_environments()
 			       environment.contains("radiance_pso") &&
 			       environment.contains("irradiance_pso") &&
 			       environment.contains("skybox_render_pso") &&
-			       environment.contains("skybox_sampler") &&
-			       environment.contains("radiance_sampler") &&
-			       environment.contains("irradiance_sampler") &&
 			       "Environments must specifiy these parameters");
 
 			ror::IBLEnvironment ibl_environment;
@@ -446,10 +454,6 @@ void Renderer::load_environments()
 			ibl_environment.radiance_pso(environment["radiance_pso"]);
 			ibl_environment.irradiance_pso(environment["irradiance_pso"]);
 			ibl_environment.skybox_render_pso(environment["skybox_render_pso"]);
-			ibl_environment.input_sampler(environment["input_sampler"]);
-			ibl_environment.skybox_sampler(environment["skybox_sampler"]);
-			ibl_environment.radiance_sampler(environment["radiance_sampler"]);
-			ibl_environment.irradiance_sampler(environment["irradiance_sampler"]);
 
 			// Find brdf_integration_lut in textures
 			auto lut_index = this->brdf_integration_lut_index();
@@ -472,17 +476,23 @@ void Renderer::load_environments()
 #define read_env_texture(name, s)                                                                              \
 	rhi::TextureImage name##_texture_image;                                                                    \
 	name##_texture_image.push_empty_mip();                                                                     \
+	auto name##sampler = static_cast<rhi::TextureSamplerHandle>(0);                                            \
 	if (environment.contains(#name))                                                                           \
 	{                                                                                                          \
 		auto texture_description = environment[#name];                                                         \
 		read_into_texture_image(name##_texture_image, texture_description, s, rhi::TextureUsage::shader_read); \
+		if (texture_description.contains("sampler"))                                                           \
+			name##sampler = static_cast<rhi::TextureSamplerHandle>(texture_description["sampler"]);            \
+		ibl_environment.name##_sampler(static_cast<uint32_t>(name##sampler));                                  \
 	}                                                                                                          \
 	else                                                                                                       \
 	{                                                                                                          \
 		assert(0 && "Add empty cubemap");                                                                      \
 	}                                                                                                          \
 	ibl_environment.name(static_cast_safe<uint32_t>(this->m_images.size()));                                   \
+	auto name##image = static_cast<rhi::TextureImageHandle>(static_cast<int32_t>(this->m_images.size()));      \
 	this->m_images.emplace_back(std::move(name##_texture_image));                                              \
+	this->m_textures.emplace_back(name##image, name##sampler);                                                 \
 	(void) 0
 
 			read_env_texture(input, false);
@@ -993,6 +1003,7 @@ void Renderer::load_frame_graphs()
 	}
 
 	this->setup_final_pass();
+	this->setup_shadow_pass();
 }
 
 const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index)
@@ -1348,6 +1359,7 @@ void Renderer::upload_frame_graphs(rhi::Device &a_device)
 void Renderer::upload_remaining_textures(rhi::Device &a_device)
 {
 	// Not all textures are uploaded as part of render passes as render targets, here we upload the rest
+	assert(this->m_images.size() == this->m_textures.size() && "Textures and Images should be same size");
 	for (auto &texture : this->m_images)
 	{
 		std::filesystem::path texture_path{texture.name()};
@@ -1405,16 +1417,16 @@ void Renderer::upload_remaining_textures(rhi::Device &a_device)
 		// Re-upload with new contents
 		cube.upload(a_device);
 
+		auto image = static_cast<rhi::TextureImageHandle>(static_cast<int32_t>(this->m_images.size()));
 		this->m_images.emplace_back(std::move(cube));
+		this->m_textures.emplace_back(image, static_cast<rhi::TextureSamplerHandle>(0));
 	}
 }
 
 void Renderer::upload_samplers(rhi::Device &a_device)
 {
 	for (auto &sampler : this->m_samplers)
-	{
 		sampler.upload(a_device);
-	}
 }
 
 uint32_t Renderer::environment_visualize_mode(uint32_t a_environment_index)
@@ -1876,20 +1888,61 @@ void Renderer::setup_final_pass()
 	{
 		for (auto &subpass : pass.subpasses())
 		{
-			if (subpass.technique() != rhi::RenderpassTechnique::compute)
+			// TODO: Remove the forward_light bit and work out if I am last render pass then use me as main pass
+			if (subpass.type() == rhi::RenderpassType::main || subpass.type() == rhi::RenderpassType::forward_light)
 			{
-				// TODO: Remove the forward_light bit and work out if I am last render pass then use me as main pass
-				if (subpass.type() == rhi::RenderpassType::main || subpass.type() == rhi::RenderpassType::forward_light)
-				{
-					this->m_final_pass = pass_index;
-					return;
-				}
+				this->m_final_pass = pass_index;
+				return;
 			}
 		}
 		pass_index++;
 	}
 
 	assert(0 && "Haven't found a final pass");
+}
+
+void Renderer::setup_shadow_pass()
+{
+	int32_t pass_index{0};
+	for (auto &pass : this->current_frame_graph())
+	{
+		for (auto &subpass : pass.subpasses())
+		{
+			if (subpass.type() == rhi::RenderpassType::shadow)
+			{
+				this->m_shadow_pass = pass_index;
+				return;
+			}
+		}
+		pass_index++;
+	}
+
+	ror::log_info("Haven't found a shadow pass in the render graph");
+}
+
+const rhi::Texture *Renderer::get_shadow_texture() const
+{
+	if (this->m_shadow_pass != -1)
+	{
+		auto pass = this->current_frame_graph()[static_cast<size_t>(this->m_shadow_pass)];
+		for (auto &subpass : pass.subpasses())
+		{
+			if (subpass.type() == rhi::RenderpassType::shadow)
+			{
+				auto &rts = subpass.render_targets();
+				if (rts.size() == 1)
+				{
+					auto rt_local_index = rts[0];
+					auto rt             = pass.render_targets()[rt_local_index];
+					return &this->m_textures[static_cast<size_t>(rt.m_target_reference.m_index)];        // Althought this index is of a texture image its must be the same as texture, because they are created at the same time
+				}
+				else
+					log_critical("Struggling to find shadow image in the renderer");
+			}
+		}
+	}
+
+	return nullptr;
 }
 
 void Renderer::get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const
@@ -1938,15 +1991,18 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_
 
 	this->m_debug_data.m_shadow_cascades.init(a_device, rhi::PrimitiveTopology::triangles);
 
-	assert(this->m_debug_data.m_textured_quads_pso != -1 && this->m_debug_data.m_colored_lines_pso != -1 && "Debug pso data not loaded properly");
+	assert(this->m_debug_data.m_textured_quads_pso != -1 && this->m_debug_data.m_shadow_map_textured_quads_pso != -1 && this->m_debug_data.m_colored_lines_pso != -1 && "Debug pso data not loaded properly");
 	assert(this->m_debug_data.m_default_sampler != -1 && this->m_debug_data.m_shadow_texture != -1 && "Debug texture data not loaded properly");
 
-	auto textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_textured_quads_pso)];
-	auto shadow_image       = &this->images()[static_cast<size_t>(this->m_debug_data.m_shadow_texture)];
-	auto shadow_sampler     = &this->samplers()[static_cast<size_t>(this->m_debug_data.m_default_sampler)];
+	// Unused PSO but can be used to render textured stuff
+	// auto textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_textured_quads_pso)];
+	auto shadow_map_textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_shadow_map_textured_quads_pso)];
+	auto shadow_image   = &this->images()[static_cast<size_t>(this->m_debug_data.m_shadow_texture)];
+	auto shadow_sampler = &this->samplers()[static_cast<size_t>(this->m_debug_data.m_default_sampler)];
 
 	this->m_debug_data.m_shadow_cascades.set_texture(shadow_image, shadow_sampler);        // Would need refresh if images or samplers vectors are resized
-	this->m_debug_data.m_shadow_cascades.shader_program_external(textured_quads_pso);
+	// this->m_debug_data.m_shadow_cascades.shader_program_external(textured_quads_pso);
+	this->m_debug_data.m_shadow_cascades.shader_program_external(shadow_map_textured_quads_pso);
 
 	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
 
@@ -1955,7 +2011,8 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_
 
 	this->get_final_pass_subpass(&pass, &subpass);
 
-	textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
+	// textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
+	shadow_map_textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
 
 	// This is done last because of the move
 	this->m_debug_data.m_shadow_cascades.setup_vertex_descriptor(&textured_quads_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
@@ -1984,29 +2041,31 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_
 	// Descriptor to use for colored lines
 	rhi::VertexDescriptor colored_lines_vertex_descriptor = create_p_float3_c_float3_descriptor();
 
-	this->m_debug_data.m_frustums[0].init(a_device, rhi::PrimitiveTopology::lines);
+	size_t cascade_index{0};
+	this->m_debug_data.m_frustums[cascade_index].init(a_device, rhi::PrimitiveTopology::lines);
 
 	auto lines_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_colored_lines_pso)];
-	this->m_debug_data.m_frustums[0].shader_program_external(lines_pso);
+	this->m_debug_data.m_frustums[cascade_index].shader_program_external(lines_pso);
 
 	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
 	lines_pso->upload(a_device, *pass, *subpass, colored_lines_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "cascades_debug_view", true, false, false);
 
 	// This is done last because of the move
-	this->m_debug_data.m_frustums[0].setup_vertex_descriptor(&colored_lines_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+	this->m_debug_data.m_frustums[cascade_index].setup_vertex_descriptor(&colored_lines_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 
 	auto &camera = a_scene.current_camera();
 	this->update_frustums_geometry(camera);
 
 	// Now we save a reference to it in the dynamic meshes within the renderer
-	this->m_dynamic_meshes.emplace_back(&this->m_debug_data.m_frustums[0]);
+	this->m_dynamic_meshes.emplace_back(&this->m_debug_data.m_frustums[cascade_index]);
 }
 
 void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 {
 	// TODO: Do all frustums
-	const auto cam_corners = a_camera.frustum_corners();
-	const auto cam_center  = a_camera.frustum_center();
+	size_t     cascade_index{0};
+	const auto cam_corners = a_camera.frustum_corners(cascade_index);
+	const auto cam_center  = a_camera.frustum_center(cascade_index);
 
 	std::vector<ror::Vector3f> frustum_vertex_buffer{};
 	frustum_vertex_buffer.reserve(128);
@@ -2108,6 +2167,6 @@ void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 	frustum_vertex_buffer.emplace_back(white3f);
 
 	uint32_t lines_count = static_cast<uint32_t>(frustum_vertex_buffer.size());
-	this->m_debug_data.m_frustums[0].upload_data(reinterpret_cast<const uint8_t *>(frustum_vertex_buffer.data()), lines_count * 3 * sizeof(float), lines_count);
+	this->m_debug_data.m_frustums[cascade_index].upload_data(reinterpret_cast<const uint8_t *>(frustum_vertex_buffer.data()), lines_count * 3 * sizeof(float), lines_count);
 }
 }        // namespace ror

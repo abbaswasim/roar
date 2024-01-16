@@ -42,7 +42,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
   public:
 	FORCE_INLINE              DynamicMesh()                               = default;        //! Default constructor
 	FORCE_INLINE              DynamicMesh(const DynamicMesh &a_other)     = delete;         //! Copy constructor
-	FORCE_INLINE              DynamicMesh(DynamicMesh &&a_other) noexcept = delete;         //! Move constructor
+	FORCE_INLINE              DynamicMesh(DynamicMesh &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE DynamicMesh &operator=(const DynamicMesh &a_other)       = delete;         //! Copy assignment operator
 	FORCE_INLINE DynamicMesh &operator=(DynamicMesh &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~DynamicMesh() noexcept                                  = default;        //! Destructor

@@ -59,14 +59,15 @@ class Scene;
 
 struct DebugData
 {
-	std::vector<Lines3f> m_camera_fustrums{};             //! A line list for each camera, this is just CPU side data
-	std::vector<Lines3f> m_camera_cascades{};             //! A line list for each frustum cascade, this is just CPU side data
-	DynamicMesh          m_shadow_cascades{};             //! A few quads to draw the shadow cascades on
-	DynamicMesh          m_frustums[4];                   //! Extends of the 4 cascades
-	int32_t              m_colored_lines_pso{-1};         //! A generic PSO that can be used to render colored lines
-	int32_t              m_textured_quads_pso{-1};        //! A generic PSO that can be used to render textured quads
-	int32_t              m_default_sampler{-1};           //! Index of the default sampler all textured quds will use
-	int32_t              m_shadow_texture{-1};            //! Index of the shadow map texture that I want to display on one quad
+	std::vector<Lines3f> m_camera_fustrums{};                        //! A line list for each camera, this is just CPU side data
+	std::vector<Lines3f> m_camera_cascades{};                        //! A line list for each frustum cascade, this is just CPU side data
+	DynamicMesh          m_shadow_cascades{};                        //! A few quads to draw the shadow cascades on
+	DynamicMesh          m_frustums[4];                              //! Extends of the 4 cascades
+	int32_t              m_colored_lines_pso{-1};                    //! A generic PSO that can be used to render colored lines
+	int32_t              m_textured_quads_pso{-1};                   //! A generic PSO that can be used to render textured quads
+	int32_t              m_shadow_map_textured_quads_pso{-1};        //! A generic PSO that can be used to render textured quads
+	int32_t              m_default_sampler{-1};                      //! Index of the default sampler all textured quds will use
+	int32_t              m_shadow_texture{-1};                       //! Index of the shadow map texture that I want to display on one quad
 };
 
 class Renderer final : public Configuration<Renderer>
@@ -147,8 +148,9 @@ class Renderer final : public Configuration<Renderer>
 	rhi::TextureImage *m_irradiance_patch_ti{nullptr};
 	rhi::TextureImage *m_radiance_patch_ti{nullptr};
 
-	void     upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_scene);//const ror::OrbitCamera &a_camera);
-	void update_frustums_geometry(const ror::OrbitCamera &a_camera);
+	void                upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_scene);        // const ror::OrbitCamera &a_camera);
+	void                update_frustums_geometry(const ror::OrbitCamera &a_camera);
+	const rhi::Texture *get_shadow_texture() const;
 
   protected:
   private:
@@ -177,6 +179,7 @@ class Renderer final : public Configuration<Renderer>
 	void     load_buffer_templates();
 	void     setup_references();
 	void     setup_final_pass();
+	void     setup_shadow_pass();
 
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
 	std::vector<rhi::Program>               m_programs{};                                     //! All the global shader programs
@@ -200,6 +203,7 @@ class Renderer final : public Configuration<Renderer>
 	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use
 	uint32_t                                m_canonical_cube{};                               //! Canonical cube for debugging purposes
 	uint32_t                                m_final_pass{};                                   //! Index of the final pass in the render pass chains in framegraph
+	int32_t                                 m_shadow_pass{-1};                                //! Index of the shadow pass in the render pass chains in framegraph
 };
 }        // namespace ror
 

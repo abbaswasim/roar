@@ -75,6 +75,17 @@ class ROAR_ENGINE_ITEM TextureSamplerMetal : public TextureSamplerCrtp<TextureSa
 class ROAR_ENGINE_ITEM TextureMetal final : public TextureCrtp<TextureMetal>
 {
   public:
+	FORCE_INLINE               TextureMetal()                                = default;        //! Default constructor
+	FORCE_INLINE               TextureMetal(const TextureMetal &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE               TextureMetal(TextureMetal &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE TextureMetal &operator=(const TextureMetal &a_other)        = default;        //! Copy assignment operator
+	FORCE_INLINE TextureMetal &operator=(TextureMetal &&a_other) noexcept    = default;        //! Move assignment operator
+	FORCE_INLINE ~TextureMetal() noexcept override                           = default;        //! Destructor
+
+	FORCE_INLINE TextureMetal(rhi::TextureImageHandle a_image_handle, rhi::TextureSamplerHandle a_sampler_handle) :
+	    TextureCrtp(a_image_handle, a_sampler_handle)
+	{}
+
   protected:
   private:
 	declare_translation_unit_vtable();

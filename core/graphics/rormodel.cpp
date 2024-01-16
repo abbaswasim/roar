@@ -1385,7 +1385,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				if (!image)
 					ror::log_critical("Texture must have an image, neither standard image nor basis ktx2 texture found");
 
-				rhi::Texture texture;
+				rhi::Texture texture{};
 				texture.texture_image(rhi::TextureImageHandle(find_safe_index(image_to_index, image)));
 				assert(texture.texture_image() != -1 && "Couldn't find the image loaded for the texture");
 

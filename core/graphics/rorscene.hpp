@@ -39,6 +39,7 @@
 #include "math/rortransform.hpp"
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rorshader_buffer.hpp"
@@ -114,7 +115,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	declare_translation_unit_vtable();
 
-	void render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system);
+	void render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system);
 	void pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass);
 	void compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
 	// void cpu_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
@@ -126,7 +127,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system);
 	void unload();
 	void load_specific();
-	void reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
+	void reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass);
 	void fill_scene_data();
 
 	// clang-format off
@@ -141,9 +142,12 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr const auto &global_programs()  const noexcept   {  return this->m_global_programs; }
 	FORCE_INLINE                 auto &cameras()                noexcept   {  return this->m_cameras;         }
 	FORCE_INLINE constexpr const auto &lights()           const noexcept   {  return this->m_lights;          }
+	FORCE_INLINE constexpr       auto &lights()                 noexcept   {  return this->m_lights;          }
 	FORCE_INLINE constexpr const auto &bounding_box()     const noexcept   {  return this->m_bounding_box;    }
 	FORCE_INLINE constexpr       auto &dymanic_meshes()   const noexcept   {  return this->m_dynamic_meshes;  }
 	FORCE_INLINE constexpr       auto  has_shadows()      const noexcept   {  return this->m_has_shadows;     }
+
+	FORCE_INLINE constexpr const auto &current_camera()   const noexcept   {  return this->m_cameras[this->m_current_camera_index]; }
 	// clang-format on
 
 	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device);
@@ -236,7 +240,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
 	bool                             m_has_shadows{false};                                     //! To tell any fragment shaders for any pass generated to use shadow mapping, this is NOT about shadow pass itself
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
-	std::vector<ror::DynamicMesh *>  m_dynamic_meshes{};                                       //! Non-Owning pointers to all the dynamic meshes created in the scene rendererd at once in the end
+	std::vector<ror::DynamicMesh>    m_dynamic_meshes{};                                       //! All the dynamic meshes created in the scene could be rendererd at once in the end
 	int32_t                          m_grid_model_id{-1};                                      //! Reference to the grid for easy access
 	EventCallback                    m_semi_colon_key_callback{};                              //! Semi colon key call back to enable disable the grid
 	SceneState                       m_scene_state;                                            //! All the scene data that can be saved and restored to and from disk
