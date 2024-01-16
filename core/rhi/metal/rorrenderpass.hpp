@@ -69,6 +69,10 @@ class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 			rp->colorAttachments()->object(0)->setTexture(a_surface->texture());
 	}
 
+	void execute(rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface,
+	             ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,
+	             rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer);
+
   protected:
   private:
 	std::vector<std::variant<MTL::RenderPassDescriptor *, MTL::ComputePassDescriptor *>> m_render_passes{};        //! Platform render pass descriptors, we have a list here because engine subpasses are split into render passes for Metal
