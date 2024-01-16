@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "camera/rorcamera.hpp"
 #include "configuration/rorconfiguration.hpp"
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
@@ -38,6 +39,7 @@
 #include "graphics/rorenvironment.hpp"
 #include "graphics/rorscene.hpp"
 #include "math/rorvector2.hpp"
+#include "math/rorvector3.hpp"
 #include "math/rorvector_functions.hpp"
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
@@ -58,6 +60,7 @@
 #include "shader_system/rorshader_system.hpp"
 #include "shader_system/rorshader_update.hpp"
 #include <cassert>
+#include <cstddef>
 #include <filesystem>
 #include <iterator>
 #include <nlohmann/json.hpp>
@@ -219,6 +222,22 @@ void Renderer::load_programs()
 	{
 		this->push_shader_record(shader, shader_id);
 		shader_id++;
+	}
+}
+
+void Renderer::load_debug_data()
+{
+	if (this->m_json_file.contains("debug_data"))
+	{
+		auto debug_data = this->m_json_file["debug_data"];
+		if (debug_data.contains("colored_lines_pso"))
+			this->m_debug_data.m_colored_lines_pso = debug_data["colored_lines_pso"];
+		if (debug_data.contains("textured_quads_pso"))
+			this->m_debug_data.m_textured_quads_pso = debug_data["textured_quads_pso"];
+		if (debug_data.contains("default_sampler"))
+			this->m_debug_data.m_default_sampler = debug_data["default_sampler"];
+		if (debug_data.contains("shadow_texture"))
+			this->m_debug_data.m_shadow_texture = debug_data["shadow_texture"];
 	}
 }
 
@@ -763,7 +782,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			rhi::StoreAction      store_action = to_store_action(storeaction);
 			rhi::RenderOutputType type         = to_render_output_type(typ);
 
-			// Emplaces a RenderTarget
+			// Emplaces a BufferTarget
 			assert(index < a_buffers.size() && "Index is out of bound for render buffers provided");
 
 			rhi::RenderBuffer::ShaderBufferReference sr{index, &a_buffers};
@@ -1103,6 +1122,7 @@ void Renderer::load_specific()
 	// Order is important don't re-order
 	this->load_buffers();
 	this->load_programs();
+	this->load_debug_data();
 	this->load_textures();
 	this->load_samplers();
 	this->load_environments();
@@ -1124,7 +1144,7 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 	{
 		shader_updater().resolve_updates(a_device, a_job_system);
 
-		// Only one command_buffer is enough per frame, but the update_shader_update_candidates might have created, commited and closed its own
+		// Only one command_buffer is enough per frame, but the shader_updater::resolve_updates might have created, commited and closed its own
 		rhi::CommandBuffer command_buffer{a_device};
 		auto              &render_passes = this->current_frame_graph();
 
@@ -1485,7 +1505,7 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32_t a_mip_height, rhi::Program &a_pso,
                              const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers,
-                             rhi::ShaderBuffer &a_mipmaps_shader_buffer, const char* a_stage, bool a_is_radiance = false)
+                             rhi::ShaderBuffer &a_mipmaps_shader_buffer, const char *a_stage, bool a_is_radiance = false)
 {
 	auto           mip_levels_count = rhi::calculate_texture_mip_levels(a_mip_width, a_mip_height, 1);
 	ror::Vector4ui mip_offset_size{0, 0, a_mip_width, a_mip_width};
@@ -1496,7 +1516,7 @@ static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32
 		uint32_t mip_height = std::max(1u, a_mip_height >> level);
 
 		float roughness = static_cast<float>(level + 1) / static_cast<float>(mip_levels_count);        // I have tried different curves mapping of levels to roughness but the linear one looks nicer
-		roughness = std::clamp(roughness, 0.0f, 1.0f);
+		roughness       = std::clamp(roughness, 0.0f, 1.0f);
 
 		ror::log_info("Building environment {} map level {}", a_stage, level);
 
@@ -1893,4 +1913,201 @@ void Renderer::get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpa
 	assert(*a_subpass);
 }
 
+void Renderer::update_per_view_uniform(const ror::Matrix4f &a_view, const ror::Matrix4f &a_projection, const ror::Vector4ui &a_viewport, const ror::Vector3f &a_eye)
+{
+	// TODO: Update all other aspects too
+	auto per_view_uniform = this->shader_buffer("per_view_uniform");
+
+	auto view_projection = a_projection * a_view;
+
+	per_view_uniform->buffer_map();
+
+	per_view_uniform->update("view_mat4", &a_view.m_values);
+	per_view_uniform->update("projection_mat4", &a_projection.m_values);
+	per_view_uniform->update("view_projection_mat4", &view_projection.m_values);
+	per_view_uniform->update("camera_position", &a_eye.x);
+	per_view_uniform->update("viewport", &a_viewport.x);
+
+	per_view_uniform->buffer_unmap();
+}
+
+void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_scene)
+{
+	// Descriptor to use for textured quads
+	rhi::VertexDescriptor textured_quads_vertex_descriptor = create_p_float3_t_float2_descriptor();
+
+	this->m_debug_data.m_shadow_cascades.init(a_device, rhi::PrimitiveTopology::triangles);
+
+	assert(this->m_debug_data.m_textured_quads_pso != -1 && this->m_debug_data.m_colored_lines_pso != -1 && "Debug pso data not loaded properly");
+	assert(this->m_debug_data.m_default_sampler != -1 && this->m_debug_data.m_shadow_texture != -1 && "Debug texture data not loaded properly");
+
+	auto textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_textured_quads_pso)];
+	auto shadow_image       = &this->images()[static_cast<size_t>(this->m_debug_data.m_shadow_texture)];
+	auto shadow_sampler     = &this->samplers()[static_cast<size_t>(this->m_debug_data.m_default_sampler)];
+
+	this->m_debug_data.m_shadow_cascades.set_texture(shadow_image, shadow_sampler);        // Would need refresh if images or samplers vectors are resized
+	this->m_debug_data.m_shadow_cascades.shader_program_external(textured_quads_pso);
+
+	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
+
+	rhi::Renderpass    *pass{nullptr};
+	rhi::Rendersubpass *subpass{nullptr};
+
+	this->get_final_pass_subpass(&pass, &subpass);
+
+	textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
+
+	// This is done last because of the move
+	this->m_debug_data.m_shadow_cascades.setup_vertex_descriptor(&textured_quads_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+
+	const size_t  data_size{6 * 5};
+	float32_t     scale{0.25f};
+	ror::Vector2f offset{0.75f, 0.75f};
+	float32_t     quad_vertex_buffer[data_size];
+	for (size_t i = 0; i < data_size; i += 5)
+	{
+		quad_vertex_buffer[i + 0] = quad_vertex_buffer_interleaved[i + 0] * scale + offset.x;
+		quad_vertex_buffer[i + 1] = quad_vertex_buffer_interleaved[i + 1] * scale + offset.y;
+		quad_vertex_buffer[i + 2] = quad_vertex_buffer_interleaved[i + 2] * scale;
+
+		quad_vertex_buffer[i + 3] = quad_vertex_buffer_interleaved[i + 3];
+		quad_vertex_buffer[i + 4] = quad_vertex_buffer_interleaved[i + 4];
+	}
+
+	this->m_debug_data.m_shadow_cascades.upload_data(reinterpret_cast<const uint8_t *>(quad_vertex_buffer), 6 * 5 * sizeof(float), 6);
+
+	// Now we save a reference to it in the dynamic meshes within the renderer
+	this->m_dynamic_meshes.emplace_back(&this->m_debug_data.m_shadow_cascades);
+
+	// Setup frustum lines
+
+	// Descriptor to use for colored lines
+	rhi::VertexDescriptor colored_lines_vertex_descriptor = create_p_float3_c_float3_descriptor();
+
+	this->m_debug_data.m_frustums[0].init(a_device, rhi::PrimitiveTopology::lines);
+
+	auto lines_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_colored_lines_pso)];
+	this->m_debug_data.m_frustums[0].shader_program_external(lines_pso);
+
+	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
+	lines_pso->upload(a_device, *pass, *subpass, colored_lines_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "cascades_debug_view", true, false, false);
+
+	// This is done last because of the move
+	this->m_debug_data.m_frustums[0].setup_vertex_descriptor(&colored_lines_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+
+	auto &camera = a_scene.current_camera();
+	this->update_frustums_geometry(camera);
+
+	// Now we save a reference to it in the dynamic meshes within the renderer
+	this->m_dynamic_meshes.emplace_back(&this->m_debug_data.m_frustums[0]);
+}
+
+void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
+{
+	// TODO: Do all frustums
+	const auto cam_corners = a_camera.frustum_corners();
+	const auto cam_center  = a_camera.frustum_center();
+
+	std::vector<ror::Vector3f> frustum_vertex_buffer{};
+	frustum_vertex_buffer.reserve(128);
+
+	frustum_vertex_buffer.emplace_back(cam_corners[0]);
+	frustum_vertex_buffer.emplace_back(red3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[1]);
+	frustum_vertex_buffer.emplace_back(red3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[1]);
+	frustum_vertex_buffer.emplace_back(red3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[2]);
+	frustum_vertex_buffer.emplace_back(red3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[2]);
+	frustum_vertex_buffer.emplace_back(red3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[3]);
+	frustum_vertex_buffer.emplace_back(red3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[3]);
+	frustum_vertex_buffer.emplace_back(red3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[0]);
+	frustum_vertex_buffer.emplace_back(red3f);
+
+	frustum_vertex_buffer.emplace_back(cam_corners[4]);
+	frustum_vertex_buffer.emplace_back(green3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[5]);
+	frustum_vertex_buffer.emplace_back(green3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[5]);
+	frustum_vertex_buffer.emplace_back(green3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[6]);
+	frustum_vertex_buffer.emplace_back(green3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[6]);
+	frustum_vertex_buffer.emplace_back(green3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[7]);
+	frustum_vertex_buffer.emplace_back(green3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[7]);
+	frustum_vertex_buffer.emplace_back(green3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[4]);
+	frustum_vertex_buffer.emplace_back(green3f);
+
+	frustum_vertex_buffer.emplace_back(cam_corners[0]);
+	frustum_vertex_buffer.emplace_back(blue3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[4]);
+	frustum_vertex_buffer.emplace_back(blue3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[1]);
+	frustum_vertex_buffer.emplace_back(blue3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[5]);
+	frustum_vertex_buffer.emplace_back(blue3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[2]);
+	frustum_vertex_buffer.emplace_back(blue3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[6]);
+	frustum_vertex_buffer.emplace_back(blue3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[3]);
+	frustum_vertex_buffer.emplace_back(blue3f);
+	frustum_vertex_buffer.emplace_back(cam_corners[7]);
+	frustum_vertex_buffer.emplace_back(blue3f);
+
+	frustum_vertex_buffer.emplace_back(cam_corners[0]);
+	frustum_vertex_buffer.emplace_back(white3f);
+	frustum_vertex_buffer.emplace_back(cam_center);
+	frustum_vertex_buffer.emplace_back(white3f);
+
+	frustum_vertex_buffer.emplace_back(-1.0f, -1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+	frustum_vertex_buffer.emplace_back(1.0f, -1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+
+	frustum_vertex_buffer.emplace_back(1.0f, -1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+	frustum_vertex_buffer.emplace_back(1.0f, 1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+
+	frustum_vertex_buffer.emplace_back(1.0f, 1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(red3f);
+	frustum_vertex_buffer.emplace_back(-1.0f, 1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(red3f);
+
+	frustum_vertex_buffer.emplace_back(-1.0f, 1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+	frustum_vertex_buffer.emplace_back(-1.0f, -1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+
+	frustum_vertex_buffer.emplace_back(-1.0f, -1.0f, -1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+	frustum_vertex_buffer.emplace_back(1.0f, -1.0f, -1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+
+	frustum_vertex_buffer.emplace_back(1.0f, -1.0f, -1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+	frustum_vertex_buffer.emplace_back(1.0f, 1.0f, -1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+
+	frustum_vertex_buffer.emplace_back(1.0f, 1.0f, -1.0f);
+	frustum_vertex_buffer.emplace_back(green3f);
+	frustum_vertex_buffer.emplace_back(-1.0f, 1.0f, -1.0f);
+	frustum_vertex_buffer.emplace_back(green3f);
+
+	frustum_vertex_buffer.emplace_back(-1.0f, 1.0f, -1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+	frustum_vertex_buffer.emplace_back(-1.0f, -1.0f, -1.0f);
+	frustum_vertex_buffer.emplace_back(white3f);
+
+	uint32_t lines_count = static_cast<uint32_t>(frustum_vertex_buffer.size());
+	this->m_debug_data.m_frustums[0].upload_data(reinterpret_cast<const uint8_t *>(frustum_vertex_buffer.data()), lines_count * 3 * sizeof(float), lines_count);
+}
 }        // namespace ror

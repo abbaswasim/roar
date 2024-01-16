@@ -72,6 +72,7 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		this->m_scene.upload(*this->m_job_system, this->m_renderer, *this->m_current_device);
 		this->m_scene.setup_cameras(this->m_renderer, this->m_event_system);
 
+		this->m_renderer.upload_debug_geometry(*this->m_current_device, this->m_scene);
 		this->m_renderer.deferred_buffer_upload(*this->m_current_device, this->m_scene);
 
 		this->underlying().init_derived();

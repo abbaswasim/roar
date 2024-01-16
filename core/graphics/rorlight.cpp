@@ -24,6 +24,9 @@
 // Version: 1.0.0
 
 #include "graphics/rorlight.hpp"
+#include "math/rormatrix4.hpp"
+#include "math/rormatrix4_functions.hpp"
+#include "math/rorvector4.hpp"
 
 namespace ror
 {
@@ -84,8 +87,41 @@ void Light::fill_shader_buffer()
 	this->m_shader_buffer.add_struct(light_type);
 }
 
+void Light::setup_transformations()
+{
+	// float size{10.0f};
+	// auto  normal = this->m_direction.normalized();
+	// auto  target = this->m_position + (normal * size * 3.0f);
+
+	// TODO: Make this face the scene and fit the frustum
+	float32_t z_near = 0.01f;
+	float32_t z_far  = 1000.0f;
+
+	float32_t width  = 100.0f;
+	float32_t height = 100.0f;
+
+	this->m_shadow_viewport = ror::Vector4ui{0, 0, static_cast<uint32_t>(width) * 2, static_cast<uint32_t>(height) * 2};
+
+	this->m_projection = ror::make_ortho(-width, width, -height, height, z_near, z_far);        // TODO: Add other projections for other types
+	this->m_view       = ror::make_look_at(this->m_direction.normalized(), {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+
+	this->m_view_projection = this->m_projection * this->m_view;
+	this->m_dirty           = true;
+}
+
+void Light::get_transformations(ror::Matrix4f **a_view_projection, ror::Matrix4f **a_projection, ror::Matrix4f **a_view, ror::Vector3f **a_position, ror::Vector4ui **a_viewport)
+{
+	*a_view_projection = &this->m_view_projection;
+	*a_projection      = &this->m_projection;
+	*a_view            = &this->m_view;
+	*a_position        = &this->m_position;
+	*a_viewport        = &this->m_shadow_viewport;
+}
+
 void Light::update()
 {
+	this->setup_transformations();
+
 	if (this->m_dirty)
 	{
 		this->m_dirty = false;
@@ -94,7 +130,7 @@ void Light::update()
 		auto     stride      = this->m_shader_buffer.stride(this->m_light_struct_name);
 		uint32_t light_index = 0;
 
-		this->m_shader_buffer.update("mvp", &this->m_mvp.m_values, light_index, stride);
+		this->m_shader_buffer.update("mvp", &this->m_view_projection.m_values, light_index, stride);
 		this->m_shader_buffer.update("color", &this->m_color, light_index, stride);
 
 		if (this->m_type != ror::Light::LightType::directional)

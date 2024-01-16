@@ -142,17 +142,13 @@ void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sce
 			ror::Matrix4f _projection{};
 			ror::Matrix4f _view{};
 
+			// TODO: This doesn't work at the moment because of no per pass per view uniforms
 			light.get_transformations(&view_projection, &projection, &view, &position, &viewport);
-			// *view_projection = _view_projection;
-			// *projection      = _projection;
-			// *view            = _view;
 			a_renderer.update_per_view_uniform(*view, *projection, *viewport, *position);
 			render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
 			break;
 		}
 	}
-
-	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
 void light_bin_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -224,8 +220,10 @@ void forward_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene
 
 	// Proper synchronisation of uniforms is needed
 	// TODO: Need to find a way for sharing uniforms across multiple render passes and multiple frames
+	// TODO: This doesn't work at the moment because of no per pass per view uniforms
+	// When per-pass and per-frame versions of uniforms are added, this could also be done at scene::update time
 	auto &camera = a_scene.current_camera();
-	a_renderer.upload_debug_geometry2(camera);
+	a_renderer.update_frustums_geometry(camera);
 	camera.update(a_renderer);
 
 	render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);

@@ -56,15 +56,21 @@ class ROAR_ENGINE_ITEM Light
 	void update();
 	void upload(rhi::Device &a_device);
 	void fill_shader_buffer();
+	void setup_transformations();
+	void get_transformations(ror::Matrix4f **a_view_projection, ror::Matrix4f **a_projection, ror::Matrix4f **a_view, ror::Vector3f **a_position, ror::Vector4ui **a_viewport);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer; }
-	FORCE_INLINE constexpr auto& shader_buffer()       noexcept  { return this->m_shader_buffer; }
+	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer;      }
+	FORCE_INLINE constexpr auto& shader_buffer()       noexcept  { return this->m_shader_buffer;      }
+	FORCE_INLINE constexpr auto& view_projection()     noexcept  { return this->m_view_projection;    }
 	// clang-format on
 
 	bool              m_dirty{true};                                         //! If dirty will update/upload into the GPU otherwise not
 	LightType         m_type{LightType::directional};                        //! Light type
-	Matrix4f          m_mvp{};                                               //! Model view projection of the light, used in shadow mapping
+	Matrix4f          m_view{};                                              //! View of the light, used in shadow mapping
+	Matrix4f          m_projection{};                                        //! Projection of the light, used in shadow mapping
+	Matrix4f          m_view_projection{};                                   //! View projection of the light, used in shadow mapping
+	Vector4ui         m_shadow_viewport{};                                   //! Size and position of rendering into the shadowmap
 	Vector3f          m_color{};                                             //! Light color
 	Vector3f          m_position{};                                          //! Position of point and spot lights
 	Vector3f          m_direction{};                                         //! Direction of directional and spot lights
@@ -90,7 +96,7 @@ class ROAR_ENGINE_ITEM EnvironmentProbe final
 	FORCE_INLINE EnvironmentProbe &operator=(EnvironmentProbe &&a_other) noexcept        = default;        //! Move assignment operator
 	FORCE_INLINE ~EnvironmentProbe() noexcept                                            = default;        //! Destructor
 
-	                                                                                                       // clang-format off
+	// clang-format off
 	FORCE_INLINE void transform(ror::Transformf a_transform) { this->m_transform = a_transform; }
 	FORCE_INLINE void path(std::filesystem::path a_path)     { this->m_path = a_path;           }
 

@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "camera/rorcamera.hpp"
 #include "configuration/rorconfiguration.hpp"
 #include "core/foundation/rorcrtp.hpp"
 #include "foundation/rorjobsystem.hpp"
@@ -32,6 +33,7 @@
 #include "foundation/rorutilities.hpp"
 #include "graphics/rordynamic_mesh.hpp"
 #include "graphics/rorenvironment.hpp"
+#include "math/rorsegments.hpp"
 #include "math/rorvector2.hpp"
 #include "profiling/rortimer.hpp"
 #include "rhi/rorbuffer.hpp"
@@ -54,6 +56,18 @@
 namespace ror
 {
 class Scene;
+
+struct DebugData
+{
+	std::vector<Lines3f> m_camera_fustrums{};             //! A line list for each camera, this is just CPU side data
+	std::vector<Lines3f> m_camera_cascades{};             //! A line list for each frustum cascade, this is just CPU side data
+	DynamicMesh          m_shadow_cascades{};             //! A few quads to draw the shadow cascades on
+	DynamicMesh          m_frustums[4];                   //! Extends of the 4 cascades
+	int32_t              m_colored_lines_pso{-1};         //! A generic PSO that can be used to render colored lines
+	int32_t              m_textured_quads_pso{-1};        //! A generic PSO that can be used to render textured quads
+	int32_t              m_default_sampler{-1};           //! Index of the default sampler all textured quds will use
+	int32_t              m_shadow_texture{-1};            //! Index of the shadow map texture that I want to display on one quad
+};
 
 class Renderer final : public Configuration<Renderer>
 {
@@ -83,7 +97,9 @@ class Renderer final : public Configuration<Renderer>
 	void                             push_shader_update_candidate(std::string a_shader);
 	void                             push_shader_record(rhi::Shader &a_shader, int32_t a_shader_id);
 	void                             push_dependent_shader_record(rhi::Shader &a_shader, int32_t a_shader_id, std::string a_name);
-	void                             get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass ) const;
+	void                             get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const;
+	void                             update_per_view_uniform(const ror::Matrix4f &a_view, const ror::Matrix4f &a_projection, const ror::Vector4ui &a_viewport, const ror::Vector3f &a_eye);
+
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off
@@ -131,6 +147,9 @@ class Renderer final : public Configuration<Renderer>
 	rhi::TextureImage *m_irradiance_patch_ti{nullptr};
 	rhi::TextureImage *m_radiance_patch_ti{nullptr};
 
+	void     upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_scene);//const ror::OrbitCamera &a_camera);
+	void update_frustums_geometry(const ror::OrbitCamera &a_camera);
+
   protected:
   private:
 	declare_translation_unit_vtable();
@@ -149,6 +168,7 @@ class Renderer final : public Configuration<Renderer>
 	uint32_t environment_visualize_mode(uint32_t a_environment_index);
 	void     create_environment_mesh(rhi::Device &a_device);
 	void     load_programs();
+	void     load_debug_data();
 	void     load_frame_graphs();
 	void     load_textures();
 	void     load_samplers();
@@ -164,7 +184,7 @@ class Renderer final : public Configuration<Renderer>
 	std::vector<rhi::TextureSampler>        m_samplers{};                                     //! All samplers in the renderer, usually should only have a mipmapped and non-mipmapped sampler, but could have more
 	std::vector<rhi::Texture>               m_textures{};                                     //! All textures the renderer has loaded. This is only used to associate samplers with images
 	std::vector<ror::IBLEnvironment>        m_environments{};                                 //! All the IBL environments, referring to textures within m_textures
-	std::vector<rhi::ShaderBuffer>          m_buffers{};                                      //! All the buffers some render passes might want to write into
+	std::vector<rhi::ShaderBuffer>          m_buffers{};                                      //! All the buffers some render passes might want to write into TODO: this should be a vector or (per-pass * per-frame) count
 	ror::Vector4f                           m_dimensions{1024.0f, 768.0f, 1.0f, 1.0f};        //! Dimensions of the renderer framebuffers, if not provided will use from window, overriden by renderer.json, z, w are scaling factors
 	ror::Vector4i                           m_viewport{0, 0, 1024, 768};                      //! Viewport to use to render into the render targets, RTs can override it
 	FrameGraph                              m_frame_graphs{};                                 //! Frame graph for all techniques like forward, deferred etc
@@ -172,10 +192,11 @@ class Renderer final : public Configuration<Renderer>
 	rhi::Renderstate<rhi::RenderstateDepth> m_render_state{};                                 //! Almost all the render state that the renderer requires will be stored here, currently only uses depth state
 	InputRenderTargets                      m_input_render_targets{};                         //! Render targets that are not directly associated with any render pass but required to be filled in before rendering starts
 	InputBufferTargets                      m_input_render_buffers{};                         //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
-	ShaderBufferMap                         m_buffers_mapping{};                              //! All the Shader buffers in m_buffers are now name accessible
+	ShaderBufferMap                         m_buffers_mapping{};                              //! All the Shader buffers in m_buffers are now name accessible, TODO: this should be a vector or (per-pass * per-frame) count
 	ShaderCallbackMap                       m_callbacks_mapping{};                            //! All the callbacks that can be used to patch or do something else to shaders
 	std::vector<ror::DynamicMesh *>         m_dynamic_meshes{};                               //! Non-Owning pointers to all the dynamic meshes created in the renderer should be rendererd at the end, mostly has cubemap mes
 	ror::DynamicMesh                        m_cube_map_mesh{};                                //! Single instance of a cubemap mesh used by all environments
+	DebugData                               m_debug_data{};                                   //! Other debug data like shadow map quads and camera frustums
 	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use
 	uint32_t                                m_canonical_cube{};                               //! Canonical cube for debugging purposes
 	uint32_t                                m_final_pass{};                                   //! Index of the final pass in the render pass chains in framegraph
