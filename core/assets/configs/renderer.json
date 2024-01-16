@@ -13,6 +13,10 @@
 		"ibl_lut.glsl.frag",
 		"position.glsl.vert",
 		"position.glsl.frag",
+		"debug_colored_lines.glsl.vert",
+		"debug_colored_lines.glsl.frag",
+		"debug_textured_quads.glsl.vert",
+		"debug_textured_quads.glsl.frag",
 		"tonemap.glsl.vert",
 		"tonemap.glsl.frag"
 	],
@@ -39,6 +43,14 @@
 		{
 			"vertex":7,
 			"fragment":8
+		},
+		{
+			"vertex":13,
+			"fragment":14
+		},
+		{
+			"vertex":15,
+			"fragment":16
 		}
 	],
 	"textures":[
@@ -119,6 +131,12 @@
 			"mip_filter":"linear"
 		}
 	],
+	"debug_data":{
+		"colored_lines_pso" : 7,
+		"textured_quads_pso" : 8,
+		"default_sampler" : 2,
+		"shadow_texture" : 2
+	},
 	"environment": 0,
 	"environments":[
 		{
@@ -496,6 +514,45 @@
 			{
 				"render_targets":[
 					{
+						"index":2,
+						"load_action":"clear",
+						"store_action":"store",
+						"type":"depth"
+					}
+				],
+				"background":[
+					0.0,
+					0.0,
+					0.0,
+					1.0
+				],
+				"depends_on":[
+					1
+				],
+				"cull_mode" : "back",
+				"subpasses":[
+					{
+						"name":"shadow_mapping",
+						"type":"shadow",
+						"state":"transient",
+						"cull_mode" : "back",
+						"render_targets":[0],
+						"buffer_inputs":[
+							{
+								"index" : 2,
+								"stage" : "vertex"
+							},
+							{
+								"index" : 3,
+								"stage" : "vertex"
+							}
+						]
+					}
+				]
+			},
+			{
+				"render_targets":[
+					{
 						"index":0,
 						"load_action":"clear",
 						"store_action":"store",
@@ -515,7 +572,7 @@
 					1.0
 				],
 				"depends_on":[
-					1
+					2
 				],
 				"cull_mode" : "back",
 				"subpasses":[
