@@ -176,7 +176,7 @@ void Scene::update_from_scene_state()
 
 	// take the SceneData and fill stuff from it
 	// Since we wrote out current camera now we read it in
-	auto &camera = this->m_cameras[0];
+	auto &camera = this->m_cameras[this->m_current_camera_index];
 	camera.mode(this->m_scene_state.m_camera_mode);
 
 	camera.set_parameters(this->m_scene_state.m_camera_type,
@@ -196,6 +196,7 @@ void Scene::update_from_scene_state()
 	                      this->m_scene_state.m_camera_y_mag);
 
 	camera.set_from_parameters();
+	camera.setup_frustums();
 }
 
 void Scene::SceneState::init(std::filesystem::path a_data_path)
@@ -1293,7 +1294,6 @@ void Scene::update(ror::Renderer &a_renderer, ror::Timer &a_timer)
 	(void) a_renderer;
 
 	// auto &camera = this->m_cameras[this->m_current_camera_index];
-	// a_renderer.upload_debug_geometry2(camera);
 	// camera.update(a_renderer);
 }
 

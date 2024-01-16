@@ -104,6 +104,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	void              disable();
 	void              update(const Renderer &a_renderer) const;
 	void              upload(rhi::Device &a_device);
+	void              setup_frustums();
 
 	// clang-format off
 	FORCE_INLINE constexpr auto& view()          const noexcept { return this->m_view;          }
@@ -138,7 +139,6 @@ class ROAR_ENGINE_ITEM OrbitCamera final
   private:
 	void reset();
 	void setup();
-	void setup_frustums();
 	void update_vectors();
 	void update_view(Vector3f a_up = Vector3f{0.0, 1.0, 0.0});
 	void update_normal();

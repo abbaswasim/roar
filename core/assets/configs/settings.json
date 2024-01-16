@@ -41,7 +41,7 @@
 	"print_generated_compute_shaders" : true,
 	"write_generated_shaders" : false,
 	"watch_shaders" : false,
-	"show_grid" : false,
+	"show_grid" : true,
 	"shaders_watch_path" : "core/assets/shaders",
 	"clamp_material_roughness" : true,
 	"clamp_material_metallic" : true,
