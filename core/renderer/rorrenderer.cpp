@@ -1184,6 +1184,9 @@ void Renderer::set_modifier_events(ror::EventSystem &a_event_system)
 	};
 
 	a_event_system.subscribe(handle, render_mode);
+
+	// Subscribe other events too
+	this->install_input_handlers(a_event_system);
 }
 
 void Renderer::reset_sets_bindings()
@@ -1448,6 +1451,107 @@ uint32_t Renderer::environment_visualize_mode(uint32_t a_environment_index)
 
 	return env.skybox();
 }
+
+static auto generate_grid(ror::Vector2ui a_grid, ror::Vector4f a_grid_color, bool a_show_y)
+{
+	std::vector<float32_t> positions{};
+
+	auto add_point = [&positions](ror::Vector4f position, ror::Vector4f color) {
+		positions.push_back(position.x);
+		positions.push_back(position.y);
+		positions.push_back(position.z);
+		positions.push_back(0);
+
+		positions.push_back(color.x);
+		positions.push_back(color.y);
+		positions.push_back(color.z);
+		positions.push_back(position.w);
+	};
+
+	float32_t size = ror::static_cast_safe<float32_t>(ror::static_cast_safe<int32_t>(a_grid.y / 2u));
+
+	for (float32_t i = static_cast<float32_t>(a_grid.x); i < size; i += static_cast<float32_t>(a_grid.x))
+	{
+		float32_t tens = 0.5f;
+
+		if (static_cast<int32_t>(i) % 1000 == 0)
+			tens = 100.0f;
+		else if (static_cast<int32_t>(i) % 100 == 0)
+			tens = 10.0f;
+		else if (static_cast<int32_t>(i) % 10 == 0)
+			tens = 1.0f;
+
+		add_point({i, 0, -size, tens}, a_grid_color);
+		add_point({i, 0, size, tens}, a_grid_color);
+
+		add_point({-size, 0, i, tens}, a_grid_color);
+		add_point({size, 0, i, tens}, a_grid_color);
+
+		add_point({-i, 0, -size, tens}, a_grid_color);
+		add_point({-i, 0, size, tens}, a_grid_color);
+
+		add_point({-size, 0, -i, tens}, a_grid_color);
+		add_point({size, 0, -i, tens}, a_grid_color);
+	}
+
+	float32_t color_intensity = 0.8f;
+	float32_t color_fade      = 0.2f;
+
+	ror::Vector4f origin_x{color_intensity, color_fade, color_fade, 1.0};
+	ror::Vector4f origin_y{color_fade, color_intensity, color_fade, 1.0};
+	ror::Vector4f origin_z{color_fade, color_fade, color_intensity, 1.0};
+
+	add_point({-size, 0, 0, 10}, origin_x);
+	add_point({size, 0, 0, 10}, origin_x);
+	add_point({0, 0, -size, 10}, origin_z);
+	add_point({0, 0, size, 10}, origin_z);
+
+	if (a_show_y)
+	{
+		add_point({0, -size, 0, 10}, origin_y);
+		add_point({0, size, 0, 10}, origin_y);
+	}
+
+	return positions;
+}
+
+void Renderer::create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a_event_system)
+{
+	static ror::DynamicMesh grid_mesh{};
+
+	// Lets generate grid mesh
+	auto &setting   = ror::settings();
+	auto  grid_data = generate_grid(setting.m_grid.m_sizes, setting.m_grid.m_color, setting.m_grid.m_show_y_axis);
+
+	rhi::VertexDescriptor vertex_descriptor0 = create_p_float4_c_float4_descriptor();
+
+	grid_mesh.init(a_device, rhi::PrimitiveTopology::lines);
+	grid_mesh.setup_vertex_descriptor(&vertex_descriptor0);        // Moves vertex_descriptor can't use it afterwards
+	grid_mesh.setup_shaders(*this, rhi::BlendMode::blend, "grid.glsl.vert", "grid.glsl.frag");
+	auto grid_count = grid_data.size();
+	grid_mesh.upload_data(reinterpret_cast<const uint8_t *>(grid_data.data()), grid_count * sizeof(float), static_cast<uint32_t>(grid_count / 4));
+
+	grid_mesh.visible(setting.m_show_grid);
+	this->m_grid_id = static_cast<int32_t>(this->m_dynamic_meshes.size());
+
+	this->m_dynamic_meshes.emplace_back(&grid_mesh);
+
+	this->m_semi_colon_key_callback = [this](ror::Event &) {
+		if (this->m_grid_id != -1)
+		{
+			auto &grid = this->m_dynamic_meshes[static_cast_safe<size_t>(this->m_grid_id)];
+			grid->visible(!grid->visible());
+		}
+	};
+
+	a_event_system.subscribe(keyboard_semicolon_click, this->m_semi_colon_key_callback);
+}
+
+void Renderer::install_input_handlers(ror::EventSystem &)
+{}
+
+void Renderer::uninstall_input_handlers(ror::EventSystem &)
+{}
 
 void Renderer::create_environment_mesh(rhi::Device &a_device)
 {
@@ -1984,8 +2088,11 @@ void Renderer::update_per_view_uniform(const ror::Matrix4f &a_view, const ror::M
 	per_view_uniform->buffer_unmap();
 }
 
-void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_scene)
+void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system, ror::Scene &a_scene)
 {
+	// First lets create grid
+	this->create_grid_mesh(a_device, a_event_system);
+
 	// Descriptor to use for textured quads
 	rhi::VertexDescriptor textured_quads_vertex_descriptor = create_p_float3_t_float2_descriptor();
 
@@ -1997,8 +2104,8 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_
 	// Unused PSO but can be used to render textured stuff
 	// auto textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_textured_quads_pso)];
 	auto shadow_map_textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_shadow_map_textured_quads_pso)];
-	auto shadow_image   = &this->images()[static_cast<size_t>(this->m_debug_data.m_shadow_texture)];
-	auto shadow_sampler = &this->samplers()[static_cast<size_t>(this->m_debug_data.m_default_sampler)];
+	auto shadow_image                  = &this->images()[static_cast<size_t>(this->m_debug_data.m_shadow_texture)];
+	auto shadow_sampler                = &this->samplers()[static_cast<size_t>(this->m_debug_data.m_default_sampler)];
 
 	this->m_debug_data.m_shadow_cascades.set_texture(shadow_image, shadow_sampler);        // Would need refresh if images or samplers vectors are resized
 	// this->m_debug_data.m_shadow_cascades.shader_program_external(textured_quads_pso);

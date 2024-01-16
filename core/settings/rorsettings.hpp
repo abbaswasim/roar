@@ -306,7 +306,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_watch_shaders                    = setting.get<bool>("watch_shaders");
 		this->m_generate_debug_mesh              = setting.get<bool>("generate_debug_mesh");
 		this->m_generate_gui_mesh                = setting.get<bool>("generate_gui_mesh");
-		this->m_generate_grid_mesh               = setting.get<bool>("generate_grid_mesh");
+		this->m_show_grid                        = setting.get<bool>("show_grid");
 		this->m_generate_cube_mesh               = setting.get<bool>("generate_cube_mesh");
 		this->m_generate_cube_map                = setting.get<bool>("generate_cube_map");
 		this->m_generate_canonical_cube_map      = setting.get<bool>("generate_canonical_cube_map");
@@ -465,7 +465,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_watch_shaders{false};
 	bool m_generate_debug_mesh{false};
 	bool m_generate_gui_mesh{false};
-	bool m_generate_grid_mesh{false};
+	bool m_show_grid{false};
 	bool m_generate_cube_mesh{false};
 	bool m_generate_quad_mesh{false};
 	bool m_generate_fullscreen_quad_mesh{false};

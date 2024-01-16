@@ -919,69 +919,6 @@ void update_materials_textures_to_linear(std::vector<ror::Material, rhi::BufferA
 	}
 }
 
-static auto generate_grid(ror::Vector2ui a_grid, ror::Vector4f a_grid_color, bool a_show_y)
-{
-	std::vector<float32_t> positions{};
-
-	auto add_point = [&positions](ror::Vector4f position, ror::Vector4f color) {
-		positions.push_back(position.x);
-		positions.push_back(position.y);
-		positions.push_back(position.z);
-		positions.push_back(0);
-
-		positions.push_back(color.x);
-		positions.push_back(color.y);
-		positions.push_back(color.z);
-		positions.push_back(position.w);
-	};
-
-	float32_t size = ror::static_cast_safe<float32_t>(ror::static_cast_safe<int32_t>(a_grid.y / 2u));
-
-	for (float32_t i = static_cast<float32_t>(a_grid.x); i < size; i += static_cast<float32_t>(a_grid.x))
-	{
-		float32_t tens = 0.5f;
-
-		if (static_cast<int32_t>(i) % 1000 == 0)
-			tens = 100.0f;
-		else if (static_cast<int32_t>(i) % 100 == 0)
-			tens = 10.0f;
-		else if (static_cast<int32_t>(i) % 10 == 0)
-			tens = 1.0f;
-
-		add_point({i, 0, -size, tens}, a_grid_color);
-		add_point({i, 0, size, tens}, a_grid_color);
-
-		add_point({-size, 0, i, tens}, a_grid_color);
-		add_point({size, 0, i, tens}, a_grid_color);
-
-		add_point({-i, 0, -size, tens}, a_grid_color);
-		add_point({-i, 0, size, tens}, a_grid_color);
-
-		add_point({-size, 0, -i, tens}, a_grid_color);
-		add_point({size, 0, -i, tens}, a_grid_color);
-	}
-
-	float32_t color_intensity = 0.8f;
-	float32_t color_fade      = 0.2f;
-
-	ror::Vector4f origin_x{color_intensity, color_fade, color_fade, 1.0};
-	ror::Vector4f origin_y{color_fade, color_intensity, color_fade, 1.0};
-	ror::Vector4f origin_z{color_fade, color_fade, color_intensity, 1.0};
-
-	add_point({-size, 0, 0, 10}, origin_x);
-	add_point({size, 0, 0, 10}, origin_x);
-	add_point({0, 0, -size, 10}, origin_z);
-	add_point({0, 0, size, 10}, origin_z);
-
-	if (a_show_y)
-	{
-		add_point({0, -size, 0, 10}, origin_y);
-		add_point({0, size, 0, 10}, origin_y);
-	}
-
-	return positions;
-}
-
 void Model::update_hashes()
 {
 	for (size_t i = 0; i < this->m_meshes.size(); ++i)
@@ -1197,6 +1134,7 @@ void Model::reset()
 	}
 }
 
+// Obsolete method but shows a way how to make a model at runtime
 void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack)
 {
 	ror::Material material;
@@ -1217,8 +1155,7 @@ void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pac
 	ror::Mesh &mesh    = this->m_meshes[0];
 	uint32_t   prim_id = 0;
 
-	auto &setting   = ror::settings();
-	auto  grid_data = generate_grid(setting.m_grid.m_sizes, setting.m_grid.m_color, setting.m_grid.m_show_y_axis);
+	std::vector<float> grid_data{};
 	upload_position4_color4(mesh, prim_id, grid_data, a_buffers_pack);
 }
 

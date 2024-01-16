@@ -29,14 +29,17 @@
 
 namespace rhi
 {
-FORCE_INLINE ProgramMetal::~ProgramMetal() noexcept
-{
-	if (std::holds_alternative<MTL::RenderPipelineState *>(this->m_pipeline_state) &&
-	    std::get<MTL::RenderPipelineState *>(this->m_pipeline_state))
-		std::get<MTL::RenderPipelineState *>(this->m_pipeline_state)->release();
+// I can't do this, and lets not do this although the pointers needs to cleanup, it will be in a autorelease scope
+// Also don't do this because move becomes a problem and since move doesn't set pointers to null after move
+// This ctor becomes even bigger problem.
+// FORCE_INLINE ProgramMetal::~ProgramMetal() noexcept
+// {
+// 	if (std::holds_alternative<MTL::RenderPipelineState *>(this->m_pipeline_state) &&
+// 	    std::get<MTL::RenderPipelineState *>(this->m_pipeline_state))
+// 		std::get<MTL::RenderPipelineState *>(this->m_pipeline_state)->release();
 
-	else if (std::holds_alternative<MTL::ComputePipelineState *>(this->m_pipeline_state) &&
-	         std::get<MTL::ComputePipelineState *>(this->m_pipeline_state))
-		std::get<MTL::ComputePipelineState *>(this->m_pipeline_state)->release();
-}
+// 	else if (std::holds_alternative<MTL::ComputePipelineState *>(this->m_pipeline_state) &&
+// 	         std::get<MTL::ComputePipelineState *>(this->m_pipeline_state))
+// 		std::get<MTL::ComputePipelineState *>(this->m_pipeline_state)->release();
+// }
 }        // namespace rhi

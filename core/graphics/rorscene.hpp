@@ -241,8 +241,6 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	bool                             m_has_shadows{false};                                     //! To tell any fragment shaders for any pass generated to use shadow mapping, this is NOT about shadow pass itself
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
 	std::vector<ror::DynamicMesh>    m_dynamic_meshes{};                                       //! All the dynamic meshes created in the scene could be rendererd at once in the end
-	int32_t                          m_grid_model_id{-1};                                      //! Reference to the grid for easy access
-	EventCallback                    m_semi_colon_key_callback{};                              //! Semi colon key call back to enable disable the grid
 	SceneState                       m_scene_state;                                            //! All the scene data that can be saved and restored to and from disk
 	uint32_t                         m_current_camera_index{0};                                //! Camera to use to render the scene
 };

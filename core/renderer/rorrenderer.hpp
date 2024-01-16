@@ -148,7 +148,7 @@ class Renderer final : public Configuration<Renderer>
 	rhi::TextureImage *m_irradiance_patch_ti{nullptr};
 	rhi::TextureImage *m_radiance_patch_ti{nullptr};
 
-	void                upload_debug_geometry(const rhi::Device &a_device, ror::Scene &a_scene);        // const ror::OrbitCamera &a_camera);
+	void                upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system, ror::Scene &a_scene);
 	void                update_frustums_geometry(const ror::OrbitCamera &a_camera);
 	const rhi::Texture *get_shadow_texture() const;
 
@@ -165,10 +165,13 @@ class Renderer final : public Configuration<Renderer>
 	void upload_remaining_textures(rhi::Device &a_device);
 	void upload_samplers(rhi::Device &a_device);
 
+	void     install_input_handlers(ror::EventSystem &a_event_system);
+	void     uninstall_input_handlers(ror::EventSystem &a_event_system);
 	void     update_shader(rhi::Device &a_device, std::string &a_shader);
 	void     patch_shader(rhi::Shader &a_shader, std::string &a_shader_name);
 	uint32_t environment_visualize_mode(uint32_t a_environment_index);
 	void     create_environment_mesh(rhi::Device &a_device);
+	void     create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a_event_system);
 	void     load_programs();
 	void     load_debug_data();
 	void     load_frame_graphs();
@@ -201,9 +204,11 @@ class Renderer final : public Configuration<Renderer>
 	ror::DynamicMesh                        m_cube_map_mesh{};                                //! Single instance of a cubemap mesh used by all environments
 	DebugData                               m_debug_data{};                                   //! Other debug data like shadow map quads and camera frustums
 	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use
+	int32_t                                 m_grid_id{-1};                                    //! Reference to the grid for easy access
 	uint32_t                                m_canonical_cube{};                               //! Canonical cube for debugging purposes
 	uint32_t                                m_final_pass{};                                   //! Index of the final pass in the render pass chains in framegraph
 	int32_t                                 m_shadow_pass{-1};                                //! Index of the shadow pass in the render pass chains in framegraph
+	EventCallback                           m_semi_colon_key_callback{};                      //! Semi colon key call back to enable disable the grid
 };
 }        // namespace ror
 

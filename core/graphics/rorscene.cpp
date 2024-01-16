@@ -1398,6 +1398,7 @@ void Scene::create_global_program(const char *a_vertex_shader,
 	}
 }
 
+// Obsolete method. Here to show how one can create a model with a global program
 void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::function<bool(size_t)> &a_upload_job, std::vector<ror::JobHandle<bool>> &a_job_handles, size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
 {
 	auto grid_generation_job = [this, &a_buffer_pack](size_t model_index, size_t node_index) -> auto {
@@ -1413,7 +1414,8 @@ void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::functio
 	auto node_index = this->m_nodes.size();
 	this->add_model_node(static_cast_safe<int32_t>(a_model_index));        // Doing this outside nested jobs because its not thread safe
 
-	this->m_grid_model_id = static_cast_safe<int32_t>(a_model_index);
+	// Save the model ID somewhere for quick access
+	// this->m_grid_model_id = static_cast_safe<int32_t>(a_model_index);
 
 	// kick off grid generation job
 	auto grid_job_handle   = a_job_system.push_job(grid_generation_job, a_model_index, node_index);
@@ -1654,8 +1656,6 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	// Add node placeholders all the procedurally created models here
 	if (setting.m_generate_debug_mesh)
 		model_nodes++;        // for debug model
-	if (setting.m_generate_grid_mesh)
-		model_nodes++;        // for grid model
 
 	if (model_nodes > 0)
 	{
@@ -1689,15 +1689,6 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 				model_index++;
 			}
 		}
-
-		// Generate grid into the grid model slot we have allocated
-		// NOTE: Don't create any more models before generate_grid_model job is finished because it uses global state, create these below like generate_debug_model
-		if (setting.m_generate_grid_mesh)
-		{
-			generate_grid_model(a_job_system, model_upload_job, job_handles, model_index, a_buffers_packs);
-			model_index++;
-		}
-		// NOTE: Don't create any more models before generate_grid_model job is finished because it uses global state, create these below like generate_debug_model
 
 		// Wait for all jobs to finish
 		for (auto &jh : job_handles)
@@ -1851,16 +1842,6 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 void Scene::init(const std::filesystem::path &a_level, ror::EventSystem &a_event_system)
 {
-	this->m_semi_colon_key_callback = [this](ror::Event &) {
-		auto &setting = ror::settings();
-		if (setting.m_generate_grid_mesh)
-		{
-			auto model_id = static_cast_safe<size_t>(this->m_grid_model_id);
-			for (auto &node : this->m_models[model_id].nodes())
-				node.m_visible = !node.m_visible;
-		}
-	};
-
 	install_input_handlers(a_event_system);
 
 	auto state_file = std::filesystem::path{a_level}.stem().string() + scene_state_name;
@@ -1908,15 +1889,11 @@ void Scene::shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_sy
 
 #undef scene_state_name
 
-void Scene::install_input_handlers(ror::EventSystem &a_event_system)
-{
-	a_event_system.subscribe(keyboard_semicolon_click, this->m_semi_colon_key_callback);
-}
+void Scene::install_input_handlers(ror::EventSystem &)
+{}
 
-void Scene::uninstall_input_handlers(ror::EventSystem &a_event_system)
-{
-	a_event_system.unsubscribe(keyboard_semicolon_click, this->m_semi_colon_key_callback);
-}
+void Scene::uninstall_input_handlers(ror::EventSystem &)
+{}
 
 void Scene::make_overlays()
 {

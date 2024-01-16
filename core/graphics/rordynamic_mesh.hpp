@@ -64,6 +64,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	FORCE_INLINE void index_buffer(rhi::Buffer a_index_buffer)                   { this->m_index_buffer                 = a_index_buffer;    }
 	FORCE_INLINE void topology(rhi::PrimitiveTopology a_topology)                { this->m_topology                     = a_topology;        }
 	FORCE_INLINE void has_indices(bool a_has_indices)                            { this->m_has_indices                  = a_has_indices;     }
+	FORCE_INLINE void visible(bool a_visible)                                    { this->m_visible                      = a_visible;         }
 
 	FORCE_INLINE       rhi::TextureImage     &texture_image() noexcept                { return this->m_texture_image;           }
 	FORCE_INLINE       rhi::TextureSampler   &texture_sampler() noexcept              { return this->m_texture_sampler;         }
@@ -73,6 +74,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	FORCE_INLINE const rhi::VertexDescriptor &vertex_descriptor() const noexcept      { return this->m_vertex_descriptor;       }
 	FORCE_INLINE const rhi::Buffer           &vertex_buffer() const noexcept          { return this->m_vertex_buffer;           }
 	FORCE_INLINE const rhi::Buffer           &index_buffer() const noexcept           { return this->m_index_buffer;            }
+	FORCE_INLINE       bool                   visible()                               { return this->m_visible;                 }
 	// clang-format on
 
 	void upload_data(const uint8_t *a_vertex_data_pointer, size_t a_vertex_size_in_bytes, uint32_t a_vertex_attributes_count,
@@ -91,6 +93,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	rhi::VertexDescriptor  m_vertex_descriptor{};                                //! The vertex descriptor of the UI, that is defined by xy, uv, c of ImGUI vertex buffer
 	rhi::Buffer            m_vertex_buffer{};                                    //! Vertex buffer with interleaved data of of any kind
 	rhi::Buffer            m_index_buffer{};                                     //! Index buffer with uint16_t type
+	bool                   m_visible{true};                                      //! Whether its visible or not
 	bool                   m_has_texture{false};                                 //! Whether has textures or not
 	bool                   m_has_positions{false};                               //! Whether has positions or using no attributes
 	bool                   m_has_indices{false};                                 //! Whether has index buffer or not
@@ -114,6 +117,9 @@ rhi::VertexDescriptor create_p_float3_descriptor();
 
 // Creates a float3 positions and uint16 index descriptor
 rhi::VertexDescriptor create_p_float3_i_uint16_descriptor();
+
+// Creates a float4 positions, float4 color
+rhi::VertexDescriptor create_p_float4_c_float4_descriptor();
 
 // Creates a float3 positions, float2 uv descriptor
 rhi::VertexDescriptor create_p_float3_t_float2_descriptor();

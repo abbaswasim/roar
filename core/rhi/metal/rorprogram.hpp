@@ -54,7 +54,7 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	FORCE_INLINE               ProgramMetal(ProgramMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ProgramMetal &operator=(const ProgramMetal &a_other)        = default;        //! Copy assignment operator
 	FORCE_INLINE ProgramMetal &operator=(ProgramMetal &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~ProgramMetal() noexcept override;                                    //! Destructor
+	FORCE_INLINE virtual ~ProgramMetal() noexcept override                   = default;        //! Destructor
 
 	FORCE_INLINE ProgramMetal(int32_t a_vert_id, int32_t a_frag_id) :
 	    ProgramCrtp(a_vert_id, a_frag_id)
