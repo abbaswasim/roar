@@ -116,10 +116,6 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		this->reset();
 	};
 
-	this->m_frustum_callback= [this](ror::Event &) {
-		this->setup_frustums();
-	};
-
 	this->m_event_system = &a_event_system;
 }
 
@@ -271,7 +267,6 @@ void OrbitCamera::enable()
 
 	this->m_event_system->subscribe(keyboard_space_click, this->m_mode_callback);
 	this->m_event_system->subscribe(keyboard_r_click, this->m_reset_callback);
-	this->m_event_system->subscribe(keyboard_f_click, this->m_frustum_callback);
 }
 
 void OrbitCamera::disable()
@@ -295,7 +290,6 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_control_scroll, this->m_zoom_callback);
 
 	this->m_event_system->unsubscribe(keyboard_space_click, this->m_mode_callback);
-	this->m_event_system->unsubscribe(keyboard_f_click, this->m_frustum_callback);
 }
 
 void OrbitCamera::update(const Renderer &a_renderer) const

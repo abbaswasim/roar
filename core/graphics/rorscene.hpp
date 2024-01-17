@@ -148,6 +148,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr       auto  has_shadows()      const noexcept   {  return this->m_has_shadows;     }
 
 	FORCE_INLINE constexpr const auto &current_camera()   const noexcept   {  return this->m_cameras[this->m_current_camera_index]; }
+	FORCE_INLINE constexpr       auto &current_camera()         noexcept   {  return this->m_cameras[this->m_current_camera_index]; }
 	// clang-format on
 
 	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device);

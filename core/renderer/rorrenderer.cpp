@@ -33,6 +33,7 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "geometry/rorgeometry_utilities.hh"
 #include "geometry/rorgeometry_utilities.hpp"
 #include "graphics/primitive_geometries.hpp"
 #include "graphics/rordynamic_mesh.hpp"
@@ -2160,8 +2161,15 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 	// This is done last because of the move
 	this->m_debug_data.m_frustums[cascade_index].setup_vertex_descriptor(&colored_lines_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 
-	auto &camera = a_scene.current_camera();
-	this->update_frustums_geometry(camera);
+	auto frustum_update = [&a_scene, this](Event&) {
+		auto &camera = a_scene.current_camera();
+		camera.setup_frustums();
+		this->update_frustums_geometry(camera);
+	};
+
+	Event e;
+	frustum_update(e);
+	a_event_system.subscribe(keyboard_f_click, frustum_update);
 
 	// Now we save a reference to it in the dynamic meshes within the renderer
 	this->m_dynamic_meshes.emplace_back(&this->m_debug_data.m_frustums[cascade_index]);
@@ -2172,11 +2180,20 @@ void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 	// TODO: Do all frustums
 	size_t     cascade_index{0};
 	const auto cam_corners = a_camera.frustum_corners(cascade_index);
-	const auto cam_center  = a_camera.frustum_center(cascade_index);
 
 	std::vector<ror::Vector3f> frustum_vertex_buffer{};
 	frustum_vertex_buffer.reserve(128);
 
+	auto eye    = a_camera.eye();
+	auto center = a_camera.center();
+
+	auto front_center = cam_corners[0] + cam_corners[1] + cam_corners[2] + cam_corners[3];
+	auto back_center  = cam_corners[4] + cam_corners[5] + cam_corners[6] + cam_corners[7];
+
+	front_center = front_center / 4.0f;
+	back_center  = back_center / 4.0f;
+
+	// Front quad
 	frustum_vertex_buffer.emplace_back(cam_corners[0]);
 	frustum_vertex_buffer.emplace_back(red3f);
 	frustum_vertex_buffer.emplace_back(cam_corners[1]);
@@ -2194,6 +2211,7 @@ void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 	frustum_vertex_buffer.emplace_back(cam_corners[0]);
 	frustum_vertex_buffer.emplace_back(red3f);
 
+	// Back quad
 	frustum_vertex_buffer.emplace_back(cam_corners[4]);
 	frustum_vertex_buffer.emplace_back(green3f);
 	frustum_vertex_buffer.emplace_back(cam_corners[5]);
@@ -2211,6 +2229,7 @@ void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 	frustum_vertex_buffer.emplace_back(cam_corners[4]);
 	frustum_vertex_buffer.emplace_back(green3f);
 
+	// Sides
 	frustum_vertex_buffer.emplace_back(cam_corners[0]);
 	frustum_vertex_buffer.emplace_back(blue3f);
 	frustum_vertex_buffer.emplace_back(cam_corners[4]);
@@ -2228,49 +2247,39 @@ void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 	frustum_vertex_buffer.emplace_back(cam_corners[7]);
 	frustum_vertex_buffer.emplace_back(blue3f);
 
+	std::vector<ror::Vector3f> sphere_buffer;
+	float32_t                  size{0.10f};
+	Vector3f                   origin{};
+	make_box_lines(size, origin, sphere_buffer);
+
+	// Box at camera center
+	for (auto sv : sphere_buffer)
+	{
+		frustum_vertex_buffer.emplace_back(sv.x + center.x, sv.y + center.y, sv.z + center.z);
+		frustum_vertex_buffer.emplace_back(blue3f);
+	}
+
+	frustum_vertex_buffer.emplace_back(eye);
+	frustum_vertex_buffer.emplace_back(red3f);
+	frustum_vertex_buffer.emplace_back(center);
+	frustum_vertex_buffer.emplace_back(white3f);
+
+	// Front tip of pyramid
 	frustum_vertex_buffer.emplace_back(cam_corners[0]);
 	frustum_vertex_buffer.emplace_back(white3f);
-	frustum_vertex_buffer.emplace_back(cam_center);
+	frustum_vertex_buffer.emplace_back(eye);
 	frustum_vertex_buffer.emplace_back(white3f);
-
-	frustum_vertex_buffer.emplace_back(-1.0f, -1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(cam_corners[1]);
 	frustum_vertex_buffer.emplace_back(white3f);
-	frustum_vertex_buffer.emplace_back(1.0f, -1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(eye);
 	frustum_vertex_buffer.emplace_back(white3f);
-
-	frustum_vertex_buffer.emplace_back(1.0f, -1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(cam_corners[2]);
 	frustum_vertex_buffer.emplace_back(white3f);
-	frustum_vertex_buffer.emplace_back(1.0f, 1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(eye);
 	frustum_vertex_buffer.emplace_back(white3f);
-
-	frustum_vertex_buffer.emplace_back(1.0f, 1.0f, 1.0f);
-	frustum_vertex_buffer.emplace_back(red3f);
-	frustum_vertex_buffer.emplace_back(-1.0f, 1.0f, 1.0f);
-	frustum_vertex_buffer.emplace_back(red3f);
-
-	frustum_vertex_buffer.emplace_back(-1.0f, 1.0f, 1.0f);
+	frustum_vertex_buffer.emplace_back(cam_corners[3]);
 	frustum_vertex_buffer.emplace_back(white3f);
-	frustum_vertex_buffer.emplace_back(-1.0f, -1.0f, 1.0f);
-	frustum_vertex_buffer.emplace_back(white3f);
-
-	frustum_vertex_buffer.emplace_back(-1.0f, -1.0f, -1.0f);
-	frustum_vertex_buffer.emplace_back(white3f);
-	frustum_vertex_buffer.emplace_back(1.0f, -1.0f, -1.0f);
-	frustum_vertex_buffer.emplace_back(white3f);
-
-	frustum_vertex_buffer.emplace_back(1.0f, -1.0f, -1.0f);
-	frustum_vertex_buffer.emplace_back(white3f);
-	frustum_vertex_buffer.emplace_back(1.0f, 1.0f, -1.0f);
-	frustum_vertex_buffer.emplace_back(white3f);
-
-	frustum_vertex_buffer.emplace_back(1.0f, 1.0f, -1.0f);
-	frustum_vertex_buffer.emplace_back(green3f);
-	frustum_vertex_buffer.emplace_back(-1.0f, 1.0f, -1.0f);
-	frustum_vertex_buffer.emplace_back(green3f);
-
-	frustum_vertex_buffer.emplace_back(-1.0f, 1.0f, -1.0f);
-	frustum_vertex_buffer.emplace_back(white3f);
-	frustum_vertex_buffer.emplace_back(-1.0f, -1.0f, -1.0f);
+	frustum_vertex_buffer.emplace_back(eye);
 	frustum_vertex_buffer.emplace_back(white3f);
 
 	uint32_t lines_count = static_cast<uint32_t>(frustum_vertex_buffer.size());
