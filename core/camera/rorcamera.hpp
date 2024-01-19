@@ -157,6 +157,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	Matrix4f      m_inverse_projection{};                   //! Inverse of Projection matrix
 	Matrix4f      m_inverse_view_projection{};              //! Inverse of View projection matrix
 	Matrix3f      m_normal{};                               //! Normal matrix
+	Vector3f      m_target{0.0f, 0.0f, 0.0f};               //! Target position in worldspace that doesn't change unlike center
 	Vector3f      m_center{0.0f, 0.0f, 0.0f};               //! Target position in worldspace
 	Vector3f      m_eye{0.0f, 0.0f, 1.0f};                  //! Eye position in worldspace
 	Vector3f      m_right{1.0f, 0.0f, 0.0f};                //! Right vector in camera's frame of reference

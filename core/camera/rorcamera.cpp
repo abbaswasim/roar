@@ -35,6 +35,7 @@
 #include "math/rorquaternion.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
+#include "math/rorvector_functions.hpp"
 #include "renderer/rorrenderer.hpp"
 
 namespace ror
@@ -113,6 +114,7 @@ void OrbitCamera::init(EventSystem &a_event_system)
 	};
 
 	this->m_reset_callback = [this](ror::Event &) {
+		this->m_center = this->m_target;
 		this->reset();
 	};
 
@@ -202,6 +204,7 @@ void OrbitCamera::setup()
 {
 	auto diagonal  = (this->m_maximum - this->m_minimum);
 	this->m_center = this->m_minimum + (diagonal / 2.0f);
+	this->m_target = this->m_center;
 	this->m_eye.x  = this->m_center.x;
 	this->m_eye.y  = this->m_center.y + (diagonal.x / 4.0f);
 	this->m_eye.z  = ((std::max(diagonal.x, diagonal.y) / 2.0f) / std::tan(ror::to_radians(this->m_y_fov / 2)));
@@ -212,22 +215,18 @@ void OrbitCamera::setup()
 
 void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 {
-	ror::AxisAnglef yinput{this->m_right, ror::to_radians(-a_y_delta)};
+	ror::AxisAnglef yinput{this->m_right, ror::to_radians(a_y_delta)};
 
-	auto origin = this->m_mode == CameraMode::orbit ? this->m_center : this->m_eye;
+	auto origin        = this->m_mode == CameraMode::orbit ? this->m_center : this->m_eye;
+	auto eye_to_center = this->m_center - this->m_eye;
+
+	if (eye_to_center.dot_product(this->m_forward) < 0.0f)        // Means eye to center is backwards to forward
+		this->m_center = origin = this->m_eye + this->m_forward;
 
 	auto translation0 = ror::matrix4_translation(-origin);
 	auto translation1 = ror::matrix4_translation(origin);
 	auto rotation_x   = ror::matrix4_rotation(yinput);
-	auto rotation_y   = ror::matrix4_rotation_around_y(ror::to_radians(-a_x_delta));
-
-	// Rotate the view matrix directly instead of reacreating it from Euler angles
-	this->m_view *= translation1 * rotation_y * rotation_x * translation0;
-
-	// Create inverse transformation of the view matrix delta to transform eye and center
-	yinput     = ror::AxisAnglef{this->m_right, ror::to_radians(a_y_delta)};
-	rotation_x = ror::matrix4_rotation(yinput);
-	rotation_y = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
+	auto rotation_y   = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
 
 	if (this->m_mode == CameraMode::orbit)
 		this->m_eye = translation1 * rotation_y * rotation_x * translation0 * this->m_eye;
@@ -240,7 +239,16 @@ void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 	if (this->m_up.dot_product(roar_world_up) > 0.2f)
 		this->reset();
 	else
+	{
+		yinput     = {this->m_right, ror::to_radians(-a_y_delta)};
+		rotation_x = ror::matrix4_rotation(yinput);
+		rotation_y = ror::matrix4_rotation_around_y(ror::to_radians(-a_x_delta));
+
+		// Rotate the view matrix directly instead of reacreating it via look_at
+		this->m_view *= translation1 * rotation_y * rotation_x * translation0;
+
 		this->update_vectors();
+	}
 
 	this->update_normal();
 }
