@@ -213,7 +213,6 @@
 	"environment" :
 	{
 		"visible" : true,
-		"rebuild" : false,
 		"mode" : "skybox",
 		"mipmap" : 0
 	}

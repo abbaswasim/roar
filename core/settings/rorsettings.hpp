@@ -330,7 +330,6 @@ class ROAR_ENGINE_ITEM Settings final
 		}
 
 		this->m_environment.m_visible = setting.get<bool>("environment:visible");
-		this->m_environment.m_rebuild = setting.get<bool>("environment:rebuild");
 		this->m_environment.m_mode    = get_environment_mode(setting.get<std::string>("environment:mode"));
 		this->m_environment.m_mipmap  = setting.get<uint32_t>("environment:mipmap");
 	}
@@ -394,7 +393,6 @@ class ROAR_ENGINE_ITEM Settings final
 		};
 
 		bool          m_visible{true};
-		bool          m_rebuild{false};
 		VisualizeMode m_mode{VisualizeMode::skybox};
 		uint32_t      m_mipmap{0};
 	};

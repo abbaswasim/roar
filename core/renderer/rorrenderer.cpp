@@ -501,7 +501,7 @@ void Renderer::load_environments()
 			read_env_texture(radiance, true);
 			read_env_texture(skybox, true);
 
-			ibl_environment.path(input_texture_image.name());
+			ibl_environment.path(this->m_images[ibl_environment.input()].name());
 
 			this->m_environments.emplace_back(std::move(ibl_environment));
 
@@ -1658,7 +1658,7 @@ static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32
 
 std::string environment_name(ror::IBLEnvironment &a_environment)
 {
-	std::string env_name = a_environment.name();
+	std::string env_name = a_environment.path().stem();
 	std::replace(env_name.begin(), env_name.end(), ' ', '_');
 
 	return env_name;
@@ -1824,7 +1824,6 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		write_env_image(env_name_rad + "radiance.hdr", radiance_patch_ti, true, rad_env_width_2x, rad_env_height_4x);
 	};
 
-	if (!settings().m_environment.m_rebuild)
 	{
 		std::string env_name_sky    = environment_name_sky(a_renderer, a_environment);
 		std::string env_name_irr    = environment_name_irradiance(a_renderer, a_environment);
