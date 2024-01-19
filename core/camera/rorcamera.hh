@@ -67,8 +67,9 @@ void OrbitCamera::forward(double64_t a_zoom_delta)
 	auto translation = ror::matrix4_translation(this->m_forward * delta);
 	this->m_view *= translation;
 
-	translation = ror::matrix4_translation(this->m_forward * -delta);
-	this->m_eye = translation * this->m_eye;
+	translation    = ror::matrix4_translation(this->m_forward * -delta);
+	this->m_eye    = translation * this->m_eye;
+	this->m_center = translation * this->m_center;
 
 	this->m_x_mag += delta;
 	this->m_y_mag += delta;
