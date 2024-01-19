@@ -23,7 +23,7 @@ layout(location = 0) out vec4 out_color;
 float linearize_depth(float depth)
 {
     float z_near = 0.1;
-    float z_far  = 1000.0;
+    float z_far  = 100.0;
 
     return (2.0 * z_near) / (z_far + z_near - depth * (z_far - z_near));
 }
