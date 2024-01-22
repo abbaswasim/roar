@@ -157,7 +157,49 @@
 			"input": {
 				"name":"Footprint_Court/Footprint_Court_2k.hdr",
 				"format":"r32g32b32a32_float128",
+				"sampler": 2,
+				"target": "2D"
+			},
+			"irradiance": {
+				"name":"irradiance_map",
+				"format":"r32g32b32a32_float128",
+				"size" : 512,
+				"target": "CUBE",
 				"sampler": 1,
+				"writeable": true,
+				"mipmapped": true
+			},
+			"radiance": {
+				"name":"radiance_map",
+				"format":"r32g32b32a32_float128",
+				"size" : 512,
+				"target": "CUBE",
+				"sampler": 2,
+				"writeable": true,
+				"mipmapped": true
+			},
+			"skybox": {
+				"name":"skybox_cubemap",
+				"format":"r8g8b8a8_uint32_norm",
+				"size" : 1024,
+				"target": "CUBE",
+				"sampler": 2,
+				"writeable": true,
+				"mipmapped": true
+			}
+		},
+		{
+			"name": "Violent days",
+			"skybox_pso": 2,
+			"radiance_pso": 4,
+			"irradiance_pso": 3,
+			"brdf_integration_pso": 6,
+			"skybox_render_pso": 5,
+			"brdf_integration": 12,
+			"input": {
+				"name":"violentdays.jpg",
+				"format":"r8g8b8a8_uint32_norm",
+				"sampler": 0,
 				"target": "2D"
 			},
 			"irradiance": {

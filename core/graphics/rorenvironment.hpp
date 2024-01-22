@@ -48,9 +48,18 @@ class ROAR_ENGINE_ITEM IBLEnvironment final
 	FORCE_INLINE IBLEnvironment &operator=(IBLEnvironment &&a_other) noexcept      = default;        //! Move assignment operator
 	FORCE_INLINE ~IBLEnvironment() noexcept                                        = default;        //! Destructor
 
+	enum class InputType : uint32_t
+	{
+		unknown,
+		equirectangular,
+		plus
+	};
+
 	// clang-format off
 	FORCE_INLINE void path(std::filesystem::path a_path)            { this->m_path = a_path;                     }
 	FORCE_INLINE void name(std::string a_name)                      { this->m_name = a_name;                     }
+	FORCE_INLINE void ready(bool a_ready)                           { this->m_ready = a_ready;                   }
+	FORCE_INLINE void type(InputType a_type)                        { this->m_type = a_type;                     }
 	FORCE_INLINE void input(uint32_t a_index)                       { this->m_input = a_index;                   }
 	FORCE_INLINE void skybox(uint32_t a_index)                      { this->m_skybox = a_index;                  }
 	FORCE_INLINE void radiance(uint32_t a_index)                    { this->m_radiance = a_index;                }
@@ -68,6 +77,8 @@ class ROAR_ENGINE_ITEM IBLEnvironment final
 
 	FORCE_INLINE auto name()                          const noexcept { return this->m_name;                    }
 	FORCE_INLINE auto path()                          const noexcept { return this->m_path;                    }
+	FORCE_INLINE constexpr auto ready()               const noexcept { return this->m_ready;                   }
+	FORCE_INLINE constexpr auto type()                const noexcept { return this->m_type;                    }
 	FORCE_INLINE constexpr auto input()               const noexcept { return this->m_input;                   }
 	FORCE_INLINE constexpr auto skybox()              const noexcept { return this->m_skybox;                  }
 	FORCE_INLINE constexpr auto radiance()            const noexcept { return this->m_radiance;                }
@@ -88,6 +99,8 @@ class ROAR_ENGINE_ITEM IBLEnvironment final
   private:
 	std::string           m_name{};                          //! Name of the environment
 	std::filesystem::path m_path{};                          //! Path to input equirectangular 2D .hdr/.exr image
+	bool                  m_ready{false};                    //! Whether the environment is fully loaded and upload or not
+	InputType             m_type{InputType::unknown};        //! Input type of the input cube map like equirectangular and plus etc
 	uint32_t              m_input{0};                        //! Index of input texture in renderer textures
 	uint32_t              m_skybox{0};                       //! Index of skybox environment cube map texture in renderer textures that is used as it is
 	uint32_t              m_radiance{0};                     //! Index of radiance cube map texture in renderer textures

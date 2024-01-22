@@ -7,13 +7,14 @@ layout(binding = 1, rgba8) uniform image2D skybox_patch_image;
 layout(std140, set = 0, binding = 0) uniform sizes
 {
 	uvec4 mip_offset_size;
+	uint  cube_type;
 } in_sizes;
 
 #include <ibl_common.glsl>
 
-vec4 cubify(vec3 uvz)
+vec4 cubify(vec3 uvz, vec2 uv, uint face, uint type)
 {
-	vec2 uv = cubemap_sampling_uvs(uvz);
+	uv = cubemap_sampling_uvs(uvz, uv, face, type);
 	return texture(equirectangular_image, uv);
 }
 
@@ -28,7 +29,7 @@ void main()
 	vec3 uvz = invocation_to_direction(cube_size);
 	rotate_to_cube_face(xyz.z, uvz);
 
-	vec4 skybox_patch_output     = cubify(uvz);
+	vec4 skybox_patch_output = cubify(uvz, xyz.xy / cube_size, xyz.z, in_sizes.cube_type);
 
 	vec4 offset = patch_offset(xyz.z, w, h);
 

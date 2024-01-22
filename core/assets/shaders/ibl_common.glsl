@@ -25,6 +25,115 @@ vec2 world_to_spherical(vec3 v)
 	return uv;
 }
 
+// Takes UVs in single image [0..1] and turns them into + shape image for each face
+vec2 uv_to_plus_uv(vec2 uv, uint face)
+{
+	float w = 1.0 / 4.0;
+	float h = 1.0 / 3.0;
+
+	uv.x *= w;
+	uv.y *= h;
+
+	if (face == 0)
+	{
+		uv.x += 2.0 * w;
+		uv.y += h;
+	}
+	else if (face == 1)
+	{
+		uv.y += h;
+	}
+	else if (face == 2)
+	{
+		uv.x += w;
+	}
+	else if (face == 3)
+	{
+		uv.x += w;
+		uv.y += 2.0 * h;
+	}
+	else if (face == 4)
+	{
+		uv.x += w;
+		uv.y += h;
+	}
+	else if (face == 5)
+	{
+		uv.x += 3.0 * w;
+		uv.y += h;
+	}
+
+	return uv;
+}
+
+// Calculates cubemap major axis (face) and UVs from a 3D vector
+// Its not used for regular skybox because it ends up with dark borders in some faces
+// But for things like convolute we don't have any option, and the border doesn't matter much
+vec2 world_to_plus(vec3 v)
+{
+	vec3 vb = vec3(abs(v.x), abs(v.y), abs(v.z));
+	uint face;
+	vec2 uv = v.xy;
+
+	if (vb.x >= vb.y && vb.x >= vb.z)
+	{
+		uv.x = v.z / vb.x;
+		uv.y = v.y / vb.x;
+
+		uv = uv * 0.5 + 0.5;
+
+		if (v.x < 0.0)
+		{
+			face = 1;
+			uv.y = 1.0 - uv.y;
+		}
+		else
+		{
+			face = 0;
+			uv.x = 1.0 - uv.x;
+			uv.y = 1.0 - uv.y;
+		}
+	}
+	else if (vb.z >= vb.x && vb.z >= vb.y)
+	{
+		uv.x = v.x / vb.z;
+		uv.y = v.y / vb.z;
+
+		uv = uv * 0.5 + 0.5;
+
+		if (v.z < 0.0)
+		{
+			face = 5;
+			uv.x = 1.0 - uv.x;
+			uv.y = 1.0 - uv.y;
+		}
+		else
+		{
+			face = 4;
+			uv.y = 1.0 - uv.y;
+		}
+	}
+	else        // if (vb.y >= vb.x && vb.y >= vb.z)
+	{
+		uv.x = v.x / vb.y;
+		uv.y = v.z / vb.y;
+
+		uv = uv * 0.5 + 0.5;
+
+		if (v.y < 0.0)        // -Y, NOTE: the index is swapped here to make it obvious, the rotation for +Y is actually the one for -Y, I do this instead of flipping Y uv coordinate
+		{
+			face = 3;
+			uv.y = 1.0 - uv.y;
+		}
+		else
+		{
+			face = 2;
+		}
+	}
+
+	return uv_to_plus_uv(uv, face);
+}
+
 vec2 get_uv(vec2 cube_size)
 {
 	vec2 xy = vec2(gl_GlobalInvocationID.xy);
@@ -141,9 +250,58 @@ vec4 patch_offset(uint face, uint w, uint h)
 	return vec4(0, 0, w, h);
 }
 
-vec2 cubemap_sampling_uvs(vec3 direction_vector)
+// type == 0 is unknown
+// type == 1 is equirectangular,
+// type == 2 is + shape, like
+/*
+                 |----------------|
+                 |        2       |
+                 |                |
+                 |                |
+                 |       +Y       |
+                 |                |
+                 |                |
+                 |                |
+|----------------|----------------|----------------|----------------|
+|      1         |        4       |        0       |       5        |
+|                |                |                |                |
+|                |                |                |                |
+| h              |                |                |                |
+|       -X       |       +Z       |       +X       |       -Z       |
+|                |                |                |                |
+|                |                |                |                |
+|      w         |                |                |                |
+|----------------|----------------|----------------|----------------|
+                 |        3       |
+                 |                |
+                 |                |
+                 |       -Y       |
+                 |                |
+                 |                |
+                 |                |
+                 |----------------|
+*/
+// This is the one used by skybox
+vec2 cubemap_sampling_uvs(vec3 direction_vector, vec2 uv, uint face, uint type)
 {
-	vec2 uv = world_to_spherical(direction_vector);
+	if (type == 1)
+		uv = world_to_spherical(direction_vector);
+	else if (type == 2)
+		uv = uv_to_plus_uv(uv, face);
+
+	return uv;
+}
+
+// This is the one used by convolute for irradiance
+vec2 cubemap_sampling_uvs(vec3 direction_vector, uint type)
+{
+	vec2 uv;
+
+	if (type == 1)
+		uv = world_to_spherical(direction_vector);
+	else if (type == 2)
+		uv = world_to_plus(direction_vector);
+
 	return uv;
 }
 

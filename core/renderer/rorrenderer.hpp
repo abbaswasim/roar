@@ -88,6 +88,7 @@ class Renderer final : public Configuration<Renderer>
 	void                             upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack);
 	void                             upload_frame_graphs(rhi::Device &a_device);
 	void                             upload_environments(rhi::Device &a_device);
+	void                             cycle_environment();
 	std::vector<rhi::RenderpassType> render_pass_types() const;
 	void                             deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene);
 	void                             dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device);
@@ -130,6 +131,7 @@ class Renderer final : public Configuration<Renderer>
 
 	FORCE_INLINE           auto shader_buffer(const std::string& a_name)                           const           { return this->m_buffers_mapping.at(a_name);   }
 	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];}
+	FORCE_INLINE           auto &current_environment()                                                   noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];}
 
 	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
 	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }
@@ -209,6 +211,7 @@ class Renderer final : public Configuration<Renderer>
 	uint32_t                                m_final_pass{};                                   //! Index of the final pass in the render pass chains in framegraph
 	int32_t                                 m_shadow_pass{-1};                                //! Index of the shadow pass in the render pass chains in framegraph
 	EventCallback                           m_semi_colon_key_callback{};                      //! Semi colon key call back to enable disable the grid
+	std::function<void(IBLEnvironment &)>   m_environment_upload{};                           //! Environment upload lambda used by environment cycle menthod
 };
 }        // namespace ror
 

@@ -7,15 +7,10 @@ layout(binding = 1, rgba8) uniform image2D irradiance_patch_image;
 layout(std140, set = 0, binding = 0) uniform sizes
 {
 	uvec4 mip_offset_size;
+	uint  cube_type;
 } in_sizes;
 
 #include <ibl_common.glsl>
-
-vec4 cubify(vec3 uvz)
-{
-	vec2 uv = cubemap_sampling_uvs(uvz);
-	return texture(equirectangular_image, uv);
-}
 
 // based on https://github.com/JoeyDeVries/LearnOpenGL/tree/master/src/6.pbr/2.2.2.ibl_specular_textured
 vec4 convolute(vec3 N)
@@ -47,7 +42,7 @@ vec4 convolute(vec3 N)
 			// tangent space to world
 			vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * N;
 
-			vec2 uv = cubemap_sampling_uvs(sampleVec);
+			vec2 uv = cubemap_sampling_uvs(sampleVec, in_sizes.cube_type);
 			irradiance += texture(equirectangular_image, uv).rgb * cos(theta) * sin(theta);
 
 			nrSamples++;

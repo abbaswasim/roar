@@ -1,0 +1,1 @@
+../../../core/assets/shaders/ibl_lighting.glsl.frag

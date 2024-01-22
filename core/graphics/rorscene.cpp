@@ -708,7 +708,7 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 		if (settings().m_environment.m_visible)
 		{
 			auto &env                    = a_renderer.current_environment();
-			auto &skybox_image           = renderer_images[static_cast_safe<size_t>(env.skybox())];
+			auto &skybox_image           = renderer_images[static_cast_safe<size_t>(env.skybox())];        // TODO: I don't think anyone is using this at render time, apart from the skybox itself which is renderered separately
 			auto &brdf_integration_image = renderer_images[static_cast_safe<size_t>(env.brdf_integration())];
 			auto &irradiance_image       = renderer_images[static_cast_safe<size_t>(env.irradiance())];
 			auto &radiance_image         = renderer_images[static_cast_safe<size_t>(env.radiance())];
@@ -718,7 +718,7 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 			a_dd.encoder->fragment_sampler(sampler, binding_index);
 			a_dd.encoder->fragment_texture(brdf_integration_image, binding_index++);
 			a_dd.encoder->fragment_sampler(sampler, binding_index);
-			a_dd.encoder->fragment_texture(skybox_image, binding_index++);        // This behaviour matches what's in the shader_system.cpp
+			a_dd.encoder->fragment_texture(skybox_image, binding_index++);
 			a_dd.encoder->fragment_sampler(sampler, binding_index);
 			a_dd.encoder->fragment_texture(irradiance_image, binding_index++);
 			a_dd.encoder->fragment_sampler(sampler, binding_index);

@@ -431,6 +431,17 @@ int32_t Renderer::brdf_integration_lut_index(std::string a_name)
 	return index;
 }
 
+IBLEnvironment::InputType to_environment_type(const std::string &a_type)
+{
+	if (a_type == "equirectangular")
+		return IBLEnvironment::InputType::equirectangular;
+	else if (a_type == "plus")
+		return IBLEnvironment::InputType::plus;
+
+	assert(0 && "Don't understand this enviroment type, implement me");
+	return IBLEnvironment::InputType::unknown;
+}
+
 void Renderer::load_environments()
 {
 	if (this->m_json_file.contains("environments"))
@@ -474,6 +485,10 @@ void Renderer::load_environments()
 			if (environment.contains("brdf_integration_pso"))
 				ibl_environment.brdf_integration_pso(environment["brdf_integration_pso"]);
 
+			// Loading type later once input is loaded
+			if (environment.contains("type"))
+				ibl_environment.type(to_environment_type(environment["type"]));
+
 #define read_env_texture(name, s)                                                                              \
 	rhi::TextureImage name##_texture_image;                                                                    \
 	name##_texture_image.push_empty_mip();                                                                     \
@@ -502,6 +517,10 @@ void Renderer::load_environments()
 			read_env_texture(skybox, true);
 
 			ibl_environment.path(this->m_images[ibl_environment.input()].name());
+
+			assert(this->m_images[static_cast<size_t>(ibl_environment.skybox())].mipmapped() && "Skybox must be mipmapped");
+			assert(this->m_images[static_cast<size_t>(ibl_environment.irradiance())].mipmapped() && "Irradiance must be mipmapped");
+			assert(this->m_images[static_cast<size_t>(ibl_environment.radiance())].mipmapped() && "Radiance must be mipmapped");
 
 			this->m_environments.emplace_back(std::move(ibl_environment));
 
@@ -1548,8 +1567,16 @@ void Renderer::create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a
 	a_event_system.subscribe(keyboard_semicolon_click, this->m_semi_colon_key_callback);
 }
 
-void Renderer::install_input_handlers(ror::EventSystem &)
-{}
+void Renderer::install_input_handlers(ror::EventSystem &a_event_system)
+{
+	// FIXME: NOTE: This currently doesn't work, its ending up in a very obscure bug somewhere in glfw
+	// Curious enough if cycle_environment is called some other way it works
+	static auto cycle_env = [this](Event&) {
+		this->cycle_environment();
+	};
+
+	a_event_system.subscribe(keyboard_e_click, cycle_env);
+}
 
 void Renderer::uninstall_input_handlers(ror::EventSystem &)
 {}
@@ -1622,10 +1649,11 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32_t a_mip_height, rhi::Program &a_pso,
                              const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers,
-                             rhi::ShaderBuffer &a_mipmaps_shader_buffer, const char *a_stage, bool a_is_radiance = false)
+                             rhi::ShaderBuffer &a_mipmaps_shader_buffer, const char *a_stage, IBLEnvironment::InputType a_type, bool a_is_radiance = false)
 {
 	auto           mip_levels_count = rhi::calculate_texture_mip_levels(a_mip_width, a_mip_height, 1);
 	ror::Vector4ui mip_offset_size{0, 0, a_mip_width, a_mip_width};
+	uint32_t       cube_type{enum_to_type_cast(a_type)};
 
 	for (size_t level = 0; level < mip_levels_count; ++level)
 	{
@@ -1642,11 +1670,15 @@ static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32
 
 		a_mipmaps_shader_buffer.buffer_map();
 		a_mipmaps_shader_buffer.update("mip_offset_size", &mip_offset_size);
+
 		if (a_is_radiance)
 		{
 			a_mipmaps_shader_buffer.update("roughness", &roughness);
 			a_mipmaps_shader_buffer.update("miplevels", &mip_levels_count);
 		}
+		else
+			a_mipmaps_shader_buffer.update("cube_type", &cube_type);
+
 		a_mipmaps_shader_buffer.buffer_unmap();
 
 		rhi::compute_dispatch_and_wait(a_device, {mip_offset_size.z, mip_offset_size.w, 6}, {32, 32, 1}, a_pso, a_images, a_samplers, a_mipmaps_shader_buffer, []() {});
@@ -1666,11 +1698,6 @@ std::string environment_name(ror::IBLEnvironment &a_environment)
 
 std::string environment_name_sky(ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
 {
-	// auto &skybox     = a_renderer.images()[a_environment.skybox()];
-	// auto &irradiance = a_renderer.images()[a_environment.irradiance()];
-	// auto &radiance   = a_renderer.images()[a_environment.radiance()];
-	// env_name += "_" + std::to_string(skybox.width()) + "_" + std::to_string(irradiance.width()) + "_" + std::to_string(radiance.width()) + "_";
-
 	auto &skybox = a_renderer.images()[a_environment.skybox()];
 
 	auto env_name = environment_name(a_environment);
@@ -1704,7 +1731,6 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 {
 	auto &updator = shader_updater();
 
-	// TODO: Use different size for each
 	auto &skbox = a_renderer.images()[a_environment.skybox()];
 	auto &irrad = a_renderer.images()[a_environment.irradiance()];
 	auto &rad   = a_renderer.images()[a_environment.radiance()];
@@ -1760,6 +1786,7 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		auto &input_smplr    = a_renderer.samplers()[a_environment.input_sampler()];
 		auto &skybox_pso     = a_renderer.programs()[a_environment.skybox_pso()];
 		auto &irradiance_pso = a_renderer.programs()[a_environment.irradiance_pso()];
+		auto  type           = a_environment.type();
 
 		const std::vector<const rhi::TextureImage *>   skybox_images{&input, &skybox_ldr_patch_ti};
 		const std::vector<const rhi::TextureImage *>   radiance_images{&input, &radiance_hdr_patch_ti};
@@ -1769,18 +1796,19 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		rhi::ShaderBuffer sizes_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
 
 		sizes_shader_buffer.add_entry("mip_offset_size", rhi::Format::uint32_4);
+		sizes_shader_buffer.add_entry("cube_type", rhi::Format::uint32_1);
 		sizes_shader_buffer.upload(device);
 		sizes_shader_buffer.ready(true);
 
-		// First we create patche for sky ldr image
-		patch_mip_levels(device, sky_env_width, sky_env_width, skybox_pso, skybox_images, samplers, sizes_shader_buffer, "skybox image");
+		// First we create patch for sky ldr image
+		patch_mip_levels(device, sky_env_width, sky_env_width, skybox_pso, skybox_images, samplers, sizes_shader_buffer, "skybox image", type);
 
-		// Then we create patche for sky hdr image
+		// Then we create patch for sky hdr image
 		// I am using the skybox_pso here because its the same work, but seprate dispatch because sizes might differ
-		patch_mip_levels(device, rad_env_width, rad_env_width, skybox_pso, radiance_images, samplers, sizes_shader_buffer, "radiance skybox");
+		patch_mip_levels(device, rad_env_width, rad_env_width, skybox_pso, radiance_images, samplers, sizes_shader_buffer, "radiance skybox", type);
 
 		// Then we do convolution for irradiance map and create a patch image
-		patch_mip_levels(device, irr_env_width, irr_env_width, irradiance_pso, irradiance_images, samplers, sizes_shader_buffer, "irradiance convolution");
+		patch_mip_levels(device, irr_env_width, irr_env_width, irradiance_pso, irradiance_images, samplers, sizes_shader_buffer, "irradiance convolution", type);
 
 		// Then we turn it into a skybox ldr/hdr and irradiance cubemap
 		// Remember this doesn't work in completion handler, something to do with command buffer inside command buffer
@@ -1800,6 +1828,7 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		auto &input_sampler = a_renderer.samplers()[a_environment.input_sampler()];
 		auto &radiance_pso  = a_renderer.programs()[a_environment.radiance_pso()];
 		auto &radiance      = a_renderer.images()[a_environment.radiance()];
+		auto  type          = a_environment.type();
 
 		const std::vector<const rhi::TextureImage *>   radiance_images{&radiance_hdr_ti, &radiance_patch_ti};
 		const std::vector<const rhi::TextureSampler *> radiance_samplers{&input_sampler};
@@ -1813,7 +1842,7 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		mipmaps_shader_buffer.ready(true);
 
 		// First we create a prefiltered patch
-		patch_mip_levels(device, rad_env_width, rad_env_width, radiance_pso, radiance_images, radiance_samplers, mipmaps_shader_buffer, "radiance filtering", true);
+		patch_mip_levels(device, rad_env_width, rad_env_width, radiance_pso, radiance_images, radiance_samplers, mipmaps_shader_buffer, "radiance filtering", type, true);
 
 		// Then we turn it into a cubemap
 		rhi::texture_patch_to_mipmapped_cubemap_texture(device, radiance_patch_ti, radiance);
@@ -1870,6 +1899,28 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 
 	updator.push_program_record(static_cast<int32_t>(a_environment.irradiance_pso()), a_renderer.programs(), a_renderer.shaders(), irradiance_lambda);
 	updator.push_program_record(static_cast<int32_t>(a_environment.radiance_pso()), a_renderer.programs(), a_renderer.shaders(), radiance_lambda);
+
+	a_environment.ready(true);
+}
+
+void guess_environment_type(ror::Renderer &a_renderer, ror::IBLEnvironment &a_environment)
+{
+	if (a_environment.type() == IBLEnvironment::InputType::unknown)
+	{
+		// Lets guess it from the size
+		auto &input  = a_renderer.images()[a_environment.input()];
+		auto  width  = input.width();
+		auto  height = input.height();
+
+		assert(width && height && "Input width and height not set correctly");
+
+		if (width / 2 == height)
+			a_environment.type(IBLEnvironment::InputType::equirectangular);
+		else if (width / 4 == height / 3)
+			a_environment.type(IBLEnvironment::InputType::plus);
+		else
+			assert(0 && "Can't guess the environment type");
+	}
 }
 
 // This method works in the following way:
@@ -1877,7 +1928,7 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 //    Create 5 temporary textures 1 HDR cubemap, 1 LDR patch and 3 HDR patches
 // For each environment do the following:
 // Step 1:
-//     load input HDR image (equirectangular supported at the moment)
+//     load input HDR image (equirectangular and plus supported at the moment)
 //     turn it into patches required for mipmapped cubemaps:
 //        1 LDR patch for skybox
 //        1 HDR and convoluted patch for irradiance cubemap and
@@ -1901,7 +1952,32 @@ void Renderer::upload_environments(rhi::Device &a_device)
 	this->create_environment_mesh(a_device);
 
 	for (auto &environment : this->m_environments)
-		setup_environment(a_device, *this, environment);
+		guess_environment_type(*this, environment);
+
+	// Don't upload all environments only do current for now
+	auto &environment = this->current_environment();
+	setup_environment(a_device, *this, environment);
+
+	// Create an upload lambda for the rest, which will be called when needed
+	this->m_environment_upload = [&a_device, this](IBLEnvironment &env) {
+		setup_environment(a_device, *this, env);
+	};
+}
+
+void Renderer::cycle_environment()
+{
+	this->m_current_environment++;
+	this->m_current_environment %= this->m_environments.size();
+
+	auto &environment = this->current_environment();
+	if (!environment.ready())
+		this->m_environment_upload(environment);
+
+	uint32_t map_index      = this->environment_visualize_mode(static_cast<uint32_t>(this->m_current_environment));
+	auto     skybox_image   = &this->images()[map_index];
+	auto     skybox_sampler = &this->samplers()[environment.skybox_sampler()];
+
+	this->m_cube_map_mesh.set_texture(skybox_image, skybox_sampler);
 }
 
 void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
@@ -2160,7 +2236,7 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 	// This is done last because of the move
 	this->m_debug_data.m_frustums[cascade_index].setup_vertex_descriptor(&colored_lines_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 
-	auto frustum_update = [&a_scene, this](Event&) {
+	auto frustum_update = [&a_scene, this](Event &) {
 		auto &camera = a_scene.current_camera();
 		camera.setup_frustums();
 		this->update_frustums_geometry(camera);
