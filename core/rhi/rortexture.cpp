@@ -195,7 +195,7 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 
 	uint8_t *new_data{nullptr};
 
-	stbi_set_flip_vertically_on_load(a_is_hdr);
+	stbi_set_flip_vertically_on_load_thread(a_is_hdr);
 
 	if (setting.m_force_ldr_textures)
 		a_is_hdr = false;
@@ -232,7 +232,7 @@ void read_texture_from_memory(const uint8_t *a_data, size_t a_data_size, rhi::Te
 		new_data = stbi_load_from_memory(a_data, ror::static_cast_safe<int32_t>(a_data_size), &w, &h, &bpp, req_comp);        // Final argument = 0 means get real bpp
 	}
 
-	stbi_set_flip_vertically_on_load(false);
+	stbi_set_flip_vertically_on_load_thread(false);
 
 	// Incase testing of the image is requird if its loaded correctly or not
 	// write_ppm("image_loaded_data.ppm", static_cast<uint32_t>(w), static_cast<uint32_t>(h), a_is_hdr ? reinterpre_cast<float32_t*>(new_data) : new_data);

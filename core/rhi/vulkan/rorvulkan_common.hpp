@@ -29,9 +29,9 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
+#include <optional>
 #include <typeindex>
 #include <unordered_map>
-#include <optional>
 
 namespace vk
 {
@@ -112,7 +112,7 @@ constexpr FORCE_INLINE const char *vk_result_to_string(VkResult a_result)
 	{                                                                                                        \
 		ror::log_critical("Vulkan command {} returned error code {}", funcall, vk_result_to_string(result)); \
 		assert(0 && funcall);                                                                                \
-	}(void)0
+	} (void) 0
 
 constexpr FORCE_INLINE auto to_vulkan_pixelformat(rhi::PixelFormat a_pixelformat)
 {
@@ -258,7 +258,7 @@ FORCE_INLINE VkSampleCountFlagBits get_sample_count(VkPhysicalDeviceProperties a
 		if ((counts & static_cast<uint32_t>(required)) == required)
 			return required;
 
-		required = static_cast<VkSampleCountFlagBits>(required >> 2);
+		required = static_cast<VkSampleCountFlagBits>(required >> 1);
 
 	} while (required);
 
@@ -304,6 +304,7 @@ FORCE_INLINE std::vector<const char *> instance_extensions_requested()
 	*/
 	return std::vector<const char *>
 	{
+		// clang-format off
 		VK_KHR_SURFACE_EXTENSION_NAME,                                 // VK_KHR_surface
 		VK_KHR_DISPLAY_EXTENSION_NAME,                                 // VK_KHR_display
 		VK_EXT_DEBUG_UTILS_EXTENSION_NAME,                             // VK_EXT_debug_utils
@@ -311,10 +312,11 @@ FORCE_INLINE std::vector<const char *> instance_extensions_requested()
 		VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,                 // VK_KHR_portability_enumeration
 		VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,                  // VK_EXT_extended_dynamic_state
 #if defined __APPLE__
-		VK_EXT_METAL_SURFACE_EXTENSION_NAME,        // "VK_EXT_metal_surface"
+		VK_EXT_METAL_SURFACE_EXTENSION_NAME,                           // "VK_EXT_metal_surface"
 #elif defined __linux__
-		VK_KHR_XCB_SURFACE_EXTENSION_NAME        // "VK_EXT_xcb_surface??"
+		VK_KHR_XCB_SURFACE_EXTENSION_NAME                              // "VK_EXT_xcb_surface??"
 #endif
+		// clang-format on
 	};
 }
 

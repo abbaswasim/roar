@@ -41,16 +41,14 @@ class ShaderVulkan : public ShaderCrtp<ShaderVulkan>
 	FORCE_INLINE               ShaderVulkan(ShaderVulkan &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ShaderVulkan &operator=(const ShaderVulkan &a_other)        = default;        //! Copy assignment operator
 	FORCE_INLINE ShaderVulkan &operator=(ShaderVulkan &&a_other) noexcept    = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~ShaderVulkan() noexcept override;                                    //! Destructor
+	FORCE_INLINE virtual ~ShaderVulkan() noexcept override                   = default;        //! Destructor
 
 	FORCE_INLINE ShaderVulkan(const std::string &a_shader, hash_64_t a_hash, rhi::ShaderType a_type, ror::ResourceAction a_action) :
 	    ShaderCrtp(a_shader, a_hash, a_type, a_action)
 	{}
 
 	// clang-format off
-	FORCE_INLINE constexpr VkShaderModule module()   const  noexcept   { return this->m_module;     }
-	// FORCE_INLINE constexpr auto        *function()   const  noexcept   {      return this->m_main_function;     }
-	// FORCE_INLINE std::string_view       msl_source() const             {      return this->m_msl_source;        }
+	FORCE_INLINE constexpr VkShaderModule module()   const noexcept   { return this->m_module;     }
 	// clang-format on
 
 	void platform_source();
@@ -59,8 +57,9 @@ class ShaderVulkan : public ShaderCrtp<ShaderVulkan>
   protected:
 	FORCE_INLINE ShaderVulkan() = default;        //! Default constructor
   private:
-	VkShaderModule m_module{nullptr};        // Vulkan Shader module for this shader
 	declare_translation_unit_vtable();
+
+	VkShaderModule m_module{nullptr};        //! Vulkan Shader module for this shader
 };
 
 declare_rhi_render_type(Shader);
