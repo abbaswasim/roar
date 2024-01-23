@@ -36,3 +36,8 @@ core/assets/textures/violentdays_large.jpg
 editor/imgui.ini
 editor/assets/scenes/*_state.json
 still_to_clean_core
+veranda_2k.hdr
+core/assets/textures/thatch_chapel_2k.hdr
+core/assets/textures/fireplace_2k.hdr
+core/assets/textures/courtyard_night_2k.hdr
+core/assets/textures/blaubeuren_night_2k.hdr
