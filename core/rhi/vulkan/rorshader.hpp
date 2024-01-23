@@ -49,10 +49,12 @@ class ShaderVulkan : public ShaderCrtp<ShaderVulkan>
 
 	// clang-format off
 	FORCE_INLINE constexpr VkShaderModule module()   const  noexcept   { return this->m_module;     }
+	// FORCE_INLINE constexpr auto        *function()   const  noexcept   {      return this->m_main_function;     }
+	// FORCE_INLINE std::string_view       msl_source() const             {      return this->m_msl_source;        }
 	// clang-format on
 
 	void platform_source();
-	void upload(rhi::Device &a_device);
+	void upload(const rhi::Device &a_device);
 
   protected:
 	FORCE_INLINE ShaderVulkan() = default;        //! Default constructor

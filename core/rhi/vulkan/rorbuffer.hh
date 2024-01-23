@@ -36,7 +36,7 @@ void BufferVulkan::release()
 	vk_destroy_buffer(this->m_device, this->m_buffer);
 }
 
-FORCE_INLINE void BufferVulkan::init(rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
+FORCE_INLINE void BufferVulkan::init(const rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
 {
 	if (a_size_in_bytes == 0)
 		ror::log_warn("Creating a buffer of size {}", a_size_in_bytes);
@@ -93,7 +93,7 @@ FORCE_INLINE constexpr void BufferVulkan::unmap() noexcept
 	}
 }
 
-FORCE_INLINE void BufferVulkan::resize(rhi::Device &a_device, size_t a_length)
+FORCE_INLINE void BufferVulkan::resize(const rhi::Device &a_device, size_t a_length)
 {
 	if (this->buffer_size() > a_length)
 		return;

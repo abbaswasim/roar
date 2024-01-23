@@ -82,7 +82,7 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 
 	auto resize_callback = [this, a_platform_window, &settings](ror::Event &a_event) {
 		auto size         = a_event.get_payload<ror::Vector2ui>();
-		auto pixel_format = to_vulkan_pixelformat(settings.m_pixel_format);
+		auto pixel_format = to_vulkan_pixelformat(settings.m_window.m_pixel_format);
 
 		this->m_swapchain.release(this->m_device);
 		this->m_swapchain.create(this->m_gpu.get_handle(), this->m_device, this->m_surface, pixel_format, VkExtent2D{size.x, size.y});
@@ -94,123 +94,123 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 	resize_callback(e);
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_device()
+FORCE_INLINE auto DeviceVulkan::platform_device() const
 {
 	assert(this->m_device && "Vulkan device requested is null");
 
 	return this->m_device;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_graphics_queue()
+FORCE_INLINE auto DeviceVulkan::platform_graphics_queue() const
 {
 	assert(this->m_graphics_queue.m_queue && "Vulkan graphics queue requested is null");
 
 	return this->m_graphics_queue.m_queue;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_compute_queue()
+FORCE_INLINE auto DeviceVulkan::platform_compute_queue() const
 {
 	assert(this->m_compute_queue.m_queue && "Vulkan compute queue requested is null");
 
 	return this->m_compute_queue.m_queue;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_transfer_queue()
+FORCE_INLINE auto DeviceVulkan::platform_transfer_queue() const
 {
 	assert(this->m_transfer_queue.m_queue && "Vulkan transfer queue requested is null");
 
 	return this->m_transfer_queue.m_queue;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_present_queue()
+FORCE_INLINE auto DeviceVulkan::platform_present_queue() const
 {
 	assert(this->m_present_queue.m_queue && "Vulkan present queue requested is null");
 
 	return this->m_present_queue.m_queue;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_sparse_queue()
+FORCE_INLINE auto DeviceVulkan::platform_sparse_queue() const
 {
 	assert(this->m_sparse_queue.m_queue && "Vulkan sparse queue requested is null");
 
 	return this->m_sparse_queue.m_queue;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_protected_queue()
+FORCE_INLINE auto DeviceVulkan::platform_protected_queue() const
 {
 	assert(this->m_protected_queue.m_queue && "Vulkan protected queue requested is null");
 
 	return this->m_protected_queue.m_queue;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_graphics_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_graphics_queue_index() const
 {
 	assert(this->m_graphics_queue.m_queue && "Vulkan graphics queue requested is null");
 
 	return this->m_graphics_queue.m_index;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_compute_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_compute_queue_index() const
 {
 	assert(this->m_compute_queue.m_queue && "Vulkan compute queue requested is null");
 
 	return this->m_compute_queue.m_index;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_transfer_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_transfer_queue_index() const
 {
 	assert(this->m_transfer_queue.m_queue && "Vulkan transfer queue requested is null");
 
 	return this->m_transfer_queue.m_index;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_present_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_present_queue_index() const
 {
 	assert(this->m_present_queue.m_queue && "Vulkan present queue requested is null");
 
 	return this->m_present_queue.m_index;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_sparse_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_sparse_queue_index() const
 {
 	assert(this->m_sparse_queue.m_queue && "Vulkan sparse queue requested is null");
 
 	return this->m_sparse_queue.m_index;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_protected_queue_index()
+FORCE_INLINE auto DeviceVulkan::platform_protected_queue_index() const
 {
 	assert(this->m_protected_queue.m_queue && "Vulkan protected queue requested is null");
 
 	return this->m_protected_queue.m_index;
 }
 
-FORCE_INLINE auto &DeviceVulkan::platform_graphics_queue_mutex()
+FORCE_INLINE auto &DeviceVulkan::platform_graphics_queue_mutex() const
 {
 	return this->m_graphics_queue.m_mutex;
 }
 
-FORCE_INLINE auto &DeviceVulkan::platform_compute_queue_mutex()
+FORCE_INLINE auto &DeviceVulkan::platform_compute_queue_mutex() const
 {
 	return this->m_compute_queue.m_mutex;
 }
 
-FORCE_INLINE auto &DeviceVulkan::platform_transfer_queue_mutex()
+FORCE_INLINE auto &DeviceVulkan::platform_transfer_queue_mutex() const
 {
 	return this->m_transfer_queue.m_mutex;
 }
 
-FORCE_INLINE auto &DeviceVulkan::platform_present_queue_mutex()
+FORCE_INLINE auto &DeviceVulkan::platform_present_queue_mutex() const
 {
 	return this->m_present_queue.m_mutex;
 }
 
-FORCE_INLINE auto &DeviceVulkan::platform_sparse_queue_mutex()
+FORCE_INLINE auto &DeviceVulkan::platform_sparse_queue_mutex() const
 {
 	return this->m_sparse_queue.m_mutex;
 }
 
-FORCE_INLINE auto &DeviceVulkan::platform_protected_queue_mutex()
+FORCE_INLINE auto &DeviceVulkan::platform_protected_queue_mutex() const
 {
 	return this->m_protected_queue.m_mutex;
 }
@@ -255,7 +255,7 @@ FORCE_INLINE void DeviceVulkan::destroy_device()
 	vk_destroy_device(this->m_device);
 }
 
-FORCE_INLINE auto &PhysicalDevice::memory_properties()
+FORCE_INLINE auto &PhysicalDevice::memory_properties() const
 {
 	return this->m_memory_properties;
 }
@@ -265,7 +265,7 @@ FORCE_INLINE auto PhysicalDevice::samples_count()
 	return get_sample_count(this->m_physical_device_properties);
 }
 
-FORCE_INLINE auto &DeviceVulkan::memory_properties()
+FORCE_INLINE auto &DeviceVulkan::memory_properties() const
 {
 	return this->m_gpu.memory_properties();
 }

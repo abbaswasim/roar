@@ -88,7 +88,8 @@
 	"vulkan" :
 	{
 		"version_major" : 1,
-		"version_minor" : 3
+		"version_minor" : 3,
+		"validation" : true
 	},
 	"fog" :
 	{

@@ -33,10 +33,7 @@
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
-
-// #include <Vulkan/MTLBuffer.hpp>
-// #include <Vulkan/MTLCommandBuffer.hpp>
-// #include <Vulkan/MTLRenderCommandEncoder.hpp>
+#include "rhi/vulkan/rorvulkan_common.hpp"
 
 namespace rhi
 {
@@ -47,28 +44,30 @@ declare_rhi_render_type(Program);
 class ComputeCommandEncoderVulkan final
 {
   public:
-	FORCE_INLINE                             ComputeCommandEncoderVulkan(const ComputeCommandEncoderVulkan &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE                             ComputeCommandEncoderVulkan(ComputeCommandEncoderVulkan &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE ComputeCommandEncoderVulkan &operator=(const ComputeCommandEncoderVulkan &a_other)                      = default;        //! Copy assignment operator
-	FORCE_INLINE ComputeCommandEncoderVulkan &operator=(ComputeCommandEncoderVulkan &&a_other) noexcept                  = default;        //! Move assignment operator
+	FORCE_INLINE                              ComputeCommandEncoderVulkan(const ComputeCommandEncoderVulkan &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                              ComputeCommandEncoderVulkan(ComputeCommandEncoderVulkan &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE ComputeCommandEncoderVulkan &operator=(const ComputeCommandEncoderVulkan &a_other)                       = default;        //! Copy assignment operator
+	FORCE_INLINE ComputeCommandEncoderVulkan &operator=(ComputeCommandEncoderVulkan &&a_other) noexcept                   = default;        //! Move assignment operator
 	FORCE_INLINE ~ComputeCommandEncoderVulkan() noexcept;
-	FORCE_INLINE explicit ComputeCommandEncoderVulkan(void *a_encoder);
+	FORCE_INLINE explicit ComputeCommandEncoderVulkan(VkCommandBuffer a_encoder);
 
-	FORCE_INLINE constexpr void compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept;
 	FORCE_INLINE constexpr void buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void texture(const rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
+	FORCE_INLINE constexpr void sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept;
 	FORCE_INLINE constexpr void end_encoding() noexcept;
+	FORCE_INLINE constexpr void release() const noexcept;
 	FORCE_INLINE constexpr void release() noexcept;
 
+	void compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept;
+
 	// FIXME: Make me private again
-	FORCE_INLINE                ComputeCommandEncoderVulkan() = default;        //! Default constructor
+	FORCE_INLINE ComputeCommandEncoderVulkan() = default;        //! Default constructor
   protected:
   private:
 	// FORCE_INLINE                ComputeCommandEncoderVulkan() = default;        //! Default constructor
-	void *m_encoder{nullptr};
+	VkCommandBuffer m_command_buffer{nullptr};        //! The command buffer used to encode the encoder commands
 };
 
 declare_rhi_render_type(ComputeCommandEncoder);

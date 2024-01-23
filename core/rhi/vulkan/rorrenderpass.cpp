@@ -286,4 +286,9 @@ rhi::ComputeCommandEncoder RenderpassVulkan::compute_encoder(rhi::CommandBuffer 
 	return rhi::ComputeCommandEncoder{a_command_buffer.platform_command_buffer()};
 }
 
+void RenderpassVulkan::execute(rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
+                               rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer)
+{
+	renderpass_execute(*this, a_command_buffer, a_scene, a_surface, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer);
+}
 }        // namespace rhi

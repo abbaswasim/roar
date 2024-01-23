@@ -304,15 +304,16 @@ FORCE_INLINE std::vector<const char *> instance_extensions_requested()
 	*/
 	return std::vector<const char *>
 	{
-		VK_KHR_SURFACE_EXTENSION_NAME,                                     // VK_KHR_surface
-		    VK_KHR_DISPLAY_EXTENSION_NAME,                                 // VK_KHR_display
-		    VK_EXT_DEBUG_UTILS_EXTENSION_NAME,                             // VK_EXT_debug_utils
-		    VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,        // VK_KHR_get_physical_device_properties2
-		    VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,                 // VK_KHR_portability_enumeration"
+		VK_KHR_SURFACE_EXTENSION_NAME,                                 // VK_KHR_surface
+		VK_KHR_DISPLAY_EXTENSION_NAME,                                 // VK_KHR_display
+		VK_EXT_DEBUG_UTILS_EXTENSION_NAME,                             // VK_EXT_debug_utils
+		VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,        // VK_KHR_get_physical_device_properties2
+		VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,                 // VK_KHR_portability_enumeration
+		VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,                  // VK_EXT_extended_dynamic_state
 #if defined __APPLE__
-		    VK_EXT_METAL_SURFACE_EXTENSION_NAME,        // "VK_EXT_metal_surface"
+		VK_EXT_METAL_SURFACE_EXTENSION_NAME,        // "VK_EXT_metal_surface"
 #elif defined __linux__
-		    VK_KHR_XCB_SURFACE_EXTENSION_NAME        // "VK_EXT_xcb_surface??"
+		VK_KHR_XCB_SURFACE_EXTENSION_NAME        // "VK_EXT_xcb_surface??"
 #endif
 	};
 }
@@ -323,7 +324,7 @@ FORCE_INLINE std::vector<const char *> instance_layers_requested()
 	  VK_LAYER_LUNARG_api_dump
 	  VK_LAYER_KHRONOS_validation
 	*/
-	return std::vector<const char *>{"VK_LAYER_KHRONOS_validation"};
+	return std::vector<const char *>{ror::settings().m_vulkan.m_validation ? "VK_LAYER_KHRONOS_validation" : ""};
 }
 
 FORCE_INLINE std::vector<const char *> device_extensions_requested()

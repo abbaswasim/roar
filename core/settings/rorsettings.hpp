@@ -287,14 +287,15 @@ class ROAR_ENGINE_ITEM Settings final
 		assert(this->m_bindings.m_joint_inverse_bind != 0 && "m_joint_inverse_bind wasn't read properly");
 		assert(this->m_bindings.m_max_attributes != 0 && "m_max_attributes wasn't read properly");
 
-		this->m_metal.version_major            = setting.get<uint32_t>("metal:version_major");
-		this->m_metal.version_minor            = setting.get<uint32_t>("metal:version_minor");
+		this->m_metal.m_version_major          = setting.get<uint32_t>("metal:version_major");
+		this->m_metal.m_version_minor          = setting.get<uint32_t>("metal:version_minor");
 		this->m_metal.argument_buffers         = setting.get<bool>("metal:argument_buffers");
 		this->m_metal.decoration_bindings      = setting.get<bool>("metal:force_spirv_bindings");
 		this->m_metal.indirect_command_buffers = setting.get<bool>("metal:indirect_command_buffers");
 
-		this->m_vulkan.version_major = setting.get<uint32_t>("vulkan:version_major");
-		this->m_vulkan.version_minor = setting.get<uint32_t>("vulkan:version_minor");
+		this->m_vulkan.m_version_major = setting.get<uint32_t>("vulkan:version_major");
+		this->m_vulkan.m_version_minor = setting.get<uint32_t>("vulkan:version_minor");
+		this->m_vulkan.m_validation    = setting.get<bool>("vulkan:validation");
 
 		this->m_print_generated_shaders          = setting.get<bool>("print_generated_shaders");
 		this->m_print_generated_msl_shaders      = setting.get<bool>("print_generated_msl_shaders");
@@ -531,8 +532,8 @@ class ROAR_ENGINE_ITEM Settings final
 
 	struct Options
 	{
-		uint32_t version_major{3};
-		uint32_t version_minor{0};
+		uint32_t m_version_major{3};
+		uint32_t m_version_minor{0};
 	};
 
 	struct MetalOptions : public Options
@@ -543,7 +544,9 @@ class ROAR_ENGINE_ITEM Settings final
 	};
 
 	struct VulkanOptions : public Options
-	{};
+	{
+		bool m_validation{true};
+	};
 
 	VulkanOptions m_vulkan{};
 	MetalOptions  m_metal{};
@@ -635,14 +638,14 @@ FORCE_INLINE uint32_t metal_api_version() noexcept
 {
 	auto &setting = ror::settings();
 
-	return ROAR_MAKE_VERSION(setting.m_metal.version_major, setting.m_metal.version_minor, 0);
+	return ROAR_MAKE_VERSION(setting.m_metal.m_version_major, setting.m_metal.m_version_minor, 0);
 }
 
 FORCE_INLINE uint32_t vulkan_api_version() noexcept
 {
 	auto &setting = ror::settings();
 
-	return ROAR_MAKE_VERSION(setting.m_vulkan.version_major, setting.m_vulkan.version_minor, 0);
+	return ROAR_MAKE_VERSION(setting.m_vulkan.m_version_major, setting.m_vulkan.m_version_minor, 0);
 }
 
 // TODO: Add setting values

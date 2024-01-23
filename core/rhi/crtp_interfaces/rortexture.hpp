@@ -88,6 +88,8 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE auto  name() const noexcept;
 	FORCE_INLINE auto  setup() noexcept;
 
+	FORCE_INLINE const auto &mips() const noexcept;
+
 	FORCE_INLINE void handle(rhi::TextureHandle) noexcept;
 	FORCE_INLINE void width(uint32_t) noexcept;
 	FORCE_INLINE void height(uint32_t) noexcept;

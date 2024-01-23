@@ -115,7 +115,7 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	FORCE_INLINE PhysicalDevice &operator=(PhysicalDevice &&a_other) noexcept      = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~PhysicalDevice() noexcept override                       = default;
 
-	FORCE_INLINE auto &memory_properties();
+	FORCE_INLINE auto &memory_properties() const;
 	FORCE_INLINE auto  samples_count();
 
 	declare_translation_unit_vtable();
@@ -205,7 +205,7 @@ struct DeviceQueue
 {
 	uint32_t   m_index{0};
 	VkQueue    m_queue{nullptr};
-	std::mutex m_mutex{};        // These will be problematic when I have only one queue, FIXME:
+	mutable std::mutex m_mutex{};        // These will be problematic when I have only one queue, FIXME:
 };
 
 class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
@@ -219,29 +219,29 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE virtual ~DeviceVulkan() noexcept override                   = default;        //! Destructor
 
 	FORCE_INLINE void  init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
-	FORCE_INLINE auto  platform_device();
-	FORCE_INLINE auto  platform_graphics_queue();
-	FORCE_INLINE auto  platform_compute_queue();
-	FORCE_INLINE auto  platform_transfer_queue();
-	FORCE_INLINE auto  platform_present_queue();
-	FORCE_INLINE auto  platform_sparse_queue();
-	FORCE_INLINE auto  platform_protected_queue();
-	FORCE_INLINE auto  platform_graphics_queue_index();
-	FORCE_INLINE auto  platform_compute_queue_index();
-	FORCE_INLINE auto  platform_transfer_queue_index();
-	FORCE_INLINE auto  platform_present_queue_index();
-	FORCE_INLINE auto  platform_sparse_queue_index();
-	FORCE_INLINE auto  platform_protected_queue_index();
+	FORCE_INLINE auto  platform_device() const;
+	FORCE_INLINE auto  platform_graphics_queue() const;
+	FORCE_INLINE auto  platform_compute_queue() const;
+	FORCE_INLINE auto  platform_transfer_queue() const;
+	FORCE_INLINE auto  platform_present_queue() const;
+	FORCE_INLINE auto  platform_sparse_queue() const;
+	FORCE_INLINE auto  platform_protected_queue() const;
+	FORCE_INLINE auto  platform_graphics_queue_index() const;
+	FORCE_INLINE auto  platform_compute_queue_index() const;
+	FORCE_INLINE auto  platform_transfer_queue_index() const;
+	FORCE_INLINE auto  platform_present_queue_index() const;
+	FORCE_INLINE auto  platform_sparse_queue_index() const;
+	FORCE_INLINE auto  platform_protected_queue_index() const;
 	FORCE_INLINE auto  platform_command_buffer();
 	FORCE_INLINE auto  platform_swapchain();
 	FORCE_INLINE auto  samples_count();
-	FORCE_INLINE auto &memory_properties();
-	FORCE_INLINE auto &platform_graphics_queue_mutex();
-	FORCE_INLINE auto &platform_compute_queue_mutex();
-	FORCE_INLINE auto &platform_transfer_queue_mutex();
-	FORCE_INLINE auto &platform_present_queue_mutex();
-	FORCE_INLINE auto &platform_sparse_queue_mutex();
-	FORCE_INLINE auto &platform_protected_queue_mutex();
+	FORCE_INLINE auto &memory_properties() const;
+	FORCE_INLINE auto &platform_graphics_queue_mutex() const;
+	FORCE_INLINE auto &platform_compute_queue_mutex() const;
+	FORCE_INLINE auto &platform_transfer_queue_mutex() const;
+	FORCE_INLINE auto &platform_present_queue_mutex() const;
+	FORCE_INLINE auto &platform_sparse_queue_mutex() const;
+	FORCE_INLINE auto &platform_protected_queue_mutex() const;
 
   protected:
   private:

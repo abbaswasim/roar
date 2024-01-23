@@ -110,8 +110,8 @@ Instance::Instance()
 	auto minor = VK_VERSION_MINOR(api_version);
 	auto patch = VK_VERSION_PATCH(api_version);
 
-	auto requestd_major = setting.m_vulkan.version_major;
-	auto requestd_minor = setting.m_vulkan.version_minor;
+	auto requestd_major = setting.m_vulkan.m_version_major;
+	auto requestd_minor = setting.m_vulkan.m_version_minor;
 
 	ror::log_info("Highest vulkan version available : {}.{}.{} and requested version : {}.{}.0", major, minor, patch, requestd_major, requestd_minor);
 

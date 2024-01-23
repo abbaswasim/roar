@@ -55,6 +55,7 @@ class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 	size_t                     platform_renderpass_count();
 	rhi::RenderCommandEncoder  render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
 	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
+	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, VkRenderPassCreateInfo *a_pass_descriptor);
 
 	// TODO: Add constexpr when log_critical is removed
 	FORCE_INLINE void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
@@ -65,6 +66,10 @@ class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 		// auto rp = this->platform_renderpass(a_index);
 		// rp->colorAttachments()->object(0)->setTexture(a_surface->texture());
 	}
+
+	void execute(rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface,
+	             ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,
+	             rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer);
 
   protected:
   private:

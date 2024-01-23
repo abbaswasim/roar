@@ -197,7 +197,7 @@ VkBufferMemoryBarrier2 vk_create_buffer_barrier(VkBuffer a_buffer, VkPipelineSta
 	return buffer_barrier;
 }
 
-void vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex)
+void vk_transition_image_layout(const VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex)
 {
 	VkCommandBuffer command_buffer = vk_begin_single_use_command_buffer(a_device, a_command_pool);
 
@@ -631,6 +631,18 @@ VkCommandBuffer vk_allocate_command_buffer(VkDevice a_device, VkCommandPool a_co
 	return staging_command_buffer;
 }
 
+void vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferUsageFlags a_flags)
+{
+	VkCommandBufferBeginInfo command_buffer_begin_info{};
+	command_buffer_begin_info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	command_buffer_begin_info.flags            = a_flags;        // VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT, VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT,
+	command_buffer_begin_info.pNext            = nullptr;
+	command_buffer_begin_info.pInheritanceInfo = nullptr;
+
+	auto result = vkBeginCommandBuffer(a_command_buffer, &command_buffer_begin_info);
+	check_return_status(result, "vkBeginCommandBuffer");
+}
+
 void vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info)
 {
 	auto result = vkBeginCommandBuffer(a_command_buffer, &a_command_buffer_begin_info);
@@ -648,8 +660,10 @@ VkCommandBuffer vk_begin_single_use_command_buffer(VkDevice a_device, VkCommandP
 	VkCommandBuffer staging_command_buffer = vk_allocate_command_buffer(a_device, a_command_pool);
 
 	VkCommandBufferBeginInfo command_buffer_begin_info{};
-	command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	command_buffer_begin_info.sType            = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	command_buffer_begin_info.flags            = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	command_buffer_begin_info.pNext            = nullptr;
+	command_buffer_begin_info.pInheritanceInfo = nullptr;
 
 	vk_begin_command_buffer(staging_command_buffer, command_buffer_begin_info);
 

@@ -26,8 +26,11 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "rhi/rorbuffer.hpp"
+#include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/rortexture.hpp"
 
 namespace rhi
 {
@@ -78,8 +81,16 @@ class CommandBufferVulkan final
 		// this->m_buffer->release();
 	}
 
-	FORCE_INLINE rhi::RenderCommandEncoder render_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index);
-	FORCE_INLINE rhi::ComputeCommandEncoder compute_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index);
+	FORCE_INLINE void addCompletedHandler(const std::function<void()> &a_function)
+	{
+		a_function();
+		ror::log_critical("In vulkan command buffer completion handler");
+	}
+
+	rhi::RenderCommandEncoder  render_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index);
+	rhi::ComputeCommandEncoder compute_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index);
+	rhi::ComputeCommandEncoder compute_encoder();
+	rhi::ComputeCommandEncoder compute_encoder_concurrent();
 
   protected:
   private:
@@ -90,4 +101,9 @@ class CommandBufferVulkan final
 };
 
 declare_rhi_render_type(CommandBuffer);
+
+rhi::Buffer read_pixels(rhi::Device &a_device, const rhi::TextureImage &a_texture, uint32_t a_face, uint32_t a_level);
+void        texture_to_texture(rhi::Device &a_device, const rhi::TextureImage &a_source_texture, const rhi::TextureImage &a_destination_texture, uint32_t a_face, uint32_t a_level);
+void        texture_to_mipmapped_texture(const rhi::CommandBuffer &a_command_buffer, const rhi::TextureImage &a_source_texture, ror::Vector2ui a_source_origin, const rhi::TextureImage &a_destination_texture, uint32_t a_destination_face, uint32_t a_destination_level);
+void        texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, const rhi::TextureImage &a_source_texture, const rhi::TextureImage &a_destination_texture);
 }        // namespace rhi

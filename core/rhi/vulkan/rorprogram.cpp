@@ -347,16 +347,16 @@ static auto get_vulkan_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffe
 // 	return VkPipeline{};
 // }
 
-static auto create_fragment_render_pipeline(VkDevice                                                                                   a_device,
-                                                  const rhi::Shader                                                                          &a_vertex_shader,
-                                                  const rhi::Shader                                                                          &a_fragment_shader,
-                                                  std::vector<std::pair<VkVertexInputAttributeDescription, VkVertexInputBindingDescription>> &vulkan_descriptor,
-                                                  // VkVertexInputAttributeDescription *mtl_vertex_descriptor,
-                                                  rhi::BlendMode         a_blend_mode,
-                                                  rhi::PrimitiveTopology a_topology,
-                                                  const char            *a_label,
-                                                  bool                   a_depth,
-                                                  bool                   a_premultiplied_alpha = false)
+static auto create_fragment_render_pipeline(VkDevice                                                                                    a_device,
+                                            const rhi::Shader                                                                          &a_vertex_shader,
+                                            const rhi::Shader                                                                          &a_fragment_shader,
+                                            std::vector<std::pair<VkVertexInputAttributeDescription, VkVertexInputBindingDescription>> &vulkan_descriptor,
+                                            // VkVertexInputAttributeDescription *mtl_vertex_descriptor,
+                                            rhi::BlendMode         a_blend_mode,
+                                            rhi::PrimitiveTopology a_topology,
+                                            const char            *a_label,
+                                            bool                   a_depth,
+                                            bool                   a_premultiplied_alpha = false)
 {
 	(void) a_device;
 	(void) a_vertex_shader;
@@ -367,7 +367,6 @@ static auto create_fragment_render_pipeline(VkDevice                            
 	(void) a_blend_mode;
 	(void) a_depth;
 	(void) a_premultiplied_alpha;
-
 
 	return GraphicsPipelineState{};
 
@@ -385,8 +384,8 @@ static auto create_fragment_render_pipeline(VkDevice                            
 
 	if (vs.function() == nullptr)
 	{
-		ror::log_critical("Vertex function can't be null or empty");
-		return nullptr;
+	    ror::log_critical("Vertex function can't be null or empty");
+	    return nullptr;
 	}
 
 	render_pipeline_descriptor->setVertexFunction(vs.function());
@@ -394,9 +393,9 @@ static auto create_fragment_render_pipeline(VkDevice                            
 	render_pipeline_descriptor->setVertexDescriptor(mtl_vertex_descriptor);
 
 	if (a_depth)
-		render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);
+	    render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatDepth32Float);
 	else
-		render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatInvalid);
+	    render_pipeline_descriptor->setDepthAttachmentPixelFormat(MTL::PixelFormat::PixelFormatInvalid);
 
 	render_pipeline_descriptor->setSupportIndirectCommandBuffers(setting.m_vulkan.indirect_command_buffers);
 
@@ -419,10 +418,10 @@ static auto create_fragment_render_pipeline(VkDevice                            
 
 	if (a_blend_mode == rhi::BlendMode::blend)
 	{
-		colorAttachment->setBlendingEnabled(true);
+	    colorAttachment->setBlendingEnabled(true);
 
-		if (a_premultiplied_alpha)
-			colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
+	    if (a_premultiplied_alpha)
+	        colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
 	}
 
 	render_pipeline_descriptor->setLabel(NS::String::string(a_label, NS::StringEncoding::UTF8StringEncoding));
@@ -435,23 +434,25 @@ static auto create_fragment_render_pipeline(VkDevice                            
 
 	if (!pipeline_state)
 	{
-		assert(pError != nullptr && "Failed render pipeline creation didn't bring any errors");
-		ror::log_critical("Vulkan render program creation failed with error: {}", pError->localizedDescription()->utf8String());
-		return nullptr;
+	    assert(pError != nullptr && "Failed render pipeline creation didn't bring any errors");
+	    ror::log_critical("Vulkan render program creation failed with error: {}", pError->localizedDescription()->utf8String());
+	    return nullptr;
 	}
 
 	mtl_vertex_descriptor->release();
 	render_pipeline_descriptor->release();
 
 	if (pError != nullptr)
-		pError->release();
+	    pError->release();
 
 	return pipeline_state;
 
 	*/
 }
 
-void ProgramVulkan::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass, bool a_premultiplied_alpha)
+// void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass, bool a_premultiplied_alpha)
+void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
+                           const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha)
 {
 	(void) a_device;
 	(void) a_subpass;
@@ -522,7 +523,8 @@ void ProgramVulkan::upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader
 	// this->m_pipeline_state      = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
 }
 
-void ProgramVulkan::upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack & /* a_buffer_pack */, bool /* a_premultiplied_alpha */)
+
+void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
 	(void) device;

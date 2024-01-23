@@ -41,7 +41,7 @@ void ShaderVulkan::platform_source()
 	}
 }
 
-void ShaderVulkan::upload(rhi::Device &a_device)
+void ShaderVulkan::upload(const rhi::Device &a_device)
 {
 	VkDevice device = a_device.platform_device();
 	this->m_module= rhi::vk_create_shader_module(device, this->spirv());

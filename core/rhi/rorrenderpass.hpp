@@ -38,6 +38,10 @@ namespace rhi
 
 const rhi::RenderTarget &subpass_render_target(const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass a_subpass, size_t a_index);
 
+void renderpass_execute(rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface,
+                        ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,
+                        rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer);
+
 }        // namespace rhi
 
 #include "rhi/rorrenderpass.hh"

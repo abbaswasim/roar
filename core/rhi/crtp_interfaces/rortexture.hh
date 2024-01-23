@@ -233,6 +233,12 @@ FORCE_INLINE auto *TextureImageCrtp<_type>::data() noexcept
 }
 
 template <class _type>
+FORCE_INLINE const auto &TextureImageCrtp<_type>::mips() const noexcept
+{
+	return this->m_mips;
+}
+
+template <class _type>
 FORCE_INLINE auto &TextureImageCrtp<_type>::mips() noexcept
 {
 	return this->m_mips;

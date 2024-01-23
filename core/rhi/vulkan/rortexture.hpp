@@ -40,12 +40,12 @@ declare_rhi_render_type(ComputeCommandEncoder);
 class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImageVulkan>
 {
   public:
-	void upload(rhi::Device &a_device);
+	void upload(const rhi::Device &a_device);
 
 	FORCE_INLINE constexpr auto platform_handle() const noexcept;
 
-	void bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
-	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+	void bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept;
+	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept;
 
 	// clang-format off
 	auto image_view() { return this->m_image_view; }
@@ -63,12 +63,12 @@ class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImage
 class ROAR_ENGINE_ITEM TextureSamplerVulkan : public TextureSamplerCrtp<TextureSamplerVulkan>
 {
   public:
-	void upload(rhi::Device &a_device);
+	void upload(const rhi::Device &a_device);
 
 	FORCE_INLINE constexpr auto platform_handle() const noexcept;
 
-	void bind(rhi::RenderCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
-	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept;
+	void bind(rhi::RenderCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept;
+	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept;
 
   protected:
   private:
@@ -80,6 +80,17 @@ class ROAR_ENGINE_ITEM TextureSamplerVulkan : public TextureSamplerCrtp<TextureS
 class ROAR_ENGINE_ITEM TextureVulkan final : public TextureCrtp<TextureVulkan>
 {
   public:
+	FORCE_INLINE                TextureVulkan()                                 = default;        //! Default constructor
+	FORCE_INLINE                TextureVulkan(const TextureVulkan &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                TextureVulkan(TextureVulkan &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE TextureVulkan &operator=(const TextureVulkan &a_other)         = default;        //! Copy assignment operator
+	FORCE_INLINE TextureVulkan &operator=(TextureVulkan &&a_other) noexcept     = default;        //! Move assignment operator
+	FORCE_INLINE ~TextureVulkan() noexcept override                             = default;        //! Destructor
+
+	FORCE_INLINE TextureVulkan(rhi::TextureImageHandle a_image_handle, rhi::TextureSamplerHandle a_sampler_handle) :
+	    TextureCrtp(a_image_handle, a_sampler_handle)
+	{}
+
   protected:
   private:
 	declare_translation_unit_vtable();

@@ -87,7 +87,7 @@ void ShaderMetal::platform_source()
 	msl.rename_entry_point("main", this->m_entry_point, shader_type_to_execution_model(this->type()));
 
 	spirv_cross::CompilerMSL::Options options;
-	options.set_msl_version(setting.m_metal.version_major, setting.m_metal.version_minor);
+	options.set_msl_version(setting.m_metal.m_version_major, setting.m_metal.m_version_minor);
 	options.argument_buffers          = setting.m_metal.argument_buffers;
 	options.enable_decoration_binding = setting.m_metal.decoration_bindings;
 	msl.set_msl_options(options);

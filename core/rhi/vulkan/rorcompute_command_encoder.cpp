@@ -27,4 +27,9 @@
 
 namespace rhi
 {
+void ComputeCommandEncoder::compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept
+{
+	vkCmdBindPipeline(this->m_command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, a_compute_pipeline_state.compute_pipeline_state());
+}
+
 }        // namespace rhi

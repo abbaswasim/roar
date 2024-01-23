@@ -43,51 +43,51 @@ declare_rhi_render_type(Program);
 class RenderCommandEncoderVulkan final
 {
   public:
-	FORCE_INLINE                            RenderCommandEncoderVulkan(const RenderCommandEncoderVulkan &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE                            RenderCommandEncoderVulkan(RenderCommandEncoderVulkan &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE RenderCommandEncoderVulkan &operator=(const RenderCommandEncoderVulkan &a_other)                     = default;        //! Copy assignment operator
-	FORCE_INLINE RenderCommandEncoderVulkan &operator=(RenderCommandEncoderVulkan &&a_other) noexcept                 = default;        //! Move assignment operator
+	FORCE_INLINE                             RenderCommandEncoderVulkan(const RenderCommandEncoderVulkan &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE                             RenderCommandEncoderVulkan(RenderCommandEncoderVulkan &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE RenderCommandEncoderVulkan &operator=(const RenderCommandEncoderVulkan &a_other)                      = default;        //! Copy assignment operator
+	FORCE_INLINE RenderCommandEncoderVulkan &operator=(RenderCommandEncoderVulkan &&a_other) noexcept                  = default;        //! Move assignment operator
 	FORCE_INLINE ~RenderCommandEncoderVulkan() noexcept;
-	FORCE_INLINE explicit RenderCommandEncoderVulkan(void *a_encoder);
+	FORCE_INLINE explicit RenderCommandEncoderVulkan(VkCommandBuffer a_command_buffer);
 
-	FORCE_INLINE constexpr void viewport(ror::Vector4d a_viewport_rectangle, ror::Vector2d a_near_far) noexcept;
-	FORCE_INLINE constexpr void scissor(ror::Vector4ui a_scissor_rectangle) noexcept;
-	FORCE_INLINE constexpr void front_facing_winding(rhi::PrimitiveWinding a_winding) noexcept;
-	FORCE_INLINE constexpr void depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) noexcept;
-	FORCE_INLINE constexpr void cull_mode(rhi::PrimitiveCullMode a_cull_mode) noexcept;
-	FORCE_INLINE constexpr void render_pipeline_state(const rhi::Program &a_render_pipeline_state) noexcept;
-	FORCE_INLINE constexpr void vertex_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void fragment_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void tile_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void vertex_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void vertex_buffer_offset(uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void fragment_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void fragment_buffer_offset(uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void tile_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void fragment_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void vertex_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void tile_texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void fragment_sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void vertex_sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void tile_sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void draw_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count);
-	FORCE_INLINE constexpr void draw_primitives_instanced(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count, uint32_t a_instance_count);
-	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uintptr_t a_offset) noexcept;
-	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Static> &a_indices, uintptr_t a_offset) noexcept;
-	FORCE_INLINE constexpr void end_encoding() noexcept;
-	FORCE_INLINE constexpr void release() noexcept;
-	FORCE_INLINE constexpr void triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) noexcept;
+	FORCE_INLINE constexpr void viewport(ror::Vector4d a_viewport_rectangle, ror::Vector2d a_near_far) const noexcept;
+	FORCE_INLINE constexpr void scissor(ror::Vector4ui a_scissor_rectangle) const noexcept;
+	FORCE_INLINE constexpr void front_facing_winding(rhi::PrimitiveWinding a_winding) const noexcept;
+	FORCE_INLINE constexpr void depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) const noexcept;
+	FORCE_INLINE constexpr void cull_mode(rhi::PrimitiveCullMode a_cull_mode) const noexcept;
+	FORCE_INLINE constexpr void render_pipeline_state(const rhi::Program &a_render_pipeline_state) const noexcept;
+	FORCE_INLINE constexpr void vertex_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void fragment_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void tile_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void vertex_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void vertex_buffer_offset(uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void fragment_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void fragment_buffer_offset(uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void tile_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void fragment_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void vertex_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void tile_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void fragment_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void vertex_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void tile_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void draw_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count) const noexcept;
+	FORCE_INLINE constexpr void draw_primitives_instanced(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count, uint32_t a_instance_count) const noexcept;
+	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uintptr_t a_offset) const noexcept;
+	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Static> &a_indices, uintptr_t a_offset) const noexcept;
+	FORCE_INLINE constexpr void end_encoding() const noexcept;
+	FORCE_INLINE constexpr void release() const noexcept;
+	FORCE_INLINE constexpr void triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) const noexcept;
 
 	// clang-format off
-	FORCE_INLINE constexpr auto platform_encoder() noexcept { return this->m_encoder; }
+	FORCE_INLINE constexpr auto platform_encoder() noexcept { return this->m_command_buffer; }
 	// clang-format on
 
 	// FIXME: Put me back into private
-	FORCE_INLINE               RenderCommandEncoderVulkan() = default;        //! Default constructor
+	FORCE_INLINE RenderCommandEncoderVulkan() = default;        //! Default constructor
   protected:
   private:
 	// FORCE_INLINE               RenderCommandEncoderVulkan() = default;        //! Default constructor
-	void *m_encoder{nullptr};
+	VkCommandBuffer m_command_buffer{nullptr};
 };
 
 declare_rhi_render_type(RenderCommandEncoder);

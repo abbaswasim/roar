@@ -77,10 +77,11 @@ uint32_t                              vk_find_memory_type(uint32_t a_type_filter
 uint8_t                              *vk_map_memory(VkDevice a_device, VkDeviceMemory a_memory);
 void                                  vk_unmap_memory(VkDevice a_device, VkDeviceMemory a_memory);
 VkCommandBuffer                       vk_begin_single_use_command_buffer(VkDevice a_device, VkCommandPool a_command_pool);
-void                                  vk_end_single_use_command_buffer(VkCommandBuffer a_command_buffer, VkQueue a_queue, std::mutex *a_mutex);
+void                                  vk_end_single_use_command_buffer(VkCommandBuffer a_command_buffer, VkQueue a_queue, const std::mutex *a_mutex);
 void                                  vk_end_single_use_command_buffer_and_wait(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_queue, VkCommandPool a_command_pool, std::mutex *a_mutex);
 VkCommandPool                         vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family_index, VkCommandPoolCreateFlags a_flags);        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 VkCommandBuffer                       vk_allocate_command_buffer(VkDevice a_device, VkCommandPool a_command_pool);
+void                                  vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferUsageFlags a_flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 void                                  vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info);
 void                                  vk_end_command_buffer(VkCommandBuffer a_command_buffer);
 void                                  vk_queue_submit(VkQueue a_queue, uint32_t a_submit_info_count, const VkSubmitInfo *a_submit_info, VkFence a_fence, std::mutex *a_mutex);
@@ -88,7 +89,7 @@ void                                  vk_queue_submit(VkQueue a_queue, const std
 void                                  vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence, std::mutex *a_mutex);
 void                                  vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, const std::vector<VkCommandBuffer> &a_command_buffers, VkFence a_fence, std::mutex *a_mutex);
 void                                  vk_queue_wait_idle(VkQueue a_queue, std::mutex *a_mutex);
-void                                  vk_transition_image_layout(VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex);
+void                                  vk_transition_image_layout(const VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex);
 void                                  vk_copy_staging_buffer_to_image(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
                                                                       VkBuffer a_source, VkImage a_destination, const std::vector<VkBufferImageCopy> &buffer_image_copy_regions, std::mutex *a_mutex);
 void                                  vk_copy_staging_buffers_to_images(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,

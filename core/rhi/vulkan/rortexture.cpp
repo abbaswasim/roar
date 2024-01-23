@@ -38,7 +38,7 @@
 namespace rhi
 {
 
-void TextureImageVulkan::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureImageVulkan::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.fragment_texture(*this, a_index);
@@ -50,7 +50,7 @@ void TextureImageVulkan::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi:
 		a_command_encoder.tile_texture(*this, a_index);
 }
 
-void TextureImageVulkan::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureImageVulkan::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.texture(*this, a_index);
@@ -60,7 +60,7 @@ void TextureImageVulkan::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi
 	}
 }
 
-void TextureSamplerVulkan::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureSamplerVulkan::bind(rhi::RenderCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::fragment || a_shader_stage == rhi::ShaderStage::vertex_fragment || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.fragment_sampler(*this, a_index);
@@ -72,7 +72,7 @@ void TextureSamplerVulkan::bind(rhi::RenderCommandEncoder &a_command_encoder, rh
 		a_command_encoder.tile_sampler(*this, a_index);
 }
 
-void TextureSamplerVulkan::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) noexcept
+void TextureSamplerVulkan::bind(rhi::ComputeCommandEncoder &a_command_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept
 {
 	if (a_shader_stage == rhi::ShaderStage::compute || a_shader_stage == rhi::ShaderStage::compute_vertex || a_shader_stage == rhi::ShaderStage::compute_fragment || a_shader_stage == rhi::ShaderStage::compute_vertex_fragment)
 		a_command_encoder.sampler(*this, a_index);
@@ -82,7 +82,7 @@ void TextureSamplerVulkan::bind(rhi::ComputeCommandEncoder &a_command_encoder, r
 	}
 }
 
-std::vector<VkBufferImageCopy> mipmaps_to_buffer_image_copy_regions(TextureImageVulkan &a_texture)
+std::vector<VkBufferImageCopy> mipmaps_to_buffer_image_copy_regions(const TextureImageVulkan &a_texture)
 {
 	std::vector<VkBufferImageCopy> buffer_image_copy_regions{};
 
@@ -107,7 +107,7 @@ std::vector<VkBufferImageCopy> mipmaps_to_buffer_image_copy_regions(TextureImage
 	return buffer_image_copy_regions;
 }
 
-void TextureImageVulkan::upload(rhi::Device &a_device)
+void TextureImageVulkan::upload(const rhi::Device &a_device)
 {
 	if (this->width() == 0 || this->height() == 0)
 	{
@@ -220,7 +220,7 @@ void TextureImageVulkan::upload(rhi::Device &a_device)
 	this->ready(true);
 }
 
-void TextureSamplerVulkan::upload(rhi::Device &a_device)
+void TextureSamplerVulkan::upload(const rhi::Device &a_device)
 {
 	auto device   = a_device.platform_device();
 	auto mip_mode = VK_SAMPLER_MIPMAP_MODE_LINEAR;

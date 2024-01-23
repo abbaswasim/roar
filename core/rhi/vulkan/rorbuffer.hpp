@@ -48,8 +48,8 @@ class ROAR_ENGINE_ITEM BufferVulkan
 	[[nodiscard]] FORCE_INLINE constexpr auto map() noexcept;
 
 	FORCE_INLINE void           release();
-	FORCE_INLINE void           resize(rhi::Device &a_device, size_t a_length);
-	FORCE_INLINE void           init(rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption = rhi::ResourceStorageOption::shared);
+	FORCE_INLINE void           resize(const rhi::Device &a_device, size_t a_length);
+	FORCE_INLINE void           init(const rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption = rhi::ResourceStorageOption::shared);
 	FORCE_INLINE void           init(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::shared);
 	FORCE_INLINE void           upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes);
 	FORCE_INLINE void           upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);

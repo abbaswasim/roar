@@ -24,9 +24,10 @@
 // Version: 1.0.0
 
 #include "foundation/rorcompiler_workarounds.hpp"
+#include "rhi/vulkan/rorcommand_buffer.hpp"
 #include "rhi/vulkan/rorcompute_command_encoder.hpp"
 #include "rhi/vulkan/rordevice.hpp"
-// #include "rhi/vulkan/rormetal_common.hpp"
+#include "rhi/vulkan/rorvulkan_utils.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
@@ -36,21 +37,17 @@ namespace rhi
 
 FORCE_INLINE ComputeCommandEncoder::~ComputeCommandEncoderVulkan() noexcept
 {
-	if (this->m_encoder)
+	if (this->m_command_buffer)
 	{
 		// this->m_encoder->endEncoding();
 		// this->m_encoder->release();
 	}
 }
 
-FORCE_INLINE ComputeCommandEncoder::ComputeCommandEncoderVulkan(void *a_encoder) :
-    m_encoder(a_encoder)
-{}
-
-FORCE_INLINE constexpr void ComputeCommandEncoder::compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept
+FORCE_INLINE ComputeCommandEncoder::ComputeCommandEncoderVulkan(VkCommandBuffer a_encoder) :
+    m_command_buffer(a_encoder)
 {
-	(void) a_compute_pipeline_state;
-	// this->m_encoder->setComputePipelineState(a_compute_pipeline_state.compute_pipeline_state());
+	vk_begin_command_buffer(this->m_command_buffer);
 }
 
 FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
@@ -71,14 +68,14 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::Buffer &a_buffer,
 	// this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::texture(rhi::TextureImage &a_texture, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::texture(const rhi::TextureImage &a_texture, uint32_t a_index) noexcept
 {
 	(void) a_texture;
 	(void) a_index;
 	// this->m_encoder->setTexture(a_texture.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::sampler(rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept
+FORCE_INLINE constexpr void ComputeCommandEncoder::sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept
 {
 	(void) a_sampler;
 	(void) a_index;
@@ -97,11 +94,19 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::dispatch_threads(ror::Vector3
 
 FORCE_INLINE constexpr void ComputeCommandEncoder::end_encoding() noexcept
 {
-	// this->m_encoder->endEncoding();
+	assert(this->m_command_buffer != nullptr && "Command buffer isn't valid");
+	vk_end_command_buffer(this->m_command_buffer);
 }
 
 FORCE_INLINE constexpr void ComputeCommandEncoder::release() noexcept
 {
+	// Need to be done some other way for vulkan
+	// this->m_encoder->release();
+}
+
+FORCE_INLINE constexpr void ComputeCommandEncoder::release() const noexcept
+{
+	// Need to be done some other way for vulkan
 	// this->m_encoder->release();
 }
 
