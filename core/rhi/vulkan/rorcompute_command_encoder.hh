@@ -56,6 +56,7 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi:
 	(void) a_offset;
 	(void) a_index;
 	
+	// vkCmdBindVertexBuffers(this->m_command_buffer,0, 0, a_buffer.platform_buffer(), VK_WHOLE_SIZE);
 	// this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 

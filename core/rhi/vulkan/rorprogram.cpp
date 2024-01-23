@@ -456,6 +456,7 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 {
 	(void) a_device;
 	(void) a_subpass;
+	(void) a_renderpass;
 	(void) a_premultiplied_alpha;
 
 	auto        is_depth_shadow = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
@@ -528,6 +529,12 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 {
 	auto *device = a_device.platform_device();
 	(void) device;
+	(void) a_pass;
+	(void) a_subpass;
+	(void) a_shaders;
+	(void) a_buffer_pack;
+	(void) a_premultiplied_alpha;
+
 	assert(device);
 
 	// TODO: Add support for non-mesh vertex and fragment pipelines, would require a RenderpassType as a must
@@ -572,6 +579,89 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 		if (!this->compute_pipeline_state())
 		{
 			ror::log_critical("Vulkan compute program creation failed with error:");
+			return;
+		}
+	}
+}
+
+void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader,
+                          const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name,
+                          bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
+{
+	(void) a_renderpass;
+	(void) a_subpass;
+	(void) a_vertex_descriptor;
+	(void) a_blend_mode;
+	(void) a_toplogy;
+	(void) a_pso_name;
+	(void) a_subpass_has_depth;
+	(void) a_is_depth_shadow;
+	(void) a_premultiplied_alpha;
+
+	auto *device = a_device.platform_device();
+
+	assert(device);
+
+	if (a_vs_shader.module() == nullptr)
+	{
+		ror::log_critical("Vertex function can't be null or empty");
+		return;
+	}
+
+	if (a_fs_shader.module() == nullptr)
+	{
+		ror::log_critical("Fragment function can't be null or empty");
+		return;
+	}
+
+	// this->release();
+
+	// auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_vertex_descriptor, a_is_depth_shadow);
+	// this->m_pipeline_state      = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, a_renderpass, a_subpass, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
+}
+
+void ProgramVulkan::upload(const rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders,
+                          rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
+{
+	auto vs_id = this->vertex_id();
+	auto fs_id = this->fragment_id();
+	auto cs_id = this->compute_id();
+
+	// TODO: Add support for single fragment shader programs
+	assert(((vs_id >= 0 && fs_id >= 0) || cs_id >= 0) && "Invalid shader id");
+
+	if (vs_id >= 0 && fs_id >= 0)
+	{
+		const auto &vs = a_shaders[static_cast<size_t>(vs_id)];
+		const auto &fs = a_shaders[static_cast<size_t>(fs_id)];
+
+		this->upload(a_device, a_renderpass, a_subpass, vs, fs, a_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_is_depth_shadow, a_premultiplied_alpha);
+	}
+	else
+	{
+		const auto &cs = a_shaders[static_cast<size_t>(cs_id)];
+
+		if (cs.module() == nullptr)
+		{
+			ror::log_critical("Compute function can't be null or empty");
+			return;
+		}
+
+		// Don't need a descriptor but its possible to have one and create a compute pipeline from that
+		// auto      *compute_pipeline_descriptor = MTL::ComputePipelineDescriptor::alloc()->init();
+		// assert(compute_pipeline_descriptor && "Can't allocate metal compute pipeline descriptor");
+		// NS::Error *pError = nullptr;
+
+		auto *device = a_device.platform_device();
+		assert(device);
+
+		// this->release();
+
+		// this->m_pipeline_state = device->newComputePipelineState(cs.function(), &pError);
+
+		if (!this->compute_pipeline_state())
+		{
+			// ror::log_critical("Metal compute program creation failed with error: {}", pError->localizedDescription()->utf8String());
 			return;
 		}
 	}
