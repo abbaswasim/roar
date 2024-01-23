@@ -45,10 +45,10 @@ namespace rhi
 class Instance : public VulkanObject<VkInstance>
 {
   public:
-	FORCE_INLINE           Instance(const Instance &a_other)      = default;        //! Copy constructor
-	FORCE_INLINE           Instance(Instance &&a_other) noexcept  = default;        //! Move constructor
-	FORCE_INLINE Instance &operator=(const Instance &a_other)     = default;        //! Copy assignment operator
-	FORCE_INLINE Instance &operator=(Instance &&a_other) noexcept = default;        //! Move assignment operator
+	FORCE_INLINE           Instance(const Instance &a_other)      = delete;        //! Copy constructor
+	FORCE_INLINE           Instance(Instance &&a_other) noexcept  = delete;        //! Move constructor
+	FORCE_INLINE Instance &operator=(const Instance &a_other)     = delete;        //! Copy assignment operator
+	FORCE_INLINE Instance &operator=(Instance &&a_other) noexcept = delete;        //! Move assignment operator
 	FORCE_INLINE virtual ~Instance() noexcept override
 	{
 		vkDestroyDebugUtilsMessengerEXT(this->get_handle(), this->m_messenger, cfg::VkAllocator);
@@ -67,44 +67,6 @@ class Instance : public VulkanObject<VkInstance>
 	VkDebugUtilsMessengerEXT m_messenger{nullptr};
 };
 
-static const char *vk_physical_device_type_to_string(VkPhysicalDeviceType a_type)
-{
-	// clang-format off
-	switch (a_type)
-	{
-	case VK_PHYSICAL_DEVICE_TYPE_OTHER:          return "VK_PHYSICAL_DEVICE_TYPE_OTHER";
-	case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return "VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU";
-	case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:   return "VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU";
-	case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:    return "VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU";
-	case VK_PHYSICAL_DEVICE_TYPE_CPU:            return "VK_PHYSICAL_DEVICE_TYPE_CPU";
-	case VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM:       return "VK_PHYSICAL_DEVICE_TYPE_MAX_ENUM";
-	}
-	// clang-format on
-
-	return "UNKNOWN_DEVICE";
-}
-
-static void print_physical_device_properties(const VkPhysicalDeviceProperties &a_properties)
-{
-	auto api_version = a_properties.apiVersion;
-
-	auto major = VK_VERSION_MAJOR(api_version);
-	auto minor = VK_VERSION_MINOR(api_version);
-	auto patch = VK_VERSION_PATCH(api_version);
-
-	ror::log_info("Physical device properties:\nAPI Version:    {}.{}.{}\nDriver version: {}\nVendor ID:      {}\nDevice ID:      {}\nDevice Type:    {}\nDevice Name:    {}",
-	              major, minor, patch,
-	              a_properties.driverVersion,
-	              a_properties.vendorID,
-	              a_properties.deviceID,
-				  vk_physical_device_type_to_string(a_properties.deviceType),
-	              a_properties.deviceName);
-
-	// static_cast<const unsigned char*>(a_properties.pipelineCacheUUID),
-	// VkPhysicalDeviceLimits          a_properties.limits;
-	// VkPhysicalDeviceSparseProperties   a_properties.sparseProperties;
-}
-
 class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 {
   public:
@@ -115,47 +77,12 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	FORCE_INLINE PhysicalDevice &operator=(PhysicalDevice &&a_other) noexcept      = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~PhysicalDevice() noexcept override                       = default;
 
-	FORCE_INLINE auto &memory_properties() const;
-	FORCE_INLINE auto  samples_count();
+	FORCE_INLINE auto &memory_properties() const noexcept;
+	FORCE_INLINE auto  samples_count() const noexcept;
 
 	declare_translation_unit_vtable();
 
-	void init(Instance &a_instance)
-	{
-		auto gpus = enumerate_general_property<VkPhysicalDevice, true>(vkEnumeratePhysicalDevices, a_instance.get_handle());
-
-		VkPhysicalDevice           physical_device{VK_NULL_HANDLE};
-		VkPhysicalDeviceProperties physical_device_properties{};        //! Physical device properties cache
-
-		for (auto gpu : gpus)
-		{
-			vkGetPhysicalDeviceProperties(gpu, &physical_device_properties);
-
-			if (physical_device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-			{
-				physical_device = gpu;
-				break;
-			}
-		}
-
-		if (physical_device == nullptr)
-		{
-			ror::log_critical("Couldn't find suitable discrete physical device, falling back to integrated gpu.");
-			assert(gpus.size() > 1);
-			physical_device = gpus[0];
-		}
-
-		// Now when we have settled down on a physical_device lets get its properties, note it might not be physical_device_properties local variable so don't use that
-		vkGetPhysicalDeviceProperties(physical_device, &this->m_physical_device_properties);
-		print_physical_device_properties(this->m_physical_device_properties);
-
-		this->set_handle(physical_device);
-
-		this->m_memory_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2;
-		this->m_memory_properties.pNext = nullptr;
-
-		vkGetPhysicalDeviceMemoryProperties2(this->get_handle(), &this->m_memory_properties);
-	}
+	void init(Instance &a_instance);
 
   protected:
   private:
@@ -203,8 +130,8 @@ using Swapchain = SwapChain *;
 
 struct DeviceQueue
 {
-	uint32_t   m_index{0};
-	VkQueue    m_queue{nullptr};
+	uint32_t           m_index{0};
+	VkQueue            m_queue{nullptr};
 	mutable std::mutex m_mutex{};        // These will be problematic when I have only one queue, FIXME:
 };
 
@@ -219,29 +146,29 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE virtual ~DeviceVulkan() noexcept override                   = default;        //! Destructor
 
 	FORCE_INLINE void  init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
-	FORCE_INLINE auto  platform_device() const;
-	FORCE_INLINE auto  platform_graphics_queue() const;
-	FORCE_INLINE auto  platform_compute_queue() const;
-	FORCE_INLINE auto  platform_transfer_queue() const;
-	FORCE_INLINE auto  platform_present_queue() const;
-	FORCE_INLINE auto  platform_sparse_queue() const;
-	FORCE_INLINE auto  platform_protected_queue() const;
-	FORCE_INLINE auto  platform_graphics_queue_index() const;
-	FORCE_INLINE auto  platform_compute_queue_index() const;
-	FORCE_INLINE auto  platform_transfer_queue_index() const;
-	FORCE_INLINE auto  platform_present_queue_index() const;
-	FORCE_INLINE auto  platform_sparse_queue_index() const;
-	FORCE_INLINE auto  platform_protected_queue_index() const;
+	FORCE_INLINE auto  platform_device() const noexcept;
+	FORCE_INLINE auto  platform_graphics_queue() const noexcept;
+	FORCE_INLINE auto  platform_compute_queue() const noexcept;
+	FORCE_INLINE auto  platform_transfer_queue() const noexcept;
+	FORCE_INLINE auto  platform_present_queue() const noexcept;
+	FORCE_INLINE auto  platform_sparse_queue() const noexcept;
+	FORCE_INLINE auto  platform_protected_queue() const noexcept;
+	FORCE_INLINE auto  platform_graphics_queue_index() const noexcept;
+	FORCE_INLINE auto  platform_compute_queue_index() const noexcept;
+	FORCE_INLINE auto  platform_transfer_queue_index() const noexcept;
+	FORCE_INLINE auto  platform_present_queue_index() const noexcept;
+	FORCE_INLINE auto  platform_sparse_queue_index() const noexcept;
+	FORCE_INLINE auto  platform_protected_queue_index() const noexcept;
 	FORCE_INLINE auto  platform_command_buffer();
 	FORCE_INLINE auto  platform_swapchain();
 	FORCE_INLINE auto  samples_count();
-	FORCE_INLINE auto &memory_properties() const;
-	FORCE_INLINE auto &platform_graphics_queue_mutex() const;
-	FORCE_INLINE auto &platform_compute_queue_mutex() const;
-	FORCE_INLINE auto &platform_transfer_queue_mutex() const;
-	FORCE_INLINE auto &platform_present_queue_mutex() const;
-	FORCE_INLINE auto &platform_sparse_queue_mutex() const;
-	FORCE_INLINE auto &platform_protected_queue_mutex() const;
+	FORCE_INLINE auto &memory_properties() const noexcept;
+	FORCE_INLINE auto &platform_graphics_queue_mutex() const noexcept;
+	FORCE_INLINE auto &platform_compute_queue_mutex() const noexcept;
+	FORCE_INLINE auto &platform_transfer_queue_mutex() const noexcept;
+	FORCE_INLINE auto &platform_present_queue_mutex() const noexcept;
+	FORCE_INLINE auto &platform_sparse_queue_mutex() const noexcept;
+	FORCE_INLINE auto &platform_protected_queue_mutex() const noexcept;
 
   protected:
   private:
