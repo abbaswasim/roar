@@ -72,6 +72,7 @@ class ROAR_ENGINE_ITEM TextureSamplerMetal : public TextureSamplerCrtp<TextureSa
 	MTL::SamplerState *m_sampler{nullptr};
 };
 
+// TODO: Remove me and use TextureCrtp directly making a declare_rhi_render_type with it
 class ROAR_ENGINE_ITEM TextureMetal final : public TextureCrtp<TextureMetal>
 {
   public:

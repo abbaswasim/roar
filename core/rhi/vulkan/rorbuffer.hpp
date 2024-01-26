@@ -50,9 +50,9 @@ class ROAR_ENGINE_ITEM BufferVulkan
 	FORCE_INLINE void           release();
 	FORCE_INLINE void           resize(const rhi::Device &a_device, size_t a_length);
 	FORCE_INLINE void           init(const rhi::Device &a_device, size_t a_size_in_bytes, rhi::ResourceStorageOption = rhi::ResourceStorageOption::shared);
-	FORCE_INLINE void           init(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::shared);
-	FORCE_INLINE void           upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes);
-	FORCE_INLINE void           upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
+	FORCE_INLINE void           init(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode = rhi::ResourceStorageOption::shared);
+	FORCE_INLINE void           upload(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes);
+	FORCE_INLINE void           upload(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
 	FORCE_INLINE void           upload(const uint8_t *a_data_pointer, size_t a_offset, size_t a_length);
 	FORCE_INLINE constexpr void unmap() noexcept;
 
@@ -65,9 +65,7 @@ class ROAR_ENGINE_ITEM BufferVulkan
 	FORCE_INLINE constexpr auto ready()              const noexcept { return this->m_ready;            }
 	FORCE_INLINE constexpr auto platform_buffer()    const noexcept { return this->m_buffer;           }
 	FORCE_INLINE constexpr auto storage_mode()       const noexcept { return this->m_storage_mode;     }
-	FORCE_INLINE constexpr auto buffer_size()        const noexcept { return this->m_buffer_size;      }
 
-	FORCE_INLINE constexpr void buffer_size(size_t a_size)                 noexcept { this->m_buffer_size = a_size;  }
 	FORCE_INLINE constexpr void ready(bool a_ready)                        noexcept { this->m_ready = a_ready;       }
 	FORCE_INLINE           void storage_mode(rhi::ResourceStorageOption a_mode)     { this->m_storage_mode = a_mode; }
 	// clang-format on
@@ -76,10 +74,16 @@ class ROAR_ENGINE_ITEM BufferVulkan
   private:
 	declare_translation_unit_vtable();
 
+	// clang-format off
+	FORCE_INLINE constexpr auto buffer_size()        const noexcept { return this->m_buffer_size;      }
+
+	FORCE_INLINE constexpr void buffer_size(size_t a_size)                 noexcept { this->m_buffer_size = a_size;  }
+	// clang-format on
+
 	VkDevice                   m_device{nullptr};                                         //! API handle to current device
 	VkBuffer                   m_buffer{nullptr};                                         //! API handle to buffer
 	VkDeviceMemory             m_memory{nullptr};                                         //! API handle for Memory for the buffer
-	size_t                     m_buffer_size{0};                                                 //! Buffer size in machine units
+	size_t                     m_buffer_size{0};                                          //! Buffer size in machine units, specific to BufferVulkan
 	rhi::ResourceStorageOption m_storage_mode{rhi::ResourceStorageOption::shared};        //! Storage mode of the buffer, shared means no synchronisation is required
 	bool                       m_ready{false};                                            //! Keeps track of whether the buffer is ready to be used or not
 };

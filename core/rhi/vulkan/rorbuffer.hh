@@ -60,7 +60,7 @@ FORCE_INLINE void BufferVulkan::init(const rhi::Device &a_device, size_t a_size_
 	vk_create_buffer_with_memory(this->m_device, this->m_buffer, std::max(1ul, a_size_in_bytes), usage, mode, queue_family_indices, this->m_memory, memory_properties.memoryProperties, properties);
 }
 
-FORCE_INLINE void BufferVulkan::init(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
+FORCE_INLINE void BufferVulkan::init(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes, rhi::ResourceStorageOption a_mode)
 {
 	this->init(a_device, a_size_in_bytes, a_mode);
 	this->upload(a_device, a_data_pointer, a_size_in_bytes);
@@ -106,7 +106,7 @@ FORCE_INLINE void BufferVulkan::resize(const rhi::Device &a_device, size_t a_len
 	}
 }
 
-void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes)
+void BufferVulkan::upload(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_size_in_bytes)
 {
 	/*
 	For buffers in the device address space, align the offset to the data type consumed by the vertex function (which is always less than or equal to 16 bytes).
@@ -117,7 +117,7 @@ void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, 
 	this->upload(a_device, a_data_pointer, 0, a_size_in_bytes);
 }
 
-void BufferVulkan::upload(rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
+void BufferVulkan::upload(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
 {
 	(void) a_device;
 	// Some sanity checks first

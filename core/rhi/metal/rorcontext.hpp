@@ -49,6 +49,7 @@
 
 namespace rhi
 {
+// TODO: Remove me and use ContextCrtp without the Crtp as it is
 class ContextMetal : public ContextCrtp<ContextMetal>
 {
   public:

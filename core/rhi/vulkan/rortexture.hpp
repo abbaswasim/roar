@@ -77,6 +77,7 @@ class ROAR_ENGINE_ITEM TextureSamplerVulkan : public TextureSamplerCrtp<TextureS
 	VkSampler m_sampler{nullptr};
 };
 
+// TODO: Remove me and use TextureCrtp directly making a declare_rhi_render_type with it
 class ROAR_ENGINE_ITEM TextureVulkan final : public TextureCrtp<TextureVulkan>
 {
   public:
