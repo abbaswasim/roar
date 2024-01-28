@@ -304,6 +304,7 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_print_generated_fragment_shaders = setting.get<bool>("print_generated_fragment_shaders");
 		this->m_print_generated_compute_shaders  = setting.get<bool>("print_generated_compute_shaders");
 		this->m_log_event_system                 = setting.get<bool>("log_event_system");
+		this->m_warn_event_system                = setting.get<bool>("warn_event_system");
 		this->m_write_generated_shaders          = setting.get<bool>("write_generated_shaders");
 		this->m_watch_shaders                    = setting.get<bool>("watch_shaders");
 		this->m_generate_debug_mesh              = setting.get<bool>("generate_debug_mesh");
@@ -462,6 +463,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_print_generated_fragment_shaders{false};
 	bool m_print_generated_compute_shaders{false};
 	bool m_log_event_system{false};
+	bool m_warn_event_system{false};
 	bool m_write_generated_shaders{false};
 	bool m_watch_shaders{false};
 	bool m_generate_debug_mesh{false};

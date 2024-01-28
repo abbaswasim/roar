@@ -303,7 +303,7 @@ void EventSystem::notify(Event a_event) const
 
 		if constexpr (ror::get_build() == ror::BuildType::build_debug)
 		{
-			if (subs.empty())
+			if (subs.empty() && ror::settings().m_warn_event_system)
 				ror::log_warn("Event not registered {}", create_event_handle(a_event.m_handle));
 			else if (ror::settings().m_log_event_system)
 				ror::log_info("Event triggered {}", create_event_handle(a_event.m_handle));
