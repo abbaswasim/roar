@@ -88,6 +88,18 @@ void OrbitCamera::init(EventSystem &a_event_system)
 	this->m_zoom_callback = [this](ror::Event &e) {
 		if (e.is_compatible<ror::Vector2d>())
 		{
+			auto vec2 = std::any_cast<ror::Vector2d>(e.m_payload);
+			this->zoom(vec2.x);
+		}
+		else
+		{
+			assert(0 && "Incompatible payload with zoom callback");
+		}
+	};
+
+	this->m_forward_callback = [this](ror::Event &e) {
+		if (e.is_compatible<ror::Vector2d>())
+		{
 			float32_t scale = 1.0f;
 
 			auto vec2     = std::any_cast<ror::Vector2d>(e.m_payload);
@@ -100,12 +112,11 @@ void OrbitCamera::init(EventSystem &a_event_system)
 
 			vec2 *= scale;
 
-			this->zoom(vec2.x);
 			this->forward(-vec2.y);
 		}
 		else
 		{
-			assert(0 && "Incompatible payload with zoom callback");
+			assert(0 && "Incompatible payload with forward callback");
 		}
 	};
 
@@ -115,7 +126,9 @@ void OrbitCamera::init(EventSystem &a_event_system)
 
 	this->m_reset_callback = [this](ror::Event &) {
 		this->m_center = this->m_target;
-		this->reset();
+		this->m_y_fov  = this->m_y_fov_target;
+		this->update_projection();
+		this->update_view();
 	};
 
 	this->m_event_system = &a_event_system;
@@ -317,7 +330,10 @@ void OrbitCamera::enable()
 
 	this->m_event_system->subscribe(buffer_resize, this->m_resize_callback);
 
-	this->m_event_system->subscribe(mouse_scroll, this->m_zoom_callback);
+	this->m_event_system->subscribe(mouse_scroll, this->m_forward_callback);
+	this->m_event_system->subscribe(mouse_command_scroll, this->m_forward_callback);
+	this->m_event_system->subscribe(mouse_control_scroll, this->m_forward_callback);
+
 	this->m_event_system->subscribe(mouse_command_scroll, this->m_zoom_callback);
 	this->m_event_system->subscribe(mouse_control_scroll, this->m_zoom_callback);
 
@@ -341,7 +357,10 @@ void OrbitCamera::disable()
 
 	this->m_event_system->unsubscribe(buffer_resize, this->m_resize_callback);
 
-	this->m_event_system->unsubscribe(mouse_scroll, this->m_zoom_callback);
+	this->m_event_system->unsubscribe(mouse_scroll, this->m_forward_callback);
+	this->m_event_system->unsubscribe(mouse_command_scroll, this->m_forward_callback);
+	this->m_event_system->unsubscribe(mouse_control_scroll, this->m_forward_callback);
+
 	this->m_event_system->unsubscribe(mouse_command_scroll, this->m_zoom_callback);
 	this->m_event_system->unsubscribe(mouse_control_scroll, this->m_zoom_callback);
 

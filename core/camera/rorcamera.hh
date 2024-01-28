@@ -54,8 +54,8 @@ void OrbitCamera::zoom(double64_t a_zoom_delta)
 
 	if (this->m_y_fov < 1.0f)
 		this->m_y_fov = 1.0f;
-	else if (this->m_y_fov > 90.0f)
-		this->m_y_fov = 90.0f;
+	else if (this->m_y_fov > 100.0f)
+		this->m_y_fov = 100.0f;
 
 	this->update_projection();
 }
@@ -188,7 +188,8 @@ void OrbitCamera::far(float32_t a_far)
 
 void OrbitCamera::fov(float32_t a_y_fov)
 {
-	this->m_y_fov = a_y_fov;
+	this->m_y_fov        = a_y_fov;
+	this->m_y_fov_target = a_y_fov;
 
 	this->update_projection();
 }
@@ -230,7 +231,8 @@ void OrbitCamera::y_mag(float32_t a_y_mag)
 
 void OrbitCamera::y_fov(float32_t a_y_fov)
 {
-	this->m_y_fov = a_y_fov;
+	this->m_y_fov        = a_y_fov;
+	this->m_y_fov_target = a_y_fov;
 
 	this->update_projection();
 }
@@ -254,21 +256,22 @@ FORCE_INLINE void OrbitCamera::set_parameters(CameraType a_type, float32_t a_wid
                                               Vector3f a_minimum, Vector3f a_maximum,
                                               float32_t a_y_fov, float32_t a_x_mag, float32_t a_y_mag)
 {
-	this->m_type    = a_type;
-	this->m_width   = a_width;
-	this->m_height  = a_height;
-	this->m_z_near  = a_near;
-	this->m_z_far   = a_far;
-	this->m_center  = a_center;
-	this->m_eye     = a_eye;
-	this->m_up      = a_up;
-	this->m_right   = a_right;
-	this->m_forward = a_forward;
-	this->m_minimum = a_minimum;
-	this->m_maximum = a_maximum;
-	this->m_y_fov   = a_y_fov;
-	this->m_x_mag   = a_x_mag;
-	this->m_y_mag   = a_y_mag;
+	this->m_type         = a_type;
+	this->m_width        = a_width;
+	this->m_height       = a_height;
+	this->m_z_near       = a_near;
+	this->m_z_far        = a_far;
+	this->m_center       = a_center;
+	this->m_eye          = a_eye;
+	this->m_up           = a_up;
+	this->m_right        = a_right;
+	this->m_forward      = a_forward;
+	this->m_minimum      = a_minimum;
+	this->m_maximum      = a_maximum;
+	this->m_y_fov        = a_y_fov;
+	this->m_y_fov_target = a_y_fov;
+	this->m_x_mag        = a_x_mag;
+	this->m_y_mag        = a_y_mag;
 }
 
 }        // namespace ror

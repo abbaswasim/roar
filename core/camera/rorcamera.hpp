@@ -174,6 +174,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t     m_x_position{0.0f};                       //! Previous cusor position of the mouse pointer
 	float32_t     m_y_position{0.0f};                       //! Previous cusor position of the mouse pointer
 	float32_t     m_y_fov{60.0f};                           //! Y-FOV of the camera
+	float32_t     m_y_fov_target{60.0f};                    //! Copy Y-FOV of the camera for resetting purposes
 	float32_t     m_z_near{0.1f};                           //! z-near of the camera
 	float32_t     m_z_far{1000.0f};                         //! z-far of the camera
 	float32_t     m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
@@ -188,6 +189,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	EventCallback m_move_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_drag_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_resize_callback{};                      //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_forward_callback{};                     //! forward lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_zoom_callback{};                        //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_frambuffer_resize_callback{};           //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_mode_callback{};                        //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
