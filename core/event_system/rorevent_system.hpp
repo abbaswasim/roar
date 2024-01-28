@@ -106,6 +106,7 @@ enum class EventState : uint32_t
 	max
 };
 
+std::string             create_event_handle(EventHandle a_handle);
 EventHandle             create_event_handle(EventType     a_event_type,
                                             EventCode     a_event_code     = EventCode::none,
                                             EventModifier a_event_modifier = EventModifier::none,
@@ -151,6 +152,11 @@ struct Event
 		return _type();
 	}
 };
+
+static_assert(static_cast<uint32_t>(EventType::max) < 256, "Too many EventTypes can't fit in 8bit");
+static_assert(static_cast<uint32_t>(EventCode::max) < 256, "Too many EventCodes can't fit in 8bit");
+static_assert(static_cast<uint32_t>(EventModifier::max) < 256, "Too many EventModifiers can't fit in 8bit");
+static_assert(static_cast<uint32_t>(EventState::max) < 256, "Too many EventStates can't fit in 8bit");
 
 static_assert(sizeof(Event) <= 40, "Size of Event is too big");
 
@@ -216,6 +222,11 @@ constexpr EventState event_state(EventHandle a_handle)
 	uint32_t mask = 0xFF000000;
 	return static_cast<EventState>((a_handle & mask) >> 24);
 }
+
+std::string event_type(EventType a_type);
+std::string event_code(EventCode a_code);
+std::string event_modifier(EventModifier a_modifier);
+std::string event_state(EventState a_state);
 
 using EventCallback = std::function<void(Event &)>;
 
