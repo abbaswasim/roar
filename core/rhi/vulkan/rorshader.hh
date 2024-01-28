@@ -27,9 +27,4 @@
 #include "rhi/vulkan/rordevice.hpp"
 
 namespace rhi
-{
-
-FORCE_INLINE ShaderVulkan::~ShaderVulkan() noexcept
-{}
-
-}        // namespace rhi
+{}        // namespace rhi

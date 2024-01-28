@@ -167,6 +167,43 @@ void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_s
 	cameras[this->m_current_camera_index].enable();
 
 	this->update_from_scene_state();
+
+	auto camera_top_view = [this](Event&) {
+		auto &cam = this->current_camera();
+		cam.orient_top();
+	};
+
+	auto camera_bottom_view = [this](Event&) {
+		auto &cam = this->current_camera();
+		cam.orient_bottom();
+	};
+
+	auto camera_left_view = [this](Event&) {
+		auto &cam = this->current_camera();
+		cam.orient_left();
+	};
+
+	auto camera_right_view = [this](Event&) {
+		auto &cam = this->current_camera();
+		cam.orient_right();
+	};
+
+	auto camera_front_view = [this](Event&) {
+		auto &cam = this->current_camera();
+		cam.orient_front();
+	};
+
+	auto camera_back_view = [this](Event&) {
+		auto &cam = this->current_camera();
+		cam.orient_back();
+	};
+
+	a_event_system.subscribe(keyboard_num8_click, camera_top_view);
+	a_event_system.subscribe(keyboard_num2_click, camera_bottom_view);
+	a_event_system.subscribe(keyboard_num4_click, camera_left_view);
+	a_event_system.subscribe(keyboard_num6_click, camera_right_view);
+	a_event_system.subscribe(keyboard_num5_click, camera_front_view);
+	a_event_system.subscribe(keyboard_num0_click, camera_back_view);
 }
 
 void Scene::update_from_scene_state()

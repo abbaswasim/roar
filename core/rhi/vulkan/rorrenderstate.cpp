@@ -31,14 +31,10 @@ namespace rhi
 define_translation_unit_vtable(RenderstateDepthVulkan)
 {}
 
-void RenderstateDepthVulkan::upload(rhi::Device &a_device)
+void RenderstateDepthVulkan::upload(const rhi::Device &a_device)
 {
 	(void) a_device;
 
 	this->m_depth_stencil_state = vk_create_depth_stencil_state(true, this->depth_write(), to_vulkan_depth_compare_function(this->compare_function()), false);
 }
-
-void RenderstateDepthVulkan::release()
-{}
-
 }        // namespace rhi

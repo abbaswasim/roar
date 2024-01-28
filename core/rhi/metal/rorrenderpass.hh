@@ -26,6 +26,4 @@
 #include "rhi/metal/rorrenderpass.hpp"
 
 namespace rhi
-{
-
-}        // namespace rhi
+{}        // namespace rhi

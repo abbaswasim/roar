@@ -41,14 +41,14 @@ class RenderstateDepthVulkan : public RenderstateCrtp<RenderstateDepthVulkan>
 	FORCE_INLINE                         RenderstateDepthVulkan(RenderstateDepthVulkan &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE RenderstateDepthVulkan &operator=(const RenderstateDepthVulkan &a_other)                  = default;        //! Copy assignment operator
 	FORCE_INLINE RenderstateDepthVulkan &operator=(RenderstateDepthVulkan &&a_other) noexcept              = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~RenderstateDepthVulkan() noexcept override;                                                        //! Destructor
+	FORCE_INLINE virtual ~RenderstateDepthVulkan() noexcept override                                       = default;        //! Destructor
 
 	// TODO: Add another bool for depth test because Vulkan works differently
 	FORCE_INLINE RenderstateDepthVulkan(rhi::DepthCompareFunction a_compare_func, bool a_depth_write) :
 	    RenderstateCrtp<RenderstateDepthVulkan>(a_compare_func, a_depth_write)
 	{}
 
-	void upload(rhi::Device &a_device);
+	void upload(const rhi::Device &a_device);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto depth_state()             const noexcept { return this->m_depth_stencil_state;    }

@@ -126,6 +126,54 @@ void OrbitCamera::reset()
 	this->update_view();
 }
 
+void OrbitCamera::orient_top()
+{
+	auto r      = ror::distance(this->m_eye, this->m_center);
+	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y + r, this->m_center.z);
+
+	this->update_view(ror::zaxis3f_negative);
+}
+
+void OrbitCamera::orient_bottom()
+{
+	auto r      = ror::distance(this->m_eye, this->m_center);
+	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y - r, this->m_center.z);
+
+	this->update_view(ror::zaxis3f);
+}
+
+void OrbitCamera::orient_left()
+{
+	auto r      = ror::distance(this->m_eye, this->m_center);
+	this->m_eye = ror::Vector3f(this->m_center.x - r, this->m_center.x, this->m_center.z);
+
+	this->update_view(ror::yaxis3f);
+}
+
+void OrbitCamera::orient_right()
+{
+	auto r      = ror::distance(this->m_eye, this->m_center);
+	this->m_eye = ror::Vector3f(this->m_center.x + r, this->m_center.x, this->m_center.z);
+
+	this->update_view(ror::yaxis3f);
+}
+
+void OrbitCamera::orient_front()
+{
+	auto r      = ror::distance(this->m_eye, this->m_center);
+	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y, this->m_center.z + r);
+
+	this->update_view(ror::yaxis3f);
+}
+
+void OrbitCamera::orient_back()
+{
+	auto r      = ror::distance(this->m_eye, this->m_center);
+	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y, this->m_center.z - r);
+
+	this->update_view(ror::yaxis3f);
+}
+
 void OrbitCamera::update_normal()
 {
 	// TODO: This is wrong, I don't have model matrix here, its somewhere in the compute shader world

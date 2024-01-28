@@ -80,7 +80,7 @@ static void attachments_create_utility(const RenderTarget &a_render_target, uint
 	auto format                   = a_render_target.m_target_reference.get().format();
 	auto vkformat                 = to_vulkan_pixelformat(format);
 	auto render_target_attachment = vk_create_attachment_description(vkformat, a_samples, a_load_op, a_store_op,
-	                                                                 VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE,
+	                                                                 VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE,        // These one are for stencil, attachments
 	                                                                 a_initial_layout, a_final_layout);
 
 	auto render_target_reference = vk_create_attachment_reference(a_rti_index, a_final_layout);
@@ -102,7 +102,7 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 	// color_attachment->setClearColor(MTL::ClearColor::Make(bgc.x, bgc.y, bgc.z, bgc.w));
 	// depth->setClearDepth(ror::settings().m_depth_clear);
 
-	uint32_t                             rti_index = 0;
+	uint32_t                             rt_index = 0;
 	std::vector<VkAttachmentDescription> renderpass_render_target_attachments_descriptions{};
 	std::vector<VkAttachmentReference>   renderpass_render_target_attachments_references{};
 	std::vector<VkSubpassDescription>    subpasses_descriptions;
@@ -134,11 +134,11 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 		VkAttachmentLoadOp  load_op{to_vulkan_load_action(render_target.m_load_action)};
 		VkAttachmentStoreOp store_op{to_vulkan_store_action(render_target.m_store_action)};
 
-		attachments_create_utility(render_target, rti_index, samples, renderpass_render_target_attachments_descriptions, renderpass_render_target_attachments_references, load_op, store_op, initial_layout, final_layout);
+		attachments_create_utility(render_target, rt_index, samples, renderpass_render_target_attachments_descriptions, renderpass_render_target_attachments_references, load_op, store_op, initial_layout, final_layout);
 
 		framebuffer_attachments.emplace_back(render_target.m_target_reference.get().image_view());
 
-		rti_index++;
+		rt_index++;
 	}
 
 	// Collect all input attachment descriptions and references
@@ -154,13 +154,13 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 			VkAttachmentStoreOp store_op{VK_ATTACHMENT_STORE_OP_DONT_CARE};
 
 			assert(render_target.m_render_output != nullptr && "Render output reference can't be null");
-			attachments_create_utility(*render_target.m_render_output, rti_index, samples, renderpass_render_target_attachments_descriptions, renderpass_render_target_attachments_references, load_op, store_op, initial_layout, final_layout);
-			input_attachments_references.emplace_back(std::make_pair(rti_index, render_target.m_render_output));
+			attachments_create_utility(*render_target.m_render_output, rt_index, samples, renderpass_render_target_attachments_descriptions, renderpass_render_target_attachments_references, load_op, store_op, initial_layout, final_layout);
+			input_attachments_references.emplace_back(std::make_pair(rt_index, render_target.m_render_output));
 
 			// TODO: Understand why am I doing this. shouldn't this only contain all the render targets and not subpass attachments
 			framebuffer_attachments.emplace_back(render_target.m_render_output->m_target_reference.get().image_view());
 
-			rti_index++;
+			rt_index++;
 		}
 	}
 
@@ -245,7 +245,7 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 		dst_subpass++;
 	}
 
-	// TODO: Remove the check ones compute path is defined
+	// TODO: Remove the check once compute path is defined
 	if (subpasses_descriptions.size() > 0)
 	{
 		VkExtent2D dimensions{};

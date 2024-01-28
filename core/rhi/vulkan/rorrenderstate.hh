@@ -27,8 +27,4 @@
 
 namespace rhi
 {
-FORCE_INLINE RenderstateDepthVulkan::~RenderstateDepthVulkan() noexcept
-{
-	this->release();
-}
 }        // namespace rhi

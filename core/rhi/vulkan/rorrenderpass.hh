@@ -26,6 +26,4 @@
 #include "rhi/vulkan/rorrenderpass.hpp"
 
 namespace rhi
-{
-
-}        // namespace rhi
+{}        // namespace rhi

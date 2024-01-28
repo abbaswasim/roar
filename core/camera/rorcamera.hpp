@@ -105,6 +105,12 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	void              update(const Renderer &a_renderer) const;
 	void              upload(rhi::Device &a_device);
 	void              setup_frustums();
+	void              orient_top();
+	void              orient_bottom();
+	void              orient_left();
+	void              orient_right();
+	void              orient_front();
+	void              orient_back();
 
 	// clang-format off
 	FORCE_INLINE constexpr auto& view()          const noexcept { return this->m_view;          }

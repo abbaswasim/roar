@@ -34,7 +34,7 @@ namespace rhi
 define_translation_unit_vtable(RenderstateDepthMetal)
 {}
 
-void RenderstateDepthMetal::upload(rhi::Device &a_device)
+void RenderstateDepthMetal::upload(const rhi::Device &a_device)
 {
 	MTL::Device                 *device                   = a_device.platform_device();
 	MTL::DepthStencilDescriptor *depth_stencil_descriptor = MTL::DepthStencilDescriptor::alloc()->init();

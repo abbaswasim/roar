@@ -49,7 +49,7 @@ class RenderstateDepthMetal : public RenderstateCrtp<RenderstateDepthMetal>
 	    RenderstateCrtp<RenderstateDepthMetal>(a_compare_func, a_depth_write)
 	{}
 
-	void upload(rhi::Device &a_device);
+	void upload(const rhi::Device &a_device);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto depth_state()             const noexcept { return this->m_depth_state;         }
