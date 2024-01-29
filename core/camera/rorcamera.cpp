@@ -226,26 +226,17 @@ void OrbitCamera::update_view(Vector3f a_up)        // Up default is {0.0f, 1.0f
 void OrbitCamera::update_projection()
 {
 	// Setup perspective projection matrix
-	auto aspect = this->m_width / this->m_height;
+	this->m_aspect_ratio = this->m_width / this->m_height;
+	log_critical("near = {} far = {} in {}", this->m_z_near, m_z_far, __FUNCTION__);
 	if (this->m_type == CameraType::perspective)
 	{
 		// assumes square pixels, if ever there is evidence of non-square pixels, provided by windowing system i.e. glfw use it here instead
-		this->m_projection = ror::make_perspective(ror::to_radians(this->m_y_fov), aspect, this->m_z_near, this->m_z_far);
-
-		// NOTE: This is problematic. The projection is no longer invertable, the result is wrong, and shows up when an NDC space is inverse transformed
-		// by inverse of view projection. The z-coordinate ends up in the positive side while it should be facing the camera its behind
-		// TODO: Have a think about making this work
-		// Make infinite projections matrix
-
-		// float a_z_near = 0.1f;
-		// float epsilon  = 0.00000024f;
-		// this->m_projection.m_values[10] = epsilon - 1.0f;
-		// this->m_projection.m_values[14] = (epsilon - 2.0f) * a_z_near;
+		this->m_projection = ror::make_infinite_perspective(ror::to_radians(this->m_y_fov), this->m_aspect_ratio, this->m_z_near, this->m_z_far);
 	}
 	else
 	{
 		auto mag  = std::max(this->m_x_mag, this->m_y_mag);
-		auto xmag = (mag * aspect) * 0.5f;
+		auto xmag = (mag * this->m_aspect_ratio) * 0.5f;
 		auto ymag = mag * 0.5f;
 
 		this->m_projection = ror::make_ortho(-xmag, xmag, -ymag, ymag, this->m_z_near, this->m_z_far);

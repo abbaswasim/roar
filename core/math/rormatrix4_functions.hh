@@ -450,57 +450,31 @@ FORCE_INLINE Matrix4<_type> make_frustum(_type a_left, _type a_right, _type a_bo
 	_type rl = static_cast<_type>(1) / (a_right - a_left);
 	_type tb = static_cast<_type>(1) / (a_top - a_bottom);
 	_type fn = static_cast<_type>(1) / (a_z_far - a_z_near);
+	_type nf = static_cast<_type>(1) / (a_z_near - a_z_far);
 
 	Matrix4<_type> matrix;
 
 	matrix.m_values[0]  = static_cast<_type>(2) * a_z_near * rl;
-	matrix.m_values[1]  = 0;
-	matrix.m_values[2]  = 0;
-	matrix.m_values[3]  = 0;
-	matrix.m_values[4]  = 0;
 	matrix.m_values[5]  = static_cast<_type>(2) * a_z_near * tb;
-	matrix.m_values[6]  = 0;
-	matrix.m_values[7]  = 0;
 	matrix.m_values[8]  = (a_right + a_left) * rl;
 	matrix.m_values[9]  = (a_top + a_bottom) * tb;
-	matrix.m_values[10] = -(a_z_far + a_z_near) * fn;
+	matrix.m_values[10] = a_z_far * nf;
 	matrix.m_values[11] = -1;
-	matrix.m_values[12] = 0;
-	matrix.m_values[13] = 0;
-	matrix.m_values[14] = -(static_cast<_type>(2) * a_z_far * a_z_near) * fn;
+	matrix.m_values[14] = -(a_z_far * a_z_near) * fn;
 	matrix.m_values[15] = 0;
 
 	return matrix;
 }
 
 template <class _type>
-FORCE_INLINE Matrix4<_type> make_infinite_frustum(_type a_left, _type a_right, _type a_bottom, _type a_top, _type a_z_near)
+FORCE_INLINE Matrix4<_type> make_infinite_frustum(_type a_left, _type a_right, _type a_bottom, _type a_top, _type a_z_near, _type a_z_far)
 {
-	_type rl = static_cast<_type>(1) / (a_right - a_left);
-	_type tb = static_cast<_type>(1) / (a_top - a_bottom);
-
-	Matrix4<_type> matrix;
-
-	matrix.m_values[0]  = static_cast<_type>(2) * a_z_near * rl;
-	matrix.m_values[1]  = 0;
-	matrix.m_values[2]  = 0;
-	matrix.m_values[3]  = 0;
-	matrix.m_values[4]  = 0;
-	matrix.m_values[5]  = static_cast<_type>(2) * a_z_near * tb;
-	matrix.m_values[6]  = 0;
-	matrix.m_values[7]  = 0;
-	matrix.m_values[8]  = (a_right + a_left) * rl;
-	matrix.m_values[9]  = (a_top + a_bottom) * tb;
-	matrix.m_values[12] = 0;
-	matrix.m_values[13] = 0;
+	Matrix4<_type> matrix = make_frustum(a_left, a_right, a_bottom, a_top, a_z_near, a_z_far);
 
 	_type nudge = static_cast<_type>(1) - static_cast<_type>(1) / (1 << 23);        //!< Why the shift by 23, someday will find out
 
 	matrix.m_values[10] = -static_cast<_type>(1) * nudge;
-	matrix.m_values[14] = -static_cast<_type>(2) * a_z_near * nudge;
-
-	matrix.m_values[11] = -1;
-	matrix.m_values[15] = 0;
+	matrix.m_values[14] = -static_cast<_type>(1) * a_z_near * nudge;
 
 	return matrix;
 }
@@ -515,25 +489,17 @@ FORCE_INLINE Matrix4<_type> make_ortho(_type a_left, _type a_right, _type a_bott
 	Matrix4<_type> matrix(1);
 
 	matrix.m_values[0]  = static_cast<_type>(2) * rl;
-	matrix.m_values[1]  = 0;
-	matrix.m_values[2]  = 0;
-	matrix.m_values[3]  = 0;
-	matrix.m_values[4]  = 0;
 	matrix.m_values[5]  = static_cast<_type>(2) * tb;
-	matrix.m_values[6]  = 0;
-	matrix.m_values[7]  = 0;
-	matrix.m_values[8]  = 0;
-	matrix.m_values[9]  = 0;
-	matrix.m_values[10] = -static_cast<_type>(2) * fn;
-	matrix.m_values[11] = 0;
+	matrix.m_values[10] = -static_cast<_type>(1) * fn;
 	matrix.m_values[12] = -(a_right + a_left) * rl;
 	matrix.m_values[13] = -(a_top + a_bottom) * tb;
-	matrix.m_values[14] = -(a_z_far + a_z_near) * fn;
-	matrix.m_values[15] = 1;
+	matrix.m_values[14] = -a_z_near * fn;
 
 	return matrix;
 }
 
+// All the matrices here are Right Handed that transforms to NDC 0 - 1 instead of -1 to 1
+// Both metal and Vulkan are uses NDC [0 - 1] so this works out and is the only supported
 template <class _type>
 FORCE_INLINE Matrix4<_type> make_perspective(_type a_fov_in_radians, _type a_aspect_ratio, _type a_z_near, _type a_z_far)
 {
@@ -547,27 +513,28 @@ FORCE_INLINE Matrix4<_type> make_perspective(_type a_fov_in_radians, _type a_asp
 
 	matrix.m_values[0]  = cotangent / a_aspect_ratio;
 	matrix.m_values[5]  = cotangent;
-	matrix.m_values[10] = (a_z_far + a_z_near) / delta_z;
+	matrix.m_values[10] = a_z_far / delta_z;
 	matrix.m_values[11] = -1;
-	matrix.m_values[14] = static_cast<_type>(2) * a_z_near * a_z_far / delta_z;
+	matrix.m_values[14] = a_z_near * a_z_far / delta_z;
 	matrix.m_values[15] = 0;
 
 	return matrix;
 }
 
 template <class _type>
-FORCE_INLINE Matrix4<_type> make_infinite_perspective(_type a_fov_in_radians, _type a_aspect_ratio, _type a_z_near)
+FORCE_INLINE Matrix4<_type> make_infinite_perspective(_type a_fov_in_radians, _type a_aspect_ratio, _type a_z_near, _type a_z_far)
 {
 	// http://www.terathon.com/gdc07_lengyel.pdf
 	// http://www.geometry.caltech.edu/pubs/UD12.pdf
 	// By using this matrix make sure you clear your depth like glClearDepth(1.0 − n/f); to avoid rendering farther objects
 	// But doesn't this defeats the purpose of having an infinite projection, where you don't want clipping to happen
-	Matrix4<_type> out = make_perspective(a_fov_in_radians, a_aspect_ratio, a_z_near, static_cast<_type>(100));
+	Matrix4<_type> out = make_perspective(a_fov_in_radians, a_aspect_ratio, a_z_near, static_cast<_type>(a_z_far));
 
-	// Using epslion here might be losing all the benefit, this epsilon what lengyel suggests 2.4x10-7
-	float epsilon  = 0.00000024f;
+	// Using epslion here might be losing all the benefit, epsilon is what lengyel suggests 2.4x10-7
+	// NOTE: This is slightly different front what's in the pdf because its adjusted for Right Handedness from 0 - 1 instead of -1 to 1
+	float epsilon    = 0.00000024f;
 	out.m_values[10] = epsilon - static_cast<_type>(1);
-	out.m_values[14] = (epsilon - static_cast<_type>(2)) * a_z_near;
+	out.m_values[14] = (epsilon - static_cast<_type>(1)) * a_z_near;
 
 	return out;
 }
@@ -575,28 +542,29 @@ FORCE_INLINE Matrix4<_type> make_infinite_perspective(_type a_fov_in_radians, _t
 template <class _type>
 FORCE_INLINE void ortho_update_depth(_type a_z_near, _type a_z_far, Matrix4<_type> &a_out_matrix)
 {
-	_type fn = static_cast<_type>(1) / (a_z_near - a_z_far);
+	_type fn = static_cast<_type>(1) / (a_z_far - a_z_near);
 
-	a_out_matrix.m_values[10] = static_cast<_type>(2) * fn;
-	a_out_matrix.m_values[14] = (a_z_far + a_z_near) * fn;
+	a_out_matrix.m_values[10] = -static_cast<_type>(1) * fn;
+	a_out_matrix.m_values[14] = -a_z_near * fn;
 }
 
 template <class _type>
 FORCE_INLINE void frustum_update_depth(_type a_z_near, _type a_z_far, Matrix4<_type> &a_out_matrix)
 {
-	_type fn = static_cast<_type>(1) / (a_z_near - a_z_far);
+	_type nf = static_cast<_type>(1) / (a_z_near - a_z_far);
+	_type fn = static_cast<_type>(1) / (a_z_far - a_z_near);
 
-	a_out_matrix.m_values[10] = (a_z_far + a_z_near) * fn;
-	a_out_matrix.m_values[14] = (static_cast<_type>(2) * a_z_far * a_z_near) * fn;
+	a_out_matrix.m_values[10] = a_z_far * nf;
+	a_out_matrix.m_values[14] = -(a_z_far * a_z_near) * fn;
 }
 
 template <class _type>
 FORCE_INLINE void perspective_update_depth(_type a_z_near, _type a_z_far, Matrix4<_type> &a_out_matrix)
 {
-	_type fn = static_cast<_type>(1) / (a_z_near - a_z_far);
+	_type nf = static_cast<_type>(1) / (a_z_near - a_z_far);
 
-	a_out_matrix.m_values[10] = (a_z_far + a_z_near) * fn;
-	a_out_matrix.m_values[14] = static_cast<_type>(2) * a_z_near * a_z_far * fn;
+	a_out_matrix.m_values[10] = a_z_far * nf;
+	a_out_matrix.m_values[14] = a_z_near * a_z_far * nf;
 }
 
 template <class _type>

@@ -800,25 +800,25 @@ TYPED_TEST(Matrix4TestSigned, untestable_funcs)
 		ror::Matrix4<TypeParam> mat_res{static_cast<TypeParam>(0.0002667), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0004167), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 		                                static_cast<TypeParam>(0.1466667), static_cast<TypeParam>(-0.8750000), static_cast<TypeParam>(-1.0000161), static_cast<TypeParam>(-1.0000000),
-		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0200002), static_cast<TypeParam>(0.0000000)};
+		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0100000808), static_cast<TypeParam>(0.0000000)};
 		test_matrix4_equal(mat, mat_res);
 		frustum_update_depth(n, f, mat);
 		test_matrix4_equal(mat, mat_res);
 	}
 	{
-		ror::Matrix4<TypeParam> mat = ror::make_infinite_frustum(l, r, t, b, n);
+		ror::Matrix4<TypeParam> mat = ror::make_infinite_frustum(l, r, t, b, n, f);
 		ror::Matrix4<TypeParam> mat_res{static_cast<TypeParam>(0.0002667), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0004167), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 		                                static_cast<TypeParam>(0.1466667), static_cast<TypeParam>(-0.8750000), static_cast<TypeParam>(-0.9999999), static_cast<TypeParam>(-1.0000000),
-		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0200000), static_cast<TypeParam>(0.0000000)};
+		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0100000), static_cast<TypeParam>(0.0000000)};
 		test_matrix4_equal(mat, mat_res);
 	}
 	{
 		ror::Matrix4<TypeParam> mat = ror::make_ortho(l, r, t, b, n, f);
 		ror::Matrix4<TypeParam> mat_res{static_cast<TypeParam>(0.0266667), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0416667), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
-		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0016103), static_cast<TypeParam>(0.0000000),
-		                                static_cast<TypeParam>(-0.1466667), static_cast<TypeParam>(0.8750000), static_cast<TypeParam>(-1.0000161), static_cast<TypeParam>(1.0000000)};
+		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.00080515), static_cast<TypeParam>(0.0000000),
+		                                static_cast<TypeParam>(-0.1466667), static_cast<TypeParam>(0.8750000), static_cast<TypeParam>(-0.00000805), static_cast<TypeParam>(1.0000000)};
 
 		test_matrix4_equal(mat, mat_res);
 		ortho_update_depth(n, f, mat);
@@ -829,17 +829,17 @@ TYPED_TEST(Matrix4TestSigned, untestable_funcs)
 		ror::Matrix4<TypeParam> mat_res{static_cast<TypeParam>(0.7770959), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.9325151), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-1.0000161), static_cast<TypeParam>(-1.0000000),
-		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0200002), static_cast<TypeParam>(0.0000000)};
+		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0100001), static_cast<TypeParam>(0.0000000)};
 		test_matrix4_equal(mat, mat_res);
 		perspective_update_depth(n, f, mat);
 		test_matrix4_equal(mat, mat_res);
 	}
 	{
-		ror::Matrix4<TypeParam> mat = ror::make_infinite_perspective(a, o, n);
+		ror::Matrix4<TypeParam> mat = ror::make_infinite_perspective(a, o, n, f);
 		ror::Matrix4<TypeParam> mat_res{static_cast<TypeParam>(0.7770959), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.9325151), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000),
 		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.999999), static_cast<TypeParam>(-1.0000000),
-		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.019999), static_cast<TypeParam>(0.0000000)};
+		                                static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(0.0000000), static_cast<TypeParam>(-0.0099999), static_cast<TypeParam>(0.0000000)};
 		test_matrix4_equal(mat, mat_res);
 	}
 	{

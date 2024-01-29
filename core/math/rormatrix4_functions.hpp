@@ -137,7 +137,7 @@ template <class _type>
 FORCE_INLINE Matrix4<_type> make_frustum(_type a_left, _type a_right, _type a_bottom, _type a_top, _type a_z_near, _type a_z_far);
 
 template <class _type>
-FORCE_INLINE Matrix4<_type> make_infinite_frustum(_type left, _type right, _type bottom, _type top, _type z_near);
+FORCE_INLINE Matrix4<_type> make_infinite_frustum(_type left, _type right, _type bottom, _type top, _type z_near, _type a_z_far);
 
 template <class _type>
 FORCE_INLINE Matrix4<_type> make_ortho(_type a_left, _type a_right, _type a_bottom, _type a_top, _type a_z_near, _type a_z_far);
@@ -146,7 +146,7 @@ template <class _type>
 FORCE_INLINE Matrix4<_type> make_perspective(_type a_fov_in_radians, _type a_aspect_ratio, _type a_z_near, _type a_z_far);
 
 template <class _type>
-FORCE_INLINE Matrix4<_type> make_infinite_perspective(_type a_fov_in_radians, _type a_aspect_ratio, _type a_z_near);
+FORCE_INLINE Matrix4<_type> make_infinite_perspective(_type a_fov_in_radians, _type a_aspect_ratio, _type a_z_near, _type a_z_far);
 
 template <class _type>
 FORCE_INLINE void ortho_update_depth(_type a_z_near, _type a_z_far, Matrix4<_type> &a_out_matrix);
