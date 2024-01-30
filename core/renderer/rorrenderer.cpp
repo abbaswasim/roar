@@ -1571,7 +1571,7 @@ void Renderer::install_input_handlers(ror::EventSystem &a_event_system)
 {
 	// FIXME: NOTE: This currently doesn't work, its ending up in a very obscure bug somewhere in glfw
 	// Curious enough if cycle_environment is called some other way it works
-	static auto cycle_env = [this](Event&) {
+	static auto cycle_env = [this](Event &) {
 		this->cycle_environment();
 	};
 

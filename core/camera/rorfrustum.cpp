@@ -28,36 +28,48 @@
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
 #include "math/rorvector_functions.hpp"
+#include "profiling/rorlog.hpp"
 #include "rorfrustum.hpp"
 
 namespace ror
 {
 
-void Frustum::setup(const ror::Matrix4f &a_view_projection)
+/**
+ * @brief      Calculates frustum corners in world space
+ * @details    This method calculates frustum corners in world space using view transform only.
+               Usually one would transform NDC space frustum corners into worldspace by perspective transforming with view_projection.
+               I can't use this because I am using infinite projection matrix which brings NDC points behind camera.
+               Instead I am using a method described in Chapter 6 of Fundamentals of Game Engine Volume 2 by Eric Lengyel
+ * @param      a_view   The viewing matrix
+ */
+void Frustum::setup(const ror::Matrix4f &a_view)
 {
-	// Get the 8 points of the view frustum in world space
+	float32_t s = this->m_aspect;
+	float32_t g = 1.0f / std::tan(ror::to_radians(this->m_fov / 2.0f));
+	// float32_t g = s / std::tan(ror::to_radians(this->m_fov / 2.0f)); // This one is required if m_fov is horizonal fov
+	float32_t n = this->m_near;
+	float32_t f = this->m_far;
 
-	ror::Vector4f frustumCorners[8] = {
-	    {-1.0f,  1.0f, 0.0f, 1.0f},
-	    { 1.0f,  1.0f, 0.0f, 1.0f},
-	    { 1.0f, -1.0f, 0.0f, 1.0f},
-	    {-1.0f, -1.0f, 0.0f, 1.0f},
-	    {-1.0f,  1.0f, 1.0f, 1.0f},
-	    { 1.0f,  1.0f, 1.0f, 1.0f},
-	    { 1.0f, -1.0f, 1.0f, 1.0f},
-	    {-1.0f, -1.0f, 1.0f, 1.0f},
+	ror::Vector4f frustum_corners[8] = {
+	    {-(n * s) / g, -n / g, -n, 1.0f},
+	    {(n * s) / g, -n / g, -n, 1.0f},
+	    {(n * s) / g, n / g, -n, 1.0f},
+	    {-(n * s) / g, n / g, -n, 1.0f},
+	    {-(f * s) / g, -f / g, -f, 1.0f},
+	    {(f * s) / g, -f / g, -f, 1.0f},
+	    {(f * s) / g, f / g, -f, 1.0f},
+	    {-(f * s) / g, f / g, -f, 1.0f},
 	};
 
-	this->m_view_projection = a_view_projection;
+	this->m_view = a_view;
 
-	auto result = this->m_view_projection.inverse(this->m_view_projection_inverse);
-	assert(result && "Can't invert view projection");
+	auto result = this->m_view.inverse(this->m_view_inverse);
+	assert(result && "Can't invert view matrix");
 	(void) result;
 
 	for (int i = 0; i < 8; ++i)
 	{
-		auto cs = this->m_view_projection_inverse * frustumCorners[i];
-		cs      = cs / cs.w;
+		auto cs = this->m_view_inverse * frustum_corners[i];
 
 		this->m_corners[i] = ror::Vector3f(cs);
 		this->m_center     = this->m_center + this->m_corners[i];

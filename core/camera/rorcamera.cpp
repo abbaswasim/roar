@@ -245,11 +245,16 @@ void OrbitCamera::update_projection()
 
 void OrbitCamera::setup_frustums()
 {
+	this->update_view();
 	this->update_projection();
-	auto view_projection = this->m_projection * this->m_view;
 
 	const size_t cascade_index{0};
-	this->m_frustums[cascade_index].setup(view_projection);
+
+	this->m_frustums[cascade_index].fov(this->m_y_fov);
+	this->m_frustums[cascade_index].far(this->m_z_far);
+	this->m_frustums[cascade_index].near(this->m_z_near);
+	this->m_frustums[cascade_index].aspect(this->m_aspect_ratio);
+	this->m_frustums[cascade_index].setup(this->m_view);
 }
 
 void OrbitCamera::setup()
