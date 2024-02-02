@@ -80,6 +80,7 @@ enum class EventCode : uint32_t
 };
 // clang-format on
 
+// TODO: Support multiple modifiers
 enum class EventModifier : uint32_t
 {
 	none = 0,

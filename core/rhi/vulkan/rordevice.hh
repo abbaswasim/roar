@@ -270,7 +270,7 @@ FORCE_INLINE auto &DeviceVulkan::memory_properties() const noexcept
 	return this->m_gpu.memory_properties();
 }
 
-FORCE_INLINE auto DeviceVulkan::samples_count()
+FORCE_INLINE auto DeviceVulkan::samples_count() const noexcept
 {
 	return this->m_gpu.samples_count();
 }

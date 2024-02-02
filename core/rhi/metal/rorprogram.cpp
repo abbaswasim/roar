@@ -189,6 +189,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 
 	render_pipeline_descriptor->setVertexFunction(vs.function());
 	render_pipeline_descriptor->setFragmentFunction(fs.function());
+
 	if (mtl_vertex_descriptor)
 		render_pipeline_descriptor->setVertexDescriptor(mtl_vertex_descriptor);
 

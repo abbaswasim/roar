@@ -160,17 +160,18 @@ EventCode glfw_key_to_event_code(int a_key)
 	return ror::EventCode::none;
 }
 
+// NOTE: Does not support multiple modifiers held at the same time
 EventModifier glfw_mode_to_event_modifier(int a_mode)
 {
 	// clang-format off
 	switch (a_mode)
 	{
-		case GLFW_MOD_SHIFT:		return EventModifier::shift;
-		case GLFW_MOD_CONTROL:		return EventModifier::control;
-		case GLFW_MOD_ALT:			return EventModifier::option;
-		case GLFW_MOD_SUPER:		return EventModifier::command;
-		case GLFW_MOD_CAPS_LOCK:	return EventModifier::caps_lock;
-		case GLFW_MOD_NUM_LOCK:		return EventModifier::num_lock;
+		case GLFW_MOD_SHIFT:        return EventModifier::shift;
+		case GLFW_MOD_CONTROL:      return EventModifier::control;
+		case GLFW_MOD_ALT:          return EventModifier::option;
+		case GLFW_MOD_SUPER:        return EventModifier::command;
+		case GLFW_MOD_CAPS_LOCK:    return EventModifier::caps_lock;
+		case GLFW_MOD_NUM_LOCK:     return EventModifier::num_lock;
 	}
 	// clang-format on
 

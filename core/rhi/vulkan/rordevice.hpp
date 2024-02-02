@@ -161,7 +161,7 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE auto  platform_protected_queue_index() const noexcept;
 	FORCE_INLINE auto  platform_command_buffer();
 	FORCE_INLINE auto  platform_swapchain();
-	FORCE_INLINE auto  samples_count();
+	FORCE_INLINE auto  samples_count() const noexcept;
 	FORCE_INLINE auto &memory_properties() const noexcept;
 	FORCE_INLINE auto &platform_graphics_queue_mutex() const noexcept;
 	FORCE_INLINE auto &platform_compute_queue_mutex() const noexcept;

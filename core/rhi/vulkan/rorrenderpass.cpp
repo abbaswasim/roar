@@ -262,27 +262,23 @@ size_t RenderpassVulkan::platform_renderpass_count()
 	return 1ul;
 }
 
-VkRenderPass RenderpassVulkan::platform_renderpass(uint32_t a_index)
+VkRenderPass RenderpassVulkan::platform_renderpass(uint32_t)
 {
-	(void) a_index;
 	return this->m_render_pass;
 }
 
-VkRenderPass RenderpassVulkan::platform_computepass(uint32_t a_index)
+VkRenderPass RenderpassVulkan::platform_computepass(uint32_t)
 {
-	(void) a_index;
 	return this->m_render_pass;
 }
 
-rhi::RenderCommandEncoder RenderpassVulkan::render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index)
+rhi::RenderCommandEncoder RenderpassVulkan::render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t)
 {
-	(void) a_index;
 	return rhi::RenderCommandEncoder{a_command_buffer.platform_command_buffer()};
 }
 
-rhi::ComputeCommandEncoder RenderpassVulkan::compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index)
+rhi::ComputeCommandEncoder RenderpassVulkan::compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t)
 {
-	(void) a_index;
 	return rhi::ComputeCommandEncoder{a_command_buffer.platform_command_buffer()};
 }
 

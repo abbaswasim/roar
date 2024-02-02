@@ -282,7 +282,7 @@ constexpr auto PlatformStorageModeMemoryLess = VK_MEMORY_PROPERTY_DEVICE_LOCAL_B
 constexpr auto PlatformPrimitiveCullModeNone      = VK_CULL_MODE_NONE;
 constexpr auto PlatformPrimitiveCullModeFront     = VK_CULL_MODE_FRONT_BIT;
 constexpr auto PlatformPrimitiveCullModeBack      = VK_CULL_MODE_BACK_BIT;
-constexpr auto PlatformPrimitiveCullModeFrontBack = VK_CULL_MODE_FRONT_BIT | VK_CULL_MODE_BACK_BIT;
+constexpr auto PlatformPrimitiveCullModeFrontBack = VK_CULL_MODE_FRONT_AND_BACK;
 
 constexpr auto PlatformCompareFunctionNever        = VK_COMPARE_OP_NEVER;
 constexpr auto PlatformCompareFunctionLess         = VK_COMPARE_OP_LESS;

@@ -122,6 +122,8 @@ class ROAR_ENGINE_ITEM Vector3 final
 	FORCE_INLINE _type   maximum() const;
 };        // namespace ror
 
+static_assert(std::is_trivial<Vector3<float32_t>>::value, "Shouldn't have constructor for perf reasons");
+
 using Vector3i  = Vector3<int32_t>;
 using Vector3ui = Vector3<uint32_t>;
 using Vector3f  = Vector3<float32_t>;

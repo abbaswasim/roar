@@ -26,6 +26,7 @@
 #include "foundation/rormacros.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/vulkan/rorshader.hpp"
+#include "rhi/vulkan/rorvulkan_utils.hpp"
 
 namespace rhi
 {
@@ -44,7 +45,11 @@ void ShaderVulkan::platform_source()
 void ShaderVulkan::upload(const rhi::Device &a_device)
 {
 	VkDevice device = a_device.platform_device();
-	this->m_module= rhi::vk_create_shader_module(device, this->spirv());
+
+	if (this->m_module)
+		vk_destroy_shader_module(device, this->m_module);        // TODO: Don't destroy if in use
+
+	this->m_module = rhi::vk_create_shader_module(device, this->spirv());
 }
 
 }        // namespace rhi

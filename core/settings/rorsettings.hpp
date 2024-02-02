@@ -297,6 +297,15 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_vulkan.m_version_minor = setting.get<uint32_t>("vulkan:version_minor");
 		this->m_vulkan.m_validation    = setting.get<bool>("vulkan:validation");
 
+		auto mode = setting.get<std::string>("vulkan:polygon_mode");
+
+		if (mode == "fill")
+			this->m_vulkan.m_polygon_mode = rhi::TriangleFillMode::fill;
+		else if (mode == "lines")
+			this->m_vulkan.m_polygon_mode = rhi::TriangleFillMode::lines;
+		else
+			assert(0 && "No polygon fill mode specified");
+
 		this->m_print_generated_shaders          = setting.get<bool>("print_generated_shaders");
 		this->m_print_generated_msl_shaders      = setting.get<bool>("print_generated_msl_shaders");
 		this->m_print_generated_glsl_shaders     = setting.get<bool>("print_generated_glsl_shaders");
@@ -549,7 +558,8 @@ class ROAR_ENGINE_ITEM Settings final
 
 	struct VulkanOptions : public Options
 	{
-		bool m_validation{true};
+		bool                  m_validation{true};
+		rhi::TriangleFillMode m_polygon_mode{rhi::TriangleFillMode::fill};
 	};
 
 	VulkanOptions m_vulkan{};

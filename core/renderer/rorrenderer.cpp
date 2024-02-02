@@ -1403,6 +1403,8 @@ void Renderer::upload_remaining_textures(rhi::Device &a_device)
 
 	// Hack in cubemap texture with numbers
 	{
+		/*
+		// This has a memory leak, only use for testing
 		rhi::TextureImage txp;
 		rhi::TextureImage txn;
 		rhi::TextureImage typ;
@@ -1443,6 +1445,7 @@ void Renderer::upload_remaining_textures(rhi::Device &a_device)
 		auto image = static_cast<rhi::TextureImageHandle>(static_cast<int32_t>(this->m_images.size()));
 		this->m_images.emplace_back(std::move(cube));
 		this->m_textures.emplace_back(image, static_cast<rhi::TextureSamplerHandle>(0));
+		*/
 	}
 }
 

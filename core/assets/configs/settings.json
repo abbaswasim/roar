@@ -91,6 +91,7 @@
 	{
 		"version_major" : 1,
 		"version_minor" : 3,
+		"polygon_mode" : "fill",
 		"validation" : true
 	},
 	"fog" :

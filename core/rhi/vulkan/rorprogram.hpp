@@ -77,7 +77,7 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 	void upload(const rhi::Device &a_device, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders,
 	            rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders);
-	void release(rhi::Device &a_device);
+	void release(const rhi::Device &a_device);
 
 	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept
 	{
