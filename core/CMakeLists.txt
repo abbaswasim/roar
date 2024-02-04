@@ -152,6 +152,7 @@ set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/shader_system/rorshader_update.cpp
   ${ROAR_SOURCE_DIR}/configuration/rorsettings_configuration.cpp
   ${ROAR_SOURCE_DIR}/renderer/rorrenderer.cpp
+  ${ROAR_SOURCE_DIR}/settings/rorsettings.cpp
   ${ROAR_SOURCE_DIR}/resources/rorprojectroot.cpp)
 
 if (${ROR_RENDER_TYPE_VULKAN})

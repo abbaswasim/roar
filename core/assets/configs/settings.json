@@ -64,6 +64,12 @@
 	"engine_version" : [1, 0, 0],
 	"sets_bindings" :
 	{
+		"shadow_map_sampler" : [0, 0],
+		"brdf_integration_sampler" : [0, 0],
+		"skybox_sampler" : [0, 0],
+		"irradiance_sampler" : [0, 0],
+		"radiance_sampler" : [0, 0],
+		"material_samplers" : [0, 0],
 		"material_factors" : [0, 0],
 		"per_frame_uniform" : [0, 1],
 		"per_view_uniform" : [0, 2],
@@ -77,7 +83,7 @@
 		"morphs_weights" : [0, 10],
 		"joint_inverse_bind" : [0, 11],
 
-		"max_attributes" : 17 
+		"max_attributes" : 17
 	},
 	"metal" :
 	{
@@ -93,7 +99,34 @@
 		"version_minor" : 3,
 		"polygon_mode" : "fill",
 		"descriptor_pool_size" : 1024,
-		"validation" : true
+		"validation" : true,
+		"sets_bindings" :
+		{
+
+			"per_frame_uniform" : [0, 0],
+			"nodes_models" : [0, 1],
+			"nodes_offsets" : [0, 2],
+			"shadow_map_sampler" : [0, 3],
+			"brdf_integration_sampler" : [0, 4],
+			"skybox_sampler" : [0, 5],
+			"irradiance_sampler" : [0, 6],
+			"radiance_sampler" : [0, 7],
+			"directional_light" : [0, 8],
+			"point_light" : [0, 9],
+			"spot_light" : [0, 10],
+			"morphs_weights" : [0, 11],
+			"area_light" : [0, 12],
+
+			"per_view_uniform" : [1, 0],
+
+			"skin_joints" : [2, 0],
+			"joint_inverse_bind" : [2, 1],
+
+			"material_factors" : [3, 0],
+			"material_samplers" : [3, 1],
+
+			"max_attributes" : 17
+		}
 	},
 	"fog" :
 	{
