@@ -230,6 +230,7 @@ class ROAR_ENGINE_ITEM Settings final
 			assert(this->m_gui.m_default_font < this->m_gui.m_fonts.size() && "Default font index is out of range");
 		}
 
+		auto bs_material_samplers  = setting.get<std::vector<uint32_t>>("sets_bindings:material_samplers");
 		auto bs_material_factors   = setting.get<std::vector<uint32_t>>("sets_bindings:material_factors");
 		auto bs_per_frame_uniform  = setting.get<std::vector<uint32_t>>("sets_bindings:per_frame_uniform");
 		auto bs_per_view_uniform   = setting.get<std::vector<uint32_t>>("sets_bindings:per_view_uniform");
@@ -247,6 +248,8 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_bindings.m_max_attributes = std::max(max_attributes, this->m_bindings.m_max_attributes);
 
 		// clang-format off
+		if (bs_material_samplers.size() > 0)       this->m_bindings.m_material_samplers     =   bs_material_samplers[0] << bits_shift;
+		if (bs_material_samplers.size() > 1)       this->m_bindings.m_material_samplers     |=  bs_material_samplers[1];
 		if (bs_material_factors.size() > 0)        this->m_bindings.m_material_factors      =   bs_material_factors[0] << bits_shift;
 		if (bs_material_factors.size() > 1)        this->m_bindings.m_material_factors      |=  bs_material_factors[1];
 		if (bs_per_frame_uniform.size() > 0)       this->m_bindings.m_per_frame_uniform     =   bs_per_frame_uniform[0] << bits_shift;
@@ -350,6 +353,7 @@ class ROAR_ENGINE_ITEM Settings final
 	// clang-format off
 	FORCE_INLINE constexpr auto max_attributes()                  const noexcept { return this->m_bindings.m_max_attributes + 1;                                             }
 
+	FORCE_INLINE constexpr auto material_samplers_binding()       const noexcept { return (this->m_bindings.m_material_samplers & bits_mask);                                }
 	FORCE_INLINE constexpr auto material_factors_binding()        const noexcept { return (this->m_bindings.m_material_factors & bits_mask) + this->max_attributes();        }
 	FORCE_INLINE constexpr auto per_frame_uniform_binding()       const noexcept { return (this->m_bindings.m_per_frame_uniform & bits_mask) + this->max_attributes();       }
 	FORCE_INLINE constexpr auto per_view_uniform_binding()        const noexcept { return (this->m_bindings.m_per_view_uniform & bits_mask) + this->max_attributes();        }
@@ -363,6 +367,7 @@ class ROAR_ENGINE_ITEM Settings final
 	FORCE_INLINE constexpr auto morph_weights_binding()           const noexcept { return (this->m_bindings.m_morphs_weights & bits_mask) + this->max_attributes();          }
 	FORCE_INLINE constexpr auto joint_inverse_bind_binding()      const noexcept { return (this->m_bindings.m_joint_inverse_bind & bits_mask) + this->max_attributes();      }
 
+	FORCE_INLINE constexpr auto material_samplers_set()           const noexcept { return (this->m_bindings.m_material_samplers >> bits_shift);                              }
 	FORCE_INLINE constexpr auto material_factors_set()            const noexcept { return (this->m_bindings.m_material_factors >> bits_shift);                               }
 	FORCE_INLINE constexpr auto per_frame_uniform_set()           const noexcept { return (this->m_bindings.m_per_frame_uniform >> bits_shift);                              }
 	FORCE_INLINE constexpr auto per_view_uniform_set()            const noexcept { return (this->m_bindings.m_per_view_uniform >> bits_shift);                               }
@@ -529,6 +534,7 @@ class ROAR_ENGINE_ITEM Settings final
 	struct BindingsSets
 	{
 		// assumes set is 0 for all of the following
+		uint32_t m_material_samplers{0};
 		uint32_t m_material_factors{0};
 		uint32_t m_per_frame_uniform{1};
 		uint32_t m_per_view_uniform{2};
