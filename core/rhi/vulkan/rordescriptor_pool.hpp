@@ -26,6 +26,7 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "rhi/vulkan/rordescriptor_factory.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include <array>
 #include <vector>
@@ -49,6 +50,8 @@ class DescriptorPool final
 	void            destroy(const VkDevice a_device);
 
 	// clang-format off
+	// FORCE_INLINE constexpr auto pool(VkDescriptorSetLayoutCreateInfo a_info)  { return this->m_pools[a_info].back(); }
+
 	FORCE_INLINE constexpr auto sampler_pool()                  const noexcept { return this->m_pools.back(); }
 	FORCE_INLINE constexpr auto combined_image_sampler_pool()   const noexcept { return this->m_pools.back(); }
 	FORCE_INLINE constexpr auto sampled_image_pool()            const noexcept { return this->m_pools.back(); }
@@ -64,7 +67,14 @@ class DescriptorPool final
 
   protected:
   private:
+	// TODO: Implement me: Ultimate goal is to create a pool per Layout Info this way we know each pools will not have any free space
+	// Any other method I have expolored you risk wasting descritor space
+	// You can also work out how many pools were created per layout info type and save that number to disk and load at next load
+	// using PoolsCache = std::unordered_map<VkDescriptorSetLayoutCreateInfo, std::vector<VkDescriptorPool>, DescriptorLayoutInfoHash>;
+	// PoolsCache m_pools{};        //! Cache of pools by descriptor layout
+
 	std::vector<VkDescriptorPool> m_pools{};        //! Array of all types of pools
+	std::mutex                    m_mutex{};        //! Mutex to synchronise the pools
 };
 
 }        // namespace rhi

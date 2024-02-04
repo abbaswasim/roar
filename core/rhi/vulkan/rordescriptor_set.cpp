@@ -27,82 +27,9 @@
 #include "rhi/vulkan/rordescriptor_set.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
-#include "settings/rorsettings.hpp"
-#include <mutex>
-
-bool operator==(const VkDescriptorSetLayoutBinding &a_left, const VkDescriptorSetLayoutBinding &a_right)
-{
-	if (a_left.binding == a_right.binding &&
-	    a_left.descriptorType == a_right.descriptorType &&
-	    a_left.descriptorCount == a_right.descriptorCount &&
-	    a_left.stageFlags == a_right.stageFlags &&
-	    a_left.pImmutableSamplers == a_right.pImmutableSamplers)        // TODO: Not sure if this is right. confirmm
-		return true;
-
-	return false;
-}
-
-bool operator!=(const VkDescriptorSetLayoutBinding &a_left, const VkDescriptorSetLayoutBinding &a_right)
-{
-	return !(a_left == a_right);
-}
-
-bool operator==(const VkDescriptorSetLayoutCreateInfo &a_left, const VkDescriptorSetLayoutCreateInfo &a_right)
-{
-	if (a_left.bindingCount == a_right.bindingCount &&
-	    a_left.sType == a_right.sType &&        // Maybe should be ignored, since they will always be the same
-	    a_left.pNext == a_right.pNext &&        // Maybe should be ignored, since they will always be the same
-	    a_left.flags == a_right.flags)          // Maybe should be ignored, since they will always be the same
-	{
-		for (size_t i = 0; i < a_left.bindingCount; ++i)
-		{
-			auto &left_binding  = a_left.pBindings[i];
-			auto &right_binding = a_right.pBindings[i];
-
-			if (left_binding != right_binding)
-				return false;
-		}
-
-		return true;
-	}
-
-	return false;
-}
 
 namespace rhi
 {
-
-VkDescriptorSetLayout DescriptorSetLayoutFactory::make_layout(const VkDevice &a_device, const VkDescriptorSetLayoutCreateInfo &a_descriptor_set_layout_createinfo)
-{
-	std::lock_guard<std::mutex> lock{this->m_mutex};
-
-	auto iter = this->m_layouts.find(a_descriptor_set_layout_createinfo);
-	if (iter != this->m_layouts.end())
-	{
-		return iter->second;
-	}
-	else
-	{
-		VkDescriptorSetLayout layout = vk_create_descriptor_set_layout(a_device, a_descriptor_set_layout_createinfo);
-
-		this->m_layouts[a_descriptor_set_layout_createinfo] = layout;
-
-		return layout;
-	}
-}
-
-void DescriptorSetLayoutFactory::destroy(const VkDevice a_device)
-{
-	for (auto &layout : this->m_layouts)
-		vkDestroyDescriptorSetLayout(a_device, layout.second, cfg::VkAllocator);
-}
-
-VkDescriptorSetLayout DescriptorSetLayoutFactory::make_layout(const VkDevice &a_device, std::vector<VkDescriptorSetLayoutBinding> &a_bindings)
-{
-	VkDescriptorSetLayoutCreateInfo descriptor_set_layout_createinfo = vk_create_descriptor_set_layout_info(a_bindings);
-
-	return make_layout(a_device, descriptor_set_layout_createinfo);
-}
 
 void DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags)
 {
@@ -143,5 +70,47 @@ void DescriptorSet::update(const VkDevice a_device)
 // {
 // 	vkFreeDescriptorSets(a_device, this->m_pool, 1, &this->m_handle);
 // }
+
+// The machinery's bindless descriptors layout sounds interesting
+/*
+struct tm_vulkan_bindless_setup_t
+{
+    uint32_t storage_buffers;                //  = 512 * 1024,
+    uint32_t samplers;                       //  = 4 * 1024,
+    uint32_t sampled_images;                 //  = 512 * 1024,
+    uint32_t storage_images;                 //  = 64 * 1024,
+    uint32_t acceleration_structures;        //  = 32 * 1024
+};
+
+static const tm_vulkan_bindless_setup_t default_bindless_setup = {
+    .storage_buffers         = 512 * 1024,
+    .samplers                = 4 * 1024,
+    .sampled_images          = 512 * 1024,
+    .storage_images          = 64 * 1024,
+    .acceleration_structures = 32 * 1024};
+
+const VkDescriptorSetLayoutBinding bindless_layout[] = {
+    {.binding         = 0,
+     .descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+     .descriptorCount = default_bindless_setup.storage_buffers,
+     .stageFlags      = VK_SHADER_STAGE_ALL},
+    {.binding         = 1,
+     .descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+     .descriptorCount = default_bindless_setup.sampled_images,
+     .stageFlags      = VK_SHADER_STAGE_ALL},
+    {.binding         = 2,
+     .descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+     .descriptorCount = default_bindless_setup.storage_images,
+     .stageFlags      = VK_SHADER_STAGE_ALL},
+    {.binding         = 3,
+     .descriptorType  = VK_DESCRIPTOR_TYPE_SAMPLER,
+     .descriptorCount = default_bindless_setup.samplers,
+     .stageFlags      = VK_SHADER_STAGE_ALL},
+    {.binding         = 4,
+     .descriptorType  = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
+     .descriptorCount = default_bindless_setup.acceleration_structures,
+     .stageFlags      = VK_SHADER_STAGE_ALL},
+};
+*/
 
 }        // namespace rhi

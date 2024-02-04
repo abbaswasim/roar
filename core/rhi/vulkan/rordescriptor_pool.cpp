@@ -27,6 +27,7 @@
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 #include "settings/rorsettings.hpp"
+#include <mutex>
 
 namespace rhi
 {
@@ -90,26 +91,38 @@ auto make_pool(VkDevice a_device)
 
 void DescriptorPool::init(const VkDevice a_device)
 {
+	std::unique_lock<std::mutex> lock{this->m_mutex};
+
 	this->m_pools.emplace_back(make_pool(a_device));
 }
 
 void DescriptorPool::reset(const VkDevice a_device)
 {
-	for (auto &pool : this->m_pools)
-		vkResetDescriptorPool(a_device, pool, 0);
+	{
+		std::unique_lock<std::mutex> lock{this->m_mutex};
 
-	// Also re-create them standard ones
+		for (auto &pool : this->m_pools)
+			vkResetDescriptorPool(a_device, pool, 0);
+
+		this->m_pools.clear();
+	}
+
+	// Also re-create the standard one
 	this->init(a_device);
 }
 
 void DescriptorPool::destroy(const VkDevice a_device)
 {
+	std::unique_lock<std::mutex> lock{this->m_mutex};
+
 	for (auto &pool : this->m_pools)
 		vkDestroyDescriptorPool(a_device, pool, cfg::VkAllocator);
 }
 
 VkDescriptorSet DescriptorPool::allocate(const VkDevice a_device, VkDescriptorSetLayout a_layout)
 {
+	std::unique_lock<std::mutex> lock{this->m_mutex};
+
 	auto pool = this->m_pools.back();
 
 	VkResult        result;

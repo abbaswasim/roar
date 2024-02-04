@@ -25,64 +25,16 @@
 
 #pragma once
 
-#include "foundation/rorhash.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
+#include "rhi/vulkan/rordescriptor_factory.hpp"
 #include "rhi/vulkan/rordescriptor_pool.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include <cstddef>
-#include <unordered_map>
 #include <vector>
 
 namespace rhi
 {
-struct DescriptorLayoutInfoHash
-{
-	std::size_t operator()(const VkDescriptorSetLayoutCreateInfo &a_info) const noexcept
-	{
-		hash_64_t hash{a_info.sType};
-		ror::hash_combine_64(hash, reinterpret_cast<size_t>(a_info.pNext));
-		ror::hash_combine_64(hash, a_info.flags);
-		ror::hash_combine_64(hash, a_info.bindingCount);
-
-		for (size_t i = 0; i < a_info.bindingCount; ++i)
-		{
-			auto &binding = a_info.pBindings[i];
-
-			ror::hash_combine_64(hash, binding.binding);
-			ror::hash_combine_64(hash, binding.descriptorType);
-			ror::hash_combine_64(hash, binding.descriptorCount);
-			ror::hash_combine_64(hash, binding.stageFlags);
-			ror::hash_combine_64(hash, reinterpret_cast<size_t>(binding.pImmutableSamplers));
-		}
-
-		return static_cast<size_t>(hash);
-	}
-};
-
-class DescriptorSetLayoutFactory final
-{
-  public:
-	FORCE_INLINE                             DescriptorSetLayoutFactory()                                              = default;        //! Copy constructor
-	FORCE_INLINE                             DescriptorSetLayoutFactory(const DescriptorSetLayoutFactory &a_other)     = delete;         //! Copy constructor
-	FORCE_INLINE                             DescriptorSetLayoutFactory(DescriptorSetLayoutFactory &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE DescriptorSetLayoutFactory &operator=(const DescriptorSetLayoutFactory &a_other)                      = delete;         //! Copy assignment operator
-	FORCE_INLINE DescriptorSetLayoutFactory &operator=(DescriptorSetLayoutFactory &&a_other) noexcept                  = delete;         //! Move assignment operator
-	FORCE_INLINE ~DescriptorSetLayoutFactory() noexcept                                                                = default;
-
-	VkDescriptorSetLayout make_layout(const VkDevice &a_device, const VkDescriptorSetLayoutCreateInfo &descriptor_set_layout_createinfo);
-	VkDescriptorSetLayout make_layout(const VkDevice &a_device, std::vector<VkDescriptorSetLayoutBinding> &a_bindings);
-
-	void destroy(const VkDevice a_device);
-
-  protected:
-  private:
-	using LayoutCache = std::unordered_map<VkDescriptorSetLayoutCreateInfo, VkDescriptorSetLayout, DescriptorLayoutInfoHash>;
-
-	LayoutCache m_layouts{};        //! All the layouts known to the engine
-	std::mutex  m_mutex;            //! Mutex to synchronise the factory accros threads
-};
-
 class DescriptorSet final
 {
   public:
