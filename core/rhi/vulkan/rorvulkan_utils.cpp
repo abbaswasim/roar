@@ -741,6 +741,94 @@ VkCommandBuffer vk_allocate_command_buffer(VkDevice a_device, VkCommandPool a_co
 	return staging_command_buffer;
 }
 
+VkDescriptorSet vk_allocate_descriptor_set(VkDevice a_device, VkDescriptorSetLayout a_layout, VkDescriptorPool a_pool, uint32_t a_count, VkResult *a_result)
+{
+	VkDescriptorSetAllocateInfo descriptor_set_allocate_info{};
+	descriptor_set_allocate_info.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	descriptor_set_allocate_info.pNext              = nullptr;
+	descriptor_set_allocate_info.descriptorPool     = a_pool;
+	descriptor_set_allocate_info.descriptorSetCount = a_count;
+	descriptor_set_allocate_info.pSetLayouts        = &a_layout;
+
+	VkDescriptorSet descriptor_set{};
+	VkResult        result = vkAllocateDescriptorSets(a_device, &descriptor_set_allocate_info, &descriptor_set);
+	if (a_result)
+		*a_result = result;
+	else
+	{
+		check_return_status(result, "vkAllocateDescriptorSet");
+	}
+
+	return descriptor_set;
+}
+
+VkDescriptorSet vk_allocate_descriptor_set(VkDevice a_device, VkDescriptorSetLayout a_layout, VkDescriptorPool a_pool, VkResult *a_result)
+{
+	return vk_allocate_descriptor_set(a_device, a_layout, a_pool, 1, a_result);
+}
+
+VkDescriptorSetLayoutBinding vk_create_descriptor_set_layout_binding(uint32_t a_binding, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags)
+{
+	VkDescriptorSetLayoutBinding descriptor_set_layout_binding{};
+	descriptor_set_layout_binding.binding            = a_binding;
+	descriptor_set_layout_binding.descriptorType     = a_type;
+	descriptor_set_layout_binding.descriptorCount    = 1;
+	descriptor_set_layout_binding.stageFlags         = a_stage_flags;
+	descriptor_set_layout_binding.pImmutableSamplers = nullptr;
+
+	return descriptor_set_layout_binding;
+}
+
+VkDescriptorSetLayoutCreateInfo vk_create_descriptor_set_layout_info(const std::vector<VkDescriptorSetLayoutBinding> &a_bindings)
+{
+	VkDescriptorSetLayoutCreateInfo descriptor_set_layout_createinfo{};
+	descriptor_set_layout_createinfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	descriptor_set_layout_createinfo.pNext        = nullptr;
+	descriptor_set_layout_createinfo.flags        = 0;
+	descriptor_set_layout_createinfo.bindingCount = static_cast<uint32_t>(a_bindings.size());
+	descriptor_set_layout_createinfo.pBindings    = a_bindings.data();
+
+	return descriptor_set_layout_createinfo;
+}
+
+VkDescriptorSetLayout vk_create_descriptor_set_layout(VkDevice a_device, const std::vector<VkDescriptorSetLayoutBinding> &a_bindings)
+{
+	VkDescriptorSetLayoutCreateInfo descriptor_set_layout_createinfo = vk_create_descriptor_set_layout_info(a_bindings);
+	VkDescriptorSetLayout           layout;
+
+	auto result = vkCreateDescriptorSetLayout(a_device, &descriptor_set_layout_createinfo, cfg::VkAllocator, &layout);
+	check_return_status(result, "vkCreateDescriptorSetLayout");
+
+	return layout;
+}
+
+VkDescriptorSetLayout vk_create_descriptor_set_layout(VkDevice a_device, const VkDescriptorSetLayoutCreateInfo &a_descriptor_set_layout_createinfo)
+{
+	VkDescriptorSetLayout layout;
+
+	auto result = vkCreateDescriptorSetLayout(a_device, &a_descriptor_set_layout_createinfo, cfg::VkAllocator, &layout);
+	check_return_status(result, "vkCreateDescriptorSetLayout");
+
+	return layout;
+}
+
+VkWriteDescriptorSet vk_create_write_descriptor_set(VkDescriptorSet a_descriptor_set, uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
+{
+	VkWriteDescriptorSet write_descriptor_set{};
+	write_descriptor_set.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	write_descriptor_set.pNext            = nullptr;
+	write_descriptor_set.dstSet           = a_descriptor_set;
+	write_descriptor_set.dstBinding       = a_binding;
+	write_descriptor_set.dstArrayElement  = 0;
+	write_descriptor_set.descriptorCount  = 1;
+	write_descriptor_set.descriptorType   = a_type;
+	write_descriptor_set.pImageInfo       = a_image_info;
+	write_descriptor_set.pBufferInfo      = a_buffer_info;
+	write_descriptor_set.pTexelBufferView = nullptr;
+
+	return write_descriptor_set;
+}
+
 void vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferUsageFlags a_flags)
 {
 	VkCommandBufferBeginInfo command_buffer_begin_info{};
@@ -984,6 +1072,23 @@ VkPipelineLayout vk_create_pipeline_layout(const VkDevice a_device, const VkPipe
 	check_return_status(result, "vkCreatePipelineLayout");
 
 	return pipeline_layout;
+}
+
+VkPipelineCache vk_create_pipeline_cache(const VkDevice a_device)
+{
+	VkPipelineCacheCreateInfo pipeline_create_info;
+
+	pipeline_create_info.sType           = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+	pipeline_create_info.pNext           = nullptr;
+	pipeline_create_info.flags           = 0;        // Could be VK_PIPELINE_CACHE_CREATE_EXTERNALLY_SYNCHRONIZED_BIT but let the driver work it out
+	pipeline_create_info.initialDataSize = 0;
+	pipeline_create_info.pInitialData    = nullptr;        // TODO: Read from disk
+
+	VkPipelineCache cache;
+
+	vkCreatePipelineCache(a_device, &pipeline_create_info, cfg::VkAllocator, &cache);
+
+	return cache;
 }
 
 VkGraphicsPipelineCreateInfo vk_create_graphics_pipeline_state(const std::vector<VkPipelineShaderStageCreateInfo> &a_shader_stages,

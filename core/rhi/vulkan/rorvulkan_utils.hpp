@@ -68,6 +68,7 @@ VkPipelineColorBlendStateCreateInfo    vk_create_color_blend_state(const VkPipel
 VkPipelineDynamicStateCreateInfo       vk_create_dynamic_state(const std::vector<VkDynamicState> &a_dynamic_state);
 VkPipelineLayoutCreateInfo             vk_create_pipeline_layout_state(const std::vector<VkDescriptorSetLayout> &a_descriptors);
 VkPipelineLayout                       vk_create_pipeline_layout(const VkDevice a_device, const VkPipelineLayoutCreateInfo &a_pipeline_layout_info);
+VkPipelineCache                        vk_create_pipeline_cache(const VkDevice a_device);
 VkViewport                             vk_create_viewport(float32_t a_x, float32_t a_y, float32_t a_width, float32_t a_height, float32_t a_min_depth, float32_t a_max_depth);
 VkRect2D                               vk_create_scissor(int32_t a_x, int32_t a_y, uint32_t a_width, uint32_t a_height);
 VkPipelineViewportStateCreateInfo      vk_create_viewport_state(const VkViewport &a_viewport, const VkRect2D &a_scissor);
@@ -95,6 +96,13 @@ void                                   vk_end_single_use_command_buffer(VkComman
 void                                   vk_end_single_use_command_buffer_and_wait(VkDevice a_device, VkCommandBuffer a_command_buffer, VkQueue a_queue, VkCommandPool a_command_pool, std::mutex *a_mutex);
 VkCommandPool                          vk_create_command_pools(VkDevice a_device, uint32_t a_queue_family_index, VkCommandPoolCreateFlags a_flags);        // VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 VkCommandBuffer                        vk_allocate_command_buffer(VkDevice a_device, VkCommandPool a_command_pool);
+VkDescriptorSet                        vk_allocate_descriptor_set(VkDevice a_device, VkDescriptorSetLayout a_layout, VkDescriptorPool a_pool, uint32_t a_count, VkResult *a_result);
+VkDescriptorSet                        vk_allocate_descriptor_set(VkDevice a_device, VkDescriptorSetLayout a_layout, VkDescriptorPool a_pool, VkResult *a_result);
+VkDescriptorSetLayoutBinding           vk_create_descriptor_set_layout_binding(uint32_t a_binding, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags);
+VkDescriptorSetLayoutCreateInfo        vk_create_descriptor_set_layout_info(const std::vector<VkDescriptorSetLayoutBinding> &a_bindings);
+VkDescriptorSetLayout                  vk_create_descriptor_set_layout(VkDevice a_device, const std::vector<VkDescriptorSetLayoutBinding> &a_bindings);
+VkDescriptorSetLayout                  vk_create_descriptor_set_layout(VkDevice a_device, const VkDescriptorSetLayoutCreateInfo &descriptor_set_layout_createinfo);
+VkWriteDescriptorSet                   vk_create_write_descriptor_set(VkDescriptorSet a_descriptor_set, uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info);
 void                                   vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferUsageFlags a_flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 void                                   vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info);
 void                                   vk_end_command_buffer(VkCommandBuffer a_command_buffer);

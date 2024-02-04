@@ -28,7 +28,6 @@
 #include "foundation/rorhash.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
-#include "rhi/vulkan/rordescriptor_pool.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include <cstddef>
 #include <unordered_map>

@@ -92,6 +92,7 @@
 		"version_major" : 1,
 		"version_minor" : 3,
 		"polygon_mode" : "fill",
+		"descriptor_pool_size" : 1024,
 		"validation" : true
 	},
 	"fog" :

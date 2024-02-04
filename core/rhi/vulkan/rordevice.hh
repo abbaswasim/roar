@@ -101,6 +101,13 @@ FORCE_INLINE auto DeviceVulkan::platform_device() const noexcept
 	return this->m_device;
 }
 
+FORCE_INLINE auto DeviceVulkan::platform_pipeline_cache() const noexcept
+{
+	assert(this->m_pipeline_cache && "Vulkan pipeline cache requested is null");
+
+	return this->m_pipeline_cache;
+}
+
 FORCE_INLINE auto DeviceVulkan::platform_graphics_queue() const noexcept
 {
 	assert(this->m_graphics_queue.m_queue && "Vulkan graphics queue requested is null");

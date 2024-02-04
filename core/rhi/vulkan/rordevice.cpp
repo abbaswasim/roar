@@ -301,6 +301,8 @@ void DeviceVulkan::create_device()
 
 	// Set protected queue index as well
 	this->m_protected_queue.m_index = queues[queue_data.m_indicies[protected_index].first].queueFamilyIndex;
+
+	this->m_pipeline_cache = vk_create_pipeline_cache(this->m_device);
 }
 
 }        // namespace rhi

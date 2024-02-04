@@ -293,9 +293,10 @@ class ROAR_ENGINE_ITEM Settings final
 		this->m_metal.decoration_bindings      = setting.get<bool>("metal:force_spirv_bindings");
 		this->m_metal.indirect_command_buffers = setting.get<bool>("metal:indirect_command_buffers");
 
-		this->m_vulkan.m_version_major = setting.get<uint32_t>("vulkan:version_major");
-		this->m_vulkan.m_version_minor = setting.get<uint32_t>("vulkan:version_minor");
-		this->m_vulkan.m_validation    = setting.get<bool>("vulkan:validation");
+		this->m_vulkan.m_descriptor_pool_size = setting.get<uint32_t>("vulkan:descriptor_pool_size");
+		this->m_vulkan.m_version_major        = setting.get<uint32_t>("vulkan:version_major");
+		this->m_vulkan.m_version_minor        = setting.get<uint32_t>("vulkan:version_minor");
+		this->m_vulkan.m_validation           = setting.get<bool>("vulkan:validation");
 
 		auto mode = setting.get<std::string>("vulkan:polygon_mode");
 
@@ -558,6 +559,7 @@ class ROAR_ENGINE_ITEM Settings final
 
 	struct VulkanOptions : public Options
 	{
+		uint32_t              m_descriptor_pool_size{1024};
 		bool                  m_validation{true};
 		rhi::TriangleFillMode m_polygon_mode{rhi::TriangleFillMode::fill};
 	};
