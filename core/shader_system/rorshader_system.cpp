@@ -293,7 +293,7 @@ layout(std430, set = @, binding = @) buffer joint_offset_uniform
 	uint16_t joint_redirect[joints_count];
 } in_joint_redirects;
 
-layout(std140, set = 0, binding = 29) readonly buffer joint_inverse_bind_matrices
+layout(std140, set = @, binding = @) readonly buffer joint_inverse_bind_matrices
 {
 	mat4 joint_inverse_matrix[];
 } in_joint_inverse_bind_matrices;
@@ -339,6 +339,7 @@ vec3 skin_position(vec3 vertex, uint index)
 
 std::string vs_skin_common(uint32_t a_joints_count, uint32_t a_joint_set, uint32_t a_joint_binding, bool a_has_normal)
 {
+	auto      &setting = ror::settings();
 	auto       str{vs_skin_common_str};
 	const auto scale_inverse{"\tvec3 scale_inverse;\n};"};
 
@@ -351,6 +352,9 @@ std::string vs_skin_common(uint32_t a_joints_count, uint32_t a_joint_set, uint32
 
 	replace_next_at(a_joint_set, str);
 	replace_next_at(a_joint_binding, str);
+
+	replace_next_at(setting.joint_inverse_bind_set(), str);
+	replace_next_at(setting.joint_inverse_bind_binding(), str);
 
 	if (a_has_normal)
 		str.append(vs_skin_common_normal_str);
@@ -1101,10 +1105,14 @@ std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
 std::string material_samplers(const ror::Material &a_material, bool a_add_shadow_map)
 {
 	// TODO: Understand how does samplers gets to have the same bindings as other things
+	// TODO: Support separate image and sampler, instead of currently the combined image samplers
+	auto             &setting = ror::settings();
 	std::string       output{"\n"};
-	const std::string set_binding{"layout(set = 0, binding = "};           // TODO: Abstract out the set and binding for all of the below
+	std::string       set_binding{"layout(set = @, binding = "};
 	const std::string type_precision{") uniform highp sampler2D "};        // TODO: Abstract out precision
-	uint32_t          binding = 0;
+	uint32_t          binding = setting.material_samplers_binding();
+
+	replace_next_at(setting.material_samplers_set(), set_binding);
 
 #define output_append(x) output.append(set_binding + std::to_string(binding++) + type_precision + x)
 
@@ -1146,7 +1154,7 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 	if (a_add_shadow_map)
 		output_append("shadow_map_sampler;\n");
 
-	if (ror::settings().m_environment.m_visible)
+	if (setting.m_environment.m_visible)
 	{
 		output.append(set_binding + std::to_string(binding++) + ") uniform sampler2D brdf_integration_sampler;\n");
 		output.append(set_binding + std::to_string(binding++) + ") uniform samplerCube skybox_sampler;\n");
