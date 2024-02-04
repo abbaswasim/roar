@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "graphics/rormaterial.hpp"
@@ -817,6 +818,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 // Vertex shader methods finish here, now starts fragment shader methods
 
 // TODO: Work out the vec3 padding issues in this UBO
+// TODO: Use renderer lights to_glsl for each light to get these
 const std::string fs_directional_light_common_str = R"com(
 const uint directional_lights_count = @;
 
@@ -1108,7 +1110,8 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 	// TODO: Support separate image and sampler, instead of currently the combined image samplers
 	auto             &setting = ror::settings();
 	std::string       output{"\n"};
-	std::string       set_binding{"layout(set = @, binding = "};
+	const std::string set_binding_template{"layout(set = @, binding = "};
+	std::string       set_binding{set_binding_template};
 	const std::string type_precision{") uniform highp sampler2D "};        // TODO: Abstract out precision
 	uint32_t          binding = setting.material_samplers_binding();
 
@@ -1151,16 +1154,34 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 	if (a_material.m_height.m_texture != -1)
 		output_append("height_sampler;\n");
 
-	if (a_add_shadow_map)
-		output_append("shadow_map_sampler;\n");
+#undef output_append
 
+	const std::string env_type{") uniform "};
+#define output_append(x, type, set, b)                                                     \
+	{                                                                                      \
+		std::string env_set_binding{set_binding_template};                                 \
+		replace_next_at(set, env_set_binding);                                             \
+		auto bind = binding++;                                                             \
+		if (ror::get_render_api() == ror::RenderType::vulkan)                              \
+			bind = b;                                                                      \
+		output.append(env_set_binding + std::to_string(bind) + env_type + type + " " + x); \
+	}                                                                                      \
+	(void) 0
+
+	// Only here because we want to see what incremental binding we end up with
+	if (a_add_shadow_map)
+		output_append("shadow_map_sampler;\n", "sampler2D", setting.shadow_map_sampler_set(), setting.shadow_map_sampler_binding());
+
+	// Only here because we want to see what incremental binding we end up with
 	if (setting.m_environment.m_visible)
 	{
-		output.append(set_binding + std::to_string(binding++) + ") uniform sampler2D brdf_integration_sampler;\n");
-		output.append(set_binding + std::to_string(binding++) + ") uniform samplerCube skybox_sampler;\n");
-		output.append(set_binding + std::to_string(binding++) + ") uniform samplerCube irradiance_sampler;\n");
-		output.append(set_binding + std::to_string(binding++) + ") uniform samplerCube radiance_sampler;\n");
+		output_append("brdf_integration_sampler;\n", "sampler2D", setting.brdf_integration_sampler_set(), setting.brdf_integration_sampler_binding());
+		output_append("skybox_sampler;\n", "samplerCube", setting.skybox_sampler_set(), setting.skybox_sampler_binding());
+		output_append("irradiance_sampler;\n", "samplerCube", setting.irradiance_sampler_set(), setting.irradiance_sampler_binding());
+		output_append("radiance_sampler;\n", "samplerCube", setting.radiance_sampler_set(), setting.radiance_sampler_binding());
 	}
+
+#undef output_append
 
 	return output;
 }

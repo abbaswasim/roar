@@ -231,7 +231,6 @@ Settings::Settings()
 	this->m_bindings.m_max_attributes = std::max(max_attributes, this->m_bindings.m_max_attributes);
 
 	// clang-format off
-
 	if (bs_shadowmap_sampler.size() > 0)       this->m_bindings.m_shadow_map_sampler          =   bs_shadowmap_sampler[0] << bits_shift;
 	if (bs_shadowmap_sampler.size() > 1)       this->m_bindings.m_shadow_map_sampler          |=  bs_shadowmap_sampler[1];
 	if (bs_brdf_sampler.size() > 0)            this->m_bindings.m_brdf_integration_sampler    =   bs_brdf_sampler[0] << bits_shift;
