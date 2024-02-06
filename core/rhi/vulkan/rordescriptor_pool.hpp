@@ -26,7 +26,7 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
-#include "rhi/vulkan/rordescriptor_factory.hpp"
+#include "rhi/vulkan/rordescriptor_cache.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include <array>
 #include <vector>
@@ -67,9 +67,10 @@ class DescriptorPool final
 
   protected:
   private:
-	// TODO: Implement me: Ultimate goal is to create a pool per Layout Info this way we know each pools will not have any free space
-	// Any other method I have expolored you risk wasting descritor space
-	// You can also work out how many pools were created per layout info type and save that number to disk and load at next load
+	// TODO: Implement me: Ultimate goal is to create a pool per Layout Info this way we know each pools will not waste any free space
+	// Any other method I have expolored you risk wasting descritor space. In this method you will end up with lots of pools though.
+	// You can also work out how many pools and their sizes were created for all layout infos and save that number to disk and load at next load
+
 	// using PoolsCache = std::unordered_map<VkDescriptorSetLayoutCreateInfo, std::vector<VkDescriptorPool>, DescriptorLayoutInfoHash>;
 	// PoolsCache m_pools{};        //! Cache of pools by descriptor layout
 

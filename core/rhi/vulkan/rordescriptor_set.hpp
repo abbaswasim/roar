@@ -27,7 +27,7 @@
 
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
-#include "rhi/vulkan/rordescriptor_factory.hpp"
+#include "rhi/vulkan/rordescriptor_cache.hpp"
 #include "rhi/vulkan/rordescriptor_pool.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include <cstddef>
@@ -77,7 +77,7 @@ class DescriptorSet final
 
 	void push_image(uint32_t a_binding, VkDescriptorImageInfo *a_image_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags = 0);
 	void push_buffer(uint32_t a_binding, VkDescriptorBufferInfo *a_buffer_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags = 0);
-	void allocate(const VkDevice a_device, DescriptorSetLayoutFactory &a_factory, DescriptorPool &a_pool);
+	void allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_factory, DescriptorPool &a_pool);
 	void update(const VkDevice a_device);
 	// void free(const VkDevice a_device); // Not provided because bad practice, would rather free the pool directly
 

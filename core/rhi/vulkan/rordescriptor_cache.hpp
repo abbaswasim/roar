@@ -59,15 +59,15 @@ struct DescriptorLayoutInfoHash
 	}
 };
 
-class DescriptorSetLayoutFactory final
+class DescriptorSetLayoutCache final
 {
   public:
-	FORCE_INLINE                             DescriptorSetLayoutFactory()                                              = default;        //! Copy constructor
-	FORCE_INLINE                             DescriptorSetLayoutFactory(const DescriptorSetLayoutFactory &a_other)     = delete;         //! Copy constructor
-	FORCE_INLINE                             DescriptorSetLayoutFactory(DescriptorSetLayoutFactory &&a_other) noexcept = delete;         //! Move constructor
-	FORCE_INLINE DescriptorSetLayoutFactory &operator=(const DescriptorSetLayoutFactory &a_other)                      = delete;         //! Copy assignment operator
-	FORCE_INLINE DescriptorSetLayoutFactory &operator=(DescriptorSetLayoutFactory &&a_other) noexcept                  = delete;         //! Move assignment operator
-	FORCE_INLINE ~DescriptorSetLayoutFactory() noexcept                                                                = default;
+	FORCE_INLINE                           DescriptorSetLayoutCache()                                            = default;        //! Copy constructor
+	FORCE_INLINE                           DescriptorSetLayoutCache(const DescriptorSetLayoutCache &a_other)     = delete;         //! Copy constructor
+	FORCE_INLINE                           DescriptorSetLayoutCache(DescriptorSetLayoutCache &&a_other) noexcept = delete;         //! Move constructor
+	FORCE_INLINE DescriptorSetLayoutCache &operator=(const DescriptorSetLayoutCache &a_other)                    = delete;         //! Copy assignment operator
+	FORCE_INLINE DescriptorSetLayoutCache &operator=(DescriptorSetLayoutCache &&a_other) noexcept                = delete;         //! Move assignment operator
+	FORCE_INLINE ~DescriptorSetLayoutCache() noexcept                                                            = default;
 
 	VkDescriptorSetLayout make_layout(const VkDevice &a_device, const VkDescriptorSetLayoutCreateInfo &descriptor_set_layout_createinfo);
 	VkDescriptorSetLayout make_layout(const VkDevice &a_device, std::vector<VkDescriptorSetLayoutBinding> &a_bindings);

@@ -23,7 +23,7 @@
 //
 // Version: 1.0.0
 
-#include "rhi/vulkan/rordescriptor_factory.hpp"
+#include "rhi/vulkan/rordescriptor_cache.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 #include "settings/rorsettings.hpp"
@@ -71,7 +71,7 @@ bool operator==(const VkDescriptorSetLayoutCreateInfo &a_left, const VkDescripto
 namespace rhi
 {
 
-VkDescriptorSetLayout DescriptorSetLayoutFactory::make_layout(const VkDevice &a_device, const VkDescriptorSetLayoutCreateInfo &a_descriptor_set_layout_createinfo)
+VkDescriptorSetLayout DescriptorSetLayoutCache::make_layout(const VkDevice &a_device, const VkDescriptorSetLayoutCreateInfo &a_descriptor_set_layout_createinfo)
 {
 	std::lock_guard<std::mutex> lock{this->m_mutex};
 
@@ -90,13 +90,13 @@ VkDescriptorSetLayout DescriptorSetLayoutFactory::make_layout(const VkDevice &a_
 	}
 }
 
-void DescriptorSetLayoutFactory::destroy(const VkDevice a_device)
+void DescriptorSetLayoutCache::destroy(const VkDevice a_device)
 {
 	for (auto &layout : this->m_layouts)
 		vkDestroyDescriptorSetLayout(a_device, layout.second, cfg::VkAllocator);
 }
 
-VkDescriptorSetLayout DescriptorSetLayoutFactory::make_layout(const VkDevice &a_device, std::vector<VkDescriptorSetLayoutBinding> &a_bindings)
+VkDescriptorSetLayout DescriptorSetLayoutCache::make_layout(const VkDevice &a_device, std::vector<VkDescriptorSetLayoutBinding> &a_bindings)
 {
 	VkDescriptorSetLayoutCreateInfo descriptor_set_layout_createinfo = vk_create_descriptor_set_layout_info(a_bindings);
 

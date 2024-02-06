@@ -31,6 +31,7 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/vulkan/rordescriptor_cache.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_object.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
@@ -179,19 +180,20 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	void create_surface(void *a_window);
 	void create_device();
 
-	Instance        m_instance{};                     //! Instance from where all devices are created
-	PhysicalDevice  m_gpu{};                          //! Physical device in the system
-	VkDevice        m_device{nullptr};                //! Vulkan device
-	VkSurfaceKHR    m_surface{nullptr};               //! Vulkan drawable surface provided by windowing system
-	std::any        m_window{};                       //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
-	SwapChain       m_swapchain{};                    //! Swapchain images abstraction for Vulkan
-	DeviceQueue     m_graphics_queue{};               //! Graphics queue
-	DeviceQueue     m_compute_queue{};                //! Compute queue
-	DeviceQueue     m_transfer_queue{};               //! Tranfer queue
-	DeviceQueue     m_present_queue{};                //! Present queue
-	DeviceQueue     m_sparse_queue{};                 //! sparse queue
-	DeviceQueue     m_protected_queue{};              //! Protected queue
-	VkPipelineCache m_pipeline_cache{nullptr};        // Don't need a mutex because its internally synchronised
+	Instance                 m_instance{};                     //! Instance from where all devices are created
+	PhysicalDevice           m_gpu{};                          //! Physical device in the system
+	VkDevice                 m_device{nullptr};                //! Vulkan device
+	VkSurfaceKHR             m_surface{nullptr};               //! Vulkan drawable surface provided by windowing system
+	std::any                 m_window{};                       //! Platform window, on Metal its NSWindow while on Vulkan its GLFWwindow
+	SwapChain                m_swapchain{};                    //! Swapchain images abstraction for Vulkan
+	DeviceQueue              m_graphics_queue{};               //! Graphics queue
+	DeviceQueue              m_compute_queue{};                //! Compute queue
+	DeviceQueue              m_transfer_queue{};               //! Tranfer queue
+	DeviceQueue              m_present_queue{};                //! Present queue
+	DeviceQueue              m_sparse_queue{};                 //! sparse queue
+	DeviceQueue              m_protected_queue{};              //! Protected queue
+	VkPipelineCache          m_pipeline_cache{nullptr};        //! Don't need a mutex because its internally synchronised
+	DescriptorSetLayoutCache m_layout_factory{};               //! Layout cache used to create all lyouts from
 
 	declare_translation_unit_vtable();
 };

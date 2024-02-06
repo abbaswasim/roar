@@ -50,7 +50,7 @@ void DescriptorSet::push_buffer(uint32_t a_binding, VkDescriptorBufferInfo *a_bu
 	this->push_binding(a_binding, nullptr, a_buffer_info, a_type, a_stage_flags);
 }
 
-void DescriptorSet::allocate(const VkDevice a_device, DescriptorSetLayoutFactory &a_factory, DescriptorPool &a_pool)
+void DescriptorSet::allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_factory, DescriptorPool &a_pool)
 {
 	auto descriptor_layout = a_factory.make_layout(a_device, this->m_bindings);
 	this->m_handle         = a_pool.allocate(a_device, descriptor_layout);
