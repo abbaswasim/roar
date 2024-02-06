@@ -95,7 +95,7 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 	auto &renderpass_render_targets = this->render_targets();
 
 	// Unlike Metal where there is no concept of subpass so we created a render pass for each subpass, In Vulkan we have first class subpasses
-	auto &render_supasses = this->subpasses();
+	auto &render_subpasses = this->subpasses();
 
 	// TODO: Whats left to use from Metal still, but this perhaps goes into framebuffer
 	// auto  bgc            = this->background();
@@ -112,8 +112,8 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 	renderpass_render_target_attachments_descriptions.reserve(renderpass_render_targets.size());
 	renderpass_render_target_attachments_references.reserve(renderpass_render_targets.size());
 	framebuffer_attachments.reserve(renderpass_render_targets.size());
-	subpasses_descriptions.reserve(render_supasses.size());
-	subpasses_dependencies.reserve(render_supasses.size());
+	subpasses_descriptions.reserve(render_subpasses.size());
+	subpasses_dependencies.reserve(render_subpasses.size());
 
 	// Create vulkan render target descriptions and references and framebuffer attachments
 	VkImageLayout initial_layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -136,7 +136,7 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 
 		attachments_create_utility(render_target, rt_index, samples, renderpass_render_target_attachments_descriptions, renderpass_render_target_attachments_references, load_op, store_op, initial_layout, final_layout);
 
-		framebuffer_attachments.emplace_back(render_target.m_target_reference.get().image_view());
+		framebuffer_attachments.emplace_back(render_target.m_target_reference.get().platform_image_view());
 
 		rt_index++;
 	}
@@ -145,7 +145,7 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 	std::vector<std::pair<uint32_t, const RenderTarget *>> input_attachments_references{};
 	initial_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 	final_layout   = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	for (auto &subpass : render_supasses)
+	for (auto &subpass : render_subpasses)
 	{
 		auto &subpass_render_targets = subpass.input_attachments();
 		for (auto &render_target : subpass_render_targets)
@@ -158,7 +158,7 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 			input_attachments_references.emplace_back(std::make_pair(rt_index, render_target.m_render_output));
 
 			// TODO: Understand why am I doing this. shouldn't this only contain all the render targets and not subpass attachments
-			framebuffer_attachments.emplace_back(render_target.m_render_output->m_target_reference.get().image_view());
+			framebuffer_attachments.emplace_back(render_target.m_render_output->m_target_reference.get().platform_image_view());
 
 			rt_index++;
 		}
@@ -168,7 +168,7 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 	std::vector<std::vector<VkAttachmentReference>> resident_subpass_input_attachments{};
 	std::vector<std::vector<VkAttachmentReference>> resident_subpass_color_attachments_references{};
 
-	for (auto &subpass : render_supasses)
+	for (auto &subpass : render_subpasses)
 	{
 		auto &subpass_render_targets = subpass.render_targets();
 
@@ -262,12 +262,12 @@ size_t RenderpassVulkan::platform_renderpass_count()
 	return 1ul;
 }
 
-VkRenderPass RenderpassVulkan::platform_renderpass(uint32_t)
+VkRenderPass RenderpassVulkan::platform_renderpass(uint32_t) const
 {
 	return this->m_render_pass;
 }
 
-VkRenderPass RenderpassVulkan::platform_computepass(uint32_t)
+VkRenderPass RenderpassVulkan::platform_computepass(uint32_t) const
 {
 	return this->m_render_pass;
 }

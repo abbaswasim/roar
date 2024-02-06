@@ -48,7 +48,8 @@ class ROAR_ENGINE_ITEM TextureImageVulkan : public TextureImageCrtp<TextureImage
 	void bind(rhi::ComputeCommandEncoder &a_cmd_encoder, rhi::ShaderStage a_shader_stage, uint32_t a_index) const noexcept;
 
 	// clang-format off
-	auto image_view() { return this->m_image_view; }
+	auto platform_image()      const { return this->m_image;      }
+	auto platform_image_view() const { return this->m_image_view; }
 	// clang-format on
 
   protected:

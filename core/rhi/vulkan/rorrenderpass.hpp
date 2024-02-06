@@ -49,8 +49,8 @@ class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 	declare_translation_unit_vtable();
 
 	void         upload(rhi::Device &a_device);
-	VkRenderPass platform_renderpass(uint32_t a_index);
-	VkRenderPass platform_computepass(uint32_t a_index);
+	VkRenderPass platform_renderpass(uint32_t a_index) const;
+	VkRenderPass platform_computepass(uint32_t a_index) const;
 
 	size_t                     platform_renderpass_count();
 	rhi::RenderCommandEncoder  render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);

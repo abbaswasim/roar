@@ -604,6 +604,12 @@ void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_render
 
 	a_renderer.get_final_pass_subpass(&pass, &subpass);
 
+	// Only requires the following descriptors
+	// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler; set and binding needs changing according to API
+	// layout(std140, set = 0, binding = 3) uniform gui_per_frame_uniform; name and set and binding needs changing according to API
+
+	this->m_shader_program.build_descriptor(a_device, a_renderer, &this->m_shader_buffer, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+											&this->m_texture_image, &this->m_texture_sampler, nullptr, false, false);
 	this->m_shader_program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
 
 	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode

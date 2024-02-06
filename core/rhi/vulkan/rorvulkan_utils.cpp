@@ -812,6 +812,26 @@ VkDescriptorSetLayout vk_create_descriptor_set_layout(VkDevice a_device, const V
 	return layout;
 }
 
+VkDescriptorBufferInfo vk_create_descriptor_buffer_info(VkBuffer a_buffer)
+{
+	VkDescriptorBufferInfo descriptor_buffer{};
+	descriptor_buffer.buffer = a_buffer;
+	descriptor_buffer.offset = 0;
+	descriptor_buffer.range  = VK_WHOLE_SIZE;
+
+	return descriptor_buffer;
+}
+
+VkDescriptorImageInfo vk_create_descriptor_image_info(VkImageView a_view, VkSampler a_sampler, VkImageLayout a_layout)
+{
+	VkDescriptorImageInfo descriptor_image{};
+	descriptor_image.sampler     = a_sampler;
+	descriptor_image.imageView   = a_view;
+	descriptor_image.imageLayout = a_layout;        // VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+	return descriptor_image;
+}
+
 VkWriteDescriptorSet vk_create_write_descriptor_set(VkDescriptorSet a_descriptor_set, uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
 {
 	VkWriteDescriptorSet write_descriptor_set{};
@@ -1049,15 +1069,15 @@ VkPipelineDynamicStateCreateInfo vk_create_dynamic_state(const std::vector<VkDyn
 	return pipeline_dynamic_state_info;
 }
 
-VkPipelineLayoutCreateInfo vk_create_pipeline_layout_state(const std::vector<VkDescriptorSetLayout> &a_descriptors)
+VkPipelineLayoutCreateInfo vk_create_pipeline_layout_state(const std::vector<VkDescriptorSetLayout> &a_descriptors_layouts)
 {
 	VkPipelineLayoutCreateInfo pipeline_layout_info = {};
 
 	pipeline_layout_info.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipeline_layout_info.pNext                  = nullptr;
 	pipeline_layout_info.flags                  = 0;
-	pipeline_layout_info.setLayoutCount         = static_cast<uint32_t>(a_descriptors.size());
-	pipeline_layout_info.pSetLayouts            = a_descriptors.data();
+	pipeline_layout_info.setLayoutCount         = static_cast<uint32_t>(a_descriptors_layouts.size());
+	pipeline_layout_info.pSetLayouts            = a_descriptors_layouts.data();
 	pipeline_layout_info.pushConstantRangeCount = 0;              // Optional
 	pipeline_layout_info.pPushConstantRanges    = nullptr;        // Optional
 
@@ -1089,6 +1109,18 @@ VkPipelineCache vk_create_pipeline_cache(const VkDevice a_device)
 	vkCreatePipelineCache(a_device, &pipeline_create_info, cfg::VkAllocator, &cache);
 
 	return cache;
+}
+
+VkComputePipelineCreateInfo vk_create_compute_pipeline_state(VkPipelineShaderStageCreateInfo &a_shader_stages, VkPipelineLayout &a_pipeline_layout)
+{
+	VkComputePipelineCreateInfo compute_pipeline_create_info{};
+	compute_pipeline_create_info.sType  = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+	compute_pipeline_create_info.pNext  = nullptr;
+	compute_pipeline_create_info.flags  = 0;
+	compute_pipeline_create_info.layout = a_pipeline_layout;
+	compute_pipeline_create_info.stage  = a_shader_stages;
+
+	return compute_pipeline_create_info;
 }
 
 VkGraphicsPipelineCreateInfo vk_create_graphics_pipeline_state(const std::vector<VkPipelineShaderStageCreateInfo> &a_shader_stages,
@@ -1129,7 +1161,21 @@ VkGraphicsPipelineCreateInfo vk_create_graphics_pipeline_state(const std::vector
 	return graphics_pipeline_create_info;
 }
 
-VkPipeline vk_create_graphics_pipeline(const VkDevice a_device, VkPipelineCache &a_pipeline_cache,
+VkPipeline vk_create_compute_pipeline(const VkDevice                   a_device,
+                                      VkPipelineCache                 &a_pipeline_cache,
+                                      VkPipelineLayout                &a_pipeline_layout,
+                                      VkPipelineShaderStageCreateInfo &a_shader_stage)
+{
+	auto compute_pipeline_create_info{vk_create_compute_pipeline_state(a_shader_stage, a_pipeline_layout)};
+
+	VkPipeline compute_pipeline;
+	vkCreateComputePipelines(a_device, a_pipeline_cache, 1, &compute_pipeline_create_info, cfg::VkAllocator, &compute_pipeline);
+
+	return compute_pipeline;
+}
+
+VkPipeline vk_create_graphics_pipeline(const VkDevice                                      a_device,
+                                       VkPipelineCache                                    &a_pipeline_cache,
                                        const std::vector<VkPipelineShaderStageCreateInfo> &a_shader_stages,
                                        VkPipelineVertexInputStateCreateInfo               &a_pipeline_vertex_input_state_info,
                                        VkPipelineInputAssemblyStateCreateInfo             &a_pipeline_input_assembly_state_info,

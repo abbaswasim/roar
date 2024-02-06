@@ -112,7 +112,8 @@ constexpr FORCE_INLINE const char *vk_result_to_string(VkResult a_result)
 	{                                                                                                        \
 		ror::log_critical("Vulkan command {} returned error code {}", funcall, vk_result_to_string(result)); \
 		assert(0 && funcall);                                                                                \
-	} (void) 0
+	}                                                                                                        \
+	(void) 0
 
 constexpr FORCE_INLINE auto to_vulkan_pixelformat(rhi::PixelFormat a_pixelformat)
 {

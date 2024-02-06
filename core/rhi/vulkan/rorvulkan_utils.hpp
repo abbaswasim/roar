@@ -66,7 +66,7 @@ VkPipelineDepthStencilStateCreateInfo  vk_create_depth_stencil_state(bool a_dept
 VkPipelineColorBlendAttachmentState    vk_create_color_blend_attachment_state(bool a_blend_enable = true, bool a_premultiplied_alpha = false);
 VkPipelineColorBlendStateCreateInfo    vk_create_color_blend_state(const VkPipelineColorBlendAttachmentState &a_pipeline_color_blend_attachment_state);
 VkPipelineDynamicStateCreateInfo       vk_create_dynamic_state(const std::vector<VkDynamicState> &a_dynamic_state);
-VkPipelineLayoutCreateInfo             vk_create_pipeline_layout_state(const std::vector<VkDescriptorSetLayout> &a_descriptors);
+VkPipelineLayoutCreateInfo             vk_create_pipeline_layout_state(const std::vector<VkDescriptorSetLayout> &a_descriptors_layouts);
 VkPipelineLayout                       vk_create_pipeline_layout(const VkDevice a_device, const VkPipelineLayoutCreateInfo &a_pipeline_layout_info);
 VkPipelineCache                        vk_create_pipeline_cache(const VkDevice a_device);
 VkViewport                             vk_create_viewport(float32_t a_x, float32_t a_y, float32_t a_width, float32_t a_height, float32_t a_min_depth, float32_t a_max_depth);
@@ -102,6 +102,8 @@ VkDescriptorSetLayoutBinding           vk_create_descriptor_set_layout_binding(u
 VkDescriptorSetLayoutCreateInfo        vk_create_descriptor_set_layout_info(const std::vector<VkDescriptorSetLayoutBinding> &a_bindings);
 VkDescriptorSetLayout                  vk_create_descriptor_set_layout(VkDevice a_device, const std::vector<VkDescriptorSetLayoutBinding> &a_bindings);
 VkDescriptorSetLayout                  vk_create_descriptor_set_layout(VkDevice a_device, const VkDescriptorSetLayoutCreateInfo &descriptor_set_layout_createinfo);
+VkDescriptorBufferInfo                 vk_create_descriptor_buffer_info(VkBuffer a_buffer);
+VkDescriptorImageInfo                  vk_create_descriptor_image_info(VkImageView a_view, VkSampler a_sampler, VkImageLayout a_layout);
 VkWriteDescriptorSet                   vk_create_write_descriptor_set(VkDescriptorSet a_descriptor_set, uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info);
 void                                   vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferUsageFlags a_flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 void                                   vk_begin_command_buffer(VkCommandBuffer a_command_buffer, VkCommandBufferBeginInfo &a_command_buffer_begin_info);
@@ -125,12 +127,17 @@ VkAttachmentDescription                vk_create_attachment_description(VkFormat
                                                                         VkAttachmentStoreOp a_stencil_store_op = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                                                         VkImageLayout       a_initial_layout   = VK_IMAGE_LAYOUT_UNDEFINED,
                                                                         VkImageLayout       a_final_layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+VkComputePipelineCreateInfo            vk_create_compute_pipeline_state(VkPipelineShaderStageCreateInfo &a_shader_stages, VkPipelineLayout &a_pipeline_layout);
 VkGraphicsPipelineCreateInfo           vk_create_graphics_pipeline_state(const std::vector<VkPipelineShaderStageCreateInfo> &a_shader_stages,
                                                                          VkPipelineVertexInputStateCreateInfo &a_pipeline_vertex_input_state_info, VkPipelineInputAssemblyStateCreateInfo &a_pipeline_input_assembly_state_info,
                                                                          VkPipelineViewportStateCreateInfo &a_pipeline_viewport_state_info, VkPipelineRasterizationStateCreateInfo &a_pipeline_rasterisation_state_info,
                                                                          VkPipelineMultisampleStateCreateInfo &a_pipeline_multisample_state_info, VkPipelineDepthStencilStateCreateInfo &a_pipeline_depth_stencil_state_info,
                                                                          VkPipelineColorBlendStateCreateInfo &a_pipeline_color_blend_state_info, VkPipelineDynamicStateCreateInfo &a_pipeline_dynamic_state_info,
                                                                          VkPipelineLayout &a_pipeline_layout, VkRenderPass &a_render_pass, uint32_t a_render_subpass);
+VkPipeline                             vk_create_compute_pipeline(const VkDevice                   a_device,
+                                                                  VkPipelineCache                 &a_pipeline_cache,
+                                                                  VkPipelineLayout                &a_pipeline_layout,
+                                                                  VkPipelineShaderStageCreateInfo &a_shader_stage);
 VkPipeline                             vk_create_graphics_pipeline(const VkDevice a_device, VkPipelineCache &a_pipeline_cache,
                                                                    const std::vector<VkPipelineShaderStageCreateInfo> &a_shader_stages, VkPipelineVertexInputStateCreateInfo &a_pipeline_vertex_input_state_info,
                                                                    VkPipelineInputAssemblyStateCreateInfo &a_pipeline_input_assembly_state_info, VkPipelineViewportStateCreateInfo &a_pipeline_viewport_state_info,

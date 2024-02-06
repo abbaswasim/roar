@@ -38,9 +38,13 @@
 #include "graphics/primitive_geometries.hpp"
 #include "graphics/rordynamic_mesh.hpp"
 #include "graphics/rorenvironment.hpp"
+#include "graphics/rormaterial.hpp"
 #include "graphics/rorscene.hpp"
+#include "math/rormatrix4.hpp"
+#include "math/rormatrix4_functions.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"
+#include "math/rorvector4.hpp"
 #include "math/rorvector_functions.hpp"
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
@@ -58,6 +62,7 @@
 #include "rhi/rorshader_input.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rorvertex_description.hpp"
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include "shader_system/rorshader_update.hpp"
@@ -1626,13 +1631,18 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 	auto skybox_update_lambda = [](rhi::Device &device, ror::Renderer &renderer) {
 		// Skybox pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
-		auto &descriptor = renderer.m_cube_map_mesh.vertex_descriptor();
-		auto  pso        = renderer.m_cube_map_mesh.shader_program_external();
+		auto &descriptor   = renderer.m_cube_map_mesh.vertex_descriptor();
+		auto  pso          = renderer.m_cube_map_mesh.shader_program_external();
+		auto  per_view_ubo = renderer.shader_buffer("per_view_uniform");
+		bool  with_environment{true};
 
 		rhi::Renderpass    *pass{nullptr};
 		rhi::Rendersubpass *subpass{nullptr};
 
 		renderer.get_final_pass_subpass(&pass, &subpass);
+
+		pso->build_descriptor(device, renderer, per_view_ubo, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+		                      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, false, with_environment);
 
 		pso->upload(device, *pass, *subpass, descriptor, renderer.m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_render_pso", true, false, false);
 	};
@@ -1999,10 +2009,20 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 			rhi::Renderpass    *pass{nullptr};
 			rhi::Rendersubpass *subpass{nullptr};
 
+			auto per_frame_ubo = this->shader_buffer("per_frame_uniform");
+			auto model_ubo     = this->shader_buffer("nodes_models");
+			auto offset_ubo    = this->shader_buffer("nodes_offsets");
+			auto weights_ubo   = this->shader_buffer("morphs_weights");
+			auto per_view_ubo  = this->shader_buffer("per_view_uniform");
+			bool pre_multiplied{false};
+
 			// TODO: Perhaps this should be lighting pass if these are programs are for IBLs
 			this->get_final_pass_subpass(&pass, &subpass);
 
-			program.upload(device, *pass, *subpass, this->m_shaders, a_buffer_pack, false);        // TODO: Retrieve pre-multiplied state from renderer for each shader
+			program.build_descriptor(device, *this, per_view_ubo, per_frame_ubo, model_ubo, offset_ubo, weights_ubo,
+			                         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
+
+			program.upload(device, *pass, *subpass, this->m_shaders, a_buffer_pack, pre_multiplied);        // TODO: Retrieve pre-multiplied state from renderer for each shader
 		};
 
 		program_update(a_device, nullptr);
@@ -2185,12 +2205,11 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 	auto shadow_map_textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_shadow_map_textured_quads_pso)];
 	auto shadow_image                  = &this->images()[static_cast<size_t>(this->m_debug_data.m_shadow_texture)];
 	auto shadow_sampler                = &this->samplers()[static_cast<size_t>(this->m_debug_data.m_default_sampler)];
+	auto per_view_ubo                  = this->shader_buffer("per_view_uniform");
 
 	this->m_debug_data.m_shadow_cascades.set_texture(shadow_image, shadow_sampler);        // Would need refresh if images or samplers vectors are resized
 	// this->m_debug_data.m_shadow_cascades.shader_program_external(textured_quads_pso);
 	this->m_debug_data.m_shadow_cascades.shader_program_external(shadow_map_textured_quads_pso);
-
-	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
 
 	rhi::Renderpass    *pass{nullptr};
 	rhi::Rendersubpass *subpass{nullptr};
@@ -2198,6 +2217,11 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 	this->get_final_pass_subpass(&pass, &subpass);
 
 	// textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
+
+	shadow_map_textured_quads_pso->build_descriptor(a_device, *this, per_view_ubo, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+	                                                nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true, false);
+
+	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
 	shadow_map_textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
 
 	// This is done last because of the move
@@ -2232,6 +2256,9 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 
 	auto lines_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_colored_lines_pso)];
 	this->m_debug_data.m_frustums[cascade_index].shader_program_external(lines_pso);
+
+	lines_pso->build_descriptor(a_device, *this, per_view_ubo, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+	                            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
 
 	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
 	lines_pso->upload(a_device, *pass, *subpass, colored_lines_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "cascades_debug_view", true, false, false);

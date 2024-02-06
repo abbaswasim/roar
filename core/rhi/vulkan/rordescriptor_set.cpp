@@ -50,12 +50,14 @@ void DescriptorSet::push_buffer(uint32_t a_binding, VkDescriptorBufferInfo *a_bu
 	this->push_binding(a_binding, nullptr, a_buffer_info, a_type, a_stage_flags);
 }
 
-void DescriptorSet::allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_factory, DescriptorPool &a_pool)
+VkDescriptorSetLayout DescriptorSet::allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_pool)
 {
-	auto descriptor_layout = a_factory.make_layout(a_device, this->m_bindings);
+	auto descriptor_layout = a_layout_cache.make_layout(a_device, this->m_bindings);
 	this->m_handle         = a_pool.allocate(a_device, descriptor_layout);
 
 	this->update(a_device);
+
+	return descriptor_layout;
 }
 
 void DescriptorSet::update(const VkDevice a_device)
@@ -64,6 +66,24 @@ void DescriptorSet::update(const VkDevice a_device)
 		write.dstSet = this->m_handle;
 
 	vkUpdateDescriptorSets(a_device, static_cast<uint32_t>(this->m_writes.size()), this->m_writes.data(), 0, nullptr);
+}
+
+size_t DescriptorSetCache::emplace(DescriptorSet a_set)
+{
+	std::lock_guard<std::mutex> lock{this->m_mutex};
+
+	auto index{this->m_descriptors.size()};
+	this->m_descriptors.emplace_back(std::move(a_set));
+
+	return index;
+}
+
+DescriptorSet &DescriptorSetCache::at(size_t a_index)
+{
+	assert(a_index < this->m_descriptors.size() && "Descriptor index out of bounds");
+
+	std::lock_guard<std::mutex> lock{this->m_mutex};
+	return this->m_descriptors[a_index];
 }
 
 // void DescriptorSet::free(const VkDevice a_device)

@@ -26,6 +26,9 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "graphics/rorlight.hpp"
+#include "graphics/rormaterial.hpp"
+#include "graphics/rorskin.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
 #include "rhi/rordevice.hpp"
@@ -65,19 +68,32 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 	    ProgramCrtp(a_compute_id)
 	{}
 
-	void upload(rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders, const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, const rhi::Rendersubpass &a_subpass, bool a_premultiplied_alpha);
+	void allocate_descriptor(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_descriptor_pool, DescriptorSetCache &a_descriptor_cache, DescriptorSet &a_set);
+	void build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const rhi::ShaderBuffer *a_per_view_ubo,
+	                      const rhi::ShaderBuffer *a_per_frame_ubo, const rhi::ShaderBuffer *a_model_ubo, const rhi::ShaderBuffer *a_offset_ubo, const rhi::ShaderBuffer *a_weights_ubo,
+	                      const ror::Light *directional_light, const ror::Light *point_light, const ror::Light *spot_light, const ror::Light *area_light,
+	                      const ror::Material                                                               *a_material,
+	                      const std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               *a_textures,
+	                      const std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     *a_images,
+	                      const std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> *a_samplers,
+	                      const rhi::TextureImage *a_image, const rhi::TextureSampler *a_sampler,
+	                      const ror::Skin *a_skin, bool a_need_shadow_map, bool a_with_environment);
+
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
 	            const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha);
-	void upload(rhi::Device &a_device, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode,
-	            rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader,
 	            const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name,
 	            bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders,
 	            rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
-	void upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders);
+	void upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders);        // Easy way to create a compute pipeline without lots of arguments, currently unused, don't remove
 	void release(const rhi::Device &a_device);
+
+	// clang-format off
+	FORCE_INLINE constexpr auto &platform_descriptors()         const noexcept { return this->m_platform_descriptors;        }
+	FORCE_INLINE constexpr auto &platform_descriptors_layouts() const noexcept { return this->m_platform_descriptor_layouts; }
+	// clang-format on
 
 	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept
 	{
@@ -101,7 +117,9 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
   private:
 	declare_translation_unit_vtable();
 
-	std::variant<GraphicsPipelineState, ComputePipelineState> m_pipeline_state{};        //! This program will contain either Render or Compute pipeline state
+	std::variant<GraphicsPipelineState, ComputePipelineState> m_pipeline_state{};                     //! This program will contain either Render or Compute pipeline state
+	std::vector<size_t>                                       m_platform_descriptors{};               //! Index of the platform descriptor set in the descriptors cache
+	std::vector<VkDescriptorSetLayout>                        m_platform_descriptor_layouts{};        //! All the platform descriptor set layouts in the layouts cache
 };
 
 declare_rhi_render_type(Program);

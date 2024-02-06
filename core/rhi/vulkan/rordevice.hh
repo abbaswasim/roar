@@ -31,6 +31,8 @@
 #include "foundation/rorutilities.hpp"
 #include "math/rorvector2.hpp"
 #include "profiling/rorlog.hpp"
+#include "rhi/vulkan/rordescriptor_cache.hpp"
+#include "rhi/vulkan/rordescriptor_set.hpp"
 #include "rhi/vulkan/rordevice.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
@@ -106,6 +108,21 @@ FORCE_INLINE auto DeviceVulkan::platform_pipeline_cache() const noexcept
 	assert(this->m_pipeline_cache && "Vulkan pipeline cache requested is null");
 
 	return this->m_pipeline_cache;
+}
+
+FORCE_INLINE DescriptorSetLayoutCache &DeviceVulkan::descriptor_set_layout_cache() const noexcept
+{
+	return this->m_layout_cache;
+}
+
+FORCE_INLINE DescriptorSetCache &DeviceVulkan::descriptor_set_cache() const noexcept
+{
+	return this->m_desciptor_cache;
+}
+
+FORCE_INLINE DescriptorPool &DeviceVulkan::descriptor_set_pool() const noexcept
+{
+	return this->m_desciptor_pool;
 }
 
 FORCE_INLINE auto DeviceVulkan::platform_graphics_queue() const noexcept

@@ -39,8 +39,8 @@
 #include "math/rortransform.hpp"
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
-#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorprogram.hpp"
+#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
@@ -129,6 +129,12 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void load_specific();
 	void reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass);
 	void fill_scene_data();
+
+	const Light *light(ror::Light::LightType a_type) const;
+	const Light *directional_light() const;
+	const Light *spot_light() const;
+	const Light *point_light() const;
+	const Light *area_light() const;
 
 	// clang-format off
 	FORCE_INLINE constexpr       auto &models()                 noexcept   {  return this->m_models;          }

@@ -399,6 +399,7 @@ rhi::TextureImageHandle TextureCrtp<_type>::texture_image()
 {
 	return this->m_texture_image;
 }
+
 template <class _type>
 rhi::TextureSamplerHandle TextureCrtp<_type>::texture_sampler()
 {

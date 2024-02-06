@@ -64,6 +64,11 @@ class ROAR_ENGINE_ITEM Skin
 	template<typename _encoder_type>
 	FORCE_INLINE constexpr void bind_inverse_bind_buffer( _encoder_type& a_encoder, rhi::ShaderStage a_stage)
 		                                                { this->m_inverse_bind_shader_buffer.buffer_bind(a_encoder, a_stage); }
+
+	FORCE_INLINE constexpr auto& joint_offset_shader_buffer()            const noexcept  { return this->m_joint_offset_shader_buffer;      }
+	FORCE_INLINE constexpr auto& joint_offset_shader_buffer()                  noexcept  { return this->m_joint_offset_shader_buffer;      }
+	FORCE_INLINE constexpr auto& joint_inverse_bind_shader_buffer()      const noexcept  { return this->m_inverse_bind_shader_buffer;      }
+	FORCE_INLINE constexpr auto& joint_inverse_bind_shader_buffer()            noexcept  { return this->m_inverse_bind_shader_buffer;      }
 	// clang-format on
 
 	void update()
