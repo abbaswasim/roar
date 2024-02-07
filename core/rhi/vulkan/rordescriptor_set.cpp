@@ -55,16 +55,14 @@ VkDescriptorSetLayout DescriptorSet::allocate(const VkDevice a_device, Descripto
 	auto descriptor_layout = a_layout_cache.make_layout(a_device, this->m_bindings);
 	this->m_handle         = a_pool.allocate(a_device, descriptor_layout);
 
-	this->update(a_device);
+	for (VkWriteDescriptorSet &write : this->m_writes)
+		write.dstSet = this->m_handle;
 
 	return descriptor_layout;
 }
 
 void DescriptorSet::update(const VkDevice a_device)
 {
-	for (VkWriteDescriptorSet &write : this->m_writes)
-		write.dstSet = this->m_handle;
-
 	vkUpdateDescriptorSets(a_device, static_cast<uint32_t>(this->m_writes.size()), this->m_writes.data(), 0, nullptr);
 }
 

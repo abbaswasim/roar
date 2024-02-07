@@ -108,6 +108,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	FORCE_INLINE void mip_gen_mode(rhi::TextureMipGenMode) noexcept;
 	FORCE_INLINE void hdr(bool) noexcept;
 	FORCE_INLINE void name(std::string) noexcept;
+	FORCE_INLINE void verify_sizes(bool a_is_cube) const noexcept;
 
   protected:
 	FORCE_INLINE TextureImageCrtp() = default;        //! Default constructor
@@ -116,7 +117,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	bool                       m_mipmapped{false};                                           //! True when the texture image is suppose to be used as mipmapped as well
 	bool                       m_hdr{false};                                                 //! True when the texture HDR format most probalby 3 components
 	uint32_t                   m_bytes_per_pixel{4};                                         //! Bytes per pixel
-	uint64_t                   m_size{0};                                                    //! Size of all mipmaps combined in bytes
+	uint64_t                   m_size{0};                                                    //! Size of the first mipmap in bytes (not all mipmaps).
 	TextureTarget              m_target{TextureTarget::texture_2D};                          //! Can be 1D, 2D or 3D etc texture
 	TextureMipGenMode          m_mip_gen_mode{TextureMipGenMode::manual};                    //! If mipmapped, how are these mipmappes generated, manually provided or generated using API
 	rhi::PixelFormat           m_format{rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb};        //! Pixel format of the texture

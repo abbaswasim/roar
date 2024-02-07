@@ -192,27 +192,7 @@ void TextureImageMetal::upload(const rhi::Device &a_device)
 
 	if (needs_upload || this->data())
 	{
-		auto &last_mip  = this->mips().back();
-		auto &first_mip = this->mips()[0];
-		(void) last_mip;
-		(void) first_mip;
-
-		assert(this->data());
-		if (this->mip_gen_mode() == rhi::TextureMipGenMode::manual && this->mipmapped())
-		{
-			assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
-		}
-		else
-		{
-			if (is_cube)
-			{
-				assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
-			}
-			else
-			{
-				assert(this->size() == (first_mip.m_width * first_mip.m_height * first_mip.m_depth * this->bytes_per_pixel()) && "Image size doesn't match the expected texture size");
-			}
-		}
+		this->verify_sizes(is_cube);
 
 		MTL::CommandQueue       *queue                = a_device.platform_queue();
 		MTL::Buffer             *source_buffer        = device->newBuffer(this->data(), this->size(), MTL::ResourceStorageModeShared);

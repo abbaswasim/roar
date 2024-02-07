@@ -113,7 +113,7 @@ void                                   vk_queue_submit(VkQueue a_queue, const st
 void                                   vk_queue_submit(VkQueue a_queue, VkCommandBuffer a_command_buffer, VkFence a_fence, std::mutex *a_mutex);
 void                                   vk_queue_submit(VkQueue a_queue, VkSubmitInfo &a_submit_info, const std::vector<VkCommandBuffer> &a_command_buffers, VkFence a_fence, std::mutex *a_mutex);
 void                                   vk_queue_wait_idle(VkQueue a_queue, std::mutex *a_mutex);
-void                                   vk_transition_image_layout(const VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex);
+void                                   vk_transition_image_layout(const VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, uint32_t a_layers, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex);
 void                                   vk_copy_staging_buffer_to_image(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,
                                                                        VkBuffer a_source, VkImage a_destination, const std::vector<VkBufferImageCopy> &buffer_image_copy_regions, std::mutex *a_mutex);
 void                                   vk_copy_staging_buffers_to_images(VkDevice a_device, VkQueue transfer_queue, VkCommandPool a_command_pool,

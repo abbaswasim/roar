@@ -428,4 +428,32 @@ void TextureCrtp<_type>::texture_sampler(rhi::TextureSamplerHandle a_handle)
 	this->m_texture_sampler = a_handle;
 }
 
+template <class _type>
+void TextureImageCrtp<_type>::verify_sizes(bool a_is_cube) const noexcept
+{
+	auto &last_mip  = this->mips().back();
+	auto &first_mip = this->mips()[0];
+
+	assert(this->data());
+	if (this->mip_gen_mode() == rhi::TextureMipGenMode::manual && this->mipmapped())
+	{
+		assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
+	}
+	else
+	{
+		if (a_is_cube)
+		{
+			assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
+		}
+		else
+		{
+			assert(this->size() == (first_mip.m_width * first_mip.m_height * first_mip.m_depth * this->bytes_per_pixel()) && "Image size doesn't match the expected texture size");
+		}
+	}
+
+	(void) last_mip;
+	(void) first_mip;
+	(void) a_is_cube;
+}
+
 }        // namespace rhi

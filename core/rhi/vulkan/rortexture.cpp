@@ -147,11 +147,9 @@ void TextureImageVulkan::upload(const rhi::Device &a_device)
 	std::vector<uint32_t>             queue_family_indices{a_device.platform_graphics_queue_index(), a_device.platform_transfer_queue_index()};
 	VkPhysicalDeviceMemoryProperties2 memory_properties = a_device.memory_properties();
 	VkMemoryPropertyFlags             properties        = rhi::to_vulkan_resource_option(rhi::ResourceStorageOption::exclusive);
-	VkBuffer                          staging_buffer{};
-	VkDeviceMemory                    staging_memory{};
-	auto                              is_depth = is_pixel_format_depth_format(this->format());
-	auto                              is_array = is_texture_array(this->target());
-	auto                              is_cube  = is_texture_cubemap(this->target());
+	auto                              is_depth          = is_pixel_format_depth_format(this->format());
+	auto                              is_array          = is_texture_array(this->target());
+	auto                              is_cube           = is_texture_cubemap(this->target());
 	// auto                              is_3d        = is_texture_3d(this->target());
 
 	VkImageUsageFlags usage_flags{};
@@ -203,13 +201,22 @@ void TextureImageVulkan::upload(const rhi::Device &a_device)
 		ror::log_warn("Recreating images pervious images are now destroyed");
 
 		if (this->m_image != nullptr)
+		{
 			vk_destroy_image(device, this->m_image);
+			this->m_image = nullptr;
+		}
 
 		if (this->m_image_view != nullptr)
+		{
 			vk_destroy_image_view(device, this->m_image_view);
+			this->m_image_view = nullptr;
+		}
 
 		if (this->m_image_memory != nullptr)
+		{
 			vk_destroy_memory(device, this->m_image_memory);
+			this->m_image_memory = nullptr;
+		}
 	}
 
 	auto               image_type  = to_vulkan_image_target(this->target());
@@ -233,14 +240,22 @@ void TextureImageVulkan::upload(const rhi::Device &a_device)
 
 	if (needs_upload)
 	{
-		assert(this->data());
-		assert(this->size() == this->width() * this->height() * this->bytes_per_pixel());
+		this->verify_sizes(is_cube);
+
+		auto &last_mip = this->mips().back();
+
+		auto buffer_size = (last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset;
+
+		VkBuffer       staging_buffer{};
+		VkDeviceMemory staging_memory{};
 
 		properties = rhi::to_vulkan_resource_option(rhi::ResourceStorageOption::managed);
-		vk_create_buffer_with_memory(device, staging_buffer, std::max(1ul, ror::static_cast_safe<unsigned long>(this->size())), usage, mode, queue_family_indices, staging_memory, memory_properties.memoryProperties, properties);
+		vk_create_buffer_with_memory(device, staging_buffer, std::max<size_t>(1ul, buffer_size), usage, mode, queue_family_indices, staging_memory, memory_properties.memoryProperties, properties);
+
+		ror::log_critical("Texture {} sizes are {}={}", this->name().c_str(), buffer_size, this->size());
 
 		auto texture_data = vk_map_memory(device, staging_memory);
-		memcpy(texture_data, this->data(), this->size());
+		memcpy(texture_data, this->data(), this->size());        // NOTE: I am not using buffer_size here because the texture might not have all the mips already generated. Implement me
 		vk_unmap_memory(device, staging_memory);
 
 		std::vector<VkImage>  texture_images{this->m_image};
@@ -253,9 +268,9 @@ void TextureImageVulkan::upload(const rhi::Device &a_device)
 		if (this->mipmapped() && this->mip_gen_mode() == rhi::TextureMipGenMode::automatic && this->levels() > 1)
 			ror::log_critical("Implement vkCmdBlitImage for automatic mip gen mode https://vulkan-tutorial.com/Generating_Mipmaps");
 
-		vk_transition_image_layout(device, command_pool, transfer_queue, this->m_image, ror::static_cast_safe<uint32_t>(this->mips().size()), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &transfer_queue_mutex);
+		vk_transition_image_layout(device, command_pool, transfer_queue, this->m_image, ror::static_cast_safe<uint32_t>(this->levels()), layers, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &transfer_queue_mutex);
 		vk_copy_staging_buffer_to_image(device, transfer_queue, command_pool, staging_buffer, this->m_image, copy_regions, &transfer_queue_mutex);
-		vk_transition_image_layout(device, command_pool, transfer_queue, this->m_image, ror::static_cast_safe<uint32_t>(this->mips().size()), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, final_layout, &transfer_queue_mutex);
+		vk_transition_image_layout(device, command_pool, transfer_queue, this->m_image, ror::static_cast_safe<uint32_t>(this->levels()), layers, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, final_layout, &transfer_queue_mutex);
 
 		// Cleanup staging buffers
 		vk_destroy_buffer(device, staging_buffer);

@@ -197,7 +197,7 @@ VkBufferMemoryBarrier2 vk_create_buffer_barrier(VkBuffer a_buffer, VkPipelineSta
 	return buffer_barrier;
 }
 
-void vk_transition_image_layout(const VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex)
+void vk_transition_image_layout(const VkDevice a_device, VkCommandPool a_command_pool, VkQueue a_transfer_queue, VkImage a_image, uint32_t a_mip_levels, uint32_t a_layers, VkImageLayout a_old_layout, VkImageLayout a_new_layout, std::mutex *a_mutex)
 {
 	VkCommandBuffer command_buffer = vk_begin_single_use_command_buffer(a_device, a_command_pool);
 
@@ -216,7 +216,7 @@ void vk_transition_image_layout(const VkDevice a_device, VkCommandPool a_command
 	barrier.subresourceRange.baseMipLevel   = 0;
 	barrier.subresourceRange.levelCount     = a_mip_levels;
 	barrier.subresourceRange.baseArrayLayer = 0;
-	barrier.subresourceRange.layerCount     = 1;
+	barrier.subresourceRange.layerCount     = a_layers;
 	barrier.srcAccessMask                   = 0;        // TODO:
 	barrier.dstAccessMask                   = 0;        // TODO:
 
