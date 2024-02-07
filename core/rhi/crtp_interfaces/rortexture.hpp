@@ -118,7 +118,7 @@ class ROAR_ENGINE_ITEM TextureImageCrtp : public ror::Crtp<_type, TextureImageCr
 	uint32_t                   m_bytes_per_pixel{4};                                         //! Bytes per pixel
 	uint64_t                   m_size{0};                                                    //! Size of all mipmaps combined in bytes
 	TextureTarget              m_target{TextureTarget::texture_2D};                          //! Can be 1D, 2D or 3D etc texture
-	TextureMipGenMode          m_mip_gen_mode{TextureMipGenMode::manual};                    //! If mipmapped, how are they mipmappes generated, manually provided or generated using API
+	TextureMipGenMode          m_mip_gen_mode{TextureMipGenMode::manual};                    //! If mipmapped, how are these mipmappes generated, manually provided or generated using API
 	rhi::PixelFormat           m_format{rhi::PixelFormat::r8g8b8a8_uint32_norm_srgb};        //! Pixel format of the texture
 	rhi::TextureUsage          m_usage{rhi::TextureUsage::shader_read};                      //! What the texture is used for, by default just a read (sample) usage, can be ORed with other usage
 	std::unique_ptr<uint8_t[]> m_data{};                                                     //! All mipmaps data

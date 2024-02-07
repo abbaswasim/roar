@@ -1286,6 +1286,14 @@ constexpr bool is_texture_2d(rhi::TextureTarget a_target)
 	return false;
 }
 
+constexpr bool is_texture_3d(rhi::TextureTarget a_target)
+{
+	if (a_target == rhi::TextureTarget::texture_3D)
+		return true;
+
+	return false;
+}
+
 constexpr uint32_t semantic_to_index(BufferSemantic a_semantic)
 {
 #define item(_enum) BufferSemantic::_enum
