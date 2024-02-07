@@ -26,6 +26,9 @@
 #pragma once
 
 #include "foundation/rormacros.hpp"
+#include "graphics/rorlight.hpp"
+#include "graphics/rorskin.hpp"
+#include "graphics/rormaterial.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
 #include "rhi/rordevice.hpp"
@@ -63,6 +66,16 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	FORCE_INLINE explicit ProgramMetal(int32_t a_compute_id) :
 	    ProgramCrtp(a_compute_id)
 	{}
+
+	void build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const rhi::ShaderBuffer *a_per_view_ubo,
+	                      const rhi::ShaderBuffer *a_per_frame_ubo, const rhi::ShaderBuffer *a_model_ubo, const rhi::ShaderBuffer *a_offset_ubo, const rhi::ShaderBuffer *a_weights_ubo,
+	                      const ror::Light *directional_light, const ror::Light *point_light, const ror::Light *spot_light, const ror::Light *area_light,
+	                      const ror::Material                                                               *a_material,
+	                      const std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               *a_textures,
+	                      const std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     *a_images,
+	                      const std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> *a_samplers,
+	                      const rhi::TextureImage *a_image, const rhi::TextureSampler *a_sampler,
+	                      const ror::Skin *a_skin, bool a_need_shadow_map, bool a_with_environment);
 
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
 	            const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha);

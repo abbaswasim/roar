@@ -61,9 +61,8 @@ void ProgramVulkan::release(const rhi::Device &a_device)
 	if (pipeline == nullptr)
 		pipeline = this->compute_pipeline_state();
 
-	assert(pipeline && "Neither render not compute pipeline found in program vulkan");
-
-	vk_destroy_pipeline(device, pipeline);
+	if (pipeline)
+		vk_destroy_pipeline(device, pipeline);
 }
 
 static void append_to_vulkan_vertex_descriptor(VulkanDescriptorVector     &a_attributes,

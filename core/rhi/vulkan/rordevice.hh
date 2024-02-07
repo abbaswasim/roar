@@ -65,6 +65,13 @@ FORCE_INLINE void *resize_ca_vulkan_layer(std::any a_window, VkDevice a_device, 
 	return ca_vulkan_layer;
 }
 
+FORCE_INLINE auto DeviceVulkan::platform_device() const noexcept
+{
+	assert(this->m_device && "Vulkan device requested is null");
+
+	return this->m_device;
+}
+
 // This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
 FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
 {
@@ -94,13 +101,8 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 
 	ror::Event e{ror::buffer_resize, true, ror::Vector2ui{a_dimensions.x, a_dimensions.y}};
 	resize_callback(e);
-}
 
-FORCE_INLINE auto DeviceVulkan::platform_device() const noexcept
-{
-	assert(this->m_device && "Vulkan device requested is null");
-
-	return this->m_device;
+	this->m_desciptor_pool.init(this->platform_device());
 }
 
 FORCE_INLINE auto DeviceVulkan::platform_pipeline_cache() const noexcept

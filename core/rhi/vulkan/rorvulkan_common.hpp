@@ -185,10 +185,29 @@ constexpr FORCE_INLINE auto to_vulkan_depth_compare_function(rhi::DepthCompareFu
 	return static_cast<VkCompareOp>(a_compare_function);
 }
 
-FORCE_INLINE constexpr VkImageViewType to_vulkan_texture_target(rhi::TextureTarget a_target)
+FORCE_INLINE constexpr VkImageViewType to_vulkan_image_view_target(rhi::TextureTarget a_target)
 {
-	assert(static_cast<uint32_t>(a_target) == VK_IMAGE_VIEW_TYPE_MAX_ENUM && "Don't understand this texture target type in vulkan");
+	assert(static_cast<uint32_t>(a_target) != VK_IMAGE_VIEW_TYPE_MAX_ENUM && "Don't understand this texture target type in vulkan");
 	return static_cast<VkImageViewType>(a_target);
+}
+
+FORCE_INLINE constexpr VkImageType to_vulkan_image_target(rhi::TextureTarget a_target)
+{
+	VkImageViewType view_type  = to_vulkan_image_view_target(a_target);
+
+	if (view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_1D ||
+		view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_1D_ARRAY)
+		return VkImageType::VK_IMAGE_TYPE_1D;
+	else if (view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_2D ||
+			 view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY ||
+			 view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE ||
+			 view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE_ARRAY)
+		return VkImageType::VK_IMAGE_TYPE_2D;
+	else if (view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_3D)
+		return VkImageType::VK_IMAGE_TYPE_3D;
+
+	assert(0 && "Don't understand other image view types yet");
+	return VkImageType::VK_IMAGE_TYPE_2D;
 }
 
 FORCE_INLINE constexpr VkFilter to_vulkan_texture_filter(rhi::TextureFilter a_filter)

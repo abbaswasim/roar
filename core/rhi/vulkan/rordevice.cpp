@@ -236,7 +236,7 @@ void SwapChain::create(VkPhysicalDevice a_physical_device, VkDevice a_device, Vk
 	this->m_swapchain_images_views.resize(this->m_swapchain_images.size());
 
 	for (size_t i = 0; i < this->m_swapchain_images.size(); ++i)
-		this->m_swapchain_images_views[i] = vk_create_image_view(a_device, this->m_swapchain_images[i], swapchain_format, 1, VK_IMAGE_ASPECT_COLOR_BIT);
+		this->m_swapchain_images_views[i] = vk_create_image_view(a_device, this->m_swapchain_images[i], swapchain_format, 1, 1, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	this->m_format = swapchain_format;
 }

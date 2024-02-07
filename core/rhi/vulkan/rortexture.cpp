@@ -128,6 +128,9 @@ void TextureImageVulkan::upload(const rhi::Device &a_device)
 	VkDeviceMemory                    staging_memory{};
 	auto                              copy_regions = mipmaps_to_buffer_image_copy_regions(*this);
 	auto                              is_depth     = is_pixel_format_depth_format(this->format());
+	auto                              is_array     = is_texture_array(this->target());
+	auto                              is_cube      = is_texture_cubemap(this->target());
+	// auto                              is_3d        = this->target() == rhi::TextureTarget::texture_3D;
 
 	VkImageUsageFlags usage_flags{};
 	VkImageLayout     final_layout{};
@@ -182,17 +185,26 @@ void TextureImageVulkan::upload(const rhi::Device &a_device)
 	}
 
 	// TODO: Add other image types support (Cube, 3D etc)
+	uint32_t           mip_levels{this->levels()};
+	auto               image_type  = to_vulkan_image_target(this->target());
+	VkImageCreateFlags image_flags = is_cube ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
+	uint32_t           faces{is_cube ? 6u : 1u};
+	uint32_t           array_layers{is_array ? this->depth() : faces};
+
 	vk_create_image_with_memory(device, this->m_image, this->width(), this->height(), this->depth(), to_vulkan_pixelformat(this->format()),
-	                            ror::static_cast_safe<uint32_t>(this->mips().size()), usage_flags,
+	                            mip_levels, array_layers, usage_flags, image_flags,
 	                            this->m_image_memory, memory_properties.memoryProperties, properties,
-	                            VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL);
+	                            image_type, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED);
 
 	VkImageAspectFlags aspect_flags{VK_IMAGE_ASPECT_COLOR_BIT};
 
 	if (is_depth)
 		aspect_flags = VK_IMAGE_ASPECT_DEPTH_BIT;
 
-	this->m_image_view = vk_create_image_view(device, this->m_image, to_vulkan_pixelformat(this->format()), ror::static_cast_safe<uint32_t>(this->mips().size()), aspect_flags);
+	// TODO: Convert target to VK_IMAGE_TYPE_2D by using to_vulkan_texture_target(this->target()) at the moment it returns imageviewtype
+	auto image_view_type = to_vulkan_image_view_target(this->target());
+
+	this->m_image_view = vk_create_image_view(device, this->m_image, to_vulkan_pixelformat(this->format()), this->levels(), array_layers, aspect_flags, image_view_type);
 
 	if (needs_upload)
 	{

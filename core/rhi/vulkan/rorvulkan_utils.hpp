@@ -43,17 +43,17 @@ namespace rhi
 
 VkDevice                               vk_create_device(VkPhysicalDevice physical_device, const std::vector<VkDeviceQueueCreateInfo> &queues);
 VkSwapchainKHR                         vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat &a_format, VkExtent2D a_swapchain_extent);
-VkImageView                            vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, uint32_t a_mip_levels, VkImageAspectFlags a_aspect_flags,
+VkImageView                            vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, uint32_t a_mip_levels, uint32_t a_array_layers, VkImageAspectFlags a_aspect_flags,
                                                             VkImageViewType    a_type      = VK_IMAGE_VIEW_TYPE_2D,
                                                             VkComponentSwizzle a_r_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
                                                             VkComponentSwizzle a_g_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
                                                             VkComponentSwizzle a_b_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
                                                             VkComponentSwizzle a_a_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY);
-VkImage                                vk_create_image(VkDevice a_device, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage,
+VkImage                                vk_create_image(VkDevice a_device, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, uint32_t a_array_layers, VkImageUsageFlags a_usage, VkImageCreateFlags a_flags = 0,
                                                        VkImageType a_image_type = VK_IMAGE_TYPE_2D, VkImageTiling a_tiling = VK_IMAGE_TILING_OPTIMAL, VkImageLayout a_initial_layout = VK_IMAGE_LAYOUT_UNDEFINED,
                                                        VkSharingMode a_sharing_mode = VK_SHARING_MODE_EXCLUSIVE, VkSampleCountFlagBits a_samples_count = VK_SAMPLE_COUNT_1_BIT, const std::vector<uint32_t> &&a_queue_family_indices = {});
-void                                   vk_create_image_with_memory(VkDevice a_device, VkImage &a_image, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage,
-                                                                   VkDeviceMemory &a_memory, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties,
+void                                   vk_create_image_with_memory(VkDevice a_device, VkImage &a_image, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, uint32_t a_array_layers, VkImageUsageFlags a_usage,
+																   VkImageCreateFlags a_flags, VkDeviceMemory &a_memory, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties,
                                                                    VkImageType a_image_type = VK_IMAGE_TYPE_2D, VkImageTiling a_tiling = VK_IMAGE_TILING_OPTIMAL, VkImageLayout a_initial_layout = VK_IMAGE_LAYOUT_UNDEFINED,
                                                                    VkSharingMode a_sharing_mode = VK_SHARING_MODE_EXCLUSIVE, VkSampleCountFlagBits a_samples_count = VK_SAMPLE_COUNT_1_BIT, const std::vector<uint32_t> &&a_queue_family_indices = {});
 VkSampler                              vk_create_image_sampler(VkDevice a_device, VkSamplerAddressMode a_wrap_u, VkSamplerAddressMode a_wrap_v, VkSamplerAddressMode a_wrap_w,

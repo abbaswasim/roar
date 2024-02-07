@@ -27,6 +27,7 @@
 #include "graphics/rormodel.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/metal/rormetal_common.hpp"
+#include "rhi/metal/rorprogram.hpp"
 #include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rorrenderpass.hpp"
@@ -157,6 +158,17 @@ static MTL::VertexDescriptor *get_metal_vertex_descriptor(const rhi::VertexDescr
 
 	return mtl_vertex_descriptor;
 }
+
+void ProgramMetal::build_descriptor(const rhi::Device &, const ror::Renderer &, const rhi::ShaderBuffer *,
+                                    const rhi::ShaderBuffer *, const rhi::ShaderBuffer *, const rhi::ShaderBuffer *, const rhi::ShaderBuffer *,
+                                    const ror::Light *, const ror::Light *, const ror::Light *, const ror::Light *,
+                                    const ror::Material *,
+                                    const std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>> *,
+                                    const std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>> *,
+                                    const std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> *,
+                                    const rhi::TextureImage *, const rhi::TextureSampler *,
+                                    const ror::Skin *, bool, bool)
+{}
 
 static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device              *a_device,
                                                                  const rhi::Shader        &a_vertex_shader,

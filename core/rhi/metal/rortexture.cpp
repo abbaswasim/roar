@@ -137,6 +137,13 @@ void TextureSamplerMetal::bind(rhi::ComputeCommandEncoder &a_command_encoder, rh
 
 void TextureImageMetal::upload(const rhi::Device &a_device)
 {
+	if (this->width() == 0 || this->height() == 0)
+	{
+		ror::log_critical("Uploading a texture of zero width or height texture name = {}, width x height=({}, {})",
+		                  this->name().c_str(), this->width(), this->height());
+		return;
+	}
+
 	MTL::Device            *device             = a_device.platform_device();
 	MTL::TextureDescriptor *texture_descriptor = MTL::TextureDescriptor::alloc()->init();
 	MTL::Origin             texture_origin{0, 0, 0};
@@ -146,13 +153,6 @@ void TextureImageMetal::upload(const rhi::Device &a_device)
 	// bool                    is_3d    = this->target() == rhi::TextureTarget::texture_3D; // TODO: Workout what you need to do about this
 
 	assert(device);
-
-	if (this->width() == 0 || this->height() == 0)
-	{
-		ror::log_critical("Uploading a texture of zero width or height texture name = {}, width x height=({}, {})",
-		                  this->name().c_str(), this->width(), this->height());
-		return;
-	}
 
 	// For mipmapping to work, you need 3 things to be setup correctly
 	// 1. All mip-levels properly setup either manually or via blit encoder

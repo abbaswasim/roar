@@ -38,7 +38,7 @@
 namespace rhi
 {
 
-VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, uint32_t a_mip_levels, VkImageAspectFlags a_aspect_flags, VkImageViewType a_type,
+VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, uint32_t a_mip_levels, uint32_t a_array_layers, VkImageAspectFlags a_aspect_flags, VkImageViewType a_type,
                                  VkComponentSwizzle a_r_swizzle, VkComponentSwizzle a_g_swizzle, VkComponentSwizzle a_b_swizzle, VkComponentSwizzle a_a_swizzle)
 {
 	VkImageViewCreateInfo image_view_create_info = {};
@@ -58,7 +58,7 @@ VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_
 	image_view_create_info.subresourceRange.baseMipLevel   = 0;
 	image_view_create_info.subresourceRange.levelCount     = a_mip_levels;
 	image_view_create_info.subresourceRange.baseArrayLayer = 0;
-	image_view_create_info.subresourceRange.layerCount     = 1;
+	image_view_create_info.subresourceRange.layerCount     = a_array_layers;
 
 	VkImageView image_view;
 	VkResult    result = vkCreateImageView(a_device, &image_view_create_info, nullptr, &image_view);
@@ -67,20 +67,20 @@ VkImageView vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_
 	return image_view;
 }
 
-VkImage vk_create_image(VkDevice a_device, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage, VkImageType a_image_type,
-                        VkImageTiling a_tiling, VkImageLayout a_initial_layout, VkSharingMode a_sharing_mode, VkSampleCountFlagBits a_samples_count, const std::vector<uint32_t> &&a_queue_family_indices)
+VkImage vk_create_image(VkDevice a_device, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, uint32_t a_array_layers, VkImageUsageFlags a_usage, VkImageCreateFlags a_flags,
+                        VkImageType a_image_type, VkImageTiling a_tiling, VkImageLayout a_initial_layout, VkSharingMode a_sharing_mode, VkSampleCountFlagBits a_samples_count, const std::vector<uint32_t> &&a_queue_family_indices)
 {
 	VkImageCreateInfo image_info{};
 	image_info.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	image_info.pNext         = nullptr;
-	image_info.flags         = 0;                   // Optional
+	image_info.flags         = a_flags;             // Optional
 	image_info.imageType     = a_image_type;        // VK_IMAGE_TYPE_2D;
 	image_info.format        = a_format;
 	image_info.extent.width  = a_width;
 	image_info.extent.height = a_height;
 	image_info.extent.depth  = a_depth;
 	image_info.mipLevels     = a_mip_levels;
-	image_info.arrayLayers   = 1;                      // Do I need to expose this?
+	image_info.arrayLayers   = a_array_layers;         // This is how you make cubemaps by making array layers to 6
 	image_info.samples       = a_samples_count;        // VK_SAMPLE_COUNT_1_BIT;
 	image_info.tiling        = a_tiling;               // VK_IMAGE_TILING_OPTIMAL
 	image_info.usage         = a_usage;
@@ -679,7 +679,7 @@ void vk_create_buffer_with_memory(VkDevice a_device, VkBuffer &a_buffer, size_t 
 	vk_bind_buffer_memory(a_device, a_buffer, a_memory);
 }
 
-void vk_create_image_with_memory(VkDevice a_device, VkImage &a_image, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, VkImageUsageFlags a_usage,
+void vk_create_image_with_memory(VkDevice a_device, VkImage &a_image, uint32_t a_width, uint32_t a_height, uint32_t a_depth, VkFormat a_format, uint32_t a_mip_levels, uint32_t a_array_layers, VkImageUsageFlags a_usage, VkImageCreateFlags a_image_flags,
                                  VkDeviceMemory &a_memory, VkPhysicalDeviceMemoryProperties a_memory_properties, VkMemoryPropertyFlags a_properties,
                                  VkImageType a_image_type, VkImageTiling a_tiling, VkImageLayout a_initial_layout, VkSharingMode a_sharing_mode, VkSampleCountFlagBits a_samples_count,
                                  const std::vector<uint32_t> &&a_queue_family_indices)
@@ -688,7 +688,7 @@ void vk_create_image_with_memory(VkDevice a_device, VkImage &a_image, uint32_t a
 	assert(a_memory == nullptr && "Recreating memory");
 
 	a_image                                 = vk_create_image(a_device, a_width, a_height, a_depth, a_format,
-	                                                          a_mip_levels, a_usage, a_image_type, a_tiling,
+	                                                          a_mip_levels, a_array_layers, a_usage, a_image_flags, a_image_type, a_tiling,
 	                                                          a_initial_layout, a_sharing_mode, a_samples_count, std::move(a_queue_family_indices));
 	VkMemoryRequirements2 image_mem_req     = vk_image_memory_requirements(a_device, a_image);
 	auto                  memory_type_index = vk_find_memory_type(image_mem_req.memoryRequirements.memoryTypeBits, a_memory_properties, a_properties);
