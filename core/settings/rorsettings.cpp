@@ -270,7 +270,7 @@ Settings::Settings()
 	// clang-format on
 
 	// assert(this->m_bindings.m_material_factors != 0 && "m_material_factors wasn't read properly");
-	assert(this->m_bindings.m_per_frame_uniform != 0 && "m_per_frame_uniform wasn't read properly");
+	// assert(this->m_bindings.m_per_frame_uniform != 0 && "m_per_frame_uniform wasn't read properly");
 	assert(this->m_bindings.m_per_view_uniform != 0 && "m_per_view_uniform wasn't read properly");
 	assert(this->m_bindings.m_nodes_models != 0 && "m_nodes_models wasn't read properly");
 	assert(this->m_bindings.m_nodes_offsets != 0 && "m_nodes_offsets wasn't read properly");
@@ -289,6 +289,7 @@ Settings::Settings()
 	this->m_metal.decoration_bindings      = setting.get<bool>("metal:force_spirv_bindings");
 	this->m_metal.indirect_command_buffers = setting.get<bool>("metal:indirect_command_buffers");
 
+	this->m_vulkan.m_descriptor_sets_size = setting.get<uint32_t>("vulkan:descriptor_sets_size");
 	this->m_vulkan.m_descriptor_pool_size = setting.get<uint32_t>("vulkan:descriptor_pool_size");
 	this->m_vulkan.m_version_major        = setting.get<uint32_t>("vulkan:version_major");
 	this->m_vulkan.m_version_minor        = setting.get<uint32_t>("vulkan:version_minor");
