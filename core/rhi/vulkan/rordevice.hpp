@@ -45,6 +45,24 @@
 namespace rhi
 {
 
+class VulkanValidationException : public std::exception
+{
+  private:
+	std::string m_message;
+
+  public:
+	VulkanValidationException(const char *a_message) :
+	    m_message(a_message)
+	{}
+
+	declare_translation_unit_vtable();
+
+	const char *what() const noexcept override
+	{
+		return m_message.c_str();
+	}
+};
+
 class Instance : public VulkanObject<VkInstance>
 {
   public:

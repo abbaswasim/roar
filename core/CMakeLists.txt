@@ -262,6 +262,7 @@ if (${ROR_RENDER_TYPE_VULKAN})
 	  message(FATAL_ERROR "Couldn't find Vulkan with find_package, make sure lunarG Vulkan SDK is installed") # This still isn't enough, for building one has to ./setup_env.sh from vulkan SDK, which sets DYLD_LIBRARY_PATH
 	endif()
   list(APPEND ROAR_REQUIRED_PUBLIC_LIBRARIES vusym)
+  list(APPEND ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM spirv-cross-glsl)
   link_libraries(${Vulkan_LIBRARY})
 elseif (${ROR_RENDER_TYPE_METAL})
   list(APPEND ROAR_REQUIRED_PUBLIC_LIBRARIES metalcpp)

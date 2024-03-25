@@ -29,6 +29,7 @@
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 #include "settings/rorsettings.hpp"
 #include <cassert>
+#include <regex>
 #include <vulkan/vulkan_core.h>
 
 namespace rhi
@@ -59,15 +60,34 @@ define_translation_unit_vtable(SwapChain)
 define_translation_unit_vtable(DeviceVulkan)
 {}
 
+define_translation_unit_vtable(VulkanValidationException)
+{}
+
+std::string format_validation_message(const char *a_message)
+{
+	std::regex object("Object");
+	std::regex handle("handle =");
+	std::regex type("type =");
+	std::regex message("\\| MessageID = ");
+	std::regex bar(" \\| ");
+	std::regex spec("The Vulkan spec states:");
+
+	std::string objects  = std::regex_replace(a_message, object, "\n\t$&");
+	std::string handles  = std::regex_replace(objects, handle, "\n\t$&");
+	std::string types    = std::regex_replace(handles, type, "\n\t$&");
+	std::string messages = std::regex_replace(types, message, "\n\tMessageID = ");
+	std::string bars     = std::regex_replace(messages, bar, "\n\t");
+	std::string specs    = std::regex_replace(bars, spec, "\n\t$&\n\t\t");
+
+	return specs;
+}
+
 static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_generic_callback(
     VkDebugUtilsMessageSeverityFlagBitsEXT      a_message_severity,
     VkDebugUtilsMessageTypeFlagsEXT             a_message_type,
     const VkDebugUtilsMessengerCallbackDataEXT *a_callback_data,
     void                                       *a_user_data)
 {
-	// (void) a_message_severity;
-	// (void) a_message_type;
-	// (void) a_callback_data;
 	(void) a_user_data;
 
 	std::string prefix{};
@@ -84,14 +104,18 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_generic_callback(
 			prefix = "general";
 	}
 
+	std::string formatted_message{format_validation_message(a_callback_data->pMessage)};
 	if (a_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-		ror::log_error("Validation layer {} error: {}", prefix, a_callback_data->pMessage);
+	{
+		ror::log_error("Validation layer {} error: \n\t{}", prefix, formatted_message.c_str());
+		throw VulkanValidationException{formatted_message.c_str()};
+	}
 	else if (a_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-		ror::log_warn("Validation layer {} warning: {}", prefix, a_callback_data->pMessage);
+		ror::log_warn("Validation layer {} warning: \n\t{}", prefix, formatted_message.c_str());
 	else if (a_message_severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)        // includes VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-		ror::log_info("Validation layer {} info: {}", prefix, a_callback_data->pMessage);
+		ror::log_info("Validation layer {} info: \n\t{}", prefix, formatted_message.c_str());
 	else
-		ror::log_critical("Validation layer {} critical error: {}", prefix, a_callback_data->pMessage);
+		ror::log_critical("Validation layer {} critical error: \n\t{}", prefix, formatted_message.c_str());
 
 	return VK_FALSE;
 }

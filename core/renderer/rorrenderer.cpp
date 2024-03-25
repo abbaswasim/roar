@@ -1607,7 +1607,7 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 	auto &env = this->current_environment();
 
 	std::vector<ror::Vector3f>          positions;        // Cube positions, used if anything other than brdf_integration is chosen to be visualised
-	std::vector<ror::Vector3<uint16_t>> indices;          // Cube indices, used if anything other thanif brdf_integration is chosen to be visualised
+	std::vector<ror::Vector3<uint16_t>> indices;          // Cube indices, used if anything other than brdf_integration is chosen to be visualised
 
 	rhi::Program *skybox_render_pso{nullptr};
 	skybox_render_pso             = &this->programs()[env.skybox_render_pso()];
@@ -2205,7 +2205,6 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 	auto shadow_map_textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_shadow_map_textured_quads_pso)];
 	auto shadow_image                  = &this->images()[static_cast<size_t>(this->m_debug_data.m_shadow_texture)];
 	auto shadow_sampler                = &this->samplers()[static_cast<size_t>(this->m_debug_data.m_default_sampler)];
-	auto per_view_ubo                  = this->shader_buffer("per_view_uniform");
 
 	this->m_debug_data.m_shadow_cascades.set_texture(shadow_image, shadow_sampler);        // Would need refresh if images or samplers vectors are resized
 	// this->m_debug_data.m_shadow_cascades.shader_program_external(textured_quads_pso);

@@ -26,5 +26,4 @@
 #include "rhi/rorprogram.hpp"
 
 namespace rhi
-{
-}        // namespace rhi
+{}        // namespace rhi

@@ -31,13 +31,24 @@
 namespace rhi
 {
 
-void DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags)
+void DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags)
 {
 	VkDescriptorSetLayoutBinding descriptor_set_layout_binding = vk_create_descriptor_set_layout_binding(a_binding, a_type, a_stage_flags);
-	VkWriteDescriptorSet         write_descriptor_set          = vk_create_write_descriptor_set(nullptr, a_binding, a_type, a_image_info, a_buffer_info);
 
 	this->m_bindings.push_back(descriptor_set_layout_binding);
+}
+
+void DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
+{
+	VkWriteDescriptorSet write_descriptor_set = vk_create_write_descriptor_set(nullptr, a_binding, a_type, a_image_info, a_buffer_info);
+
 	this->m_writes.push_back(write_descriptor_set);
+}
+
+void DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags)
+{
+	this->push_binding(a_binding, a_type, a_stage_flags);
+	this->push_binding(a_binding, a_type, a_image_info, a_buffer_info);
 }
 
 void DescriptorSet::push_image(uint32_t a_binding, VkDescriptorImageInfo *a_image_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags)
@@ -55,14 +66,25 @@ VkDescriptorSetLayout DescriptorSet::allocate(const VkDevice a_device, Descripto
 	auto descriptor_layout = a_layout_cache.make_layout(a_device, this->m_bindings);
 	this->m_handle         = a_pool.allocate(a_device, descriptor_layout);
 
-	for (VkWriteDescriptorSet &write : this->m_writes)
-		write.dstSet = this->m_handle;
+	this->update_writes();        // NOTE: This might or might not do much depending on which push_binding overload is used and hence would need to be called later separately
 
 	return descriptor_layout;
 }
 
+void DescriptorSet::reset_writes()
+{
+	this->m_writes.clear();
+}
+
+void DescriptorSet::update_writes()
+{
+	for (VkWriteDescriptorSet &write : this->m_writes)
+		write.dstSet = this->m_handle;
+}
+
 void DescriptorSet::update(const VkDevice a_device)
 {
+	assert(this->m_writes.size() && "No writes defined yet can't update");
 	vkUpdateDescriptorSets(a_device, static_cast<uint32_t>(this->m_writes.size()), this->m_writes.data(), 0, nullptr);
 }
 
