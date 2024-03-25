@@ -80,6 +80,13 @@ FORCE_INLINE constexpr bool equal_zero(_type a_value)
 	return decimal_equal<_type>(a_value, static_cast<_type>(0));
 }
 
+// NOTE: Only valid for integer types can't be used with floats.
+// uses Cantor pairing function from https://en.wikipedia.org/wiki/Pairing_function
+FORCE_INLINE uint32_t pair(uint32_t a_x, uint32_t a_y)
+{
+	return ((a_x * a_x) + a_x + (2 * a_x * a_y) + (3 * a_y) + (a_y * a_y)) / 2;
+}
+
 // Alternate way of equal_zero but need to be called equal_zero_copy<_type>()
 template <class _type>
 std::function<bool(_type)> equal_zero_copy = std::bind(decimal_equal<_type>, std::placeholders::_1, 0);
