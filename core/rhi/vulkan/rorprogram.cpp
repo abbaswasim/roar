@@ -1163,8 +1163,8 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 	catch (VulkanValidationException &vve)
 	{
 		ror::log_critical("Validation error occured with message {}", vve.what());
-		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(vs.type()), vs.source().c_str());
-		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(fs.type()), fs.source().c_str());
+		vs.print_source_unconditional();
+		fs.print_source_unconditional();
 	}
 }
 
@@ -1206,8 +1206,8 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 			catch (VulkanValidationException &vve)
 			{
 				ror::log_critical("Validation error occured with message {}", vve.what());
-				ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(vs.type()), vs.source().c_str());
-				ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(fs.type()), fs.source().c_str());
+				vs.print_source_unconditional();
+				fs.print_source_unconditional();
 			}
 		}
 	}
@@ -1228,7 +1228,7 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 		catch (VulkanValidationException &vve)
 		{
 			ror::log_critical("Validation error occured with message {}", vve.what());
-			ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(cs.type()), cs.source().c_str());
+			cs.print_source_unconditional();
 		}
 
 		if (!this->compute_pipeline_state())
@@ -1270,8 +1270,8 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 	catch (VulkanValidationException &vve)
 	{
 		ror::log_critical("Validation error occured with message {}", vve.what());
-		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(a_vs_shader.type()), a_vs_shader.source().c_str());
-		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(a_fs_shader.type()), a_fs_shader.source().c_str());
+		a_vs_shader.print_source_unconditional();
+		a_fs_shader.print_source_unconditional();
 	}
 }
 
@@ -1312,8 +1312,7 @@ void ProgramVulkan::upload(const rhi::Device &a_device, rhi::Renderpass &a_rende
 		catch (VulkanValidationException &vve)
 		{
 			ror::log_critical("Validation error occured with message {}", vve.what());
-			auto resource = cs.source();
-			ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(cs.type()), cs.source().c_str());
+			cs.print_source_unconditional();
 		}
 
 		if (!this->compute_pipeline_state())
@@ -1347,8 +1346,7 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const std::vector<rhi::S
 	catch (VulkanValidationException &vve)
 	{
 		ror::log_critical("Validation error occured with message {}", vve.what());
-		auto resource = cs.source();
-		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(cs.type()), cs.source().c_str());
+		cs.print_source_unconditional();
 	}
 
 	if (!this->compute_pipeline_state())
