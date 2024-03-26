@@ -1,10 +1,10 @@
 #version 450
 
-layout(binding = 0) uniform samplerCube radiance_input_image;
+layout(set = 0, binding = 0) uniform samplerCube radiance_input_image;
 
-layout(binding = 1, rgba8) uniform image2D radiance_output_image;
+layout(set = 0, binding = 1, rgba8) uniform image2D radiance_output_image;
 
-layout(std140, set = 0, binding = 0) uniform sizes
+layout(std140, set = 0, binding = 2) uniform sizes
 {
 	uvec4 mip_offset_size;
 	float roughness;

@@ -37,6 +37,8 @@
 #include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
+#include "spirv-cross/spirv_cross.hpp"
+#include "spirv-cross/spirv_glsl.hpp"
 
 namespace ror
 {
@@ -50,6 +52,29 @@ class BuffersPack;
 
 typedef struct VkGraphicsPipeline_T *GraphicsPipelineState;
 typedef struct VkComputePipeline_T  *ComputePipelineState;
+
+enum class ShaderResourceType
+{
+	sampled_image    = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+	storage_image    = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+	separate_image   = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+	separate_sampler = VK_DESCRIPTOR_TYPE_SAMPLER,
+	uniform_buffer   = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+	storage_buffer   = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+	input_attachment = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT
+};
+
+struct ShaderResource
+{
+	ShaderResourceType m_type;
+	uint32_t           m_set;
+	uint32_t           m_binding;
+	uint32_t           m_location;
+	std::string        m_name;
+};
+
+using spirv_resources_vector = const spirv_cross::SmallVector<spirv_cross::Resource>;
+using shader_resources_map   = std::unordered_map<uint32_t, std::vector<ShaderResource>>;
 
 class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 {
@@ -69,15 +94,16 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 	{}
 
 	void allocate_descriptor(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_descriptor_pool, DescriptorSetCache &a_descriptor_cache, DescriptorSet &a_set);
-	void build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const rhi::ShaderBuffer *a_per_view_ubo,
-	                      const rhi::ShaderBuffer *a_per_frame_ubo, const rhi::ShaderBuffer *a_model_ubo, const rhi::ShaderBuffer *a_offset_ubo, const rhi::ShaderBuffer *a_weights_ubo,
-	                      const ror::Light *directional_light, const ror::Light *point_light, const ror::Light *spot_light, const ror::Light *area_light,
+	void build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const std::vector<rhi::Shader> &a_shaders, bool a_need_shadow_map, bool a_with_environment);
+	void build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const std::vector<rhi::Shader> &a_shaders, const ror::Scene *a_scene,
 	                      const ror::Material                                                               *a_material,
 	                      const std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               *a_textures,
 	                      const std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     *a_images,
 	                      const std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> *a_samplers,
-	                      const rhi::TextureImage *a_image, const rhi::TextureSampler *a_sampler,
 	                      const ror::Skin *a_skin, bool a_need_shadow_map, bool a_with_environment);
+	void build_descriptor(const rhi::Device &a_device, const rhi::ShaderBuffer *a_shader_buffer, uint32_t buffer_binding,
+	                      const rhi::TextureImage *a_image, const rhi::TextureSampler *a_sampler, uint32_t a_texture_binding);
+	void build_descriptor(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders);
 
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
 	            const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha);
@@ -116,6 +142,7 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 
   private:
 	declare_translation_unit_vtable();
+	void environment_descriptor_set(const ror::Renderer &a_renderer, shader_resources_map &shaders_reflection, DescriptorSet &a_set, bool &a_allocate);
 
 	std::variant<GraphicsPipelineState, ComputePipelineState> m_pipeline_state{};                     //! This program will contain either Render or Compute pipeline state
 	std::vector<size_t>                                       m_platform_descriptors{};               //! Index of the platform descriptor set in the descriptors cache

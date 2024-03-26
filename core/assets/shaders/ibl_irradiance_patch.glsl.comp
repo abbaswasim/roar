@@ -1,10 +1,10 @@
 #version 450
 
-layout(binding = 0) uniform sampler2D equirectangular_image;
+layout(set = 0, binding = 0) uniform sampler2D equirectangular_image;
 
-layout(binding = 1, rgba8) uniform image2D irradiance_patch_image;
+layout(set = 0, binding = 1, rgba8) uniform image2D irradiance_patch_image;
 
-layout(std140, set = 0, binding = 0) uniform sizes
+layout(std140, set = 0, binding = 2) uniform sizes // There is a bug here too
 {
 	uvec4 mip_offset_size;
 	uint  cube_type;

@@ -322,8 +322,8 @@ rhi::VertexDescriptor create_p_float3_i_uint16_descriptor()
 {
 	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
 	rhi::VertexLayout    vlp{0, 12};                                                                                       // binding, stride, rate, multiplier, function
-	rhi::VertexAttribute vip{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1};            // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
-	rhi::VertexLayout    vli{0, 0};                                                                                        // binding, stride, rate, multiplier, function
+	rhi::VertexAttribute vip{0, 0, 1, 0, 1, 0, rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1};            // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vli{1, 0};                                                                                        // binding, stride, rate, multiplier, function
 
 	return create_vertex_descriptor(vap, vip, vlp, vli);
 }
@@ -333,8 +333,8 @@ rhi::VertexDescriptor create_p_float4_c_float4_descriptor()
 {
 	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_4};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
 	rhi::VertexLayout    vlp{0, 32};                                                                                       // binding, stride, rate, multiplier, function
-	rhi::VertexAttribute vac{1, 16, 1, 0, 0, 0, rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4};
-	rhi::VertexLayout    vlc{0, 32};
+	rhi::VertexAttribute vac{1, 16, 1, 0, 1, 0, rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4};
+	rhi::VertexLayout    vlc{1, 32};
 
 	return create_vertex_descriptor(vap, vac, vlp, vlc);
 }
@@ -344,8 +344,8 @@ rhi::VertexDescriptor create_p_float3_t_float2_descriptor()
 {
 	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
 	rhi::VertexLayout    vlp{0, 20};                                                                                       // binding, stride, rate, multiplier, function
-	rhi::VertexAttribute vat{1, 12, 1, 0, 0, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
-	rhi::VertexLayout    vlt{0, 20};
+	rhi::VertexAttribute vat{1, 12, 1, 0, 1, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
+	rhi::VertexLayout    vlt{1, 20};
 
 	return create_vertex_descriptor(vap, vat, vlp, vlt);
 }
@@ -355,8 +355,8 @@ rhi::VertexDescriptor create_p_float2_t_float2_descriptor()
 {
 	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_2};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
 	rhi::VertexLayout    vlp{0, 16};                                                                                       // binding, stride, rate, multiplier, function
-	rhi::VertexAttribute vat{1, 8, 1, 0, 0, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
-	rhi::VertexLayout    vlt{0, 16};
+	rhi::VertexAttribute vat{1, 8, 1, 0, 1, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
+	rhi::VertexLayout    vlt{1, 16};
 
 	return create_vertex_descriptor(vap, vat, vlp, vlt);
 }
@@ -366,8 +366,8 @@ rhi::VertexDescriptor create_p_float3_c_float3_descriptor()
 {
 	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
 	rhi::VertexLayout    vlp{0, 24};                                                                                       // binding, stride, rate, multiplier, function
-	rhi::VertexAttribute vat{1, 12, 1, 0, 0, 0, rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_3};
-	rhi::VertexLayout    vlt{0, 24};
+	rhi::VertexAttribute vat{1, 12, 1, 0, 1, 0, rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_3};
+	rhi::VertexLayout    vlt{1, 24};
 
 	return create_vertex_descriptor(vap, vat, vlp, vlt);
 }
@@ -377,10 +377,10 @@ rhi::VertexDescriptor create_p_float3_t_float2_i_uint16_descriptor()
 {
 	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
 	rhi::VertexLayout    vlp{0, 20};                                                                                       // binding, stride, rate, multiplier, function
-	rhi::VertexAttribute vat{1, 12, 1, 0, 0, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
-	rhi::VertexLayout    vlt{0, 20};
-	rhi::VertexAttribute vip{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
-	rhi::VertexLayout    vli{0, 0};                                                                                    // binding, stride, rate, multiplier, function
+	rhi::VertexAttribute vat{1, 12, 1, 0, 1, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
+	rhi::VertexLayout    vlt{1, 20};
+	rhi::VertexAttribute vip{0, 0, 1, 0, 2, 0, rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
+	rhi::VertexLayout    vli{2, 0};                                                                                    // binding, stride, rate, multiplier, function
 
 	std::vector<rhi::VertexAttribute> vattribs{vap, vat, vip};
 	std::vector<rhi::VertexLayout>    vlayouts{vlp, vlt, vli};
