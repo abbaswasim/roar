@@ -2246,17 +2246,6 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 	auto &shaders       = this->m_shaders;
 	auto  with_environment{settings().m_environment.m_visible};
 
-	auto per_frame_ubo = a_renderer.shader_buffer("per_frame_uniform");
-	auto model_ubo     = a_renderer.shader_buffer("nodes_models");
-	auto offset_ubo    = a_renderer.shader_buffer("nodes_offsets");
-	auto weights_ubo   = a_renderer.shader_buffer("morphs_weights");
-	auto per_view_ubo  = a_renderer.shader_buffer("per_view_uniform");
-
-	auto directional_light = this->directional_light();
-	auto point_light       = this->point_light();
-	auto spot_light        = this->spot_light();
-	auto area_light        = this->area_light();
-
 	static std::mutex cache_mutex;        // Mutex to lock the lambda cache access
 
 	size_t records{0};
@@ -2272,9 +2261,7 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 				{
 					for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
 					{
-						auto shader_update = [&model, this, per_frame_ubo, model_ubo, offset_ubo, weights_ubo, per_view_ubo,
-						                      directional_light, point_light, spot_light, area_light, mesh_index, prim_index,
-						                      &a_renderer, pass, subpass, &mesh, has_shadows, with_environment](rhi::Device &device, std::unordered_set<hash_64_t> *cache) {
+						auto shader_update = [&model, this, mesh_index, prim_index, &a_renderer, pass, subpass, &mesh, has_shadows, with_environment](rhi::Device &device, std::unordered_set<hash_64_t> *cache) {
 							assert(cache && "Scene shaders can't be re-created without a cache, otherwise it takes too long");
 							auto &prgs = this->m_programs[subpass.type()];
 							auto &prg  = prgs[static_cast<size_t>(mesh.program(prim_index))];
@@ -2327,11 +2314,7 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 								}
 							}
 
-							prg.build_descriptor(device, a_renderer, per_view_ubo, per_frame_ubo, model_ubo, offset_ubo, weights_ubo,
-							                     directional_light, point_light, spot_light, area_light,
-							                     &material, &textures, &images, &samplers,
-							                     nullptr, nullptr,        // These should be null because we are providing material instead
-							                     skin, has_shadows, with_environment);
+							prg.build_descriptor(device, a_renderer, this->m_shaders, this, &material, &textures, &images, &samplers, skin, has_shadows, with_environment);
 
 							prg.upload(device, pass, subpass, this->m_shaders, model, mesh_index, static_cast<uint32_t>(prim_index), false);
 						};
@@ -2352,17 +2335,6 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device)
 {
 	auto render_passes = a_renderer.current_frame_graph();
-
-	auto per_frame_ubo = a_renderer.shader_buffer("per_frame_uniform");
-	auto model_ubo     = a_renderer.shader_buffer("nodes_models");
-	auto offset_ubo    = a_renderer.shader_buffer("nodes_offsets");
-	auto weights_ubo   = a_renderer.shader_buffer("morphs_weights");
-	auto per_view_ubo  = a_renderer.shader_buffer("per_view_uniform");
-
-	auto directional_light = this->directional_light();
-	auto point_light       = this->point_light();
-	auto spot_light        = this->spot_light();
-	auto area_light        = this->area_light();
 	auto with_environment{ror::settings().m_environment.m_visible};
 
 	// Now lets upload them
@@ -2371,9 +2343,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 		shader.upload(a_device);
 	}
 
-	auto program_upload_job = [&a_device, &a_renderer,
-	                           per_frame_ubo, model_ubo, offset_ubo, weights_ubo, per_view_ubo, directional_light, point_light, spot_light, area_light,
-	                           with_environment](rhi::Program                   &a_program,
+	auto program_upload_job = [&a_device, &a_renderer, this, with_environment](rhi::Program                   &a_program,
 	                                             const std::vector<rhi::Shader> &a_shaders,
 	                                             const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index,
 	                                             const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, bool a_need_shadow_map) -> auto {
@@ -2391,11 +2361,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 		if (mesh.skin_index() != -1)
 			skin = &a_model.skins()[static_cast<size_t>(mesh.skin_index())];
 
-		a_program.build_descriptor(a_device, a_renderer, per_view_ubo, per_frame_ubo, model_ubo, offset_ubo, weights_ubo,
-		                           directional_light, point_light, spot_light, area_light,
-		                           &material, &textures, &images, &samplers,
-		                           nullptr, nullptr,        // These should be null because we are providing material instead
-		                           skin, a_need_shadow_map, with_environment);
+		a_program.build_descriptor(a_device, a_renderer, this->m_shaders, this, &material, &textures, &images, &samplers, skin, a_need_shadow_map, with_environment);
 
 		a_program.upload(a_device, a_pass, a_subpass, a_shaders, a_model, a_mesh_index, a_prim_index, false);
 

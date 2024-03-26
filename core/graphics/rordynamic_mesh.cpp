@@ -33,6 +33,7 @@
 #include "rhi/rorvertex_layout.hpp"
 #include "rordynamic_mesh.hpp"
 #include <cassert>
+#include <vector>
 
 namespace ror
 {

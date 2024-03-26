@@ -1289,11 +1289,6 @@ void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene
 
 	get_animation_sizes(a_scene, animation_size, animation_count, sampler_input_size, sampler_output_size, weights_output_size);
 
-	// std::cout << "Animation output and input and after\n"
-	//           << animations_ubo.to_glsl_string() << std::endl
-	//           << animations_sampler_input_ubo.to_glsl_string() << std::endl
-	//           << animations_sampler_output_ubo.to_glsl_string() << std::endl;
-
 	animations_ubo->update_count("animation", animation_size);
 	animations_sampler_input_ubo->update_count("inputs", sampler_input_size);
 	animations_sampler_output_ubo->update_count("outputs", sampler_output_size);
@@ -1633,8 +1628,6 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 		// Skybox pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
 		auto &descriptor   = renderer.m_cube_map_mesh.vertex_descriptor();
 		auto  pso          = renderer.m_cube_map_mesh.shader_program_external();
-		auto  per_view_ubo = renderer.shader_buffer("per_view_uniform");
-		bool  with_environment{true};
 
 		rhi::Renderpass    *pass{nullptr};
 		rhi::Rendersubpass *subpass{nullptr};
@@ -2009,11 +2002,6 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 			rhi::Renderpass    *pass{nullptr};
 			rhi::Rendersubpass *subpass{nullptr};
 
-			auto per_frame_ubo = this->shader_buffer("per_frame_uniform");
-			auto model_ubo     = this->shader_buffer("nodes_models");
-			auto offset_ubo    = this->shader_buffer("nodes_offsets");
-			auto weights_ubo   = this->shader_buffer("morphs_weights");
-			auto per_view_ubo  = this->shader_buffer("per_view_uniform");
 			bool pre_multiplied{false};
 
 			// TODO: This should be lighting pass if these programs are for IBLs
@@ -2393,299 +2381,299 @@ void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 /*
 void setup_corners_foge(ror::Vector3f corners[8], ror::Matrix4f a_view, float32_t aspect, float32_t fov, float32_t near, float32_t far)
 {
-	float32_t s = aspect;
-	float32_t g = 1.0f / std::tan(ror::to_radians(fov / 2.0f));
-	// float32_t g = s / std::tan(ror::to_radians(fov / 2.0f));        // This is not the right version of 'g' because my y_fov is not y_fov confirm?
-	float32_t n = near;
-	float32_t f = far;
+    float32_t s = aspect;
+    float32_t g = 1.0f / std::tan(ror::to_radians(fov / 2.0f));
+    // float32_t g = s / std::tan(ror::to_radians(fov / 2.0f));        // This is not the right version of 'g' because my y_fov is not y_fov confirm?
+    float32_t n = near;
+    float32_t f = far;
 
-	ror::Vector4f frustumCorners[8] = {
-	    {-(n * s) / g, -n / g, -n, 1.0f},
-	    {(n * s) / g, -n / g, -n, 1.0f},
-	    {(n * s) / g, n / g, -n, 1.0f},
-	    {-(n * s) / g, n / g, -n, 1.0f},
-	    {-(f * s) / g, -f / g, -f, 1.0f},
-	    {(f * s) / g, -f / g, -f, 1.0f},
-	    {(f * s) / g, f / g, -f, 1.0f},
-	    {-(f * s) / g, f / g, -f, 1.0f},
-	};
+    ror::Vector4f frustumCorners[8] = {
+        {-(n * s) / g, -n / g, -n, 1.0f},
+        {(n * s) / g, -n / g, -n, 1.0f},
+        {(n * s) / g, n / g, -n, 1.0f},
+        {-(n * s) / g, n / g, -n, 1.0f},
+        {-(f * s) / g, -f / g, -f, 1.0f},
+        {(f * s) / g, -f / g, -f, 1.0f},
+        {(f * s) / g, f / g, -f, 1.0f},
+        {-(f * s) / g, f / g, -f, 1.0f},
+    };
 
-	auto inverse = a_view;
+    auto inverse = a_view;
 
-	auto result = a_view.inverse(inverse);
-	assert(result && "Can't invert view projection");
-	(void) result;
+    auto result = a_view.inverse(inverse);
+    assert(result && "Can't invert view projection");
+    (void) result;
 
-	for (int i = 0; i < 8; ++i)
-	{
-		auto cs = inverse * frustumCorners[i];
+    for (int i = 0; i < 8; ++i)
+    {
+        auto cs = inverse * frustumCorners[i];
 
-		corners[i] = ror::Vector3f(cs);
-	}
+        corners[i] = ror::Vector3f(cs);
+    }
 }
 
 void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 {
-	(void) a_camera;
+    (void) a_camera;
 
-	float32_t projection[] = {1.29904f, 0.0f, 0.0f, 0.0f, 0.0f, 1.73205f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0002f, -1.0f, 0.0f, 0.0f, -0.20002f, 0.0f};
-	float32_t view[]       = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.968045f, 0.250776f, 0.0f, 0.0f, -0.250776f, 0.968045f, 0.0f, 0.00248158f, -0.0469441f, -1.70294f, 1.0f};
-	float32_t near         = 0.1f;
-	float32_t far          = 1000.0f;
-	float32_t fov          = 60.0f;
-	float32_t aspect       = 1.33333f;
-	Vector3f  eye          = {-0.00248158f, 0.472499f, 1.63675f};
-	Vector3f  center       = {-0.00248158f, 0.0000104904f, -0.187155f};
-	Vector3f  up           = {0.0f, 0.968045f, -0.250776f};
+    float32_t projection[] = {1.29904f, 0.0f, 0.0f, 0.0f, 0.0f, 1.73205f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0002f, -1.0f, 0.0f, 0.0f, -0.20002f, 0.0f};
+    float32_t view[]       = {1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.968045f, 0.250776f, 0.0f, 0.0f, -0.250776f, 0.968045f, 0.0f, 0.00248158f, -0.0469441f, -1.70294f, 1.0f};
+    float32_t near         = 0.1f;
+    float32_t far          = 1000.0f;
+    float32_t fov          = 60.0f;
+    float32_t aspect       = 1.33333f;
+    Vector3f  eye          = {-0.00248158f, 0.472499f, 1.63675f};
+    Vector3f  center       = {-0.00248158f, 0.0000104904f, -0.187155f};
+    Vector3f  up           = {0.0f, 0.968045f, -0.250776f};
 
-	// auto projection_mat4 = ror::make_perspective(ror::to_radians(fov), aspect, near, far);
-	// auto projection_mat4 = perspectiveRH_NO(ror::to_radians(fov), aspect, near, far);
-	// auto projection_mat4 = perspectiveRH_ZO(ror::to_radians(fov), aspect, near, far);
-	auto projection_mat4 = ror::make_perspective2(ror::to_radians(fov), aspect, near, far);
-	auto view_mat4       = ror::make_look_at(eye, center, up);
+    // auto projection_mat4 = ror::make_perspective(ror::to_radians(fov), aspect, near, far);
+    // auto projection_mat4 = perspectiveRH_NO(ror::to_radians(fov), aspect, near, far);
+    // auto projection_mat4 = perspectiveRH_ZO(ror::to_radians(fov), aspect, near, far);
+    auto projection_mat4 = ror::make_perspective2(ror::to_radians(fov), aspect, near, far);
+    auto view_mat4       = ror::make_look_at(eye, center, up);
 
-	for (size_t i = 0; i < 16; ++i)
-	{
-		if (!nearly_equal(projection[i], projection_mat4.m_values[i]))
-			std::cout << "These projection values don't match " << projection[i] << "!=" << projection_mat4.m_values[i] << std::endl;
+    for (size_t i = 0; i < 16; ++i)
+    {
+        if (!nearly_equal(projection[i], projection_mat4.m_values[i]))
+            std::cout << "These projection values don't match " << projection[i] << "!=" << projection_mat4.m_values[i] << std::endl;
 
-		if (!nearly_equal(view[i], view_mat4.m_values[i]))
-			std::cout << "These view values don't match " << view[i] << "!=" << view_mat4.m_values[i] << std::endl;
-	}
+        if (!nearly_equal(view[i], view_mat4.m_values[i]))
+            std::cout << "These view values don't match " << view[i] << "!=" << view_mat4.m_values[i] << std::endl;
+    }
 
-	ror::Vector3f cam_corners[8];
+    ror::Vector3f cam_corners[8];
 
-	setup_corners_foge(cam_corners, view_mat4, aspect, fov, near, far);
+    setup_corners_foge(cam_corners, view_mat4, aspect, fov, near, far);
 
-	std::vector<ror::Vector3f> frustum_vertex_buffer{};
-	frustum_vertex_buffer.reserve(128);
+    std::vector<ror::Vector3f> frustum_vertex_buffer{};
+    frustum_vertex_buffer.reserve(128);
 
-	auto front_center = cam_corners[0] + cam_corners[1] + cam_corners[2] + cam_corners[3];
-	auto back_center  = cam_corners[4] + cam_corners[5] + cam_corners[6] + cam_corners[7];
+    auto front_center = cam_corners[0] + cam_corners[1] + cam_corners[2] + cam_corners[3];
+    auto back_center  = cam_corners[4] + cam_corners[5] + cam_corners[6] + cam_corners[7];
 
-	front_center = front_center / 4.0f;
-	back_center  = back_center / 4.0f;
+    front_center = front_center / 4.0f;
+    back_center  = back_center / 4.0f;
 
-	std::cout << "Font Center His = " << front_center.x << "," << front_center.y << "," << front_center.z << std::endl;
+    std::cout << "Font Center His = " << front_center.x << "," << front_center.y << "," << front_center.z << std::endl;
 
-	auto red   = red3f;
-	auto blue  = blue3f;
-	auto green = green3f;
-	auto whit  = white3f;
+    auto red   = red3f;
+    auto blue  = blue3f;
+    auto green = green3f;
+    auto whit  = white3f;
 
-	auto forward = back_center - front_center;
-	forward.normalize();
+    auto forward = back_center - front_center;
+    forward.normalize();
 
-	auto near_position = eye + (forward * near);
-	// float cross_scale = 0.05f;
+    auto near_position = eye + (forward * near);
+    // float cross_scale = 0.05f;
 
-	// Front quad
-	frustum_vertex_buffer.emplace_back(near_position);
-	frustum_vertex_buffer.emplace_back(white);
-	// frustum_vertex_buffer.emplace_back(near_position + xaxis3f * cross_scale);
-	frustum_vertex_buffer.emplace_back(cam_corners[0]);
-	frustum_vertex_buffer.emplace_back(white);
-	frustum_vertex_buffer.emplace_back(near_position);
-	frustum_vertex_buffer.emplace_back(white);
-	// frustum_vertex_buffer.emplace_back(near_position - xaxis3f * cross_scale);
-	frustum_vertex_buffer.emplace_back(cam_corners[1]);
-	frustum_vertex_buffer.emplace_back(white);
-	frustum_vertex_buffer.emplace_back(near_position);
-	frustum_vertex_buffer.emplace_back(white);
-	// frustum_vertex_buffer.emplace_back(near_position + yaxis3f * cross_scale);
-	frustum_vertex_buffer.emplace_back(cam_corners[2]);
-	frustum_vertex_buffer.emplace_back(white);
-	frustum_vertex_buffer.emplace_back(near_position);
-	frustum_vertex_buffer.emplace_back(white);
-	// frustum_vertex_buffer.emplace_back(near_position - yaxis3f * cross_scale);
-	frustum_vertex_buffer.emplace_back(cam_corners[3]);
-	frustum_vertex_buffer.emplace_back(white);
+    // Front quad
+    frustum_vertex_buffer.emplace_back(near_position);
+    frustum_vertex_buffer.emplace_back(white);
+    // frustum_vertex_buffer.emplace_back(near_position + xaxis3f * cross_scale);
+    frustum_vertex_buffer.emplace_back(cam_corners[0]);
+    frustum_vertex_buffer.emplace_back(white);
+    frustum_vertex_buffer.emplace_back(near_position);
+    frustum_vertex_buffer.emplace_back(white);
+    // frustum_vertex_buffer.emplace_back(near_position - xaxis3f * cross_scale);
+    frustum_vertex_buffer.emplace_back(cam_corners[1]);
+    frustum_vertex_buffer.emplace_back(white);
+    frustum_vertex_buffer.emplace_back(near_position);
+    frustum_vertex_buffer.emplace_back(white);
+    // frustum_vertex_buffer.emplace_back(near_position + yaxis3f * cross_scale);
+    frustum_vertex_buffer.emplace_back(cam_corners[2]);
+    frustum_vertex_buffer.emplace_back(white);
+    frustum_vertex_buffer.emplace_back(near_position);
+    frustum_vertex_buffer.emplace_back(white);
+    // frustum_vertex_buffer.emplace_back(near_position - yaxis3f * cross_scale);
+    frustum_vertex_buffer.emplace_back(cam_corners[3]);
+    frustum_vertex_buffer.emplace_back(white);
 
-	// Front quad
-	frustum_vertex_buffer.emplace_back(cam_corners[0]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[1]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[1]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[2]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[2]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[3]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[3]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[0]);
-	frustum_vertex_buffer.emplace_back(red);
+    // Front quad
+    frustum_vertex_buffer.emplace_back(cam_corners[0]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[1]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[1]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[2]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[2]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[3]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[3]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[0]);
+    frustum_vertex_buffer.emplace_back(red);
 
-	// Back quad
-	frustum_vertex_buffer.emplace_back(cam_corners[4]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[5]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[5]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[6]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[6]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[7]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[7]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[4]);
-	frustum_vertex_buffer.emplace_back(green);
+    // Back quad
+    frustum_vertex_buffer.emplace_back(cam_corners[4]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[5]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[5]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[6]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[6]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[7]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[7]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[4]);
+    frustum_vertex_buffer.emplace_back(green);
 
-	// Sides
-	frustum_vertex_buffer.emplace_back(cam_corners[0]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[4]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[1]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[5]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[2]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[6]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[3]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[7]);
-	frustum_vertex_buffer.emplace_back(blue);
+    // Sides
+    frustum_vertex_buffer.emplace_back(cam_corners[0]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[4]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[1]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[5]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[2]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[6]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[3]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[7]);
+    frustum_vertex_buffer.emplace_back(blue);
 
-	std::vector<ror::Vector3f> sphere_buffer;
-	float32_t                  size{0.10f};
-	Vector3f                   origin{};
-	make_box_lines(size, origin, sphere_buffer);
+    std::vector<ror::Vector3f> sphere_buffer;
+    float32_t                  size{0.10f};
+    Vector3f                   origin{};
+    make_box_lines(size, origin, sphere_buffer);
 
-	// Box at camera center
-	for (auto sv : sphere_buffer)
-	{
-		frustum_vertex_buffer.emplace_back(sv.x + center.x, sv.y + center.y, sv.z + center.z);
-		frustum_vertex_buffer.emplace_back(blue);
-	}
+    // Box at camera center
+    for (auto sv : sphere_buffer)
+    {
+        frustum_vertex_buffer.emplace_back(sv.x + center.x, sv.y + center.y, sv.z + center.z);
+        frustum_vertex_buffer.emplace_back(blue);
+    }
 
-	frustum_vertex_buffer.emplace_back(eye);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(center);
-	frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(eye);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(center);
+    frustum_vertex_buffer.emplace_back(whit);
 
-	// Front tip of pyramid
-	frustum_vertex_buffer.emplace_back(cam_corners[0]);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(eye);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(cam_corners[1]);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(eye);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(cam_corners[2]);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(eye);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(cam_corners[3]);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(eye);
-	frustum_vertex_buffer.emplace_back(whit);
+    // Front tip of pyramid
+    frustum_vertex_buffer.emplace_back(cam_corners[0]);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(eye);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(cam_corners[1]);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(eye);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(cam_corners[2]);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(eye);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(cam_corners[3]);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(eye);
+    frustum_vertex_buffer.emplace_back(whit);
 
-	setup_corners(cam_corners, view_mat4, projection_mat4);
+    setup_corners(cam_corners, view_mat4, projection_mat4);
 
-	front_center = cam_corners[0] + cam_corners[1] + cam_corners[2] + cam_corners[3];
-	back_center  = cam_corners[4] + cam_corners[5] + cam_corners[6] + cam_corners[7];
+    front_center = cam_corners[0] + cam_corners[1] + cam_corners[2] + cam_corners[3];
+    back_center  = cam_corners[4] + cam_corners[5] + cam_corners[6] + cam_corners[7];
 
-	front_center = front_center / 4.0f;
-	back_center  = back_center / 4.0f;
+    front_center = front_center / 4.0f;
+    back_center  = back_center / 4.0f;
 
-	std::cout << "Font Center Mine = " << front_center.x << "," << front_center.y << "," << front_center.z << std::endl;
+    std::cout << "Font Center Mine = " << front_center.x << "," << front_center.y << "," << front_center.z << std::endl;
 
-	red   = red3f;
-	green = green3f;
-	blue  = blue3f;
-	whit  = white3f;
+    red   = red3f;
+    green = green3f;
+    blue  = blue3f;
+    whit  = white3f;
 
-	float alpha = 0.2f;
+    float alpha = 0.2f;
 
-	red.x *= alpha;
-	green.y *= alpha;
-	blue.z *= alpha;
-	whit *= alpha;
+    red.x *= alpha;
+    green.y *= alpha;
+    blue.z *= alpha;
+    whit *= alpha;
 
-	// Front quad
-	frustum_vertex_buffer.emplace_back(cam_corners[0]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[1]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[1]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[2]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[2]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[3]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[3]);
-	frustum_vertex_buffer.emplace_back(red);
-	frustum_vertex_buffer.emplace_back(cam_corners[0]);
-	frustum_vertex_buffer.emplace_back(red);
+    // Front quad
+    frustum_vertex_buffer.emplace_back(cam_corners[0]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[1]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[1]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[2]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[2]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[3]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[3]);
+    frustum_vertex_buffer.emplace_back(red);
+    frustum_vertex_buffer.emplace_back(cam_corners[0]);
+    frustum_vertex_buffer.emplace_back(red);
 
-	// Back quad
-	frustum_vertex_buffer.emplace_back(cam_corners[4]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[5]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[5]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[6]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[6]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[7]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[7]);
-	frustum_vertex_buffer.emplace_back(green);
-	frustum_vertex_buffer.emplace_back(cam_corners[4]);
-	frustum_vertex_buffer.emplace_back(green);
+    // Back quad
+    frustum_vertex_buffer.emplace_back(cam_corners[4]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[5]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[5]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[6]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[6]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[7]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[7]);
+    frustum_vertex_buffer.emplace_back(green);
+    frustum_vertex_buffer.emplace_back(cam_corners[4]);
+    frustum_vertex_buffer.emplace_back(green);
 
-	// Sides
-	frustum_vertex_buffer.emplace_back(cam_corners[0]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[4]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[1]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[5]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[2]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[6]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[3]);
-	frustum_vertex_buffer.emplace_back(blue);
-	frustum_vertex_buffer.emplace_back(cam_corners[7]);
-	frustum_vertex_buffer.emplace_back(blue);
+    // Sides
+    frustum_vertex_buffer.emplace_back(cam_corners[0]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[4]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[1]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[5]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[2]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[6]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[3]);
+    frustum_vertex_buffer.emplace_back(blue);
+    frustum_vertex_buffer.emplace_back(cam_corners[7]);
+    frustum_vertex_buffer.emplace_back(blue);
 
-	// Front tip of pyramid
-	frustum_vertex_buffer.emplace_back(cam_corners[0]);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(eye);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(cam_corners[1]);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(eye);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(cam_corners[2]);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(eye);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(cam_corners[3]);
-	frustum_vertex_buffer.emplace_back(whit);
-	frustum_vertex_buffer.emplace_back(eye);
-	frustum_vertex_buffer.emplace_back(whit);
+    // Front tip of pyramid
+    frustum_vertex_buffer.emplace_back(cam_corners[0]);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(eye);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(cam_corners[1]);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(eye);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(cam_corners[2]);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(eye);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(cam_corners[3]);
+    frustum_vertex_buffer.emplace_back(whit);
+    frustum_vertex_buffer.emplace_back(eye);
+    frustum_vertex_buffer.emplace_back(whit);
 
-	uint32_t lines_count = static_cast<uint32_t>(frustum_vertex_buffer.size());
-	this->m_debug_data.m_frustums[0].upload_data(reinterpret_cast<const uint8_t *>(frustum_vertex_buffer.data()), lines_count * 3 * sizeof(float), lines_count);
+    uint32_t lines_count = static_cast<uint32_t>(frustum_vertex_buffer.size());
+    this->m_debug_data.m_frustums[0].upload_data(reinterpret_cast<const uint8_t *>(frustum_vertex_buffer.data()), lines_count * 3 * sizeof(float), lines_count);
 }
 */
 }        // namespace ror

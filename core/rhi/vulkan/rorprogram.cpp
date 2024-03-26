@@ -42,6 +42,7 @@
 #include <cassert>
 #include <cstddef>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -265,6 +266,171 @@ static auto create_fragment_render_pipeline(const rhi::Device                   
 	return reinterpret_cast<GraphicsPipelineState>(graphics_pipeline);
 }
 
+void append_resource(const spirv_cross::Compiler  &a_compiler,
+                     shader_resources_map         &a_resources,
+                     const spirv_resources_vector &a_shader_resources,
+                     ShaderResourceType            a_type)
+{
+	const auto descriptor_sets_count = ror::settings().m_vulkan.m_descriptor_sets_size;
+
+	for (auto &resource : a_shader_resources)
+	{
+		ShaderResource shader_resource{};
+
+		shader_resource.m_type     = a_type;
+		shader_resource.m_name     = resource.name;
+		shader_resource.m_set      = a_compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+		shader_resource.m_binding  = a_compiler.get_decoration(resource.id, spv::DecorationBinding);
+		shader_resource.m_location = a_compiler.get_decoration(resource.id, spv::DecorationLocation);
+
+		assert(shader_resource.m_set < descriptor_sets_count && "Descriptor set value not valid");
+		a_resources[shader_resource.m_set].emplace_back(shader_resource);
+	}
+}
+
+shader_resources_map read_shader_resources(const std::vector<unsigned int> &a_spirv)
+{
+	auto descriptor_sets_count = ror::settings().m_vulkan.m_descriptor_sets_size;
+
+	spirv_cross::CompilerGLSL compiler{a_spirv};
+	auto                      opts = compiler.get_common_options();
+	opts.enable_420pack_extension  = true;
+
+	compiler.set_common_options(opts);
+
+	// using shader_resources_map   = std::unordered_map<uint32_t, std::vector<ShaderResource>>;
+	shader_resources_map resources;
+
+	// Prime the only descriptor sets we support
+	for (uint32_t i = 0; i < descriptor_sets_count; ++i)
+		resources[i] = std::vector<ShaderResource>{};
+
+	auto shader_resources = compiler.get_shader_resources();
+
+	append_resource(compiler, resources, shader_resources.sampled_images, ShaderResourceType::sampled_image);
+	append_resource(compiler, resources, shader_resources.uniform_buffers, ShaderResourceType::uniform_buffer);
+	append_resource(compiler, resources, shader_resources.storage_buffers, ShaderResourceType::storage_buffer);
+	append_resource(compiler, resources, shader_resources.storage_images, ShaderResourceType::storage_image);
+
+	assert(shader_resources.separate_images.size() == 0 && "Don't support separate images");
+	assert(shader_resources.separate_samplers.size() == 0 && "Don't support separate_samplers");
+	assert(shader_resources.subpass_inputs.size() == 0 && "Don't support input attachments yet FIXME");
+	assert(shader_resources.push_constant_buffers.size() == 0 && "Don't support push constant yet FIXME");
+	// assert(shader_resources.stage_inputs.size() == 0 && "Don't support stage input yet FIXME");
+	// assert(shader_resources.stage_outputs.size() == 0 && "Don't support stage output yet FIXME");
+	// assert(shader_resources.builtin_inputs.size() == 0 && "Don't support builtin inputs yet FIXME");
+	// assert(shader_resources.builtin_outputs.size() == 0 && "Don't support builtin outputs yet FIXME");
+
+	// Don't support these for this usecase
+	// append_resource(compiler, resources, shader_resources.subpass_inputs, ShaderResourceType::input_attachment);
+	// append_resource(compiler, resources, shader_resources.separate_images, ShaderResourceType::separate_image);
+	// append_resource(compiler, resources, shader_resources.separate_samplers, ShaderResourceType::separate_sampler);
+	// append_resource(compiler, resources, shader_resources.stage_inputs, ShaderResourceType::input);
+	// append_resource(compiler, resources, shader_resources.stage_outputs, ShaderResourceType::Output);
+	// append_resource(compiler, resources, shader_resources.push_constant_buffers, ShaderResourceType::PushConstant);
+
+	// Not of Resource type can't use append_resource but I also don't need them
+	// append_resource(compiler, resources, shader_resources.builtin_inputs, ShaderResourceType::input);
+	// append_resource(compiler, resources, shader_resources.builtin_outputs, ShaderResourceType::Output);
+
+	return resources;
+}
+
+const ShaderResource *shader_resource(const std::string &a_name, const std::vector<ShaderResource> &a_reflection)
+{
+	for (const auto &resource : a_reflection)
+	{
+		if (resource.m_name == a_name)
+		{
+			return &resource;
+		}
+	}
+
+	return nullptr;
+}
+
+const ShaderResource *shader_resource(const std::string &a_name, const std::vector<ShaderResource> &a_vertex_reflection, const std::vector<ShaderResource> &a_fragment_reflection, const std::vector<ShaderResource> &a_compute_reflection)
+{
+	const ShaderResource *resource = shader_resource(a_name, a_vertex_reflection);
+
+	if (!resource)
+		resource = shader_resource(a_name, a_fragment_reflection);
+
+	if (!resource)
+		resource = shader_resource(a_name, a_compute_reflection);
+
+	return resource;
+}
+
+void collect_unique_resources(std::unordered_map<uint32_t, ShaderResource *> &a_unique_resources, shader_resources_map &a_shader_reflection)
+{
+	for (auto &set_bindings : a_shader_reflection)
+	{
+		for (auto &resource : set_bindings.second)
+		{
+			auto inserted = a_unique_resources.insert(std::make_pair(static_cast<uint32_t>(ror::pair(resource.m_set, resource.m_binding)), &resource));
+			if (!inserted.second)
+			{
+				// Reference https://community.khronos.org/t/are-sets-bindings-unique-per-stage-or-per-program/107123
+				assert(resource.m_name == inserted.first->second->m_name && "Shaders has conflicting variables of the same set and binding, all set and bindings combinations accross PSO must be unique for a sepcific variable");
+			}
+		}
+	}
+}
+
+shader_resources_map get_unique_resource_bindings(const std::vector<rhi::Shader> &a_shaders, int32_t a_vertex_id, int32_t a_fragment_id, int32_t a_compute_id, int32_t a_tile_id, int32_t a_mesh_id)
+{
+	auto sets_count = ror::settings().m_vulkan.m_descriptor_sets_size;
+
+	shader_resources_map vertex_shader_reflection{};
+	shader_resources_map fragment_shader_reflection{};
+	shader_resources_map compute_shader_reflection{};
+	shader_resources_map unique_bindings{};
+
+	// Need to prime these incase nothing below exists in the shader, makes the rest of the code easy to write
+	for (uint32_t i = 0; i < sets_count; ++i)
+	{
+		vertex_shader_reflection[i]   = std::vector<ShaderResource>{};
+		fragment_shader_reflection[i] = std::vector<ShaderResource>{};
+		compute_shader_reflection[i]  = std::vector<ShaderResource>{};
+		unique_bindings[i]            = std::vector<ShaderResource>{};
+	}
+
+	if (a_vertex_id != -1)
+	{
+		auto vertex_shader       = a_shaders[static_cast<size_t>(a_vertex_id)];
+		vertex_shader_reflection = read_shader_resources(vertex_shader.spirv());
+	}
+
+	if (a_fragment_id != -1)
+	{
+		auto fragment_shader       = a_shaders[static_cast<size_t>(a_fragment_id)];
+		fragment_shader_reflection = read_shader_resources(fragment_shader.spirv());
+	}
+
+	if (a_compute_id != -1)
+	{
+		auto compute_shader       = a_shaders[static_cast<size_t>(a_compute_id)];
+		compute_shader_reflection = read_shader_resources(compute_shader.spirv());
+	}
+
+	if (a_tile_id != -1 || a_mesh_id != -1)
+	{
+		assert(0 && "Don't support mesh or tile vulkan shaders yet");
+	}
+
+	std::unordered_map<uint32_t, ShaderResource *> unique_resources{};
+
+	collect_unique_resources(unique_resources, vertex_shader_reflection);
+	collect_unique_resources(unique_resources, fragment_shader_reflection);
+	collect_unique_resources(unique_resources, compute_shader_reflection);
+
+	for (auto &ur : unique_resources)
+		unique_bindings[ur.second->m_set].push_back(*ur.second);
+
+	return unique_bindings;
+}
+
 /*
 // Roar uses the following sets and bindings in rough order, this is from low frequency to high frequency for a frequencey based descriptor set design
 layout(set = 0, binding = 0) uniform per_frame_uniform;
@@ -294,7 +460,7 @@ layout(set = 3, binding = 5) uniform highp sampler2D occlusion_sampler;
 layout(set = 3, binding = 6) uniform highp sampler2D normal_sampler;
 */
 template <typename _type>
-FORCE_INLINE void add_material_component_descriptor(const ror::Material::Component<_type>                                             &a_component,
+FORCE_INLINE void add_material_component_descriptor(const ror::Material::Component<_type> &a_component, const ShaderResource *a_shader_resource,
                                                     const std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               &a_textures,
                                                     const std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     &a_images,
                                                     const std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> &a_samplers,
@@ -302,6 +468,10 @@ FORCE_INLINE void add_material_component_descriptor(const ror::Material::Compone
 {
 	if (a_component.m_texture != -1)
 	{
+		assert(a_shader_resource && "Material has texture but it doesn't exist in the shader");
+		assert(a_shader_resource->m_binding == a_binding && a_shader_resource->m_type == ShaderResourceType::sampled_image && "Material binding doesn't match its shader binding");
+		(void) a_shader_resource;
+
 		auto &texture = a_textures[ror::static_cast_safe<size_t>(a_component.m_texture)];
 		assert(texture.texture_image() != -1);
 		auto &image   = a_images[ror::static_cast_safe<size_t>(texture.texture_image())];
@@ -316,31 +486,95 @@ void ProgramVulkan::allocate_descriptor(const VkDevice a_device, DescriptorSetLa
 {
 	auto layout           = a_set.allocate(a_device, a_layout_cache, a_descriptor_pool);
 	auto descriptor_index = a_descriptor_cache.emplace(std::move(a_set));
+
 	this->m_platform_descriptors.push_back(descriptor_index);
 	this->m_platform_descriptor_layouts.push_back(layout);
+}
+
+void ProgramVulkan::environment_descriptor_set(const ror::Renderer &a_renderer, shader_resources_map &shaders_reflection, DescriptorSet &a_set, bool &a_allocate)
+{
+	auto &renderer_images   = a_renderer.images();
+	auto  renderer_samplers = a_renderer.samplers();
+	auto &env               = a_renderer.current_environment();
+	auto &setting           = ror::settings();
+
+	auto brdf_integration_sampler_binding = setting.brdf_integration_sampler_binding();
+	auto skybox_sampler_binding           = setting.skybox_sampler_binding();
+	auto irradiance_sampler_binding       = setting.irradiance_sampler_binding();
+	auto radiance_sampler_binding         = setting.radiance_sampler_binding();
+
+	const auto brdf_integration_sampler_str{"brdf_integration_sampler"};
+	const auto skybox_sampler_str{"skybox_sampler"};
+	const auto irradiance_sampler_str{"irradiance_sampler"};
+	const auto radiance_sampler_str{"radiance_sampler"};
+
+	const size_t set_0_id = 0;
+
+	auto brdf_integration_sampler_rsrc = shader_resource(brdf_integration_sampler_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto skybox_sampler_rsrc           = shader_resource(skybox_sampler_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto irradiance_sampler_rsrc       = shader_resource(irradiance_sampler_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto radiance_sampler_rsrc         = shader_resource(radiance_sampler_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+
+	auto has_brdf_integration_sampler = brdf_integration_sampler_rsrc != nullptr;
+	auto has_skybox_sampler           = skybox_sampler_rsrc != nullptr;
+	auto has_irradiance_sampler       = irradiance_sampler_rsrc != nullptr;
+	auto has_radiance_sampler         = radiance_sampler_rsrc != nullptr;
+
+	auto &brdf_integration_image = renderer_images[ror::static_cast_safe<size_t>(env.brdf_integration())];
+	auto &skybox_image           = renderer_images[ror::static_cast_safe<size_t>(env.skybox())];
+	auto &irradiance_image       = renderer_images[ror::static_cast_safe<size_t>(env.irradiance())];
+	auto &radiance_image         = renderer_images[ror::static_cast_safe<size_t>(env.radiance())];
+	auto &shared_sampler         = renderer_samplers[ror::static_cast_safe<size_t>(env.skybox_sampler())];
+
+	VkDescriptorImageInfo brdf_integration_image_info{vk_create_descriptor_image_info(brdf_integration_image.platform_image_view(), shared_sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+	VkDescriptorImageInfo skybox_image_info{vk_create_descriptor_image_info(skybox_image.platform_image_view(), shared_sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+	VkDescriptorImageInfo irradiance_image_info{vk_create_descriptor_image_info(irradiance_image.platform_image_view(), shared_sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+	VkDescriptorImageInfo radiance_image_info{vk_create_descriptor_image_info(radiance_image.platform_image_view(), shared_sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+
+	if (has_brdf_integration_sampler)
+	{
+		assert(brdf_integration_sampler_rsrc->m_binding == brdf_integration_sampler_binding &&
+		       brdf_integration_sampler_rsrc->m_type == ShaderResourceType::sampled_image && "Buffer data and shader descriptors doesn't match");
+		a_set.push_image(brdf_integration_sampler_binding, &brdf_integration_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
+		a_allocate = true;
+	}
+	if (has_skybox_sampler)
+	{
+		assert(skybox_sampler_rsrc->m_binding == skybox_sampler_binding &&
+		       skybox_sampler_rsrc->m_type == ShaderResourceType::sampled_image && "Buffer data and shader descriptors doesn't match");
+		a_set.push_image(skybox_sampler_binding, &skybox_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
+		a_allocate = true;
+	}
+	if (has_irradiance_sampler)
+	{
+		assert(irradiance_sampler_rsrc->m_binding == irradiance_sampler_binding &&
+		       irradiance_sampler_rsrc->m_type == ShaderResourceType::sampled_image && "Buffer data and shader descriptors doesn't match");
+		a_set.push_image(irradiance_sampler_binding, &irradiance_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
+		a_allocate = true;
+	}
+	if (has_radiance_sampler)
+	{
+		assert(radiance_sampler_rsrc->m_binding == radiance_sampler_binding &&
+		       radiance_sampler_rsrc->m_type == ShaderResourceType::sampled_image && "Buffer data and shader descriptors doesn't match");
+		a_set.push_image(radiance_sampler_binding, &radiance_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
+		a_allocate = true;
+	}
 }
 
 // TODO: Do per pass optimisation of the layout, is that an optimisatios or we need it.
 // It should use *material, *skin
 /**
- * @brief      Builds descriptor set layout for the PSO
- * @details    A very complicated method to create a complete descriptor set layout for this PSO
+ * @brief      Builds descriptor set layout for the PSO via reflection unlike build_descriptor
+ * @details    A very complicated method to create a complete descriptor set layout for this PSO by doing shader reflection for the descriptors I support.
  * @param      a_device             Non-optional ror::Device
  * @param      a_renderer           Non-optional ror::Renderer
- * @param      a_per_view_ubo       Non-optional stuff that has camera/projection etc information. Per view needs to be provided by clients, dynamic mesh can have its own while gui has its own
-                                    Alternative is to use per_view_ubo = a_renderer.shader_buffer("per_view_uniform"), but this doesn't work for gui
+ * @param      a_shaders            Non-optional rhi::Shaders vector of the shaders that this program is suppose to read from
+ * @param      a_need_shadow_map    Non-optional Does the descriptor uses shadow map or not
+ * @param      a_with_environment   Non-optional Do we want to use environment for this program or not
 
-               All other parameters are optional or can be false. I am not using renderer and scene directly as one argument because getting those at places where I need to call this method isn't always possible.
+               All other parameters are optional or can be false.
                To get those and send it into this function the following methods can be used:
 
-               auto  per_frame_ubo     = a_renderer.shader_buffer("per_frame_uniform");
-               auto  model_ubo         = a_renderer.shader_buffer("nodes_models");
-               auto  offset_ubo        = a_renderer.shader_buffer("nodes_offsets");
-               auto  weights_ubo       = a_renderer.shader_buffer("morphs_weights");
-               auto  directional_light = (a_scene ? a_scene->directional_light() : nullptr);
-               auto  point_light       = (a_scene ? a_scene->point_light() : nullptr);
-               auto  spot_light        = (a_scene ? a_scene->spot_light() : nullptr);
-               auto  area_light        = (a_scene ? a_scene->area_light() : nullptr);
                auto &skin              = a_model.skins()[static_cast<size_t>(mesh.skin_index())];
                auto &material          = materials[static_cast<size_t>(material_index)];
                auto &meshes            = a_model->meshes();
@@ -351,14 +585,11 @@ void ProgramVulkan::allocate_descriptor(const VkDevice a_device, DescriptorSetLa
                auto &materials         = a_model->materials();
                auto  material_index    = mesh.material(a_prim_index);
  */
-void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const rhi::ShaderBuffer *a_per_view_ubo,
-                                     const rhi::ShaderBuffer *a_per_frame_ubo, const rhi::ShaderBuffer *a_model_ubo, const rhi::ShaderBuffer *a_offset_ubo, const rhi::ShaderBuffer *a_weights_ubo,
-                                     const ror::Light *directional_light, const ror::Light *point_light, const ror::Light *spot_light, const ror::Light *area_light,
+void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const std::vector<rhi::Shader> &a_shaders, const ror::Scene *a_scene,
                                      const ror::Material                                                               *a_material,
                                      const std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               *a_textures,
                                      const std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     *a_images,
                                      const std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> *a_samplers,
-                                     const rhi::TextureImage *a_image, const rhi::TextureSampler *a_sampler,
                                      const ror::Skin *a_skin, bool a_need_shadow_map, bool a_with_environment)
 {
 	auto &setting                             = ror::settings();
@@ -391,10 +622,6 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 	auto  nodes_model_binding                 = setting.nodes_model_binding();
 	auto  nodes_offset_binding                = setting.nodes_offset_binding();
 	auto  shadow_map_sampler_binding          = setting.shadow_map_sampler_binding();
-	auto  brdf_integration_sampler_binding    = setting.brdf_integration_sampler_binding();
-	auto  skybox_sampler_binding              = setting.skybox_sampler_binding();
-	auto  irradiance_sampler_binding          = setting.irradiance_sampler_binding();
-	auto  radiance_sampler_binding            = setting.radiance_sampler_binding();
 	auto  directional_light_binding           = setting.directional_light_binding();
 	auto  point_light_binding                 = setting.point_light_binding();
 	auto  spot_light_binding                  = setting.spot_light_binding();
@@ -411,43 +638,26 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 	auto &shadow_map_image   = renderer_images[static_cast<size_t>(shadow_map->texture_image())];
 	auto &shadow_map_sampler = renderer_samplers[static_cast<size_t>(shadow_map->texture_sampler())];
 
-	assert(per_frame_uniform_set == 0 && "per_frame_uniform_set should be zero");
-	assert(nodes_model_set == 0 && "nodes_model_set should be zero");
-	assert(nodes_offset_set == 0 && "nodes_offset_set should be zero");
-	assert(shadow_map_sampler_set == 0 && "shadow_map_sampler_set should be zero");
-	assert(brdf_integration_sampler_set == 0 && "brdf_integration_sampler_set should be zero");
-	assert(skybox_sampler_set == 0 && "skybox_sampler_set should be zero");
-	assert(irradiance_sampler_set == 0 && "irradiance_sampler_set should be zero");
-	assert(radiance_sampler_set == 0 && "radiance_sampler_set should be zero");
-	assert(directional_light_set == 0 && "directional_light_set should be zero");
-	assert(point_light_set == 0 && "point_light_set should be zero");
-	assert(spot_light_set == 0 && "spot_light_set should be zero");
-	assert(area_light_set == 0 && "area_light_set should be zero");
-	assert(morphs_weights_set == 0 && "morph_weights_set should be zero");
-	assert(per_view_uniform_set == 1 && "per_view_uniform_set should be one");
-	assert(joint_offset_uniform_set == 2 && "joint_offset_uniform_set should be two");
-	assert(joint_inverse_bind_matrices_set == 2 && "inverse_bind_matrices_set should be two");
-	assert(material_factors_uniform_set == 3 && "material_factors_uniform_set should be three");
-	assert(material_samplers_uniform_set == 3 && "material_samplers_uniform_set should be three");
-
-	(void) per_frame_uniform_set;
-	(void) nodes_model_set;
-	(void) nodes_offset_set;
-	(void) shadow_map_sampler_set;
-	(void) brdf_integration_sampler_set;
-	(void) skybox_sampler_set;
-	(void) irradiance_sampler_set;
-	(void) radiance_sampler_set;
-	(void) directional_light_set;
-	(void) point_light_set;
-	(void) spot_light_set;
-	(void) area_light_set;
-	(void) morphs_weights_set;
-	(void) per_view_uniform_set;
-	(void) joint_offset_uniform_set;
-	(void) joint_inverse_bind_matrices_set;
-	(void) material_factors_uniform_set;
-	(void) material_samplers_uniform_set;
+	// clang-format off
+	assert(per_frame_uniform_set == 0 && "per_frame_uniform_set should be zero");                     (void) per_frame_uniform_set;
+	assert(nodes_model_set == 0 && "nodes_model_set should be zero");                                 (void) nodes_model_set;
+	assert(nodes_offset_set == 0 && "nodes_offset_set should be zero");                               (void) nodes_offset_set;
+	assert(shadow_map_sampler_set == 0 && "shadow_map_sampler_set should be zero");                   (void) shadow_map_sampler_set;
+	assert(brdf_integration_sampler_set == 0 && "brdf_integration_sampler_set should be zero");       (void) brdf_integration_sampler_set;
+	assert(skybox_sampler_set == 0 && "skybox_sampler_set should be zero");                           (void) skybox_sampler_set;
+	assert(irradiance_sampler_set == 0 && "irradiance_sampler_set should be zero");                   (void) irradiance_sampler_set;
+	assert(radiance_sampler_set == 0 && "radiance_sampler_set should be zero");                       (void) radiance_sampler_set;
+	assert(directional_light_set == 0 && "directional_light_set should be zero");                     (void) directional_light_set;
+	assert(point_light_set == 0 && "point_light_set should be zero");                                 (void) point_light_set;
+	assert(spot_light_set == 0 && "spot_light_set should be zero");                                   (void) spot_light_set;
+	assert(area_light_set == 0 && "area_light_set should be zero");                                   (void) area_light_set;
+	assert(morphs_weights_set == 0 && "morph_weights_set should be zero");                            (void) morphs_weights_set;
+	assert(per_view_uniform_set == 1 && "per_view_uniform_set should be one");                        (void) per_view_uniform_set;
+	assert(joint_offset_uniform_set == 2 && "joint_offset_uniform_set should be two");                (void) joint_offset_uniform_set;
+	assert(joint_inverse_bind_matrices_set == 2 && "inverse_bind_matrices_set should be two");        (void) joint_inverse_bind_matrices_set;
+	assert(material_factors_uniform_set == 3 && "material_factors_uniform_set should be three");      (void) material_factors_uniform_set;
+	assert(material_samplers_uniform_set == 3 && "material_samplers_uniform_set should be three");    (void) material_samplers_uniform_set;
+	// clang-format on
 
 	// To make it reinterant clear the current layouts
 	this->m_platform_descriptors.clear();
@@ -455,108 +665,297 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 	this->m_platform_descriptors.reserve(4);
 	this->m_platform_descriptor_layouts.reserve(4);
 
-	// Set 0 is the majority of per frame contstant stuff, like per frame uniform, lights, shadow map environment textures, morph weights etc
+	const auto per_view_ubo_str{"per_view_uniform"};
+	const auto per_frame_ubo_str{"per_frame_uniform"};
+	const auto model_ubo_str{"nodes_models"};
+	const auto offset_ubo_str{"nodes_offsets"};
+	const auto weights_ubo_str{"morphs_weights"};
+	const auto node_xform_input_ubo_str{"node_transform_input"};
+	const auto node_xform_output_ubo_str{"node_transform_output"};
+	const auto animations_ubo_str{"animations"};
+	const auto anim_sampler_input_ubo_str{"animations_sampler_input"};
+	const auto anim_sampler_output_ubo_str{"animations_sampler_output"};
+	const auto current_anim_ubo_str{"current_animations"};
+	const auto shadow_map_sampler_str{"shadow_map_sampler"};
+	const auto directional_light_ubo_str{"directional_light_uniform"};
+	const auto point_light_ubo_str{"point_light_uniform"};
+	const auto spot_light_ubo_str{"spot_light_uniform"};
+	const auto area_light_ubo_str{"area_light_uniform"};
+	const auto joints_offset_ubo_str{"joint_offset_uniform"};
+	const auto joints_IBM_ubo_str{"joint_inverse_bind_matrices"};
+	const auto material_factors_ubo_str{"material_factors"};
+	const auto base_color_sampler_str{"base_color_sampler"};
+	const auto diffuse_color_sampler_str{"diffuse_color_sampler"};
+	const auto specular_glossyness_sampler_str{"specular_glossyness_sampler"};
+	const auto emissive_sampler_str{"emissive_sampler"};
+	const auto anisotropy_sampler_str{"anisotropy_sampler"};
+	const auto transmission_sampler_str{"transmission_sampler"};
+	const auto sheen_color_sampler_str{"sheen_color_sampler"};
+	const auto sheen_roughness_sampler_str{"sheen_roughness_sampler"};
+	const auto clearcoat_normal_sampler_str{"clearcoat_normal_sampler"};
+	const auto clearcoat_sampler_str{"clearcoat_sampler"};
+	const auto clearcoat_roughness_sampler_str{"clearcoat_roughness_sampler"};
+	const auto occlusion_sampler_str{"occlusion_sampler"};
+	const auto roughness_sampler_str{"roughness_sampler"};
+	const auto metallic_sampler_str{"metallic_sampler"};
+	const auto height_sampler_str{"height_sampler"};
+	const auto normal_sampler_str{"normal_sampler"};
+	const auto bent_normal_sampler_str{"bent_normal_sampler"};
+	const auto subsurface_color_sampler_str{"subsurface_color_sampler"};
+
+	// Don't need to test/asser these, an exception will be through if don't exist
+	auto per_view_ubo            = a_renderer.shader_buffer(per_view_ubo_str);
+	auto per_frame_ubo           = a_renderer.shader_buffer(per_frame_ubo_str);
+	auto model_ubo               = a_renderer.shader_buffer(model_ubo_str);
+	auto offset_ubo              = a_renderer.shader_buffer(offset_ubo_str);
+	auto weights_ubo             = a_renderer.shader_buffer(weights_ubo_str);
+	auto node_xform_input_ubo    = a_renderer.shader_buffer(node_xform_input_ubo_str);
+	auto node_xform_output_ubo   = a_renderer.shader_buffer(node_xform_output_ubo_str);
+	auto animations_ubo          = a_renderer.shader_buffer(animations_ubo_str);
+	auto anim_sampler_input_ubo  = a_renderer.shader_buffer(anim_sampler_input_ubo_str);
+	auto anim_sampler_output_ubo = a_renderer.shader_buffer(anim_sampler_output_ubo_str);
+	auto current_anim_ubo        = a_renderer.shader_buffer(current_anim_ubo_str);
+
+	const size_t set_0_id = 0;
+	const size_t set_1_id = 1;
+	const size_t set_2_id = 2;
+	const size_t set_3_id = 3;
+
+	shader_resources_map shaders_reflection{get_unique_resource_bindings(a_shaders, this->vertex_id(), this->fragment_id(), this->compute_id(), this->tile_id(), this->mesh_id())};
+
+	auto per_frame_ubo_rsrc               = shader_resource(per_frame_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto model_ubo_rsrc                   = shader_resource(model_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto offset_ubo_rsrc                  = shader_resource(offset_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto weights_ubo_rsrc                 = shader_resource(weights_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto node_xform_input_ubo_rsrc        = shader_resource(node_xform_input_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto node_xform_output_ubo_rsrc       = shader_resource(node_xform_output_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto animations_ubo_rsrc              = shader_resource(animations_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto anim_sampler_input_ubo_rsrc      = shader_resource(anim_sampler_input_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto anim_sampler_output_ubo_rsrc     = shader_resource(anim_sampler_output_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto current_anim_ubo_rsrc            = shader_resource(current_anim_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto shadow_map_sampler_rsrc          = shader_resource(shadow_map_sampler_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto directional_light_ubo_rsrc       = shader_resource(directional_light_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto point_light_ubo_rsrc             = shader_resource(point_light_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto spot_light_ubo_rsrc              = shader_resource(spot_light_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto area_light_ubo_rsrc              = shader_resource(area_light_ubo_str, shaders_reflection[set_0_id], shaders_reflection[set_0_id], shaders_reflection[set_0_id]);
+	auto per_view_ubo_rsrc                = shader_resource(per_view_ubo_str, shaders_reflection[set_1_id], shaders_reflection[set_1_id], shaders_reflection[set_1_id]);
+	auto joints_offset_ubo_rsrc           = shader_resource(joints_offset_ubo_str, shaders_reflection[set_2_id], shaders_reflection[set_2_id], shaders_reflection[set_2_id]);
+	auto joints_IBM_ubo_rsrc              = shader_resource(joints_IBM_ubo_str, shaders_reflection[set_2_id], shaders_reflection[set_2_id], shaders_reflection[set_2_id]);
+	auto material_factors_ubo_rsrc        = shader_resource(material_factors_ubo_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto base_color_sampler_rsrc          = shader_resource(base_color_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto diffuse_color_sampler_rsrc       = shader_resource(diffuse_color_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto specular_glossyness_sampler_rsrc = shader_resource(specular_glossyness_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto emissive_sampler_rsrc            = shader_resource(emissive_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto anisotropy_sampler_rsrc          = shader_resource(anisotropy_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto transmission_sampler_rsrc        = shader_resource(transmission_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto sheen_color_sampler_rsrc         = shader_resource(sheen_color_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto sheen_roughness_sampler_rsrc     = shader_resource(sheen_roughness_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto clearcoat_normal_sampler_rsrc    = shader_resource(clearcoat_normal_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto clearcoat_sampler_rsrc           = shader_resource(clearcoat_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto clearcoat_roughness_sampler_rsrc = shader_resource(clearcoat_roughness_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto occlusion_sampler_rsrc           = shader_resource(occlusion_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto roughness_sampler_rsrc           = shader_resource(roughness_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto metallic_sampler_rsrc            = shader_resource(metallic_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto height_sampler_rsrc              = shader_resource(height_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto normal_sampler_rsrc              = shader_resource(normal_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto bent_normal_sampler_rsrc         = shader_resource(bent_normal_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+	auto subsurface_color_sampler_rsrc    = shader_resource(subsurface_color_sampler_str, shaders_reflection[set_3_id], shaders_reflection[set_3_id], shaders_reflection[set_3_id]);
+
+	auto has_per_view_ubo            = per_view_ubo_rsrc != nullptr;
+	auto has_per_frame_ubo           = per_frame_ubo_rsrc != nullptr;
+	auto has_model_ubo               = model_ubo_rsrc != nullptr;
+	auto has_offset_ubo              = offset_ubo_rsrc != nullptr;
+	auto has_weights_ubo             = weights_ubo_rsrc != nullptr;
+	auto has_node_xform_input_ubo    = node_xform_input_ubo_rsrc != nullptr;
+	auto has_node_xform_output_ubo   = node_xform_output_ubo_rsrc != nullptr;
+	auto has_animations_ubo          = animations_ubo_rsrc != nullptr;
+	auto has_anim_sampler_input_ubo  = anim_sampler_input_ubo_rsrc != nullptr;
+	auto has_anim_sampler_output_ubo = anim_sampler_output_ubo_rsrc != nullptr;
+	auto has_current_anim_ubo        = current_anim_ubo_rsrc != nullptr;
+	auto has_shadow_map_sampler      = shadow_map_sampler_rsrc != nullptr;
+	auto has_directional_light_ubo   = directional_light_ubo_rsrc != nullptr;
+	auto has_point_light_ubo         = point_light_ubo_rsrc != nullptr;
+	auto has_spot_light_ubo          = spot_light_ubo_rsrc != nullptr;
+	auto has_area_light_ubo          = area_light_ubo_rsrc != nullptr;
+	auto has_joints_offset_ubo       = joints_offset_ubo_rsrc != nullptr;
+	auto has_joints_IBM_ubo          = joints_IBM_ubo_rsrc != nullptr;
+	auto has_material_factors_ubo    = material_factors_ubo_rsrc != nullptr;
+
+	const ror::Light *directional_light{nullptr};
+	const ror::Light *point_light{nullptr};
+	const ror::Light *spot_light{nullptr};
+	const ror::Light *area_light{nullptr};
+
+	if (a_scene)
+	{
+		directional_light = a_scene->directional_light();
+		point_light       = a_scene->point_light();
+		spot_light        = a_scene->spot_light();
+		area_light        = a_scene->area_light();
+	}
+
+	// Set 0 is the majority of per frame constant stuff, like per frame uniform, lights, shadow map environment textures, morph weights etc
 	{
 		DescriptorSet set{};
+		bool          allocate{false};
 
-		if (a_per_frame_ubo)
+		if (has_per_frame_ubo)
 		{
-			VkDescriptorBufferInfo per_frame_buffer_info{vk_create_descriptor_buffer_info(a_per_frame_ubo->platform_buffer())};
+			assert(per_frame_ubo_rsrc->m_binding == per_frame_uniform_binding &&
+			       per_frame_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo per_frame_buffer_info{vk_create_descriptor_buffer_info(per_frame_ubo->platform_buffer())};
 			set.push_buffer(per_frame_uniform_binding, &per_frame_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			allocate = true;
 		}
 
-		if (a_model_ubo)
+		if (has_model_ubo)
 		{
-			VkDescriptorBufferInfo nodes_model_buffer_info{vk_create_descriptor_buffer_info(a_model_ubo->platform_buffer())};
-			set.push_buffer(nodes_model_binding, &nodes_model_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			assert(model_ubo_rsrc->m_binding == nodes_model_binding &&
+			       model_ubo_rsrc->m_type == ShaderResourceType::storage_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo nodes_model_buffer_info{vk_create_descriptor_buffer_info(model_ubo->platform_buffer())};
+			set.push_buffer(nodes_model_binding, &nodes_model_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+			allocate = true;
 		}
 
-		if (a_offset_ubo)
+		if (has_offset_ubo)
 		{
-			VkDescriptorBufferInfo offset_buffer_info{vk_create_descriptor_buffer_info(a_offset_ubo->platform_buffer())};
+			assert(offset_ubo_rsrc->m_binding == nodes_offset_binding &&
+			       offset_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo offset_buffer_info{vk_create_descriptor_buffer_info(offset_ubo->platform_buffer())};
 			set.push_buffer(nodes_offset_binding, &offset_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			allocate = true;
+		}
+
+		if (has_node_xform_input_ubo)
+		{
+			assert(node_xform_input_ubo_rsrc->m_type == ShaderResourceType::storage_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo info{vk_create_descriptor_buffer_info(node_xform_input_ubo->platform_buffer())};
+			set.push_buffer(node_xform_input_ubo_rsrc->m_binding, &info, VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+			allocate = true;
+		}
+
+		if (has_node_xform_output_ubo)
+		{
+			assert(node_xform_output_ubo_rsrc->m_type == ShaderResourceType::storage_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo info{vk_create_descriptor_buffer_info(node_xform_output_ubo->platform_buffer())};
+			set.push_buffer(node_xform_output_ubo_rsrc->m_binding, &info, VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+			allocate = true;
+		}
+
+		if (has_animations_ubo)
+		{
+			assert(animations_ubo_rsrc->m_type == ShaderResourceType::storage_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo info{vk_create_descriptor_buffer_info(animations_ubo->platform_buffer())};
+			set.push_buffer(animations_ubo_rsrc->m_binding, &info, VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+			allocate = true;
+		}
+
+		if (has_anim_sampler_input_ubo)
+		{
+			assert(anim_sampler_input_ubo_rsrc->m_type == ShaderResourceType::storage_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo info{vk_create_descriptor_buffer_info(anim_sampler_input_ubo->platform_buffer())};
+			set.push_buffer(anim_sampler_input_ubo_rsrc->m_binding, &info, VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+			allocate = true;
+		}
+
+		if (has_anim_sampler_output_ubo)
+		{
+			assert(anim_sampler_output_ubo_rsrc->m_type == ShaderResourceType::storage_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo info{vk_create_descriptor_buffer_info(anim_sampler_output_ubo->platform_buffer())};
+			set.push_buffer(anim_sampler_output_ubo_rsrc->m_binding, &info, VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+			allocate = true;
+		}
+
+		if (has_current_anim_ubo)
+		{
+			assert(current_anim_ubo_rsrc->m_type == ShaderResourceType::storage_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo info{vk_create_descriptor_buffer_info(current_anim_ubo->platform_buffer())};
+			set.push_buffer(current_anim_ubo_rsrc->m_binding, &info, VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+			allocate = true;
 		}
 
 		// Shadow map
-		if (a_need_shadow_map)
+		if (a_need_shadow_map && has_shadow_map_sampler)
 		{
+			assert(shadow_map_sampler_rsrc->m_binding == shadow_map_sampler_binding &&
+			       shadow_map_sampler_rsrc->m_type == ShaderResourceType::sampled_image && "Buffer data and shader descriptors doesn't match");
 			VkDescriptorImageInfo shadow_map_image_info{vk_create_descriptor_image_info(shadow_map_image.platform_image_view(), shadow_map_sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
 			set.push_image(shadow_map_sampler_binding, &shadow_map_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
+			allocate = true;
 		}
 
 		// Environment
 		if (a_with_environment)
 		{
-			auto &env = a_renderer.current_environment();
-
-			auto &brdf_integration_image = renderer_images[ror::static_cast_safe<size_t>(env.brdf_integration())];
-			auto &skybox_image           = renderer_images[ror::static_cast_safe<size_t>(env.skybox())];
-			auto &irradiance_image       = renderer_images[ror::static_cast_safe<size_t>(env.irradiance())];
-			auto &radiance_image         = renderer_images[ror::static_cast_safe<size_t>(env.radiance())];
-
-			auto &sampler = a_renderer.samplers()[ror::static_cast_safe<size_t>(env.skybox_sampler())];
-
-			VkDescriptorImageInfo brdf_integration_image_info{vk_create_descriptor_image_info(brdf_integration_image.platform_image_view(), sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
-			VkDescriptorImageInfo skybox_image_info{vk_create_descriptor_image_info(skybox_image.platform_image_view(), sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
-			VkDescriptorImageInfo irradiance_image_info{vk_create_descriptor_image_info(irradiance_image.platform_image_view(), sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
-			VkDescriptorImageInfo radiance_image_info{vk_create_descriptor_image_info(radiance_image.platform_image_view(), sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
-
-			set.push_image(brdf_integration_sampler_binding, &brdf_integration_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
-			set.push_image(skybox_sampler_binding, &skybox_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
-			set.push_image(irradiance_sampler_binding, &irradiance_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
-			set.push_image(radiance_sampler_binding, &radiance_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
+			this->environment_descriptor_set(a_renderer, shaders_reflection, set, allocate);
 		}
 
 		// Lights
-		if (directional_light)
+		if (directional_light && has_directional_light_ubo)
 		{
+			assert(directional_light_ubo_rsrc->m_binding == directional_light_binding &&
+			       directional_light_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
 			VkDescriptorBufferInfo direction_light_info{vk_create_descriptor_buffer_info(directional_light->shader_buffer().platform_buffer())};
 			set.push_buffer(directional_light_binding, &direction_light_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			allocate = true;
 		}
 
-		if (point_light)
+		if (point_light && has_point_light_ubo)
 		{
+			assert(point_light_ubo_rsrc->m_binding == point_light_binding &&
+			       point_light_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
 			VkDescriptorBufferInfo point_light_info{vk_create_descriptor_buffer_info(point_light->shader_buffer().platform_buffer())};
 			set.push_buffer(point_light_binding, &point_light_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			allocate = true;
 		}
 
-		if (spot_light)
+		if (spot_light && has_spot_light_ubo)
 		{
+			assert(spot_light_ubo_rsrc->m_binding == spot_light_binding &&
+			       spot_light_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
 			VkDescriptorBufferInfo spot_light_info{vk_create_descriptor_buffer_info(spot_light->shader_buffer().platform_buffer())};
 			set.push_buffer(spot_light_binding, &spot_light_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			allocate = true;
 		}
 
-		if (area_light)
+		if (area_light && has_area_light_ubo)
 		{
+			assert(area_light_ubo_rsrc->m_binding == area_light_binding &&
+			       area_light_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
 			VkDescriptorBufferInfo area_light_info{vk_create_descriptor_buffer_info(area_light->shader_buffer().platform_buffer())};
 			set.push_buffer(area_light_binding, &area_light_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			allocate = true;
 		}
 
-		if (a_weights_ubo)
+		if (has_weights_ubo)
 		{
-			VkDescriptorBufferInfo weights_info{vk_create_descriptor_buffer_info(a_weights_ubo->platform_buffer())};
-			set.push_buffer(morphs_weights_binding, &weights_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			assert(weights_ubo_rsrc->m_binding == morphs_weights_binding &&
+			       weights_ubo_rsrc->m_type == ShaderResourceType::storage_buffer && "Buffer data and shader descriptors doesn't match");
+			VkDescriptorBufferInfo weights_info{vk_create_descriptor_buffer_info(weights_ubo->platform_buffer())};
+			set.push_buffer(morphs_weights_binding, &weights_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_BUFFER);
+			allocate = true;
 		}
 
 		// Now lets allocate set 0
-		if (a_per_frame_ubo || a_model_ubo || a_offset_ubo ||
-		    a_need_shadow_map || a_with_environment ||
-		    directional_light || point_light || spot_light || area_light ||
-		    a_weights_ubo)
+		if (allocate)
 			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
 	}
 
 	// Set 1 is per view uniform
 	{
-		assert(a_per_view_ubo && "Per view ubo can't be nullptr");
-		DescriptorSet set{};
+		if (has_per_view_ubo)
+		{
+			DescriptorSet set{};
 
-		// Its unconditional and must always be there
-		VkDescriptorBufferInfo per_view_buffer_info{vk_create_descriptor_buffer_info(a_per_view_ubo->platform_buffer())};
-		set.push_buffer(per_view_uniform_binding, &per_view_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			assert(per_view_ubo_rsrc->m_binding == per_view_uniform_binding &&
+			       per_view_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
 
-		// Now lets allocate set 1
-		this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+			VkDescriptorBufferInfo per_view_buffer_info{vk_create_descriptor_buffer_info(per_view_ubo->platform_buffer())};
+			set.push_buffer(per_view_uniform_binding, &per_view_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+
+			// Now lets allocate set 1
+			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+		}
 	}
 
 	// Set 2 is mostly skin data, which doesn't change as often as meterials
@@ -564,8 +963,17 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 	{
 		DescriptorSet set{};
 
+		assert(has_joints_offset_ubo && has_joints_IBM_ubo && "Asking for Skin descriptor but the shader doesn't have skins data");
+		(void) has_joints_offset_ubo;
+		(void) has_joints_IBM_ubo;
+
 		VkDescriptorBufferInfo joint_offset_uniform_buffer_info{vk_create_descriptor_buffer_info(a_skin->joint_offset_shader_buffer().platform_buffer())};
 		VkDescriptorBufferInfo joint_inverse_bind_matrices_uniform_buffer_info{vk_create_descriptor_buffer_info(a_skin->joint_inverse_bind_shader_buffer().platform_buffer())};
+
+		assert(joints_offset_ubo_rsrc->m_binding == joint_offset_uniform_binding &&
+		       joints_offset_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
+		assert(joints_IBM_ubo_rsrc->m_binding == joint_inverse_bind_matrices_binding &&
+		       joints_IBM_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
 
 		set.push_buffer(joint_offset_uniform_binding, &joint_offset_uniform_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 		set.push_buffer(joint_inverse_bind_matrices_binding, &joint_inverse_bind_matrices_uniform_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
@@ -575,48 +983,124 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 	}
 
 	// Set 3 is Material factors and texture samplers
+	if (a_material)
 	{
 		uint32_t      binding = material_samplers_uniform_binding;
 		DescriptorSet set{};
 
-		if (a_material)
-		{
-			assert(a_textures && a_images && a_samplers && "If material is provided textures, images and samplers are required too");
+		assert(a_textures && a_images && a_samplers && "If material has textures, images and samplers are required too");
+		assert(has_material_factors_ubo && "Material descriptor requested but no material factors found in shader");
+		assert(material_factors_ubo_rsrc->m_binding == material_factors_uniform_binding &&
+		       material_factors_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
 
-			VkDescriptorBufferInfo material_factors_uniform_buffer_info{vk_create_descriptor_buffer_info(a_material->shader_buffer().platform_buffer())};
-			set.push_buffer(material_factors_uniform_binding, &material_factors_uniform_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		(void) has_material_factors_ubo;
 
-			auto &model_textures = *a_textures;
-			auto &model_images   = *a_images;
-			auto &model_samplers = *a_samplers;
+		VkDescriptorBufferInfo material_factors_uniform_buffer_info{vk_create_descriptor_buffer_info(a_material->shader_buffer().platform_buffer())};
+		set.push_buffer(material_factors_uniform_binding, &material_factors_uniform_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 
-			add_material_component_descriptor(a_material->m_base_color, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_diffuse_color, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_specular_glossyness, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_emissive, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_anisotropy, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_transmission, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_sheen_color, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_sheen_roughness, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_clearcoat_normal, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_clearcoat, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_clearcoat_roughness, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_metallic, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_roughness, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_occlusion, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_normal, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_bent_normal, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_height, model_textures, model_images, model_samplers, binding++, set);
-			add_material_component_descriptor(a_material->m_subsurface_color, model_textures, model_images, model_samplers, binding++, set);
-		}
-		else if (a_image && a_sampler)
-		{
-			VkDescriptorImageInfo image_info{vk_create_descriptor_image_info(a_image->platform_image_view(), a_sampler->platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
-			set.push_image(binding++, &image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
-		}
+		auto &model_textures = *a_textures;
+		auto &model_images   = *a_images;
+		auto &model_samplers = *a_samplers;
+
+		add_material_component_descriptor(a_material->m_base_color, base_color_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_diffuse_color, diffuse_color_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_specular_glossyness, specular_glossyness_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_emissive, emissive_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_anisotropy, anisotropy_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_transmission, transmission_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_sheen_color, sheen_color_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_sheen_roughness, sheen_roughness_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_clearcoat_normal, clearcoat_normal_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_clearcoat, clearcoat_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_clearcoat_roughness, clearcoat_roughness_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_metallic, metallic_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_roughness, roughness_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_occlusion, occlusion_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_normal, normal_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_bent_normal, bent_normal_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_height, height_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
+		add_material_component_descriptor(a_material->m_subsurface_color, subsurface_color_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
 
 		// Now lets allocate set 3
-		if (binding != material_samplers_uniform_binding)        // Which means at least one image was inserted
+		this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+	}
+}
+
+void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const std::vector<rhi::Shader> &a_shaders, bool a_need_shadow_map, bool a_with_environment)
+{
+	this->build_descriptor(a_device, a_renderer, a_shaders, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, a_need_shadow_map, a_with_environment);
+}
+
+void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const rhi::ShaderBuffer *a_shader_buffer, uint32_t buffer_binding,
+                                     const rhi::TextureImage *a_image, const rhi::TextureSampler *a_sampler, uint32_t a_texture_binding)
+{
+	// TODO: Should I do reflection here as well? don't think so because its so specialised method.
+	auto  device           = a_device.platform_device();
+	auto &descriptor_pool  = a_device.descriptor_set_pool();
+	auto &layout_cache     = a_device.descriptor_set_layout_cache();
+	auto &descriptor_cache = a_device.descriptor_set_cache();
+
+	// Set 0 is shader buffer, would probably be something like per view
+	{
+		DescriptorSet set{};
+		if (a_shader_buffer)
+		{
+			VkDescriptorBufferInfo per_view_buffer_info{vk_create_descriptor_buffer_info(a_shader_buffer->platform_buffer())};
+			set.push_buffer(buffer_binding, &per_view_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		}
+
+		if (a_image && a_sampler)
+		{
+			VkDescriptorImageInfo image_info{vk_create_descriptor_image_info(a_image->platform_image_view(), a_sampler->platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+			set.push_image(a_texture_binding, &image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
+		}
+
+		// Now lets allocate the only set
+		this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+	}
+}
+
+// Fully reflected descriptor building that requires push_binding with actual buffer and images later
+void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders)
+{
+	auto  device                = a_device.platform_device();
+	auto &descriptor_pool       = a_device.descriptor_set_pool();
+	auto &layout_cache          = a_device.descriptor_set_layout_cache();
+	auto &descriptor_cache      = a_device.descriptor_set_cache();
+	auto  descriptor_sets_count = ror::settings().m_vulkan.m_descriptor_sets_size;
+
+	shader_resources_map       shaders_reflection{get_unique_resource_bindings(a_shaders, this->vertex_id(), this->fragment_id(), this->compute_id(), this->tile_id(), this->mesh_id())};
+	std::vector<DescriptorSet> sets{descriptor_sets_count};
+
+	for (uint32_t i = 0; i < descriptor_sets_count; ++i)
+	{
+		auto &reflected_set = shaders_reflection[i];
+		auto &set           = sets[i];
+		bool  allocate{false};
+
+		for (auto &set_binding : reflected_set)
+		{
+			assert(set_binding.m_set == i && "Set id doesn't match the set number in the vector");
+
+			if (set_binding.m_type == ShaderResourceType::uniform_buffer ||
+			    set_binding.m_type == ShaderResourceType::storage_buffer ||
+			    set_binding.m_type == ShaderResourceType::sampled_image ||
+			    set_binding.m_type == ShaderResourceType::storage_image)
+			{
+				// NOTE: This type of descriptor setup also requires calling
+				// push_binding(a_binding, a_type, VkDescriptorImageInfo *, VkDescriptorBufferInfo *)
+				// later at some point, when we know the buffers and/or images
+				set.push_binding(set_binding.m_binding, static_cast<VkDescriptorType>(set_binding.m_type), VK_SHADER_STAGE_ALL);
+				allocate = true;
+			}
+			else
+			{
+				assert(0 && "Don't support this resource type, implement me");
+			}
+		}
+
+		// Now lets allocate the only set
+		if (allocate)
 			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
 	}
 }
@@ -670,8 +1154,18 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 	}
 
 	auto vlk_vertex_descriptor = get_vulkan_vertex_descriptor(a_model.meshes(), a_mesh_index, a_prim_index, is_depth_shadow);
-	this->m_pipeline_state     = create_fragment_render_pipeline(a_device, vs, fs, a_renderpass, a_subpass, vlk_vertex_descriptor, this->platform_descriptors_layouts(), material.m_blend_mode,
-	                                                             mesh.primitive_type(a_prim_index), mesh.name().c_str(), a_subpass.has_depth(), a_premultiplied_alpha, cull_mode, winding);
+
+	try
+	{
+		this->m_pipeline_state = create_fragment_render_pipeline(a_device, vs, fs, a_renderpass, a_subpass, vlk_vertex_descriptor, this->platform_descriptors_layouts(), material.m_blend_mode,
+		                                                         mesh.primitive_type(a_prim_index), mesh.name().c_str(), a_subpass.has_depth(), a_premultiplied_alpha, cull_mode, winding);
+	}
+	catch (VulkanValidationException &vve)
+	{
+		ror::log_critical("Validation error occured with message {}", vve.what());
+		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(vs.type()), vs.source().c_str());
+		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(fs.type()), fs.source().c_str());
+	}
 }
 
 // This one is used in Renderer::upload, with default vertex descriptor
@@ -703,8 +1197,18 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 			rhi::PrimitiveWinding  winding{rhi::PrimitiveWinding::counter_clockwise};
 
 			auto vlk_vertex_descriptor = get_default_vlk_vertex_descriptor(a_buffer_pack);
-			this->m_pipeline_state     = create_fragment_render_pipeline(a_device, vs, fs, a_pass, a_subpass, vlk_vertex_descriptor, this->platform_descriptors_layouts(), rhi::BlendMode::blend,
-			                                                             rhi::PrimitiveTopology::triangles, "GlobalRenderPassPipeline", true, a_premultiplied_alpha, cull_mode, winding);
+
+			try
+			{
+				this->m_pipeline_state = create_fragment_render_pipeline(a_device, vs, fs, a_pass, a_subpass, vlk_vertex_descriptor, this->platform_descriptors_layouts(), rhi::BlendMode::blend,
+				                                                         rhi::PrimitiveTopology::triangles, "GlobalRenderPassPipeline", true, a_premultiplied_alpha, cull_mode, winding);
+			}
+			catch (VulkanValidationException &vve)
+			{
+				ror::log_critical("Validation error occured with message {}", vve.what());
+				ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(vs.type()), vs.source().c_str());
+				ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(fs.type()), fs.source().c_str());
+			}
 		}
 	}
 	else
@@ -717,7 +1221,15 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 			return;
 		}
 
-		this->m_pipeline_state = create_compute_pipeline(a_device, cs, this->platform_descriptors_layouts());
+		try
+		{
+			this->m_pipeline_state = create_compute_pipeline(a_device, cs, this->platform_descriptors_layouts());
+		}
+		catch (VulkanValidationException &vve)
+		{
+			ror::log_critical("Validation error occured with message {}", vve.what());
+			ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(cs.type()), cs.source().c_str());
+		}
 
 		if (!this->compute_pipeline_state())
 		{
@@ -750,7 +1262,17 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 	this->release(a_device);
 
 	auto vlk_vertex_descriptor = get_vulkan_vertex_descriptor(a_vertex_descriptor, a_is_depth_shadow);
-	this->m_pipeline_state     = create_fragment_render_pipeline(a_device, a_vs_shader, a_fs_shader, a_renderpass, a_subpass, vlk_vertex_descriptor, this->platform_descriptors_layouts(), a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
+
+	try
+	{
+		this->m_pipeline_state = create_fragment_render_pipeline(a_device, a_vs_shader, a_fs_shader, a_renderpass, a_subpass, vlk_vertex_descriptor, this->platform_descriptors_layouts(), a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
+	}
+	catch (VulkanValidationException &vve)
+	{
+		ror::log_critical("Validation error occured with message {}", vve.what());
+		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(a_vs_shader.type()), a_vs_shader.source().c_str());
+		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(a_fs_shader.type()), a_fs_shader.source().c_str());
+	}
 }
 
 // Used by debug geometry and environment gemoetry etc
@@ -783,7 +1305,16 @@ void ProgramVulkan::upload(const rhi::Device &a_device, rhi::Renderpass &a_rende
 
 		this->release(a_device);
 
-		this->m_pipeline_state = create_compute_pipeline(a_device, cs, this->platform_descriptors_layouts());
+		try
+		{
+			this->m_pipeline_state = create_compute_pipeline(a_device, cs, this->platform_descriptors_layouts());
+		}
+		catch (VulkanValidationException &vve)
+		{
+			ror::log_critical("Validation error occured with message {}", vve.what());
+			auto resource = cs.source();
+			ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(cs.type()), cs.source().c_str());
+		}
 
 		if (!this->compute_pipeline_state())
 		{
@@ -809,7 +1340,16 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const std::vector<rhi::S
 
 	this->release(a_device);
 
-	this->m_pipeline_state = create_compute_pipeline(a_device, cs, this->platform_descriptors_layouts());
+	try
+	{
+		this->m_pipeline_state = create_compute_pipeline(a_device, cs, this->platform_descriptors_layouts());
+	}
+	catch (VulkanValidationException &vve)
+	{
+		ror::log_critical("Validation error occured with message {}", vve.what());
+		auto resource = cs.source();
+		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(cs.type()), cs.source().c_str());
+	}
 
 	if (!this->compute_pipeline_state())
 	{
