@@ -1062,6 +1062,7 @@ std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
 	output.append(texture_lookup(a_material.m_occlusion, "occlusion", "float", ".x"));        // Red component of ORM[H] texture
 	output.append(texture_lookup(a_material.m_roughness, "roughness", "float", ".y"));        // Green component of ORM[H] texture
 	output.append(texture_lookup(a_material.m_metallic, "metallic", "float", ".z"));          // Blue component of ORM[H] texture
+	output.append(texture_lookup(a_material.m_subsurface_color, "subsurface_color"));
 	if (a_material.m_roughness.m_texture == a_material.m_height.m_texture)
 		output.append(texture_lookup(a_material.m_height, "height", "float", ".w"));        // Alpha component of ORM[H] texture
 	else
