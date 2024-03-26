@@ -23,9 +23,9 @@
 //
 // Version: 1.0.0
 
+#include "foundation/rorresolve_includes.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorshader.hpp"
-#include "foundation/rorresolve_includes.hpp"
 
 namespace rhi
 {
@@ -81,6 +81,13 @@ FORCE_INLINE constexpr auto ShaderCrtp<_type>::source() const noexcept
 }
 
 template <class _type>
+void ShaderCrtp<_type>::print_source_unconditional() const noexcept
+{
+	auto  resource = this->source();
+	ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(this->type()), this->source().c_str());
+}
+
+template <class _type>
 void ShaderCrtp<_type>::print_source() const noexcept
 {
 	auto &setting = ror::settings();
@@ -93,8 +100,7 @@ void ShaderCrtp<_type>::print_source() const noexcept
 	    (fragment_glsl_print_code && this->type() == rhi::ShaderType::fragment) ||
 	    (compute_glsl_print_code && this->type() == rhi::ShaderType::compute))
 	{
-		auto resource = this->source();
-		ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(this->type()), this->source().c_str());
+		this->print_source_unconditional();
 	}
 }
 

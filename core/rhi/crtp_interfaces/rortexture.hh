@@ -317,6 +317,7 @@ FORCE_INLINE auto TextureImageCrtp<_type>::setup() noexcept
 		}
 	}
 
+	// NOTE: We are not setting m_size here because thats suppose to be set when loaded with the actual data size
 	return size * this->m_bytes_per_pixel;
 }
 
