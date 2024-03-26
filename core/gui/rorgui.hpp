@@ -38,6 +38,13 @@
 namespace ror
 {
 
+const uint32_t gui_image_set      = 0;
+const uint32_t gui_image_binding  = 0;
+const uint32_t gui_buffer_set     = 0;
+const uint32_t gui_buffer_binding = 3;
+const uint32_t gui_color_set      = 0;
+const uint32_t gui_color_binding  = 0;
+
 class ROAR_ENGINE_ITEM Gui final
 {
   public:
@@ -46,7 +53,10 @@ class ROAR_ENGINE_ITEM Gui final
 	FORCE_INLINE Gui &operator=(const Gui &a_other)     = delete;        //! Copy assignment operator
 	FORCE_INLINE Gui &operator=(Gui &&a_other) noexcept = delete;        //! Move assignment operator
 
-	Gui();                  //! Default constructor
+	Gui();        //! Default constructor
+	explicit Gui(rhi::ShaderBuffer a_shader_buffer) :
+	    m_shader_buffer(std::move(a_shader_buffer))
+	{}
 	~Gui() noexcept;        //! Destructor
 
 	void  init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
@@ -109,7 +119,7 @@ class ROAR_ENGINE_ITEM Gui final
 	rhi::Buffer           m_vertex_buffer{};               //! Vertex buffer with interleaved data of xy,uv,c
 	rhi::Buffer           m_index_buffer{};                //! Index buffer with uint16_t type
 
-	rhi::ShaderBuffer m_shader_buffer{"gui_per_frame_uniform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 3};        // this 3 needs to match the one in gui.glsl.vert
+	rhi::ShaderBuffer m_shader_buffer{"gui_per_frame_uniform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, gui_buffer_set, gui_buffer_binding};        // this needs to match the one in gui.glsl.vert
 };
 
 FORCE_INLINE Gui &gui() noexcept

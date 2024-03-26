@@ -595,6 +595,7 @@ void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_render
 	this->m_vertex_descriptor = rhi::VertexDescriptor{vattribs, vlayouts};
 
 	// Create shader program
+	// TODO: Patch with gui_buffer/image_set/binding
 	auto vs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.vert");
 	auto fs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.frag");
 
@@ -608,8 +609,7 @@ void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_render
 	// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler; set and binding needs changing according to API
 	// layout(std140, set = 0, binding = 3) uniform gui_per_frame_uniform; name and set and binding needs changing according to API
 
-	this->m_shader_program.build_descriptor(a_device, a_renderer, &this->m_shader_buffer, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-											&this->m_texture_image, &this->m_texture_sampler, nullptr, false, false);
+	this->m_shader_program.build_descriptor(a_device, &this->m_shader_buffer, gui_buffer_binding, &this->m_texture_image, &this->m_texture_sampler, gui_image_binding);
 	this->m_shader_program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
 
 	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
@@ -1036,7 +1036,7 @@ void Gui::render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_e
 
 				// Bind texture, this might be redundant if there is only ever going be one texture
 				if (ImTextureID tex_id = pcmd->GetTexID())
-					a_encoder.fragment_texture(*reinterpret_cast<rhi::TextureImage *>(tex_id), 0);
+					a_encoder.fragment_texture(*reinterpret_cast<rhi::TextureImage *>(tex_id), gui_color_binding);
 
 				a_encoder.vertex_buffer_offset(vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 0);
 				a_encoder.vertex_buffer_offset(vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 1);

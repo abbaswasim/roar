@@ -31,6 +31,7 @@
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
 #include "rhi/rorvertex_layout.hpp"
+#include "rhi/rorshader.hpp"
 #include "rordynamic_mesh.hpp"
 #include <cassert>
 #include <vector>
@@ -142,6 +143,13 @@ void DynamicMesh::setup_shaders(const ror::Renderer &a_renderer, rhi::BlendMode 
 	rhi::Rendersubpass *subpass{nullptr};
 
 	a_renderer.get_final_pass_subpass(&pass, &subpass);
+
+	std::vector<rhi::Shader> shaders{vs_shader, vs_shader};
+
+	this->m_shader_program.vertex_id(0);
+	this->m_shader_program.fragment_id(1);
+
+	this->m_shader_program.build_descriptor(*this->m_device, shaders);
 
 	// This means it is only guaranteed to render in last/main render pass
 	this->m_shader_program.upload(*this->m_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, a_blend_mode, this->m_topology, "tri_pso", true, false, false);
