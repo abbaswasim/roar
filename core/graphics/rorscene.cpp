@@ -79,6 +79,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace ror
@@ -1837,7 +1838,10 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(radiance_image),
 			                          const_cast<rhi::TextureSampler *>(radiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 		}
+		rhi::descriptor_update_type a_buffers_images;
+
 		cube_map_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "equirectangular_cubemap.glsl.vert", "equirectangular_cubemap.glsl.frag");
+		cube_map_mesh.setup_descriptors(a_renderer, a_buffers_images, false);        // TODO: Fix me. this will break but I don't have the shaders above to see what images/buffers are used
 		cube_map_mesh.topology(rhi::PrimitiveTopology::triangles);
 		cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_position), 3 * 36 * sizeof(float), 36,
 		                          reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
@@ -1855,8 +1859,22 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		canonical_cube.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
 		auto &canonical_cube_image = a_renderer.images()[a_renderer.canonical_cube()];
 
+		rhi::descriptor_update_type buffers_images;
+
+		const rhi::TextureImage      *image            = &canonical_cube.texture_image();
+		const rhi::TextureSampler    *sampler          = &canonical_cube.texture_sampler();
+		const rhi::descriptor_variant per_view_uniform = a_renderer.shader_buffer("per_view_uniform");
+		const rhi::descriptor_variant cube_map         = std::make_pair(image, sampler);
+
+		buffers_images[0].emplace_back(std::make_pair(cube_map, 0u));
+		buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
+		// These shaders only have
+		// layout(std140, set = 0, binding = 20) uniform per_view_uniform
+		// layout(set = 0, binding = 0) uniform highp samplerCube cube_map;
+
 		canonical_cube.set_texture(const_cast<rhi::TextureImage *>(&canonical_cube_image));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 		canonical_cube.setup_shaders(a_renderer, rhi::BlendMode::blend, "canonical_cubemap.glsl.vert", "canonical_cubemap.glsl.frag");
+		canonical_cube.setup_descriptors(a_renderer, buffers_images, false);
 		canonical_cube.topology(rhi::PrimitiveTopology::triangles);
 		canonical_cube.upload_data(reinterpret_cast<const uint8_t *>(setting.m_invert_canonical_cube_map ? &cube_vertex_position_uv_interleaved_inverted : &cube_vertex_position_uv_interleaved), 5 * 36 * sizeof(float), 36,
 		                           reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
@@ -1876,7 +1894,22 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
 		quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));
+
+		rhi::descriptor_update_type buffers_images;
+
+		const rhi::TextureImage      *image              = image_lut;
+		const rhi::TextureSampler    *sampler            = &quad_mesh.texture_sampler();
+		const rhi::descriptor_variant per_view_uniform   = a_renderer.shader_buffer("per_view_uniform");
+		const rhi::descriptor_variant base_color_sampler = std::make_pair(image, sampler);
+
+		buffers_images[0].emplace_back(std::make_pair(base_color_sampler, 0u));
+		buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
+		// These shaders only have
+		// layout(std140, set = 0, binding = 20) uniform per_view_uniform
+		// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler;
+
 		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
+		quad_mesh.setup_descriptors(a_renderer, buffers_images, false);
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(reinterpret_cast<const uint8_t *>(&quad_vertex_buffer_interleaved), 5 * 6 * sizeof(float), 6);
 
@@ -1899,7 +1932,19 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 			// auto image_lut = &a_renderer.images()[2];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
 			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
 		}
+
+		rhi::descriptor_update_type buffers_images;
+
+		const rhi::TextureImage      *image              = &quad_mesh.texture_image();
+		const rhi::TextureSampler    *sampler            = &quad_mesh.texture_sampler();
+		const rhi::descriptor_variant base_color_sampler = std::make_pair(image, sampler);
+
+		buffers_images[0].emplace_back(std::make_pair(base_color_sampler, 0u));
+		// These shaders only have
+		// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler;
+
 		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "quad_no_attributes.glsl.vert", "quad_no_attributes.glsl.frag");
+		quad_mesh.setup_descriptors(a_renderer, buffers_images, false);
 		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
 		quad_mesh.upload_data(nullptr, 0, 6);        // This 6 here means I want to draw 6 vertices without any attributes as given by VertexDescriptor
 
@@ -2344,9 +2389,9 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 	}
 
 	auto program_upload_job = [&a_device, &a_renderer, this, with_environment](rhi::Program                   &a_program,
-	                                             const std::vector<rhi::Shader> &a_shaders,
-	                                             const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index,
-	                                             const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, bool a_need_shadow_map) -> auto {
+	                                                                           const std::vector<rhi::Shader> &a_shaders,
+	                                                                           const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index,
+	                                                                           const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, bool a_need_shadow_map) -> auto {
 		auto &textures       = a_model.textures();
 		auto &images         = a_model.images();
 		auto &samplers       = a_model.samplers();

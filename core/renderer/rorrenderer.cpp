@@ -1548,9 +1548,18 @@ void Renderer::create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a
 
 	rhi::VertexDescriptor vertex_descriptor0 = create_p_float4_c_float4_descriptor();
 
+	rhi::descriptor_update_type buffers_images;
+
+	const rhi::descriptor_variant per_view_uniform   = this->shader_buffer("per_view_uniform");
+
+	buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
+	// These shaders only have
+	// layout(std140, set = 0, binding = 20) uniform per_view_uniform
+
 	grid_mesh.init(a_device, rhi::PrimitiveTopology::lines);
 	grid_mesh.setup_vertex_descriptor(&vertex_descriptor0);        // Moves vertex_descriptor can't use it afterwards
 	grid_mesh.setup_shaders(*this, rhi::BlendMode::blend, "grid.glsl.vert", "grid.glsl.frag");
+	grid_mesh.setup_descriptors(*this, buffers_images, false);
 	auto grid_count = grid_data.size();
 	grid_mesh.upload_data(reinterpret_cast<const uint8_t *>(grid_data.data()), grid_count * sizeof(float), static_cast<uint32_t>(grid_count / 4));
 
