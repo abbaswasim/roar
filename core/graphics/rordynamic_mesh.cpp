@@ -181,6 +181,23 @@ void DynamicMesh::init_upload(const rhi::Device &a_device, const ror::Renderer &
 	this->setup_vertex_descriptor();
 	this->setup_shaders(a_renderer, a_blend_mode);
 
+	// Now we need to setup_descriptors with the actuall buffers used in triangle.glsl.vert/frag here
+
+	rhi::descriptor_update_type buffers_images;
+
+	const rhi::TextureImage      *image            = &this->texture_image();
+	const rhi::TextureSampler    *sampler          = &this->texture_sampler();
+	const rhi::descriptor_variant per_view_uniform = a_renderer.shader_buffer("per_view_uniform");
+	const rhi::descriptor_variant cube_map         = std::make_pair(image, sampler);
+
+	buffers_images[0].emplace_back(std::make_pair(cube_map, 0u));
+	buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
+	// These shaders only have
+	// layout(std140, set = 0, binding = 20) uniform per_view_uniform
+	// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler;
+
+	this->setup_descriptors(a_renderer, buffers_images, false);
+
 	// this->m_shader_buffer.add_entry("orthographic_projection", rhi::Format::float32_4x4);
 	// this->m_shader_buffer.upload(a_device, rhi::ResourceStorageOption::managed);
 }
