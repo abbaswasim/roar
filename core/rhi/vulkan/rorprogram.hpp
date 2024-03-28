@@ -93,7 +93,8 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 	    ProgramCrtp(a_compute_id)
 	{}
 
-	void allocate_descriptor(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_descriptor_pool, DescriptorSetCache &a_descriptor_cache, DescriptorSet &a_set);
+	void clear_descriptor();
+	void allocate_descriptor(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_descriptor_pool, DescriptorSetCache &a_descriptor_cache, DescriptorSet &a_set, uint32_t a_set_id);
 	void build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const std::vector<rhi::Shader> &a_shaders, bool a_need_shadow_map, bool a_with_environment);
 	void build_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, const std::vector<rhi::Shader> &a_shaders, const ror::Scene *a_scene,
 	                      const ror::Material                                                               *a_material,
@@ -104,7 +105,7 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 	void build_descriptor(const rhi::Device &a_device, const rhi::ShaderBuffer *a_shader_buffer, uint32_t buffer_binding,
 	                      const rhi::TextureImage *a_image, const rhi::TextureSampler *a_sampler, uint32_t a_texture_binding);
 	void build_descriptor(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders);
-
+	void update_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer, descriptor_update_type &a_buffers_images, bool a_use_environment);
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
 	            const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha);
@@ -143,6 +144,7 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
   private:
 	declare_translation_unit_vtable();
 	void environment_descriptor_set(const ror::Renderer &a_renderer, shader_resources_map &shaders_reflection, DescriptorSet &a_set, bool &a_allocate);
+	void environment_descriptor_set_update(const rhi::Device &a_device, const ror::Renderer &a_renderer);
 
 	std::variant<GraphicsPipelineState, ComputePipelineState> m_pipeline_state{};                     //! This program will contain either Render or Compute pipeline state
 	std::vector<size_t>                                       m_platform_descriptors{};               //! Index of the platform descriptor set in the descriptors cache

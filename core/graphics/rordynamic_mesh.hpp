@@ -54,6 +54,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	void set_texture(rhi::TextureImage *a_texture = nullptr, rhi::TextureSampler *a_sampler = nullptr);
 	void setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor = nullptr);
 	void setup_shaders(const ror::Renderer &a_renderer, rhi::BlendMode a_blend_mode = rhi::BlendMode::blend, std::filesystem::path a_vertex_shader = "triangle.glsl.vert", std::filesystem::path a_fragment_shader = "triangle.glsl.frag");
+	void setup_descriptors(const ror::Renderer &a_renderer, rhi::descriptor_update_type &a_buffers_images, bool a_use_environment);
 
 	// clang-format off
 	FORCE_INLINE void device(const rhi::Device *a_device)                        { this->m_device                       = a_device;         }

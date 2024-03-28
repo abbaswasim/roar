@@ -25,6 +25,24 @@
 
 #pragma once
 
+#include "rhi/rorshader_buffer.hpp"
+#include "rhi/rortexture.hpp"
+#include <unordered_map>
+#include <variant>
+#include <vector>
+
+namespace rhi
+{
+// This is a horrible hack on top of Vulkan Descriptor sets
+
+using descriptor_variant = std::variant<const rhi::ShaderBuffer *, std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>>;
+using descriptor_update_type = std::unordered_map<uint32_t,             // This is set id, for each set data will be provided
+                                                  std::vector<          // List of pairs of shader_buffer/combined_image_samplers with their binding
+                                                      std::pair<        // Pair of Data and Binding
+														  descriptor_variant,
+                                                          uint32_t>>>;        // Binding
+}        // namespace rhi
+
 #if defined(ROR_RENDER_TYPE_VULKAN)
 #	include "rhi/vulkan/rorprogram.hpp"
 #elif defined(ROR_RENDER_TYPE_METAL)
@@ -34,8 +52,6 @@
 #endif
 
 namespace rhi
-{
-
-}        // namespace rhi
+{}        // namespace rhi
 
 #include "rhi/rorprogram.hh"

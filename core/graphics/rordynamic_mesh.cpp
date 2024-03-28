@@ -27,11 +27,11 @@
 #include "resources/rorresource.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrender_command_encoder.hpp"
+#include "rhi/rorshader.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
 #include "rhi/rorvertex_layout.hpp"
-#include "rhi/rorshader.hpp"
 #include "rordynamic_mesh.hpp"
 #include <cassert>
 #include <vector>
@@ -116,12 +116,12 @@ void DynamicMesh::setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor)
 		// Create vertex descriptor
 		rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
 		rhi::VertexLayout    vlp{0, 36};                                                                                       // binding, stride, rate, multiplier, function
-		rhi::VertexAttribute vat{1, 12, 1, 0, 0, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
-		rhi::VertexLayout    vlt{0, 36};
-		rhi::VertexAttribute vac{2, 20, 1, 0, 0, 0, rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4};
-		rhi::VertexLayout    vlc{0, 36};
-		rhi::VertexAttribute vai{3, 0, 0, 0, 0, 0, rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1};
-		rhi::VertexLayout    vli{0, 0};
+		rhi::VertexAttribute vat{1, 12, 1, 0, 1, 0, rhi::BufferSemantic::vertex_texture_coord_0, rhi::VertexFormat::float32_2};
+		rhi::VertexLayout    vlt{1, 36};
+		rhi::VertexAttribute vac{2, 20, 1, 0, 2, 0, rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4};
+		rhi::VertexLayout    vlc{2, 36};
+		rhi::VertexAttribute vai{3, 0, 0, 0, 3, 0, rhi::BufferSemantic::vertex_index, rhi::VertexFormat::uint16_1};
+		rhi::VertexLayout    vli{3, 0};
 
 		this->m_has_positions = true;
 		this->m_has_indices   = true;
@@ -149,10 +149,16 @@ void DynamicMesh::setup_shaders(const ror::Renderer &a_renderer, rhi::BlendMode 
 	this->m_shader_program.vertex_id(0);
 	this->m_shader_program.fragment_id(1);
 
+	// This kind of build_descriptor also requires update_descriptor later, which is done in setup_descriptors
 	this->m_shader_program.build_descriptor(*this->m_device, shaders);
 
 	// This means it is only guaranteed to render in last/main render pass
 	this->m_shader_program.upload(*this->m_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, a_blend_mode, this->m_topology, "tri_pso", true, false, false);
+}
+
+void DynamicMesh::setup_descriptors(const ror::Renderer &a_renderer, rhi::descriptor_update_type &a_buffers_images, bool a_use_environment)
+{
+	this->m_shader_program.update_descriptor(*this->m_device, a_renderer, a_buffers_images, a_use_environment);
 }
 
 /**

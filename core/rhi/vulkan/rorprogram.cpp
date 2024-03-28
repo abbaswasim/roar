@@ -36,6 +36,7 @@
 #include "rhi/vulkan/rordescriptor_set.hpp"
 #include "rhi/vulkan/rorprogram.hpp"
 #include "rhi/vulkan/rorshader.hpp"
+#include "rhi/vulkan/rortexture.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 #include "settings/rorsettings.hpp"
@@ -44,6 +45,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace rhi
@@ -482,15 +484,16 @@ FORCE_INLINE void add_material_component_descriptor(const ror::Material::Compone
 	}
 }
 
-void ProgramVulkan::allocate_descriptor(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_descriptor_pool, DescriptorSetCache &a_descriptor_cache, DescriptorSet &a_set)
+void ProgramVulkan::allocate_descriptor(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_descriptor_pool, DescriptorSetCache &a_descriptor_cache, DescriptorSet &a_set, uint32_t a_set_id)
 {
-	auto layout           = a_set.allocate(a_device, a_layout_cache, a_descriptor_pool);
+	auto layout           = a_set.allocate(a_device, a_layout_cache, a_descriptor_pool, a_set_id);
 	auto descriptor_index = a_descriptor_cache.emplace(std::move(a_set));
 
 	this->m_platform_descriptors.push_back(descriptor_index);
 	this->m_platform_descriptor_layouts.push_back(layout);
 }
 
+// Builds a descriptor for all environment textures etc. Its always in set 0 but takes that as argument
 void ProgramVulkan::environment_descriptor_set(const ror::Renderer &a_renderer, shader_resources_map &shaders_reflection, DescriptorSet &a_set, bool &a_allocate)
 {
 	auto &renderer_images   = a_renderer.images();
@@ -538,6 +541,7 @@ void ProgramVulkan::environment_descriptor_set(const ror::Renderer &a_renderer, 
 		a_set.push_image(brdf_integration_sampler_binding, &brdf_integration_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
 		a_allocate = true;
 	}
+
 	if (has_skybox_sampler)
 	{
 		assert(skybox_sampler_rsrc->m_binding == skybox_sampler_binding &&
@@ -545,6 +549,7 @@ void ProgramVulkan::environment_descriptor_set(const ror::Renderer &a_renderer, 
 		a_set.push_image(skybox_sampler_binding, &skybox_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
 		a_allocate = true;
 	}
+
 	if (has_irradiance_sampler)
 	{
 		assert(irradiance_sampler_rsrc->m_binding == irradiance_sampler_binding &&
@@ -552,6 +557,7 @@ void ProgramVulkan::environment_descriptor_set(const ror::Renderer &a_renderer, 
 		a_set.push_image(irradiance_sampler_binding, &irradiance_image_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL);
 		a_allocate = true;
 	}
+
 	if (has_radiance_sampler)
 	{
 		assert(radiance_sampler_rsrc->m_binding == radiance_sampler_binding &&
@@ -561,7 +567,44 @@ void ProgramVulkan::environment_descriptor_set(const ror::Renderer &a_renderer, 
 	}
 }
 
-// TODO: Do per pass optimisation of the layout, is that an optimisatios or we need it.
+// This one can be used when only descriptor writes needs updating and not the whole descriptor needs building
+void ProgramVulkan::environment_descriptor_set_update(const rhi::Device &a_device, const ror::Renderer &a_renderer)
+{
+	// Should be getting the descriptor set from the list it should be number 0
+	assert(this->m_platform_descriptors.size() && "There are no descriptors in the program yet");
+
+	auto          &descriptor_cache  = a_device.descriptor_set_cache();
+	DescriptorSet &set               = descriptor_cache.at(this->m_platform_descriptors[0]);        // Environment stuff is in descriptor set 0 based on frequency based architecture
+	auto          &renderer_images   = a_renderer.images();
+	auto           renderer_samplers = a_renderer.samplers();
+	auto          &env               = a_renderer.current_environment();
+	auto          &setting           = ror::settings();
+
+	auto brdf_integration_sampler_binding = setting.brdf_integration_sampler_binding();
+	auto skybox_sampler_binding           = setting.skybox_sampler_binding();
+	auto irradiance_sampler_binding       = setting.irradiance_sampler_binding();
+	auto radiance_sampler_binding         = setting.radiance_sampler_binding();
+
+	auto &brdf_integration_image = renderer_images[ror::static_cast_safe<size_t>(env.brdf_integration())];
+	auto &skybox_image           = renderer_images[ror::static_cast_safe<size_t>(env.skybox())];
+	auto &irradiance_image       = renderer_images[ror::static_cast_safe<size_t>(env.irradiance())];
+	auto &radiance_image         = renderer_images[ror::static_cast_safe<size_t>(env.radiance())];
+	auto &shared_sampler         = renderer_samplers[ror::static_cast_safe<size_t>(env.skybox_sampler())];
+
+	VkDescriptorImageInfo brdf_integration_image_info{vk_create_descriptor_image_info(brdf_integration_image.platform_image_view(), shared_sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+	VkDescriptorImageInfo skybox_image_info{vk_create_descriptor_image_info(skybox_image.platform_image_view(), shared_sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+	VkDescriptorImageInfo irradiance_image_info{vk_create_descriptor_image_info(irradiance_image.platform_image_view(), shared_sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+	VkDescriptorImageInfo radiance_image_info{vk_create_descriptor_image_info(radiance_image.platform_image_view(), shared_sampler.platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+
+	set.push_binding(brdf_integration_sampler_binding, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &brdf_integration_image_info, nullptr);
+	set.push_binding(skybox_sampler_binding, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &skybox_image_info, nullptr);
+	set.push_binding(irradiance_sampler_binding, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &irradiance_image_info, nullptr);
+	set.push_binding(radiance_sampler_binding, VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &radiance_image_info, nullptr);
+
+	set.update_writes();
+}
+
+// TODO: Do per pass optimisation of the layout, is that an optimisation or we need it.
 // It should use *material, *skin
 /**
  * @brief      Builds descriptor set layout for the PSO via reflection unlike build_descriptor
@@ -660,10 +703,7 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 	// clang-format on
 
 	// To make it reinterant clear the current layouts
-	this->m_platform_descriptors.clear();
-	this->m_platform_descriptor_layouts.clear();
-	this->m_platform_descriptors.reserve(4);
-	this->m_platform_descriptor_layouts.reserve(4);
+	this->clear_descriptor();
 
 	const auto per_view_ubo_str{"per_view_uniform"};
 	const auto per_frame_ubo_str{"per_frame_uniform"};
@@ -938,7 +978,7 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 
 		// Now lets allocate set 0
 		if (allocate)
-			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set, 0);
 	}
 
 	// Set 1 is per view uniform
@@ -954,7 +994,7 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 			set.push_buffer(per_view_uniform_binding, &per_view_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 
 			// Now lets allocate set 1
-			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set, 1);
 		}
 	}
 
@@ -979,7 +1019,7 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 		set.push_buffer(joint_inverse_bind_matrices_binding, &joint_inverse_bind_matrices_uniform_buffer_info, VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 
 		// Now lets allocate set 2
-		this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+		this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set, 2);
 	}
 
 	// Set 3 is Material factors and texture samplers
@@ -1022,7 +1062,7 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 		add_material_component_descriptor(a_material->m_subsurface_color, subsurface_color_sampler_rsrc, model_textures, model_images, model_samplers, binding++, set);
 
 		// Now lets allocate set 3
-		this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+		this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set, 3);
 	}
 }
 
@@ -1034,6 +1074,9 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const rhi::ShaderBuffer *a_shader_buffer, uint32_t buffer_binding,
                                      const rhi::TextureImage *a_image, const rhi::TextureSampler *a_sampler, uint32_t a_texture_binding)
 {
+	// To make it reinterant clear the current layouts
+	this->clear_descriptor();
+
 	// TODO: Should I do reflection here as well? don't think so because its so specialised method.
 	auto  device           = a_device.platform_device();
 	auto &descriptor_pool  = a_device.descriptor_set_pool();
@@ -1056,8 +1099,16 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const rhi::Sha
 		}
 
 		// Now lets allocate the only set
-		this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+		this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set, 0);
 	}
+}
+
+void ProgramVulkan::clear_descriptor()
+{
+	this->m_platform_descriptors.clear();
+	this->m_platform_descriptor_layouts.clear();
+	this->m_platform_descriptors.reserve(4);
+	this->m_platform_descriptor_layouts.reserve(4);
 }
 
 // Fully reflected descriptor building that requires push_binding with actual buffer and images later
@@ -1068,6 +1119,9 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const std::vec
 	auto &layout_cache          = a_device.descriptor_set_layout_cache();
 	auto &descriptor_cache      = a_device.descriptor_set_cache();
 	auto  descriptor_sets_count = ror::settings().m_vulkan.m_descriptor_sets_size;
+
+	// To make it reinterant clear the current layouts
+	this->clear_descriptor();
 
 	shader_resources_map       shaders_reflection{get_unique_resource_bindings(a_shaders, this->vertex_id(), this->fragment_id(), this->compute_id(), this->tile_id(), this->mesh_id())};
 	std::vector<DescriptorSet> sets{descriptor_sets_count};
@@ -1101,7 +1155,118 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const std::vec
 
 		// Now lets allocate the only set
 		if (allocate)
-			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set);
+			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set, i);
+	}
+}
+
+// Each ShaderBuffer or TextureImage/TextureSampler comes with set and binding which can be used to link the resources with descriptors
+void ProgramVulkan::update_descriptor(const rhi::Device &a_device, const ror::Renderer &a_renderer,
+                                      descriptor_update_type &a_buffers_images,
+                                      bool                    a_use_environment)
+{
+	auto &descriptor_cache      = a_device.descriptor_set_cache();
+	auto &renderer_images       = a_renderer.images();
+	auto  renderer_samplers     = a_renderer.samplers();
+	auto &env                   = a_renderer.current_environment();
+	auto &setting               = ror::settings();
+	auto  descriptor_sets_count = ror::settings().m_vulkan.m_descriptor_sets_size;
+
+	if (a_use_environment)
+	{
+		auto brdf_integration_sampler_binding = setting.brdf_integration_sampler_binding();
+		auto skybox_sampler_binding           = setting.skybox_sampler_binding();
+		auto irradiance_sampler_binding       = setting.irradiance_sampler_binding();
+		auto radiance_sampler_binding         = setting.radiance_sampler_binding();
+
+		auto &brdf_integration_image = renderer_images[ror::static_cast_safe<size_t>(env.brdf_integration())];
+		auto &skybox_image           = renderer_images[ror::static_cast_safe<size_t>(env.skybox())];
+		auto &irradiance_image       = renderer_images[ror::static_cast_safe<size_t>(env.irradiance())];
+		auto &radiance_image         = renderer_images[ror::static_cast_safe<size_t>(env.radiance())];
+		auto &shared_sampler         = renderer_samplers[ror::static_cast_safe<size_t>(env.skybox_sampler())];
+
+		const auto env_set = 0u;
+
+		std::variant<const rhi::ShaderBuffer *, std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>> brdf_texture       = std::make_pair(&brdf_integration_image, &shared_sampler);
+		std::variant<const rhi::ShaderBuffer *, std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>> skybox_texture     = std::make_pair(&skybox_image, &shared_sampler);
+		std::variant<const rhi::ShaderBuffer *, std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>> irradiance_texture = std::make_pair(&irradiance_image, &shared_sampler);
+		std::variant<const rhi::ShaderBuffer *, std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>> radiance_texture   = std::make_pair(&radiance_image, &shared_sampler);
+
+		a_buffers_images[env_set].emplace_back(std::make_pair(brdf_texture, brdf_integration_sampler_binding));
+		a_buffers_images[env_set].emplace_back(std::make_pair(skybox_texture, skybox_sampler_binding));
+		a_buffers_images[env_set].emplace_back(std::make_pair(irradiance_texture, irradiance_sampler_binding));
+		a_buffers_images[env_set].emplace_back(std::make_pair(radiance_texture, radiance_sampler_binding));
+	}
+
+	assert(this->m_platform_descriptors.size() && "There are no descriptors in the program yet");
+
+	using data_vector = std::vector<std::pair<std::variant<const rhi::ShaderBuffer *, std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>>, uint32_t>>;
+	using data_pair   = std::pair<std::variant<const rhi::ShaderBuffer *, std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>>, uint32_t>;
+	// using data_variant = std::variant<const rhi::ShaderBuffer *, std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>>;
+	using texture_pair = std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>;
+
+	for (uint32_t i = 0; i < descriptor_sets_count; ++i)
+	{
+		DescriptorSet *set_ptr{nullptr};
+		data_vector   *set_data_ptr{nullptr};
+
+		for (auto &pd : this->m_platform_descriptors)        // Lets find the set we have in this program
+		{
+			DescriptorSet &set = descriptor_cache.at(pd);
+			if (set.set_id() == i)
+			{
+				set_ptr      = &set;
+				set_data_ptr = &a_buffers_images.at(i);
+				break;
+			}
+		}
+
+		assert(set_ptr && set_data_ptr && "Can't find the descriptor set with the right set_id");
+
+		assert(set_ptr->bindings().size() && "There are not bindings in the set we are trying to update");
+		assert(set_ptr->writes().size() == 0 && "There are already writes, can't re-create them. First call reset_writes() on the descriptor");
+
+		for (auto layout_binding : set_ptr->bindings())
+		{
+			data_pair *binding_data{nullptr};
+			for (auto &s : *set_data_ptr)        // Lets find the binding we have in the data
+			{
+				if (s.second == layout_binding.binding)
+				{
+					binding_data = &s;
+					break;
+				}
+			}
+
+			assert(binding_data && "Can't find binding data for this binding");
+			auto binding_id = binding_data->second;
+			assert(binding_id == layout_binding.binding && "Bindings don't match");
+
+			if (layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER ||
+			    layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
+			{
+				texture_pair &texture = std::get<texture_pair>(binding_data->first);
+
+				auto image   = texture.first;
+				auto sampler = texture.second;
+
+				assert(image && sampler && "Image and sampler can't be found");
+
+				VkDescriptorImageInfo image_info{vk_create_descriptor_image_info(image->platform_image_view(), sampler->platform_handle(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)};
+				set_ptr->push_binding(binding_id, layout_binding.descriptorType, &image_info, nullptr);        // Creates a write descriptor for the descriptor set
+			}
+			else if (layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER ||
+			         layout_binding.descriptorType == VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+			{
+				const rhi::ShaderBuffer *buffer = std::get<const rhi::ShaderBuffer *>(binding_data->first);
+
+				assert(buffer && "Image and sampler can't be found");
+
+				VkDescriptorBufferInfo buffer_info{vk_create_descriptor_buffer_info(buffer->platform_buffer())};
+				set_ptr->push_binding(binding_id, layout_binding.descriptorType, nullptr, &buffer_info);        // Creates a write descriptor for the descriptor set
+			}
+		}
+
+		set_ptr->update_writes();
 	}
 }
 

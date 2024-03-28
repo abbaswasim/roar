@@ -49,7 +49,9 @@ class DescriptorSet final
 
 	void                  push_image(uint32_t a_binding, VkDescriptorImageInfo *a_image_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags = VK_SHADER_STAGE_ALL);
 	void                  push_buffer(uint32_t a_binding, VkDescriptorBufferInfo *a_buffer_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags = VK_SHADER_STAGE_ALL);
-	VkDescriptorSetLayout allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_factory, DescriptorPool &a_pool);
+	void                  push_binding(uint32_t a_binding, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags);
+	void                  push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info);
+	VkDescriptorSetLayout allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_factory, DescriptorPool &a_pool, uint32_t a_set_id);
 	void                  update(const VkDevice a_device);
 	void                  update_writes();
 	void                  reset_writes();
@@ -57,11 +59,9 @@ class DescriptorSet final
 	// clang-format off
 	auto &bindings() { return this->m_bindings; }
 	auto &writes()   { return this->m_writes;   }
+	auto  set_id()   { return this->m_set_id;   }
 	// clang-format on
 	// void free(const VkDevice a_device); // Not provided because bad practice, would rather free the pool directly
-
-	void push_binding(uint32_t a_binding, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags);
-	void push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info);
 
   protected:
   private:
@@ -70,6 +70,7 @@ class DescriptorSet final
 	std::vector<VkDescriptorSetLayoutBinding> m_bindings{};             //! All the bindings that makes up this descriptor
 	std::vector<VkWriteDescriptorSet>         m_writes{};               //! All the writes that would need to performed when updating
 	VkDescriptorSet                           m_handle{nullptr};        //! Handle to the descriptor set
+	uint32_t                                  m_set_id{0};              //! Set id used in the shader for this descriptor set, by default its 0
 
 	// VkDescriptorPool                          m_pool{nullptr};          //! Handle to the pool from where we allocated this descriptor, required if free is implemented
 };

@@ -61,10 +61,11 @@ void DescriptorSet::push_buffer(uint32_t a_binding, VkDescriptorBufferInfo *a_bu
 	this->push_binding(a_binding, nullptr, a_buffer_info, a_type, a_stage_flags);
 }
 
-VkDescriptorSetLayout DescriptorSet::allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_pool)
+VkDescriptorSetLayout DescriptorSet::allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_pool, uint32_t a_set_id)
 {
 	auto descriptor_layout = a_layout_cache.make_layout(a_device, this->m_bindings);
 	this->m_handle         = a_pool.allocate(a_device, descriptor_layout);
+	this->m_set_id         = a_set_id;
 
 	this->update_writes();        // NOTE: This might or might not do much depending on which push_binding overload is used and hence would need to be called later separately
 
