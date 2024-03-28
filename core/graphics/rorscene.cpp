@@ -2407,6 +2407,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 			skin = &a_model.skins()[static_cast<size_t>(mesh.skin_index())];
 
 		a_program.build_descriptor(a_device, a_renderer, this->m_shaders, this, &material, &textures, &images, &samplers, skin, a_need_shadow_map, with_environment);
+		// Need to call a_program.update_descriptor later at when we know what resource is used by each shader
 
 		a_program.upload(a_device, a_pass, a_subpass, a_shaders, a_model, a_mesh_index, a_prim_index, false);
 

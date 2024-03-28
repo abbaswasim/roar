@@ -1220,7 +1220,7 @@ void ProgramVulkan::update_descriptor(const rhi::Device &a_device, const ror::Re
 			}
 		}
 
-		assert(set_ptr && set_data_ptr && "Can't find the descriptor set with the right set_id");
+		if(!set_ptr && !set_data_ptr) continue;
 
 		assert(set_ptr->bindings().size() && "There are not bindings in the set we are trying to update");
 		assert(set_ptr->writes().size() == 0 && "There are already writes, can't re-create them. First call reset_writes() on the descriptor");
@@ -1259,7 +1259,7 @@ void ProgramVulkan::update_descriptor(const rhi::Device &a_device, const ror::Re
 			{
 				const rhi::ShaderBuffer *buffer = std::get<const rhi::ShaderBuffer *>(binding_data->first);
 
-				assert(buffer && "Image and sampler can't be found");
+				assert(buffer && "Buffer can't be found");
 
 				VkDescriptorBufferInfo buffer_info{vk_create_descriptor_buffer_info(buffer->platform_buffer())};
 				set_ptr->push_binding(binding_id, layout_binding.descriptorType, nullptr, &buffer_info);        // Creates a write descriptor for the descriptor set

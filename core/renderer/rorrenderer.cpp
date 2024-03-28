@@ -1550,7 +1550,7 @@ void Renderer::create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a
 
 	rhi::descriptor_update_type buffers_images;
 
-	const rhi::descriptor_variant per_view_uniform   = this->shader_buffer("per_view_uniform");
+	const rhi::descriptor_variant per_view_uniform = this->shader_buffer("per_view_uniform");
 
 	buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
 	// These shaders only have
@@ -1633,18 +1633,33 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 	this->m_cube_map_mesh.shader_program_external(skybox_render_pso);
 	this->m_cube_map_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
 
-	auto skybox_update_lambda = [](rhi::Device &device, ror::Renderer &renderer) {
+	auto skybox_update_lambda = [&shaders = this->m_shaders, skybox_image, skybox_sampler](rhi::Device &device, ror::Renderer &renderer) {
 		// Skybox pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
-		auto &descriptor   = renderer.m_cube_map_mesh.vertex_descriptor();
-		auto  pso          = renderer.m_cube_map_mesh.shader_program_external();
+		auto &descriptor = renderer.m_cube_map_mesh.vertex_descriptor();
+		auto  pso        = renderer.m_cube_map_mesh.shader_program_external();
 
 		rhi::Renderpass    *pass{nullptr};
 		rhi::Rendersubpass *subpass{nullptr};
+		bool                with_environment{false};
 
 		renderer.get_final_pass_subpass(&pass, &subpass);
 
-		pso->build_descriptor(device, renderer, per_view_ubo, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-		                      nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, false, with_environment);
+		pso->build_descriptor(device, shaders);
+		// This now also requires a call to DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
+		// Which requires stuff like images and buffers that needs to be sent to the push_binding above
+		// This is called from within pso::update_descriptor
+
+		const rhi::descriptor_variant per_view_uniform = renderer.shader_buffer("per_view_uniform");
+		const rhi::descriptor_variant cube_map         = std::make_pair(skybox_image, skybox_sampler);
+		rhi::descriptor_update_type   buffers_images;
+
+		buffers_images[0].emplace_back(std::make_pair(cube_map, 0u));
+		buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
+		// These shaders only have
+		// layout(std140, set = 0, binding = 0) samplerCube cubemap;
+		// layout(std140, set = 0, binding = 20) uniform per_view_uniform
+
+		pso->update_descriptor(device, renderer, buffers_images, with_environment);
 
 		pso->upload(device, *pass, *subpass, descriptor, renderer.m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_render_pso", true, false, false);
 	};
@@ -2010,14 +2025,18 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 		auto program_update = [&program, this, &a_buffer_pack](rhi::Device &device, std::unordered_set<hash_64_t> *) {
 			rhi::Renderpass    *pass{nullptr};
 			rhi::Rendersubpass *subpass{nullptr};
-
-			bool pre_multiplied{false};
+			bool                pre_multiplied{false};
 
 			// TODO: This should be lighting pass if these programs are for IBLs
 			this->get_final_pass_subpass(&pass, &subpass);
 
-			program.build_descriptor(device, *this, per_view_ubo, per_frame_ubo, model_ubo, offset_ubo, weights_ubo,
-			                         nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
+			program.build_descriptor(device, this->m_shaders);
+			// This now also requires a call to DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
+			// Which requires stuff like images and buffers that needs to be sent to the push_binding above
+			// This is called from within pso::update_descriptor
+			// For each of these program am not calling
+			// program.update_descriptor(device, *this, buffers_images, with_environment);
+			// because it should be done when we know what buffers/images it uses
 
 			program.upload(device, *pass, *subpass, this->m_shaders, a_buffer_pack, pre_multiplied);        // TODO: Retrieve pre-multiplied state from renderer for each shader
 		};
@@ -2199,9 +2218,10 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 
 	// Unused PSO but can be used to render textured stuff
 	// auto textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_textured_quads_pso)];
-	auto shadow_map_textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_shadow_map_textured_quads_pso)];
-	auto shadow_image                  = &this->images()[static_cast<size_t>(this->m_debug_data.m_shadow_texture)];
-	auto shadow_sampler                = &this->samplers()[static_cast<size_t>(this->m_debug_data.m_default_sampler)];
+	auto                        shadow_map_textured_quads_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_shadow_map_textured_quads_pso)];
+	auto                        shadow_image                  = &this->images()[static_cast<size_t>(this->m_debug_data.m_shadow_texture)];
+	auto                        shadow_sampler                = &this->samplers()[static_cast<size_t>(this->m_debug_data.m_default_sampler)];
+	rhi::descriptor_update_type buffers_images;
 
 	this->m_debug_data.m_shadow_cascades.set_texture(shadow_image, shadow_sampler);        // Would need refresh if images or samplers vectors are resized
 	// this->m_debug_data.m_shadow_cascades.shader_program_external(textured_quads_pso);
@@ -2209,13 +2229,24 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 
 	rhi::Renderpass    *pass{nullptr};
 	rhi::Rendersubpass *subpass{nullptr};
+	bool                with_environment{false};
 
 	this->get_final_pass_subpass(&pass, &subpass);
 
 	// textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
 
-	shadow_map_textured_quads_pso->build_descriptor(a_device, *this, per_view_ubo, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-	                                                nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, true, false);
+	shadow_map_textured_quads_pso->build_descriptor(a_device, this->m_shaders);
+	// This now also requires a call to DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
+	// Which requires stuff like images and buffers that needs to be sent to the push_binding above
+	// This is called from within Program::update_descriptor
+
+	const rhi::descriptor_variant base_color_sampler = std::make_pair(shadow_image, shadow_sampler);
+
+	buffers_images[0].emplace_back(std::make_pair(base_color_sampler, 0u));
+	// These shaders only have
+	// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler;
+
+	shadow_map_textured_quads_pso->update_descriptor(a_device, *this, buffers_images, with_environment);
 
 	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
 	shadow_map_textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
@@ -2253,10 +2284,21 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 	auto lines_pso = &this->programs()[static_cast<size_t>(this->m_debug_data.m_colored_lines_pso)];
 	this->m_debug_data.m_frustums[cascade_index].shader_program_external(lines_pso);
 
-	lines_pso->build_descriptor(a_device, *this, per_view_ubo, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
-	                            nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
+	lines_pso->build_descriptor(a_device, this->m_shaders);
+	// This now also requires a call to DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
+	// Which requires stuff like images and buffers that needs to be sent to the push_binding above
 
-	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
+	buffers_images.clear();
+
+	const rhi::descriptor_variant per_view_uniform = this->shader_buffer("per_view_uniform");
+
+	buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
+	// These shaders only have
+	// layout(std140, set = 0, binding = 20) uniform per_view_uniform
+
+	lines_pso->update_descriptor(a_device, *this, buffers_images, false);
+
+	// Lines pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
 	lines_pso->upload(a_device, *pass, *subpass, colored_lines_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "cascades_debug_view", true, false, false);
 
 	// This is done last because of the move
