@@ -134,7 +134,7 @@ class ROAR_ENGINE_ITEM VertexDescriptor final
 
 	/**
 	 * Returns an attribute for specified semantic
-	 * If the key doesn't exisit expect std::out_of_range exception, I can't really catch this exception meaningfully
+	 * If the key doesn't exist expect std::out_of_range exception, I can't really catch this exception meaningfully
 	 */
 	FORCE_INLINE VertexAttribute &attribute(rhi::BufferSemantic a_semantic_key) const;
 

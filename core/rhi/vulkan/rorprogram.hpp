@@ -55,6 +55,8 @@ typedef struct VkComputePipeline_T  *ComputePipelineState;
 
 enum class ShaderResourceType
 {
+	input            = VK_DESCRIPTOR_TYPE_MAX_ENUM,
+	output           = VK_DESCRIPTOR_TYPE_MAX_ENUM,
 	sampled_image    = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 	storage_image    = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
 	separate_image   = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
@@ -66,11 +68,12 @@ enum class ShaderResourceType
 
 struct ShaderResource
 {
-	ShaderResourceType m_type;
-	uint32_t           m_set;
-	uint32_t           m_binding;
-	uint32_t           m_location;
-	std::string        m_name;
+	ShaderResourceType m_type{ShaderResourceType::input};
+	uint32_t           m_set{0};
+	uint32_t           m_binding{0};
+	uint32_t           m_location{0};
+	VertexFormat       m_format{VertexFormat::float32_3};
+	std::string        m_name{};
 };
 
 using spirv_resources_vector = const spirv_cross::SmallVector<spirv_cross::Resource>;

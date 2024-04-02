@@ -32,6 +32,8 @@
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rorvertex_attribute.hpp"
+#include "rhi/rorvertex_description.hpp"
 #include "rhi/rorvertex_layout.hpp"
 #include "rhi/vulkan/rordescriptor_set.hpp"
 #include "rhi/vulkan/rorprogram.hpp"
@@ -54,6 +56,8 @@ define_translation_unit_vtable(ProgramVulkan)
 {}
 
 using VulkanDescriptorVector = std::vector<std::pair<VkVertexInputAttributeDescription, VkVertexInputBindingDescription>>;
+
+shader_resources_map read_shader_inputs(const std::vector<unsigned int> &a_spirv);
 
 void ProgramVulkan::release(const rhi::Device &a_device)
 {
@@ -88,28 +92,58 @@ static void append_to_vulkan_vertex_descriptor(VulkanDescriptorVector     &a_att
 	a_attributes.emplace_back(std::make_pair(vertex_descriptor_attribute, vertex_descriptor_binding));
 }
 
-static auto get_default_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
+// static auto get_default_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
+// {
+// 	auto                 &setting = ror::settings();
+// 	rhi::VertexDescriptor descriptor{};
+
+// 	for (auto att_pair : setting.m_default_vertex_descriptor.attributes)
+// 		descriptor.add(att_pair.first, att_pair.second, &a_buffer_pack);
+
+// 	return descriptor;
+// }
+
+static auto get_default_vertex_descriptor(const shader_resources_map &a_vertex_reflection)
 {
-	auto                 &setting = ror::settings();
+	assert(a_vertex_reflection.size() == 1 && "Not expected number of sets in the reflection");
 	rhi::VertexDescriptor descriptor{};
 
-	for (auto att_pair : setting.m_default_vertex_descriptor.attributes)
-		descriptor.add(att_pair.first, att_pair.second, &a_buffer_pack);
+	std::vector<rhi::VertexAttribute> attribs;
+	std::vector<rhi::VertexLayout>    layouts;
 
-	return descriptor;
+	for (auto &sets : a_vertex_reflection)
+	{
+		uint32_t semantic       = 0;
+		uint32_t semantic_index = 0;
+		for (auto &input : sets.second)
+		{
+			assert(input.m_type == ShaderResourceType::input && "Shader resource not input");
+			// These attributes and layouts doesn't have to be perfect, these are just dummy to make append_to_vulkan_vertex_descriptor work
+			rhi::VertexAttribute va{input.m_location, 0, 1, 0, input.m_location, 0, static_cast<rhi::BufferSemantic>(semantic), input.m_format};
+			rhi::VertexLayout    vl{input.m_location, vertex_format_to_bytes(input.m_format)};
+
+			attribs.emplace_back(va);
+			layouts.emplace_back(vl);
+
+			semantic = 1u << semantic_index;
+			semantic_index++;
+		}
+	}
+
+	return rhi::VertexDescriptor{attribs, layouts};
 }
 
-static auto get_default_vlk_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
-{
-	auto vertex_descriptor = get_default_vertex_descriptor(a_buffer_pack);
+// static auto get_default_vlk_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
+// {
+// 	auto vertex_descriptor = get_default_vertex_descriptor(a_buffer_pack);
 
-	VulkanDescriptorVector attributes;
+// 	VulkanDescriptorVector attributes;
 
-	for (auto &attrib : vertex_descriptor.attributes())
-		append_to_vulkan_vertex_descriptor(attributes, attrib, vertex_descriptor.layout(attrib.semantics()));
+// 	for (auto &attrib : vertex_descriptor.attributes())
+// 		append_to_vulkan_vertex_descriptor(attributes, attrib, vertex_descriptor.layout(attrib.semantics()));
 
-	return attributes;
-}
+// 	return attributes;
+// }
 
 static auto walk_vertex_descriptor_attributes(VulkanDescriptorVector &a_attributes, const rhi::VertexDescriptor &a_vertex_descriptor, bool a_depth_shadow)
 {
@@ -120,6 +154,20 @@ static auto walk_vertex_descriptor_attributes(VulkanDescriptorVector &a_attribut
 		if (is_attribute_required_in_pass(attrib.semantics(), a_depth_shadow))
 			append_to_vulkan_vertex_descriptor(a_attributes, attrib, a_vertex_descriptor.layout(attrib.semantics()));
 	}
+}
+
+static auto get_vulkan_vertex_descriptor(const rhi::Shader &a_vertex_shader)
+{
+	shader_resources_map vertex_shader_reflection = read_shader_inputs(a_vertex_shader.spirv());
+
+	auto vertex_descriptor = get_default_vertex_descriptor(vertex_shader_reflection);
+
+	VulkanDescriptorVector attributes;
+
+	for (auto &attrib : vertex_descriptor.attributes())
+		append_to_vulkan_vertex_descriptor(attributes, attrib, vertex_descriptor.layout(attrib.semantics()));
+
+	return attributes;
 }
 
 static auto get_vulkan_vertex_descriptor(const std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>> &a_meshes, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_depth_shadow)
@@ -268,6 +316,95 @@ static auto create_fragment_render_pipeline(const rhi::Device                   
 	return reinterpret_cast<GraphicsPipelineState>(graphics_pipeline);
 }
 
+static rhi::VertexFormat spirv_type_to_vertex_format(const spirv_cross::SPIRType &a_spirv_type)
+{
+	// clang-format off
+	if (a_spirv_type.basetype == spirv_cross::SPIRType::SByte)
+	{
+		switch (a_spirv_type.vecsize)
+		{
+		case 1: return rhi::VertexFormat::int8_1;
+		case 2: return rhi::VertexFormat::int8_2;
+		case 3: return rhi::VertexFormat::int8_3;
+		case 4: return rhi::VertexFormat::int8_4;
+		}
+	}
+	else if (a_spirv_type.basetype == spirv_cross::SPIRType::UByte)
+	{
+		switch (a_spirv_type.vecsize)
+		{
+		case 1: return rhi::VertexFormat::uint8_1;
+		case 2: return rhi::VertexFormat::uint8_2;
+		case 3: return rhi::VertexFormat::uint8_3;
+		case 4: return rhi::VertexFormat::uint8_4;
+		}
+	}
+	else if (a_spirv_type.basetype == spirv_cross::SPIRType::Short)
+	{
+		switch (a_spirv_type.vecsize)
+		{
+		case 1: return rhi::VertexFormat::int16_1;
+		case 2: return rhi::VertexFormat::int16_2;
+		case 3: return rhi::VertexFormat::int16_3;
+		case 4: return rhi::VertexFormat::int16_4;
+		}
+	}
+	else if (a_spirv_type.basetype == spirv_cross::SPIRType::UShort)
+	{
+		switch (a_spirv_type.vecsize)
+		{
+		case 1: return rhi::VertexFormat::uint16_1;
+		case 2: return rhi::VertexFormat::uint16_2;
+		case 3: return rhi::VertexFormat::uint16_3;
+		case 4: return rhi::VertexFormat::uint16_4;
+		}
+	}
+	else if (a_spirv_type.basetype == spirv_cross::SPIRType::Int)
+	{
+		switch (a_spirv_type.vecsize)
+		{
+		case 1: return rhi::VertexFormat::int32_1;
+		case 2: return rhi::VertexFormat::int32_2;
+		case 3: return rhi::VertexFormat::int32_3;
+		case 4: return rhi::VertexFormat::int32_4;
+		}
+	}
+	else if (a_spirv_type.basetype == spirv_cross::SPIRType::UInt)
+	{
+		switch (a_spirv_type.vecsize)
+		{
+		case 1: return rhi::VertexFormat::uint32_1;
+		case 2: return rhi::VertexFormat::uint32_2;
+		case 3: return rhi::VertexFormat::uint32_3;
+		case 4: return rhi::VertexFormat::uint32_4;
+		}
+	}
+	else if (a_spirv_type.basetype == spirv_cross::SPIRType::Float)
+	{
+		switch (a_spirv_type.vecsize)
+		{
+		case 1: return rhi::VertexFormat::float32_1;
+		case 2: return rhi::VertexFormat::float32_2;
+		case 3: return rhi::VertexFormat::float32_3;
+		case 4: return rhi::VertexFormat::float32_4;
+		}
+	}
+	else if (a_spirv_type.basetype == spirv_cross::SPIRType::Double)
+	{
+		switch (a_spirv_type.vecsize)
+		{
+		case 1: return rhi::VertexFormat::float64_1;
+		case 2: return rhi::VertexFormat::float64_2;
+		case 3: return rhi::VertexFormat::float64_3;
+		case 4: return rhi::VertexFormat::float64_4;
+		}
+	}
+	// clang-format on
+
+	// This just means its not a vertex input that we support
+	return rhi::VertexFormat::invalid;
+}
+
 void append_resource(const spirv_cross::Compiler  &a_compiler,
                      shader_resources_map         &a_resources,
                      const spirv_resources_vector &a_shader_resources,
@@ -284,21 +421,34 @@ void append_resource(const spirv_cross::Compiler  &a_compiler,
 		shader_resource.m_set      = a_compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
 		shader_resource.m_binding  = a_compiler.get_decoration(resource.id, spv::DecorationBinding);
 		shader_resource.m_location = a_compiler.get_decoration(resource.id, spv::DecorationLocation);
+		shader_resource.m_format   = spirv_type_to_vertex_format(a_compiler.get_type_from_variable(resource.id));
 
+		if (a_type == ShaderResourceType::input)
+		{
+			assert(shader_resource.m_set == 0 && "Input must only be in set 0");
+		}
 		assert(shader_resource.m_set < descriptor_sets_count && "Descriptor set value not valid");
+		(void) descriptor_sets_count;
+
 		a_resources[shader_resource.m_set].emplace_back(shader_resource);
 	}
 }
+
+// This is a macro and not a function because spirv_cross::CompilerGLSL has a deleted copy/move ctr in StreamBuffer
+// Probably worth cacheing the compiler at some point
+#define set_spirv_cross_compiler(spirv)                             \
+	spirv_cross::CompilerGLSL compiler{a_spirv};                    \
+	auto                      opts = compiler.get_common_options(); \
+	opts.enable_420pack_extension  = true;                          \
+	compiler.set_common_options(opts);                              \
+	(void) 0
 
 shader_resources_map read_shader_resources(const std::vector<unsigned int> &a_spirv)
 {
 	auto descriptor_sets_count = ror::settings().m_vulkan.m_descriptor_sets_size;
 
-	spirv_cross::CompilerGLSL compiler{a_spirv};
-	auto                      opts = compiler.get_common_options();
-	opts.enable_420pack_extension  = true;
-
-	compiler.set_common_options(opts);
+	// Provides compiler
+	set_spirv_cross_compiler(a_spirv);
 
 	// using shader_resources_map   = std::unordered_map<uint32_t, std::vector<ShaderResource>>;
 	shader_resources_map resources;
@@ -318,7 +468,7 @@ shader_resources_map read_shader_resources(const std::vector<unsigned int> &a_sp
 	assert(shader_resources.separate_samplers.size() == 0 && "Don't support separate_samplers");
 	assert(shader_resources.subpass_inputs.size() == 0 && "Don't support input attachments yet FIXME");
 	assert(shader_resources.push_constant_buffers.size() == 0 && "Don't support push constant yet FIXME");
-	// assert(shader_resources.stage_inputs.size() == 0 && "Don't support stage input yet FIXME");
+	// assert(shader_resources.stage_inputs.size() == 0 && "Don't support stage inputs yet FIXME"); // this is handled separately
 	// assert(shader_resources.stage_outputs.size() == 0 && "Don't support stage output yet FIXME");
 	// assert(shader_resources.builtin_inputs.size() == 0 && "Don't support builtin inputs yet FIXME");
 	// assert(shader_resources.builtin_outputs.size() == 0 && "Don't support builtin outputs yet FIXME");
@@ -334,6 +484,23 @@ shader_resources_map read_shader_resources(const std::vector<unsigned int> &a_sp
 	// Not of Resource type can't use append_resource but I also don't need them
 	// append_resource(compiler, resources, shader_resources.builtin_inputs, ShaderResourceType::input);
 	// append_resource(compiler, resources, shader_resources.builtin_outputs, ShaderResourceType::Output);
+
+	return resources;
+}
+
+shader_resources_map read_shader_inputs(const std::vector<unsigned int> &a_spirv)
+{
+	// Provides compiler
+	set_spirv_cross_compiler(a_spirv);
+
+	// Prime the only descriptor set we support for inputs
+	shader_resources_map resources;
+	resources[0] = std::vector<ShaderResource>{};
+
+	auto shader_resources = compiler.get_shader_resources();
+
+	append_resource(compiler, resources, shader_resources.stage_inputs, ShaderResourceType::input);
+	// append_resource(compiler, resources, shader_resources.stage_outputs, ShaderResourceType::input);        // Do I need this? will find out some day
 
 	return resources;
 }
@@ -380,14 +547,12 @@ void collect_unique_resources(std::unordered_map<uint32_t, ShaderResource *> &a_
 	}
 }
 
-shader_resources_map get_unique_resource_bindings(const std::vector<rhi::Shader> &a_shaders, int32_t a_vertex_id, int32_t a_fragment_id, int32_t a_compute_id, int32_t a_tile_id, int32_t a_mesh_id)
+void get_resource_bindings(const std::vector<rhi::Shader> &a_shaders, int32_t a_vertex_id, int32_t a_fragment_id, int32_t a_compute_id, int32_t a_tile_id, int32_t a_mesh_id,
+                           shader_resources_map &vertex_shader_reflection,
+                           shader_resources_map &fragment_shader_reflection,
+                           shader_resources_map &compute_shader_reflection)
 {
 	auto sets_count = ror::settings().m_vulkan.m_descriptor_sets_size;
-
-	shader_resources_map vertex_shader_reflection{};
-	shader_resources_map fragment_shader_reflection{};
-	shader_resources_map compute_shader_reflection{};
-	shader_resources_map unique_bindings{};
 
 	// Need to prime these incase nothing below exists in the shader, makes the rest of the code easy to write
 	for (uint32_t i = 0; i < sets_count; ++i)
@@ -395,7 +560,6 @@ shader_resources_map get_unique_resource_bindings(const std::vector<rhi::Shader>
 		vertex_shader_reflection[i]   = std::vector<ShaderResource>{};
 		fragment_shader_reflection[i] = std::vector<ShaderResource>{};
 		compute_shader_reflection[i]  = std::vector<ShaderResource>{};
-		unique_bindings[i]            = std::vector<ShaderResource>{};
 	}
 
 	if (a_vertex_id != -1)
@@ -420,8 +584,17 @@ shader_resources_map get_unique_resource_bindings(const std::vector<rhi::Shader>
 	{
 		assert(0 && "Don't support mesh or tile vulkan shaders yet");
 	}
+}
 
+shader_resources_map get_unique_resource_bindings(const std::vector<rhi::Shader> &a_shaders, int32_t a_vertex_id, int32_t a_fragment_id, int32_t a_compute_id, int32_t a_tile_id, int32_t a_mesh_id)
+{
+	shader_resources_map                           vertex_shader_reflection{};
+	shader_resources_map                           fragment_shader_reflection{};
+	shader_resources_map                           compute_shader_reflection{};
+	shader_resources_map                           unique_bindings{};
 	std::unordered_map<uint32_t, ShaderResource *> unique_resources{};
+
+	get_resource_bindings(a_shaders, a_vertex_id, a_fragment_id, a_compute_id, a_tile_id, a_mesh_id, vertex_shader_reflection, fragment_shader_reflection, compute_shader_reflection);
 
 	collect_unique_resources(unique_resources, vertex_shader_reflection);
 	collect_unique_resources(unique_resources, fragment_shader_reflection);
@@ -1220,7 +1393,8 @@ void ProgramVulkan::update_descriptor(const rhi::Device &a_device, const ror::Re
 			}
 		}
 
-		if(!set_ptr && !set_data_ptr) continue;
+		if (!set_ptr && !set_data_ptr)
+			continue;
 
 		assert(set_ptr->bindings().size() && "There are not bindings in the set we are trying to update");
 		assert(set_ptr->writes().size() == 0 && "There are already writes, can't re-create them. First call reset_writes() on the descriptor");
@@ -1339,6 +1513,7 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 	auto *device = a_device.platform_device();
 	assert(device);
 	(void) device;
+	(void) a_buffer_pack;
 
 	// TODO: Add support for non-mesh vertex and fragment pipelines, would require a RenderpassType as a must
 
@@ -1361,7 +1536,7 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 			rhi::PrimitiveCullMode cull_mode{rhi::PrimitiveCullMode::back};
 			rhi::PrimitiveWinding  winding{rhi::PrimitiveWinding::counter_clockwise};
 
-			auto vlk_vertex_descriptor = get_default_vlk_vertex_descriptor(a_buffer_pack);
+			auto vlk_vertex_descriptor = get_vulkan_vertex_descriptor(vs);
 
 			try
 			{
