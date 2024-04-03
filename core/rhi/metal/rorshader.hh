@@ -29,12 +29,15 @@
 namespace rhi
 {
 
-FORCE_INLINE ShaderMetal::~ShaderMetal() noexcept
-{
-	if (this->m_main_function)
-		this->m_main_function->release();
+// I can't do this, and lets not do this although the pointers needs to cleanup, it will be in a autorelease scope
+// Also don't do this because move becomes a problem and since move doesn't set pointers to null after move
+// This ctor becomes even bigger problem.
+// FORCE_INLINE ShaderMetal::~ShaderMetal() noexcept
+// {
+// 	if (this->m_main_function)
+// 		this->m_main_function->release();
 
-	if (this->m_msl_Library)
-		this->m_msl_Library->release();
-}
+// 	if (this->m_msl_Library)
+// 		this->m_msl_Library->release();
+// }
 }        // namespace rhi

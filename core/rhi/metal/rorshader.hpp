@@ -43,7 +43,7 @@ class ShaderMetal : public ShaderCrtp<ShaderMetal>
 	FORCE_INLINE              ShaderMetal(ShaderMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE ShaderMetal &operator=(const ShaderMetal &a_other)       = default;        //! Copy assignment operator
 	FORCE_INLINE ShaderMetal &operator=(ShaderMetal &&a_other) noexcept   = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~ShaderMetal() noexcept override;                                  //! Destructor
+	FORCE_INLINE virtual ~ShaderMetal() noexcept override                 = default;        //! Destructor
 
 	FORCE_INLINE ShaderMetal(const std::string &a_shader, hash_64_t a_hash, rhi::ShaderType a_type, ror::ResourceAction a_action) :
 	    ShaderCrtp(a_shader, a_hash, a_type, a_action)

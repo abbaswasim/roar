@@ -188,6 +188,7 @@ void Renderer::load_programs()
 	{
 		// Read all the shaders
 		std::vector<std::string> shaders = this->m_json_file["shaders"];
+		this->m_shaders.reserve(shaders.size());
 		for (auto &shader : shaders)
 		{
 			auto      s_path = std::filesystem::path(shader);

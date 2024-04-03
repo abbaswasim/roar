@@ -144,7 +144,10 @@ void DynamicMesh::setup_shaders(const ror::Renderer &a_renderer, rhi::BlendMode 
 
 	a_renderer.get_final_pass_subpass(&pass, &subpass);
 
-	std::vector<rhi::Shader> shaders{vs_shader, vs_shader};
+	std::vector<rhi::Shader> shaders{};
+	shaders.reserve(2);
+	shaders.emplace_back(vs_shader);
+	shaders.emplace_back(fs_shader);
 
 	this->m_shader_program.vertex_id(0);
 	this->m_shader_program.fragment_id(1);

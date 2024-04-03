@@ -49,7 +49,6 @@ namespace rhi
 {
 define_translation_unit_vtable(ProgramMetal)
 {}
-
 /*
 Metal vertex attributes to shader and buffer mapping
 
@@ -504,4 +503,5 @@ void ProgramMetal::upload(const rhi::Device &a_device, const std::vector<rhi::Sh
 		return;
 	}
 }
+
 }        // namespace rhi

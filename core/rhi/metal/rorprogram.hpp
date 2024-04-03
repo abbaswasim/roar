@@ -27,8 +27,8 @@
 
 #include "foundation/rormacros.hpp"
 #include "graphics/rorlight.hpp"
-#include "graphics/rorskin.hpp"
 #include "graphics/rormaterial.hpp"
+#include "graphics/rorskin.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorprogram.hpp"
 #include "rhi/rordevice.hpp"
@@ -67,18 +67,12 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	    ProgramCrtp(a_compute_id)
 	{}
 
-	void build_descriptor(const rhi::Device &, const ror::Renderer &, const std::vector<rhi::Shader> &, bool , bool ){}
-	void build_descriptor(const rhi::Device &, const ror::Renderer &, const std::vector<rhi::Shader> &, const ror::Scene *,
-	                      const ror::Material                                                               *,
-	                      const std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>>               *,
-	                      const std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>>     *,
-	                      const std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> *,
-	                      const ror::Skin *, bool , bool ){}
-	void build_descriptor(const rhi::Device &, const rhi::ShaderBuffer *, uint32_t ,
-	                      const rhi::TextureImage *, const rhi::TextureSampler *, uint32_t ){}
+	void build_descriptor(const rhi::Device &, const ror::Renderer &, const std::vector<rhi::Shader> &, bool, bool){}
+	void build_descriptor(const rhi::Device &, const ror::Renderer &, const std::vector<rhi::Shader> &, const ror::Scene *, const ror::Material *, const std::vector<rhi::Texture, rhi::BufferAllocator<rhi::Texture>> *,
+	                      const std::vector<rhi::TextureImage, rhi::BufferAllocator<rhi::TextureImage>> *, const std::vector<rhi::TextureSampler, rhi::BufferAllocator<rhi::TextureSampler>> *, const ror::Skin *, bool, bool){}
+	void build_descriptor(const rhi::Device &, const rhi::ShaderBuffer *, uint32_t, const rhi::TextureImage *, const rhi::TextureSampler *, uint32_t){}
 	void build_descriptor(const rhi::Device &, const std::vector<rhi::Shader> &){}
-
-
+	void update_descriptor(const rhi::Device &, const ror::Renderer &, descriptor_update_type &, bool){}
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
 	            const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha);
