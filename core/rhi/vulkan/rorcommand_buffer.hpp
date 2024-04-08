@@ -50,11 +50,10 @@ class CommandBufferVulkan final
 	FORCE_INLINE CommandBufferVulkan &operator=(CommandBufferVulkan &&a_other) noexcept           = default;        //! Move assignment operator
 	FORCE_INLINE ~CommandBufferVulkan() noexcept                                                  = default;        //! Destructor
 
-	FORCE_INLINE explicit CommandBufferVulkan(rhi::Device &a_device, bool a_is_graphics)
+	FORCE_INLINE explicit CommandBufferVulkan(rhi::Device &a_device, bool a_is_graphics) :
+	    m_is_graphics(a_is_graphics)
 	{
-		this->m_is_graphics = a_is_graphics;
-
-		if (a_is_graphics)
+		if (this->m_is_graphics)
 			this->m_buffer = a_device.platform_graphics_command_buffer();
 		else
 			this->m_buffer = a_device.platform_compute_command_buffer();

@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "foundation/rorcompiler_workarounds.hpp"
+#include "foundation/rormacros.hpp"
 #include "rhi/rorprogram.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/vulkan/rorcommand_buffer.hpp"
@@ -50,47 +51,38 @@ FORCE_INLINE ComputeCommandEncoder::ComputeCommandEncoderVulkan(rhi::CommandBuff
 	vk_begin_command_buffer(this->m_command_buffer);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+// Don't need to do anything here because descriptors are already bound
+FORCE_INLINE void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	(void) a_buffer;
 	(void) a_offset;
 	(void) a_index;
-
-	// vkCmdBindVertexBuffers(this->m_command_buffer,0, 0, a_buffer.platform_buffer(), VK_WHOLE_SIZE);
-	// this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
+FORCE_INLINE void ComputeCommandEncoder::buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept
 {
 	(void) a_buffer;
 	(void) a_offset;
 	(void) a_index;
-
-	// this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
 FORCE_INLINE constexpr void ComputeCommandEncoder::texture(const rhi::TextureImage &a_texture, uint32_t a_index) noexcept
 {
 	(void) a_texture;
 	(void) a_index;
-	// this->m_encoder->setTexture(a_texture.platform_handle(), a_index);
 }
 
 FORCE_INLINE constexpr void ComputeCommandEncoder::sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept
 {
 	(void) a_sampler;
 	(void) a_index;
-	// this->m_encoder->setSamplerState(a_sampler.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void ComputeCommandEncoder::dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept
+FORCE_INLINE void ComputeCommandEncoder::dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept
 {
 	(void) a_threads_per_grid;
-	(void) a_threads_per_threadgroup;
-	// MTL::Size threads_per_grid        = MTL::Size::Make(a_threads_per_grid.x, a_threads_per_grid.y, a_threads_per_grid.z);
-	// MTL::Size threads_per_threadgroup = MTL::Size::Make(a_threads_per_threadgroup.x, a_threads_per_threadgroup.y, a_threads_per_threadgroup.z);
-
-	// this->m_encoder->dispatchThreads(threads_per_grid, threads_per_threadgroup);
+	assert(this->m_command_buffer != nullptr && "Command buffer isn't valid");
+	vkCmdDispatch(this->m_command_buffer, a_threads_per_threadgroup.x, a_threads_per_threadgroup.y, a_threads_per_threadgroup.z);
 }
 
 FORCE_INLINE constexpr void ComputeCommandEncoder::end_encoding() noexcept

@@ -29,8 +29,9 @@
 namespace rhi
 {
 
-void ComputeCommandEncoder::compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) const noexcept
+	void ComputeCommandEncoder::compute_pipeline_state(const rhi::Device &a_device, const rhi::Program &a_compute_pipeline_state) const noexcept
 {
+	(void) a_device;
 	this->m_encoder->setComputePipelineState(a_compute_pipeline_state.compute_pipeline_state());
 }
 

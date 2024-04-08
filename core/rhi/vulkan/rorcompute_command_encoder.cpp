@@ -27,9 +27,20 @@
 
 namespace rhi
 {
-void ComputeCommandEncoder::compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept
+void ComputeCommandEncoder::compute_pipeline_state(const rhi::Device &a_device, const rhi::Program &a_compute_pipeline_state) noexcept
 {
 	vkCmdBindPipeline(this->m_command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, a_compute_pipeline_state.compute_pipeline_state());
+	this->bind_descriptors(a_device, a_compute_pipeline_state);
+}
+
+void ComputeCommandEncoder::bind_descriptors(const rhi::Device &a_device, const rhi::ProgramVulkan &a_pso) const noexcept
+{
+	auto &descriptor_cache = a_device.descriptor_set_cache();
+	for (auto &pd : a_pso.platform_descriptors())
+	{
+		DescriptorSet &set = descriptor_cache.at(pd);
+		vkCmdBindDescriptorSets(this->m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, a_pso.pipeline_layout(), set.set_id(), 1, &set.platform_descriptor(), 0, nullptr);
+	}
 }
 
 }        // namespace rhi

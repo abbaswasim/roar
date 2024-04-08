@@ -32,7 +32,9 @@ namespace rhi
 
 RenderCommandEncoder::RenderCommandEncoderVulkan(rhi::CommandBufferVulkan &a_command_buffer) :
     m_command_buffer(a_command_buffer.platform_graphics_command_buffer())
-{}
+{
+	vk_begin_command_buffer(this->m_command_buffer);
+}
 
 void RenderCommandEncoder::render_pipeline_state(const rhi::Device &a_device, const rhi::Program &a_render_pipeline_state) noexcept
 {

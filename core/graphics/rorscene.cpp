@@ -63,6 +63,7 @@
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include "shader_system/rorshader_update.hpp"
@@ -532,7 +533,7 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	uint32_t node_matrices_size = static_cast_safe<uint32_t>(this->m_nodes.size());
 
 	// Encode the pipeline state object and its parameters.
-	a_command_encoder.compute_pipeline_state(compute_pso);
+	a_command_encoder.compute_pipeline_state(a_device, compute_pso);
 	trs_buffer.buffer_bind(a_command_encoder, rhi::ShaderStage::compute);
 	per_frame_uniform->buffer_bind(a_command_encoder, rhi::ShaderStage::compute);
 

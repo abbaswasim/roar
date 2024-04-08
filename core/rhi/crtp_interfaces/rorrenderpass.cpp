@@ -487,7 +487,7 @@ void image_based_light_lut_pass(rhi::ComputeCommandEncoder &a_command_encoder, r
 	auto  per_frame_uniform = a_renderer.shader_buffer("per_frame_uniform");
 
 	// Encode the pipeline state object and its parameters.
-	a_command_encoder.compute_pipeline_state(compute_pso);
+	a_command_encoder.compute_pipeline_state(a_device, compute_pso);
 	per_frame_uniform->buffer_bind(a_command_encoder, rhi::ShaderStage::compute);
 
 	auto lut_image_index = a_renderer.brdf_integration_lut_index();

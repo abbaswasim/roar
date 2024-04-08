@@ -53,16 +53,17 @@ class ComputeCommandEncoderVulkan final
 	FORCE_INLINE ~ComputeCommandEncoderVulkan() noexcept;
 	FORCE_INLINE explicit ComputeCommandEncoderVulkan(rhi::CommandBufferVulkan &a_encoder);
 
-	FORCE_INLINE constexpr void buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE void           buffer(rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
+	FORCE_INLINE void           buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void texture(const rhi::TextureImage &a_texture, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) noexcept;
-	FORCE_INLINE constexpr void dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept;
+	FORCE_INLINE void           dispatch_threads(ror::Vector3ui a_threads_per_grid, ror::Vector3ui a_threads_per_threadgroup) noexcept;
 	FORCE_INLINE constexpr void end_encoding() noexcept;
 	FORCE_INLINE constexpr void release() const noexcept;
 	FORCE_INLINE constexpr void release() noexcept;
 
-	void compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept;
+	void compute_pipeline_state(const rhi::Device &a_device, const rhi::Program &a_compute_pipeline_state) noexcept;
+	void bind_descriptors(const rhi::Device &a_device, const rhi::Program &a_pso) const noexcept;
 
   protected:
   private:

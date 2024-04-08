@@ -63,7 +63,8 @@ class ComputeCommandEncoderMetal final
 	FORCE_INLINE constexpr void end_encoding() const noexcept;
 	FORCE_INLINE constexpr void release() const noexcept;
 
-	void compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) const noexcept;
+	void compute_pipeline_state(const rhi::Device &a_device, const rhi::Program &a_compute_pipeline_state) const noexcept;
+	void bind_descriptors(const rhi::Device &, const rhi::Program &) const noexcept{}
 
   protected:
   private:
