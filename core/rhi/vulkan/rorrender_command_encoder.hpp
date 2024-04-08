@@ -36,7 +36,8 @@
 
 namespace rhi
 {
-class ProgramMetal;
+class ProgramVulkan;
+class CommandBufferVulkan;
 
 declare_rhi_render_type(Program);
 
@@ -48,46 +49,46 @@ class RenderCommandEncoderVulkan final
 	FORCE_INLINE RenderCommandEncoderVulkan &operator=(const RenderCommandEncoderVulkan &a_other)                      = default;        //! Copy assignment operator
 	FORCE_INLINE RenderCommandEncoderVulkan &operator=(RenderCommandEncoderVulkan &&a_other) noexcept                  = default;        //! Move assignment operator
 	FORCE_INLINE ~RenderCommandEncoderVulkan() noexcept;
-	FORCE_INLINE explicit RenderCommandEncoderVulkan(VkCommandBuffer a_command_buffer);
+	explicit RenderCommandEncoderVulkan(rhi::CommandBufferVulkan &a_command_buffer);
 
-	FORCE_INLINE constexpr void viewport(ror::Vector4d a_viewport_rectangle, ror::Vector2d a_near_far) const noexcept;
-	FORCE_INLINE constexpr void scissor(ror::Vector4ui a_scissor_rectangle) const noexcept;
-	FORCE_INLINE constexpr void front_facing_winding(rhi::PrimitiveWinding a_winding) const noexcept;
-	FORCE_INLINE constexpr void depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) const noexcept;
-	FORCE_INLINE constexpr void cull_mode(rhi::PrimitiveCullMode a_cull_mode) const noexcept;
-	FORCE_INLINE constexpr void render_pipeline_state(const rhi::Program &a_render_pipeline_state) const noexcept;
-	FORCE_INLINE constexpr void vertex_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
-	FORCE_INLINE constexpr void fragment_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
-	FORCE_INLINE constexpr void tile_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
-	FORCE_INLINE constexpr void vertex_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
-	FORCE_INLINE constexpr void vertex_buffer_offset(uintptr_t a_offset, uint32_t a_index) const noexcept;
-	FORCE_INLINE constexpr void fragment_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
-	FORCE_INLINE constexpr void fragment_buffer_offset(uintptr_t a_offset, uint32_t a_index) const noexcept;
-	FORCE_INLINE constexpr void tile_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE void           viewport(ror::Vector4d a_viewport_rectangle, ror::Vector2d a_near_far) const noexcept;
+	FORCE_INLINE void           scissor(ror::Vector4ui a_scissor_rectangle) const noexcept;
+	FORCE_INLINE void           front_facing_winding(rhi::PrimitiveWinding a_winding) const noexcept;
+	FORCE_INLINE void           depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) const noexcept;
+	FORCE_INLINE void           cull_mode(rhi::PrimitiveCullMode a_cull_mode) const noexcept;
+	FORCE_INLINE void           vertex_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE void           fragment_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE void           tile_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE void           vertex_buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE void           vertex_buffer_offset(const rhi::Buffer &a_buffer, const uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void fragment_buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE void           fragment_buffer_offset(const uintptr_t a_offset, uint32_t a_index) const noexcept;
+	FORCE_INLINE constexpr void tile_buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void fragment_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void vertex_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void tile_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void fragment_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void vertex_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept;
 	FORCE_INLINE constexpr void tile_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept;
-	FORCE_INLINE constexpr void draw_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count) const noexcept;
-	FORCE_INLINE constexpr void draw_primitives_instanced(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count, uint32_t a_instance_count) const noexcept;
-	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uintptr_t a_offset) const noexcept;
-	FORCE_INLINE constexpr void draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Static> &a_indices, uintptr_t a_offset) const noexcept;
-	FORCE_INLINE constexpr void end_encoding() const noexcept;
+	FORCE_INLINE void           draw_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count) const noexcept;
+	FORCE_INLINE void           draw_primitives_instanced(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count, uint32_t a_instance_count) const noexcept;
+	FORCE_INLINE void           draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uintptr_t a_offset) const noexcept;
+	FORCE_INLINE void           draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_indices, uintptr_t a_offset) const noexcept;
+	FORCE_INLINE constexpr void end_encoding() noexcept;
 	FORCE_INLINE constexpr void release() const noexcept;
-	FORCE_INLINE constexpr void triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) const noexcept;
+	FORCE_INLINE void           triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) const noexcept;
+
+	void render_pipeline_state(const rhi::Device &a_device, const rhi::Program &a_render_pipeline_state) noexcept;
+	void bind_descriptors(const rhi::Device &a_device, const rhi::Program &a_pso) const noexcept;
 
 	// clang-format off
 	FORCE_INLINE constexpr auto platform_encoder() noexcept { return this->m_command_buffer; }
 	// clang-format on
 
-	// FIXME: Put me back into private
-	FORCE_INLINE RenderCommandEncoderVulkan() = default;        //! Default constructor
   protected:
   private:
-	// FORCE_INLINE               RenderCommandEncoderVulkan() = default;        //! Default constructor
-	VkCommandBuffer m_command_buffer{nullptr};
+	FORCE_INLINE    RenderCommandEncoderVulkan() = default;        //! Default constructor
+	VkCommandBuffer m_command_buffer{nullptr};                     //! The command buffer to use for rendering
 };
 
 declare_rhi_render_type(RenderCommandEncoder);

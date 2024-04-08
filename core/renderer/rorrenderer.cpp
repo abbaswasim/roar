@@ -1182,7 +1182,7 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 		shader_updater().resolve_updates(a_device, a_job_system);
 
 		// Only one command_buffer is enough per frame, but the shader_updater::resolve_updates might have created, commited and closed its own
-		rhi::CommandBuffer command_buffer{a_device};
+		rhi::CommandBuffer command_buffer{a_device, true};
 		auto              &render_passes = this->current_frame_graph();
 
 		for (auto &render_pass : render_passes)

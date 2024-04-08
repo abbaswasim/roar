@@ -31,6 +31,7 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
+#include "rhi/vulkan/rorcommand_pool.hpp"
 #include "rhi/vulkan/rordescriptor_cache.hpp"
 #include "rhi/vulkan/rordescriptor_pool.hpp"
 #include "rhi/vulkan/rordescriptor_set.hpp"
@@ -180,7 +181,9 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE auto  platform_present_queue_index() const noexcept;
 	FORCE_INLINE auto  platform_sparse_queue_index() const noexcept;
 	FORCE_INLINE auto  platform_protected_queue_index() const noexcept;
-	FORCE_INLINE auto  platform_command_buffer();
+	FORCE_INLINE auto  platform_graphics_command_buffer();
+	FORCE_INLINE auto  platform_compute_command_buffer();
+	FORCE_INLINE auto  platform_transfer_command_buffer();
 	FORCE_INLINE auto  platform_swapchain();
 	FORCE_INLINE auto  samples_count() const noexcept;
 	FORCE_INLINE auto &memory_properties() const noexcept;
@@ -195,6 +198,9 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE DescriptorSetLayoutCache &descriptor_set_layout_cache() const noexcept;
 	FORCE_INLINE DescriptorSetCache       &descriptor_set_cache() const noexcept;
 	FORCE_INLINE DescriptorPool           &descriptor_set_pool() const noexcept;
+	FORCE_INLINE VkCommandBuffer           graphics_command_buffer() const noexcept;
+	FORCE_INLINE VkCommandBuffer           compute_command_buffer() const noexcept;
+	FORCE_INLINE VkCommandBuffer           transfer_command_buffer() const noexcept;
 
   protected:
   private:
@@ -218,9 +224,12 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	DeviceQueue     m_protected_queue{};              //! Protected queue
 	VkPipelineCache m_pipeline_cache{nullptr};        //! Don't need a mutex because its internally synchronised
 
-	mutable DescriptorSetLayoutCache m_layout_cache{};           //! Layout cache used to create all lyouts from
-	mutable DescriptorSetCache       m_desciptor_cache{};        //! Descriptor set cache used by all PSOs
-	mutable DescriptorPool           m_desciptor_pool{};         //! Descriptor pool used for allocating descriptors from
+	mutable DescriptorSetLayoutCache m_layout_cache{};                 //! Layout cache used to create all lyouts from
+	mutable DescriptorSetCache       m_desciptor_cache{};              //! Descriptor set cache used by all PSOs
+	mutable DescriptorPool           m_desciptor_pool{};               //! Descriptor pool used for allocating descriptors from
+	mutable CommandPool              m_graphics_command_pool{};        //! Command buffer pool used for allocating command buffers from for graphics
+	mutable CommandPool              m_compute_command_pool{};         //! Command buffer pool used for allocating command buffers from for compute
+	mutable CommandPool              m_transfer_command_pool{};        //! Command buffer pool used for allocating command buffers from for transfer
 
 	declare_translation_unit_vtable();
 };

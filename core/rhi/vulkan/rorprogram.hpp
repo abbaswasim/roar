@@ -123,6 +123,7 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 	// clang-format off
 	FORCE_INLINE constexpr auto &platform_descriptors()         const noexcept { return this->m_platform_descriptors;        }
 	FORCE_INLINE constexpr auto &platform_descriptors_layouts() const noexcept { return this->m_platform_descriptor_layouts; }
+	FORCE_INLINE constexpr auto &pipeline_layout()              const noexcept { return this->m_pipeline_layout;             }
 	// clang-format on
 
 	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept
@@ -152,6 +153,7 @@ class ProgramVulkan : public ProgramCrtp<ProgramVulkan>
 	std::variant<GraphicsPipelineState, ComputePipelineState> m_pipeline_state{};                     //! This program will contain either Render or Compute pipeline state
 	std::vector<size_t>                                       m_platform_descriptors{};               //! Index of the platform descriptor set in the descriptors cache
 	std::vector<VkDescriptorSetLayout>                        m_platform_descriptor_layouts{};        //! All the platform descriptor set layouts in the layouts cache
+	VkPipelineLayout                                          m_pipeline_layout{};                    //! The pipeline layout used to build this program
 };
 
 declare_rhi_render_type(Program);

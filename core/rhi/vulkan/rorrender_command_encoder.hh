@@ -24,7 +24,8 @@
 // Version: 1.0.0
 
 #include "foundation/rorcompiler_workarounds.hpp"
-#include "rhi/rorprogram.hpp"
+#include "foundation/rorutilities.hpp"
+#include "profiling/rorlog.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/vulkan/rorbuffer.hpp"
 #include "rhi/vulkan/rordevice.hpp"
@@ -44,188 +45,179 @@ FORCE_INLINE RenderCommandEncoder::~RenderCommandEncoderVulkan() noexcept
 	}
 }
 
-FORCE_INLINE RenderCommandEncoder::RenderCommandEncoderVulkan(VkCommandBuffer a_command_buffer) :
-    m_command_buffer(a_command_buffer)
-{}
-
-FORCE_INLINE constexpr void RenderCommandEncoder::viewport(ror::Vector4d /* a_viewport_rectangle */, ror::Vector2d /* a_near_far */) const noexcept
+FORCE_INLINE void RenderCommandEncoder::viewport(ror::Vector4d a_viewport_rectangle, ror::Vector2d a_near_far) const noexcept
 {
-	// this->m_encoder->setViewport(MTL::Viewport{a_viewport_rectangle.x, a_viewport_rectangle.y, a_viewport_rectangle.z, a_viewport_rectangle.w, a_near_far.x, a_near_far.y});
+	const VkViewport viewports{
+	    .x        = static_cast<float32_t>(a_viewport_rectangle.x),
+	    .y        = static_cast<float32_t>(a_viewport_rectangle.y),
+	    .width    = static_cast<float32_t>(a_viewport_rectangle.z),
+	    .height   = static_cast<float32_t>(a_viewport_rectangle.w),
+	    .minDepth = static_cast<float32_t>(a_near_far.x),
+	    .maxDepth = static_cast<float32_t>(a_near_far.y),
+	};
+
+	vkCmdSetViewport(this->m_command_buffer, 0, 1, &viewports);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::scissor(ror::Vector4ui /* a_scissor_rectangle */) const noexcept
+FORCE_INLINE void RenderCommandEncoder::scissor(ror::Vector4ui a_scissor_rectangle) const noexcept
 {
-	// this->m_encoder->setScissorRect(MTL::ScissorRect{a_scissor_rectangle.x, a_scissor_rectangle.y, a_scissor_rectangle.z, a_scissor_rectangle.w});
+	VkRect2D rect{
+	    .offset.x      = ror::static_cast_safe<int32_t>(a_scissor_rectangle.x),
+	    .offset.y      = ror::static_cast_safe<int32_t>(a_scissor_rectangle.y),
+	    .extent.width  = a_scissor_rectangle.z,
+	    .extent.height = a_scissor_rectangle.w};
+
+	vkCmdSetScissor(this->m_command_buffer, 0, 1, &rect);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::front_facing_winding(rhi::PrimitiveWinding a_winding) const noexcept
+FORCE_INLINE void RenderCommandEncoder::front_facing_winding(rhi::PrimitiveWinding a_winding) const noexcept
 {
-	(void) a_winding;
-	// this->m_encoder->setFrontFacingWinding(to_vulkan_winding(a_winding));
+	vkCmdSetFrontFace(this->m_command_buffer, to_vulkan_winding(a_winding));
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) const noexcept
+FORCE_INLINE void RenderCommandEncoder::depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) const noexcept
 {
 	(void) a_depth_stencil;
+	ror::log_critical("Not sure what to do with {}", __FUNCTION__);
 	// this->m_encoder->setDepthStencilState(a_depth_stencil.depth_state());
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMode a_cull_mode) const noexcept
+FORCE_INLINE void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMode a_cull_mode) const noexcept
 {
-	(void) a_cull_mode;
-	// this->m_encoder->setCullMode(to_vulkan_cull_mode(a_cull_mode));
+	VkCullModeFlags cull_mode{to_vulkan_cull_mode(a_cull_mode)};
+	vkCmdSetCullMode(this->m_command_buffer, cull_mode);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::render_pipeline_state(const rhi::Program &a_render_pipeline_state) const noexcept
-{
-	(void) a_render_pipeline_state;
-	// this->m_encoder->setRenderPipelineState(a_render_pipeline_state.render_pipeline_state());
-}
-
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
+FORCE_INLINE void RenderCommandEncoder::vertex_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	(void) a_buffer;
 	(void) a_offset;
 	(void) a_index;
-	// this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
+
+	ror::log_critical("Not sure what to do with this yet {}", __FUNCTION__);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
+FORCE_INLINE void RenderCommandEncoder::fragment_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	(void) a_buffer;
 	(void) a_offset;
 	(void) a_index;
-	// this->m_encoder->setFragmentBuffer(a_buffer.platform_buffer(), a_offset, a_index);
+
+	ror::log_critical("Not sure what to do with this yet {}", __FUNCTION__);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
+FORCE_INLINE void RenderCommandEncoder::tile_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	(void) a_buffer;
 	(void) a_offset;
 	(void) a_index;
-	// this->m_encoder->setTileBuffer(a_buffer.platform_buffer(), a_offset, a_index);
+
+	ror::log_critical("Not sure what to do with this yet {}", __FUNCTION__);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
+FORCE_INLINE void RenderCommandEncoder::vertex_buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
+{
+	auto buffer = a_buffer.platform_buffer();
+	auto offset = static_cast<VkDeviceSize>(a_offset);
+
+	vkCmdBindVertexBuffers(this->m_command_buffer, a_index, a_index + 1, &buffer, &offset);
+}
+
+FORCE_INLINE void RenderCommandEncoder::vertex_buffer_offset(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
+{
+	// There is no concept of vertex buffer offset in Vulkan so using setVertexBuffer instead
+	this->vertex_buffer(a_buffer, a_offset, a_index);
+}
+
+// Don't need to do anything here because descriptors are already bound
+FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	(void) a_buffer;
 	(void) a_offset;
 	(void) a_index;
-	// this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer_offset(uintptr_t a_offset, uint32_t a_index) const noexcept
+// Don't need to do anything here because descriptors are already bound
+FORCE_INLINE void RenderCommandEncoder::fragment_buffer_offset(const uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	(void) a_offset;
 	(void) a_index;
-	// this->m_encoder->setVertexBufferOffset(a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
-{
-	(void) a_buffer;
-	(void) a_offset;
-	(void) a_index;
-	// this->m_encoder->setFragmentBuffer(a_buffer.platform_buffer(), a_offset, a_index);
-}
-
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer_offset(uintptr_t a_offset, uint32_t a_index) const noexcept
-{
-	(void) a_offset;
-	(void) a_index;
-	// this->m_encoder->setFragmentBufferOffset(a_offset, a_index);
-}
-
-FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
+// Don't need to do anything here because descriptors are already bound
+FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
 	(void) a_buffer;
 	(void) a_offset;
 	(void) a_index;
-	// this->m_encoder->setTileBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
+// Don't need to do anything in these methods because descriptors are already bound
 FORCE_INLINE constexpr void RenderCommandEncoder::fragment_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept
 {
 	(void) a_texture;
 	(void) a_index;
-	// this->m_encoder->setFragmentTexture(a_texture.platform_handle(), a_index);
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::vertex_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept
 {
 	(void) a_texture;
 	(void) a_index;
-	// this->m_encoder->setVertexTexture(a_texture.platform_handle(), a_index);
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::tile_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept
 {
 	(void) a_texture;
 	(void) a_index;
-	// this->m_encoder->setTileTexture(a_texture.platform_handle(), a_index);
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::fragment_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept
 {
 	(void) a_sampler;
 	(void) a_index;
-	// this->m_encoder->setFragmentSamplerState(a_sampler.platform_handle(), a_index);
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::vertex_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept
 {
 	(void) a_sampler;
 	(void) a_index;
-	// this->m_encoder->setVertexSamplerState(a_sampler.platform_handle(), a_index);
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::tile_sampler(const rhi::TextureSampler &a_sampler, uint32_t a_index) const noexcept
 {
 	(void) a_sampler;
 	(void) a_index;
-	// this->m_encoder->setTileSamplerState(a_sampler.platform_handle(), a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::draw_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count) const noexcept
+FORCE_INLINE void RenderCommandEncoder::draw_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count) const noexcept
 {
 	(void) a_topology;
-	(void) a_vertex_start;
-	(void) a_vertex_count;
-	// this->m_encoder->drawPrimitives(to_vulkan_primitive_topoloy(a_topology), a_vertex_start, a_vertex_count);
+	vkCmdDraw(this->m_command_buffer, a_vertex_count, 1, a_vertex_start, 0);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::draw_primitives_instanced(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count, uint32_t a_instance_count) const noexcept
+FORCE_INLINE void RenderCommandEncoder::draw_primitives_instanced(rhi::PrimitiveTopology a_topology, uint32_t a_vertex_start, uint32_t a_vertex_count, uint32_t a_instance_count) const noexcept
 {
 	(void) a_topology;
-	(void) a_vertex_start;
-	(void) a_vertex_count;
-	(void) a_instance_count;
-	// this->m_encoder->drawPrimitives(to_vulkan_primitive_topoloy(a_topology), a_vertex_start, a_vertex_count, a_instance_count);
+	vkCmdDraw(this->m_command_buffer, a_vertex_count, a_instance_count, a_vertex_start, 0);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uintptr_t a_offset) const noexcept
+FORCE_INLINE void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::Buffer &a_indices, uintptr_t a_offset) const noexcept
 {
 	(void) a_topology;
-	(void) a_index_count;
-	(void) a_format;
-	(void) a_indices;
-	(void) a_offset;
-	// this->m_encoder->drawIndexedPrimitives(to_vulkan_primitive_topoloy(a_topology), a_index_count, to_vulkan_indexformat(a_format), a_indices.platform_buffer(), a_offset);
+	vkCmdBindIndexBuffer(this->m_command_buffer, a_indices.platform_buffer(), a_offset, to_vulkan_indexformat(a_format));
+	vkCmdDrawIndexed(this->m_command_buffer, a_index_count, 1, 0, 0, 0);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Static> &a_indices, uintptr_t a_offset) const noexcept
+FORCE_INLINE void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTopology a_topology, uint32_t a_index_count, rhi::Format a_format, rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_indices, uintptr_t a_offset) const noexcept
 {
 	(void) a_topology;
-	(void) a_index_count;
-	(void) a_format;
-	(void) a_indices;
-	(void) a_offset;
-	// this->m_encoder->drawIndexedPrimitives(to_vulkan_primitive_topoloy(a_topology), a_index_count, to_vulkan_indexformat(a_format), a_indices.platform_buffer(), a_offset);
+	vkCmdBindIndexBuffer(this->m_command_buffer, a_indices.platform_buffer(), a_offset, to_vulkan_indexformat(a_format));
+	vkCmdDrawIndexed(this->m_command_buffer, a_index_count, 1, 0, 0, 0);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::end_encoding() const noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::end_encoding() noexcept
 {
-	// this->m_encoder->endEncoding();
+	vk_end_command_buffer(this->m_command_buffer);        // Maybe this is not the right idea, if we have an outter command buffer that needs to be closed down first
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::release() const noexcept
@@ -233,9 +225,8 @@ FORCE_INLINE constexpr void RenderCommandEncoder::release() const noexcept
 	// this->m_encoder->release();
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) const noexcept
+FORCE_INLINE void RenderCommandEncoder::triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) const noexcept
 {
-	(void) a_fill_mode;
-	// this->m_encoder->setTriangleFillMode(to_vulkan_triangle_fill_mode(a_fill_mode));
+	vkCmdSetPolygonModeEXT(this->m_command_buffer, to_vulkan_triangle_fill_mode(a_fill_mode));
 }
 }        // namespace rhi

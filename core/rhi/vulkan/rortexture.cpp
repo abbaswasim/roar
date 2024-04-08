@@ -262,8 +262,8 @@ void TextureImageVulkan::upload(const rhi::Device &a_device)
 		std::vector<VkBuffer> source_textures{staging_buffer};
 		auto                  copy_regions = mipmaps_to_buffer_image_copy_regions(*this);
 
-		// TODO: Move to device for reuseability
-		VkCommandPool command_pool = vk_create_command_pools(device, a_device.platform_transfer_queue_index(), 0);
+		// Could instead use pools from device but then will have to keep track of when they are filled
+		VkCommandPool command_pool = vk_create_command_pools(device, a_device.platform_transfer_queue_index(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
 
 		if (this->mipmapped() && this->mip_gen_mode() == rhi::TextureMipGenMode::automatic && this->levels() > 1)
 			ror::log_critical("Implement vkCmdBlitImage for automatic mip gen mode https://vulkan-tutorial.com/Generating_Mipmaps");

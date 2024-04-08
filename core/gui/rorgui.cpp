@@ -923,14 +923,14 @@ void Gui::upload_draw_data(ImDrawData *a_draw_data)
 	this->m_index_buffer.ready(true);
 }
 
-void Gui::setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data)
+void Gui::setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data)
 {
 	a_encoder.cull_mode(rhi::PrimitiveCullMode::none);                                             // No face culling
 	a_encoder.front_facing_winding(rhi::PrimitiveWinding::clockwise);                              // What ImGui requires
 	a_encoder.vertex_buffer(this->m_vertex_buffer, 0, 0);                                          // Position at index 0 offset 0 because its provided in attribute
 	a_encoder.vertex_buffer(this->m_vertex_buffer, 0, 1);                                          // UV at index 1 offset 0 because its provided in attribute
 	a_encoder.vertex_buffer(this->m_vertex_buffer, 0, 2);                                          // Color at index 2 offset 0 because its provided in attribute
-	a_encoder.render_pipeline_state(this->m_shader_program);                                       // Include alpha blend state
+	a_encoder.render_pipeline_state(a_device, this->m_shader_program);                             // Include alpha blend state, also calls bind descriptors (important for vulkan)
 	a_encoder.fragment_texture(this->m_texture_image, 0);                                          // Could be overriden by render later
 	a_encoder.fragment_sampler(this->m_texture_sampler, 0);                                        // The only default sampler that should be bilinear according to ImGui requirements
 	a_encoder.depth_stencil_state(a_renderer.render_state().depth_state_always_no_write());        // No depth test as we are rendering painter style quads
@@ -961,7 +961,7 @@ void Gui::setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Re
 	this->m_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 }
 
-void Gui::render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system)
+void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system)
 {
 	auto dimensions = a_renderer.dimensions();
 	this->draw_test_windows(a_camera, dimensions, a_event_system);
@@ -983,7 +983,7 @@ void Gui::render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_e
 	io.DeltaTime = 1.0f / 60.0f;        // set the time elapsed since the previous frame (in seconds)
 
 	this->upload_draw_data(draw_data);
-	this->setup_render_state(a_encoder, a_renderer, draw_data);
+	this->setup_render_state(a_device, a_encoder, a_renderer, draw_data);
 
 	std::vector<std::vector<uint8_t>> vertexBuffer{};
 	std::vector<std::vector<uint8_t>> indexBuffer{};
@@ -1038,9 +1038,9 @@ void Gui::render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_e
 				if (ImTextureID tex_id = pcmd->GetTexID())
 					a_encoder.fragment_texture(*reinterpret_cast<rhi::TextureImage *>(tex_id), gui_color_binding);
 
-				a_encoder.vertex_buffer_offset(vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 0);
-				a_encoder.vertex_buffer_offset(vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 1);
-				a_encoder.vertex_buffer_offset(vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 2);
+				a_encoder.vertex_buffer_offset(this->m_vertex_buffer, vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 0);
+				a_encoder.vertex_buffer_offset(this->m_vertex_buffer, vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 1);
+				a_encoder.vertex_buffer_offset(this->m_vertex_buffer, vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 2);
 				a_encoder.draw_indexed_primitives(rhi::PrimitiveTopology::triangles, pcmd->ElemCount, rhi::Format::uint16_1, this->m_index_buffer, indexBufferOffset + pcmd->IdxOffset * sizeof(ImDrawIdx));
 			}
 		}

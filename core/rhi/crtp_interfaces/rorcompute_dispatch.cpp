@@ -61,7 +61,7 @@ void compute_dispatch(rhi::CommandBuffer &a_command_buffer, const ror::Vector3ui
 void compute_dispatch_and_wait(rhi::Device &a_device, const ror::Vector3ui &a_dispatch_size, const ror::Vector3ui &a_threadroup_size,
                                const rhi::Program &a_compute_pso, const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers, rhi::ShaderBuffer &a_shader_buffer, std::function<void()> a_completion_handler)
 {
-	rhi::CommandBuffer command_buffer{a_device};
+	rhi::CommandBuffer command_buffer{a_device, false};
 
 	compute_dispatch(command_buffer, a_dispatch_size, a_threadroup_size, a_compute_pso, a_images, a_samplers, a_shader_buffer, a_completion_handler);
 
@@ -74,7 +74,7 @@ void compute_dispatch_and_wait(rhi::Device &a_device, const ror::Vector3ui &a_di
 rhi::CommandBuffer compute_dispatch_create_command_buffer(rhi::Device &a_device, const ror::Vector3ui &a_dispatch_size, const ror::Vector3ui &a_threadroup_size,
                                                           const rhi::Program &a_compute_pso, const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers, rhi::ShaderBuffer &a_shader_buffer, std::function<void()> a_completion_handler)
 {
-	rhi::CommandBuffer command_buffer{a_device};
+	rhi::CommandBuffer command_buffer{a_device, false};
 
 	compute_dispatch(command_buffer, a_dispatch_size, a_threadroup_size, a_compute_pso, a_images, a_samplers, a_shader_buffer, a_completion_handler);
 	command_buffer.commit();

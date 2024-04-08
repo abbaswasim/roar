@@ -230,20 +230,20 @@ static auto create_compute_pipeline(const rhi::Device                        &a_
 	return reinterpret_cast<ComputePipelineState>(compute_pipeline);
 }
 
-static auto create_fragment_render_pipeline(const rhi::Device                        &a_device,
-                                            const rhi::Shader                        &a_vertex_shader,
-                                            const rhi::Shader                        &a_fragment_shader,
-                                            const rhi::Renderpass                    &a_renderpass,
-                                            const rhi::Rendersubpass                 &a_render_subpass,
-                                            const VulkanDescriptorVector             &a_vulkan_descriptor,
-                                            const std::vector<VkDescriptorSetLayout> &a_vulkan_descriptors_layouts,
-                                            rhi::BlendMode                            a_blend_mode,
-                                            rhi::PrimitiveTopology                    a_topology,
-                                            const char                               *a_label,
-                                            bool                                      a_depth,
-                                            bool                                      a_premultiplied_alpha = false,
-                                            rhi::PrimitiveCullMode                    a_cull_mode           = rhi::PrimitiveCullMode::back,
-                                            rhi::PrimitiveWinding                     a_winding             = rhi::PrimitiveWinding::counter_clockwise)
+static auto create_fragment_render_pipeline(const rhi::Device            &a_device,
+                                            const rhi::Shader            &a_vertex_shader,
+                                            const rhi::Shader            &a_fragment_shader,
+                                            const rhi::Renderpass        &a_renderpass,
+                                            const rhi::Rendersubpass     &a_render_subpass,
+                                            const VulkanDescriptorVector &a_vulkan_descriptor,
+                                            VkPipelineLayout              a_pipeline_layout,
+                                            rhi::BlendMode                a_blend_mode,
+                                            rhi::PrimitiveTopology        a_topology,
+                                            const char                   *a_label,
+                                            bool                          a_depth,
+                                            bool                          a_premultiplied_alpha = false,
+                                            rhi::PrimitiveCullMode        a_cull_mode           = rhi::PrimitiveCullMode::back,
+                                            rhi::PrimitiveWinding         a_winding             = rhi::PrimitiveWinding::counter_clockwise)
 {
 	(void) a_label;
 
@@ -296,8 +296,6 @@ static auto create_fragment_render_pipeline(const rhi::Device                   
 	VkPipelineColorBlendAttachmentState    pipeline_color_blend_attachment_state_info = vk_create_color_blend_attachment_state(blend_mode, a_premultiplied_alpha);
 	VkPipelineColorBlendStateCreateInfo    pipeline_color_blend_state_info            = vk_create_color_blend_state(pipeline_color_blend_attachment_state_info);
 	VkPipelineDynamicStateCreateInfo       pipeline_dynamic_state_info                = vk_create_dynamic_state(dynamic_states);
-	VkPipelineLayoutCreateInfo             pipeline_layout_info                       = vk_create_pipeline_layout_state(a_vulkan_descriptors_layouts);
-	VkPipelineLayout                       pipeline_layout                            = vk_create_pipeline_layout(device, pipeline_layout_info);
 
 	VkPipeline graphics_pipeline = vk_create_graphics_pipeline(device, pipeline_cache,
 	                                                           shader_stages,
@@ -309,7 +307,7 @@ static auto create_fragment_render_pipeline(const rhi::Device                   
 	                                                           pipeline_depth_stencil_state_info,
 	                                                           pipeline_color_blend_state_info,
 	                                                           pipeline_dynamic_state_info,
-	                                                           pipeline_layout,
+	                                                           a_pipeline_layout,
 	                                                           render_pass,
 	                                                           static_cast<uint32_t>(render_subpass));
 
@@ -1329,6 +1327,8 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const std::vec
 		// Now lets allocate the only set
 		if (allocate)
 			this->allocate_descriptor(device, layout_cache, descriptor_pool, descriptor_cache, set, i);
+
+		// TODO: Max frames in flight needs consideration because there needs to be a pool per frame
 	}
 }
 
@@ -1496,7 +1496,10 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 
 	try
 	{
-		this->m_pipeline_state = create_fragment_render_pipeline(a_device, vs, fs, a_renderpass, a_subpass, vlk_vertex_descriptor, this->platform_descriptors_layouts(), material.m_blend_mode,
+		VkPipelineLayoutCreateInfo pipeline_layout_info = vk_create_pipeline_layout_state(this->platform_descriptors_layouts());
+		this->m_pipeline_layout                         = vk_create_pipeline_layout(device, pipeline_layout_info);
+
+		this->m_pipeline_state = create_fragment_render_pipeline(a_device, vs, fs, a_renderpass, a_subpass, vlk_vertex_descriptor, this->m_pipeline_layout, material.m_blend_mode,
 		                                                         mesh.primitive_type(a_prim_index), mesh.name().c_str(), a_subpass.has_depth(), a_premultiplied_alpha, cull_mode, winding);
 	}
 	catch (VulkanValidationException &vve)
@@ -1540,8 +1543,10 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 
 			try
 			{
-				this->m_pipeline_state = create_fragment_render_pipeline(a_device, vs, fs, a_pass, a_subpass, vlk_vertex_descriptor, this->platform_descriptors_layouts(), rhi::BlendMode::blend,
-				                                                         rhi::PrimitiveTopology::triangles, "GlobalRenderPassPipeline", true, a_premultiplied_alpha, cull_mode, winding);
+				VkPipelineLayoutCreateInfo pipeline_layout_info = vk_create_pipeline_layout_state(this->platform_descriptors_layouts());
+				this->m_pipeline_layout                         = vk_create_pipeline_layout(device, pipeline_layout_info);
+				this->m_pipeline_state                          = create_fragment_render_pipeline(a_device, vs, fs, a_pass, a_subpass, vlk_vertex_descriptor, this->m_pipeline_layout, rhi::BlendMode::blend,
+				                                                                                  rhi::PrimitiveTopology::triangles, "GlobalRenderPassPipeline", true, a_premultiplied_alpha, cull_mode, winding);
 			}
 			catch (VulkanValidationException &vve)
 			{
@@ -1605,7 +1610,9 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 
 	try
 	{
-		this->m_pipeline_state = create_fragment_render_pipeline(a_device, a_vs_shader, a_fs_shader, a_renderpass, a_subpass, vlk_vertex_descriptor, this->platform_descriptors_layouts(), a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
+		VkPipelineLayoutCreateInfo pipeline_layout_info = vk_create_pipeline_layout_state(this->platform_descriptors_layouts());
+		this->m_pipeline_layout                         = vk_create_pipeline_layout(device, pipeline_layout_info);
+		this->m_pipeline_state                          = create_fragment_render_pipeline(a_device, a_vs_shader, a_fs_shader, a_renderpass, a_subpass, vlk_vertex_descriptor, this->m_pipeline_layout, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
 	}
 	catch (VulkanValidationException &vve)
 	{

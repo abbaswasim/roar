@@ -64,7 +64,7 @@ rhi::ComputeCommandEncoder CommandBuffer::compute_encoder_concurrent()
 // Very heavy waight glReadPixel style read pixels, shouldn't be used at run time
 rhi::Buffer read_pixels(rhi::Device &a_device, const rhi::TextureImage &a_texture, uint32_t a_face, uint32_t a_level)
 {
-	rhi::CommandBuffer  command_buffer{a_device};
+	rhi::CommandBuffer  command_buffer{a_device, true};
 	MTL::CommandBuffer *cmd_buffer = command_buffer.platform_command_buffer();
 
 	auto mip = a_texture.mip(a_level);
@@ -96,7 +96,7 @@ rhi::Buffer read_pixels(rhi::Device &a_device, const rhi::TextureImage &a_textur
 // Very heavy waight texture to texture copy, shouldn't be used at run time
 void texture_to_texture(rhi::Device &a_device, const rhi::TextureImage &a_source_texture, const rhi::TextureImage &a_destination_texture, uint32_t a_face, uint32_t a_level)
 {
-	rhi::CommandBuffer  command_buffer{a_device};
+	rhi::CommandBuffer  command_buffer{a_device, true};
 	MTL::CommandBuffer *cmd_buffer = command_buffer.platform_command_buffer();
 
 	auto        mip    = a_source_texture.mip(a_level);
@@ -148,7 +148,7 @@ void texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, const rhi
 
 	assert(rhi::is_texture_cubemap(a_destination_texture.target()) && "Can't copy from patch to non-cubemap texture");
 
-	rhi::CommandBuffer  command_buffer{a_device};
+	rhi::CommandBuffer  command_buffer{a_device, true};
 	MTL::CommandBuffer *platform_command_buffer = command_buffer.platform_command_buffer();
 	auto                blit_encoder            = platform_command_buffer->blitCommandEncoder();
 

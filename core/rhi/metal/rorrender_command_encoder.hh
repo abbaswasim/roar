@@ -72,14 +72,24 @@ FORCE_INLINE constexpr void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMo
 	this->m_encoder->setCullMode(to_metal_cull_mode(a_cull_mode));
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
+[[noreturn]] FORCE_INLINE void RenderCommandEncoder::vertex_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
-	this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
+	(void) a_buffer;
+	(void) a_offset;
+	(void) a_index;
+
+	assert(0);
+	// this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::fragment_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
+[[noreturn]] FORCE_INLINE void RenderCommandEncoder::fragment_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
 {
-	this->m_encoder->setFragmentBuffer(a_buffer.platform_buffer(), a_offset, a_index);
+	(void) a_buffer;
+	(void) a_offset;
+	(void) a_index;
+
+	assert(0);
+	// this->m_encoder->setFragmentBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
@@ -92,8 +102,9 @@ FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer(const rhi::Buffe
 	this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
-FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer_offset(const uintptr_t a_offset, uint32_t a_index) const noexcept
+FORCE_INLINE constexpr void RenderCommandEncoder::vertex_buffer_offset(const rhi::Buffer &a_buffer, const uintptr_t a_offset, uint32_t a_index) const noexcept
 {
+	(void) a_buffer;
 	this->m_encoder->setVertexBufferOffset(a_offset, a_index);
 }
 
@@ -111,6 +122,9 @@ FORCE_INLINE constexpr void RenderCommandEncoder::tile_buffer(const rhi::Buffer 
 {
 	this->m_encoder->setTileBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
+
+FORCE_INLINE constexpr void RenderCommandEncoder::bind_descriptors(const rhi::Device &, const rhi::Program &) const noexcept
+{}
 
 FORCE_INLINE constexpr void RenderCommandEncoder::fragment_texture(const rhi::TextureImage &a_texture, uint32_t a_index) const noexcept
 {

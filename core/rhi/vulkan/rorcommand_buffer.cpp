@@ -28,6 +28,7 @@
 #include "rhi/vulkan/rorcommand_buffer.hpp"
 #include "rhi/rorrender_command_encoder.hpp"
 #include "rhi/rorcompute_command_encoder.hpp"
+#include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorrhi_macros.hpp"
 
@@ -39,9 +40,7 @@ FORCE_INLINE rhi::RenderCommandEncoder CommandBuffer::render_encoder(rhi::Render
 	(void) a_render_pass;
 	(void) a_index;
 
-	ror::log_critical("Fix me, I shouldnt be using default ctor here {}", __FUNCTION__);
-
-	return rhi::RenderCommandEncoder{};
+	return rhi::RenderCommandEncoder{*this};
 }
 
 FORCE_INLINE rhi::ComputeCommandEncoder CommandBuffer::compute_encoder(rhi::Renderpass &a_render_pass, uint32_t a_index)
@@ -49,21 +48,18 @@ FORCE_INLINE rhi::ComputeCommandEncoder CommandBuffer::compute_encoder(rhi::Rend
 	(void) a_render_pass;
 	(void) a_index;
 
-	ror::log_critical("Fix me, I shouldnt be using default ctor here {}", __FUNCTION__);
-	return rhi::ComputeCommandEncoder{};
+	return rhi::ComputeCommandEncoder{*this};
 }
 
 rhi::ComputeCommandEncoder CommandBuffer::compute_encoder()
 {
-	// return rhi::ComputeCommandEncoder{this->m_buffer->computeCommandEncoder()};
-	return rhi::ComputeCommandEncoder{};
+	return rhi::ComputeCommandEncoder{*this};
 }
 
 // This means all commands in the command buffer can be executed in parallel
 rhi::ComputeCommandEncoder CommandBuffer::compute_encoder_concurrent()
 {
-	// return rhi::ComputeCommandEncoder{this->m_buffer->computeCommandEncoder(MTL::DispatchType::DispatchTypeConcurrent)};
-	return rhi::ComputeCommandEncoder{};
+	return rhi::ComputeCommandEncoder{*this};
 }
 
 // Very heavy waight glReadPixel style read pixels, shouldn't be used at run time
@@ -71,7 +67,7 @@ rhi::Buffer read_pixels(rhi::Device &a_device, const rhi::TextureImage &a_textur
 {
 	(void) a_face;
 
-	rhi::CommandBuffer  command_buffer{a_device};
+	rhi::CommandBuffer  command_buffer{a_device, true};
 	// MTL::CommandBuffer *cmd_buffer = command_buffer.platform_command_buffer();
 
 	auto mip = a_texture.mip(a_level);
@@ -108,7 +104,7 @@ void texture_to_texture(rhi::Device &a_device, const rhi::TextureImage &a_source
 	(void) a_face;
 	(void) a_level;
 
-	rhi::CommandBuffer  command_buffer{a_device};
+	rhi::CommandBuffer  command_buffer{a_device, false};
 	// MTL::CommandBuffer *cmd_buffer = command_buffer.platform_command_buffer();
 
 	// auto        mip    = a_source_texture.mip(a_level);
@@ -177,7 +173,7 @@ void texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, const rhi
 
 	assert(rhi::is_texture_cubemap(a_destination_texture.target()) && "Can't copy from patch to non-cubemap texture");
 
-	rhi::CommandBuffer  command_buffer{a_device};
+	rhi::CommandBuffer  command_buffer{a_device, false};
 	// MTL::CommandBuffer *platform_command_buffer = command_buffer.platform_command_buffer();
 	// auto                blit_encoder            = platform_command_buffer->blitCommandEncoder();
 

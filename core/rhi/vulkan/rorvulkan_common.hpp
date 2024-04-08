@@ -131,10 +131,9 @@ constexpr FORCE_INLINE auto to_vulkan_indexformat(rhi::Format a_format)
 	assert((a_format == rhi::Format::uint32_1 || a_format == rhi::Format::uint16_1) && "Unsupported vulkan index format");
 
 	if (a_format == rhi::Format::uint16_1)
-		return VkFormat::VK_FORMAT_R16_UINT;        // MTL::IndexTypeUInt16;
+		return VkIndexType::VK_INDEX_TYPE_UINT16;
 	else
-		return VkFormat::VK_FORMAT_R32_UINT;
-	// return MTL::IndexTypeUInt32;
+		return VkIndexType::VK_INDEX_TYPE_UINT32;
 }
 
 constexpr FORCE_INLINE auto to_vulkan_step_function(rhi::StepFunction a_function)
@@ -193,15 +192,15 @@ FORCE_INLINE constexpr VkImageViewType to_vulkan_image_view_target(rhi::TextureT
 
 FORCE_INLINE constexpr VkImageType to_vulkan_image_target(rhi::TextureTarget a_target)
 {
-	VkImageViewType view_type  = to_vulkan_image_view_target(a_target);
+	VkImageViewType view_type = to_vulkan_image_view_target(a_target);
 
 	if (view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_1D ||
-		view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_1D_ARRAY)
+	    view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_1D_ARRAY)
 		return VkImageType::VK_IMAGE_TYPE_1D;
 	else if (view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_2D ||
-			 view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY ||
-			 view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE ||
-			 view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE_ARRAY)
+	         view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY ||
+	         view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE ||
+	         view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE_ARRAY)
 		return VkImageType::VK_IMAGE_TYPE_2D;
 	else if (view_type == VkImageViewType::VK_IMAGE_VIEW_TYPE_3D)
 		return VkImageType::VK_IMAGE_TYPE_3D;
@@ -323,8 +322,8 @@ FORCE_INLINE std::vector<const char *> instance_extensions_requested()
 	  VK_MVK_macos_surface // MacOS specific
 	*/
 	return std::vector<const char *>
-	{
-		// clang-format off
+    {
+	    // clang-format off
 		VK_KHR_SURFACE_EXTENSION_NAME,                                 // VK_KHR_surface
 		VK_KHR_DISPLAY_EXTENSION_NAME,                                 // VK_KHR_display
 		VK_EXT_DEBUG_UTILS_EXTENSION_NAME,                             // VK_EXT_debug_utils
@@ -336,7 +335,7 @@ FORCE_INLINE std::vector<const char *> instance_extensions_requested()
 #elif defined __linux__
 		VK_KHR_XCB_SURFACE_EXTENSION_NAME                              // "VK_EXT_xcb_surface??"
 #endif
-		// clang-format on
+	    // clang-format on
 	};
 }
 

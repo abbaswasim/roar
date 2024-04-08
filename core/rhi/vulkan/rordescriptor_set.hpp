@@ -37,6 +37,15 @@
 
 namespace rhi
 {
+/**
+ * Abstraction over Vulkan Descriptor sets. Vulkan descriptors are pointers into data that shaders can access. Mostly images and buffers.
+ * Roar uses 4-descriptor sets for all the data provided to the shaders. These are split by frequency of use/update.
+ * Descriptor sets need to be allocated from a pool and updated via descriptor writes. When all descriptors of a pool are no longer needed, one can free the pool.
+ * If descriptor set is fully static, it can be allocated and reused each frame. But if each frame requires a different copy of the data
+ * you need to double buffere both the data as well as the vulkan descriptor. Some implementations will allocate new descriptors for each frame to avoid that.
+ * If a set requires both static and dynamic data, you need to double buffer the dynamic data but the static data doesn't have to be. The descriptor will also
+ * needs to be double buffered.
+ */
 class DescriptorSet final
 {
   public:
@@ -57,9 +66,10 @@ class DescriptorSet final
 	void                  reset_writes();
 
 	// clang-format off
-	auto &bindings() { return this->m_bindings; }
-	auto &writes()   { return this->m_writes;   }
-	auto  set_id()   { return this->m_set_id;   }
+	auto &platform_descriptor() { return this->m_handle; }
+	auto &bindings()            { return this->m_bindings; }
+	auto &writes()              { return this->m_writes;   }
+	auto  set_id()              { return this->m_set_id;   }
 	// clang-format on
 	// void free(const VkDevice a_device); // Not provided because bad practice, would rather free the pool directly
 

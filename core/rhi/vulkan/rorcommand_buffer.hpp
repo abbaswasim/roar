@@ -31,6 +31,7 @@
 #include "rhi/rordevice.hpp"
 #include "rhi/rorrhi_macros.hpp"
 #include "rhi/rortexture.hpp"
+#include "rhi/vulkan/rorvulkan_utils.hpp"
 
 namespace rhi
 {
@@ -49,14 +50,25 @@ class CommandBufferVulkan final
 	FORCE_INLINE CommandBufferVulkan &operator=(CommandBufferVulkan &&a_other) noexcept           = default;        //! Move assignment operator
 	FORCE_INLINE ~CommandBufferVulkan() noexcept                                                  = default;        //! Destructor
 
-	FORCE_INLINE explicit CommandBufferVulkan(rhi::Device &a_device)
+	FORCE_INLINE explicit CommandBufferVulkan(rhi::Device &a_device, bool a_is_graphics)
 	{
-		(void) a_device;
-		// this->m_buffer = a_device.platform_command_buffer();
+		this->m_is_graphics = a_is_graphics;
+
+		if (a_is_graphics)
+			this->m_buffer = a_device.platform_graphics_command_buffer();
+		else
+			this->m_buffer = a_device.platform_compute_command_buffer();
 	}
 
-	FORCE_INLINE constexpr VkCommandBuffer platform_command_buffer() noexcept
+	FORCE_INLINE constexpr VkCommandBuffer platform_graphics_command_buffer() noexcept
 	{
+		assert(this->m_buffer && "Graphics command buffer is null");
+		return this->m_buffer;
+	}
+
+	FORCE_INLINE constexpr VkCommandBuffer platform_compute_command_buffer() noexcept
+	{
+		assert(this->m_buffer && "Compute command buffer is null");
 		return this->m_buffer;
 	}
 
@@ -96,8 +108,8 @@ class CommandBufferVulkan final
   private:
 	FORCE_INLINE CommandBufferVulkan() = default;        //! Default constructor
 
-	VkCommandBuffer m_buffer{nullptr};
-	// VkQueue         m_graphics_queue{nullptr};
+	bool            m_is_graphics{true};        //! Are we dealing with a graphics command buffer or compute
+	VkCommandBuffer m_buffer{nullptr};          //! Handle to the graphics or compute command buffer
 };
 
 declare_rhi_render_type(CommandBuffer);

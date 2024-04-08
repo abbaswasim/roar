@@ -252,6 +252,13 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 		dimensions.width  = this->dimensions().x;
 		dimensions.height = this->dimensions().y;
 
+		// TODO: Wait until they are free, or enqueue a release
+		if (this->m_render_pass)
+			vk_destroy_render_pass(a_device.platform_device(), this->m_render_pass);
+
+		if (this->m_framebuffer)
+			vk_destroy_framebuffers(a_device.platform_device(), this->m_framebuffer);
+
 		this->m_render_pass = vk_create_render_pass(a_device.platform_device(), std::move(renderpass_render_target_attachments_descriptions), std::move(subpasses_descriptions), std::move(subpasses_dependencies));
 		this->m_framebuffer = vk_create_framebuffer(a_device.platform_device(), this->m_render_pass, framebuffer_attachments, dimensions);
 	}
@@ -274,12 +281,12 @@ VkRenderPass RenderpassVulkan::platform_computepass(uint32_t) const
 
 rhi::RenderCommandEncoder RenderpassVulkan::render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t)
 {
-	return rhi::RenderCommandEncoder{a_command_buffer.platform_command_buffer()};
+	return rhi::RenderCommandEncoder{a_command_buffer};
 }
 
 rhi::ComputeCommandEncoder RenderpassVulkan::compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t)
 {
-	return rhi::ComputeCommandEncoder{a_command_buffer.platform_command_buffer()};
+	return rhi::ComputeCommandEncoder{a_command_buffer};
 }
 
 void RenderpassVulkan::execute(rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,

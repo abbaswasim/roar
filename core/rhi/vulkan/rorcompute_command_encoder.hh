@@ -24,12 +24,12 @@
 // Version: 1.0.0
 
 #include "foundation/rorcompiler_workarounds.hpp"
+#include "rhi/rorprogram.hpp"
+#include "rhi/rortypes.hpp"
 #include "rhi/vulkan/rorcommand_buffer.hpp"
 #include "rhi/vulkan/rorcompute_command_encoder.hpp"
 #include "rhi/vulkan/rordevice.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
-#include "rhi/rorprogram.hpp"
-#include "rhi/rortypes.hpp"
 #include <cassert>
 
 namespace rhi
@@ -44,8 +44,8 @@ FORCE_INLINE ComputeCommandEncoder::~ComputeCommandEncoderVulkan() noexcept
 	}
 }
 
-FORCE_INLINE ComputeCommandEncoder::ComputeCommandEncoderVulkan(VkCommandBuffer a_encoder) :
-    m_command_buffer(a_encoder)
+FORCE_INLINE ComputeCommandEncoder::ComputeCommandEncoderVulkan(rhi::CommandBufferVulkan &a_encoder) :
+    m_command_buffer(a_encoder.platform_compute_command_buffer())
 {
 	vk_begin_command_buffer(this->m_command_buffer);
 }
@@ -55,7 +55,7 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::BufferHybrid<rhi:
 	(void) a_buffer;
 	(void) a_offset;
 	(void) a_index;
-	
+
 	// vkCmdBindVertexBuffers(this->m_command_buffer,0, 0, a_buffer.platform_buffer(), VK_WHOLE_SIZE);
 	// this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
@@ -65,7 +65,7 @@ FORCE_INLINE constexpr void ComputeCommandEncoder::buffer(rhi::Buffer &a_buffer,
 	(void) a_buffer;
 	(void) a_offset;
 	(void) a_index;
-	
+
 	// this->m_encoder->setBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 

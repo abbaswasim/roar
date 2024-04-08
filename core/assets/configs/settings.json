@@ -127,7 +127,7 @@
 			"material_factors" : [3, 0],
 			"material_samplers" : [3, 1],
 
-			"max_attributes" : 17
+			"max_attributes" : 0 
 		}
 	},
 	"fog" :

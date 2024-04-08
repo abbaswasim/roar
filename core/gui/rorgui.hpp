@@ -60,7 +60,7 @@ class ROAR_ENGINE_ITEM Gui final
 	~Gui() noexcept;        //! Destructor
 
 	void  init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
-	void  render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system);
+	void  render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system);
 	auto &overlays() {return this->m_overlays;}
 
 	enum imgui_keys
@@ -75,7 +75,7 @@ class ROAR_ENGINE_ITEM Gui final
 	void             install_input_handlers();
 	void             uninstall_input_handlers();
 	void             draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions, ror::EventSystem &a_event_system);
-	void             setup_render_state(rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data);
+	void             setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data);
 	void             push_anchor(Anchors::Anchor a_anchor);
 	size_t           anchors_count();
 	Anchors::Anchor &anchor(size_t a_index);

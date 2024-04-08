@@ -39,6 +39,8 @@ namespace rhi
 {
 
 class ProgramVulkan;
+class CommandBufferVulkan;
+
 declare_rhi_render_type(Program);
 
 class ComputeCommandEncoderVulkan final
@@ -49,7 +51,7 @@ class ComputeCommandEncoderVulkan final
 	FORCE_INLINE ComputeCommandEncoderVulkan &operator=(const ComputeCommandEncoderVulkan &a_other)                       = default;        //! Copy assignment operator
 	FORCE_INLINE ComputeCommandEncoderVulkan &operator=(ComputeCommandEncoderVulkan &&a_other) noexcept                   = default;        //! Move assignment operator
 	FORCE_INLINE ~ComputeCommandEncoderVulkan() noexcept;
-	FORCE_INLINE explicit ComputeCommandEncoderVulkan(VkCommandBuffer a_encoder);
+	FORCE_INLINE explicit ComputeCommandEncoderVulkan(rhi::CommandBufferVulkan &a_encoder);
 
 	FORCE_INLINE constexpr void buffer(rhi::BufferHybrid<rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
 	FORCE_INLINE constexpr void buffer(rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) noexcept;
@@ -62,12 +64,10 @@ class ComputeCommandEncoderVulkan final
 
 	void compute_pipeline_state(const rhi::Program &a_compute_pipeline_state) noexcept;
 
-	// FIXME: Make me private again
-	FORCE_INLINE ComputeCommandEncoderVulkan() = default;        //! Default constructor
   protected:
   private:
-	// FORCE_INLINE                ComputeCommandEncoderVulkan() = default;        //! Default constructor
-	VkCommandBuffer m_command_buffer{nullptr};        //! The command buffer used to encode the encoder commands
+	FORCE_INLINE    ComputeCommandEncoderVulkan() = default;        //! Default constructor
+	VkCommandBuffer m_command_buffer{nullptr};                      //! The command buffer used to encode the encoder commands
 };
 
 declare_rhi_render_type(ComputeCommandEncoder);

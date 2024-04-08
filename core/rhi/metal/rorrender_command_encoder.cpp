@@ -29,8 +29,9 @@
 namespace rhi
 {
 
-void RenderCommandEncoder::render_pipeline_state(const rhi::Program &a_render_pipeline_state) const noexcept
+void RenderCommandEncoder::render_pipeline_state(const rhi::Device &a_device, const rhi::Program &a_render_pipeline_state) const noexcept
 {
 	this->m_encoder->setRenderPipelineState(a_render_pipeline_state.render_pipeline_state());
+	this->bind_descriptors(a_device, a_render_pipeline_state);
 }
 }        // namespace rhi

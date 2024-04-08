@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2022
+// Copyright (c) 2024
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -23,32 +23,7 @@
 //
 // Version: 1.0.0
 
-#include "rhi/vulkan/rorcommand_buffer.hpp"
-#include "rhi/vulkan/rorrender_command_encoder.hpp"
-#include "rhi/rorprogram.hpp"
+#include "rhi/vulkan/rorcommand_pool.hpp"
 
 namespace rhi
-{
-
-RenderCommandEncoder::RenderCommandEncoderVulkan(rhi::CommandBufferVulkan &a_command_buffer) :
-    m_command_buffer(a_command_buffer.platform_graphics_command_buffer())
-{}
-
-void RenderCommandEncoder::render_pipeline_state(const rhi::Device &a_device, const rhi::Program &a_render_pipeline_state) noexcept
-{
-	VkPipelineBindPoint bindpoint{VK_PIPELINE_BIND_POINT_GRAPHICS};
-	vkCmdBindPipeline(this->m_command_buffer, bindpoint, a_render_pipeline_state.render_pipeline_state());
-	this->bind_descriptors(a_device, a_render_pipeline_state);
-}
-
-void RenderCommandEncoder::bind_descriptors(const rhi::Device &a_device, const rhi::ProgramVulkan &a_pso) const noexcept
-{
-	auto &descriptor_cache = a_device.descriptor_set_cache();
-	for (auto &pd : a_pso.platform_descriptors())
-	{
-		DescriptorSet &set = descriptor_cache.at(pd);
-		vkCmdBindDescriptorSets(this->m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, a_pso.pipeline_layout(), set.set_id(), 1, &set.platform_descriptor(), 0, nullptr);
-	}
-}
-
-}        // namespace rhi
+{}        // namespace rhi

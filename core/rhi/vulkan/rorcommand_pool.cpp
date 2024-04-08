@@ -1,7 +1,7 @@
 // Roar Source Code
 // Wasim Abbas
 // http://www.waZim.com
-// Copyright (c) 2022
+// Copyright (c) 2024
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the 'Software'),
@@ -23,32 +23,51 @@
 //
 // Version: 1.0.0
 
-#include "rhi/vulkan/rorcommand_buffer.hpp"
-#include "rhi/vulkan/rorrender_command_encoder.hpp"
-#include "rhi/rorprogram.hpp"
+#include "rhi/vulkan/rorcommand_pool.hpp"
+#include "rhi/vulkan/rorvulkan_utils.hpp"
+#include <mutex>
 
 namespace rhi
 {
 
-RenderCommandEncoder::RenderCommandEncoderVulkan(rhi::CommandBufferVulkan &a_command_buffer) :
-    m_command_buffer(a_command_buffer.platform_graphics_command_buffer())
-{}
-
-void RenderCommandEncoder::render_pipeline_state(const rhi::Device &a_device, const rhi::Program &a_render_pipeline_state) noexcept
+auto make_pool(VkDevice a_device, uint32_t a_family_index)
 {
-	VkPipelineBindPoint bindpoint{VK_PIPELINE_BIND_POINT_GRAPHICS};
-	vkCmdBindPipeline(this->m_command_buffer, bindpoint, a_render_pipeline_state.render_pipeline_state());
-	this->bind_descriptors(a_device, a_render_pipeline_state);
+	VkCommandPool pool = vk_create_command_pools(a_device, a_family_index, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+
+	return pool;
 }
 
-void RenderCommandEncoder::bind_descriptors(const rhi::Device &a_device, const rhi::ProgramVulkan &a_pso) const noexcept
+void CommandPool::init(const VkDevice a_device, uint32_t a_family_index)
 {
-	auto &descriptor_cache = a_device.descriptor_set_cache();
-	for (auto &pd : a_pso.platform_descriptors())
+	std::unique_lock<std::mutex> lock{this->m_mutex};
+
+	this->m_pool = make_pool(a_device, a_family_index);
+}
+
+void CommandPool::reset(const VkDevice a_device, uint32_t a_family_index)
+{
 	{
-		DescriptorSet &set = descriptor_cache.at(pd);
-		vkCmdBindDescriptorSets(this->m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, a_pso.pipeline_layout(), set.set_id(), 1, &set.platform_descriptor(), 0, nullptr);
+		std::unique_lock<std::mutex> lock{this->m_mutex};
+
+		vkResetCommandPool(a_device, this->m_pool, 0);
 	}
+
+	// Also re-create the standard one
+	this->init(a_device, a_family_index);
+}
+
+void CommandPool::destroy(const VkDevice a_device)
+{
+	std::unique_lock<std::mutex> lock{this->m_mutex};
+
+	vk_destroy_command_pools(a_device, this->m_pool);
+}
+
+VkCommandBuffer CommandPool::allocate(const VkDevice a_device)
+{
+	std::unique_lock<std::mutex> lock{this->m_mutex};
+
+	return vk_allocate_command_buffer(a_device, this->m_pool);
 }
 
 }        // namespace rhi

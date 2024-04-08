@@ -23,8 +23,8 @@
 //
 // Version: 1.0.0
 
-#include "rhi/rorrenderpass.hpp"
 #include "rhi/rorcommand_buffer.hpp"
+#include "rhi/rorrenderpass.hpp"
 
 namespace rhi
 {
@@ -90,8 +90,6 @@ void renderpass_execute(rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_com
 	{
 		if (first_frame || subpass.state() == rhi::RenderpassState::transient)
 		{
-			first_frame = false;
-
 			if (subpass.technique() != rhi::RenderpassTechnique::compute)
 			{
 				// TODO: use renderer final pass here
@@ -123,5 +121,7 @@ void renderpass_execute(rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_com
 			}
 		}
 	}
+
+	first_frame = false;
 }
 }        // namespace rhi

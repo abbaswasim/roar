@@ -587,7 +587,7 @@ FORCE_INLINE void enable_material_component(const Material::Component<_type>    
 	}
 };
 
-void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const ror::Renderer &a_renderer, ror::Scene &a_scene, const rhi::Rendersubpass &subpass)
+void render_mesh(const rhi::Device &a_device, ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const ror::Renderer &a_renderer, ror::Scene &a_scene, const rhi::Rendersubpass &subpass)
 {
 	(void) a_renderer;
 	(void) subpass;
@@ -619,7 +619,7 @@ void render_mesh(ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const r
 			continue;
 		}
 
-		a_dd.encoder->render_pipeline_state(*pso);
+		a_dd.encoder->render_pipeline_state(a_device, *pso);
 
 		if (material.m_double_sided)
 			a_dd.encoder->cull_mode(rhi::PrimitiveCullMode::none);
@@ -1229,7 +1229,7 @@ const Light *Scene::area_light() const
 	return this->light(ror::Light::LightType::area);
 }
 
-void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
+void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
 {
 	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
 
@@ -1327,7 +1327,7 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 					per_frame_uniform->buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 					a_encoder.front_facing_winding(model_node.m_winding);
 
-					render_mesh(model, mesh, dd, a_renderer, *this, a_subpass);
+					render_mesh(a_device, model, mesh, dd, a_renderer, *this, a_subpass);
 				}
 				node_data_index++;
 			}
@@ -1341,20 +1341,20 @@ void Scene::render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buf
 		// Lets render all the dynamic meshes before we render GUI
 		this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
 		for (auto &dm : this->m_dynamic_meshes)
-			dm.render(a_renderer, a_encoder);
+			dm.render(a_device, a_renderer, a_encoder);
 
 		// Lets render all the renderer dynamic mesh, usually it only has a skybox cubmap
 		// TODO: Check why the order of this and the one above matters, if scene dynamic meshes are rendererd first nothing shows
 		this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
 		for (auto &dm : a_renderer.dynamic_meshes())
-			dm->render(a_renderer, a_encoder);
+			dm->render(a_device, a_renderer, a_encoder);
 
 		// Lets update the UI elements
 		// TODO: Should move out of scene and into global end of frame renderpass
 		auto &setting = ror::settings();
 
 		if (setting.m_generate_gui_mesh && setting.m_gui.m_visible)
-			ror::gui().render(a_renderer, a_encoder, this->m_cameras[0], a_event_system);        // TODO: Fix the camera
+			ror::gui().render(a_device, a_renderer, a_encoder, this->m_cameras[0], a_event_system);        // TODO: Fix the camera
 	}
 }
 

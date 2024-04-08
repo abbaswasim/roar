@@ -239,24 +239,24 @@ void DynamicMesh::upload_data(const uint8_t *a_vertex_data_pointer, size_t a_ver
 }
 
 // NOTE: Make sure you have called this->upload_data(); before calling render or any other separate calls to set things up
-void DynamicMesh::render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder)
+void DynamicMesh::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder)
 {
 	if (!this->m_visible)
 		return;
 
 	if (this->m_shader_program_external)
-		a_encoder.render_pipeline_state(*this->m_shader_program_external);
+		a_encoder.render_pipeline_state(a_device, *this->m_shader_program_external);
 	else
-		a_encoder.render_pipeline_state(this->m_shader_program);        // Includes alpha blend state
+		a_encoder.render_pipeline_state(a_device, this->m_shader_program);        // Includes alpha blend state
 
 	auto &attributes = this->m_vertex_descriptor.attributes();
 	for (auto &attrib : attributes)
 	{
 		if (attrib.semantics() != rhi::BufferSemantic::vertex_index)
 		{
-			size_t vertex_buffer_offset = 0;                                                                // Not attrib.buffer_offset() + attrib.offset() because these are already set in attribute
-			a_encoder.vertex_buffer(this->m_vertex_buffer, vertex_buffer_offset, attrib.location());        // Like Position at offset 0,index 0 and uv at offset 12, index 1 etc
-			a_encoder.vertex_buffer_offset(vertex_buffer_offset, attrib.location());
+			size_t vertex_buffer_offset = 0;                                                                       // Not attrib.buffer_offset() + attrib.offset() because these are already set in attribute
+			a_encoder.vertex_buffer(this->m_vertex_buffer, vertex_buffer_offset, attrib.location());               // Like Position at offset 0,index 0 and uv at offset 12, index 1 etc
+			a_encoder.vertex_buffer_offset(this->m_vertex_buffer, vertex_buffer_offset, attrib.location());        // FIXME: I don't think I need this
 		}
 	}
 

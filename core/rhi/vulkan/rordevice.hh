@@ -72,6 +72,27 @@ FORCE_INLINE auto DeviceVulkan::platform_device() const noexcept
 	return this->m_device;
 }
 
+FORCE_INLINE auto DeviceVulkan::platform_graphics_queue_index() const noexcept
+{
+	assert(this->m_graphics_queue.m_queue && "Vulkan graphics queue requested is null");
+
+	return this->m_graphics_queue.m_index;
+}
+
+FORCE_INLINE auto DeviceVulkan::platform_compute_queue_index() const noexcept
+{
+	assert(this->m_compute_queue.m_queue && "Vulkan compute queue requested is null");
+
+	return this->m_compute_queue.m_index;
+}
+
+FORCE_INLINE auto DeviceVulkan::platform_transfer_queue_index() const noexcept
+{
+	assert(this->m_transfer_queue.m_queue && "Vulkan transfer queue requested is null");
+
+	return this->m_transfer_queue.m_index;
+}
+
 // This is not inside the ctor above because by the time Application ctor chain is finished the window in UnixApp is not initialized yet
 FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions)
 {
@@ -103,6 +124,9 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 	resize_callback(e);
 
 	this->m_desciptor_pool.init(this->platform_device());
+	this->m_graphics_command_pool.init(this->platform_device(), this->platform_graphics_queue_index());
+	this->m_compute_command_pool.init(this->platform_device(), this->platform_compute_queue_index());
+	this->m_transfer_command_pool.init(this->platform_device(), this->platform_transfer_queue_index());
 }
 
 FORCE_INLINE auto DeviceVulkan::platform_pipeline_cache() const noexcept
@@ -125,6 +149,21 @@ FORCE_INLINE DescriptorSetCache &DeviceVulkan::descriptor_set_cache() const noex
 FORCE_INLINE DescriptorPool &DeviceVulkan::descriptor_set_pool() const noexcept
 {
 	return this->m_desciptor_pool;
+}
+
+FORCE_INLINE VkCommandBuffer DeviceVulkan::graphics_command_buffer() const noexcept
+{
+	return this->m_graphics_command_pool.allocate(this->platform_device());
+}
+
+FORCE_INLINE VkCommandBuffer DeviceVulkan::compute_command_buffer() const noexcept
+{
+	return this->m_compute_command_pool.allocate(this->platform_device());
+}
+
+FORCE_INLINE VkCommandBuffer DeviceVulkan::transfer_command_buffer() const noexcept
+{
+	return this->m_transfer_command_pool.allocate(this->platform_device());
 }
 
 FORCE_INLINE auto DeviceVulkan::platform_graphics_queue() const noexcept
@@ -167,27 +206,6 @@ FORCE_INLINE auto DeviceVulkan::platform_protected_queue() const noexcept
 	assert(this->m_protected_queue.m_queue && "Vulkan protected queue requested is null");
 
 	return this->m_protected_queue.m_queue;
-}
-
-FORCE_INLINE auto DeviceVulkan::platform_graphics_queue_index() const noexcept
-{
-	assert(this->m_graphics_queue.m_queue && "Vulkan graphics queue requested is null");
-
-	return this->m_graphics_queue.m_index;
-}
-
-FORCE_INLINE auto DeviceVulkan::platform_compute_queue_index() const noexcept
-{
-	assert(this->m_compute_queue.m_queue && "Vulkan compute queue requested is null");
-
-	return this->m_compute_queue.m_index;
-}
-
-FORCE_INLINE auto DeviceVulkan::platform_transfer_queue_index() const noexcept
-{
-	assert(this->m_transfer_queue.m_queue && "Vulkan transfer queue requested is null");
-
-	return this->m_transfer_queue.m_index;
 }
 
 FORCE_INLINE auto DeviceVulkan::platform_present_queue_index() const noexcept
@@ -241,26 +259,21 @@ FORCE_INLINE auto &DeviceVulkan::platform_protected_queue_mutex() const noexcept
 	return this->m_protected_queue.m_mutex;
 }
 
-FORCE_INLINE auto DeviceVulkan::platform_command_buffer()
+FORCE_INLINE auto DeviceVulkan::platform_graphics_command_buffer()
 {
-	VkCommandBuffer buffer{nullptr};
+	VkCommandBuffer buffer = this->graphics_command_buffer();
+	return buffer;
+}
 
-	if constexpr (ror::get_build() == ror::BuildType::build_debug)
-	{
-		// VkCommandBuffer command_buffer_descriptor = nullptr;// MTL::CommandBufferDescriptor::alloc()->init();
+FORCE_INLINE auto DeviceVulkan::platform_compute_command_buffer()
+{
+	VkCommandBuffer buffer = this->compute_command_buffer();
+	return buffer;
+}
 
-		// command_buffer_descriptor->setErrorOptions(MTL::CommandBufferErrorOptionEncoderExecutionStatus);
-
-		// buffer = this->platform_queue()->commandBuffer(command_buffer_descriptor);
-
-		// command_buffer_descriptor->release();
-	}
-	else
-	{
-		// buffer = this->platform_queue()->commandBuffer();
-	}
-
-	assert(0);
+FORCE_INLINE auto DeviceVulkan::platform_transfer_command_buffer()
+{
+	VkCommandBuffer buffer = this->transfer_command_buffer();
 	return buffer;
 }
 

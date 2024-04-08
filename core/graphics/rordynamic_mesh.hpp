@@ -49,7 +49,7 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 
 	void init(const rhi::Device &a_device, rhi::PrimitiveTopology a_topology);
 	void init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_topology);
-	void render(const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
+	void render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder);
 	void load_texture(const rhi::Device &a_device, std::filesystem::path a_texure_path = "checker.png");
 	void set_texture(rhi::TextureImage *a_texture = nullptr, rhi::TextureSampler *a_sampler = nullptr);
 	void setup_vertex_descriptor(rhi::VertexDescriptor *a_descriptor = nullptr);

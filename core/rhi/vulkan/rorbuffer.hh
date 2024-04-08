@@ -132,7 +132,7 @@ void BufferVulkan::upload(const rhi::Device &a_device, const uint8_t *a_data_poi
 		VkDevice                          device               = a_device.platform_device();
 		VkQueue                           transfer_queue       = a_device.platform_transfer_queue();
 		std::mutex                       &transfer_queue_mutex = a_device.platform_transfer_queue_mutex();
-		VkCommandPool                     command_pool         = vk_create_command_pools(device, a_device.platform_transfer_queue_index(), 0);
+		VkCommandPool                     command_pool         = vk_create_command_pools(device, a_device.platform_transfer_queue_index(), VK_COMMAND_POOL_CREATE_TRANSIENT_BIT);
 		VkBuffer                          staging_buffer{nullptr};
 		VkDeviceMemory                    staging_memory{nullptr};
 		VkBufferCopy                      buffer_buffer_copy_region{};
