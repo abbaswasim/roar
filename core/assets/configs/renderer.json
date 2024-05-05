@@ -260,7 +260,7 @@
 			"name":"per_view_uniform",
 			"layout":"std140",
 			"type":"ubo",
-			"set":0,
+			"set":1,
 			"entries":[
 				{
 					"name":"view_mat4",
