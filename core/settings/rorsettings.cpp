@@ -294,6 +294,7 @@ Settings::Settings()
 	this->m_vulkan.m_version_major        = setting.get<uint32_t>("vulkan:version_major");
 	this->m_vulkan.m_version_minor        = setting.get<uint32_t>("vulkan:version_minor");
 	this->m_vulkan.m_validation           = setting.get<bool>("vulkan:validation");
+	this->m_vulkan.m_api_dump             = setting.get<bool>("vulkan:api_dump");
 	this->m_vulkan.m_verbose_log          = setting.get<bool>("vulkan:verbose_log");
 
 	auto mode = setting.get<std::string>("vulkan:polygon_mode");

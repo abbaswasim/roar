@@ -59,14 +59,14 @@ class DescriptorSet final
 	void                  push_image(uint32_t a_binding, VkDescriptorImageInfo *a_image_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags = VK_SHADER_STAGE_ALL);
 	void                  push_buffer(uint32_t a_binding, VkDescriptorBufferInfo *a_buffer_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags = VK_SHADER_STAGE_ALL);
 	void                  push_binding(uint32_t a_binding, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags);
-	void                  push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info);
-	VkDescriptorSetLayout allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_factory, DescriptorPool &a_pool, uint32_t a_set_id);
+	void                  push_binding_write(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info);
+	VkDescriptorSetLayout allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_factory, DescriptorPool &a_descriptor_pool, uint32_t a_set_id);
 	void                  update(const VkDevice a_device);
 	void                  update_writes();
 	void                  reset_writes();
 
 	// clang-format off
-	auto &platform_descriptor() { return this->m_handle; }
+	auto &platform_descriptor() { return this->m_handle;   }
 	auto &bindings()            { return this->m_bindings; }
 	auto &writes()              { return this->m_writes;   }
 	auto  set_id()              { return this->m_set_id;   }

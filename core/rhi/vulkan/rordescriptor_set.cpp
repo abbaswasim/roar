@@ -38,7 +38,7 @@ void DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, Vk
 	this->m_bindings.push_back(descriptor_set_layout_binding);
 }
 
-void DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
+void DescriptorSet::push_binding_write(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
 {
 	VkWriteDescriptorSet write_descriptor_set = vk_create_write_descriptor_set(nullptr, a_binding, a_type, a_image_info, a_buffer_info);
 
@@ -48,7 +48,7 @@ void DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, Vk
 void DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags)
 {
 	this->push_binding(a_binding, a_type, a_stage_flags);
-	this->push_binding(a_binding, a_type, a_image_info, a_buffer_info);
+	this->push_binding_write(a_binding, a_type, a_image_info, a_buffer_info);
 }
 
 void DescriptorSet::push_image(uint32_t a_binding, VkDescriptorImageInfo *a_image_info, VkDescriptorType a_type, VkShaderStageFlags a_stage_flags)
@@ -61,10 +61,10 @@ void DescriptorSet::push_buffer(uint32_t a_binding, VkDescriptorBufferInfo *a_bu
 	this->push_binding(a_binding, nullptr, a_buffer_info, a_type, a_stage_flags);
 }
 
-VkDescriptorSetLayout DescriptorSet::allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_pool, uint32_t a_set_id)
+VkDescriptorSetLayout DescriptorSet::allocate(const VkDevice a_device, DescriptorSetLayoutCache &a_layout_cache, DescriptorPool &a_descriptor_pool, uint32_t a_set_id)
 {
 	auto descriptor_layout = a_layout_cache.make_layout(a_device, this->m_bindings);
-	this->m_handle         = a_pool.allocate(a_device, descriptor_layout);
+	this->m_handle         = a_descriptor_pool.allocate(a_device, descriptor_layout);
 	this->m_set_id         = a_set_id;
 
 	this->update_writes();        // NOTE: This might or might not do much depending on which push_binding overload is used and hence would need to be called later separately

@@ -265,7 +265,10 @@ class ROAR_ENGINE_ITEM Settings final
 		uint32_t              m_descriptor_sets_size{4};
 		uint32_t              m_descriptor_pool_size{1024};
 		bool                  m_validation{true};
+		bool                  m_api_dump{false};
 		bool                  m_verbose_log{true};
+		bool                  m_extended_dynamic_state{false};
+		bool                  m_extended_dynamic_state3{false};
 		rhi::TriangleFillMode m_polygon_mode{rhi::TriangleFillMode::fill};
 	};
 
