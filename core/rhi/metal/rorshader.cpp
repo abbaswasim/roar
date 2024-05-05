@@ -115,7 +115,7 @@ void ShaderMetal::platform_source()
 		{
 			// Calls write_source which writes out original shader source in this case GLSL and returns the name it used
 			{
-				auto &resource = ror::resource(name + ".msl", ror::ResourceSemantic::caches, ror::ResourceAction::create, "generated_shaders");
+				auto &resource = ror::resource(name + ".msl", ror::ResourceSemantic::shaders, ror::ResourceAction::create, "generated_shaders");
 				resource.update({this->m_msl_source.begin(), this->m_msl_source.end()}, false, false, true);        // Update is safe because we are the only ones using resource
 			}
 		}
