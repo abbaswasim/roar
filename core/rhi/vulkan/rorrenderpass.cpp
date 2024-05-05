@@ -27,6 +27,7 @@
 #include "foundation/rorutilities.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
+#include "rhi/vulkan/rordevice.hpp"
 #include "rhi/vulkan/rorrenderpass.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
@@ -220,7 +221,7 @@ void RenderpassVulkan::upload(rhi::Device &a_device)
 		}
 		else
 		{
-			ror::log_critical("No concept of Vulkan Renderpass for compute render pass, not creating anything, find a solution");
+			ror::log_warn("No concept of Vulkan Renderpass for compute pass, not creating anything, find a solution");
 			// TODO: This doesn't work. Although it binds to compute binding point, the problem is there is no concept of compute render pass at the moment in vulkan
 			// subpasses_descriptions.emplace_back(vk_create_subpass_description(VK_PIPELINE_BIND_POINT_COMPUTE, input_attachments, subpass_color_attachments_references,
 			//                                                                   subpass_depth_attachment_reference, subpass_resolve_attachment_reference));
@@ -269,6 +270,11 @@ size_t RenderpassVulkan::platform_renderpass_count()
 	return 1ul;
 }
 
+VkFramebuffer RenderpassVulkan::platform_framebuffer() const
+{
+	return this->m_framebuffer;
+}
+
 VkRenderPass RenderpassVulkan::platform_renderpass(uint32_t) const
 {
 	return this->m_render_pass;
@@ -294,4 +300,60 @@ void RenderpassVulkan::execute(rhi::CommandBuffer &a_command_buffer, ror::Scene 
 {
 	renderpass_execute(*this, a_command_buffer, a_scene, a_surface, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer);
 }
+
+void begin_renderpass(rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_command_buffer, rhi::Swapchain a_swapchain, size_t a_frame_index, bool a_fragment)
+{
+	if (!a_fragment)
+		return;
+
+	(void) a_device;
+
+	assert(a_swapchain && "Swapchain is nullptr");
+
+	VkClearColorValue clear_color_value{};
+	clear_color_value.uint32[0] = 255;
+	clear_color_value.uint32[1] = 128;
+	clear_color_value.uint32[2] = 128;
+	clear_color_value.uint32[3] = 255;
+
+	VkClearDepthStencilValue clear_depth_stencil_value{.depth = 0, .stencil = 0};
+
+	std::vector<VkClearValue> clear_values{{.color = clear_color_value}, {.depthStencil = clear_depth_stencil_value}};
+	VkRect2D                  render_area{};
+	render_area.offset.x      = 0;
+	render_area.offset.y      = 0;
+	render_area.extent.width  = 1024;
+	render_area.extent.height = 768;
+
+	VkRenderPassBeginInfo render_pass_begin_info{};
+	render_pass_begin_info.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	render_pass_begin_info.pNext           = nullptr;
+	render_pass_begin_info.renderPass      = a_renderpass.platform_renderpass(0);
+	render_pass_begin_info.framebuffer     = a_renderpass.final() ? a_swapchain->swapchain_framebuffers()[a_frame_index] : a_renderpass.platform_framebuffer();
+	render_pass_begin_info.renderArea      = render_area;
+	render_pass_begin_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
+	render_pass_begin_info.pClearValues    = clear_values.data();
+
+	vkCmdBeginRenderPass(a_command_buffer.platform_graphics_command_buffer(), &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);        // VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS for secondary
+}
+
+void next_subpass(rhi::CommandBuffer &a_command_buffer, bool a_fragment)
+{
+	if (!a_fragment)
+		return;
+
+	vkCmdNextSubpass(a_command_buffer.platform_graphics_command_buffer(), VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void end_renderpass(rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_command_buffer, bool a_fragment)
+{
+	if (!a_fragment)
+		return;
+
+	(void) a_device;
+	(void) a_renderpass;
+
+	vkCmdEndRenderPass(a_command_buffer.platform_graphics_command_buffer());
+}
+
 }        // namespace rhi

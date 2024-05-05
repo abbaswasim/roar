@@ -48,23 +48,25 @@ class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 
 	declare_translation_unit_vtable();
 
-	void         upload(rhi::Device &a_device);
-	VkRenderPass platform_renderpass(uint32_t a_index) const;
-	VkRenderPass platform_computepass(uint32_t a_index) const;
+	void          upload(rhi::Device &a_device);
+	VkRenderPass  platform_renderpass(uint32_t a_index) const;
+	VkRenderPass  platform_computepass(uint32_t a_index) const;
+	VkFramebuffer platform_framebuffer() const;
 
 	size_t                     platform_renderpass_count();
 	rhi::RenderCommandEncoder  render_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
 	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
 	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, VkRenderPassCreateInfo *a_pass_descriptor);
 
-	// TODO: Add constexpr when log_critical is removed
-	FORCE_INLINE void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
+	FORCE_INLINE constexpr void make_final_pass(const rhi::Device &a_device, rhi::Swapchain a_surface, uint32_t a_index)
 	{
 		(void) a_surface;
 		(void) a_index;
-		ror::log_critical("Implement me {}", __FUNCTION__);
-		// auto rp = this->platform_renderpass(a_index);
-		// rp->colorAttachments()->object(0)->setTexture(a_surface->texture());
+		(void) a_device;
+
+		// This will only be effective for the first few frames untill all the framebuffers for each swapchain image are created
+		// If the render pass used to do that changes over the course of the run it will have to be reset and start again
+		// a_surface->setup_framebuffer(a_device.platform_device(), a_index, this);
 	}
 
 	void execute(rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface,

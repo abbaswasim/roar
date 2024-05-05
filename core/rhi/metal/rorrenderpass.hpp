@@ -60,8 +60,9 @@ class RenderpassMetal : public RenderpassCrtp<RenderpassMetal>
 	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, uint32_t a_index);
 	rhi::ComputeCommandEncoder compute_encoder(rhi::CommandBuffer &a_command_buffer, MTL::ComputePassDescriptor *a_pass_descriptor);
 
-	FORCE_INLINE void make_final_pass(rhi::Swapchain a_surface, uint32_t a_index)
+	FORCE_INLINE void make_final_pass(const rhi::Device &a_device, rhi::Swapchain a_surface, uint32_t a_index)
 	{
+		(void) a_device;
 		auto rp = this->platform_renderpass(a_index);
 		if (ror::multisample_count() > 1)
 			rp->colorAttachments()->object(0)->setResolveTexture(a_surface->texture());

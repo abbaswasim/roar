@@ -30,6 +30,7 @@
 #include "rhi/rorrender_command_encoder.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rortypes.hpp"
+#include "rhi/rordevice.hpp"
 #include "settings/rorsettings.hpp"
 
 #include <Metal/MTLComputePass.hpp>
@@ -231,6 +232,30 @@ void RenderpassMetal::execute(rhi::CommandBuffer &a_command_buffer, ror::Scene &
                               rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer)
 {
 	renderpass_execute(*this, a_command_buffer, a_scene, a_surface, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer);
+}
+
+void begin_renderpass(rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_command_buffer, rhi::Swapchain a_surface, size_t a_frame_index, bool a_fragment)
+{
+	(void) a_device;
+	(void) a_renderpass;
+	(void) a_command_buffer;
+	(void) a_fragment;
+	(void) a_surface;
+	(void) a_frame_index;
+}
+
+void next_subpass(rhi::CommandBuffer &a_command_buffer, bool a_fragment)
+{
+	(void) a_command_buffer;
+	(void) a_fragment;
+}
+
+void end_renderpass(rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_command_buffer, bool a_fragment)
+{
+	(void) a_device;
+	(void) a_renderpass;
+	(void) a_command_buffer;
+	(void) a_fragment;
 }
 
 }        // namespace rhi
