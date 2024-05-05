@@ -1167,6 +1167,7 @@ void Renderer::load_specific()
 	this->setup_references();
 }
 
+// This is the entry into rendering
 void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer)
 {
 	(void) a_job_system;
@@ -1184,6 +1185,8 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 		// Only one command_buffer is enough per frame, but the shader_updater::resolve_updates might have created, commited and closed its own
 		rhi::CommandBuffer command_buffer{a_device, true};
 		auto              &render_passes = this->current_frame_graph();
+
+		command_buffer.begin();
 
 		for (auto &render_pass : render_passes)
 			render_pass.execute(command_buffer, a_scene, surface, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, *this);
@@ -2011,6 +2014,19 @@ void Renderer::cycle_environment()
 	this->m_cube_map_mesh.set_texture(skybox_image, skybox_sampler);
 }
 
+void push_brdf_integration_lut_binding(rhi::Device &a_device, ror::Renderer &a_renderer, rhi::Program &a_program)
+{
+	rhi::descriptor_update_type buffers_images;
+
+	const rhi::descriptor_variant lut_image = &a_renderer.images()[12];
+
+	buffers_images[0].emplace_back(std::make_pair(lut_image, 0u));
+	// This shader only have
+	// layout(set = 0, binding = 0, rg16f) uniform image2D lut_image;
+
+	a_program.update_descriptor(a_device, a_renderer, buffers_images, false);
+}
+
 void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 {
 	for (auto &shader : this->m_shaders)
@@ -2023,7 +2039,7 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 	int32_t program_id{0};
 	for (auto &program : this->m_programs)
 	{
-		auto program_update = [&program, this, &a_buffer_pack](rhi::Device &device, std::unordered_set<hash_64_t> *) {
+		auto program_update = [&program, this, &a_buffer_pack, program_id, &a_device](rhi::Device &device, std::unordered_set<hash_64_t> *) {
 			rhi::Renderpass    *pass{nullptr};
 			rhi::Rendersubpass *subpass{nullptr};
 			bool                pre_multiplied{false};

@@ -127,7 +127,7 @@ auto ShaderCrtp<_type>::write_source() const noexcept
 	{
 		auto source = this->source();
 		{
-			auto &resource = ror::resource(name + ".glsl", ror::ResourceSemantic::caches, ror::ResourceAction::create, "generated_shaders");
+			auto &resource = ror::resource(name + ".glsl", ror::ResourceSemantic::shaders, ror::ResourceAction::create, "generated_shaders");
 			resource.update({source.begin(), source.end()}, false, false, true);
 		}
 	}

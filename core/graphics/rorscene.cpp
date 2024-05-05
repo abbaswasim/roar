@@ -55,6 +55,7 @@
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
+#include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rordevice.hpp"
 #include "rhi/rorhandles.hpp"
@@ -63,7 +64,6 @@
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
-#include "rhi/rorbuffer.hpp"
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include "shader_system/rorshader_update.hpp"
@@ -480,10 +480,19 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 
 	assert(program_id != -1 && "No program provided for compute pass walk scene");
 
-	auto &compute_pso       = a_renderer.programs()[static_cast<size_t>(program_id)];
-	auto &input_buffers     = a_subpass.buffer_inputs();
-	auto &trs_buffer        = input_buffers[0].m_render_output->m_target_reference.get();
-	auto  per_frame_uniform = a_renderer.shader_buffer("per_frame_uniform");
+	auto &compute_pso                       = a_renderer.programs()[static_cast<size_t>(program_id)];
+	auto &input_buffers                     = a_subpass.buffer_inputs();
+	auto &trs_buffer                        = input_buffers[0].m_render_output->m_target_reference.get();
+	auto  per_frame_uniform                 = a_renderer.shader_buffer("per_frame_uniform");
+	auto  nodes_models_uniform              = a_renderer.shader_buffer("nodes_models");
+	auto  morphs_weights_uniform            = a_renderer.shader_buffer("morphs_weights");
+	auto  node_transform_input_uniform      = a_renderer.shader_buffer("node_transform_input");
+	auto  node_transform_output_uniform     = a_renderer.shader_buffer("node_transform_output");
+	auto  animations_uniform                = a_renderer.shader_buffer("animations");
+	auto  animations_sampler_input_uniform  = a_renderer.shader_buffer("animations_sampler_input");
+	auto  animations_sampler_output_uniform = a_renderer.shader_buffer("animations_sampler_output");
+	auto  current_animations_uniform        = a_renderer.shader_buffer("current_animations");
+	auto  per_view_uniform                  = a_renderer.shader_buffer("per_view_uniform");
 
 	uint32_t ncount = static_cast_safe<uint32_t>(copy_node_transforms(*this, trs_buffer));
 
@@ -542,6 +551,44 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 
 	if (max_thread_group_size > node_matrices_size)
 		max_thread_group_size = node_matrices_size;
+
+	rhi::descriptor_update_type buffers_images;
+
+	const rhi::descriptor_variant per_frame_uniform_buffer                 = per_frame_uniform;
+	const rhi::descriptor_variant nodes_models_uniform_buffer              = nodes_models_uniform;
+	const rhi::descriptor_variant morphs_weights_uniform_buffer            = morphs_weights_uniform;
+	const rhi::descriptor_variant node_transform_input_uniform_buffer      = node_transform_input_uniform;
+	const rhi::descriptor_variant node_transform_output_uniform_buffer     = node_transform_output_uniform;
+	const rhi::descriptor_variant animations_uniform_buffer                = animations_uniform;
+	const rhi::descriptor_variant animations_sampler_input_uniform_buffer  = animations_sampler_input_uniform;
+	const rhi::descriptor_variant animations_sampler_output_uniform_buffer = animations_sampler_output_uniform;
+	const rhi::descriptor_variant current_animations_uniform_buffer        = current_animations_uniform;
+	const rhi::descriptor_variant per_view_uniform_buffer                  = per_view_uniform;
+
+	buffers_images[0].emplace_back(std::make_pair(per_frame_uniform_buffer, 18u));
+	buffers_images[0].emplace_back(std::make_pair(nodes_models_uniform_buffer, 19u));
+	buffers_images[0].emplace_back(std::make_pair(morphs_weights_uniform_buffer, 29u));
+	buffers_images[0].emplace_back(std::make_pair(node_transform_input_uniform_buffer, 0u));
+	buffers_images[0].emplace_back(std::make_pair(node_transform_output_uniform_buffer, 1u));
+	buffers_images[0].emplace_back(std::make_pair(animations_uniform_buffer, 2u));
+	buffers_images[0].emplace_back(std::make_pair(animations_sampler_input_uniform_buffer, 3u));
+	buffers_images[0].emplace_back(std::make_pair(animations_sampler_output_uniform_buffer, 4u));
+	buffers_images[0].emplace_back(std::make_pair(current_animations_uniform_buffer, 5u));
+	buffers_images[1].emplace_back(std::make_pair(per_view_uniform_buffer, 20u));
+
+	// This shader only have
+	// layout(std140, set = 0, binding = 18) uniform per_frame_uniform
+	// layout(std430, set = 0, binding = 19) buffer nodes_models
+	// layout(std430, set = 0, binding = 29) buffer morphs_weights
+	// layout(std430, set = 0, binding = 0) buffer node_transform_input
+	// layout(std430, set = 0, binding = 1) buffer node_transform_output
+	// layout(std430, set = 0, binding = 2) buffer animations
+	// layout(std430, set = 0, binding = 3) buffer animations_sampler_input
+	// layout(std430, set = 0, binding = 4) buffer animations_sampler_output
+	// layout(std430, set = 0, binding = 5) buffer current_animations
+	// layout(std140, set = 1, binding = 18) uniform per_view_uniform
+
+	compute_pso.update_descriptor(a_device, a_renderer, buffers_images, false);
 
 	// Encode the compute command.
 	a_command_encoder.dispatch_threads({node_matrices_size, 1, 1}, {static_cast<uint32_t>(max_thread_group_size), 1, 1});
@@ -609,7 +656,7 @@ void render_mesh(const rhi::Device &a_device, ror::Model &a_model, ror::Mesh &a_
 		const rhi::Program *pso{nullptr};
 		pso = &pass_programs[static_cast<size_t>(a_mesh.program(prim_id))];
 
-		if (subpass.program_id() != -1)        // this means we have a renderer supass program that overrides what's generated for the primitive
+		if (subpass.program_id() != -1)        // this means we have a renderer subpass program that overrides what's generated for the primitive
 			pso = &a_renderer.program(static_cast<size_t>(subpass.program_id()));
 
 		assert(pso && "There should be a PSO available for the mesh primitive");
@@ -1232,6 +1279,8 @@ const Light *Scene::area_light() const
 
 void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
 {
+	(void) a_pass;
+	(void) a_event_system;
 	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
 
 	DrawData dd;
@@ -2378,6 +2427,54 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 	ror::log_info("{} Shader update records created for the scene programs", records);
 }
 
+void Scene::deferred_upload(rhi::Device &a_device, ror::JobSystem &a_job_system, const ror::Renderer &a_renderer)
+{
+	auto program_descriptor_upload_job = [&a_device](rhi::Program &a_program) -> auto {
+		a_program.update_descriptor(a_device);
+
+		return true;
+	};
+
+	auto render_passes = a_renderer.current_frame_graph();
+
+	// Lets do this in parallel
+	// Upload all the shader programs, this creates pipelines in metal and vulkan cases
+	std::vector<ror::JobHandle<bool>> job_handles;
+	uint32_t                          programs_count = 1000;        // This should be big enough, otherwise its no big deal
+	job_handles.reserve(programs_count);
+
+	for (auto &pass : render_passes)
+	{
+		for (auto &subpass : pass.subpasses())
+		{
+			if (subpass.technique() != rhi::RenderpassTechnique::fragment)
+				continue;
+
+			auto    &pass_programs = this->m_programs[subpass.type()];
+			uint32_t program       = 0;
+			for (auto &model : this->m_models)
+			{
+				for (auto &mesh : model.meshes())
+				{
+					for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
+					{
+						auto upload_job_handle = a_job_system.push_job(program_descriptor_upload_job,
+						                                               std::ref(pass_programs[program]));
+
+						job_handles.emplace_back(std::move(upload_job_handle));
+
+						program++;
+					}
+				}
+			}
+		}
+	}
+
+	for (auto &jh : job_handles)
+		if (!jh.data())
+			ror::log_critical("Can't upload all programs descriptors for all models in all the render passes.");
+}
+
 void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device)
 {
 	auto render_passes = a_renderer.current_frame_graph();
@@ -2425,6 +2522,9 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 	{
 		for (auto &subpass : pass.subpasses())
 		{
+			if (subpass.technique() != rhi::RenderpassTechnique::fragment)
+				continue;
+
 			auto    &pass_programs = this->m_programs[subpass.type()];
 			uint32_t program       = 0;
 			for (auto &model : this->m_models)
@@ -2474,7 +2574,7 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 
 	for (auto &jh : job_handles)
 		if (!jh.data())
-			ror::log_critical("Can't upload all programs for all models in all the rendersses.");
+			ror::log_critical("Can't upload all programs for all models in all the render passes.");
 
 	// Special treatment of weights UBO that needs filling up from mesh static weights unlike other ones, although these might get animated later
 	// Thats why its uploaded in renderer

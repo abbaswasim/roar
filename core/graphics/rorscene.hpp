@@ -158,6 +158,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	// clang-format on
 
 	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device);
+	void deferred_upload(rhi::Device &a_device, ror::JobSystem &a_job_system, const ror::Renderer &a_renderer);
 
 	// Some stuff that we want to save and restore for a scene after its changed, like camera position etc
 	class ROAR_ENGINE_ITEM SceneState : public Configuration<SceneState>

@@ -453,7 +453,7 @@ void Resource::create()
 	}
 	else
 	{
-		log_critical("Trying to create resource but it already exists {}", this->m_absolute_path.c_str());
+		ror::log_warn("Trying to create resource but it already exists {}", this->m_absolute_path.c_str());
 	}
 
 	this->m_dirty = true;
