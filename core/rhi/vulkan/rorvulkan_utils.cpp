@@ -25,12 +25,14 @@
 
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "profiling/rorlog.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 #include <cstddef>
 #include <filesystem>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 #define FENCE_TIMEOUT 100000000000
@@ -273,7 +275,7 @@ void vk_copy_staging_buffers_to_images(VkDevice a_device, VkQueue transfer_queue
 	vk_end_single_use_command_buffer_and_wait(a_device, staging_command_buffer, transfer_queue, a_command_pool, a_mutex);
 }
 
-VkSwapchainKHR vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat &swapchain_format, VkExtent2D a_swapchain_extent)
+VkSwapchainKHR vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat &swapchain_format, VkExtent2D &a_swapchain_extent)
 {
 	VkSurfaceCapabilitiesKHR capabilities;
 	auto                     result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(a_physical_device, a_surface, &capabilities);
@@ -388,21 +390,40 @@ VkSwapchainKHR vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice 
 VkDevice vk_create_device(VkPhysicalDevice physical_device, const std::vector<VkDeviceQueueCreateInfo> &queues)
 {
 	// TODO: Select properties/features you need here
-	VkPhysicalDeviceFeatures physical_device_features{};
+	VkPhysicalDeviceExtendedDynamicStateFeaturesEXT extended_features{};
+	extended_features.sType                = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
+	extended_features.pNext                = nullptr;
+	extended_features.extendedDynamicState = false;
 
-	vkGetPhysicalDeviceFeatures(physical_device, &physical_device_features);
+	VkPhysicalDeviceExtendedDynamicState3FeaturesEXT extended3_features{};
+	extended3_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
+	extended3_features.pNext = &extended_features;
+
+	VkPhysicalDeviceFeatures2 physical_device_features2{};
+	physical_device_features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+	physical_device_features2.pNext = &extended3_features;
+
+	vkGetPhysicalDeviceFeatures2(physical_device, &physical_device_features2);
+
+	if (!extended_features.extendedDynamicState)
+		ror::settings().m_vulkan.m_extended_dynamic_state = false;
+
+	if (!extended3_features.extendedDynamicState3PolygonMode)
+		ror::settings().m_vulkan.m_extended_dynamic_state3 = false;
 
 	if (ror::sample_rate_shading_enabled())
 	{
-		assert(physical_device_features.sampleRateShading == VK_TRUE && "Sample Rate Shading not avialable");
+		assert(physical_device_features2.features.sampleRateShading == VK_TRUE && "Sample Rate Shading not available");
 	}
+
+	assert(extended_features.extendedDynamicState && "Required dynamic state is not available");
 
 	VkDeviceCreateInfo device_create_info{};
 	auto               extensions = enumerate_properties<VkPhysicalDevice, VkExtensionProperties>(physical_device);
 	auto               layers     = enumerate_properties<VkPhysicalDevice, VkLayerProperties>(physical_device);
 
 	device_create_info.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	device_create_info.pNext                   = nullptr;
+	device_create_info.pNext                   = &physical_device_features2;
 	device_create_info.flags                   = 0;
 	device_create_info.queueCreateInfoCount    = ror::static_cast_safe<uint32_t>(queues.size());
 	device_create_info.pQueueCreateInfos       = queues.data();
@@ -410,8 +431,8 @@ VkDevice vk_create_device(VkPhysicalDevice physical_device, const std::vector<Vk
 	device_create_info.ppEnabledLayerNames     = layers.data();
 	device_create_info.enabledExtensionCount   = ror::static_cast_safe<uint32_t>(extensions.size());
 	device_create_info.ppEnabledExtensionNames = extensions.data();
-	device_create_info.pEnabledFeatures        = &physical_device_features;        // TODO: Shouldn't use this, just use what you need not everything available
-	// device_create_info.pEnabledFeatures = nullptr;
+	device_create_info.pEnabledFeatures        = nullptr;        // If pNext has a chain then it must be nullptr
+	// device_create_info.pEnabledFeatures     = &physical_device_features2.features;        // TODO: Shouldn't use this, just use what you need not everything available
 
 	VkDevice device;
 	auto     result = vkCreateDevice(physical_device, &device_create_info, cfg::VkAllocator, &device);
@@ -786,12 +807,14 @@ VkDescriptorSetLayoutBinding vk_create_descriptor_set_layout_binding(uint32_t a_
 
 VkDescriptorSetLayoutCreateInfo vk_create_descriptor_set_layout_info(const std::vector<VkDescriptorSetLayoutBinding> &a_bindings)
 {
+	auto bindings_count = static_cast<uint32_t>(a_bindings.size());
+
 	VkDescriptorSetLayoutCreateInfo descriptor_set_layout_createinfo{};
 	descriptor_set_layout_createinfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	descriptor_set_layout_createinfo.pNext        = nullptr;
 	descriptor_set_layout_createinfo.flags        = 0;
-	descriptor_set_layout_createinfo.bindingCount = static_cast<uint32_t>(a_bindings.size());
-	descriptor_set_layout_createinfo.pBindings    = a_bindings.data();
+	descriptor_set_layout_createinfo.bindingCount = bindings_count;
+	descriptor_set_layout_createinfo.pBindings    = bindings_count == 0 ? nullptr : a_bindings.data();
 
 	return descriptor_set_layout_createinfo;
 }
@@ -1074,7 +1097,7 @@ VkPipelineDynamicStateCreateInfo vk_create_dynamic_state(const std::vector<VkDyn
 	return pipeline_dynamic_state_info;
 }
 
-VkPipelineLayoutCreateInfo vk_create_pipeline_layout_state(const std::vector<VkDescriptorSetLayout> &a_descriptors_layouts)
+VkPipelineLayoutCreateInfo vk_create_pipeline_layout_state(const std::array<VkDescriptorSetLayout, 4> &a_descriptors_layouts)
 {
 	VkPipelineLayoutCreateInfo pipeline_layout_info = {};
 
