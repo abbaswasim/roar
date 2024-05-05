@@ -84,7 +84,7 @@ bool resolve_includes(std::string &a_source, uint32_t &a_level, ror::ResourceSem
 			else
 				shader_code += "\n";
 
-			out = std::regex_replace(out, include_regex, shader_code, std::regex_constants::match_flag_type::format_first_only);        // this means the found item surrounded with [] "[$&]"
+			out = std::regex_replace(out, include_regex, shader_code, std::regex_constants::format_first_only);        // this means the found item surrounded with [] "[$&]"
 		}
 		else
 		{
