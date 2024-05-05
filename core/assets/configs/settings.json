@@ -101,6 +101,7 @@
 		"descriptor_sets_size" : 4,
 		"descriptor_pool_size" : 1024,
 		"validation" : true,
+		"api_dump" : true,
 		"verbose_log" : false,
 		"sets_bindings" :
 		{
@@ -119,7 +120,7 @@
 			"morphs_weights" : [0, 11],
 			"area_light" : [0, 12],
 
-			"per_view_uniform" : [1, 0],
+			"per_view_uniform" : [1, 2],
 
 			"skin_joints" : [2, 0],
 			"joint_inverse_bind" : [2, 1],
