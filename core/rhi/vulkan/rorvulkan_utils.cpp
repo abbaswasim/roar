@@ -417,6 +417,11 @@ VkDevice vk_create_device(VkPhysicalDevice physical_device, const std::vector<Vk
 	auto     result = vkCreateDevice(physical_device, &device_create_info, cfg::VkAllocator, &device);
 	check_return_status(result, "vkCreateDevice");
 
+	// Lets init device specific symbols
+#if defined(USE_VOLK)
+	volkLoadDevice(device);
+#endif
+
 	return device;
 }
 

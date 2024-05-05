@@ -25,12 +25,14 @@
 
 #include "platform/rorglfw_wrapper.hpp"
 #include "profiling/rorlog.hpp"
+#include "renderer/rorrenderer.hpp"
+#include "rhi/rortypes.hpp"
 #include "rhi/vulkan/rordevice.hpp"
+#include "rhi/vulkan/rorrenderpass.hpp"
 #include "rhi/vulkan/rorvulkan_utils.hpp"
 #include "settings/rorsettings.hpp"
 #include <cassert>
 #include <regex>
-#include <vulkan/vulkan_core.h>
 
 namespace rhi
 {
@@ -122,6 +124,10 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_generic_callback(
 
 Instance::Instance()
 {
+#if defined(USE_VOLK)
+	volkInitialize();
+#endif
+
 	auto &setting = ror::settings();
 
 	// Set debug messenger callback setup required later after instance creation
@@ -186,6 +192,11 @@ Instance::Instance()
 	check_return_status(result, "vkCreateInstance");
 
 	this->set_handle(instance_handle);
+
+	// Now lets init all the Instance related functions
+#if defined(USE_VOLK)
+	volkLoadInstance(instance_handle);
+#endif
 
 	result = vkCreateDebugUtilsMessengerEXT(this->get_handle(), &debug_messenger_create_info, cfg::VkAllocator, &m_messenger);
 	assert(result == VK_SUCCESS && "Failed to create Debug Utils Messenger!");
@@ -792,8 +803,8 @@ void PhysicalDevice::init(Instance &a_instance)
 
 	if (physical_device == nullptr)
 	{
-		ror::log_critical("Couldn't find suitable discrete physical device, falling back to integrated gpu.");
-		assert(gpus.size() > 1);
+		ror::log_warn("Couldn't find suitable discrete physical device, falling back to integrated gpu.");
+		assert(gpus.size() >= 1);
 		physical_device = gpus[0];
 	}
 

@@ -10,11 +10,13 @@ editor=true
 verbose=false
 sanitized=false
 pedantic=true
+volk=true
 
 cmake_conf_cmd="cmake -H. -G Ninja -B"
 cmake_buil_cmd="cmake --build "
 build_folder="build-"
 configure_build_type="-DCMAKE_BUILD_TYPE="
+build_volk="-DUSE_VOLK="
 build_api="-DROAR_RENDER_TYPE="
 build_tests="-DROAR_BUILD_TESTS="
 build_editor="-DROAR_BUILD_EDITOR="
@@ -34,6 +36,7 @@ print_help() {
 -v [true/false]                           Verbose make output
 -s [true/false]                           Build with clang sanatisers enabled [clang only]
 -p [true/false]                           Build with extra warning and errors enabled
+-k [true/false]                           Build with volk vulkan library
 "
 }
 
@@ -48,6 +51,7 @@ do
         v) verbose=${OPTARG};;
         s) sanitized=${OPTARG};;
         p) pedantic=${OPTARG};;
+        k) volk=${OPTARG};;
         h) print_help ; exit 0;;
     esac
 done
@@ -60,6 +64,7 @@ echo "editor:     $editor";
 echo "verbose:    $verbose";
 echo "sanitized:  $sanitized";
 echo "pedantic:   $pedantic";
+echo "volk:       $volk";
 
 NUMCPUS=8 # Default number looks good
 
@@ -118,6 +123,12 @@ else
 	build_pedantic+="0"
 fi
 
+if [ "$volk" = true ] ; then
+	build_volk+="1"
+else
+	build_volk+="0"
+fi
+
 cmake_conf_cmd+="$build_folder"
 cmake_conf_cmd+=" $configure_build_type"
 cmake_conf_cmd+=" $build_api"
@@ -125,6 +136,7 @@ cmake_conf_cmd+=" $build_tests"
 cmake_conf_cmd+=" $build_editor"
 cmake_conf_cmd+=" $build_sanitized"
 cmake_conf_cmd+=" $build_pedantic"
+cmake_conf_cmd+=" $build_volk"
 
 if [ "$verbose" = true ] ; then
 	export VERBOSE=1

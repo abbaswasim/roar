@@ -25,7 +25,13 @@
 
 #pragma once
 
-#include <vusym/vusym.hpp>
+#if defined(USE_VOLK)
+#	define VK_ENABLE_BETA_EXTENSIONS
+#	define VK_NO_PROTOTYPES
+#	include "volk/volk.h"
+#else
+#	include <vusym/vusym.hpp>
+#endif
 
 namespace rhi
 {

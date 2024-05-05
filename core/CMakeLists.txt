@@ -249,6 +249,11 @@ set(ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM
   spirv-cross-core
   glslang-default-resource-limits)
 
+if (USE_VOLK)
+  list(APPEND ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM volk)
+  target_compile_definitions(${ROAR_NAME} PRIVATE USE_VOLK)
+endif()
+
 set(ROAR_REQUIRED_PUBLIC_LIBRARIES
   ctpl
   cimage
