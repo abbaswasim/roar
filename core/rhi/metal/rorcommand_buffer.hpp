@@ -66,6 +66,9 @@ class CommandBufferMetal final
 		this->m_buffer->presentDrawable(a_swapchain);
 	}
 
+	FORCE_INLINE constexpr void begin() noexcept
+	{}
+
 	FORCE_INLINE constexpr void commit() noexcept
 	{
 		this->m_buffer->commit();

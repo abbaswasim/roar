@@ -77,13 +77,20 @@ class CommandBufferVulkan final
 		// this->m_buffer->presentDrawable(a_swapchain);
 	}
 
+	FORCE_INLINE constexpr void begin() noexcept
+	{
+		vk_begin_command_buffer(this->m_buffer);
+	}
+
 	FORCE_INLINE constexpr void commit() noexcept
 	{
+		vk_end_command_buffer(this->m_buffer);
 		// this->m_buffer->commit();
 	}
 
 	FORCE_INLINE constexpr void wait_until_completed() noexcept
 	{
+		vk_queue_wait_idle(VkQueue a_queue, std::mutex * a_mutex);
 		// this->m_buffer->waitUntilCompleted();
 	}
 
