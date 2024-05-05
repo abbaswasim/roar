@@ -42,7 +42,7 @@ namespace rhi
 // TODO: turn some of these smaller functions into inlines
 
 VkDevice                               vk_create_device(VkPhysicalDevice physical_device, const std::vector<VkDeviceQueueCreateInfo> &queues);
-VkSwapchainKHR                         vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat &a_format, VkExtent2D a_swapchain_extent);
+VkSwapchainKHR                         vk_create_swapchain(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat &a_format, VkExtent2D &a_swapchain_extent);
 VkImageView                            vk_create_image_view(VkDevice a_device, VkImage a_image, VkFormat a_format, uint32_t a_mip_levels, uint32_t a_array_layers, VkImageAspectFlags a_aspect_flags,
                                                             VkImageViewType    a_type      = VK_IMAGE_VIEW_TYPE_2D,
                                                             VkComponentSwizzle a_r_swizzle = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -66,7 +66,7 @@ VkPipelineDepthStencilStateCreateInfo  vk_create_depth_stencil_state(bool a_dept
 VkPipelineColorBlendAttachmentState    vk_create_color_blend_attachment_state(bool a_blend_enable = true, bool a_premultiplied_alpha = false);
 VkPipelineColorBlendStateCreateInfo    vk_create_color_blend_state(const VkPipelineColorBlendAttachmentState &a_pipeline_color_blend_attachment_state);
 VkPipelineDynamicStateCreateInfo       vk_create_dynamic_state(const std::vector<VkDynamicState> &a_dynamic_state);
-VkPipelineLayoutCreateInfo             vk_create_pipeline_layout_state(const std::vector<VkDescriptorSetLayout> &a_descriptors_layouts);
+VkPipelineLayoutCreateInfo             vk_create_pipeline_layout_state(const std::array<VkDescriptorSetLayout, 4> &a_descriptors_layouts);
 VkPipelineLayout                       vk_create_pipeline_layout(const VkDevice a_device, const VkPipelineLayoutCreateInfo &a_pipeline_layout_info);
 VkPipelineCache                        vk_create_pipeline_cache(const VkDevice a_device);
 VkViewport                             vk_create_viewport(float32_t a_x, float32_t a_y, float32_t a_width, float32_t a_height, float32_t a_min_depth, float32_t a_max_depth);
