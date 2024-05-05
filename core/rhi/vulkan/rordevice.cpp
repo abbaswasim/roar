@@ -824,10 +824,33 @@ void PhysicalDevice::init(Instance &a_instance)
 	reset_log_level();
 }
 
+void SwapChain::setup_framebuffer(VkDevice a_device, rhi::RenderpassVulkan *a_renderpass)
+{
+	assert(a_renderpass && "Renderpass is nullptr");
+	// All the swapchain images should now have their own framebuffers
+	for (size_t image_index = 0; image_index < this->m_swapchain_images.size(); ++image_index)
+	{
+		assert(this->m_framebuffers[image_index] == nullptr && "Swapchain framebuffer already initialised");
+
+		std::vector<VkImageView> attachments{this->m_swapchain_images_views[image_index]};        // TODO:: Add more, need depth and others
+
+		auto pass_render_targets = a_renderpass->render_targets();
+		for (auto &render_target : pass_render_targets)
+		{
+			auto &texture = render_target.m_target_reference.get();
+			if (is_pixel_format_depth_format(texture.format()))        // Add depth from the render pass
+				attachments.push_back(texture.platform_image_view());
+		}
+
+		this->m_framebuffers[image_index] = vk_create_framebuffer(a_device, a_renderpass->platform_renderpass(0), attachments, this->m_extent);
+	}
+}
+
 void SwapChain::create(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat swapchain_format, VkExtent2D a_swapchain_extent)
 {
 	// Remember vk_create_swapchain might change swapchain_format which is later used here
 	this->m_swapchain = vk_create_swapchain(a_physical_device, a_device, a_surface, swapchain_format, a_swapchain_extent);
+	this->m_extent    = a_swapchain_extent;
 
 	this->m_swapchain_images = enumerate_general_property<VkImage, true>(vkGetSwapchainImagesKHR, a_device, this->m_swapchain);
 
@@ -838,6 +861,7 @@ void SwapChain::create(VkPhysicalDevice a_physical_device, VkDevice a_device, Vk
 		this->m_swapchain_images_views[i] = vk_create_image_view(a_device, this->m_swapchain_images[i], swapchain_format, 1, 1, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	this->m_format = swapchain_format;
+	this->m_framebuffers.resize(this->m_swapchain_images.size(), nullptr);        // To be filled in when we know which renderpass they go into
 }
 
 void SwapChain::release(VkDevice a_device)
@@ -848,10 +872,16 @@ void SwapChain::release(VkDevice a_device)
 		image_view = nullptr;
 	}
 
-	vk_destroy_swapchain(a_device, this->swapchain());
+	for (auto &framebuffer : this->swapchain_framebuffers())
+	{
+		if (framebuffer)
+		{
+			vk_destroy_framebuffers(a_device, framebuffer);
+			framebuffer = nullptr;
+		}
+	}
 
-	// Release images, and imageviews and swapchain later
-	ror::log_critical("Release swapchain properly, not sure if images needs releasing, find out");
+	vk_destroy_swapchain(a_device, this->swapchain());
 }
 
 void DeviceVulkan::create_surface(void *a_window)
@@ -906,6 +936,30 @@ void DeviceVulkan::create_device()
 	this->m_pipeline_cache = vk_create_pipeline_cache(this->m_device);
 
 	reset_log_level();
+}
+
+void DeviceVulkan::swapchain_setup(ror::Renderer *a_renderer)
+{
+	assert(a_renderer && "Renderer is nullptr");
+	auto render_passes = a_renderer->current_frame_graph();
+
+	for (auto &pass : render_passes)
+	{
+		auto &render_supasses = pass.subpasses();
+		for (auto &subpass : render_supasses)
+		{
+			if (subpass.technique() == rhi::RenderpassTechnique::fragment)
+			{
+				// Update dimensions for those render passes that I think rely on framebuffer/window size. These would usually be swapchains
+				if (subpass.type() == rhi::RenderpassType::forward_light)        // NOTE: Only working for forward light at the moment
+				{
+					this->m_swapchain.setup_framebuffer(this->platform_device(), &pass);
+					pass.final(true);
+					return;
+				}
+			}
+		}
+	}
 }
 
 }        // namespace rhi

@@ -43,6 +43,11 @@
 #include <typeindex>
 #include <vector>
 
+namespace ror
+{
+class Renderer;
+}
+
 namespace rhi
 {
 
@@ -112,6 +117,8 @@ class PhysicalDevice : public VulkanObject<VkPhysicalDevice>
 	VkPhysicalDeviceMemoryProperties2 m_memory_properties{};                 //! Vulkan physical device memory properties cache, it might also contain VkPhysicalDeviceMemoryBudgetPropertiesEXT in pNext*
 };
 
+class RenderpassVulkan;
+
 class ROAR_ENGINE_ITEM SwapChain final
 {
   public:
@@ -123,6 +130,7 @@ class ROAR_ENGINE_ITEM SwapChain final
 	FORCE_INLINE virtual ~SwapChain() noexcept                      = default;        //! Destructor
 
 	void create(VkPhysicalDevice a_physical_device, VkDevice a_device, VkSurfaceKHR a_surface, VkFormat swapchain_format, VkExtent2D a_swapchain_extent);
+	void setup_framebuffer(VkDevice a_device, rhi::RenderpassVulkan *a_renderpass);
 	void release(VkDevice a_device);
 
 	// clang-format off
@@ -131,21 +139,24 @@ class ROAR_ENGINE_ITEM SwapChain final
 	void swapchain_images_views(std::vector<VkImageView> &&a_views) { this->m_swapchain_images_views = a_views;  }
 	void format(VkFormat a_format)                                  { this->m_format = a_format;                 }
 
-	VkSwapchainKHR            swapchain()                           { return this->m_swapchain;                  }
-	std::vector<VkImage>     &swapchain_images()                    { return this->m_swapchain_images;           }
-	std::vector<VkImageView> &swapchain_images_views()              { return this->m_swapchain_images_views;     }
-	VkFormat                  format()                              { return this->m_format;                     }
-	void                      release()                             {}
+	VkSwapchainKHR              swapchain()                         { return this->m_swapchain;                  }
+	std::vector<VkImage>       &swapchain_images()                  { return this->m_swapchain_images;           }
+	std::vector<VkImageView>   &swapchain_images_views()            { return this->m_swapchain_images_views;     }
+	std::vector<VkFramebuffer> &swapchain_framebuffers()            { return this->m_framebuffers;               }
+	VkFormat                    format()                            { return this->m_format;                     }
+	void                        release()                           {}
 	// clang-format on
 
 	declare_translation_unit_vtable();
 
   protected:
   private:
-	VkSwapchainKHR           m_swapchain{nullptr};
-	std::vector<VkImage>     m_swapchain_images{};
-	std::vector<VkImageView> m_swapchain_images_views{};
-	VkFormat                 m_format{VK_FORMAT_B8G8R8A8_SRGB};
+	VkSwapchainKHR             m_swapchain{nullptr};                     //! The platform swapchain handle
+	VkExtent2D                 m_extent{};                               //! The size of the swapchain, could be different that what's requested
+	std::vector<VkImage>       m_swapchain_images{};                     //! Image enumurated from swapchain
+	std::vector<VkImageView>   m_swapchain_images_views{};               //! Image views created from images which are enumurated from swapchain
+	VkFormat                   m_format{VK_FORMAT_B8G8R8A8_SRGB};        //! Format of the swapchain, might end up different depending on what's available
+	std::vector<VkFramebuffer> m_framebuffers{};                         //! These should be as many as the amount of images/image views in the swapchain
 };
 
 using Swapchain = SwapChain *;
@@ -168,6 +179,7 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE virtual ~DeviceVulkan() noexcept override                   = default;        //! Destructor
 
 	FORCE_INLINE void  init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
+	void  swapchain_setup(ror::Renderer *a_renderer);
 	FORCE_INLINE auto  platform_device() const noexcept;
 	FORCE_INLINE auto  platform_graphics_queue() const noexcept;
 	FORCE_INLINE auto  platform_compute_queue() const noexcept;
