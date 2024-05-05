@@ -31,6 +31,7 @@
 #include "rhi/vulkan/rordevice.hpp"
 #include "rhi/vulkan/rorrender_command_encoder.hpp"
 #include "rhi/vulkan/rorvulkan_common.hpp"
+#include "settings/rorsettings.hpp"
 #include <cassert>
 
 namespace rhi
@@ -72,7 +73,8 @@ FORCE_INLINE void RenderCommandEncoder::scissor(ror::Vector4ui a_scissor_rectang
 
 FORCE_INLINE void RenderCommandEncoder::front_facing_winding(rhi::PrimitiveWinding a_winding) const noexcept
 {
-	vkCmdSetFrontFace(this->m_command_buffer, to_vulkan_winding(a_winding));
+	if (ror::settings().m_vulkan.m_extended_dynamic_state)
+		vkCmdSetFrontFace(this->m_command_buffer, to_vulkan_winding(a_winding));
 }
 
 FORCE_INLINE void RenderCommandEncoder::depth_stencil_state(const rhi::RenderstateDepth &a_depth_stencil) const noexcept
@@ -84,8 +86,11 @@ FORCE_INLINE void RenderCommandEncoder::depth_stencil_state(const rhi::Rendersta
 
 FORCE_INLINE void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMode a_cull_mode) const noexcept
 {
-	VkCullModeFlags cull_mode{to_vulkan_cull_mode(a_cull_mode)};
-	vkCmdSetCullMode(this->m_command_buffer, cull_mode);
+	if (ror::settings().m_vulkan.m_extended_dynamic_state)
+	{
+		VkCullModeFlags cull_mode{to_vulkan_cull_mode(a_cull_mode)};
+		vkCmdSetCullMode(this->m_command_buffer, cull_mode);
+	}
 }
 
 FORCE_INLINE void RenderCommandEncoder::vertex_buffer(const rhi::BufferHybrid<rhi::Buffer, rhi::Static> &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
@@ -120,7 +125,7 @@ FORCE_INLINE void RenderCommandEncoder::vertex_buffer(const rhi::Buffer &a_buffe
 	auto buffer = a_buffer.platform_buffer();
 	auto offset = static_cast<VkDeviceSize>(a_offset);
 
-	vkCmdBindVertexBuffers(this->m_command_buffer, a_index, a_index + 1, &buffer, &offset);
+	vkCmdBindVertexBuffers(this->m_command_buffer, a_index, 1, &buffer, &offset);
 }
 
 FORCE_INLINE void RenderCommandEncoder::vertex_buffer_offset(const rhi::Buffer &a_buffer, uintptr_t a_offset, uint32_t a_index) const noexcept
@@ -217,7 +222,8 @@ FORCE_INLINE void RenderCommandEncoder::draw_indexed_primitives(rhi::PrimitiveTo
 
 FORCE_INLINE constexpr void RenderCommandEncoder::end_encoding() noexcept
 {
-	vk_end_command_buffer(this->m_command_buffer);        // Maybe this is not the right idea, if we have an outter command buffer that needs to be closed down first
+	// vk_end_command_buffer(this->m_command_buffer);        // Maybe this is not the right idea, if we have an outter command buffer that needs to be closed down first
+	// At the moment this is done in CommandBufferVulkan::commit
 }
 
 FORCE_INLINE constexpr void RenderCommandEncoder::release() const noexcept
@@ -227,6 +233,7 @@ FORCE_INLINE constexpr void RenderCommandEncoder::release() const noexcept
 
 FORCE_INLINE void RenderCommandEncoder::triangle_fill_mode(rhi::TriangleFillMode a_fill_mode) const noexcept
 {
-	vkCmdSetPolygonModeEXT(this->m_command_buffer, to_vulkan_triangle_fill_mode(a_fill_mode));
+	if (ror::settings().m_vulkan.m_extended_dynamic_state3)
+		vkCmdSetPolygonModeEXT(this->m_command_buffer, to_vulkan_triangle_fill_mode(a_fill_mode));
 }
 }        // namespace rhi

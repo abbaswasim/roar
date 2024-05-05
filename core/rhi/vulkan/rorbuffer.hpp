@@ -75,8 +75,7 @@ class ROAR_ENGINE_ITEM BufferVulkan
 	declare_translation_unit_vtable();
 
 	// clang-format off
-	FORCE_INLINE constexpr auto buffer_size()        const noexcept { return this->m_buffer_size;      }
-
+	FORCE_INLINE constexpr auto buffer_size()                        const noexcept { return this->m_buffer_size;    }
 	FORCE_INLINE constexpr void buffer_size(size_t a_size)                 noexcept { this->m_buffer_size = a_size;  }
 	// clang-format on
 

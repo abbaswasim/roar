@@ -39,7 +39,7 @@ void ComputeCommandEncoder::bind_descriptors(const rhi::Device &a_device, const 
 	for (auto &pd : a_pso.platform_descriptors())
 	{
 		DescriptorSet &set = descriptor_cache.at(pd);
-		vkCmdBindDescriptorSets(this->m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, a_pso.pipeline_layout(), set.set_id(), 1, &set.platform_descriptor(), 0, nullptr);
+		vkCmdBindDescriptorSets(this->m_command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, a_pso.pipeline_layout(), set.set_id(), 1, &set.platform_descriptor(), 0, nullptr);
 	}
 }
 

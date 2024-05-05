@@ -48,7 +48,7 @@ FORCE_INLINE ComputeCommandEncoder::~ComputeCommandEncoderVulkan() noexcept
 FORCE_INLINE ComputeCommandEncoder::ComputeCommandEncoderVulkan(rhi::CommandBufferVulkan &a_encoder) :
     m_command_buffer(a_encoder.platform_compute_command_buffer())
 {
-	vk_begin_command_buffer(this->m_command_buffer);
+	// vk_begin_command_buffer(this->m_command_buffer); // Should be done when the command buffer was created
 }
 
 // Don't need to do anything here because descriptors are already bound
@@ -88,7 +88,7 @@ FORCE_INLINE void ComputeCommandEncoder::dispatch_threads(ror::Vector3ui a_threa
 FORCE_INLINE constexpr void ComputeCommandEncoder::end_encoding() noexcept
 {
 	assert(this->m_command_buffer != nullptr && "Command buffer isn't valid");
-	vk_end_command_buffer(this->m_command_buffer);
+	// vk_end_command_buffer(this->m_command_buffer); // Should be done at command buffer level
 }
 
 FORCE_INLINE constexpr void ComputeCommandEncoder::release() noexcept

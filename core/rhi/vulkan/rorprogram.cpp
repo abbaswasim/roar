@@ -270,8 +270,8 @@ static auto create_fragment_render_pipeline(const rhi::Device            &a_devi
 
 	std::vector<VkDynamicState> dynamic_states = {
 	    VK_DYNAMIC_STATE_VIEWPORT,
-	    VK_DYNAMIC_STATE_SCISSOR};
-	// VK_DYNAMIC_STATE_LINE_WIDTH};
+	    VK_DYNAMIC_STATE_SCISSOR,
+		VK_DYNAMIC_STATE_LINE_WIDTH};
 
 	if (setting.m_vulkan.m_extended_dynamic_state)
 	{
@@ -1229,11 +1229,11 @@ void ProgramVulkan::build_descriptor(const rhi::Device &a_device, const ror::Ren
 		DescriptorSet set{};
 
 		assert(a_textures && a_images && a_samplers && "If material has textures, images and samplers are required too");
-		assert(has_material_factors_ubo && "Material descriptor requested but no material factors found in shader");
-		assert(material_factors_ubo_rsrc->m_binding == material_factors_uniform_binding &&
-		       material_factors_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
+		// assert(has_material_factors_ubo && "Material descriptor requested but no material factors found in shader");
+		// assert(material_factors_ubo_rsrc->m_binding == material_factors_uniform_binding &&
+		//        material_factors_ubo_rsrc->m_type == ShaderResourceType::uniform_buffer && "Buffer data and shader descriptors doesn't match");
 
-		(void) has_material_factors_ubo;
+		// (void) has_material_factors_ubo;
 
 		if (has_material_factors_ubo)
 		{

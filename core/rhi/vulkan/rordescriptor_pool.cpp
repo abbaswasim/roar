@@ -128,8 +128,9 @@ VkDescriptorSet DescriptorPool::allocate(const VkDevice a_device, VkDescriptorSe
 	VkResult        result;
 	VkDescriptorSet descriptor_set = vk_allocate_descriptor_set(a_device, a_layout, pool, 1u, &result);
 
-	if (result != VK_SUCCESS && descriptor_set == nullptr)
+	if (result != VK_SUCCESS)
 	{
+		assert(descriptor_set == nullptr && "Result faild but descriptor set is not null, cleanup");
 		if (result == VK_ERROR_FRAGMENTED_POOL || result == VK_ERROR_OUT_OF_POOL_MEMORY)
 		{
 			this->init(a_device);
@@ -143,6 +144,8 @@ VkDescriptorSet DescriptorPool::allocate(const VkDevice a_device, VkDescriptorSe
 			check_return_status(result, "vkAllocateDescriptorSet");
 		}
 	}
+
+	assert(descriptor_set && "Descriptor set is nullptr can't continue.");
 
 	return descriptor_set;
 }

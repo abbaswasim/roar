@@ -100,7 +100,7 @@ VkDescriptorSetLayout DescriptorSetLayoutCache::make_layout(const VkDevice &a_de
 {
 	VkDescriptorSetLayoutCreateInfo descriptor_set_layout_createinfo = vk_create_descriptor_set_layout_info(a_bindings);
 
-	return make_layout(a_device, descriptor_set_layout_createinfo);
+	return this->make_layout(a_device, descriptor_set_layout_createinfo);
 }
 
 }        // namespace rhi
