@@ -35,12 +35,21 @@ namespace rhi
 {
 // This is a horrible hack on top of Vulkan Descriptor sets
 
-using descriptor_variant = std::variant<const rhi::ShaderBuffer *, std::pair<const rhi::TextureImage *, const rhi::TextureSampler *>>;
+// clang-format off
+using descriptor_variant     = std::variant<const rhi::ShaderBuffer *,
+											const rhi::TextureImage *,
+											std::pair<const rhi::TextureImage *,
+													  const rhi::TextureSampler *>>;
+
+using descriptor_data_pair   = std::pair<                               // Pair of Data and Binding
+                                  descriptor_variant,                   // Data
+                                  uint32_t>;                            // Binding
+using descriptor_data_vector = std::vector<descriptor_data_pair>;       // List of pairs of shader_buffer/combined_image_samplers with their binding
+
 using descriptor_update_type = std::unordered_map<uint32_t,             // This is set id, for each set data will be provided
-                                                  std::vector<          // List of pairs of shader_buffer/combined_image_samplers with their binding
-                                                      std::pair<        // Pair of Data and Binding
-														  descriptor_variant,
-                                                          uint32_t>>>;        // Binding
+	                                              descriptor_data_vector>;
+
+// clang-format on
 }        // namespace rhi
 
 #if defined(ROR_RENDER_TYPE_VULKAN)
