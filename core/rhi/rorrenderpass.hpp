@@ -25,6 +25,23 @@
 
 #pragma once
 
+#include "rhi/rordevice.hpp"
+
+namespace rhi
+{
+
+class CommandBufferVulkan;
+class RenderpassVulkan;
+
+declare_rhi_render_type(CommandBuffer);
+declare_rhi_render_type(Renderpass);
+
+void begin_renderpass(rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_command_buffer, rhi::Swapchain a_surface, size_t a_frame_index, bool a_fragment);
+void next_subpass(rhi::CommandBuffer &a_command_buffer, bool a_fragment);
+void end_renderpass(rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_command_buffer, bool a_fragment);
+
+}        // namespace rhi
+
 #if defined(ROR_RENDER_TYPE_VULKAN)
 #	include "rhi/vulkan/rorrenderpass.hpp"
 #elif defined(ROR_RENDER_TYPE_METAL)
