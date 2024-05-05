@@ -321,18 +321,22 @@ FORCE_INLINE std::vector<const char *> instance_extensions_requested()
 	  VK_EXT_swapchain_colorspace
 	  VK_MVK_macos_surface // MacOS specific
 	*/
-	return std::vector<const char *>
-    {
+	return std::vector<const char *>{
 	    // clang-format off
 		VK_KHR_SURFACE_EXTENSION_NAME,                                 // VK_KHR_surface
 		VK_KHR_DISPLAY_EXTENSION_NAME,                                 // VK_KHR_display
 		VK_EXT_DEBUG_UTILS_EXTENSION_NAME,                             // VK_EXT_debug_utils
 		VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,        // VK_KHR_get_physical_device_properties2
 		VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,                 // VK_KHR_portability_enumeration
-		VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,                  // VK_EXT_extended_dynamic_state
 #if defined __APPLE__
+    #ifndef VK_EXT_METAL_SURFACE_EXTENSION_NAME
+        #define VK_EXT_METAL_SURFACE_EXTENSION_NAME "VK_EXT_metal_surface"
+    #endif
 		VK_EXT_METAL_SURFACE_EXTENSION_NAME,                           // "VK_EXT_metal_surface"
 #elif defined __linux__
+    #ifndef VK_KHR_XCB_SURFACE_EXTENSION_NAME
+        #define VK_KHR_XCB_SURFACE_EXTENSION_NAME "VK_KHR_xcb_surface"
+    #endif
 		VK_KHR_XCB_SURFACE_EXTENSION_NAME                              // "VK_EXT_xcb_surface??"
 #endif
 	    // clang-format on
@@ -341,18 +345,18 @@ FORCE_INLINE std::vector<const char *> instance_extensions_requested()
 
 FORCE_INLINE std::vector<const char *> instance_layers_requested()
 {
-	/* Usually available layers
-	  VK_LAYER_LUNARG_api_dump
-	  VK_LAYER_KHRONOS_validation
-	*/
-	return std::vector<const char *>{ror::settings().m_vulkan.m_validation ? "VK_LAYER_KHRONOS_validation" : ""};
+	return std::vector<const char *>{
+	    ror::settings().m_vulkan.m_validation ? "VK_LAYER_KHRONOS_validation" : "",
+	    ror::settings().m_vulkan.m_api_dump ? "VK_LAYER_LUNARG_api_dump" : ""};
 }
 
 FORCE_INLINE std::vector<const char *> device_extensions_requested()
 {
 	return std::vector<const char *>{
-	    VK_KHR_SWAPCHAIN_EXTENSION_NAME,                // VK_KHR_swapchain
-	    VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME        // "VK_KHR_portability_subset"
+	    VK_KHR_SWAPCHAIN_EXTENSION_NAME,                      // VK_KHR_swapchain
+	    VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME,             // VK_KHR_portability_subset
+	    VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME,         // VK_EXT_extended_dynamic_state
+	    VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME        // VK_EXT_extended_dynamic_state3
 	};
 }
 
@@ -459,6 +463,8 @@ FORCE_INLINE std::string get_properties_requested_erro_message(std::string a_pre
 template <class _type, class _property>
 std::vector<const char *> enumerate_properties(_type a_context = nullptr)
 {
+	auto &setting = ror::settings();
+
 	uint32_t properties_count{0};
 	if (get_properties_function<_type, _property>(nullptr, properties_count, nullptr, a_context) != VK_SUCCESS)
 		throw std::runtime_error(get_properties_requested_erro_message<_type, _property>());
@@ -489,7 +495,13 @@ std::vector<const char *> enumerate_properties(_type a_context = nullptr)
 		}
 		else
 		{
-			ror::log_critical("Requested {} {} not available.", get_name<_property>(), property_requested);
+			// These are the failed cases
+			if (std::strcmp(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME, property_requested) == 0)
+				setting.m_vulkan.m_extended_dynamic_state = false;
+			if (std::strcmp(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME, property_requested) == 0)
+				setting.m_vulkan.m_extended_dynamic_state3 = false;
+
+			ror::log_warn("Requested {} {} not available.", get_name<_property>(), property_requested);
 		}
 	}
 

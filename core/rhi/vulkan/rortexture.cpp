@@ -252,7 +252,8 @@ void TextureImageVulkan::upload(const rhi::Device &a_device)
 		properties = rhi::to_vulkan_resource_option(rhi::ResourceStorageOption::managed);
 		vk_create_buffer_with_memory(device, staging_buffer, std::max<size_t>(1ul, buffer_size), usage, mode, queue_family_indices, staging_memory, memory_properties.memoryProperties, properties);
 
-		ror::log_critical("Texture {} sizes are {}={}", this->name().c_str(), buffer_size, this->size());
+		if (buffer_size != this->size())
+			ror::log_warn("Texture {} sizes are {}={}", this->name().c_str(), buffer_size, this->size());
 
 		auto texture_data = vk_map_memory(device, staging_memory);
 		memcpy(texture_data, this->data(), this->size());        // NOTE: I am not using buffer_size here because the texture might not have all the mips already generated. Implement me
