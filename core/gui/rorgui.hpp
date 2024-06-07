@@ -54,9 +54,9 @@ class ROAR_ENGINE_ITEM Gui final
 	FORCE_INLINE Gui &operator=(Gui &&a_other) noexcept = delete;        //! Move assignment operator
 
 	Gui();        //! Default constructor
-	explicit Gui(rhi::ShaderBuffer a_shader_buffer) :
-	    m_shader_buffer(std::move(a_shader_buffer))
-	{}
+	// explicit Gui(rhi::ShaderBuffer a_shader_buffer) :
+	//     m_shader_buffer(std::move(a_shader_buffer))
+	// {}
 	~Gui() noexcept;        //! Destructor
 
 	void  init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system);

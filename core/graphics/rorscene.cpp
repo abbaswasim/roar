@@ -2814,6 +2814,7 @@ void Scene::read_lights()
 			if (light.contains("range"))
 				lit.m_range = light["range"];
 
+			lit.fill_shader_buffer();
 			this->m_lights.emplace_back(std::move(lit));
 		}
 	}

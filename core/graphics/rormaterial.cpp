@@ -69,6 +69,17 @@ void Material::generate_hash()
 	// Not using material_name and f0 because there are not part of shader generated for this material
 }
 
+// Will create UBO for factors like the following
+/*
+  layout(std140, set = 1, binding = 0) uniform factors
+  {
+      vec4  base_color_factor;
+      float metallic_factor;
+      float roughness_factor;
+      float opacity_factor;
+      float f0_factor;
+  } in_material_factors;
+*/
 void Material::fill_shader_buffer()
 {
 	if (this->m_base_color.m_type == ror::Material::ComponentType::factor || this->m_base_color.m_type == ror::Material::ComponentType::factor_texture)
@@ -171,19 +182,6 @@ void Material::update()
 
 void Material::upload(rhi::Device &a_device)
 {
-	// Will create UBO for factors like the following
-	/*
-	  layout(std140, set = 1, binding = 0) uniform factors
-	  {
-	      vec4  base_color_factor;
-	      float metallic_factor;
-	      float roughness_factor;
-	      float opacity_factor;
-	      float f0_factor;
-	  } in_material_factors;
-	*/
-
-	this->fill_shader_buffer();
 	this->m_shader_buffer.upload(a_device, rhi::ResourceStorageOption::managed);
 
 	this->update();

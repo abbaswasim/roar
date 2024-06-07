@@ -998,9 +998,15 @@ void Model::create_default_mesh(const char                  *a_name,
 	// Save the provided materials if any
 	if (a_mesh_materials.size())
 		for (auto &material : a_mesh_materials)
+		{
+			material.fill_shader_buffer();
 			this->m_materials.emplace_back(std::move(material));
+		}
 	else
+	{
 		this->m_materials.emplace_back();
+		this->m_materials.back().fill_shader_buffer();
+	}
 
 	for (size_t mesh_id = 0; mesh_id < a_mesh_data.size(); ++mesh_id)
 	{
@@ -1345,6 +1351,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 			this->m_materials.reserve(data->materials_count + 1);
 			// Lets have a default material at index 0
 			this->m_materials.emplace_back();
+			this->m_materials.back().fill_shader_buffer();
 			for (size_t i = 0; i < data->materials_count; ++i)
 			{
 				// Using calculations from https://google.github.io/filament/Filament.html#toc4.8.3.2 to calculate f0 from ior
@@ -1465,6 +1472,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 				// Lets generate a GLSL ShaderBuffer for this material // TODO: This shouldn't be GLSL specific
 				material.generate_hash();
+				material.fill_shader_buffer();
 
 				this->m_materials.emplace_back(std::move(material));
 
@@ -1893,6 +1901,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 				}
 
 				skin_to_index.emplace(&cskin, i);
+				skin.fill_shader_buffers();
 				this->m_skins.emplace_back(std::move(skin));
 			}
 

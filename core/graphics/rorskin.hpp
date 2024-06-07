@@ -71,6 +71,12 @@ class ROAR_ENGINE_ITEM Skin
 	FORCE_INLINE constexpr auto& joint_inverse_bind_shader_buffer()            noexcept  { return this->m_inverse_bind_shader_buffer;      }
 	// clang-format on
 
+	void fill_shader_buffers()
+	{
+		this->m_joint_offset_shader_buffer.add_entry("joint_redirect", rhi::Format::uint16_1, static_cast_safe<uint32_t>(this->m_joints.size()));
+		this->m_inverse_bind_shader_buffer.add_entry("joint_inverse_matrix", rhi::Format::float32_4x4, static_cast_safe<uint32_t>(this->m_joints.size()));
+	}
+
 	void update()
 	{
 		auto stride = this->m_joint_offset_shader_buffer.stride("joint_redirect");
@@ -86,10 +92,7 @@ class ROAR_ENGINE_ITEM Skin
 
 	void upload(rhi::Device &a_device)
 	{
-		this->m_joint_offset_shader_buffer.add_entry("joint_redirect", rhi::Format::uint16_1, static_cast_safe<uint32_t>(this->m_joints.size()));
 		this->m_joint_offset_shader_buffer.upload(a_device);
-
-		this->m_inverse_bind_shader_buffer.add_entry("joint_inverse_matrix", rhi::Format::float32_4x4, static_cast_safe<uint32_t>(this->m_joints.size()));
 		this->m_inverse_bind_shader_buffer.upload(a_device);
 
 		this->update();

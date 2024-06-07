@@ -31,6 +31,22 @@
 namespace ror
 {
 
+// Looking to create a UBO for directional light like below
+/*
+  const uint directional_lights_count = @;
+  struct light_type
+  {
+      vec3  color;
+      vec3  direction;
+      float intensity;
+      mat4  mvp;
+  };
+
+  layout(std140, set = @, binding = @) uniform directional_light_uniform
+  {
+      light_type lights[directional_lights_count];
+  } in_directional_light_uniforms;
+*/
 void Light::fill_shader_buffer()
 {
 	const uint32_t fixed_light_count = 2;        // TODO: needs to be moved out of here, at least 2 so we make an array
@@ -164,23 +180,6 @@ void Light::update()
 
 void Light::upload(rhi::Device &a_device)
 {
-	// Looking to create a UBO for directional light like below
-	/*
-	  const uint directional_lights_count = @;
-	  struct light_type
-	  {
-	      vec3  color;
-	      vec3  direction;
-	      float intensity;
-	      mat4  mvp;
-	  };
-
-	  layout(std140, set = @, binding = @) uniform directional_light_uniform
-	  {
-	      light_type lights[directional_lights_count];
-	  } in_directional_light_uniforms;
-	*/
-	this->fill_shader_buffer();
 	this->m_shader_buffer.upload(a_device);
 
 	this->update();
