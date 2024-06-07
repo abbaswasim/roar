@@ -1842,6 +1842,71 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	this->make_overlays();
 }
 
+void Scene::upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs)
+{
+	auto &setting = ror::settings();
+
+	auto model_nodes{this->models_count()};
+
+	// Add node placeholders all the procedurally created models here
+	if (setting.m_generate_debug_mesh)
+		model_nodes++;        // for debug model
+
+	assert(this->m_models.size() == model_nodes && "Models are not loaded");
+
+	if (model_nodes > 0)
+	{
+		std::vector<ror::JobHandle<bool>> job_handles;
+		job_handles.reserve(model_nodes);        // Multiplied by 2 because I am creating two jobs, load and upload per model
+
+		auto model_upload_job = [this, &a_device](size_t a_index) -> auto {
+			Model &model = this->m_models[a_index];
+			model.upload(a_device);        // I can't confirm if doing this in multiple threads is defined behaviour or not. But https://developer.apple.com/forums/thread/93346 seems to suggest its ok
+			return true;
+		};
+
+		auto model_index{0u};
+		for (auto &node : this->m_nodes_data)
+		{
+			if (node.m_model_path != "")
+			{
+				auto upload_job_handle = a_job_system.push_job(model_upload_job, model_index);
+				job_handles.emplace_back(std::move(upload_job_handle));
+				model_index++;
+			}
+		}
+
+		// Generate debug geometries into the debug model slot we have allocated
+		// This needs to happen after all models are loaded and can't be a job that isn't finished before generate_shaders is called below
+		// This is why its called on main thread
+		if (setting.m_generate_debug_mesh)
+		{
+			auto upload_job_handle = a_job_system.push_job(model_upload_job, model_index);
+			job_handles.emplace_back(std::move(upload_job_handle));
+			model_index++;
+		}
+
+		// Wait for all jobs to finish
+		for (auto &jh : job_handles)
+			if (!jh.data())
+				ror::log_critical("Can't load models specified in the scene.");
+
+		assert(model_index == model_nodes && "Models count vs how many are queued and loaded doesn't match");
+	}
+
+	// Lets create and upload the stuff required for the UI as well
+	auto gui_gen_job_handle = a_job_system.push_job([&a_device, &a_renderer, &setting]() -> auto {if (setting.m_generate_gui_mesh) ror::gui().upload(a_device, a_renderer); return true; });
+
+	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
+	// TODO: find out this might need to be done differently for Vulkan, also should be moved to upload()
+	a_buffers_packs.upload(a_device);
+
+	if (!gui_gen_job_handle.data())
+		ror::log_critical("Can't generate ui.");
+
+	init_upload_debug_geometry(a_device, a_renderer);
+}
+
 #define scene_state_name "_state.json"
 
 void Scene::init(const std::filesystem::path &a_level, ror::EventSystem &a_event_system)
