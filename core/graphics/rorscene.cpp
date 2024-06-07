@@ -1661,7 +1661,7 @@ auto get_node_global_transform(_node_container &a_model, _node_type &a_node)
 // }
 
 // Does not create a job and is run on main thread
-void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lambda, size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
+void Scene::generate_debug_model(size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
 {
 	// Add scene nodes for this model
 	auto node_index = this->m_nodes.size();
@@ -1770,8 +1770,6 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 
 	this->create_global_program("debug.glsl.vert", "debug.glsl.frag", node_index, a_model_index);
 
-	a_upload_lambda(a_model_index);
-
 #undef add_pos4_col4
 }
 
@@ -1788,7 +1786,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	{
 		this->m_models.resize(model_nodes);        // NOTE: I am resizing the models vector because I don't want many threads to emplace to it at the same time
 		std::vector<ror::JobHandle<bool>> job_handles;
-		job_handles.reserve(model_nodes * 2);        // Multiplied by 2 because I am creating two jobs, load and upload per model
+		job_handles.reserve(model_nodes);
 
 		auto model_load_job = [this, &a_buffers_packs](const std::string &node_model_path, size_t a_model_index, bool a_generate_shaders) -> auto {
 			log_info("Loading model {}", node_model_path.c_str());
@@ -1798,21 +1796,13 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 			return true;
 		};
 
-		auto model_upload_job = [this, &a_device](size_t a_index) -> auto {
-			Model &model = this->m_models[a_index];
-			model.upload(a_device);        // I can't confirm if doing this in multiple threads is defined behaviour or not. But https://developer.apple.com/forums/thread/93346 seems to suggest its ok
-			return true;
-		};
-
 		auto model_index{0u};
 		for (auto &node : this->m_nodes_data)
 		{
 			if (node.m_model_path != "")
 			{
-				auto load_job_handle   = a_job_system.push_job(model_load_job, node.m_model_path, model_index, node.m_program_id == -1);
-				auto upload_job_handle = a_job_system.push_job(model_upload_job, load_job_handle.job(), model_index);
+				auto load_job_handle = a_job_system.push_job(model_load_job, node.m_model_path, model_index, node.m_program_id == -1);
 				job_handles.emplace_back(std::move(load_job_handle));
-				job_handles.emplace_back(std::move(upload_job_handle));
 				model_index++;
 			}
 		}
@@ -1827,7 +1817,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		// This is why its called on main thread
 		if (setting.m_generate_debug_mesh)
 		{
-			generate_debug_model(model_upload_job, model_index, a_buffers_packs);
+			generate_debug_model(model_index, a_buffers_packs);
 			model_index++;
 		}
 
@@ -1835,16 +1825,12 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	}
 
 	// Lets create and upload the stuff required for the UI as well
-	auto gui_gen_job_handle = a_job_system.push_job([&a_device, &a_renderer, &a_event_system, &setting]() -> auto {if (setting.m_generate_gui_mesh) ror::gui().init_upload(a_device, a_renderer, a_event_system); return true; });
+	auto gui_gen_job_handle = a_job_system.push_job([&a_device, &a_event_system, &setting]() -> auto {if (setting.m_generate_gui_mesh) ror::gui().init(a_device, a_event_system); return true; });
 
-	this->read_programs();        // Now do this because I can only do this after the all the models are loaded and glslang is initialized, it can't be done in the config load
+	this->read_programs();        // Now do this because I can only do this after all the models are loaded and glslang is initialized, it can't be done in the config load
 
-	// Lets kick off shader generation while we upload the buffers
+	// Lets kick off shader generation
 	auto shader_gen_job_handle = a_job_system.push_job([this, &a_renderer, &a_job_system]() -> auto { this->generate_shaders(a_renderer, a_job_system); return true; });
-
-	// By this time the buffer pack should be primed and filled with all kinds of geometry and animatiom data, lets upload it, all in one go
-	// TODO: find out this might need to be done differently for Vulkan, also should be moved to upload()
-	a_buffers_packs.upload(a_device);
 
 	if (!shader_gen_job_handle.data())
 		ror::log_critical("Can't generate model shaders.");
@@ -1853,160 +1839,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 		ror::log_critical("Can't generate ui.");
 
 	this->update_bounding_box();
-
 	this->make_overlays();
-
-	// Different tests of dynamic_mesh used for cube, quad and fullscreen quad
-	if (setting.m_generate_cube_mesh)
-	{
-		ror::DynamicMesh cube_mesh{};
-
-		cube_mesh.init_upload(a_device, a_renderer, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles);
-		cube_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_interleaved), 9 * 36 * sizeof(float), 36,
-		                      reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
-
-		this->m_dynamic_meshes.emplace_back(std::move(cube_mesh));
-	}
-
-	if (setting.m_generate_cube_map)
-	{
-		ror::DynamicMesh cube_map_mesh{};
-
-		rhi::VertexDescriptor vertex_descriptor = create_p_float3_descriptor();
-
-		cube_map_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
-		cube_map_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
-		cube_map_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
-		auto &envs = a_renderer.environments();
-		auto &env  = envs[0];
-		if (/* DISABLES CODE */ (1))
-		{
-			auto irradiance_image   = &a_renderer.images()[env.irradiance()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
-			auto irradiance_sampler = &a_renderer.samplers()[env.irradiance_sampler()];
-
-			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(irradiance_image),
-			                          const_cast<rhi::TextureSampler *>(irradiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
-		}
-		else
-		{
-			auto radiance_image   = &a_renderer.images()[env.radiance()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
-			auto radiance_sampler = &a_renderer.samplers()[env.radiance_sampler()];
-
-			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(radiance_image),
-			                          const_cast<rhi::TextureSampler *>(radiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
-		}
-		rhi::descriptor_update_type a_buffers_images;
-
-		cube_map_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "equirectangular_cubemap.glsl.vert", "equirectangular_cubemap.glsl.frag");
-		cube_map_mesh.setup_descriptors(a_renderer, a_buffers_images, false);        // TODO: Fix me. this will break but I don't have the shaders above to see what images/buffers are used
-		cube_map_mesh.topology(rhi::PrimitiveTopology::triangles);
-		cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_position), 3 * 36 * sizeof(float), 36,
-		                          reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
-
-		this->m_dynamic_meshes.emplace_back(std::move(cube_map_mesh));
-	}
-	if (setting.m_generate_canonical_cube_map)
-	{
-		ror::DynamicMesh canonical_cube{};
-
-		rhi::VertexDescriptor vertex_descriptor = create_p_float3_t_float2_descriptor();
-
-		canonical_cube.init(a_device, rhi::PrimitiveTopology::triangles);
-		canonical_cube.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
-		canonical_cube.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
-		auto &canonical_cube_image = a_renderer.images()[a_renderer.canonical_cube()];
-
-		rhi::descriptor_update_type buffers_images;
-
-		const rhi::TextureImage      *image            = &canonical_cube.texture_image();
-		const rhi::TextureSampler    *sampler          = &canonical_cube.texture_sampler();
-		const rhi::descriptor_variant per_view_uniform = a_renderer.shader_buffer("per_view_uniform");
-		const rhi::descriptor_variant cube_map         = std::make_pair(image, sampler);
-
-		buffers_images[0].emplace_back(std::make_pair(cube_map, 0u));
-		buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
-		// These shaders only have
-		// layout(std140, set = 0, binding = 20) uniform per_view_uniform
-		// layout(set = 0, binding = 0) uniform highp samplerCube cube_map;
-
-		canonical_cube.set_texture(const_cast<rhi::TextureImage *>(&canonical_cube_image));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
-		canonical_cube.setup_shaders(a_renderer, rhi::BlendMode::blend, "canonical_cubemap.glsl.vert", "canonical_cubemap.glsl.frag");
-		canonical_cube.setup_descriptors(a_renderer, buffers_images, false);
-		canonical_cube.topology(rhi::PrimitiveTopology::triangles);
-		canonical_cube.upload_data(reinterpret_cast<const uint8_t *>(setting.m_invert_canonical_cube_map ? &cube_vertex_position_uv_interleaved_inverted : &cube_vertex_position_uv_interleaved), 5 * 36 * sizeof(float), 36,
-		                           reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
-
-		this->m_dynamic_meshes.emplace_back(std::move(canonical_cube));
-	}
-
-	if (setting.m_generate_quad_mesh)
-	{
-		ror::DynamicMesh quad_mesh{};
-
-		rhi::VertexDescriptor vertex_descriptor = create_p_float3_t_float2_descriptor();
-
-		auto image_lut = &a_renderer.images()[2];
-
-		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
-		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
-		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
-		quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));
-
-		rhi::descriptor_update_type buffers_images;
-
-		const rhi::TextureImage      *image              = image_lut;
-		const rhi::TextureSampler    *sampler            = &quad_mesh.texture_sampler();
-		const rhi::descriptor_variant per_view_uniform   = a_renderer.shader_buffer("per_view_uniform");
-		const rhi::descriptor_variant base_color_sampler = std::make_pair(image, sampler);
-
-		buffers_images[0].emplace_back(std::make_pair(base_color_sampler, 0u));
-		buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
-		// These shaders only have
-		// layout(std140, set = 0, binding = 20) uniform per_view_uniform
-		// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler;
-
-		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
-		quad_mesh.setup_descriptors(a_renderer, buffers_images, false);
-		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
-		quad_mesh.upload_data(reinterpret_cast<const uint8_t *>(&quad_vertex_buffer_interleaved), 5 * 6 * sizeof(float), 6);
-
-		this->m_dynamic_meshes.emplace_back(std::move(quad_mesh));
-	}
-
-	// NOTE: This fullscreen quad doesn't use any vertex attributes, so this is a unique case of rendering a quad without vertices
-	if (setting.m_generate_fullscreen_quad_mesh)
-	{
-		ror::DynamicMesh quad_mesh{};
-
-		rhi::VertexDescriptor vertex_descriptor = create_default_descriptor();
-
-		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
-		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
-		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
-		if (a_renderer.images().size() > 12)
-		{
-			auto image_lut = a_renderer.m_skybox_hdr_patch_ti;
-			// auto image_lut = &a_renderer.images()[2];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
-			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
-		}
-
-		rhi::descriptor_update_type buffers_images;
-
-		const rhi::TextureImage      *image              = &quad_mesh.texture_image();
-		const rhi::TextureSampler    *sampler            = &quad_mesh.texture_sampler();
-		const rhi::descriptor_variant base_color_sampler = std::make_pair(image, sampler);
-
-		buffers_images[0].emplace_back(std::make_pair(base_color_sampler, 0u));
-		// These shaders only have
-		// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler;
-
-		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "quad_no_attributes.glsl.vert", "quad_no_attributes.glsl.frag");
-		quad_mesh.setup_descriptors(a_renderer, buffers_images, false);
-		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
-		quad_mesh.upload_data(nullptr, 0, 6);        // This 6 here means I want to draw 6 vertices without any attributes as given by VertexDescriptor
-
-		this->m_dynamic_meshes.emplace_back(std::move(quad_mesh));
-	}
 }
 
 #define scene_state_name "_state.json"
