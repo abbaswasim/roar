@@ -206,6 +206,16 @@ void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_s
 	a_event_system.subscribe(keyboard_num6_click, camera_right_view);
 	a_event_system.subscribe(keyboard_num5_click, camera_front_view);
 	a_event_system.subscribe(keyboard_num0_click, camera_back_view);
+
+	auto frustum_update = [&a_renderer, this](Event &) {
+		auto &camera = this->current_camera();
+		camera.setup_frustums();
+		a_renderer.update_frustums_geometry(camera);
+	};
+
+	Event e;
+	frustum_update(e);
+	a_event_system.subscribe(keyboard_f_click, frustum_update);
 }
 
 void Scene::update_from_scene_state()
@@ -1776,7 +1786,7 @@ void Scene::generate_debug_model(size_t a_model_index, rhi::BuffersPack &a_buffe
 void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs)
 {
 	auto &setting = ror::settings();
-	auto model_nodes{this->models_count()};
+	auto  model_nodes{this->models_count()};
 
 	// Add node placeholders all the procedurally created models here
 	if (setting.m_generate_debug_mesh)
@@ -2380,8 +2390,10 @@ void Scene::deferred_upload(rhi::Device &a_device, ror::JobSystem &a_job_system,
 			ror::log_critical("Can't upload all programs descriptors for all models in all the render passes.");
 }
 
-void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device)
+void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs)
 {
+	this->upload_models(a_job_system, a_device, a_renderer, a_buffers_packs);
+
 	auto render_passes = a_renderer.current_frame_graph();
 	auto with_environment{ror::settings().m_environment.m_visible};
 
@@ -2500,6 +2512,9 @@ void Scene::upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer
 				ror::log_critical("Pass type {}, program {} is null {}, {}", rhi::renderpass_type_to_string(passtype1), reinterpret_cast<void *>(&pprgs), reinterpret_cast<void *>(rsp), reinterpret_cast<void *>(csp));
 		}
 	}
+
+	this->deferred_upload(a_device, a_job_system, a_renderer);
+	this->setup_cameras(a_renderer, a_event_system);
 }
 
 void Scene::read_nodes()
@@ -3007,8 +3022,6 @@ void Scene::init_upload_debug_geometry(const rhi::Device &a_device, const ror::R
 		this->m_dynamic_meshes.emplace_back(std::move(quad_mesh));
 	}
 }
-
-
 
 /*
 // Code for testing CPU walk, only works for one model at a time

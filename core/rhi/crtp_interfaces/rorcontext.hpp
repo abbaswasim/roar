@@ -63,21 +63,16 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		// Initialize glslang library via our wrapper, calling glslang directly means we need to link it with editor which creates all kinds of issues
 		glslang_wrapper_initialize_process();
 
-		this->m_renderer.dimensions(a_dimensions, *this->m_current_device);
-		this->m_renderer.upload(*this->m_current_device, *this->m_buffer_pack);
-		this->m_renderer.set_modifier_events(this->m_event_system);
-
-		// Load all the models now in a deferred way
+		// Only loads all the models, doesn't do any GPU upload
+		// NOTE: m_renderer isn't uploaded yet but for the things that load_models uses it, those bits are setup (buffers glsls etc)
 		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer, this->m_event_system, *this->m_buffer_pack);
-		this->m_scene.upload(*this->m_job_system, this->m_renderer, *this->m_current_device);
-		this->m_scene.setup_cameras(this->m_renderer, this->m_event_system);
 
-		this->m_renderer.deferred_buffer_upload(*this->m_current_device, this->m_scene);
-		this->m_renderer.upload_environments(*this->m_current_device);
-		this->m_renderer.upload_debug_geometry(*this->m_current_device, this->m_event_system, this->m_scene);
+		this->m_renderer.upload(*this->m_current_device, this->m_scene, this->m_event_system, a_dimensions, *this->m_buffer_pack);
+
+		// Upload all the models now to the GPU
+		this->m_scene.upload(*this->m_current_device, *this->m_job_system, this->m_event_system, this->m_renderer, *this->m_buffer_pack);
 
 		this->m_current_device->swapchain_setup(&this->m_renderer);
-		this->m_scene.deferred_upload(*this->m_current_device, *this->m_job_system, this->m_renderer);
 
 		this->underlying().init_derived();
 	}

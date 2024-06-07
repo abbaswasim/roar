@@ -1265,11 +1265,11 @@ void Renderer::set_render_mode(uint32_t a_render_mode)
 	perframe_ubo->buffer_unmap();
 }
 
-void Renderer::deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene)
+void Renderer::scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene)
 {
-	auto output_ubo = this->shader_buffer("node_transform_output");
-	auto input_ubo  = this->shader_buffer("node_transform_input");
 	auto model_ubo  = this->shader_buffer("nodes_models");
+	auto input_ubo  = this->shader_buffer("node_transform_input");
+	auto output_ubo = this->shader_buffer("node_transform_output");
 
 	auto animations_ubo                = this->shader_buffer("animations");
 	auto animations_sampler_input_ubo  = this->shader_buffer("animations_sampler_input");
@@ -2027,8 +2027,9 @@ void push_brdf_integration_lut_binding(rhi::Device &a_device, ror::Renderer &a_r
 	a_program.update_descriptor(a_device, a_renderer, buffers_images, false);
 }
 
-void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
+void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSystem &a_event_system, const ror::Vector4f &a_dimensions, rhi::BuffersPack &a_buffer_pack)
 {
+	this->dimensions(a_dimensions, a_device);
 	for (auto &shader : this->m_shaders)
 	{
 		shader.compile();
@@ -2074,9 +2075,13 @@ void Renderer::upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack)
 	this->upload_frame_graphs(a_device);
 	this->upload_remaining_textures(a_device);
 	this->upload_samplers(a_device);
-	this->upload_environments(a_device);
 
 	this->m_render_state.upload(a_device);
+
+	this->set_modifier_events(a_event_system);
+	this->scene_buffers_upload(a_device, a_scene);
+	this->upload_environments(a_device);
+	this->upload_debug_geometry(a_device, a_event_system);
 }
 
 std::vector<rhi::RenderpassType> Renderer::render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const
@@ -2220,7 +2225,7 @@ void Renderer::update_per_view_uniform(const ror::Matrix4f &a_view, const ror::M
 	per_view_uniform->buffer_unmap();
 }
 
-void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system, ror::Scene &a_scene)
+void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system)
 {
 	// First lets create grid
 	this->create_grid_mesh(a_device, a_event_system);
@@ -2320,16 +2325,6 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 
 	// This is done last because of the move
 	this->m_debug_data.m_frustums[cascade_index].setup_vertex_descriptor(&colored_lines_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
-
-	auto frustum_update = [&a_scene, this](Event &) {
-		auto &camera = a_scene.current_camera();
-		camera.setup_frustums();
-		this->update_frustums_geometry(camera);
-	};
-
-	Event e;
-	frustum_update(e);
-	a_event_system.subscribe(keyboard_f_click, frustum_update);
 
 	// Now we save a reference to it in the dynamic meshes within the renderer
 	this->m_dynamic_meshes.emplace_back(&this->m_debug_data.m_frustums[cascade_index]);

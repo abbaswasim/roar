@@ -125,7 +125,6 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void     setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
 	uint32_t models_count();
 	void     load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
-	void     upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs);
 	void     init_upload_debug_geometry(const rhi::Device &a_device, const ror::Renderer &a_renderer);
 	void     shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system);
 	void     unload();
@@ -160,7 +159,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr       auto &current_camera()         noexcept   {  return this->m_cameras[this->m_current_camera_index]; }
 	// clang-format on
 
-	void upload(ror::JobSystem &a_job_system, const ror::Renderer &a_renderer, rhi::Device &a_device);
+	void upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs);
 	void deferred_upload(rhi::Device &a_device, ror::JobSystem &a_job_system, const ror::Renderer &a_renderer);
 
 	// Some stuff that we want to save and restore for a scene after its changed, like camera position etc
@@ -212,6 +211,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	};
 
 	void init(const std::filesystem::path &a_level, ror::EventSystem &a_event_system);
+	void upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs);
 	void install_input_handlers(ror::EventSystem &a_event_system);
 	void uninstall_input_handlers(ror::EventSystem &a_event_system);
 	void make_overlays();

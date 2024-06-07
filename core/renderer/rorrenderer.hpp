@@ -85,12 +85,12 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE                     Renderer();        //! Default constructor
 	void                             render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer);
 	void                             load_specific();
-	void                             upload(rhi::Device &a_device, rhi::BuffersPack &a_buffer_pack);
+	void                             upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSystem &a_event_system, const ror::Vector4f &a_dimensions, rhi::BuffersPack &a_buffer_pack);
 	void                             upload_frame_graphs(rhi::Device &a_device);
 	void                             upload_environments(rhi::Device &a_device);
 	void                             cycle_environment();
 	std::vector<rhi::RenderpassType> render_pass_types() const;
-	void                             deferred_buffer_upload(rhi::Device &a_device, ror::Scene &a_scene);
+	void                             scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene);
 	void                             dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device);
 	void                             set_modifier_events(ror::EventSystem &a_event_system);
 	void                             reset_sets_bindings();
@@ -150,7 +150,7 @@ class Renderer final : public Configuration<Renderer>
 	rhi::TextureImage *m_irradiance_patch_ti{nullptr};
 	rhi::TextureImage *m_radiance_patch_ti{nullptr};
 
-	void                upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system, ror::Scene &a_scene);
+	void                upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system);
 	void                update_frustums_geometry(const ror::OrbitCamera &a_camera);
 	const rhi::Texture *get_shadow_texture() const;
 
