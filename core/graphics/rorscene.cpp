@@ -1449,6 +1449,16 @@ void Scene::update_bounding_box()
 	}
 }
 
+uint32_t Scene::models_count()
+{
+	auto model_nodes{0u};
+	for (auto &node : this->m_nodes_data)
+		if (node.m_model_path != "")
+			model_nodes++;
+
+	return model_nodes;
+}
+
 void Scene::add_model_node(int32_t a_model_index)
 {
 	ror::SceneNode     node;
@@ -1553,6 +1563,7 @@ auto trs_to_matrix4(ror::Transformf &a_trs)
 
 	return translation * rotation * scale;
 }
+
 template <typename _node_container, typename _node_type>
 auto get_node_global_transform(_node_container &a_model, _node_type &a_node)
 {
@@ -1767,11 +1778,7 @@ void Scene::generate_debug_model(const std::function<bool(size_t)> &a_upload_lam
 void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs)
 {
 	auto &setting = ror::settings();
-
-	auto model_nodes{0u};
-	for (auto &node : this->m_nodes_data)
-		if (node.m_model_path != "")
-			model_nodes++;
+	auto model_nodes{this->models_count()};
 
 	// Add node placeholders all the procedurally created models here
 	if (setting.m_generate_debug_mesh)

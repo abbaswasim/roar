@@ -120,15 +120,17 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
 	// void cpu_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder, rhi::Device &a_device, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass, Timer &a_timer, ror::EventSystem &a_event_system);
 
-	void update(ror::Renderer &a_renderer, ror::Timer &a_timer);
-	void update_from_scene_state();
-	void setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
-	void load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
-	void shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system);
-	void unload();
-	void load_specific();
-	void reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass);
-	void fill_scene_data();
+	void     update(ror::Renderer &a_renderer, ror::Timer &a_timer);
+	void     update_from_scene_state();
+	void     setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
+	uint32_t models_count();
+	void     load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
+	void     upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs);
+	void     shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system);
+	void     unload();
+	void     load_specific();
+	void     reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass);
+	void     fill_scene_data();
 
 	const Light *light(ror::Light::LightType a_type) const;
 	const Light *directional_light() const;
@@ -221,7 +223,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_job_system);
 	void update_bounding_box();
 	void generate_grid_model(ror::JobSystem &a_job_system, const std::function<bool(size_t)> &a_upload_job, std::vector<ror::JobHandle<bool>> &a_job_handles, size_t a_model_index, rhi::BuffersPack &a_buffer_pack);
-	void generate_debug_model(const std::function<bool(size_t)> &a_upload_lambda, size_t a_model_index, rhi::BuffersPack &a_buffer_pack);
+	void generate_debug_model(size_t a_model_index, rhi::BuffersPack &a_buffer_pack);
 	void add_model_node(int32_t a_model_index);
 	void add_node();
 	void push_shader_updates(const ror::Renderer &a_renderer);
