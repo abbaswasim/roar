@@ -68,8 +68,6 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		this->m_scene.load_models(*this->m_job_system, *this->m_current_device, this->m_renderer, this->m_event_system, *this->m_buffer_pack);
 
 		this->m_renderer.upload(*this->m_current_device, this->m_scene, this->m_event_system, a_dimensions, *this->m_buffer_pack);
-
-		// Upload all the models now to the GPU
 		this->m_scene.upload(*this->m_current_device, *this->m_job_system, this->m_event_system, this->m_renderer, *this->m_buffer_pack);
 
 		this->m_current_device->swapchain_setup(&this->m_renderer);
