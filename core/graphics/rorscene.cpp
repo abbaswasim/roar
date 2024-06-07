@@ -2784,6 +2784,167 @@ void Scene::load_specific()
 void Scene::unload()
 {}
 
+void Scene::init_upload_debug_geometry(const rhi::Device &a_device, const ror::Renderer &a_renderer)
+{
+	// Different tests of dynamic_mesh used for cube, quad and fullscreen quad
+	auto &setting = ror::settings();
+
+	// Different tests of dynamic_mesh used for cube, quad and fullscreen quad
+	if (setting.m_generate_cube_mesh)
+	{
+		ror::DynamicMesh cube_mesh{};
+
+		cube_mesh.init_upload(a_device, a_renderer, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles);
+		cube_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_interleaved), 9 * 36 * sizeof(float), 36,
+		                      reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
+
+		this->m_dynamic_meshes.emplace_back(std::move(cube_mesh));
+	}
+
+	if (setting.m_generate_cube_map)
+	{
+		ror::DynamicMesh cube_map_mesh{};
+
+		rhi::VertexDescriptor vertex_descriptor = create_p_float3_descriptor();
+
+		cube_map_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
+		cube_map_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+		cube_map_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
+		auto &envs = a_renderer.environments();
+		auto &env  = envs[0];
+		if (/* DISABLES CODE */ (1))
+		{
+			auto irradiance_image   = &a_renderer.images()[env.irradiance()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto irradiance_sampler = &a_renderer.samplers()[env.irradiance_sampler()];
+
+			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(irradiance_image),
+			                          const_cast<rhi::TextureSampler *>(irradiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		}
+		else
+		{
+			auto radiance_image   = &a_renderer.images()[env.radiance()];        // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			auto radiance_sampler = &a_renderer.samplers()[env.radiance_sampler()];
+
+			cube_map_mesh.set_texture(const_cast<rhi::TextureImage *>(radiance_image),
+			                          const_cast<rhi::TextureSampler *>(radiance_sampler));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		}
+		rhi::descriptor_update_type a_buffers_images;
+
+		cube_map_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "equirectangular_cubemap.glsl.vert", "equirectangular_cubemap.glsl.frag");
+		cube_map_mesh.setup_descriptors(a_renderer, a_buffers_images, false);        // TODO: Fix me. this will break but I don't have the shaders above to see what images/buffers are used
+		cube_map_mesh.topology(rhi::PrimitiveTopology::triangles);
+		cube_map_mesh.upload_data(reinterpret_cast<const uint8_t *>(&cube_vertex_buffer_position), 3 * 36 * sizeof(float), 36,
+		                          reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
+
+		this->m_dynamic_meshes.emplace_back(std::move(cube_map_mesh));
+	}
+
+	if (setting.m_generate_canonical_cube_map)
+	{
+		ror::DynamicMesh canonical_cube{};
+
+		rhi::VertexDescriptor vertex_descriptor = create_p_float3_t_float2_descriptor();
+
+		canonical_cube.init(a_device, rhi::PrimitiveTopology::triangles);
+		canonical_cube.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+		canonical_cube.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
+		auto &canonical_cube_image = a_renderer.images()[a_renderer.canonical_cube()];
+
+		rhi::descriptor_update_type buffers_images;
+
+		const rhi::TextureImage      *image            = &canonical_cube.texture_image();
+		const rhi::TextureSampler    *sampler          = &canonical_cube.texture_sampler();
+		const rhi::descriptor_variant per_view_uniform = a_renderer.shader_buffer("per_view_uniform");
+		const rhi::descriptor_variant cube_map         = std::make_pair(image, sampler);
+
+		buffers_images[0].emplace_back(std::make_pair(cube_map, 0u));
+		buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
+		// These shaders only have
+		// layout(std140, set = 0, binding = 20) uniform per_view_uniform
+		// layout(set = 0, binding = 0) uniform highp samplerCube cube_map;
+
+		canonical_cube.set_texture(const_cast<rhi::TextureImage *>(&canonical_cube_image));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		canonical_cube.setup_shaders(a_renderer, rhi::BlendMode::blend, "canonical_cubemap.glsl.vert", "canonical_cubemap.glsl.frag");
+		canonical_cube.setup_descriptors(a_renderer, buffers_images, false);
+		canonical_cube.topology(rhi::PrimitiveTopology::triangles);
+		canonical_cube.upload_data(reinterpret_cast<const uint8_t *>(setting.m_invert_canonical_cube_map ? &cube_vertex_position_uv_interleaved_inverted : &cube_vertex_position_uv_interleaved), 5 * 36 * sizeof(float), 36,
+		                           reinterpret_cast<const uint8_t *>(cube_index_buffer_uint16), 36 * sizeof(uint16_t), 36);
+
+		this->m_dynamic_meshes.emplace_back(std::move(canonical_cube));
+	}
+
+	if (setting.m_generate_quad_mesh)
+	{
+		ror::DynamicMesh quad_mesh{};
+
+		rhi::VertexDescriptor vertex_descriptor = create_p_float3_t_float2_descriptor();
+
+		auto image_lut = &a_renderer.images()[2];
+
+		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
+		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
+		quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));
+
+		rhi::descriptor_update_type buffers_images;
+
+		const rhi::TextureImage      *image              = image_lut;
+		const rhi::TextureSampler    *sampler            = &quad_mesh.texture_sampler();
+		const rhi::descriptor_variant per_view_uniform   = a_renderer.shader_buffer("per_view_uniform");
+		const rhi::descriptor_variant base_color_sampler = std::make_pair(image, sampler);
+
+		buffers_images[0].emplace_back(std::make_pair(base_color_sampler, 0u));
+		buffers_images[0].emplace_back(std::make_pair(per_view_uniform, 20u));
+		// These shaders only have
+		// layout(std140, set = 0, binding = 20) uniform per_view_uniform
+		// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler;
+
+		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "textured_quad.glsl.vert", "textured_quad.glsl.frag");
+		quad_mesh.setup_descriptors(a_renderer, buffers_images, false);
+		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
+		quad_mesh.upload_data(reinterpret_cast<const uint8_t *>(&quad_vertex_buffer_interleaved), 5 * 6 * sizeof(float), 6);
+
+		this->m_dynamic_meshes.emplace_back(std::move(quad_mesh));
+	}
+
+	// NOTE: This fullscreen quad doesn't use any vertex attributes, so this is a unique case of rendering a quad without vertices
+	if (setting.m_generate_fullscreen_quad_mesh)
+	{
+		ror::DynamicMesh quad_mesh{};
+
+		rhi::VertexDescriptor vertex_descriptor = create_default_descriptor();
+
+		quad_mesh.init(a_device, rhi::PrimitiveTopology::triangles);
+		quad_mesh.setup_vertex_descriptor(&vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+		quad_mesh.load_texture(a_device);                             // What if I want to just set the texture, to something I want to display on it
+		if (a_renderer.images().size() > 12)
+		{
+			auto image_lut = a_renderer.m_skybox_hdr_patch_ti;
+			// auto image_lut = &a_renderer.images()[2];                                // Only testing, if the LUT texture was displayed on the quad, how would it look like
+			quad_mesh.set_texture(const_cast<rhi::TextureImage *>(image_lut));        // NOTE: const_cast only allowed in test code, this is just a test code, there is no reason to make a_renderer non-const for this to work.
+		}
+
+		rhi::descriptor_update_type buffers_images;
+
+		const rhi::TextureImage      *image              = &quad_mesh.texture_image();
+		const rhi::TextureSampler    *sampler            = &quad_mesh.texture_sampler();
+		const rhi::descriptor_variant base_color_sampler = std::make_pair(image, sampler);
+
+		buffers_images[0].emplace_back(std::make_pair(base_color_sampler, 0u));
+		// These shaders only have
+		// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler;
+
+		quad_mesh.setup_shaders(a_renderer, rhi::BlendMode::blend, "quad_no_attributes.glsl.vert", "quad_no_attributes.glsl.frag");
+		quad_mesh.setup_descriptors(a_renderer, buffers_images, false);
+		quad_mesh.topology(rhi::PrimitiveTopology::triangles);
+		quad_mesh.upload_data(nullptr, 0, 6);        // This 6 here means I want to draw 6 vertices without any attributes as given by VertexDescriptor
+
+		this->m_dynamic_meshes.emplace_back(std::move(quad_mesh));
+	}
+}
+
+
+
 /*
 // Code for testing CPU walk, only works for one model at a time
 auto node_has_animation(ror::Model &a_model, uint32_t a_node_index, uint32_t a_animation_index)

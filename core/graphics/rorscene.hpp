@@ -126,6 +126,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	uint32_t models_count();
 	void     load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);
 	void     upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs);
+	void     init_upload_debug_geometry(const rhi::Device &a_device, const ror::Renderer &a_renderer);
 	void     shutdown(std::filesystem::path a_level, ror::EventSystem &a_event_system);
 	void     unload();
 	void     load_specific();
