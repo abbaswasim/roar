@@ -482,10 +482,9 @@ void set_imgui_style()
 #endif
 }
 
-void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system)
+void Gui::init(const rhi::Device &a_device, ror::EventSystem &a_event_system)
 {
-	this->m_device = &a_device;
-
+	this->m_device       = &a_device;
 	this->m_event_system = &a_event_system;
 
 	auto &setting = ror::settings();
@@ -572,14 +571,11 @@ void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_render
 
 	rhi::fill_texture_from_memory(new_pixels, static_cast<uint32_t>(width), static_cast<uint32_t>(height), 4, this->m_texture_image, false, "imgui_font_texture");
 
-	this->m_texture_image.upload(a_device);
 	io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(&this->m_texture_image));
-	this->m_texture_sampler.upload(a_device);
 
 	this->install_input_handlers();
 
 	this->m_shader_buffer.add_entry("orthographic_projection", rhi::Format::float32_4x4);
-	this->m_shader_buffer.upload(a_device, rhi::ResourceStorageOption::managed);
 
 	// Create vertex descriptor
 	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_2};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
@@ -593,27 +589,6 @@ void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_render
 	std::vector<rhi::VertexLayout>    vlayouts{vlp, vlt, vlc};
 
 	this->m_vertex_descriptor = rhi::VertexDescriptor{vattribs, vlayouts};
-
-	// Create shader program
-	// TODO: Patch with gui_buffer/image_set/binding
-	auto vs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.vert");
-	auto fs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.frag");
-
-	// Needs final pass stuff
-	rhi::Renderpass    *pass{nullptr};
-	rhi::Rendersubpass *subpass{nullptr};
-
-	a_renderer.get_final_pass_subpass(&pass, &subpass);
-
-	// Only requires the following descriptors
-	// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler; set and binding needs changing according to API
-	// layout(std140, set = 0, binding = 3) uniform gui_per_frame_uniform; name and set and binding needs changing according to API
-
-	this->m_shader_program.build_descriptor(a_device, &this->m_shader_buffer, gui_buffer_binding, &this->m_texture_image, &this->m_texture_sampler, gui_image_binding);
-	this->m_shader_program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
-
-	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
-	this->m_index_buffer.init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
 
 	// auto p0 = ror::Vector4f{2.0f, 2.0f, 0.0f, 1.0f};
 	// auto p1 = ror::Vector4f{2.5f, 2.5f, 0.0f, 1.0f};
@@ -640,6 +615,36 @@ void Gui::init_upload(const rhi::Device &a_device, const ror::Renderer &a_render
 
 	this->m_gizmo.init(this->m_default_font, ror::Vector4f{0.0f, 0.0f, 0.0f, 1.0f});
 	this->m_overlays.init(this->m_default_font);
+}
+
+void Gui::upload(const rhi::Device &a_device, const ror::Renderer &a_renderer)
+{
+	auto &setting = ror::settings();
+
+	// Create shader program
+	// TODO: Patch with gui_buffer/image_set/binding
+	auto vs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.vert");
+	auto fs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.frag");
+
+	// Needs final pass stuff
+	rhi::Renderpass    *pass{nullptr};
+	rhi::Rendersubpass *subpass{nullptr};
+
+	this->m_texture_image.upload(a_device);
+	this->m_texture_sampler.upload(a_device);
+	this->m_shader_buffer.upload(a_device, rhi::ResourceStorageOption::managed);
+
+	a_renderer.get_final_pass_subpass(&pass, &subpass);
+
+	// Only requires the following descriptors
+	// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler; set and binding needs changing according to API
+	// layout(std140, set = 0, binding = 3) uniform gui_per_frame_uniform; name and set and binding needs changing according to API
+
+	this->m_shader_program.build_descriptor(a_device, &this->m_shader_buffer, gui_buffer_binding, &this->m_texture_image, &this->m_texture_sampler, gui_image_binding);
+	this->m_shader_program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
+
+	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
+	this->m_index_buffer.init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
 }
 
 static void show_debug_overlay(bool &a_show_debug)

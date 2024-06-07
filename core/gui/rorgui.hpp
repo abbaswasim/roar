@@ -59,7 +59,8 @@ class ROAR_ENGINE_ITEM Gui final
 	// {}
 	~Gui() noexcept;        //! Destructor
 
-	void  init_upload(const rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
+	void  init(const rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void  upload(const rhi::Device &a_device, const ror::Renderer &a_renderer);
 	void  render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system);
 	auto &overlays() {return this->m_overlays;}
 
