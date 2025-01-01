@@ -2040,7 +2040,7 @@ void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSyst
 	int32_t program_id{0};
 	for (auto &program : this->m_programs)
 	{
-		auto program_update = [&program, this, &a_buffer_pack](rhi::Device &device, std::unordered_set<hash_64_t> *) {
+		auto program_update = [&a_device, &program, program_id, this, &a_buffer_pack](rhi::Device &device, std::unordered_set<hash_64_t> *) {
 			rhi::Renderpass    *pass{nullptr};
 			rhi::Rendersubpass *subpass{nullptr};
 			bool                pre_multiplied{false};

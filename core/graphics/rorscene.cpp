@@ -1913,8 +1913,6 @@ void Scene::upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, c
 
 	if (!gui_gen_job_handle.data())
 		ror::log_critical("Can't generate ui.");
-
-	init_upload_debug_geometry(a_device, a_renderer);
 }
 
 #define scene_state_name "_state.json"
@@ -2393,6 +2391,7 @@ void Scene::deferred_upload(rhi::Device &a_device, ror::JobSystem &a_job_system,
 void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs)
 {
 	this->upload_models(a_job_system, a_device, a_renderer, a_buffers_packs);
+	this->init_upload_debug_geometry(a_device, a_renderer);
 
 	auto render_passes = a_renderer.current_frame_graph();
 	auto with_environment{ror::settings().m_environment.m_visible};
