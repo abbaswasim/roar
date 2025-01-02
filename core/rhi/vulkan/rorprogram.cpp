@@ -271,7 +271,7 @@ static auto create_fragment_render_pipeline(const rhi::Device            &a_devi
 	std::vector<VkDynamicState> dynamic_states = {
 	    VK_DYNAMIC_STATE_VIEWPORT,
 	    VK_DYNAMIC_STATE_SCISSOR,
-		VK_DYNAMIC_STATE_LINE_WIDTH};
+	    VK_DYNAMIC_STATE_LINE_WIDTH};
 
 	if (setting.m_vulkan.m_extended_dynamic_state)
 	{
@@ -1317,7 +1317,8 @@ void ProgramVulkan::clear_descriptor()
 	// this->updated_m_platform_descriptors.resize(4);               // Supporting only 4 sets for now
 	// this->updated_m_platform_descriptor_layouts.resize(4);        // Supporting only 4 sets for now
 
-	for (size_t i = 0; i < 4; ++i)
+	auto descriptor_sets_count = ror::settings().m_vulkan.m_descriptor_sets_size;
+	for (size_t i = 0; i < descriptor_sets_count; ++i)
 		this->m_platform_descriptor_layouts[i] = nullptr;
 }
 
@@ -1399,7 +1400,7 @@ void ProgramVulkan::update_descriptor(const rhi::Device &a_device, const ror::Re
 		auto &radiance_image         = renderer_images[ror::static_cast_safe<size_t>(env.radiance())];
 		auto &shared_sampler         = renderer_samplers[ror::static_cast_safe<size_t>(env.skybox_sampler())];
 
-		const auto env_set = 0u;
+		const auto env_set = 0u;        // Environment is alway in set 0
 
 		rhi::descriptor_variant brdf_texture       = std::make_pair(&brdf_integration_image, &shared_sampler);
 		rhi::descriptor_variant skybox_texture     = std::make_pair(&skybox_image, &shared_sampler);
@@ -1487,6 +1488,10 @@ void ProgramVulkan::update_descriptor(const rhi::Device &a_device, const ror::Re
 
 				VkDescriptorBufferInfo buffer_info{vk_create_descriptor_buffer_info(buffer->platform_buffer())};
 				set_ptr->push_binding_write(binding_id, layout_binding.descriptorType, nullptr, &buffer_info);        // Creates a write descriptor for the descriptor set
+			}
+			else
+			{
+				assert(0 && "Don't support this descriptor type");
 			}
 		}
 

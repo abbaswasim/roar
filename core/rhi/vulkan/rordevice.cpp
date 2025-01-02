@@ -75,10 +75,10 @@ std::string format_validation_message(const char *a_message)
 	std::regex spec("The Vulkan spec states:");
 
 	std::string objects  = std::regex_replace(a_message, object, "\n\t$&");
-	std::string handles  = std::regex_replace(objects, handle, "\n\t$&");
-	std::string types    = std::regex_replace(handles, type, "\n\t$&");
+	std::string handles  = std::regex_replace(objects, handle, "\n\t\t$&");
+	std::string types    = std::regex_replace(handles, type, "\n\t\t$&");
 	std::string messages = std::regex_replace(types, message, "\n\tMessageID = ");
-	std::string bars     = std::regex_replace(messages, bar, "\n\t");
+	std::string bars     = std::regex_replace(messages, bar, "\n\t\t");
 	std::string specs    = std::regex_replace(bars, spec, "\n\t$&\n\t\t");
 
 	return specs;
@@ -124,8 +124,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_generic_callback(
 
 Instance::Instance()
 {
-#if defined(USE_VOLK)
-	volkInitialize();
+#if defined(ROR_USE_VOLK)
+	auto volk_result = volkInitialize();
+	assert(volk_result == VK_SUCCESS && "Volk initialise failed can't continue");
 #endif
 
 	auto &setting = ror::settings();
@@ -193,8 +194,8 @@ Instance::Instance()
 
 	this->set_handle(instance_handle);
 
-	// Now lets init all the Instance related functions
-#if defined(USE_VOLK)
+// Now lets init all the Instance related functions
+#if defined(ROR_USE_VOLK)
 	volkLoadInstance(instance_handle);
 #endif
 

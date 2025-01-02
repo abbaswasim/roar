@@ -439,7 +439,7 @@ VkDevice vk_create_device(VkPhysicalDevice physical_device, const std::vector<Vk
 	check_return_status(result, "vkCreateDevice");
 
 	// Lets init device specific symbols
-#if defined(USE_VOLK)
+#if defined(ROR_USE_VOLK)
 	volkLoadDevice(device);
 #endif
 
@@ -842,6 +842,8 @@ VkDescriptorSetLayout vk_create_descriptor_set_layout(VkDevice a_device, const V
 
 VkDescriptorBufferInfo vk_create_descriptor_buffer_info(VkBuffer a_buffer)
 {
+	assert(a_buffer != VK_NULL_HANDLE && "Buffer provided is null, can't create a buffer descriptor with null buffer");
+
 	VkDescriptorBufferInfo descriptor_buffer{};
 	descriptor_buffer.buffer = a_buffer;
 	descriptor_buffer.offset = 0;
@@ -852,6 +854,8 @@ VkDescriptorBufferInfo vk_create_descriptor_buffer_info(VkBuffer a_buffer)
 
 VkDescriptorImageInfo vk_create_descriptor_image_info(VkImageView a_view, VkSampler a_sampler, VkImageLayout a_layout)
 {
+	assert(a_view != VK_NULL_HANDLE && "ImageView provided is null, can't create a image descriptor with null image view");
+
 	VkDescriptorImageInfo descriptor_image{};
 	descriptor_image.sampler     = a_sampler;
 	descriptor_image.imageView   = a_view;
@@ -862,6 +866,8 @@ VkDescriptorImageInfo vk_create_descriptor_image_info(VkImageView a_view, VkSamp
 
 VkWriteDescriptorSet vk_create_write_descriptor_set(VkDescriptorSet a_descriptor_set, uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
 {
+	assert(a_image_info != VK_NULL_HANDLE || a_buffer_info != VK_NULL_HANDLE && "Image info or buffer info provided is null");
+
 	VkWriteDescriptorSet write_descriptor_set{};
 	write_descriptor_set.sType            = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 	write_descriptor_set.pNext            = nullptr;
@@ -1134,7 +1140,8 @@ VkPipelineCache vk_create_pipeline_cache(const VkDevice a_device)
 
 	VkPipelineCache cache;
 
-	vkCreatePipelineCache(a_device, &pipeline_create_info, cfg::VkAllocator, &cache);
+	VkResult result = vkCreatePipelineCache(a_device, &pipeline_create_info, cfg::VkAllocator, &cache);
+	check_return_status(result, "vkCreatePipelineCache");
 
 	return cache;
 }

@@ -94,6 +94,8 @@ constexpr FORCE_INLINE const char *vk_result_to_string(VkResult a_result)
 		case VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT:                return "VK_ERROR_INCOMPATIBLE_SHADER_BINARY_EXT";
 		case VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR:              return "VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR";
 		case VK_RESULT_MAX_ENUM:                                     return "VK_RESULT_MAX_ENUM";
+		case VK_ERROR_NOT_ENOUGH_SPACE_KHR:                          return "VK_ERROR_NOT_ENOUGH_SPACE_KHR";
+		case VK_PIPELINE_BINARY_MISSING_KHR:                         return "VK_PIPELINE_BINARY_MISSING_KHR";
 		// case VK_ERROR_OUT_OF_POOL_MEMORY_KHR:                        return "VK_ERROR_OUT_OF_POOL_MEMORY_KHR";
 		// case VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR:                   return "VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR";
 		// case VK_ERROR_FRAGMENTATION_EXT:                             return "VK_ERROR_FRAGMENTATION_EXT";

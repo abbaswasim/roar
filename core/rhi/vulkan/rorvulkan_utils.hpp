@@ -163,11 +163,13 @@ VkBufferMemoryBarrier2                 vk_create_buffer_barrier(VkBuffer a_buffe
 VkFramebuffer                          vk_create_framebuffer(VkDevice a_device, VkRenderPass a_renderpass, const std::vector<VkImageView> &a_attachments, VkExtent2D a_dimensions, uint32_t a_layers = 1);
 VkFence                                vk_create_fence(VkDevice a_device, VkFenceCreateFlags a_flags = 0);
 
+FORCE_INLINE void vk_destroy_instance(VkInstance &a_instance);
 FORCE_INLINE void vk_destroy_swapchain(VkDevice a_device, VkSwapchainKHR a_swapchain);
 FORCE_INLINE void vk_destroy_imageview(VkDevice a_device, VkImageView a_image_view);
 FORCE_INLINE void vk_destroy_surface(VkInstance a_instance, VkSurfaceKHR a_surface);
-FORCE_INLINE void vk_destroy_device(VkDevice a_device);
+FORCE_INLINE void vk_destroy_device(VkDevice& a_device);
 FORCE_INLINE void vk_destroy_pipeline(VkDevice a_device, VkPipeline a_pipeline);
+FORCE_INLINE void vk_destroy_pipeline_cache(VkDevice a_device, VkPipelineCache& a_pipeline_cache);
 FORCE_INLINE void vk_destroy_shader_module(VkDevice a_device, VkShaderModule a_module);
 FORCE_INLINE void vk_destroy_buffer(VkDevice a_device, VkBuffer a_buffer);
 FORCE_INLINE void vk_destroy_memory(VkDevice a_device, VkDeviceMemory a_memory);

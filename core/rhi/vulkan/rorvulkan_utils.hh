@@ -40,13 +40,19 @@ FORCE_INLINE void vk_destroy_imageview(VkDevice a_device, VkImageView a_image_vi
 	vkDestroyImageView(a_device, a_image_view, cfg::VkAllocator);
 }
 
+FORCE_INLINE void vk_destroy_instance(VkInstance &a_instance)
+{
+	vkDestroyInstance(a_instance, nullptr);
+	a_instance = nullptr;
+}
+
 FORCE_INLINE void vk_destroy_surface(VkInstance a_instance, VkSurfaceKHR a_surface)
 {
 	vkDestroySurfaceKHR(a_instance, a_surface, nullptr);
 	a_surface = nullptr;
 }
 
-FORCE_INLINE void vk_destroy_device(VkDevice a_device)
+FORCE_INLINE void vk_destroy_device(VkDevice& a_device)
 {
 	vkDestroyDevice(a_device, cfg::VkAllocator);
 	a_device = nullptr;
@@ -56,6 +62,12 @@ FORCE_INLINE void vk_destroy_pipeline(VkDevice a_device, VkPipeline a_pipeline)
 {
 	vkDestroyPipeline(a_device, a_pipeline, cfg::VkAllocator);
 	a_pipeline = nullptr;
+}
+
+FORCE_INLINE void vk_destroy_pipeline_cache(VkDevice a_device, VkPipelineCache& a_pipeline_cache)
+{
+	vkDestroyPipelineCache(a_device, a_pipeline_cache, cfg::VkAllocator);
+	a_pipeline_cache = nullptr;
 }
 
 FORCE_INLINE void vk_destroy_shader_module(VkDevice a_device, VkShaderModule a_shader_module)

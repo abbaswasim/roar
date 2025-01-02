@@ -82,8 +82,15 @@ endforeach()
 cmake_policy(POP)
 
 if (${ROR_RENDER_TYPE_VULKAN})
-  # Add vusym which also adds vulkan headers
-  add_subdirectory(vusym)
+
+  # Add volk
+  if (${ROAR_USE_VOLK})
+	add_subdirectory(volk)
+  else()
+	# Add vusym which also adds vulkan headers
+	message(FATAL_ERROR "Can't use vusym yet")
+	add_subdirectory(vusym)
+  endif()
 
 elseif (${ROR_RENDER_TYPE_METAL})
   # Add MetalCPP
@@ -218,8 +225,3 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(glfw)
-
-# Add volk
-if (USE_VOLK)
-  add_subdirectory(volk)
-endif()

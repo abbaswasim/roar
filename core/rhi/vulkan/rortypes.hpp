@@ -25,11 +25,12 @@
 
 #pragma once
 
-#if defined(USE_VOLK)
+#if defined(ROR_USE_VOLK)
 #	define VK_ENABLE_BETA_EXTENSIONS
 #	define VK_NO_PROTOTYPES
 #	include "volk/volk.h"
 #else
+#error Can't use vusym at the moment
 #	include <vusym/vusym.hpp>
 #endif
 

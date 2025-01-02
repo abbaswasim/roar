@@ -249,11 +249,6 @@ set(ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM
   spirv-cross-core
   glslang-default-resource-limits)
 
-if (USE_VOLK)
-  list(APPEND ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM volk)
-  target_compile_definitions(${ROAR_NAME} PRIVATE USE_VOLK)
-endif()
-
 set(ROAR_REQUIRED_PUBLIC_LIBRARIES
   ctpl
   cimage
@@ -269,7 +264,12 @@ if (${ROR_RENDER_TYPE_VULKAN})
 	if (NOT Vulkan_FOUND)
 	  message(FATAL_ERROR "Couldn't find Vulkan with find_package, make sure lunarG Vulkan SDK is installed") # This still isn't enough, for building one has to ./setup_env.sh from vulkan SDK, which sets DYLD_LIBRARY_PATH
 	endif()
-  list(APPEND ROAR_REQUIRED_PUBLIC_LIBRARIES vusym)
+  if (${ROAR_USE_VOLK})
+	list(APPEND ROAR_REQUIRED_PUBLIC_LIBRARIES volk)
+  else()
+	list(APPEND ROAR_REQUIRED_PUBLIC_LIBRARIES vusym)
+	message(FATAL_ERROR "Can't use vusym")
+  endif()
   list(APPEND ROAR_REQUIRED_PRIVATE_LIBRARIES_SYSTEM spirv-cross-glsl)
   link_libraries(${Vulkan_LIBRARY})
 elseif (${ROR_RENDER_TYPE_METAL})

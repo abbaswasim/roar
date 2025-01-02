@@ -179,6 +179,7 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	FORCE_INLINE virtual ~DeviceVulkan() noexcept override                   = default;        //! Destructor
 
 	FORCE_INLINE void  init(std::any a_platform_window, void *a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
+	FORCE_INLINE void  shutdown();
 	void  swapchain_setup(ror::Renderer *a_renderer);
 	FORCE_INLINE auto  platform_device() const noexcept;
 	FORCE_INLINE auto  platform_graphics_queue() const noexcept;

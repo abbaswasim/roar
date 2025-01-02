@@ -116,6 +116,9 @@ class ContextCrtp : public ror::Crtp<_type, ContextCrtp>
 		this->m_job_system->stop();
 
 		this->underlying().shutdown_derived();
+
+		for (auto &device : this->m_devices)        // will include m_current_device
+			device->shutdown();
 	}
 
   protected:

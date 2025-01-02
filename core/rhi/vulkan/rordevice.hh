@@ -129,6 +129,11 @@ FORCE_INLINE void DeviceVulkan::init(std::any a_platform_window, void *a_window,
 	this->m_transfer_command_pool.init(this->platform_device(), this->platform_transfer_queue_index());
 }
 
+FORCE_INLINE void DeviceVulkan::shutdown()
+{
+	this->destroy_device();
+}
+
 FORCE_INLINE auto DeviceVulkan::platform_pipeline_cache() const noexcept
 {
 	assert(this->m_pipeline_cache && "Vulkan pipeline cache requested is null");

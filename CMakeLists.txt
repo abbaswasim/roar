@@ -66,6 +66,16 @@ else()
   set(ROR_RENDER_TYPE_VULKAN TRUE)
 endif()
 
+
+if (${ROR_RENDER_TYPE_VULKAN})
+  if (${ROAR_USE_VOLK})
+	add_compile_definitions(ROR_USE_VOLK)
+  else()
+	# list(APPEND ROAR_REQUIRED_PUBLIC_LIBRARIES vusym)
+	message(FATAL_ERROR "Can't use vusym")
+  endif()
+endif()
+
 if (ROAR_BUILD_TESTS)
   add_subdirectory(${ROAR_ROOT_DIR}/tests)
 endif()
