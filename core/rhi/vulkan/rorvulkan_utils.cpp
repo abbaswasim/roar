@@ -62,7 +62,7 @@ void vk_destroy_surface(VkInstance a_instance, VkSurfaceKHR a_surface)
 
 void vk_destroy_device(VkDevice& a_device)
 {
-	vkDestroyDeviced(a_device, cfg::VkAllocator);
+	vkDestroyDevice(a_device, cfg::VkAllocator);
 	a_device = nullptr;
 }
 

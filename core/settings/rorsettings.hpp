@@ -25,17 +25,19 @@
 
 #pragma once
 
-#include "configuration/rorconfiguration.hpp"
-#include "configuration/rorsettings_configuration.hpp"
+// #include "configuration/rorconfiguration.hpp"
+// #include "configuration/rorsettings_configuration.hpp"
 #include "event_system/rorevent_system.hpp"
-#include "foundation/rorsystem.hpp"
+// #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
-#include "foundation/rorutilities.hpp"
+// #include "foundation/rorutilities.hpp"
+#include "math/rorvector2.hpp"
 #include "math/rorvector4.hpp"
+// #include "math/rorvector.hpp"
 #include "rhi/rortypes.hpp"
 #include <cstdint>
 #include <string>
-#include <utility>
+// #include <utility>
 #include <vector>
 
 namespace ror
