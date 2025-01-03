@@ -143,7 +143,7 @@ FORCE_INLINE static void read_texture_basis_universal(ror::Resource &a_texture_r
 	if (!basis_is_format_supported(tex_fmt, dec.get_format()))
 	{
 		// Error not supported transcoder format
-		ror::log_critical("Requested transcoded format not supported {}", basis_to_format(tex_fmt));
+		ror::log_critical("Requested transcoded format not supported", rhi::pixel_format_to_string(basis_to_format(tex_fmt)));
 		return;
 	}
 
@@ -206,7 +206,7 @@ FORCE_INLINE static void read_texture_basis_universal(ror::Resource &a_texture_r
 
 				if (!dec.transcode_image_level(level_index, layer_index, face_index, decoded_data + mip_offset, (compressed ? level_info.m_total_blocks : static_cast<uint32_t>(decode_size)), tex_fmt, decode_flags))
 				{
-					ror::log_critical("Failed transcoding image level {}, {}, {}, {}", layer_index, level_index, face_index, tex_fmt);
+					ror::log_critical("Failed transcoding image level {}, {}, {}, {}", layer_index, level_index, face_index, rhi::pixel_format_to_string(basis_to_format(tex_fmt)));
 					return;
 				}
 

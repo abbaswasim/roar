@@ -27,7 +27,6 @@
 
 #include "rhi/crtp_interfaces/rorbuffer.hpp"
 #include "rhi/rorrhi_macros.hpp"
-#include "rhi/vulkan/rorvulkan_common.hpp"
 
 namespace rhi
 {

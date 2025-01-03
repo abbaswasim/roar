@@ -28,16 +28,11 @@
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rorcrtp.hpp"
-#include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
-#include "graphics/rorscene.hpp"
 #include "math/rorvector2.hpp"
-#include "rhi/rorbuffers_format.hpp"
-#include "rhi/rorbuffers_pack.hpp"
+#include "math/rorvector4.hpp"
 #include "rhi/rorcontext.hpp"
-#include "settings/rorsettings.hpp"
 #include <any>
-#include <memory>
 
 class GLFWwindow;
 

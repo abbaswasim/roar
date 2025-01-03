@@ -129,10 +129,12 @@ void BufferCrtp<_type>::size(size_t a_size) noexcept
 {
 	assert(a_size > 0 && "Buffer size must be positive");
 	assert(this->m_size_in_bytes == 0 && "BufferCrtp<_type>::resize is called again, this needs synchronising if this is happening for good reason");
+	assert(a_size < this->m_data.max_size() && "Can't create a buffer this big");
 
 	// Probably better to make this lazy allocated, perhaps on first _offset() call
 	this->m_data.resize(a_size);
-	this->m_size_in_bytes = a_size;
+	this->m_size_in_bytes = this->m_data.size();
+	assert(this->m_size_in_bytes == a_size && "Failed to resize vector to the required size");
 }
 
 template <typename _type>

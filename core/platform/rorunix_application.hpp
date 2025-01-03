@@ -25,7 +25,6 @@
 
 #pragma once
 
-#include "event_system/rorevent_system.hpp"
 #include "math/rorvector4.hpp"
 #include "platform/rorapplication.hpp"
 #include "platform/rorglfw_wrapper.hpp"

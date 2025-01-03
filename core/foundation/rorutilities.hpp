@@ -28,7 +28,6 @@
 #include "foundation/rorsystem.hpp"
 #include "rormacros.hpp"
 #include "rortypes.hpp"
-#include <atomic>
 #include <cstdlib>
 #include <functional>
 #include <mutex>

@@ -119,7 +119,6 @@ void BufferVulkan::upload(const rhi::Device &a_device, const uint8_t *a_data_poi
 
 void BufferVulkan::upload(const rhi::Device &a_device, const uint8_t *a_data_pointer, size_t a_offset, size_t a_length)
 {
-	(void) a_device;
 	// Some sanity checks first
 	assert(this->m_buffer && "Called upload on uninitialized buffer, call init() first");
 	assert(a_offset <= a_length);

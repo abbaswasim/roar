@@ -26,9 +26,7 @@
 # Add spdlog library
 add_subdirectory(spdlog)
 target_compile_options(spdlog INTERFACE "-Wno-float-equal")
-
-set_target_properties(spdlog
-  PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(spdlog PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Add json library
 set(JSON_BuildTests OFF CACHE INTERNAL "")
@@ -82,7 +80,6 @@ endforeach()
 cmake_policy(POP)
 
 if (${ROR_RENDER_TYPE_VULKAN})
-
   # Add volk
   if (${ROAR_USE_VOLK})
 	add_subdirectory(volk)

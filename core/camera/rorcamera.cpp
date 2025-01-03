@@ -228,7 +228,7 @@ void OrbitCamera::update_projection()
 {
 	// Setup perspective projection matrix
 	this->m_aspect_ratio = this->m_width / this->m_height;
-	log_info("near = {} far = {} in {}", this->m_z_near, m_z_far, __FUNCTION__);
+	ror::log_info("near = {} far = {} in {}", this->m_z_near, m_z_far, __FUNCTION__);
 	if (this->m_type == CameraType::perspective)
 	{
 		// assumes square pixels, if ever there is evidence of non-square pixels, provided by windowing system i.e. glfw use it here instead

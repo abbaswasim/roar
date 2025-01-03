@@ -58,6 +58,11 @@ function(build_options target_name extra_pedantic)
 	  -Wold-style-cast
 	  -Wshadow
 	  -Weffc++
+	  # -Wno-covered-switch-default
+	  # -Wno-switch-enum
+	  # -Wno-duplicate-enum
+	  # -Wno-mismatched-tags
+	  # -Wno-documentation-unknown-command
 	  -Wfloat-equal)
   endif()
 
