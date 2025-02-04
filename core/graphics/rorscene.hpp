@@ -54,8 +54,7 @@
 namespace ror
 {
 // TODO: Define properly somewhere
-class ROAR_ENGINE_ITEM ParticleSystem
-{};
+class ROAR_ENGINE_ITEM ParticleSystem{};
 
 class ROAR_ENGINE_ITEM SceneNode
 {
@@ -146,7 +145,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr const auto &nodes_side_data()  const noexcept   {  return this->m_nodes_data;      }
 	FORCE_INLINE constexpr const auto &particles()        const noexcept   {  return this->m_particles;       }
 	FORCE_INLINE constexpr const auto &programs()         const noexcept   {  return this->m_programs;        }
-    FORCE_INLINE constexpr const auto &shaders()          const noexcept   {  return this->m_shaders;         }
+	FORCE_INLINE constexpr const auto &shaders()          const noexcept   {  return this->m_shaders;         }
 	FORCE_INLINE constexpr const auto &global_programs()  const noexcept   {  return this->m_global_programs; }
 	FORCE_INLINE                 auto &cameras()                noexcept   {  return this->m_cameras;         }
 	FORCE_INLINE constexpr const auto &lights()           const noexcept   {  return this->m_lights;          }

@@ -139,22 +139,21 @@ define_translation_unit_vtable(Scene::SceneState)
 
 void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_system)
 {
-	auto &cameras = this->cameras();
 	auto  dims    = a_renderer.dimensions();
 	auto  bbox    = this->bounding_box();
 
-	ror::EventCallback camera_cycle_callback = [this, &cameras](ror::Event &) {
-		size_t cameras_size{cameras.size()};
+	ror::EventCallback camera_cycle_callback = [this](ror::Event &) {
+		size_t cameras_size{this->cameras().size()};
 
-		cameras[this->m_current_camera_index].disable();
+		this->current_camera().disable();
 
 		this->m_current_camera_index++;
 		this->m_current_camera_index = this->m_current_camera_index % ror::static_cast_safe<uint32_t>(cameras_size);
 
-		cameras[this->m_current_camera_index].enable();
+		this->current_camera().enable();
 	};
 
-	for (auto &cam : cameras)
+	for (auto &cam : this->cameras())
 	{
 		cam.bounds(dims.x, dims.y);
 		cam.volume(bbox.minimum(), bbox.maximum());
@@ -166,7 +165,7 @@ void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_s
 	for (auto &camera : this->m_cameras)
 		camera.init(a_event_system);
 
-	cameras[this->m_current_camera_index].enable();
+	this->current_camera().enable();
 
 	this->update_from_scene_state();
 
@@ -225,7 +224,7 @@ void Scene::update_from_scene_state()
 
 	// take the SceneData and fill stuff from it
 	// Since we wrote out current camera now we read it in
-	auto &camera = this->m_cameras[this->m_current_camera_index];
+	auto &camera = this->current_camera();
 	camera.mode(this->m_scene_state.m_camera_mode);
 
 	camera.set_parameters(this->m_scene_state.m_camera_type,
@@ -1238,7 +1237,7 @@ void Scene::reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommand
 
 void Scene::fill_scene_data()
 {
-	auto &camera = this->m_cameras[this->m_current_camera_index];
+	auto &camera = this->current_camera();
 
 	this->m_scene_state.m_camera_center  = camera.center();
 	this->m_scene_state.m_camera_eye     = camera.eye();
