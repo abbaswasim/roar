@@ -521,25 +521,6 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	if (seconds > 1000.0f)        // TODO: Move the 1000 to settings
 		seconds = seconds - static_cast<float32_t>(static_cast<int32_t>(seconds));
 
-	static bool first_run = true;
-	if (first_run)
-	{
-		auto anim_handler = [this](Event) {
-			this->m_pause_animation = !this->m_pause_animation;
-		};
-
-		auto fill_mode_handler = [this](Event) {
-			if (this->m_triangle_fill_mode == rhi::TriangleFillMode::fill)
-				this->m_triangle_fill_mode = rhi::TriangleFillMode::lines;
-			else
-				this->m_triangle_fill_mode = rhi::TriangleFillMode::fill;
-		};
-
-		a_event_system.subscribe(ror::keyboard_p_down, anim_handler);
-		a_event_system.subscribe(ror::keyboard_t_down, fill_mode_handler);
-		first_run = false;
-	}
-
 	if (this->m_pause_animation)
 		animation_count = 0;
 
@@ -562,43 +543,64 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	if (max_thread_group_size > node_matrices_size)
 		max_thread_group_size = node_matrices_size;
 
-	rhi::descriptor_update_type buffers_images;
+	static bool first_run = true;
+	if (first_run)
+	{
+		auto anim_handler = [this](Event) {
+			this->m_pause_animation = !this->m_pause_animation;
+		};
 
-	const rhi::descriptor_variant per_frame_uniform_buffer                 = per_frame_uniform;
-	const rhi::descriptor_variant nodes_models_uniform_buffer              = nodes_models_uniform;
-	const rhi::descriptor_variant morphs_weights_uniform_buffer            = morphs_weights_uniform;
-	const rhi::descriptor_variant node_transform_input_uniform_buffer      = node_transform_input_uniform;
-	const rhi::descriptor_variant node_transform_output_uniform_buffer     = node_transform_output_uniform;
-	const rhi::descriptor_variant animations_uniform_buffer                = animations_uniform;
-	const rhi::descriptor_variant animations_sampler_input_uniform_buffer  = animations_sampler_input_uniform;
-	const rhi::descriptor_variant animations_sampler_output_uniform_buffer = animations_sampler_output_uniform;
-	const rhi::descriptor_variant current_animations_uniform_buffer        = current_animations_uniform;
-	const rhi::descriptor_variant per_view_uniform_buffer                  = per_view_uniform;
+		auto fill_mode_handler = [this](Event) {
+			if (this->m_triangle_fill_mode == rhi::TriangleFillMode::fill)
+				this->m_triangle_fill_mode = rhi::TriangleFillMode::lines;
+			else
+				this->m_triangle_fill_mode = rhi::TriangleFillMode::fill;
+		};
 
-	buffers_images[0].emplace_back(std::make_pair(per_frame_uniform_buffer, 18u));
-	buffers_images[0].emplace_back(std::make_pair(nodes_models_uniform_buffer, 19u));
-	buffers_images[0].emplace_back(std::make_pair(morphs_weights_uniform_buffer, 29u));
-	buffers_images[0].emplace_back(std::make_pair(node_transform_input_uniform_buffer, 0u));
-	buffers_images[0].emplace_back(std::make_pair(node_transform_output_uniform_buffer, 1u));
-	buffers_images[0].emplace_back(std::make_pair(animations_uniform_buffer, 2u));
-	buffers_images[0].emplace_back(std::make_pair(animations_sampler_input_uniform_buffer, 3u));
-	buffers_images[0].emplace_back(std::make_pair(animations_sampler_output_uniform_buffer, 4u));
-	buffers_images[0].emplace_back(std::make_pair(current_animations_uniform_buffer, 5u));
-	buffers_images[1].emplace_back(std::make_pair(per_view_uniform_buffer, 20u));
+		a_event_system.subscribe(ror::keyboard_p_down, anim_handler);
+		a_event_system.subscribe(ror::keyboard_t_down, fill_mode_handler);
 
-	// This shader only have
-	// layout(std140, set = 0, binding = 18) uniform per_frame_uniform
-	// layout(std430, set = 0, binding = 19) buffer nodes_models
-	// layout(std430, set = 0, binding = 29) buffer morphs_weights
-	// layout(std430, set = 0, binding = 0) buffer node_transform_input
-	// layout(std430, set = 0, binding = 1) buffer node_transform_output
-	// layout(std430, set = 0, binding = 2) buffer animations
-	// layout(std430, set = 0, binding = 3) buffer animations_sampler_input
-	// layout(std430, set = 0, binding = 4) buffer animations_sampler_output
-	// layout(std430, set = 0, binding = 5) buffer current_animations
-	// layout(std140, set = 1, binding = 18) uniform per_view_uniform
+		rhi::descriptor_update_type buffers_images;
 
-	compute_pso.update_descriptor(a_device, a_renderer, buffers_images, false);
+		const rhi::descriptor_variant per_frame_uniform_buffer                 = per_frame_uniform;
+		const rhi::descriptor_variant nodes_models_uniform_buffer              = nodes_models_uniform;
+		const rhi::descriptor_variant morphs_weights_uniform_buffer            = morphs_weights_uniform;
+		const rhi::descriptor_variant node_transform_input_uniform_buffer      = node_transform_input_uniform;
+		const rhi::descriptor_variant node_transform_output_uniform_buffer     = node_transform_output_uniform;
+		const rhi::descriptor_variant animations_uniform_buffer                = animations_uniform;
+		const rhi::descriptor_variant animations_sampler_input_uniform_buffer  = animations_sampler_input_uniform;
+		const rhi::descriptor_variant animations_sampler_output_uniform_buffer = animations_sampler_output_uniform;
+		const rhi::descriptor_variant current_animations_uniform_buffer        = current_animations_uniform;
+		const rhi::descriptor_variant per_view_uniform_buffer                  = per_view_uniform;
+
+		// Most of animation data is in set 0 while per_view_uniform is in set 1
+		buffers_images[0].emplace_back(std::make_pair(per_frame_uniform_buffer, 18u));
+		buffers_images[0].emplace_back(std::make_pair(nodes_models_uniform_buffer, 19u));
+		buffers_images[0].emplace_back(std::make_pair(morphs_weights_uniform_buffer, 29u));
+		buffers_images[0].emplace_back(std::make_pair(node_transform_input_uniform_buffer, 0u));
+		buffers_images[0].emplace_back(std::make_pair(node_transform_output_uniform_buffer, 1u));
+		buffers_images[0].emplace_back(std::make_pair(animations_uniform_buffer, 2u));
+		buffers_images[0].emplace_back(std::make_pair(animations_sampler_input_uniform_buffer, 3u));
+		buffers_images[0].emplace_back(std::make_pair(animations_sampler_output_uniform_buffer, 4u));
+		buffers_images[0].emplace_back(std::make_pair(current_animations_uniform_buffer, 5u));
+		buffers_images[1].emplace_back(std::make_pair(per_view_uniform_buffer, 20u));
+
+		// This shader only have
+		// layout(std140, set = 0, binding = 18) uniform per_frame_uniform
+		// layout(std430, set = 0, binding = 19) buffer nodes_models
+		// layout(std430, set = 0, binding = 29) buffer morphs_weights
+		// layout(std430, set = 0, binding = 0) buffer node_transform_input
+		// layout(std430, set = 0, binding = 1) buffer node_transform_output
+		// layout(std430, set = 0, binding = 2) buffer animations
+		// layout(std430, set = 0, binding = 3) buffer animations_sampler_input
+		// layout(std430, set = 0, binding = 4) buffer animations_sampler_output
+		// layout(std430, set = 0, binding = 5) buffer current_animations
+		// layout(std140, set = 1, binding = 20) uniform per_view_uniform
+
+		// TODO: Find out if this needs to happen every tick or once
+		compute_pso.update_descriptor(a_device, a_renderer, buffers_images, false);
+		first_run = false;
+	}
 
 	// Encode the compute command.
 	a_command_encoder.dispatch_threads({node_matrices_size, 1, 1}, {static_cast<uint32_t>(max_thread_group_size), 1, 1});
