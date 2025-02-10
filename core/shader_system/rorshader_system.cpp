@@ -167,7 +167,7 @@ std::string attribute_format(rhi::VertexFormat a_format)
 		case rhi::VertexFormat::int101111_norm:
 		case rhi::VertexFormat::uint101111_norm:
 		case rhi::VertexFormat::uint8_4_norm_bgra:
-			ror::log_critical("Format {} not supported but requested", a_format);
+			ror::log_critical("Format {} not supported but requested", rhi::vertex_format_to_string(a_format));
 			assert(0 && "Format not supported");
 	}
 	// clang-format on

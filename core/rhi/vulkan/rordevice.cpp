@@ -882,7 +882,7 @@ void SwapChain::release(VkDevice a_device)
 		}
 	}
 
-	vk_destroy_swapchain(a_device, this->swapchain());
+	vk_destroy_swapchain(a_device, this->m_swapchain);
 }
 
 void DeviceVulkan::create_surface(void *a_window)
