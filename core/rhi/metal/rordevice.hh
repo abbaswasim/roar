@@ -98,6 +98,9 @@ FORCE_INLINE void DeviceMetal::init(std::any a_platform_window, void *a_window, 
 	}
 }
 
+FORCE_INLINE void DeviceMetal::shutdown()
+{}
+
 FORCE_INLINE MTL::Device *DeviceMetal::platform_device() const
 {
 	assert(this->m_device && "Metal device requested is null");

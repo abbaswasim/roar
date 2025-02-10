@@ -190,8 +190,8 @@ bool uri_base64_encoded(const char *a_uri)
 // The binary file for this glTF is loaded via a resource instead of straight from disk
 cgltf_result cgltf_load_buffer_file_as_resource(const cgltf_options *options, cgltf_size size, const char *uri, const char *gltf_path, void **out_data)
 {
-	void *(*memory_alloc)(void *, cgltf_size) = options->memory.alloc ? options->memory.alloc : &cgltf_default_alloc;
-	void (*memory_free)(void *, void *)       = options->memory.free ? options->memory.free : &cgltf_default_free;
+	void *(*memory_alloc)(void *, cgltf_size) = options->memory.alloc_func ? options->memory.alloc_func : &cgltf_default_alloc;
+	void (*memory_free)(void *, void *)       = options->memory.free_func ? options->memory.free_func : &cgltf_default_free;
 
 	char *path = static_cast<char *>(memory_alloc(options->memory.user_data, strlen(uri) + strlen(gltf_path) + 1));
 	if (!path)
@@ -300,6 +300,7 @@ rhi::Format get_format_from_gltf_type_format(cgltf_type a_type, cgltf_component_
 		case cgltf_component_type::cgltf_component_type_r_16u:         return rhi::VertexFormat::uint16_4;
 		case cgltf_component_type::cgltf_component_type_r_32u:         return rhi::VertexFormat::uint32_4;
 		case cgltf_component_type::cgltf_component_type_r_32f:		   return (a_type == cgltf_type::cgltf_type_mat2 ? rhi::VertexFormat::float32_2x2 : rhi::VertexFormat::float32_4);
+		case cgltf_component_type::cgltf_component_type_max_enum:      assert(0 && "cgltf_component_type isn't valid"); break;
 		}
 		// clang-format on
 	}
@@ -315,6 +316,7 @@ rhi::Format get_format_from_gltf_type_format(cgltf_type a_type, cgltf_component_
 		case cgltf_component_type::cgltf_component_type_r_16u:         return rhi::VertexFormat::uint16_3;
 		case cgltf_component_type::cgltf_component_type_r_32u:         return rhi::VertexFormat::uint32_3;
 		case cgltf_component_type::cgltf_component_type_r_32f:		   return rhi::VertexFormat::float32_3;
+		case cgltf_component_type::cgltf_component_type_max_enum:	   assert(0 && "cgltf_component_type isn't valid"); break;
 		}
 		// clang-format on
 	}
@@ -330,6 +332,7 @@ rhi::Format get_format_from_gltf_type_format(cgltf_type a_type, cgltf_component_
 		case cgltf_component_type::cgltf_component_type_r_16u:         return rhi::VertexFormat::uint16_2;
 		case cgltf_component_type::cgltf_component_type_r_32u:         return rhi::VertexFormat::uint32_2;
 		case cgltf_component_type::cgltf_component_type_r_32f:		   return rhi::VertexFormat::float32_2;
+		case cgltf_component_type::cgltf_component_type_max_enum:      assert(0 && "cgltf_component_type isn't valid"); break;
 		}
 		// clang-format on
 	}
@@ -345,6 +348,7 @@ rhi::Format get_format_from_gltf_type_format(cgltf_type a_type, cgltf_component_
 		case cgltf_component_type::cgltf_component_type_r_16u:         return rhi::VertexFormat::uint16_1;
 		case cgltf_component_type::cgltf_component_type_r_32u:         return rhi::VertexFormat::uint32_1;
 		case cgltf_component_type::cgltf_component_type_r_32f:		   return rhi::VertexFormat::float32_1;
+		case cgltf_component_type::cgltf_component_type_max_enum:	   assert(0 && "cgltf_component_type isn't valid"); break;
 		}
 		// clang-format on
 	}
@@ -573,14 +577,16 @@ rhi::PrimitiveTopology cglf_primitive_to_primitive_topology(cgltf_primitive_type
 	// clang-format off
 	switch (a_type)
 	{
-		case cgltf_primitive_type_points:            return rhi::PrimitiveTopology::points;
-		case cgltf_primitive_type_lines:             return rhi::PrimitiveTopology::lines;
-		case cgltf_primitive_type_line_strip:        return rhi::PrimitiveTopology::lines_strip;
-		case cgltf_primitive_type_triangles:         return rhi::PrimitiveTopology::triangles;
-		case cgltf_primitive_type_triangle_strip:    return rhi::PrimitiveTopology::triangles_strip;
+    	case cgltf_primitive_type::cgltf_primitive_type_points:            return rhi::PrimitiveTopology::points;
+	    case cgltf_primitive_type::cgltf_primitive_type_lines:             return rhi::PrimitiveTopology::lines;
+	    case cgltf_primitive_type::cgltf_primitive_type_line_strip:        return rhi::PrimitiveTopology::lines_strip;
+	    case cgltf_primitive_type::cgltf_primitive_type_triangles:         return rhi::PrimitiveTopology::triangles;
+	    case cgltf_primitive_type::cgltf_primitive_type_triangle_strip:    return rhi::PrimitiveTopology::triangles_strip;
 
-		case cgltf_primitive_type_line_loop:
-		case cgltf_primitive_type_triangle_fan:
+	    case cgltf_primitive_type::cgltf_primitive_type_invalid:
+	    case cgltf_primitive_type::cgltf_primitive_type_line_loop:
+	    case cgltf_primitive_type::cgltf_primitive_type_triangle_fan:
+	    case cgltf_primitive_type::cgltf_primitive_type_max_enum:
 			assert(0 && "Unsupported primitive type foudn in gltf");
 	}
 	// clang-format on
@@ -656,16 +662,17 @@ std::string cgltf_result_to_string(cgltf_result a_result)
 	// clang-format off
     switch (a_result)
     {
-        case cgltf_result_success:          return "cgltf_result_success";
-        case cgltf_result_data_too_short:   return "cgltf_result_data_too_short";
-        case cgltf_result_unknown_format:   return "cgltf_result_unknown_format";
-        case cgltf_result_invalid_json:     return "cgltf_result_invalid_json";
-        case cgltf_result_invalid_gltf:     return "cgltf_result_invalid_gltf";
-        case cgltf_result_invalid_options:  return "cgltf_result_invalid_options";
-        case cgltf_result_file_not_found:   return "cgltf_result_file_not_found";
-        case cgltf_result_io_error:         return "cgltf_result_io_error";
-        case cgltf_result_out_of_memory:    return "cgltf_result_out_of_memory";
-        case cgltf_result_legacy_gltf:      return "cgltf_result_legacy_gltf";
+        case cgltf_result::cgltf_result_success:          return "cgltf_result_success";
+        case cgltf_result::cgltf_result_data_too_short:   return "cgltf_result_data_too_short";
+        case cgltf_result::cgltf_result_unknown_format:   return "cgltf_result_unknown_format";
+        case cgltf_result::cgltf_result_invalid_json:     return "cgltf_result_invalid_json";
+        case cgltf_result::cgltf_result_invalid_gltf:     return "cgltf_result_invalid_gltf";
+        case cgltf_result::cgltf_result_invalid_options:  return "cgltf_result_invalid_options";
+        case cgltf_result::cgltf_result_file_not_found:   return "cgltf_result_file_not_found";
+        case cgltf_result::cgltf_result_io_error:         return "cgltf_result_io_error";
+        case cgltf_result::cgltf_result_out_of_memory:    return "cgltf_result_out_of_memory";
+	    case cgltf_result::cgltf_result_legacy_gltf:      return "cgltf_result_legacy_gltf";
+	    case cgltf_result::cgltf_result_max_enum:         assert(0 && "cgltf_result not valid");
     }
 	// clang-format on
 
@@ -1395,14 +1402,17 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 				switch (mat.alpha_mode)
 				{
-					case cgltf_alpha_mode_opaque:
+    				case cgltf_alpha_mode::cgltf_alpha_mode_opaque:
 						material.m_blend_mode = rhi::BlendMode::opaque;
 						break;
-					case cgltf_alpha_mode_mask:
+	    			case cgltf_alpha_mode::cgltf_alpha_mode_mask:
 						material.m_blend_mode = rhi::BlendMode::mask;
 						break;
-					case cgltf_alpha_mode_blend:
+	    			case cgltf_alpha_mode::cgltf_alpha_mode_blend:
 						material.m_blend_mode = rhi::BlendMode::blend;
+						break;
+	    			case cgltf_alpha_mode::cgltf_alpha_mode_max_enum:
+						assert(0 && "Invalid alpha mode");
 						break;
 				}
 
@@ -1530,7 +1540,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 						switch (attrib.type)
 						{
-							case cgltf_attribute_type_position:
+							case cgltf_attribute_type::cgltf_attribute_type_position:
 								assert(attrib.data->has_min && attrib.data->has_max && "Position attributes must provide min and max");
 								assert(attrib.index == 0 && "Don't suport more than 1 position");
 
@@ -1541,43 +1551,45 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 									                              {attrib.data->max[0], attrib.data->max[1], attrib.data->max[2]});
 								}
 								break;
-							case cgltf_attribute_type_normal:
+							case cgltf_attribute_type::cgltf_attribute_type_normal:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
 								       (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec2) && "Normal not in the right format, float3 required");
 								assert(attrib.index == 0 && "Don't suport more than 1 normal");
 								current_index = rhi::BufferSemantic::vertex_normal;
 								break;
-							case cgltf_attribute_type_tangent:
+							case cgltf_attribute_type::cgltf_attribute_type_tangent:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
 								       (attrib.data->type == cgltf_type_vec4) && "Tangent not in the right format, float4 required");        // If its 3D only need to add w=[+1, -1] to denote handedness
 								assert(attrib.index == 0 && "Don't suport more than 1 tangent");
 								current_index = rhi::BufferSemantic::vertex_tangent;
 								break;
-							case cgltf_attribute_type_texcoord:
+							case cgltf_attribute_type::cgltf_attribute_type_texcoord:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_16u) &&
 								       (attrib.data->type == cgltf_type_vec2 || attrib.data->type == cgltf_type_vec3) && "Texture coordinate not in the right format, float2 required");
 								assert(attrib.index < 3 && "Don't support more than 3 texture coordinate sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0) << static_cast<uint64_t>(attrib.index));
 								break;
-							case cgltf_attribute_type_color:
+							case cgltf_attribute_type::cgltf_attribute_type_color:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8u) &&
 								       (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec4) && "Color not in the right format, float3 required");
 								assert(attrib.index < 2 && "Don't support more than 2 color sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_color_0) << static_cast<uint64_t>(attrib.index));
 								break;
-							case cgltf_attribute_type_joints:
+							case cgltf_attribute_type::cgltf_attribute_type_joints:
 								assert((attrib.data->component_type == cgltf_component_type_r_32u || attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
 								       attrib.data->type == cgltf_type_vec4 && "Joints not in the right format, unsigned8/16_4 required");
 								assert(attrib.index < 2 && "Don't support more than 2 joint sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_bone_id_0) << static_cast<uint64_t>(attrib.index));
 								break;
-							case cgltf_attribute_type_weights:
+							case cgltf_attribute_type::cgltf_attribute_type_weights:
 								assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_16u || attrib.data->component_type == cgltf_component_type_r_8u) &&
 								       attrib.data->type == cgltf_type_vec4 && "Weights not in the right format, unsigned_8/16/float_4 required");
 								assert(attrib.index < 2 && "Don't support more than 2 weight sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0) << static_cast<uint64_t>(attrib.index));
 								break;
-							case cgltf_attribute_type_invalid:
+						    case cgltf_attribute_type::cgltf_attribute_type_invalid:
+						    case cgltf_attribute_type::cgltf_attribute_type_custom:
+						    case cgltf_attribute_type::cgltf_attribute_type_max_enum:
 								assert(0 && "rhi::BufferView not valid yet");
 								break;
 						}
@@ -1717,7 +1729,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 							switch (attrib.type)
 							{
-								case cgltf_attribute_type_position:
+								case cgltf_attribute_type::cgltf_attribute_type_position:
 									assert(attrib.data->has_min && attrib.data->has_max && "Position attributes must provide min and max");
 
 									current_index = rhi::BufferSemantic::vertex_position;
@@ -1732,21 +1744,23 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 										mesh_bbox.add_bounding(total_bbox);
 									}
 									break;
-								case cgltf_attribute_type_normal:
+								case cgltf_attribute_type::cgltf_attribute_type_normal:
 									assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
 									       (attrib.data->type == cgltf_type_vec3 || attrib.data->type == cgltf_type_vec2) && "Normal not in the right format");
 									current_index = rhi::BufferSemantic::vertex_normal;
 									break;
-								case cgltf_attribute_type_tangent:
+								case cgltf_attribute_type::cgltf_attribute_type_tangent:
 									assert((attrib.data->component_type == cgltf_component_type_r_32f || attrib.data->component_type == cgltf_component_type_r_8) &&
 									       (attrib.data->type == cgltf_type_vec4 || attrib.data->type == cgltf_type_vec3) && "Tangent not in the right format");
 									current_index = rhi::BufferSemantic::vertex_tangent;
 									break;
-								case cgltf_attribute_type_texcoord:
-								case cgltf_attribute_type_color:
-								case cgltf_attribute_type_joints:
-								case cgltf_attribute_type_weights:
-								case cgltf_attribute_type_invalid:
+								case cgltf_attribute_type::cgltf_attribute_type_texcoord:
+								case cgltf_attribute_type::cgltf_attribute_type_color:
+								case cgltf_attribute_type::cgltf_attribute_type_joints:
+								case cgltf_attribute_type::cgltf_attribute_type_weights:
+							    case cgltf_attribute_type::cgltf_attribute_type_invalid:
+							    case cgltf_attribute_type::cgltf_attribute_type_custom:
+							    case cgltf_attribute_type::cgltf_attribute_type_max_enum:
 									assert(0 && "Morph target not supported for this attribute");
 									break;
 							}
@@ -2090,14 +2104,17 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 					switch (canimation.samplers[j].interpolation)
 					{
-						case cgltf_interpolation_type_linear:
+					    case cgltf_interpolation_type::cgltf_interpolation_type_linear:
 							animation_sampler.m_interpolation = AnimationInterpolation::linear;
 							break;
-						case cgltf_interpolation_type_step:
+						case cgltf_interpolation_type::cgltf_interpolation_type_step:
 							animation_sampler.m_interpolation = AnimationInterpolation::step;
 							break;
-						case cgltf_interpolation_type_cubic_spline:
+						case cgltf_interpolation_type::cgltf_interpolation_type_cubic_spline:
 							animation_sampler.m_interpolation = AnimationInterpolation::cubicspline;
+							break;
+						case cgltf_interpolation_type::cgltf_interpolation_type_max_enum:
+							assert(0 && "cgltf_interpolation_type not valid");
 							break;
 					}
 
@@ -2124,19 +2141,20 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 					switch (cchannel.target_path)
 					{
-						case cgltf_animation_path_type_translation:
+						case cgltf_animation_path_type::cgltf_animation_path_type_translation:
 							animation_channel.m_target_node_path = AnimationTarget::translation;
 							break;
-						case cgltf_animation_path_type_rotation:
+						case cgltf_animation_path_type::cgltf_animation_path_type_rotation:
 							animation_channel.m_target_node_path = AnimationTarget::rotation;
 							break;
-						case cgltf_animation_path_type_scale:
+						case cgltf_animation_path_type::cgltf_animation_path_type_scale:
 							animation_channel.m_target_node_path = AnimationTarget::scale;
 							break;
-						case cgltf_animation_path_type_weights:
+						case cgltf_animation_path_type::cgltf_animation_path_type_weights:
 							animation_channel.m_target_node_path = AnimationTarget::weight;
 							break;
-						case cgltf_animation_path_type_invalid:
+					    case cgltf_animation_path_type::cgltf_animation_path_type_invalid:
+					    case cgltf_animation_path_type::cgltf_animation_path_type_max_enum:
 							assert(0 && "Can't deal with invalid interpolation");
 					}
 

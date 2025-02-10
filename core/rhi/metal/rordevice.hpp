@@ -95,6 +95,7 @@ class DeviceMetal : public DeviceCrtp<DeviceMetal>
 	FORCE_INLINE virtual ~DeviceMetal() noexcept override                 = default;        //! Destructor
 
 	FORCE_INLINE void init(std::any a_platform_window, void* a_window, ror::EventSystem &a_event_system, ror::Vector2ui a_dimensions);
+	FORCE_INLINE void shutdown();
 	FORCE_INLINE void  swapchain_setup(ror::Renderer *){}
 	FORCE_INLINE MTL::Device *platform_device() const;
 	FORCE_INLINE MTL::CommandQueue *platform_queue() const;
