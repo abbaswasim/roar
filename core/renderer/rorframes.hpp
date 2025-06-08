@@ -32,7 +32,7 @@
 namespace ror
 {
 
-static constexpr int max_frames_in_flight = 3;
+static constexpr uint32_t max_frames_in_flight = 3;
 
 class ROAR_ENGINE_ITEM Frames final
 {
@@ -44,22 +44,36 @@ class ROAR_ENGINE_ITEM Frames final
 	FORCE_INLINE Frames &operator=(Frames &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Frames() noexcept                   = default;        //! Destructor
 
-	rhi::FrameData &current_frame()
-	{
-		// Use completeHandlers system to auto wait here
-		// Also automatically wait for the fences
-		return this->m_frames[this->m_current_frame_index];
-	}
-
 	size_t &current_frame_index()
 	{
 		return this->m_current_frame_index;
 	}
 
+	void begin_frame()
+	{
+		auto frame = this->next_frame();
+		(void) frame;
+	}
+
+	void end_frame()
+	{
+		auto frame = this->current_frame();
+		(void) frame;
+	}
+
+  protected:
+  private:
 	// Advance to the next frame in flight
 	void advance_frame()
 	{
 		this->m_current_frame_index = (this->m_current_frame_index + 1) % max_frames_in_flight;
+	}
+
+	rhi::FrameData &current_frame()
+	{
+		// Use completeHandlers system to auto wait here
+		// Also automatically wait for the fences
+		return this->m_frames[this->m_current_frame_index];
 	}
 
 	rhi::FrameData &next_frame()
@@ -68,12 +82,10 @@ class ROAR_ENGINE_ITEM Frames final
 		return this->current_frame();
 	}
 
-  protected:
-  private:
 	std::array<rhi::FrameData, max_frames_in_flight> m_frames{};
-	size_t                                           m_current_frame_index{0};
+	size_t                                           m_current_frame_index{max_frames_in_flight - 1};
 };
 
 }        // namespace ror
 
-// #include "rorframe.hh"
+#include "rorframes.hh"
