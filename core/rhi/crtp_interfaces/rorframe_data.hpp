@@ -26,7 +26,7 @@
 #pragma once
 #include "camera/rorcamera.hpp"
 #include "core/foundation/rorcrtp.hpp"
-#include "rhi/vulkan/rordevice.hpp"
+#include "rhi/rordevice.hpp"
 
 namespace rhi
 {

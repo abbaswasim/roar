@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #pragma once
+#include "camera/rorcamera.hpp"
 #include "core/foundation/rorcrtp.hpp"
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rorjobsystem.hpp"
@@ -241,6 +242,7 @@ class Rendersubpass final
 	RenderTargets            m_input_attachments{};                                  //! References to input attachments from other subpasses, different from m_render_inputs
 	RenderTargets            m_rendered_inputs{};                                    //! References to texture outputs from other attachments that can be sampled by this subpass as a texture, like shadow map inputs
 	BufferTargets            m_buffer_inputs{};                                      //! References to buffer outputs from other attachments that can be read by this subpass as buffer inputs
+	ror::Camera              m_camera{};                                             //! The camera used to render into this subpass
 	int32_t                  m_program_id{-1};                                       //! A program id that could be used to execute this pass or will use the content PSOs
 	bool                     m_debug_output{false};                                  //! Whether debug output is required
 	bool                     m_has_depth{false};                                     //! Whether there is a depth buffer required and attached

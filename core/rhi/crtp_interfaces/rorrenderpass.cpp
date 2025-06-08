@@ -88,7 +88,7 @@ void render_scene(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sc
                   rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass)
 {
 	// clang-format off
-	(void) a_job_system; (void) a_device; (void) a_timer;
+	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_pass; (void) a_subpass;
 	// clang-format on
 
 	a_scene.render(a_device, a_command_encoder, a_buffer_pack, a_renderer, a_pass, a_subpass, a_event_system);

@@ -33,6 +33,7 @@ namespace rhi
 class FrameDataMetal : public FrameDataCrtp<FrameDataMetal>
 {
   public:
+	FORCE_INLINE                 FrameDataMetal()                                  = default;        //! Default constructor
 	FORCE_INLINE                 FrameDataMetal(const FrameDataMetal &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                 FrameDataMetal(FrameDataMetal &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE FrameDataMetal &operator=(const FrameDataMetal &a_other)          = default;        //! Copy assignment operator
@@ -40,7 +41,6 @@ class FrameDataMetal : public FrameDataCrtp<FrameDataMetal>
 	FORCE_INLINE virtual ~FrameDataMetal() noexcept override                       = default;        //! Destructor
 
   protected:
-	FORCE_INLINE FrameDataMetal() = default;        //! Default constructor
   private:
 	dispatch_semaphore_t m_acquire_semaphore{};
 	dispatch_semaphore_t m_present_semaphore{};

@@ -165,9 +165,14 @@ void OrbitCamera::mode(CameraMode a_mode)
 	this->m_mode = a_mode;
 }
 
-void OrbitCamera::type(CameraType a_type)
+void Camera::type(CameraType a_type)
 {
 	this->m_type = a_type;
+}
+
+void OrbitCamera::type(CameraType a_type)
+{
+	Camera::type(a_type);
 
 	this->update_projection();
 }

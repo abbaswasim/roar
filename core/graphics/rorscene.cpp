@@ -139,8 +139,8 @@ define_translation_unit_vtable(Scene::SceneState)
 
 void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_system)
 {
-	auto  dims    = a_renderer.dimensions();
-	auto  bbox    = this->bounding_box();
+	auto dims = a_renderer.dimensions();
+	auto bbox = this->bounding_box();
 
 	ror::EventCallback camera_cycle_callback = [this](ror::Event &) {
 		size_t cameras_size{this->cameras().size()};
@@ -648,10 +648,6 @@ FORCE_INLINE void enable_material_component(const Material::Component<_type>    
 
 void render_mesh(const rhi::Device &a_device, ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const ror::Renderer &a_renderer, ror::Scene &a_scene, const rhi::Rendersubpass &subpass)
 {
-	(void) a_renderer;
-	(void) subpass;
-	(void) a_scene;
-
 	auto &programs      = a_scene.programs();
 	auto &pass_programs = programs.at(subpass.type());
 
@@ -1292,6 +1288,12 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 {
 	(void) a_pass;
 	(void) a_event_system;
+	(void) a_device;
+	(void) a_encoder;
+	(void) a_buffers_pack;
+	(void) a_renderer;
+	(void) a_subpass;
+
 	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
 
 	DrawData dd;
@@ -2248,7 +2250,7 @@ rhi::Rendersubpass *get_render_pass_by_types(const ror::Renderer &a_renderer, rh
 
 void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 {
-	auto  render_passes = a_renderer.current_frame_graph();
+	auto &render_passes = a_renderer.current_frame_graph();
 	auto &dependencies  = ror::mesh_shaders_dependencies();
 	auto &updator       = shader_updater();
 	auto  has_shadows   = this->m_has_shadows;
@@ -2258,11 +2260,11 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 	static std::mutex cache_mutex;        // Mutex to lock the lambda cache access
 
 	size_t records{0};
-	for (auto &pass : render_passes)
+	for (auto &rpass : render_passes)
 	{
-		for (auto &subpass : pass.subpasses())
+		for (auto &rsubpass : rpass.subpasses())
 		{
-			auto &programs = this->m_programs[subpass.type()];
+			auto &programs = this->m_programs[rsubpass.type()];
 			for (auto &model : this->m_models)
 			{
 				uint32_t mesh_index = 0;
@@ -2270,7 +2272,10 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 				{
 					for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
 					{
-						auto shader_update = [&model, this, mesh_index, prim_index, &a_renderer, pass, subpass, &mesh, has_shadows, with_environment](rhi::Device &device, std::unordered_set<hash_64_t> *cache) {
+						auto shader_update = [&model, this, mesh_index, prim_index, &a_renderer,
+											  &pass = std::as_const(rpass),
+						                      &subpass = std::as_const(rsubpass),
+						                      &mesh, has_shadows, with_environment](rhi::Device &device, std::unordered_set<hash_64_t> *cache) {
 							assert(cache && "Scene shaders can't be re-created without a cache, otherwise it takes too long");
 							auto &prgs = this->m_programs[subpass.type()];
 							auto &prg  = prgs[static_cast<size_t>(mesh.program(prim_index))];
@@ -2349,7 +2354,7 @@ void Scene::deferred_upload(rhi::Device &a_device, ror::JobSystem &a_job_system,
 		return true;
 	};
 
-	auto render_passes = a_renderer.current_frame_graph();
+	auto &render_passes = a_renderer.current_frame_graph();
 
 	// Lets do this in parallel
 	// Upload all the shader programs, this creates pipelines in metal and vulkan cases
@@ -2394,8 +2399,8 @@ void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::Eve
 	this->upload_models(a_job_system, a_device, a_renderer, a_buffers_packs);
 	this->init_upload_debug_geometry(a_device, a_renderer);
 
-	auto render_passes = a_renderer.current_frame_graph();
-	auto with_environment{ror::settings().m_environment.m_visible};
+	auto &render_passes = a_renderer.current_frame_graph();
+	auto  with_environment{ror::settings().m_environment.m_visible};
 
 	// Now lets upload them
 	for (auto &shader : this->m_shaders)

@@ -36,6 +36,7 @@
 #include "math/rorsegments.hpp"
 #include "math/rorvector2.hpp"
 #include "profiling/rortimer.hpp"
+#include "renderer/rorframes.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorprogram.hpp"

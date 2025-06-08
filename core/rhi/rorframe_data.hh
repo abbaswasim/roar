@@ -23,10 +23,9 @@
 //
 // Version: 1.0.0
 
-
 #include "rhi/rorframe_data.hpp"
 
 namespace rhi
 {
 
-} // namespace rhi
+}        // namespace rhi

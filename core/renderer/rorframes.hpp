@@ -70,10 +70,10 @@ class ROAR_ENGINE_ITEM Frames final
 
   protected:
   private:
-	std::array<rhi::FrameData, max_frames_in_flight> m_frames;
-	size_t                                           m_current_frame_index;
+	std::array<rhi::FrameData, max_frames_in_flight> m_frames{};
+	size_t                                           m_current_frame_index{0};
 };
 
 }        // namespace ror
 
-#include "rorframe.hh"
+// #include "rorframe.hh"

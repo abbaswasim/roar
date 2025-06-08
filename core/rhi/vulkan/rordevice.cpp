@@ -942,7 +942,7 @@ void DeviceVulkan::create_device()
 void DeviceVulkan::swapchain_setup(ror::Renderer *a_renderer)
 {
 	assert(a_renderer && "Renderer is nullptr");
-	auto render_passes = a_renderer->current_frame_graph();
+	auto& render_passes = a_renderer->current_frame_graph();
 
 	for (auto &pass : render_passes)
 	{

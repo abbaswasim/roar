@@ -165,7 +165,7 @@ struct DeviceQueue
 {
 	uint32_t           m_index{0};
 	VkQueue            m_queue{nullptr};
-	mutable std::mutex m_mutex{};        // These will be problematic when I have only one queue, FIXME:
+	mutable std::mutex m_mutex{};        //! These will be problematic when I have only one queue, FIXME:
 };
 
 class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
@@ -233,7 +233,7 @@ class DeviceVulkan : public DeviceCrtp<DeviceVulkan>
 	DeviceQueue     m_compute_queue{};                //! Compute queue
 	DeviceQueue     m_transfer_queue{};               //! Tranfer queue
 	DeviceQueue     m_present_queue{};                //! Present queue
-	DeviceQueue     m_sparse_queue{};                 //! sparse queue
+	DeviceQueue     m_sparse_queue{};                 //! Sparse queue
 	DeviceQueue     m_protected_queue{};              //! Protected queue
 	VkPipelineCache m_pipeline_cache{nullptr};        //! Don't need a mutex because its internally synchronised
 

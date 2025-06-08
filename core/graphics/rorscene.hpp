@@ -242,11 +242,11 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	RenderpassPrograms               m_programs{};                                             //! All the shader programs per render pass for all the models
 	std::vector<rhi::Shader>         m_shaders{};                                              //! All the shaders for all meshes in each model
 	GlobalPrograms                   m_global_programs{};                                      //! All the global shader programs that overrides per mesh/model programs
-	std::vector<ror::OrbitCamera>    m_cameras{};                                              //! All the cameras in the scene
+	std::vector<ror::OrbitCamera>    m_cameras{};                                              //! All the cameras in the scene and all glTF files (models)
 	std::vector<ror::Light>          m_lights{};                                               //! All the lights in the scene
 	std::vector<EnvironmentProbe>    m_probes{};                                               //! All the environment probes
 	ror::BoundingBoxf                m_bounding_box{};                                         //! Scene bounding box, a combination of its models in object space
-	bool                             m_indices_dirty{true};                                    //! If the scene graph indicies are direty and not uploaded yet
+	bool                             m_indices_dirty{true};                                    //! If the scene graph indicies are dirty and not uploaded yet
 	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
 	bool                             m_has_shadows{false};                                     //! To tell any fragment shaders for any pass generated to use shadow mapping, this is NOT about shadow pass itself
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too

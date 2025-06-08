@@ -33,6 +33,7 @@ namespace rhi
 class FrameDataVulkan : public FrameDataCrtp<FrameDataVulkan>
 {
   public:
+	FORCE_INLINE                  FrameDataVulkan()                                   = default;        //! Default constructor
 	FORCE_INLINE                  FrameDataVulkan(const FrameDataVulkan &a_other)     = default;        //! Copy constructor
 	FORCE_INLINE                  FrameDataVulkan(FrameDataVulkan &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE FrameDataVulkan &operator=(const FrameDataVulkan &a_other)           = default;        //! Copy assignment operator
@@ -40,7 +41,6 @@ class FrameDataVulkan : public FrameDataCrtp<FrameDataVulkan>
 	FORCE_INLINE virtual ~FrameDataVulkan() noexcept override                         = default;        //! Destructor
 
   protected:
-	FORCE_INLINE FrameDataVulkan() = default;        //! Default constructor
   private:
 	DescriptorSetCache *m_descriptor_sets{nullptr};         //! An alias of the main descriptor cache
 	VkCommandBuffer     m_render_command_buffers{};         //! Command buffer used for rendering

@@ -67,6 +67,7 @@ Loop:
 	Command Buffer is then used to present the swapchain and commit
 		[cmd_buffer presentDrawable:swapchain];
 		[cmd_buffer commit];
+
 		cmd_buffer->presentDrawable(swapchain);
 		cmd_buffer->commit();
 

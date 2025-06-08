@@ -70,7 +70,36 @@ enum class CameraMode
 
 class Renderer;
 
-class ROAR_ENGINE_ITEM OrbitCamera final
+class ROAR_ENGINE_ITEM Camera
+{
+  public:
+	FORCE_INLINE         Camera()                             = default;        //! Default constructor
+	FORCE_INLINE         Camera(const Camera &a_other)        = default;        //! Copy constructor
+	FORCE_INLINE         Camera(Camera &&a_other) noexcept    = default;        //! Move constructor
+	FORCE_INLINE Camera &operator=(const Camera &a_other)     = default;         //! Copy assignment operator
+	FORCE_INLINE Camera &operator=(Camera &&a_other) noexcept = default;         //! Move assignment operator
+	FORCE_INLINE ~Camera() noexcept                           = default;        //! Destructor
+
+	// clang-format off
+	FORCE_INLINE constexpr auto& view()          const noexcept { return this->m_view;          }
+	FORCE_INLINE constexpr auto& projection()    const noexcept { return this->m_projection;    }
+	FORCE_INLINE constexpr auto& type()          const noexcept { return this->m_type;          }
+	// clang-format on
+
+	FORCE_INLINE void type(CameraType a_type);
+
+  private:
+  protected:
+	Matrix4f   m_view{};                               //! View matrix
+	Matrix4f   m_projection{};                         //! Projection matrix
+	Matrix4f   m_view_projection{};                    //! View projection matrix
+	Matrix4f   m_inverse_projection{};                 //! Inverse of Projection matrix
+	Matrix4f   m_inverse_view_projection{};            //! Inverse of View projection matrix
+	Matrix3f   m_normal{};                             //! Normal matrix
+	CameraType m_type{CameraType::perspective};        //! Default perspective camera
+};
+
+class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 {
   public:
 	FORCE_INLINE              OrbitCamera()                               = default;        //! Default constructor
@@ -79,6 +108,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE OrbitCamera &operator=(const OrbitCamera &a_other)       = delete;         //! Copy assignment operator
 	FORCE_INLINE OrbitCamera &operator=(OrbitCamera &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~OrbitCamera() noexcept                                  = default;        //! Destructor
+
+	using Camera::type;
 
 	FORCE_INLINE void set_from_parameters();
 	FORCE_INLINE void bounds(float32_t a_width, float32_t a_height);
@@ -113,16 +144,13 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	void              orient_back();
 
 	// clang-format off
-	FORCE_INLINE constexpr auto& view()          const noexcept { return this->m_view;          }
 	FORCE_INLINE constexpr auto& eye()           const noexcept { return this->m_eye;           }
 	FORCE_INLINE constexpr auto& up()            const noexcept { return this->m_up;            }
 	FORCE_INLINE constexpr auto& right()         const noexcept { return this->m_right;         }
 	FORCE_INLINE constexpr auto& forward()       const noexcept { return this->m_forward;       }
-	FORCE_INLINE constexpr auto& projection()    const noexcept { return this->m_projection;    }
 	FORCE_INLINE constexpr auto& center()        const noexcept { return this->m_center;        }
 	FORCE_INLINE constexpr auto& minimum()       const noexcept { return this->m_minimum;       }
 	FORCE_INLINE constexpr auto& maximum()       const noexcept { return this->m_maximum;       }
-	FORCE_INLINE constexpr auto& type()          const noexcept { return this->m_type;          }
 	FORCE_INLINE constexpr auto& mode()          const noexcept { return this->m_mode;          }
 	FORCE_INLINE constexpr auto& x_mag()         const noexcept { return this->m_x_mag;         }
 	FORCE_INLINE constexpr auto& y_mag()         const noexcept { return this->m_y_mag;         }
@@ -157,12 +185,6 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, float32_t a_scale);
 	FORCE_INLINE void forward(double64_t a_zoom_delta);
 
-	Matrix4f      m_view{};                                 //! View matrix
-	Matrix4f      m_projection{};                           //! Projection matrix
-	Matrix4f      m_view_projection{};                      //! View projection matrix
-	Matrix4f      m_inverse_projection{};                   //! Inverse of Projection matrix
-	Matrix4f      m_inverse_view_projection{};              //! Inverse of View projection matrix
-	Matrix3f      m_normal{};                               //! Normal matrix
 	Vector3f      m_target{0.0f, 0.0f, 0.0f};               //! Target position in worldspace that doesn't change unlike center
 	Vector3f      m_center{0.0f, 0.0f, 0.0f};               //! Target position in worldspace
 	Vector3f      m_eye{0.0f, 0.0f, 1.0f};                  //! Eye position in worldspace
@@ -183,7 +205,6 @@ class ROAR_ENGINE_ITEM OrbitCamera final
 	float32_t     m_x_mag{1.0f};                            //! Width of the orthographics camera
 	float32_t     m_y_mag{1.0f};                            //! Height of the orthographics camera
 	CameraMode    m_mode{CameraMode::orbit};                //! Default orbit camera
-	CameraType    m_type{CameraType::perspective};          //! Default perspective camera
 	Frustum       m_frustums[cascade_count];                //! Frustums for all the cascades, max 4 splits
 	EventSystem  *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around
 	EventCallback m_move_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system

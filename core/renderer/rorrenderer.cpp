@@ -2165,7 +2165,7 @@ const rhi::Texture *Renderer::get_shadow_texture() const
 {
 	if (this->m_shadow_pass != -1)
 	{
-		auto pass = this->current_frame_graph()[static_cast<size_t>(this->m_shadow_pass)];
+		auto &pass = this->current_frame_graph()[static_cast<size_t>(this->m_shadow_pass)];
 		for (auto &subpass : pass.subpasses())
 		{
 			if (subpass.type() == rhi::RenderpassType::shadow)

@@ -23,8 +23,9 @@
 //
 // Version: 1.0.0
 
+#include "configuration/rorsettings_configuration.hpp"
 #include "foundation/rorsystem.hpp"
-#include "settings/rorsettings.hpp"
+#include "rorsettings.hpp"
 
 namespace ror
 {
