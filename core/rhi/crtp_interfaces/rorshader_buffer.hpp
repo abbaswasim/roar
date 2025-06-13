@@ -75,8 +75,8 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	using entry_variant_vector = std::vector<entry_variant>;
 
 	template <class... _types>
-	FORCE_INLINE ShaderBufferCrtp(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding, _types... a_others) :
-	    m_shader_buffer_template(a_buffer_name, a_type, a_layout, a_set, a_binding)
+	FORCE_INLINE ShaderBufferCrtp(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::ShaderBufferFrequency a_frequency, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding, _types... a_others) :
+	    m_shader_buffer_template(a_buffer_name, a_type, a_frequency, a_layout, a_set, a_binding)
 	{
 		entry_variant_vector others{a_others...};
 
@@ -120,19 +120,24 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 			this->m_shader_buffer_template.add_struct(temp_struct);
 	}
 
-	FORCE_INLINE ShaderBufferCrtp(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding) :
-	    m_shader_buffer_template(a_buffer_name, a_type, a_layout, a_set, a_binding)
+	FORCE_INLINE ShaderBufferCrtp(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::ShaderBufferFrequency a_frequency, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding) :
+	    m_shader_buffer_template(a_buffer_name, a_type, a_frequency, a_layout, a_set, a_binding)
 	{}
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &shader_buffer()                                   noexcept  { return this->m_shader_buffer_template;                                              }
+	FORCE_INLINE constexpr auto  variables_updated()                               noexcept  { return this->m_variables.size() > 0;                                                }
 	FORCE_INLINE constexpr auto  to_glsl_string()                            const           { return this->m_shader_buffer_template.to_glsl_string();                             }
 	FORCE_INLINE constexpr auto  to_glsl_string(std::string && a_modifier)   const           { return this->m_shader_buffer_template.to_glsl_string(std::move(a_modifier));        }
 	FORCE_INLINE constexpr auto  set()                                       const noexcept  { return this->m_shader_buffer_template.set();                                        }
 	FORCE_INLINE constexpr auto  binding()                                   const noexcept  { return this->m_shader_buffer_template.binding();                                    }
+	FORCE_INLINE constexpr auto  type()                                      const noexcept  { return this->m_shader_buffer_template.type();                                       }
+	FORCE_INLINE constexpr auto  frequency()                                 const noexcept  { return this->m_shader_buffer_template.frequency();                                  }
+	FORCE_INLINE constexpr auto  layout()                                    const noexcept  { return this->m_shader_buffer_template.layout();                                     }
 	FORCE_INLINE constexpr auto  offset()                                    const noexcept  { return this->m_shader_buffer_template.offset();                                     }
 	FORCE_INLINE constexpr void  set(uint32_t a_set)                               noexcept  {        this->m_shader_buffer_template.set(a_set);                                   }
 	FORCE_INLINE constexpr void  binding(uint32_t a_binding)                       noexcept  {        this->m_shader_buffer_template.binding(a_binding);                           }
+	FORCE_INLINE           void  shader_buffer(rhi::ShaderBufferTemplate a_buffer) noexcept  {        this->m_shader_buffer_template = a_buffer;                                   }
 	// clang-format on
 
 	FORCE_INLINE constexpr auto stride(const std::string &a_name)
@@ -274,6 +279,7 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 		return e;
 	}
 
+  protected:
 	FORCE_INLINE void update_variables()
 	{
 		this->m_variables.clear();
@@ -285,6 +291,7 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 			this->m_variables[entry->m_name] = entry;
 	}
 
+  private:
 	ShaderBufferTemplate                                                      m_shader_buffer_template{};        //! Template for this ShaderBuffer
 	std::unordered_map<std::string, const rhi::ShaderBufferTemplate::Entry *> m_variables{};                     //! All the variables in this input buffer
 };
@@ -301,12 +308,12 @@ class ShaderBufferBase : public ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>,
 	FORCE_INLINE virtual ~ShaderBufferBase() noexcept override                           = default;        //! Destructor
 
 	template <class... _types>
-	FORCE_INLINE ShaderBufferBase(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding, _types... a_others) :
-	    ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>(a_buffer_name, a_type, a_layout, a_set, a_binding, a_others...)
+	FORCE_INLINE ShaderBufferBase(const std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::ShaderBufferFrequency a_frequency, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding, _types... a_others) :
+	    ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>(a_buffer_name, a_type, a_frequency, a_layout, a_set, a_binding, a_others...)
 	{}
 
-	FORCE_INLINE ShaderBufferBase(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding) :
-	    ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>(a_buffer_name, a_type, a_layout, a_set, a_binding)
+	FORCE_INLINE ShaderBufferBase(const std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::ShaderBufferFrequency a_frequency, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding) :
+	    ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>(a_buffer_name, a_type, a_frequency, a_layout, a_set, a_binding)
 	{}
 
 	declare_translation_unit_vtable() override;
@@ -327,6 +334,22 @@ class ShaderBufferBase : public ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>,
 		assert(a_data && "Data is null need to provide valid data before copy is called");
 
 		std::memcpy(this->m_mapped_address + a_offset, a_data, a_length);
+	}
+
+	ShaderBufferBase deep_copy()
+	{
+		ShaderBufferBase shaderbuffer{this->top_level().m_name, this->type(), this->frequency(), this->layout(), this->set(), this->binding()};
+
+		auto temp_sb = this->shader_buffer();
+
+		shaderbuffer.shader_buffer(temp_sb);
+
+		if (shaderbuffer.variables_updated())
+			shaderbuffer.update_variables();
+
+		this->m_mapped_address = nullptr;
+
+		return shaderbuffer;
 	}
 
 	// Forbids using uploads from _api_buffer (BufferVulkan or BufferMetal)

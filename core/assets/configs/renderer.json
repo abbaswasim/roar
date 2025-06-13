@@ -237,6 +237,7 @@
 			"layout":"std140",
 			"type":"ubo",
 			"set":0,
+			"frequency": "per_frame",
 			"entries":[
 				{
 					"name":"delta_time",
@@ -261,6 +262,7 @@
 			"layout":"std140",
 			"type":"ubo",
 			"set":1,
+			"frequency": "per_view",
 			"entries":[
 				{
 					"name":"view_mat4",
@@ -301,6 +303,7 @@
 			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
+			"frequency": "per_frame",
 			"entries":[
 				{
 					"name":"node_model",
@@ -314,6 +317,7 @@
 			"layout":"std140",
 			"type":"ubo",
 			"set":0,
+			"frequency": "per_frame",
 			"entries":[
 				{
 					"name":"node_offset",
@@ -326,6 +330,7 @@
 			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
+			"frequency": "per_frame",
 			"entries":[
 				{
 					"name":"morph_weights",
@@ -340,6 +345,7 @@
 			"type":"ssbo",
 			"set":0,
 			"binding":0,
+			"frequency": "constant",
 			"entries":[
 				{
 					"struct":{
@@ -377,6 +383,7 @@
 			"type":"ssbo",
 			"set":0,
 			"binding":1,
+			"frequency": "constant",
 			"entries":[
 				{
 					"struct":{
@@ -410,6 +417,7 @@
 			"type":"ssbo",
 			"set":0,
 			"binding":2,
+			"frequency": "constant",
 			"entries":[
 				{
 					"struct":{
@@ -439,6 +447,7 @@
 			"type":"ssbo",
 			"set":0,
 			"binding":3,
+			"frequency": "constant",
 			"entries":[
 				{
 					"name":"inputs",
@@ -453,6 +462,7 @@
 			"type":"ssbo",
 			"set":0,
 			"binding":4,
+			"frequency": "constant",
 			"entries":[
 				{
 					"name":"outputs",
@@ -467,6 +477,7 @@
 			"type":"ssbo",
 			"set":0,
 			"binding":5,
+			"frequency": "constant",
 			"entries":[
 				{
 					"name":"current_animation",

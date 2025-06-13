@@ -44,9 +44,14 @@ class ROAR_ENGINE_ITEM Frames final
 	FORCE_INLINE Frames &operator=(Frames &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~Frames() noexcept                   = default;        //! Destructor
 
-	size_t &current_frame_index()
+	size_t current_frame_index() const
 	{
 		return this->m_current_frame_index;
+	}
+
+	constexpr static size_t max_frames()
+	{
+		return max_frames_in_flight;
 	}
 
 	void begin_frame()
@@ -83,7 +88,8 @@ class ROAR_ENGINE_ITEM Frames final
 	}
 
 	std::array<rhi::FrameData, max_frames_in_flight> m_frames{};
-	size_t                                           m_current_frame_index{max_frames_in_flight - 1};
+	size_t                                           m_current_frame_index{0};        //! If we start from {max_frames_in_flight - 1} so begin_frame advances it to 0,
+	                                                                                  //! But some shader_buffers are created before they are duplicated and it doesn't work
 };
 
 }        // namespace ror

@@ -129,22 +129,56 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
 	FORCE_INLINE constexpr auto &dynamic_meshes()         const noexcept { return this->m_dynamic_meshes;          }
 	FORCE_INLINE constexpr auto canonical_cube()          const noexcept { return this->m_canonical_cube;          }
+	FORCE_INLINE constexpr auto frames_count()            const noexcept { return this->m_frames.max_frames();     }
+	FORCE_INLINE constexpr auto renderpass_index()        const noexcept { return this->m_renderpass_index;        }
+	FORCE_INLINE constexpr auto subpass_index()           const noexcept { return this->m_subpass_index;           }
+	FORCE_INLINE constexpr auto renderpasses_count()      const noexcept { assert(this->m_renderpasses_count);
+		                                                                         return this->m_renderpasses_count;}
+	FORCE_INLINE constexpr auto subpasses_count()         const noexcept { assert(this->m_subpasses_count);
+		                                                                         return this->m_subpasses_count;}
 
-	FORCE_INLINE           auto shader_buffer(const std::string& a_name)                           const           { return this->m_buffers_mapping.at(a_name);   }
 	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];}
 	FORCE_INLINE           auto &current_environment()                                                   noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];}
 
-	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                         }
-	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                       }
-	FORCE_INLINE constexpr void viewport(const ror::Vector4i                      &a_viewport)            noexcept { this->m_viewport = a_viewport;                       }
-	FORCE_INLINE constexpr void frame_graphs(const FrameGraph                     &a_frame_graphs)        noexcept { this->m_frame_graphs = a_frame_graphs;               }
-	FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
+	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                                                            }
+	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                                                          }
+	FORCE_INLINE constexpr void viewport(const ror::Vector4i                      &a_viewport)            noexcept { this->m_viewport = a_viewport;                                                          }
+	FORCE_INLINE constexpr void frame_graphs(const FrameGraph                     &a_frame_graphs)        noexcept { this->m_frame_graphs = a_frame_graphs;                                                  }
+	FORCE_INLINE constexpr void renderpass_index(size_t                            a_pass_index)          noexcept { this->m_renderpass_index = a_pass_index;                                                }
+	FORCE_INLINE constexpr void subpass_index(size_t                               a_pass_index)          noexcept { this->m_subpass_index = a_pass_index;                                                   }
+	FORCE_INLINE constexpr void next_renderpass()                                                         noexcept { this->m_renderpass_index = (this->m_renderpass_index + 1) % this->m_renderpasses_count; }
+	FORCE_INLINE constexpr void next_subpass()                                                            noexcept { this->m_subpass_index = (this->m_subpass_index + 1) % this->m_subpasses_count;          }
+	// FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
 	// clang-format on
+
+	FORCE_INLINE auto shader_buffer(const std::string &a_name) const
+	{
+		size_t frequency{0};
+
+		auto shader_buffers = this->m_buffers_mapping.at(a_name);
+		auto shader_buffer  = &(*shader_buffers)[frequency];
+		auto sbfrequency    = shader_buffer->frequency();
+
+		if (sbfrequency == rhi::ShaderBufferFrequency::constant)
+			frequency = 0;
+		else if (sbfrequency == rhi::ShaderBufferFrequency::per_view)
+			frequency = this->m_renderpass_index * this->m_frames.current_frame_index();
+		else if (sbfrequency == rhi::ShaderBufferFrequency::per_frame)
+			frequency = this->m_frames.current_frame_index();
+		else if (sbfrequency == rhi::ShaderBufferFrequency::per_subpass)
+			frequency = this->m_subpass_index * this->m_frames.current_frame_index();
+
+		return &(*shader_buffers)[frequency];
+	}
 
 	using InputRenderTargets = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
 	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
 	using ShaderCallbackMap  = std::unordered_map<std::string, std::function<void(std::string &, ror::Renderer &)>>;
-	using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderBuffer *>;
+	using ShaderBuffers      = std::vector<std::vector<rhi::ShaderBuffer>>;
+	// using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderBuffer *>;
+	using ShaderBufferMap = std::unordered_map<std::string, std::vector<rhi::ShaderBuffer> *>;
+	// using ShaderBufferMap    = std::unordered_map<std::string, std::unordered_map<size_t, rhi::ShaderBuffer *>>;
+	// using ShaderBufferMap    = std::unordered_map<std::string, size_t>;
 
 	rhi::TextureImage *m_skybox_hdr_patch_ti{nullptr};
 	rhi::TextureImage *m_skybox_ldr_patch_ti{nullptr};
@@ -187,13 +221,15 @@ class Renderer final : public Configuration<Renderer>
 	void     setup_final_pass();
 	void     setup_shadow_pass();
 
+	ror::Frames                             m_frames{};                                       //! All the frames in flight
+	std::vector<PerFrame>                   m_per_frame{};                                    //! All the per frame data
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
 	std::vector<rhi::Program>               m_programs{};                                     //! All the global shader programs
 	std::vector<rhi::TextureImage>          m_images{};                                       //! All the texture images some render passes might want to write into
 	std::vector<rhi::TextureSampler>        m_samplers{};                                     //! All samplers in the renderer, usually should only have a mipmapped and non-mipmapped sampler, but could have more
 	std::vector<rhi::Texture>               m_textures{};                                     //! All textures the renderer has loaded. This is only used to associate samplers with images
 	std::vector<ror::IBLEnvironment>        m_environments{};                                 //! All the IBL environments, referring to textures within m_textures
-	std::vector<rhi::ShaderBuffer>          m_buffers{};                                      //! All the buffers some render passes might want to write into TODO: this should be a vector or (per-pass * per-frame) count
+	ShaderBuffers                           m_buffers{};                                      //! All the buffers some render passes might want to write into. This could be max (per-pass * per-frame) count if this buffer type requires it
 	ror::Vector4f                           m_dimensions{1024.0f, 768.0f, 1.0f, 1.0f};        //! Dimensions of the renderer framebuffers, if not provided will use from window, overriden by renderer.json, z, w are scaling factors
 	ror::Vector4i                           m_viewport{0, 0, 1024, 768};                      //! Viewport to use to render into the render targets, RTs can override it
 	FrameGraph                              m_frame_graphs{};                                 //! Frame graph for all techniques like forward, deferred etc
@@ -203,13 +239,17 @@ class Renderer final : public Configuration<Renderer>
 	InputBufferTargets                      m_input_render_buffers{};                         //! Render buffers that are not directly associated with any render pass but required to be filled in before rendering starts
 	ShaderBufferMap                         m_buffers_mapping{};                              //! All the Shader buffers in m_buffers are now name accessible, TODO: this should be a vector or (per-pass * per-frame) count
 	ShaderCallbackMap                       m_callbacks_mapping{};                            //! All the callbacks that can be used to patch or do something else to shaders
-	std::vector<ror::DynamicMesh *>         m_dynamic_meshes{};                               //! Non-Owning pointers to all the dynamic meshes created in the renderer should be rendererd at the end, mostly has cubemap mes
+	std::vector<ror::DynamicMesh *>         m_dynamic_meshes{};                               //! Non-Owning pointers to all the dynamic meshes created in the renderer should be rendererd at the end, mostly has cubemap meshes etc
 	ror::DynamicMesh                        m_cube_map_mesh{};                                //! Single instance of a cubemap mesh used by all environments
 	DebugData                               m_debug_data{};                                   //! Other debug data like shadow map quads and camera frustums
 	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use
 	int32_t                                 m_grid_id{-1};                                    //! Reference to the grid for easy access
 	uint32_t                                m_canonical_cube{};                               //! Canonical cube for debugging purposes
 	uint32_t                                m_final_pass{};                                   //! Index of the final pass in the render pass chains in framegraph
+	size_t                                  m_renderpasses_count{0};                          //! Total amount of renderpasses in the framegraph
+	size_t                                  m_subpasses_count{0};                             //! Total amount of subpasses in the framegraph
+	size_t                                  m_renderpass_index{0};                            //! Which renderpass are we currently rendering from the frame graph. This is state
+	size_t                                  m_subpass_index{0};                               //! Which subpass are we currently rendering from the frame graph. This is state
 	int32_t                                 m_shadow_pass{-1};                                //! Index of the shadow pass in the render pass chains in framegraph
 	EventCallback                           m_semi_colon_key_callback{};                      //! Semi colon key call back to enable disable the grid
 	std::function<void(IBLEnvironment &)>   m_environment_upload{};                           //! Environment upload lambda used by environment cycle menthod

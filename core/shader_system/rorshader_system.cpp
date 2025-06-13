@@ -1572,7 +1572,6 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 
 std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const materials_vector &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, const ror::Renderer &a_renderer, bool a_has_shadow)
 {
-	(void) a_renderer;
 	const auto  is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
 	const auto &vertex_descriptor = a_mesh.vertex_descriptor(a_primitive_index);
 	const auto  type              = vertex_descriptor.type();

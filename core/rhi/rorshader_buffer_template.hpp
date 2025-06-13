@@ -49,8 +49,17 @@ enum class ShaderBufferType : uint32_t
 	ssbo
 };
 
-Layout           string_to_layout(const std::string &a_layout);
-ShaderBufferType string_to_shader_buffer_type(const std::string &a_type);
+enum class ShaderBufferFrequency : uint32_t
+{
+	constant,
+	per_frame,
+	per_view,        // Same as if it was per-renderpass
+	per_subpass
+};
+
+Layout                string_to_layout(const std::string &a_layout);
+ShaderBufferType      string_to_shader_buffer_type(const std::string &a_type);
+ShaderBufferFrequency string_to_shader_buffer_frequency(const std::string &a_type);
 
 /**
  * Shader input Buffer encapsulation
@@ -76,7 +85,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		uint32_t    m_offset{0};                      //! Where in the buffer would this entry be, offset from start of the ShaderBuffer
 		uint32_t    m_size{0};                        //! Whats the size of this entry in machine units
 
-		Entry(std::string a_name, Format a_type, uint32_t a_count, uint32_t a_stride, uint32_t a_offset, uint32_t a_size) :
+		Entry(const std::string a_name, Format a_type, uint32_t a_count, uint32_t a_stride, uint32_t a_offset, uint32_t a_size) :
 		    m_name(a_name), m_type(a_type), m_count(a_count), m_stride(a_stride), m_offset(a_offset), m_size(a_size)
 		{}
 
@@ -114,12 +123,13 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		declare_translation_unit_vtable() override;
 	};
 
-	FORCE_INLINE ShaderBufferTemplate(const std::string &a_name, ShaderBufferType a_type = ShaderBufferType::ubo, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
-	    m_type(a_type), m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_toplevel(a_name, 1)
+	FORCE_INLINE ShaderBufferTemplate(const std::string &a_name, ShaderBufferType a_type = ShaderBufferType::ubo, ShaderBufferFrequency a_frequency = ShaderBufferFrequency::per_frame, Layout a_layout = rhi::Layout::std140, uint32_t a_set = 0, uint32_t a_binding = 0) :
+	    m_type(a_type), m_frequency(a_frequency), m_layout(a_layout), m_set(a_set), m_binding(a_binding), m_toplevel(a_name, 1)
 	{}
 
 	// clang-format off
 	FORCE_INLINE constexpr auto type()         const noexcept   {   return this->m_type;                 }
+	FORCE_INLINE constexpr auto frequency()    const noexcept   {   return this->m_frequency;            }
 	FORCE_INLINE constexpr auto layout()       const noexcept   {   return this->m_layout;               }
 	FORCE_INLINE constexpr auto set()          const noexcept   {   return this->m_set;                  }
 	FORCE_INLINE constexpr auto binding()      const noexcept   {   return this->m_binding;              }
@@ -178,7 +188,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	 * layout(std140, set = 0, binding = 0) readonly uniform ubo_name ....
 	 * Modifier can be one of coherent, volatile, restrict, readonly, writeonly or empty
 	 */
-	std::string to_glsl_string(std::string && a_modifier = "") const;
+	std::string to_glsl_string(std::string &&a_modifier = "") const;
 
 	/**
 	 * Use this as an iterator to get the entries in the buffer
@@ -197,11 +207,12 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	std::vector<const Entry *> entries_structs();
 
   private:
-	ShaderBufferType m_type{ShaderBufferType::ubo};        //! What is the type of the ShaderBuffer (UBO, SSBO etc)
-	Layout           m_layout{Layout::std140};             //! Default layout
-	uint32_t         m_set{0};                             //! Which set does this buffer belongs in
-	uint32_t         m_binding{0};                         //! Which binding does this buffer belongs in
-	Struct           m_toplevel{};                         //! All the entries in the buffer, Raw entries in this struct or linked-list of structures
+	ShaderBufferType      m_type{ShaderBufferType::ubo};                        //! What is the type of the ShaderBuffer (UBO, SSBO etc)
+	ShaderBufferFrequency m_frequency{ShaderBufferFrequency::per_frame};        //! What is the frequency of this shader buffer, per frame, per view or constant/static
+	Layout                m_layout{Layout::std140};                             //! Default layout
+	uint32_t              m_set{0};                                             //! Which set does this buffer belongs in
+	uint32_t              m_binding{0};                                         //! Which binding does this buffer belongs in
+	Struct                m_toplevel{};                                         //! All the entries in the buffer, Raw entries in this struct or linked-list of structures
 };
 
 }        // namespace rhi

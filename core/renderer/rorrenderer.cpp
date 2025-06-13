@@ -590,11 +590,12 @@ void Renderer::load_buffers()
 		auto buffers = this->m_json_file["buffers"];
 		for (auto &buffer : buffers)
 		{
-			std::string           name{};
-			rhi::Layout           layout{rhi::Layout::std140};
-			rhi::ShaderBufferType type{rhi::ShaderBufferType::ubo};
-			uint32_t              set{0};
-			uint32_t              binding{0};
+			std::string                name{};
+			rhi::Layout                layout{rhi::Layout::std140};
+			rhi::ShaderBufferType      type{rhi::ShaderBufferType::ubo};
+			rhi::ShaderBufferFrequency frequency{rhi::ShaderBufferFrequency::per_frame};
+			uint32_t                   set{0};
+			uint32_t                   binding{0};
 
 			assert(buffer.contains("name") && "Buffer must provide a name");
 			name = buffer["name"];
@@ -607,8 +608,10 @@ void Renderer::load_buffers()
 				set = buffer["set"];
 			if (buffer.contains("binding"))
 				binding = buffer["binding"];
+			if (buffer.contains("frequency"))
+				frequency = rhi::string_to_shader_buffer_frequency(buffer["frequency"]);
 
-			rhi::ShaderBuffer shader_buffer{name, type, layout, set, binding};
+			rhi::ShaderBuffer shader_buffer{name, type, frequency, layout, set, binding};
 
 			assert(buffer.contains("entries") && "Buffer description must contain entries");
 			{
@@ -619,10 +622,13 @@ void Renderer::load_buffers()
 				}
 			}
 
-			this->m_buffers.emplace_back(std::move(shader_buffer));
+			std::vector<rhi::ShaderBuffer> shader_buffers{};
+			shader_buffers.emplace_back(std::move(shader_buffer));
+			this->m_buffers.emplace_back(std::move(shader_buffers));
 		}
 	}
 
+	// Makes shader buffers name accessible from renderer
 	this->generate_shader_buffers_mapping();
 
 	// Ignore the hard-coded sets and bindings in renderer if any and use the settings ones
@@ -705,8 +711,8 @@ rhi::RenderOutputType to_render_output_type(nlohmann::json a_type)
 }
 
 void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame_graph, ror::Vector2ui a_dimensions,
-                      std::vector<rhi::TextureImage> &a_textures,
-                      std::vector<rhi::ShaderBuffer> &a_buffers)
+                      std::vector<rhi::TextureImage>              &a_textures,
+                      std::vector<std::vector<rhi::ShaderBuffer>> &a_buffers)
 {
 	rhi::Renderpass render_pass;
 
@@ -821,7 +827,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			// Emplaces a BufferTarget
 			assert(index < a_buffers.size() && "Index is out of bound for render buffers provided");
 
-			rhi::RenderBuffer::ShaderBufferReference sr{index, &a_buffers};
+			rhi::RenderBuffer::ShaderBufferReference sr{index, &a_buffers};        // Remember the reference is now a vector and based on which frame and render pass we are in, that specific copy will be used
 
 			rbs.emplace_back(index, std::move(sr), load_action, store_action, type);
 		}
@@ -1028,8 +1034,46 @@ void Renderer::load_frame_graphs()
 			this->m_current_frame_graph = &this->m_frame_graphs["deferred"];
 	}
 
+	this->m_renderpasses_count = m_current_frame_graph->size();
+
+	for (auto &renderpass : *this->m_current_frame_graph)
+		this->m_subpasses_count += renderpass.subpasses().size();
+
 	this->setup_final_pass();
 	this->setup_shadow_pass();
+
+	// Lets duplicate the shader buffers needed per render pass or subpass and per frame according to the frame graph and buffers frequency
+	this->setup_shader_buffers();
+}
+
+void Renderer::setup_shader_buffers()
+{
+	// If we have to change the buffers, we will have a problem because we are using its pointers.
+	for (auto &buffer : this->m_buffers)
+	{
+		size_t frequency_count{0};        // For any other type than per_frame and per_view we just don't add any copies
+		{
+			auto &buff = buffer[0];
+			if (buff.frequency() == rhi::ShaderBufferFrequency::per_frame)
+				frequency_count = this->frames_count() - 1;        // The minus 1 is there because we already have 'buff' in the vector
+			else if (buff.frequency() == rhi::ShaderBufferFrequency::per_view)
+				frequency_count = (this->frames_count() * this->renderpasses_count()) - 1;        // The minus 1 is there because we already have 'buff' in the vector
+			else if (buff.frequency() == rhi::ShaderBufferFrequency::per_subpass)
+				frequency_count = (this->frames_count() * this->subpasses_count()) - 1;        // The minus 1 is there because we already have 'buff' in the vector
+			else if (buff.frequency() == rhi::ShaderBufferFrequency::constant)
+				frequency_count = 0;        // Redoing this incase I add more frequency types this will then fail
+			else
+			{
+				assert(0 && "Shouldn't reach here, unknown type frequencey");
+			}
+		}
+
+		buffer.reserve(frequency_count);
+		auto &buff = buffer[0];        // Refresh the reference because of possible reallocation
+
+		for (size_t i = 0; i < frequency_count; ++i)
+			buffer.emplace_back(buff.deep_copy());
+	}
 }
 
 const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index)
@@ -1049,11 +1093,14 @@ const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector
 	rhi::StoreAction      store_action{rhi::StoreAction::store};
 	rhi::RenderOutputType type{rhi::RenderOutputType::color};
 
+	size_t render_targets_max{20};
 	if (this->m_input_render_targets.size() == 0)
-		this->m_input_render_targets.reserve(20);        // Should be enough otherwise an error will happen which I will know about
+		this->m_input_render_targets.reserve(render_targets_max);        // Should be enough otherwise an error will happen which I will know about
 
 	rhi::RenderTarget::TextureReference tr{a_index, &this->m_images};
 	this->m_input_render_targets.emplace_back(a_index, std::move(tr), load_action, store_action, type);
+
+	assert(this->m_input_render_targets.size() <= render_targets_max && "Need more space for input render targets");
 
 	return &this->m_input_render_targets.back();        // back is ok here because this vector can't be reallocated
 }
@@ -1075,11 +1122,13 @@ const rhi::RenderBuffer *Renderer::find_renderbuffer_reference(const std::vector
 	rhi::StoreAction      store_action{rhi::StoreAction::store};
 	rhi::RenderOutputType type{rhi::RenderOutputType::buffer};
 
+	size_t render_buffers_max{20};
 	if (this->m_input_render_buffers.size() == 0)
-		this->m_input_render_buffers.reserve(20);        // Should be enough otherwise an error will happen which I will know about
+		this->m_input_render_buffers.reserve(render_buffers_max);        // Should be enough otherwise an error will happen which I will know about
 
 	rhi::RenderBuffer::ShaderBufferReference br{a_index, &this->m_buffers};
 	this->m_input_render_buffers.emplace_back(a_index, std::move(br), load_action, store_action, type);
+	assert(this->m_input_render_buffers.size() <= render_buffers_max && "Need more space for input render buffers");
 
 	return &this->m_input_render_buffers.back();        // back is ok here because this vector can't be reallocated
 }
@@ -1176,6 +1225,8 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 	(void) a_device;
 	(void) a_timer;
 
+	this->m_frames.begin_frame();
+
 	rhi::Swapchain surface = a_device.platform_swapchain();
 
 	if (surface)
@@ -1187,6 +1238,9 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 		auto              &render_passes = this->current_frame_graph();
 
 		command_buffer.begin();
+
+		this->renderpass_index(0);        // Start counting renderpass/subpass indices, this is important for keeping track of which multi-buffers to use
+		this->subpass_index(0);           // Start counting renderpass/subpass indices, this is important for keeping track of which multi-buffers to use
 
 		for (auto &render_pass : render_passes)
 			render_pass.execute(command_buffer, a_scene, surface, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, *this);
@@ -1201,6 +1255,8 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 		command_buffer.release();
 		surface->release();
 	}
+
+	this->m_frames.end_frame();
 }
 
 void Renderer::set_modifier_events(ror::EventSystem &a_event_system)
@@ -1305,12 +1361,15 @@ void Renderer::scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene)
 		render_buffer.m_target_reference.get().ready(true);
 	}
 
-	for (auto &render_buffer : this->m_buffers)
+	for (auto &render_buffers : this->m_buffers)
 	{
-		if (!render_buffer.ready())
+		for (auto &render_buffer : render_buffers)
 		{
-			render_buffer.upload(a_device);        // this will still not make it ready, have to be done later before first use, unless ready is called next
-			render_buffer.ready(true);
+			if (!render_buffer.ready())
+			{
+				render_buffer.upload(a_device);        // this will still not make it ready, have to be done later before first use, unless ready is called next
+				render_buffer.ready(true);
+			}
 		}
 	}
 
@@ -2113,8 +2172,8 @@ std::vector<rhi::RenderpassType> Renderer::render_pass_types() const
 
 void Renderer::generate_shader_buffers_mapping()
 {
-	for (auto &buffer : this->m_buffers)
-		this->m_buffers_mapping.emplace(buffer.top_level().m_name, &buffer);
+	for (size_t i = 0; i < this->m_buffers.size(); ++i)
+		this->m_buffers_mapping.emplace(this->m_buffers[i][0].top_level().m_name, &this->m_buffers[i]);        // This assumes there is atleast 1 buffer inserted in the vector of buffers, should be the case
 }
 
 void Renderer::generate_shader_callbacks_mapping()

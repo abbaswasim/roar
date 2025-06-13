@@ -1328,9 +1328,10 @@ VkPipeline vk_create_graphics_pipeline(const VkDevice                           
                                        VkRenderPass                                       &a_render_pass,
                                        uint32_t                                            a_render_subpass)
 {
-	auto graphics_pipeline_create_info = vk_create_graphics_pipeline_state(a_shader_stages, a_pipeline_vertex_input_state_info, a_pipeline_input_assembly_state_info,
-	                                                                       a_pipeline_viewport_state_info, a_pipeline_rasterisation_state_info, a_pipeline_multisample_state_info, a_pipeline_depth_stencil_state_info,
-	                                                                       a_pipeline_color_blend_state_info, a_pipeline_dynamic_state_info, a_pipeline_layout, a_render_pass, a_render_subpass);
+	std::lock_guard<std::mutex> lock{create_pipeline_mutex};
+	auto                        graphics_pipeline_create_info = vk_create_graphics_pipeline_state(a_shader_stages, a_pipeline_vertex_input_state_info, a_pipeline_input_assembly_state_info,
+	                                                                                              a_pipeline_viewport_state_info, a_pipeline_rasterisation_state_info, a_pipeline_multisample_state_info, a_pipeline_depth_stencil_state_info,
+	                                                                                              a_pipeline_color_blend_state_info, a_pipeline_dynamic_state_info, a_pipeline_layout, a_render_pass, a_render_subpass);
 
 	VkPipeline graphics_pipeline{nullptr};
 

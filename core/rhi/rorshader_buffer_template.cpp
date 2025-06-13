@@ -53,6 +53,19 @@ ShaderBufferType string_to_shader_buffer_type(const std::string &a_type)
 	return ShaderBufferType::ubo;
 }
 
+ShaderBufferFrequency string_to_shader_buffer_frequency(const std::string &a_type)
+{
+	// clang-format off
+	if (a_type == "constant" ) return ShaderBufferFrequency::constant;
+	else if (a_type == "per_frame" ) return ShaderBufferFrequency::per_frame;
+	else if (a_type == "per_view" ) return ShaderBufferFrequency::per_view;
+	else if (a_type == "per_subpass" ) return ShaderBufferFrequency::per_subpass;
+	// clang-format on
+
+	assert(0 && "Shouldn't reach here");
+	return ShaderBufferFrequency::constant;
+}
+
 constexpr uint32_t format_base_alignment_count(Format a_format)
 {
 	switch (a_format)
@@ -331,7 +344,7 @@ std::vector<const ShaderBufferTemplate::Entry *> ShaderBufferTemplate::entries_s
 
 void ShaderBufferTemplate::update_count(const std::string &a_entry_name, uint32_t a_new_count)
 {
-	ShaderBufferTemplate temp_entry(this->m_toplevel.m_name, this->m_type, this->m_layout, this->m_set, this->m_binding);
+	ShaderBufferTemplate temp_entry(this->m_toplevel.m_name, this->m_type, this->m_frequency, this->m_layout, this->m_set, this->m_binding);
 	bool                 found{false};
 
 	for (auto &e : this->m_toplevel.m_entries)

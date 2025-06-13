@@ -134,7 +134,7 @@ define_type_to_shader_semantics(RenderTarget)
 class RenderBuffer final : public RenderOutput
 {
   public:
-	using ShaderBufferReference = VectorReference<rhi::ShaderBuffer>;
+	using ShaderBufferReference = VectorReference<std::vector<rhi::ShaderBuffer>>;
 
 	FORCE_INLINE               RenderBuffer()                                = delete;         //! Default constructor
 	FORCE_INLINE               RenderBuffer(const RenderBuffer &a_other)     = default;        //! Copy constructor
@@ -305,6 +305,7 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	}
 
   protected:
+	FORCE_INLINE RenderpassCrtp() = default;        //! Default constructor
   private:
 	void bind_render_targets(rhi::ComputeCommandEncoder &a_command_encoder);
 	void bind_render_buffers(rhi::ComputeCommandEncoder &a_command_encoder);
