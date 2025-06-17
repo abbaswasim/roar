@@ -1334,11 +1334,6 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 
 	dd.encoder = &a_encoder;
 
-	// TODO: Abstract out these buffers and magic numbers
-	auto &directional_light_uniforms = this->m_lights[0].shader_buffer();
-	auto &spot_light_uniforms        = this->m_lights[1].shader_buffer();
-	auto &point_light_uniforms       = this->m_lights[2].shader_buffer();
-
 	auto per_view_uniforms     = a_renderer.shader_buffer("per_view_uniform");        // Shared per_view_uniform amongst all cameras
 	auto per_frame_uniform     = a_renderer.shader_buffer("per_frame_uniform");
 	auto weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
@@ -1348,9 +1343,12 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 
 	// Fragment shader bindings
 	per_view_uniforms->buffer_bind(a_encoder, rhi::ShaderStage::fragment);
-	directional_light_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
-	point_light_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
-	spot_light_uniforms.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+
+	// Fragment shader bindings per frame
+	per_frame_uniform->buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+
+	for (auto &light_type : this->m_lights)
+		light_type.shader_buffer().buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 
 	auto &index_buffer_out = a_renderer.buffers()[3];
 	index_buffer_out.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
@@ -1387,7 +1385,6 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 						weights_shader_buffer->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 					}
 
-					per_frame_uniform->buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 					a_encoder.front_facing_winding(model_node.m_winding);
 
 					render_mesh(a_device, model, mesh, dd, a_renderer, *this, a_subpass);
@@ -2273,7 +2270,7 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 					for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
 					{
 						auto shader_update = [&model, this, mesh_index, prim_index, &a_renderer,
-											  &pass = std::as_const(rpass),
+						                      &pass    = std::as_const(rpass),
 						                      &subpass = std::as_const(rsubpass),
 						                      &mesh, has_shadows, with_environment](rhi::Device &device, std::unordered_set<hash_64_t> *cache) {
 							assert(cache && "Scene shaders can't be re-created without a cache, otherwise it takes too long");
