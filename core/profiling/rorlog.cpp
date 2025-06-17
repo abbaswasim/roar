@@ -82,6 +82,7 @@ spdlog::level::level_enum convert_to_spdlog_level(LogLevel a_level)
 		case LogLevel::critical:
 			return spdlog::level::critical;
 	}
+
 	return spdlog::level::off;
 }
 

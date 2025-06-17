@@ -98,16 +98,20 @@ class ROAR_ENGINE_ITEM DynamicMesh final
 	bool                   m_has_texture{false};                                 //! Whether has textures or not
 	bool                   m_has_positions{false};                               //! Whether has positions or using no attributes
 	bool                   m_has_indices{false};                                 //! Whether has index buffer or not
-	bool                   m_has_vertex_shader_buffer{false};                    //! Whether has shader buffer or just using the one from renderer
-	bool                   m_has_fragment_shader_buffer{false};                  //! Whether has shader buffer or just using the one from renderer
 	rhi::PrimitiveTopology m_topology{rhi::PrimitiveTopology::triangles};        //! What are we rendering, default triangles
 	uint32_t               m_vertices_count{0};                                  //! How many vertices are there, this is also saved for each attribute
+	/* // Not used yet, if ever to be used make sure its buffered with frame count
+	bool                   m_has_vertex_shader_buffer{false};                    //! Whether has shader buffer or just using the one from renderer
+	bool                   m_has_fragment_shader_buffer{false};                  //! Whether has shader buffer or just using the one from renderer
 	rhi::ShaderBuffer      m_vertex_shader_buffer{"dynamic_mesh_uniform",
                                              rhi::ShaderBufferType::ubo,
+											 rhi::ShaderBufferFrequency::per_frame,
                                              rhi::Layout::std140, 0, 0};        //! Mesh specific shader buffer for vertex shader that can be used along side other from the renderer
 	rhi::ShaderBuffer      m_fragment_shader_buffer{"dynamic_mesh_uniform",
                                                rhi::ShaderBufferType::ubo,
+											   rhi::ShaderBufferFrequency::per_frame,
                                                rhi::Layout::std140, 0, 0};        //! Mesh specific shader buffer for fragment shader that can be used along side other from the renderer
+	*/
 };
 
 // Creates a default descriptor with nothing in it. This can be used to render no attributes geometry like the fullscreen quad

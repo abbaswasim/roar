@@ -276,10 +276,11 @@ void DynamicMesh::render(const rhi::Device &a_device, const ror::Renderer &a_ren
 	auto shader_buffer = a_renderer.shader_buffer("per_view_uniform");
 	shader_buffer->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 
-	if (this->m_has_vertex_shader_buffer)
-		this->m_vertex_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
-	if (this->m_has_fragment_shader_buffer)
-		this->m_fragment_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+	// Not used but if ever used needs a way to be filled with data as well.
+	// if (this->m_has_vertex_shader_buffer)
+	// 	this->m_vertex_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+	// if (this->m_has_fragment_shader_buffer)
+	// 	this->m_fragment_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 
 	// If using own shader buffer make sure to do something like the following to fill them up
 	// this->m_shader_buffer.buffer_map();
