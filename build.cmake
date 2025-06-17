@@ -72,6 +72,7 @@ function(build_options target_name extra_pedantic)
 		-Wmost
 		-Wno-c++98-compat-pedantic
 		-Wno-c++98-compat
+		-Wno-switch-default # This is fine because I am enforcing having all options handled in the each switch
 		# -fno-omit-frame-pointer
 		# -fno-optimize-sibling-calls
 		-Wno-poison-system-directories
