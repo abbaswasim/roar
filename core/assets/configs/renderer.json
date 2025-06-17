@@ -330,7 +330,7 @@
 			"layout":"std430",
 			"type":"ssbo",
 			"set":0,
-			"frequency": "per_frame",
+			"frequency": "constant",
 			"entries":[
 				{
 					"name":"morph_weights",

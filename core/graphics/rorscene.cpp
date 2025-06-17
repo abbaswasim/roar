@@ -798,6 +798,7 @@ void render_mesh(const rhi::Device &a_device, ror::Model &a_model, ror::Mesh &a_
 			binding_index++;        // To be consistent with shader_system.cpp
 		}
 
+		// This shouldn't be done with each mesh. Rather once at render subpass time, find a solution. The reason its done here is because of binding_index
 		if (settings().m_environment.m_visible)
 		{
 			auto &env                    = a_renderer.current_environment();
@@ -1295,6 +1296,7 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 	(void) a_subpass;
 
 	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
+	this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
 
 	DrawData dd;
 

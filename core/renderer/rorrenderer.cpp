@@ -1058,8 +1058,6 @@ void Renderer::setup_shader_buffers()
 				frequency_count = this->frames_count() - 1;        // The minus 1 is there because we already have 'buff' in the vector
 			else if (buff.frequency() == rhi::ShaderBufferFrequency::per_view)
 				frequency_count = (this->frames_count() * this->renderpasses_count()) - 1;        // The minus 1 is there because we already have 'buff' in the vector
-			else if (buff.frequency() == rhi::ShaderBufferFrequency::per_subpass)
-				frequency_count = (this->frames_count() * this->subpasses_count()) - 1;        // The minus 1 is there because we already have 'buff' in the vector
 			else if (buff.frequency() == rhi::ShaderBufferFrequency::constant)
 				frequency_count = 0;        // Redoing this incase I add more frequency types this will then fail
 			else

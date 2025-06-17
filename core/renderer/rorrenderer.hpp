@@ -151,22 +151,29 @@ class Renderer final : public Configuration<Renderer>
 	// FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
 	// clang-format on
 
+	FORCE_INLINE auto calculate_shader_buffer_index(const rhi::ShaderBuffer &a_shader_buffer) const
+	{
+		size_t frequency{0};
+
+		auto sbfrequency = a_shader_buffer.frequency();
+
+		if (sbfrequency == rhi::ShaderBufferFrequency::constant)
+			frequency = 0;
+		else if (sbfrequency == rhi::ShaderBufferFrequency::per_view)
+			frequency = this->m_renderpass_index + this->m_frames.current_frame_index() * this->m_renderpasses_count;
+		else if (sbfrequency == rhi::ShaderBufferFrequency::per_frame)
+			frequency = this->m_frames.current_frame_index();
+
+		return frequency;
+	}
+
 	FORCE_INLINE auto shader_buffer(const std::string &a_name) const
 	{
 		size_t frequency{0};
 
 		auto shader_buffers = this->m_buffers_mapping.at(a_name);
-		auto shader_buffer  = &(*shader_buffers)[frequency];
-		auto sbfrequency    = shader_buffer->frequency();
-
-		if (sbfrequency == rhi::ShaderBufferFrequency::constant)
-			frequency = 0;
-		else if (sbfrequency == rhi::ShaderBufferFrequency::per_view)
-			frequency = this->m_renderpass_index * this->m_frames.current_frame_index();
-		else if (sbfrequency == rhi::ShaderBufferFrequency::per_frame)
-			frequency = this->m_frames.current_frame_index();
-		else if (sbfrequency == rhi::ShaderBufferFrequency::per_subpass)
-			frequency = this->m_subpass_index * this->m_frames.current_frame_index();
+		auto shader_buffer  = &(*shader_buffers)[frequency];                        // Get shader buffer at first index, there must be one there
+		frequency           = calculate_shader_buffer_index(*shader_buffer);        // Now get the real frequency/index depending on which frame and which renderpass
 
 		return &(*shader_buffers)[frequency];
 	}

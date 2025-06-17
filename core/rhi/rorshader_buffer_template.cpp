@@ -59,7 +59,6 @@ ShaderBufferFrequency string_to_shader_buffer_frequency(const std::string &a_typ
 	if (a_type == "constant" ) return ShaderBufferFrequency::constant;
 	else if (a_type == "per_frame" ) return ShaderBufferFrequency::per_frame;
 	else if (a_type == "per_view" ) return ShaderBufferFrequency::per_view;
-	else if (a_type == "per_subpass" ) return ShaderBufferFrequency::per_subpass;
 	// clang-format on
 
 	assert(0 && "Shouldn't reach here");

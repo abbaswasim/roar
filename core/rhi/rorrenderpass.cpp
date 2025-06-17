@@ -131,6 +131,9 @@ void renderpass_execute(rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_com
 
 		if (render_subpass_left-- > 1)
 			next_subpass(a_command_buffer, is_fragment);
+
+		// Will be better if we combine this and the previous calls but make sure it always increments
+		a_renderer.next_subpass();
 	}
 
 	end_renderpass(a_device, a_renderpass, a_command_buffer, is_fragment);

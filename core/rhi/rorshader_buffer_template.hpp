@@ -53,8 +53,7 @@ enum class ShaderBufferFrequency : uint32_t
 {
 	constant,
 	per_frame,
-	per_view,        // Same as if it was per-renderpass
-	per_subpass
+	per_view        // Same as if it was per-renderpass
 };
 
 Layout                string_to_layout(const std::string &a_layout);
