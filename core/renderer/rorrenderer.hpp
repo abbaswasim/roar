@@ -151,20 +151,25 @@ class Renderer final : public Configuration<Renderer>
 	// FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
 	// clang-format on
 
-	FORCE_INLINE auto calculate_shader_buffer_index(const rhi::ShaderBuffer &a_shader_buffer) const
+	FORCE_INLINE auto calculate_shader_buffer_index(rhi::ShaderBufferFrequency a_frequency) const
 	{
 		size_t frequency{0};
 
-		auto sbfrequency = a_shader_buffer.frequency();
-
-		if (sbfrequency == rhi::ShaderBufferFrequency::constant)
+		if (a_frequency == rhi::ShaderBufferFrequency::constant)
 			frequency = 0;
-		else if (sbfrequency == rhi::ShaderBufferFrequency::per_view)
+		else if (a_frequency == rhi::ShaderBufferFrequency::per_view)
 			frequency = this->m_renderpass_index + this->m_frames.current_frame_index() * this->m_renderpasses_count;
-		else if (sbfrequency == rhi::ShaderBufferFrequency::per_frame)
+		else if (a_frequency == rhi::ShaderBufferFrequency::per_frame)
 			frequency = this->m_frames.current_frame_index();
 
 		return frequency;
+	}
+
+	FORCE_INLINE auto calculate_shader_buffer_index(const rhi::ShaderBuffer &a_shader_buffer) const
+	{
+		auto frequency = a_shader_buffer.frequency();
+
+		return calculate_shader_buffer_index(frequency);
 	}
 
 	FORCE_INLINE auto shader_buffer(const std::string &a_name) const
@@ -182,10 +187,7 @@ class Renderer final : public Configuration<Renderer>
 	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
 	using ShaderCallbackMap  = std::unordered_map<std::string, std::function<void(std::string &, ror::Renderer &)>>;
 	using ShaderBuffers      = std::vector<std::vector<rhi::ShaderBuffer>>;
-	// using ShaderBufferMap    = std::unordered_map<std::string, rhi::ShaderBuffer *>;
-	using ShaderBufferMap = std::unordered_map<std::string, std::vector<rhi::ShaderBuffer> *>;
-	// using ShaderBufferMap    = std::unordered_map<std::string, std::unordered_map<size_t, rhi::ShaderBuffer *>>;
-	// using ShaderBufferMap    = std::unordered_map<std::string, size_t>;
+	using ShaderBufferMap    = std::unordered_map<std::string, std::vector<rhi::ShaderBuffer> *>;
 
 	rhi::TextureImage *m_skybox_hdr_patch_ti{nullptr};
 	rhi::TextureImage *m_skybox_ldr_patch_ti{nullptr};
@@ -227,9 +229,9 @@ class Renderer final : public Configuration<Renderer>
 	void     setup_references();
 	void     setup_final_pass();
 	void     setup_shadow_pass();
+	void     setup_shader_buffers();
 
 	ror::Frames                             m_frames{};                                       //! All the frames in flight
-	std::vector<PerFrame>                   m_per_frame{};                                    //! All the per frame data
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
 	std::vector<rhi::Program>               m_programs{};                                     //! All the global shader programs
 	std::vector<rhi::TextureImage>          m_images{};                                       //! All the texture images some render passes might want to write into

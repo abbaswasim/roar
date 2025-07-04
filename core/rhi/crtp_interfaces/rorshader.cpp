@@ -25,10 +25,10 @@
 
 #include "rhi/crtp_interfaces/rorshader.hpp"
 #include "rhi/rortypes.hpp"
-#include <SPIRV/GlslangToSpv.h>
-#include <SPIRV/Logger.h>
-#include <glslang/Public/ResourceLimits.h>
-#include <glslang/Public/ShaderLang.h>
+#include <glslang/SPIRV/GlslangToSpv.h>
+#include <glslang/SPIRV/Logger.h>
+#include <glslang/glslang/Public/ResourceLimits.h>
+#include <glslang/glslang/Public/ShaderLang.h>
 
 namespace rhi
 {

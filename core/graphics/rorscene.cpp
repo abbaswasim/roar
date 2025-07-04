@@ -468,6 +468,15 @@ auto copy_node_transforms(ror::Scene &a_scene, rhi::ShaderBuffer &a_input_buffer
 	return node_index;
 }
 
+auto &find_trs_buffer(const ror::Renderer &a_renderer, const rhi::Rendersubpass &a_subpass)
+{
+	auto &input_buffers = a_subpass.buffer_inputs();
+	auto &trs_buffers   = input_buffers[0].m_render_output->m_target_reference.get();                  // The 0 mean, we are looking for the first input buffer which is the TRS buffer from renderer.json
+	auto  frequency     = a_renderer.calculate_shader_buffer_index(trs_buffers[0].frequency());        // The 0 means the first shader buffer in the list, only used for frequency calculations, the actual TRS buffer is calculated next using the right frequency
+
+	return trs_buffers[frequency];
+}
+
 void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encoder,
                                     rhi::Device                &a_device,
                                     rhi::BuffersPack           &a_buffers_pack,
@@ -490,8 +499,7 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	assert(program_id != -1 && "No program provided for compute pass walk scene");
 
 	auto &compute_pso                       = a_renderer.programs()[static_cast<size_t>(program_id)];
-	auto &input_buffers                     = a_subpass.buffer_inputs();
-	auto &trs_buffer                        = input_buffers[0].m_render_output->m_target_reference.get();
+	auto &trs_buffer                        = find_trs_buffer(a_renderer, a_subpass);
 	auto  per_frame_uniform                 = a_renderer.shader_buffer("per_frame_uniform");
 	auto  nodes_models_uniform              = a_renderer.shader_buffer("nodes_models");
 	auto  morphs_weights_uniform            = a_renderer.shader_buffer("morphs_weights");
