@@ -206,12 +206,12 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	std::vector<const Entry *> entries_structs();
 
   private:
-	ShaderBufferType      m_type{ShaderBufferType::ubo};                        //! What is the type of the ShaderBuffer (UBO, SSBO etc)
-	ShaderBufferFrequency m_frequency{ShaderBufferFrequency::per_frame};        //! What is the frequency of this shader buffer, per frame, per view or constant/static
-	Layout                m_layout{Layout::std140};                             //! Default layout
-	uint32_t              m_set{0};                                             //! Which set does this buffer belongs in
-	uint32_t              m_binding{0};                                         //! Which binding does this buffer belongs in
-	Struct                m_toplevel{};                                         //! All the entries in the buffer, Raw entries in this struct or linked-list of structures
+	ShaderBufferType      m_type{ShaderBufferType::ubo};                       //! What is the type of the ShaderBuffer (UBO, SSBO etc)
+	ShaderBufferFrequency m_frequency{ShaderBufferFrequency::constant};        //! What is the frequency of this shader buffer, per frame, per view or constant/static
+	Layout                m_layout{Layout::std140};                            //! Default layout
+	uint32_t              m_set{0};                                            //! Which set does this buffer belongs in
+	uint32_t              m_binding{0};                                        //! Which binding does this buffer belongs in
+	Struct                m_toplevel{};                                        //! All the entries in the buffer, Raw entries in this struct or linked-list of structures
 };
 
 }        // namespace rhi
