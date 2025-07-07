@@ -2541,10 +2541,10 @@ void Scene::read_nodes()
 		SceneNode     nod;
 		SceneNodeData nod_data;
 
-		nod_data.m_name = node["name"];
+		nod_data.name(node["name"]);
 
 		if (node.contains("children"))
-			nod_data.m_children = node["children"].get<std::vector<uint32_t>>();
+			nod_data.children(node["children"].get<std::vector<uint32_t>>());
 
 		if (node.contains("translation"))
 		{
@@ -2564,7 +2564,7 @@ void Scene::read_nodes()
 			nod.m_trs_transform.scale({s[0], s[1], s[2]});
 
 			if (s[0] != s[1] || s[0] != s[2] || s[1] != s[2])
-				ror::log_critical("There is non-uniform scale in node {}, make sure the vertex shader normalisation code has no-uniform scale support", nod_data.m_name.c_str());
+				ror::log_critical("There is non-uniform scale in node {}, make sure the vertex shader normalisation code has no-uniform scale support", nod_data.name().c_str());
 		}
 
 		if (node.contains("path"))
@@ -2600,7 +2600,7 @@ void Scene::read_nodes()
 	for (size_t i = 0; i < this->m_nodes_data.size(); ++i)
 	{
 		auto &node_data = this->m_nodes_data[i];
-		for (auto &child : node_data.m_children)
+		for (auto &child : node_data.children())
 		{
 			auto &node    = this->m_nodes[child];
 			node.m_parent = static_cast<int32_t>(i);

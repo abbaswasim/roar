@@ -1953,7 +1953,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						this->m_meshes[static_cast<size_t>(node.m_mesh_index)].skin_index(node.m_skin_index);
 
 					if (cnode->name)
-						node_side_data.m_name = cnode->name;
+						node_side_data.name(cnode->name);
 
 					if (node.m_skin_index != -1)
 						this->m_skins[static_cast<size_t>(node.m_skin_index)].node_index(node_to_index[cnode]);        // Cast ok again, index not negative
@@ -2011,7 +2011,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 						assert(static_cast<uint32_t>(ni) < child_index && "Nodes are not in parent order");        // Static cast is ok because at this point ni is not negative
 
-						node_side_data.m_children.push_back(child_index);
+						node_side_data.push_child(child_index);
 					}
 				}
 			}

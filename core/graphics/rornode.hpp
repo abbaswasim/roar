@@ -95,6 +95,18 @@ class ROAR_ENGINE_ITEM NodeData
 		this->m_shader_buffer.buffer_bind(a_encoder, a_stage);
 	}
 
+	// clang-format off
+	FORCE_INLINE constexpr auto &name()                           const noexcept  { return this->m_name;                    }
+	FORCE_INLINE constexpr auto &children()                       const noexcept  { return this->m_children;                }
+	FORCE_INLINE constexpr auto &name()                           noexcept        { return this->m_name;                    }
+	FORCE_INLINE constexpr auto &children()                       noexcept        { return this->m_children;                }
+
+	FORCE_INLINE void name(std::string a_name)                    noexcept        { this->m_name = a_name;                  }
+	FORCE_INLINE void children(std::vector<uint32_t> a_children)  noexcept        { this->m_children = a_children;          }
+	FORCE_INLINE void push_child(uint32_t a_child)                noexcept        { this->m_children.push_back(a_child);    }
+	// clang-format on
+
+  private:
 	// Node suplimentary data, should probably be combined with Node at some point
 	std::string           m_name{};
 	std::vector<uint32_t> m_children{};        //! All the list of childrens for each node
