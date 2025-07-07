@@ -174,11 +174,9 @@ class Renderer final : public Configuration<Renderer>
 
 	FORCE_INLINE auto shader_buffer(const std::string &a_name) const
 	{
-		size_t frequency{0};
-
-		auto shader_buffers = this->m_buffers_mapping.at(a_name);
-		auto shader_buffer  = &(*shader_buffers)[frequency];                        // Get shader buffer at first index, there must be one there
-		frequency           = calculate_shader_buffer_index(*shader_buffer);        // Now get the real frequency/index depending on which frame and which renderpass
+		auto   shader_buffers = this->m_buffers_mapping.at(a_name);
+		auto   shader_buffer  = &(*shader_buffers)[0];                                // Get shader buffer at first index, there must be one there
+		size_t frequency      = calculate_shader_buffer_index(*shader_buffer);        // Now get the real frequency/index depending on which frame and which renderpass
 
 		return &(*shader_buffers)[frequency];
 	}
@@ -200,6 +198,10 @@ class Renderer final : public Configuration<Renderer>
 
   protected:
   private:
+	// clang-format off
+	FORCE_INLINE constexpr auto shader_buffer_vector(const std::string &a_name) const          { return this->m_buffers_mapping.at(a_name);              }
+	// clang-format on
+
 	declare_translation_unit_vtable();
 
 	std::vector<rhi::RenderpassType> render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const;

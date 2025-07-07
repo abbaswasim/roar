@@ -58,6 +58,8 @@ enum class RenderOutputType
 	buffer
 };
 
+size_t get_renderer_frequency_index(const ror::Renderer &a_renderer, rhi::ShaderBufferFrequency a_frequency);
+
 class RenderOutput
 {
   public:
@@ -231,7 +233,8 @@ class Rendersubpass final
 	template <class _type>
 	FORCE_INLINE void bind_input_attachments(_type &a_encoder);
 	template <class _type>
-	FORCE_INLINE void bind_buffer_inputs(_type &a_encoder);
+	FORCE_INLINE void bind_buffer_inputs(_type &a_encoder, const ror::Renderer &a_renderer);
+
 	// FORCE_INLINE void bind_render_targets(rhi::ComputeCommandEncoder &a_encoder, rhi::Renderpass &a_render_pass); // NOTE: To enable if needed
 
 	std::string              m_name{};                                               //! Debug name of this render pass
@@ -295,7 +298,7 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	// clang-format on
 
 	FORCE_INLINE void setup(rhi::RenderCommandEncoder &a_command_encoder);
-	FORCE_INLINE void setup(rhi::ComputeCommandEncoder &a_command_encoder);
+	FORCE_INLINE void setup(rhi::ComputeCommandEncoder &a_command_encoder, const ror::Renderer &);
 
 	FORCE_INLINE void execute(rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface,
 	                          ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,
@@ -305,10 +308,9 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	}
 
   protected:
-	FORCE_INLINE RenderpassCrtp() = default;        //! Default constructor
   private:
 	void bind_render_targets(rhi::ComputeCommandEncoder &a_command_encoder);
-	void bind_render_buffers(rhi::ComputeCommandEncoder &a_command_encoder);
+	void bind_render_buffers(rhi::ComputeCommandEncoder &a_command_encoder, const ror::Renderer &a_renderer);
 
 	std::vector<Rendersubpass> m_subpasses{};                                    //! All the subpasses in this render pass
 	std::vector<RenderTarget>  m_render_targets{};                               //! Output attachments (images), NOTE: in rorrenderer.json, these render_targets::index is index in textures[], also won't be used if we are final pass

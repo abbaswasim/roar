@@ -1274,11 +1274,11 @@ void Renderer::set_modifier_events(ror::EventSystem &a_event_system)
 
 void Renderer::reset_sets_bindings()
 {
-	auto perframe_ubo = this->shader_buffer("per_frame_uniform");
-	auto perview_ubo  = this->shader_buffer("per_view_uniform");
-	auto model_ubo    = this->shader_buffer("nodes_models");
-	auto offset_ubo   = this->shader_buffer("nodes_offsets");
-	auto weights_ubo  = this->shader_buffer("morphs_weights");
+	auto per_frame_ubo     = this->shader_buffer_vector("per_frame_uniform");
+	auto per_view_ubo      = this->shader_buffer_vector("per_view_uniform");
+	auto nodes_model_ubo   = this->shader_buffer_vector("nodes_models");
+	auto nodes_offset_ubo  = this->shader_buffer_vector("nodes_offsets");
+	auto morph_weights_ubo = this->shader_buffer_vector("morphs_weights");
 
 	// These ones are hard-coded in renderer.json because these are not shared at the moment, so don't need reseting
 
@@ -1291,20 +1291,23 @@ void Renderer::reset_sets_bindings()
 
 	auto &setting = ror::settings();
 
-	perframe_ubo->set(setting.per_frame_uniform_set());
-	perframe_ubo->binding(setting.per_frame_uniform_binding());
+	// This macro creates a call like the following but for the whole vector inside the mapping
+	// per_frame_ubo->set(setting.per_frame_uniform_set());
+	// per_frame_ubo->binding(setting.per_frame_uniform_binding());
 
-	perview_ubo->set(setting.per_view_uniform_set());
-	perview_ubo->binding(setting.per_view_uniform_binding());
+#define shader_buffer_set_ubo_set_bindings(shader_buffer)      \
+	for (auto &sb : *shader_buffer##_ubo)                      \
+	{                                                          \
+		sb.set(setting.shader_buffer##_uniform_set());         \
+		sb.binding(setting.shader_buffer##_uniform_binding()); \
+	}                                                          \
+	(void) 0
 
-	model_ubo->set(setting.nodes_model_set());
-	model_ubo->binding(setting.nodes_model_binding());
-
-	offset_ubo->set(setting.nodes_offset_set());
-	offset_ubo->binding(setting.nodes_offset_binding());
-
-	weights_ubo->set(setting.morph_weights_set());
-	weights_ubo->binding(setting.morph_weights_binding());
+	shader_buffer_set_ubo_set_bindings(per_frame);
+	shader_buffer_set_ubo_set_bindings(per_view);
+	shader_buffer_set_ubo_set_bindings(nodes_model);
+	shader_buffer_set_ubo_set_bindings(nodes_offset);
+	shader_buffer_set_ubo_set_bindings(morph_weights);
 
 	// Sanity check if other buffers are added in the future, make sure to update their sets and bindings
 	assert(this->m_buffers.size() == 11);
@@ -1321,23 +1324,30 @@ void Renderer::set_render_mode(uint32_t a_render_mode)
 
 void Renderer::scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene)
 {
-	auto model_ubo  = this->shader_buffer("nodes_models");
-	auto input_ubo  = this->shader_buffer("node_transform_input");
-	auto output_ubo = this->shader_buffer("node_transform_output");
+	// This macro builds something like the following but for the whole vector of this shader buffer
+	// animations_ubo->update_count("animation", animation_size);
+#define shader_buffer_update_count(shader_buffer, item, count) \
+	for (auto &mdl : *shader_buffer)                           \
+		mdl.update_count(item, count);                         \
+	(void) 0
 
-	auto animations_ubo                = this->shader_buffer("animations");
-	auto animations_sampler_input_ubo  = this->shader_buffer("animations_sampler_input");
-	auto animations_sampler_output_ubo = this->shader_buffer("animations_sampler_output");
-	auto current_animations_ubo        = this->shader_buffer("current_animations");
-	auto weights_ubo                   = this->shader_buffer("morphs_weights");
+	auto model_ubo  = this->shader_buffer_vector("nodes_models");
+	auto input_ubo  = this->shader_buffer_vector("node_transform_input");
+	auto output_ubo = this->shader_buffer_vector("node_transform_output");
+
+	auto animations_ubo                = this->shader_buffer_vector("animations");
+	auto animations_sampler_input_ubo  = this->shader_buffer_vector("animations_sampler_input");
+	auto animations_sampler_output_ubo = this->shader_buffer_vector("animations_sampler_output");
+	auto current_animations_ubo        = this->shader_buffer_vector("current_animations");
+	auto weights_ubo                   = this->shader_buffer_vector("morphs_weights");
 
 	uint32_t nodes_count = static_cast_safe<uint32_t>(a_scene.nodes().size());
 	for (auto &model : a_scene.models())
 		nodes_count += static_cast_safe<uint32_t>(model.nodes().size());
 
-	model_ubo->update_count("node_model", nodes_count);
-	input_ubo->update_count("trs_transform_input", nodes_count);
-	output_ubo->update_count("trs_transform_output", nodes_count);
+	shader_buffer_update_count(model_ubo, "node_model", nodes_count);
+	shader_buffer_update_count(input_ubo, "trs_transform_input", nodes_count);
+	shader_buffer_update_count(output_ubo, "trs_transform_output", nodes_count);
 
 	uint32_t animation_size{0u};
 	uint32_t animation_count{0u};
@@ -1347,11 +1357,11 @@ void Renderer::scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene)
 
 	get_animation_sizes(a_scene, animation_size, animation_count, sampler_input_size, sampler_output_size, weights_output_size);
 
-	animations_ubo->update_count("animation", animation_size);
-	animations_sampler_input_ubo->update_count("inputs", sampler_input_size);
-	animations_sampler_output_ubo->update_count("outputs", sampler_output_size);
-	weights_ubo->update_count("morph_weights", weights_output_size);
-	current_animations_ubo->update_count("current_animation", animation_count);
+	shader_buffer_update_count(animations_ubo, "animation", animation_size);
+	shader_buffer_update_count(animations_sampler_input_ubo, "inputs", sampler_input_size);
+	shader_buffer_update_count(animations_sampler_output_ubo, "outputs", sampler_output_size);
+	shader_buffer_update_count(weights_ubo, "morph_weights", weights_output_size);
+	shader_buffer_update_count(current_animations_ubo, "current_animation", animation_count);
 
 	for (auto &render_buffer : this->m_input_render_buffers)
 	{
@@ -1373,7 +1383,8 @@ void Renderer::scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene)
 
 	// Special treatment of weights UBO that needs filling up from mesh static weights unlike other ones, although these might get animated later
 	// This is here and not in scene because it requires morph_weights shader buffer to be uploaded first
-	fill_morph_weights(a_scene, *weights_ubo, weights_output_size);
+	for (auto &wubo : *weights_ubo)
+		fill_morph_weights(a_scene, wubo, weights_output_size);
 }
 
 void Renderer::dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device)

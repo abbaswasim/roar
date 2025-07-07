@@ -54,7 +54,7 @@ template <class _type>
 FORCE_INLINE void Rendersubpass::bind_render_inputs(_type &a_encoder)
 {
 	auto     render_inputs  = this->rendered_inputs();
-	uint32_t starting_index = 15;                                                           // TODO: Abstract out this starting index
+	uint32_t starting_index = 15;                                                          // TODO: Abstract out this starting index
 	assert(render_inputs.size() < 5 && "Fix the starting index for render inputs");        // 5 because there might be other textures/inputs earlier as well
 	bind_input_textures(a_encoder, render_inputs, starting_index);
 }
@@ -69,14 +69,16 @@ FORCE_INLINE void Rendersubpass::bind_input_attachments(_type &a_encoder)
 }
 
 template <class _type>
-FORCE_INLINE void Rendersubpass::bind_buffer_inputs(_type &a_encoder)        // _type can be rhi::RenderCommandEncoder or rhi::ComputeCommandEncoder
+FORCE_INLINE void Rendersubpass::bind_buffer_inputs(_type &a_encoder, const ror::Renderer &a_renderer)        // _type can be rhi::RenderCommandEncoder or rhi::ComputeCommandEncoder
 {
 	auto buffer_inputs = this->buffer_inputs();
 	for (auto &buffer_input : buffer_inputs)
 	{
 		assert(buffer_input.m_render_output && "Render reference shouldn't be null");
-		auto &br = buffer_input.m_render_output->m_target_reference.get();
-		br.buffer_bind(a_encoder, buffer_input.m_stage);
+		auto &brs             = buffer_input.m_render_output->m_target_reference.get();
+		auto  frequency       = brs[0].frequency();        // Check the first index in the shader buffers array, there must be one
+		auto  frequency_index = get_renderer_frequency_index(a_renderer, frequency);
+		brs[frequency_index].buffer_bind(a_encoder, buffer_input.m_stage);
 	}
 }
 
@@ -111,13 +113,15 @@ FORCE_INLINE void RenderpassCrtp<_type>::bind_render_targets(rhi::ComputeCommand
 
 // Looks like at least metal doesn't support render_buffers from non-compute and compute requires these to be enabled here, not in renderpass creation time
 template <class _type>
-FORCE_INLINE void RenderpassCrtp<_type>::bind_render_buffers(rhi::ComputeCommandEncoder &a_encoder)
+FORCE_INLINE void RenderpassCrtp<_type>::bind_render_buffers(rhi::ComputeCommandEncoder &a_encoder, const ror::Renderer &a_renderer)
 {
 	auto buffer_inputs = this->render_buffers();
 	for (auto &buffer_input : buffer_inputs)
 	{
-		auto &br = buffer_input.m_target_reference.get();
-		br.buffer_bind(a_encoder, rhi::ShaderStage::compute);
+		auto &brs = buffer_input.m_target_reference.get();
+		auto  frequency       = brs[0].frequency();
+		auto  frequency_index = get_renderer_frequency_index(a_renderer, frequency);
+		brs[frequency_index].buffer_bind(a_encoder, rhi::ShaderStage::compute);
 	}
 }
 
@@ -159,7 +163,7 @@ void RenderpassCrtp<_type>::setup(rhi::RenderCommandEncoder &a_command_encoder)
 }
 
 template <class _type>
-void RenderpassCrtp<_type>::setup(rhi::ComputeCommandEncoder &a_command_encoder)
+void RenderpassCrtp<_type>::setup(rhi::ComputeCommandEncoder &a_command_encoder, const ror::Renderer &a_renderer)
 {
 	auto &setting = ror::settings();
 
@@ -168,7 +172,7 @@ void RenderpassCrtp<_type>::setup(rhi::ComputeCommandEncoder &a_command_encoder)
 
 	// Lets bind all render targets in one go for each render pass coming later, this saves us having to do this for each render pass
 	this->bind_render_targets(a_command_encoder);
-	this->bind_render_buffers(a_command_encoder);
+	this->bind_render_buffers(a_command_encoder, a_renderer);
 }
 
 void lut_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,

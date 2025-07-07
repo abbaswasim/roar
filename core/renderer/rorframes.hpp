@@ -33,6 +33,7 @@ namespace ror
 {
 
 static constexpr uint32_t max_frames_in_flight = 3;
+static_assert(max_frames_in_flight > 0, "max_frames_in_flight should be at least one");
 
 class ROAR_ENGINE_ITEM Frames final
 {

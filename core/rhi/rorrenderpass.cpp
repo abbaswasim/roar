@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "core/renderer/rorrenderer.hpp"
 #include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorrenderpass.hpp"
 
@@ -97,7 +98,7 @@ void rendersubpass_execute(rhi::Renderpass &a_renderpass, rhi::Rendersubpass &a_
 	{
 		rhi::ComputeCommandEncoder command_encoder{a_renderpass.compute_encoder(a_command_buffer, a_render_pass_index++)};
 
-		a_renderpass.setup(command_encoder);
+		a_renderpass.setup(command_encoder, a_renderer);
 		a_subpass.setup(command_encoder, a_renderer);
 
 		pass_by_type(command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_renderpass, a_subpass);
@@ -110,10 +111,7 @@ void renderpass_execute(rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_com
                         rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer)
 {
 	assert(a_renderpass.subpasses().size() && "There must be at least one subpass in a renderpass");
-	if constexpr (ror::get_render_api() == ror::RenderType::metal)
-	{
-		assert(a_renderpass.subpasses().size() == a_renderpass.platform_renderpass_count() && "Platform renderpasses are not same as subpasses count");
-	}
+	assert(a_renderpass.subpasses().size() == a_renderpass.platform_renderpass_count() && "Platform renderpasses are not same as subpasses count");
 
 	auto       &subpasses           = a_renderpass.subpasses();
 	uint32_t    render_pass_index   = 0;

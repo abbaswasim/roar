@@ -267,6 +267,7 @@ class ROAR_ENGINE_ITEM CubicBeziers<_type, vector2_typename<_type>> final : publ
 	FORCE_INLINE size_t get_count() const noexcept override;
 };
 
+// TODO: Use Seiler's points when need to draw these Cubic Beziers https://cemyuksel.com/research/seilers_interpolation/
 template <class _type>
 class ROAR_ENGINE_ITEM CubicBeziers<_type, vector3_typename<_type>> final : public Segments<_type>
 {

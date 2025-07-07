@@ -1344,9 +1344,9 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 
 	dd.encoder = &a_encoder;
 
-	auto per_view_uniforms     = a_renderer.shader_buffer("per_view_uniform");        // Shared per_view_uniform amongst all cameras
-	auto per_frame_uniform     = a_renderer.shader_buffer("per_frame_uniform");
-	auto weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
+	const auto &per_view_uniforms     = a_renderer.shader_buffer("per_view_uniform");        // Shared per_view_uniform amongst all cameras
+	const auto &per_frame_uniform     = a_renderer.shader_buffer("per_frame_uniform");
+	const auto &weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
 
 	// Vertex shader bindings
 	per_view_uniforms->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
@@ -1360,8 +1360,8 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 	for (auto &light_type : this->m_lights)
 		light_type.shader_buffer().buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 
-	auto &index_buffer_out = a_renderer.buffers()[3];
-	index_buffer_out.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+	const auto &index_buffer_out = a_renderer.shader_buffer("nodes_models");
+	index_buffer_out->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 
 	this->pre_render(a_encoder, a_buffers_pack, a_renderer, a_subpass);
 

@@ -46,6 +46,11 @@ define_translation_unit_vtable(RenderTarget)
 define_translation_unit_vtable(RenderBuffer)
 {}
 
+size_t get_renderer_frequency_index(const ror::Renderer &a_renderer, rhi::ShaderBufferFrequency a_frequency)
+{
+	return a_renderer.calculate_shader_buffer_index(a_frequency);
+}
+
 void Rendersubpass::setup(rhi::RenderCommandEncoder &a_command_encoder, ror::Renderer &a_renderer)
 {
 	if (this->has_depth())
@@ -54,7 +59,7 @@ void Rendersubpass::setup(rhi::RenderCommandEncoder &a_command_encoder, ror::Ren
 		a_command_encoder.depth_stencil_state(a_renderer.render_state().depth_state_less_no_write());
 
 	this->bind_render_inputs(a_command_encoder);
-	this->bind_buffer_inputs(a_command_encoder);
+	this->bind_buffer_inputs(a_command_encoder, a_renderer);
 	this->bind_input_attachments(a_command_encoder);
 }
 
@@ -65,7 +70,7 @@ void Rendersubpass::setup(rhi::ComputeCommandEncoder &a_command_encoder, ror::Re
 
 	// do compute setup
 	this->bind_render_inputs(a_command_encoder);
-	this->bind_buffer_inputs(a_command_encoder);
+	this->bind_buffer_inputs(a_command_encoder, a_renderer);
 	this->bind_input_attachments(a_command_encoder);
 
 	// NOTE: Also need to add bind_render_targets(), special case for compute, but that requires renderpass which is not available here
