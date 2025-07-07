@@ -132,12 +132,7 @@ class ROAR_ENGINE_ITEM Material final
 	float32_t               m_f0{0.04f};                                      //! Fresnel reflectance at normal incidence (f0), used for reflections and calculating F0, f0=((ior − 1) / (ior + 1))² or default of 0.04 i.e. 4%
 	                                                                          //! Remember reflectance here is not the remapped reflecance that filament uses. This is just f0. This is also why I don't need "0.16 * reflectance * reflectance"
 	                                                                          //! Note we don't need F90 coz Schlick equation only use F0. F0 is derived like F0 = f0 * (1.0 - metallic) + base_color * metallic
-	hash_64_t         m_hash{};                                               //! Material hash to make sure we don't create duplicate shaders
-	rhi::ShaderBuffer m_shader_buffer{"material_factors",
-	                                  rhi::ShaderBufferType::ubo,
-	                                  rhi::Layout::std140,
-	                                  settings().material_factors_set(),
-	                                  settings().material_factors_binding()};        //! ShaderBuffer which describes its shader's UBO/SSBO view
+	hash_64_t               m_hash{};                                         //! Material hash to make sure we don't create duplicate shaders
 
 	void generate_hash();
 	void update();
@@ -148,6 +143,13 @@ class ROAR_ENGINE_ITEM Material final
 	FORCE_INLINE constexpr auto &shader_buffer() const noexcept  { return this->m_shader_buffer; }
 	FORCE_INLINE constexpr auto &shader_buffer()       noexcept  { return this->m_shader_buffer; }
 	// clang-format on
+  private:
+	rhi::ShaderBuffer m_shader_buffer{"material_factors",
+	                                  rhi::ShaderBufferType::ubo,
+	                                  rhi::ShaderBufferFrequency::constant,
+	                                  rhi::Layout::std140,
+	                                  settings().material_factors_set(),
+	                                  settings().material_factors_binding()};        //! ShaderBuffer which describes its shader's UBO/SSBO view
 };
 
 // static_assert(std::is_trivially_copyable_v<Material>, "Material is not trivially copyable");

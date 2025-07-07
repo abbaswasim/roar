@@ -1606,7 +1606,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	output.append(per_view_common(a_renderer));
 	output.append(per_frame_uniform);
 	output.append(material_samplers(material, a_has_shadow));
-	output.append(material.m_shader_buffer.to_glsl_string());
+	output.append(material.shader_buffer().to_glsl_string());
 	output.append(fs_light_common(1, setting.directional_light_set(), setting.directional_light_binding(), fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
 	output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
