@@ -1381,7 +1381,7 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 				if (model_node.m_mesh_index != -1 && model_node.m_visible)
 				{
 					auto &mesh = meshes[static_cast<size_t>(model_node.m_mesh_index)];
-					model_nodes_data[node_data_index].bind(a_encoder, rhi::ShaderStage::vertex, a_renderer.current_frame_index());
+					model_nodes_data[node_data_index].bind(a_encoder, rhi::ShaderStage::vertex);
 					if (mesh.skin_index() != -1 && model_node.m_skin_index != -1)
 					{
 						assert(mesh.skin_index() == model_node.m_skin_index && "Mesh and Node skin indices should be the same");
@@ -1992,9 +1992,9 @@ void Scene::verify_nodes_data_shader_buffer(const ror::Renderer &a_renderer) con
 
 		for (const auto &nodes_data : this->m_nodes_data)
 		{
-			if (!(nodes_data.shader_buffer()[0] == *nodes_offsets_shader_buffer))
+			if (!(nodes_data.shader_buffer() == *nodes_offsets_shader_buffer))
 			{
-				assert(0 && "Renderer's defined ndoes_offset buffer is not the same as whats inside 'NodeData'");
+				assert(0 && "Renderer's defined nodes_offset buffer is not the same as whats inside 'NodeData'");
 			}
 		}
 
@@ -2002,9 +2002,9 @@ void Scene::verify_nodes_data_shader_buffer(const ror::Renderer &a_renderer) con
 		{
 			for (const auto &mnsd : models.nodes_side_data())
 			{
-				if (!(mnsd.shader_buffer()[0] == *nodes_offsets_shader_buffer))
+				if (!(mnsd.shader_buffer() == *nodes_offsets_shader_buffer))
 				{
-					assert(0 && "Renderer's defined ndoes_offset buffer is not the same as whats inside 'NodeData'");
+					assert(0 && "Renderer's defined nodes_offset buffer is not the same as whats inside 'NodeData'");
 				}
 			}
 		}

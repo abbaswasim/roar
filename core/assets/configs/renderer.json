@@ -317,7 +317,7 @@
 			"layout":"std140",
 			"type":"ubo",
 			"set":0,
-			"frequency": "per_frame",
+			"frequency": "constant",
 			"entries":[
 				{
 					"name":"node_offset",
