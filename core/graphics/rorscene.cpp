@@ -1174,7 +1174,7 @@ void Scene::pre_render(rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a
 	(void) a_encoder;
 
 	for (auto &light : this->m_lights)
-		light.update();
+		light.update(a_renderer.current_frame_index());
 
 	if (this->m_indices_dirty)
 	{
@@ -1358,7 +1358,7 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 	per_frame_uniform->buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 
 	for (auto &light_type : this->m_lights)
-		light_type.shader_buffer().buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+		light_type.shader_buffer()[a_renderer.current_frame_index()].buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 
 	const auto &index_buffer_out = a_renderer.shader_buffer("nodes_models");
 	index_buffer_out->buffer_bind(a_encoder, rhi::ShaderStage::vertex);

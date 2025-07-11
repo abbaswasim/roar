@@ -29,6 +29,7 @@
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
 #include "math/rortransform.hpp"
+#include "renderer/rorframes_count.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "roar_export_import.hpp"
@@ -38,12 +39,27 @@ namespace ror
 class ROAR_ENGINE_ITEM Light
 {
   public:
-	FORCE_INLINE        Light()                             = default;        //! Default constructors
+	// FORCE_INLINE        Light()                             = default;        //! Default constructors
 	FORCE_INLINE        Light(const Light &a_other)         = delete;         //! Copy constructor
 	FORCE_INLINE        Light(Light &&a_other) noexcept     = default;        //! Move constructor
 	FORCE_INLINE Light &operator=(const Light &a_other)     = delete;         //! Copy assignment operator
 	FORCE_INLINE Light &operator=(Light &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~Light() noexcept                          = default;        //! Destructor
+
+	FORCE_INLINE Light()
+	{
+		static rhi::ShaderBuffer shader_buffer_template{"Light",
+		                                                rhi::ShaderBufferType::ubo,
+		                                                rhi::ShaderBufferFrequency::per_frame,
+		                                                rhi::Layout::std140,
+		                                                settings().directional_light_set(),
+		                                                settings().directional_light_binding()};        //! Shader buffer for a specific type of light UBO
+
+		assert(this->m_shader_buffer.size() == 0 && "Shader buffer must not be initialised");
+
+		for (size_t i = 0; i < max_frames_in_flight; ++i)
+			this->m_shader_buffer.emplace_back(shader_buffer_template.deep_copy());
+	}
 
 	enum class LightType
 	{
@@ -53,7 +69,7 @@ class ROAR_ENGINE_ITEM Light
 		area
 	};
 
-	void update();
+	void update(size_t a_frequency);
 	void upload(rhi::Device &a_device);
 	void fill_shader_buffer();
 	void setup_transformations();
@@ -65,25 +81,22 @@ class ROAR_ENGINE_ITEM Light
 	FORCE_INLINE constexpr auto& view_projection()     noexcept  { return this->m_view_projection;    }
 	// clang-format on
 
-	bool              m_dirty{true};                                         //! If dirty will update/upload into the GPU otherwise not
-	LightType         m_type{LightType::directional};                        //! Light type
-	Matrix4f          m_view{};                                              //! View of the light, used in shadow mapping
-	Matrix4f          m_projection{};                                        //! Projection of the light, used in shadow mapping
-	Matrix4f          m_view_projection{};                                   //! View projection of the light, used in shadow mapping
-	Vector4ui         m_shadow_viewport{};                                   //! Size and position of rendering into the shadowmap
-	Vector3f          m_color{};                                             //! Light color
-	Vector3f          m_position{};                                          //! Position of point and spot lights
-	Vector3f          m_direction{};                                         //! Direction of directional and spot lights
-	float32_t         m_intensity{1.0f};                                     //! Light intensity
-	float32_t         m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
-	float32_t         m_inner_angle{0.0f};                                   //! Spot light inner angle, in radians, inner and outer might flip because outer > inner always
-	float32_t         m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle, in radians, inner and outer might flip because outer > inner always
-	std::string       m_light_struct_name{};                                 //! Light struct name cache
-	rhi::ShaderBuffer m_shader_buffer{"Light",
-	                                  rhi::ShaderBufferType::ubo,
-	                                  rhi::Layout::std140,
-	                                  settings().directional_light_set(),
-	                                  settings().directional_light_binding()};        //! Shader buffer for a specific type of light UBO
+	bool        m_dirty{true};                                         //! If dirty will update/upload into the GPU otherwise not, to be changed when update per frame is required
+	LightType   m_type{LightType::directional};                        //! Light type
+	Matrix4f    m_view{};                                              //! View of the light, used in shadow mapping
+	Matrix4f    m_projection{};                                        //! Projection of the light, used in shadow mapping
+	Matrix4f    m_view_projection{};                                   //! View projection of the light, used in shadow mapping
+	Vector4ui   m_shadow_viewport{};                                   //! Size and position of rendering into the shadowmap
+	Vector3f    m_color{};                                             //! Light color
+	Vector3f    m_position{};                                          //! Position of point and spot lights
+	Vector3f    m_direction{};                                         //! Direction of directional and spot lights
+	float32_t   m_intensity{1.0f};                                     //! Light intensity
+	float32_t   m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
+	float32_t   m_inner_angle{0.0f};                                   //! Spot light inner angle, in radians, inner and outer might flip because outer > inner always
+	float32_t   m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle, in radians, inner and outer might flip because outer > inner always
+	std::string m_light_struct_name{};                                 //! Light struct name cache
+  private:
+	std::vector<rhi::ShaderBuffer> m_shader_buffer{};                  //! Shader buffer for a specific type of light UBO, it needs to be a vector because its a per_frame resource
 };
 
 class ROAR_ENGINE_ITEM EnvironmentProbe final

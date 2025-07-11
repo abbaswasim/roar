@@ -123,11 +123,15 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 		// If we have finished and didn't add the struct yet, so add it
 		if (temp_struct.m_entries.size() > 0)
 			this->m_shader_buffer_template.add_struct(temp_struct);
+
+		this->update_variables();
 	}
 
 	FORCE_INLINE ShaderBufferCrtp(std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::ShaderBufferFrequency a_frequency, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding) :
 	    m_shader_buffer_template(a_buffer_name, a_type, a_frequency, a_layout, a_set, a_binding)
-	{}
+	{
+		this->update_variables();
+	}
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &shader_buffer()                                   noexcept  { return this->m_shader_buffer_template;                                              }
@@ -160,11 +164,15 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	FORCE_INLINE constexpr void add_entry(const std::string &a_name, Format a_type, uint32_t a_count = 1)
 	{
 		this->m_shader_buffer_template.add_entry(a_name, a_type, a_count);
+
+		this->update_variables();
 	}
 
 	FORCE_INLINE constexpr void add_struct(rhi::ShaderBufferTemplate::Struct &a_struct)
 	{
 		this->m_shader_buffer_template.add_struct(a_struct);
+
+		this->update_variables();
 	}
 
 	template <typename _data_type>
@@ -232,6 +240,8 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	FORCE_INLINE void update_count(const std::string &a_entry_name, uint32_t a_new_count)
 	{
 		this->m_shader_buffer_template.update_count(a_entry_name, a_new_count);
+
+		this->update_variables();
 	}
 
   protected:

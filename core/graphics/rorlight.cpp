@@ -27,6 +27,7 @@
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector4.hpp"
+#include <cstddef>
 
 namespace ror
 {
@@ -55,27 +56,39 @@ void Light::fill_shader_buffer()
 	switch (this->m_type)
 	{
 		case ror::Light::LightType::directional:
-			this->m_shader_buffer.top_level().m_name = "directional_light_uniform";
-			this->m_shader_buffer.binding(settings().directional_light_binding());
-			this->m_shader_buffer.set(settings().directional_light_set());
+			for (size_t i = 0; i < max_frames_in_flight; ++i)
+			{
+				this->m_shader_buffer[i].top_level().m_name = "directional_light_uniform";
+				this->m_shader_buffer[i].binding(settings().directional_light_binding());
+				this->m_shader_buffer[i].set(settings().directional_light_set());
+			}
 			this->m_light_struct_name = "directional_lights";
 			break;
 		case ror::Light::LightType::point:
-			this->m_shader_buffer.top_level().m_name = "point_light_uniform";
-			this->m_shader_buffer.binding(settings().point_light_binding());
-			this->m_shader_buffer.set(settings().point_light_set());
+			for (size_t i = 0; i < max_frames_in_flight; ++i)
+			{
+				this->m_shader_buffer[i].top_level().m_name = "point_light_uniform";
+				this->m_shader_buffer[i].binding(settings().point_light_binding());
+				this->m_shader_buffer[i].set(settings().point_light_set());
+			}
 			this->m_light_struct_name = "point_lights";
 			break;
 		case ror::Light::LightType::spot:
-			this->m_shader_buffer.top_level().m_name = "spot_light_uniform";
-			this->m_shader_buffer.binding(settings().spot_light_binding());
-			this->m_shader_buffer.set(settings().spot_light_set());
+			for (size_t i = 0; i < max_frames_in_flight; ++i)
+			{
+				this->m_shader_buffer[i].top_level().m_name = "spot_light_uniform";
+				this->m_shader_buffer[i].binding(settings().spot_light_binding());
+				this->m_shader_buffer[i].set(settings().spot_light_set());
+			}
 			this->m_light_struct_name = "spot_lights";
 			break;
 		case ror::Light::LightType::area:
-			this->m_shader_buffer.top_level().m_name = "area_light_uniform";
-			this->m_shader_buffer.binding(settings().area_light_binding());
-			this->m_shader_buffer.set(settings().area_light_set());
+			for (size_t i = 0; i < max_frames_in_flight; ++i)
+			{
+				this->m_shader_buffer[i].top_level().m_name = "area_light_uniform";
+				this->m_shader_buffer[i].binding(settings().area_light_binding());
+				this->m_shader_buffer[i].set(settings().area_light_set());
+			}
 			this->m_light_struct_name = "area_lights";
 			break;
 	}
@@ -100,7 +113,8 @@ void Light::fill_shader_buffer()
 		light_type.add_entry("outer_angle", rhi::Format::float32_1, rhi::Layout::std140, 1);
 	}
 
-	this->m_shader_buffer.add_struct(light_type);
+	for (size_t i = 0; i < max_frames_in_flight; ++i)
+		this->m_shader_buffer[i].add_struct(light_type);
 }
 
 void Light::setup_transformations()
@@ -134,29 +148,31 @@ void Light::get_transformations(ror::Matrix4f **a_view_projection, ror::Matrix4f
 	*a_viewport        = &this->m_shadow_viewport;
 }
 
-void Light::update()
+void Light::update(size_t a_frequency)
 {
-	this->setup_transformations();
+	this->setup_transformations();        // This always sets m_dirty to true, fix me
 
 	if (this->m_dirty)
 	{
 		this->m_dirty = false;
-		this->m_shader_buffer.buffer_map();
 
-		auto     stride      = this->m_shader_buffer.stride(this->m_light_struct_name);
+		// NOTE: If update gets called per frame then we need to only update the relevant current frame number
+		this->m_shader_buffer[a_frequency].buffer_map();
+
+		auto     stride      = this->m_shader_buffer[a_frequency].stride(this->m_light_struct_name);
 		uint32_t light_index = 0;
 
-		this->m_shader_buffer.update("mvp", &this->m_view_projection.m_values, light_index, stride);
-		this->m_shader_buffer.update("color", &this->m_color, light_index, stride);
+		this->m_shader_buffer[a_frequency].update("mvp", &this->m_view_projection.m_values, light_index, stride);
+		this->m_shader_buffer[a_frequency].update("color", &this->m_color, light_index, stride);
 
 		if (this->m_type != ror::Light::LightType::directional)
-			this->m_shader_buffer.update("position", &this->m_position, light_index, stride);
+			this->m_shader_buffer[a_frequency].update("position", &this->m_position, light_index, stride);
 
 		if (this->m_type != ror::Light::LightType::point)
-			this->m_shader_buffer.update("direction", &this->m_direction, light_index, stride);
+			this->m_shader_buffer[a_frequency].update("direction", &this->m_direction, light_index, stride);
 
-		this->m_shader_buffer.update("intensity", &this->m_intensity, light_index, stride);
-		this->m_shader_buffer.update("range", &this->m_range, light_index, stride);
+		this->m_shader_buffer[a_frequency].update("intensity", &this->m_intensity, light_index, stride);
+		this->m_shader_buffer[a_frequency].update("range", &this->m_range, light_index, stride);
 
 		if (this->m_type == ror::Light::LightType::spot)
 		{
@@ -168,21 +184,22 @@ void Light::update()
 				outer = this->m_inner_angle;
 			}
 
-			this->m_shader_buffer.update("inner_angle", &inner, light_index, stride);
-			this->m_shader_buffer.update("outer_angle", &outer, light_index, stride);
+			this->m_shader_buffer[a_frequency].update("inner_angle", &inner, light_index, stride);
+			this->m_shader_buffer[a_frequency].update("outer_angle", &outer, light_index, stride);
 		}
-		// std::cout << "Her is the glsl string for light type = " << this->m_light_struct_name << "\n"
-		//           << this->m_shader_buffer.to_glsl_string();
 
-		this->m_shader_buffer.buffer_unmap();
+		this->m_shader_buffer[a_frequency].buffer_unmap();
 	}
 }
 
 void Light::upload(rhi::Device &a_device)
 {
-	this->m_shader_buffer.upload(a_device);
+	for (size_t i = 0; i < max_frames_in_flight; ++i)
+	{
+		this->m_shader_buffer[i].upload(a_device);
 
-	this->update();
+		this->update(i);
+	}
 }
 
 }        // namespace ror
