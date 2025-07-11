@@ -213,6 +213,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs);
 	void install_input_handlers(ror::EventSystem &a_event_system);
 	void uninstall_input_handlers(ror::EventSystem &a_event_system);
+	void verify_nodes_data_shader_buffer(const ror::Renderer &a_renderer) const;
 	void make_overlays();
 	void read_nodes();
 	void read_lights();

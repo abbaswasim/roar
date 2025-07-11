@@ -1381,7 +1381,7 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 				if (model_node.m_mesh_index != -1 && model_node.m_visible)
 				{
 					auto &mesh = meshes[static_cast<size_t>(model_node.m_mesh_index)];
-					model_nodes_data[node_data_index].bind(a_encoder, rhi::ShaderStage::vertex);
+					model_nodes_data[node_data_index].bind(a_encoder, rhi::ShaderStage::vertex, a_renderer.current_frame_index());
 					if (mesh.skin_index() != -1 && model_node.m_skin_index != -1)
 					{
 						assert(mesh.skin_index() == model_node.m_skin_index && "Mesh and Node skin indices should be the same");
@@ -1481,8 +1481,8 @@ uint32_t Scene::models_count()
 
 void Scene::add_model_node(int32_t a_model_index)
 {
-	ror::SceneNode     node;
-	ror::SceneNodeData node_data;
+	ror::SceneNode     node{};
+	ror::SceneNodeData node_data{};
 	node_data.m_model = a_model_index;
 
 	this->m_nodes.emplace_back(std::move(node));
@@ -1860,6 +1860,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 
 	this->update_bounding_box();
 	this->make_overlays();
+	this->verify_nodes_data_shader_buffer(a_renderer);
 }
 
 void Scene::upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs)
@@ -1981,6 +1982,34 @@ void Scene::install_input_handlers(ror::EventSystem &)
 
 void Scene::uninstall_input_handlers(ror::EventSystem &)
 {}
+
+void Scene::verify_nodes_data_shader_buffer(const ror::Renderer &a_renderer) const
+{
+	// Only want to do this in debug builds, not critical for run time
+	if constexpr (ror::get_build() == ror::BuildType::build_debug)
+	{
+		const auto &nodes_offsets_shader_buffer = a_renderer.shader_buffer("nodes_offsets");
+
+		for (const auto &nodes_data : this->m_nodes_data)
+		{
+			if (!(nodes_data.shader_buffer()[0] == *nodes_offsets_shader_buffer))
+			{
+				assert(0 && "Renderer's defined ndoes_offset buffer is not the same as whats inside 'NodeData'");
+			}
+		}
+
+		for (const auto &models : this->m_models)
+		{
+			for (const auto &mnsd : models.nodes_side_data())
+			{
+				if (!(mnsd.shader_buffer()[0] == *nodes_offsets_shader_buffer))
+				{
+					assert(0 && "Renderer's defined ndoes_offset buffer is not the same as whats inside 'NodeData'");
+				}
+			}
+		}
+	}
+}
 
 void Scene::make_overlays()
 {

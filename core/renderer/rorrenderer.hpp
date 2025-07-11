@@ -106,36 +106,37 @@ class Renderer final : public Configuration<Renderer>
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto &buffers()                      noexcept { return this->m_buffers;                 }
-	FORCE_INLINE constexpr auto &program(size_t a_index)  const          { return this->m_programs[a_index];       }
-	FORCE_INLINE constexpr auto &shaders()                const noexcept { return this->m_shaders;                 }
-	FORCE_INLINE constexpr auto &shaders()                      noexcept { return this->m_shaders;                 }
-	FORCE_INLINE constexpr auto &programs()               const noexcept { return this->m_programs;                }
-	FORCE_INLINE constexpr auto &programs()                     noexcept { return this->m_programs;                }
-	FORCE_INLINE constexpr auto &images()                 const noexcept { return this->m_images;                  }
-	FORCE_INLINE constexpr auto &images()                       noexcept { return this->m_images;                  }
-	FORCE_INLINE constexpr auto &samplers()               const noexcept { return this->m_samplers;                }
-	FORCE_INLINE constexpr auto &samplers()                     noexcept { return this->m_samplers;                }
-	FORCE_INLINE constexpr auto &textures()               const noexcept { return this->m_textures;                }
-	FORCE_INLINE constexpr auto &textures()                     noexcept { return this->m_textures;                }
-	FORCE_INLINE constexpr auto &environments()           const noexcept { return this->m_environments;            }
-	FORCE_INLINE constexpr auto &buffers()                const noexcept { return this->m_buffers;                 }
-	FORCE_INLINE constexpr auto &input_render_targets()   const noexcept { return this->m_input_render_targets;    }
-	FORCE_INLINE constexpr auto &input_render_buffers()   const noexcept { return this->m_input_render_buffers;    }
-	FORCE_INLINE constexpr auto &render_state()           const noexcept { return this->m_render_state;            }
-	FORCE_INLINE constexpr auto &dimensions()             const noexcept { return this->m_dimensions;              }
-	FORCE_INLINE constexpr auto &viewport()               const noexcept { return this->m_viewport;                }
-	FORCE_INLINE constexpr auto &frame_graphs()           const noexcept { return this->m_frame_graphs;            }
-	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;    }
-	FORCE_INLINE constexpr auto &dynamic_meshes()         const noexcept { return this->m_dynamic_meshes;          }
-	FORCE_INLINE constexpr auto canonical_cube()          const noexcept { return this->m_canonical_cube;          }
-	FORCE_INLINE constexpr auto frames_count()            const noexcept { return this->m_frames.max_frames();     }
-	FORCE_INLINE constexpr auto renderpass_index()        const noexcept { return this->m_renderpass_index;        }
-	FORCE_INLINE constexpr auto subpass_index()           const noexcept { return this->m_subpass_index;           }
+	FORCE_INLINE constexpr auto &buffers()                      noexcept { return this->m_buffers;                         }
+	FORCE_INLINE constexpr auto &program(size_t a_index)  const          { return this->m_programs[a_index];               }
+	FORCE_INLINE constexpr auto &shaders()                const noexcept { return this->m_shaders;                         }
+	FORCE_INLINE constexpr auto &shaders()                      noexcept { return this->m_shaders;                         }
+	FORCE_INLINE constexpr auto &programs()               const noexcept { return this->m_programs;                        }
+	FORCE_INLINE constexpr auto &programs()                     noexcept { return this->m_programs;                        }
+	FORCE_INLINE constexpr auto &images()                 const noexcept { return this->m_images;                          }
+	FORCE_INLINE constexpr auto &images()                       noexcept { return this->m_images;                          }
+	FORCE_INLINE constexpr auto &samplers()               const noexcept { return this->m_samplers;                        }
+	FORCE_INLINE constexpr auto &samplers()                     noexcept { return this->m_samplers;                        }
+	FORCE_INLINE constexpr auto &textures()               const noexcept { return this->m_textures;                        }
+	FORCE_INLINE constexpr auto &textures()                     noexcept { return this->m_textures;                        }
+	FORCE_INLINE constexpr auto &environments()           const noexcept { return this->m_environments;                    }
+	FORCE_INLINE constexpr auto &buffers()                const noexcept { return this->m_buffers;                         }
+	FORCE_INLINE constexpr auto &input_render_targets()   const noexcept { return this->m_input_render_targets;            }
+	FORCE_INLINE constexpr auto &input_render_buffers()   const noexcept { return this->m_input_render_buffers;            }
+	FORCE_INLINE constexpr auto &render_state()           const noexcept { return this->m_render_state;                    }
+	FORCE_INLINE constexpr auto &dimensions()             const noexcept { return this->m_dimensions;                      }
+	FORCE_INLINE constexpr auto &viewport()               const noexcept { return this->m_viewport;                        }
+	FORCE_INLINE constexpr auto &frame_graphs()           const noexcept { return this->m_frame_graphs;                    }
+	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;            }
+	FORCE_INLINE constexpr auto current_frame_index()     const noexcept { return this->m_frames.current_frame_index();    }
+	FORCE_INLINE constexpr auto &dynamic_meshes()         const noexcept { return this->m_dynamic_meshes;                  }
+	FORCE_INLINE constexpr auto canonical_cube()          const noexcept { return this->m_canonical_cube;                  }
+	FORCE_INLINE constexpr auto frames_count()            const noexcept { return this->m_frames.max_frames();             }
+	FORCE_INLINE constexpr auto renderpass_index()        const noexcept { return this->m_renderpass_index;                }
+	FORCE_INLINE constexpr auto subpass_index()           const noexcept { return this->m_subpass_index;                   }
 	FORCE_INLINE constexpr auto renderpasses_count()      const noexcept { assert(this->m_renderpasses_count);
-		                                                                         return this->m_renderpasses_count;}
+		                                                                         return this->m_renderpasses_count;        }
 	FORCE_INLINE constexpr auto subpasses_count()         const noexcept { assert(this->m_subpasses_count);
-		                                                                         return this->m_subpasses_count;}
+		                                                                         return this->m_subpasses_count;           }
 
 	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];}
 	FORCE_INLINE           auto &current_environment()                                                   noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];}

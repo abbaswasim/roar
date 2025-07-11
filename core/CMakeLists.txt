@@ -105,6 +105,7 @@ set(ROAR_HEADERS
   ${ROAR_SOURCE_DIR}/gui/roroverlay.hpp
   ${ROAR_SOURCE_DIR}/gui/rorgui.hpp
   ${ROAR_SOURCE_DIR}/graphics/rorlight.hpp
+  ${ROAR_SOURCE_DIR}/graphics/rornode.hpp
   ${ROAR_SOURCE_DIR}/graphics/rormesh.hpp
   ${ROAR_SOURCE_DIR}/graphics/rormodel.hpp
   ${ROAR_SOURCE_DIR}/graphics/rorscene.hpp

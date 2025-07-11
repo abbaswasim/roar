@@ -12,6 +12,93 @@ layout(local_size_x_id = 0) in;
 	// uvec4   animation_sampler;        // x = sampler_minimum, y = sampler_maximum, z = sampler_output_type (0 = float4, 1 = float3, 2 = float, 3 = int, 4 = uint, 5 = short, 6 = ushort, 7 = char, 8 = uchar), w = interpolation (0 = linear, 1 = cubic)
 	// uvec4   node_offsets;             // x = sampler_input_offset, y = sampler_output_offset, z = weight_offset, w = weights_count
 
+// The following at the rate signs are replaced with a code like below
+/*
+layout(std140, set = 0, binding = 19) uniform per_frame_uniform
+{
+	float   delta_time;
+	uint    nodes_count;
+	uint    animations_count;
+	uint    render_mode;
+} in_per_frame_uniform;
+
+layout(std140, set = 0, binding = 20) uniform per_view_uniform
+{
+	mat4    view_mat4;
+	mat4    projection_mat4;
+	mat4    view_projection_mat4;
+	mat4    inverse_projection_mat4;
+	mat4    inverse_view_projection_mat4;
+	mat3    normal_mat3;
+	uvec4   viewport;
+	vec3    camera_position;
+} in_per_view_uniform;
+
+layout(std430, set = 0, binding = 21) buffer nodes_models
+{
+	mat4    node_model[];
+} in_nodes_models;
+
+layout(std430, set = 0, binding = 28) buffer morphs_weights
+{
+	float   morph_weights[];
+} in_morphs_weights;
+
+struct Trs_transform_input
+{
+	ivec4   parent_index;
+	vec4    rotation;
+	vec3    translation;
+	vec3    scale;
+	vec3    scale_inverse;
+};
+
+layout(std430, set = 0, binding = 0) buffer node_transform_input
+{
+	Trs_transform_input trs_transform_input[];
+} in_node_transform_input;
+
+struct Trs_transform_output
+{
+	vec4    rotation;
+	vec3    translation;
+	vec3    scale;
+	vec3    scale_inverse;
+};
+
+layout(std430, set = 0, binding = 1) buffer node_transform_output
+{
+	Trs_transform_output trs_transform_output[];
+} in_node_transform_output;
+
+struct Animation
+{
+	uvec4   animation_channel;
+	uvec4   animation_sampler;
+	uvec4   node_offsets;
+};
+
+layout(std430, set = 0, binding = 2) buffer animations
+{
+	Animation animation[];
+} in_animations;
+
+layout(std430, set = 0, binding = 3) buffer animations_sampler_input
+{
+	float   inputs[];
+} in_animations_sampler_input;
+
+layout(std430, set = 0, binding = 4) buffer animations_sampler_output
+{
+	float   outputs[];
+} in_animations_sampler_output;
+
+layout(std430, set = 0, binding = 5) buffer current_animations
+{
+	uvec2   current_animation[];
+} in_current_animations;
+*/
+
 @
 @
 @

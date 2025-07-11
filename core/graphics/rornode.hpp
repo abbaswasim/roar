@@ -30,6 +30,7 @@
 #include "math/rorquaternion.hpp"
 #include "math/rortransform.hpp"
 #include "math/rorvector4.hpp"
+#include "renderer/rorframes_count.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "rhi/rortypes.hpp"
@@ -74,25 +75,47 @@ class ROAR_ENGINE_ITEM NodeData
 
 	FORCE_INLINE NodeData()
 	{
-		this->m_shader_buffer.add_entry("node_offsets", rhi::Format::uint32_4);
+		// We have a template of "nodes_offets" provided in renderer.json. Which means we have multiple descriptions of nodes_offsets
+		// And these needs to be maintained which isn't ideal. One option is to add renderer in NodeData to initialise m_shader_buffer[]
+		// But that creates a very tight coupling and when NodeData is created a renderer is not fully loaded either.
+		// The solution is that we keep this here and in scene load time confirm in debug mode that m_shader_buffer[] has the same structure as renderer's one
+		// This one is currently not used to generate glsl so the names doesn't matter as long as the structure is same
+		static rhi::ShaderBuffer shader_buffer_template{"nodes_offsets",
+		                                                rhi::ShaderBufferType::ubo,
+		                                                rhi::ShaderBufferFrequency::per_frame,        // NOTE: Don't change per_frame behaviour, if you do update accordingly below
+		                                                rhi::Layout::std140,
+		                                                settings().nodes_offset_uniform_set(),
+		                                                settings().nodes_offset_uniform_binding()};
+
+		assert(this->m_shader_buffer.size() == 0 && "Shader buffer must not be initialised");
+
+		for (size_t i = 0; i < max_frames_in_flight; ++i)
+		{
+			this->m_shader_buffer.emplace_back(shader_buffer_template.deep_copy());
+			this->m_shader_buffer.back().add_entry("node_offset", rhi::Format::uint32_4);
+		}
 	}
 
-	FORCE_INLINE constexpr void upload(rhi::Device &a_device)
+	FORCE_INLINE void upload(rhi::Device &a_device)
 	{
-		this->m_shader_buffer.upload(a_device);
+		for (size_t i = 0; i < max_frames_in_flight; ++i)
+			this->m_shader_buffer[i].upload(a_device);
 	}
 
 	FORCE_INLINE void update_offsets(ror::Vector4ui a_index)
 	{
-		this->m_shader_buffer.buffer_map();
-		this->m_shader_buffer.update("node_offsets", &a_index.x);
-		this->m_shader_buffer.buffer_unmap();
+		for (size_t i = 0; i < max_frames_in_flight; ++i)
+		{
+			this->m_shader_buffer[i].buffer_map();
+			this->m_shader_buffer[i].update("node_offset", &a_index.x);
+			this->m_shader_buffer[i].buffer_unmap();
+		}
 	}
 
 	template <typename _encoder>
-	FORCE_INLINE constexpr void bind(_encoder a_encoder, rhi::ShaderStage a_stage)
+	FORCE_INLINE constexpr void bind(_encoder a_encoder, rhi::ShaderStage a_stage, size_t a_frequency)
 	{
-		this->m_shader_buffer.buffer_bind(a_encoder, a_stage);
+		this->m_shader_buffer[a_frequency].buffer_bind(a_encoder, a_stage);
 	}
 
 	// clang-format off
@@ -100,6 +123,7 @@ class ROAR_ENGINE_ITEM NodeData
 	FORCE_INLINE constexpr auto &children()                       const noexcept  { return this->m_children;                }
 	FORCE_INLINE constexpr auto &name()                           noexcept        { return this->m_name;                    }
 	FORCE_INLINE constexpr auto &children()                       noexcept        { return this->m_children;                }
+	FORCE_INLINE constexpr auto &shader_buffer()                  const noexcept  { return this->m_shader_buffer;           }
 
 	FORCE_INLINE void name(std::string a_name)                    noexcept        { this->m_name = a_name;                  }
 	FORCE_INLINE void children(std::vector<uint32_t> a_children)  noexcept        { this->m_children = a_children;          }
@@ -108,14 +132,9 @@ class ROAR_ENGINE_ITEM NodeData
 
   private:
 	// Node suplimentary data, should probably be combined with Node at some point
-	std::string           m_name{};
-	std::vector<uint32_t> m_children{};        //! All the list of childrens for each node
-
-	rhi::ShaderBuffer m_shader_buffer{"nodes_offsets",
-	                                  rhi::ShaderBufferType::ubo,
-	                                  rhi::Layout::std140,
-	                                  settings().nodes_offset_uniform_set(),
-	                                  settings().nodes_offset_uniform_binding()};        //! Model specific shader buffer, currently only contains node_index
+	std::string                    m_name{};               //! Name of this node for debugging and tooling purposes
+	std::vector<uint32_t>          m_children{};           //! All the list of childrens for each node
+	std::vector<rhi::ShaderBuffer> m_shader_buffer;        //! Node specific shader buffer, currently only contains node_index
 };
 
 }        // namespace ror

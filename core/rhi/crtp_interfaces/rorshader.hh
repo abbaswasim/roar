@@ -83,7 +83,7 @@ FORCE_INLINE constexpr auto ShaderCrtp<_type>::source() const noexcept
 template <class _type>
 void ShaderCrtp<_type>::print_source_unconditional() const noexcept
 {
-	auto  resource = this->source();
+	auto resource = this->source();
 	ror::log_info("Generated GLSL, {} shader code.\n{}", shader_type_to_string(this->type()), this->source().c_str());
 }
 
@@ -113,7 +113,23 @@ auto ShaderCrtp<_type>::generated_name() const noexcept
 	name += std::to_string(this->hash());
 	name += "_";
 	name += std::to_string(index++);
-	name += this->type() == rhi::ShaderType::vertex ? ".vert" : ".frag";
+	switch (this->type())
+	{
+		// clang-format off
+		case rhi::ShaderType::none:                name += ".none";             break;
+		case rhi::ShaderType::mesh:                name += ".mesh";             break;
+		case rhi::ShaderType::task:                name += ".task";             break;
+		case rhi::ShaderType::tile:                name += ".tile";             break;
+		case rhi::ShaderType::vertex:              name += ".vert";             break;
+		case rhi::ShaderType::compute:             name += ".comp";             break;
+		case rhi::ShaderType::fragment:            name += ".frag";             break;
+		case rhi::ShaderType::ray_miss:            name += ".ray_miss";         break;
+		case rhi::ShaderType::ray_any_hit:         name += ".ray_any_hit";      break;
+		case rhi::ShaderType::ray_closest_hit:     name += ".ray_closest_hit";  break;
+		case rhi::ShaderType::ray_intersection:    name += ".ray_intersection"; break;
+		case rhi::ShaderType::ray_generation:      name += ".ray_generation";   break;
+		// clang-format on
+	}
 
 	return name;
 }

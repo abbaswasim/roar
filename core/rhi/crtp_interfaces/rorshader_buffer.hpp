@@ -49,6 +49,11 @@ class ShaderBufferCrtp : public ror::Crtp<_type, ShaderBufferCrtp>
 	FORCE_INLINE ShaderBufferCrtp &operator=(ShaderBufferCrtp &&a_other) noexcept        = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~ShaderBufferCrtp() noexcept override                           = default;        //! Destructor
 
+	FORCE_INLINE bool operator==(const ShaderBufferCrtp &a_rhs) const
+	{
+		return this->m_shader_buffer_template == a_rhs.m_shader_buffer_template;
+	}
+
 	struct Entry
 	{
 		std::string       m_name{"empty_entry"};
@@ -315,6 +320,11 @@ class ShaderBufferBase : public ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>,
 	FORCE_INLINE ShaderBufferBase(const std::string a_buffer_name, rhi::ShaderBufferType a_type, rhi::ShaderBufferFrequency a_frequency, rhi::Layout a_layout, uint32_t a_set, uint32_t a_binding) :
 	    ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>(a_buffer_name, a_type, a_frequency, a_layout, a_set, a_binding)
 	{}
+
+	FORCE_INLINE bool operator==(const ShaderBufferBase &a_rhs) const
+	{
+		return ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>::operator==(a_rhs);
+	}
 
 	declare_translation_unit_vtable() override;
 

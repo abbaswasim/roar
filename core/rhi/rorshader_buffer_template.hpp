@@ -79,7 +79,7 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	{
 		std::string m_name{};                         //! Name of the variable in the Buffer Object
 		Format      m_type{Format::float32_4};        //! Data type of the variable in the Buffer Object
-		uint32_t    m_count{1};                       //! How many of this Entries are there, a way to define arrays
+		uint32_t    m_count{1};                       //! How many of this Entries are there, a way to define arrays, if count = 0, its an unbounded array
 		uint32_t    m_stride{0};                      //! Gape between elements if its an array, otherwise equal to size
 		uint32_t    m_offset{0};                      //! Where in the buffer would this entry be, offset from start of the ShaderBuffer
 		uint32_t    m_size{0};                        //! Whats the size of this entry in machine units
@@ -95,12 +95,30 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 		FORCE_INLINE Entry &operator=(Entry &&a_other) noexcept = default;        //! Move assignment operator
 		FORCE_INLINE virtual ~Entry() noexcept                  = default;        //! Destructor
 
+		FORCE_INLINE bool operator==(const Entry &a_rhs) const
+		{
+			if (this->m_name == a_rhs.m_name &&
+			    this->m_type == a_rhs.m_type &&
+			    this->m_count == a_rhs.m_count &&
+			    this->m_stride == a_rhs.m_stride &&
+			    this->m_offset == a_rhs.m_offset &&
+			    this->m_size == a_rhs.m_size)
+				return true;
+
+			return false;
+		}
+
 		declare_translation_unit_vtable();
 	};
 
 	struct Struct;
 
 	using entry = std::variant<Struct, Entry>;
+
+	static FORCE_INLINE bool entry_equal(const entry &a_lhs, const entry &a_rhs)
+	{
+		return a_lhs == a_rhs;
+	}
 
 	struct Struct final : public Entry
 	{
@@ -118,6 +136,18 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 
 		void add_entry(const std::string &a_name, Format a_type, Layout a_layout = Layout::std140, uint32_t a_count = 1);
 		void add_struct(Struct a_struct);
+
+		FORCE_INLINE bool operator==(const Struct &a_rhs) const
+		{
+			if (this->m_entries.size() != a_rhs.m_entries.size() || this->m_alignment != a_rhs.m_alignment)
+				return false;
+
+			for (auto e = 0u; e < this->m_entries.size(); ++e)
+				if (!entry_equal(this->m_entries[e], a_rhs.m_entries[e]))
+					return false;
+
+			return true;
+		}
 
 		declare_translation_unit_vtable() override;
 	};
@@ -165,6 +195,19 @@ class ROAR_ENGINE_ITEM ShaderBufferTemplate final
 	FORCE_INLINE auto &top_level()
 	{
 		return this->m_toplevel;
+	}
+
+	FORCE_INLINE bool operator==(const ShaderBufferTemplate &a_rhs) const
+	{
+		if (this->m_type == a_rhs.m_type &&
+		    this->m_frequency == a_rhs.m_frequency &&
+		    this->m_layout == a_rhs.m_layout &&
+		    this->m_set == a_rhs.m_set &&
+		    this->m_binding == a_rhs.m_binding &&
+		    this->m_toplevel == a_rhs.m_toplevel)
+			return true;
+
+		return false;
 	}
 
 	/**
