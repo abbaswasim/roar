@@ -53,10 +53,7 @@ class ROAR_ENGINE_ITEM Gui final
 	FORCE_INLINE Gui &operator=(const Gui &a_other)     = delete;        //! Copy assignment operator
 	FORCE_INLINE Gui &operator=(Gui &&a_other) noexcept = delete;        //! Move assignment operator
 
-	Gui();        //! Default constructor
-	// explicit Gui(rhi::ShaderBuffer a_shader_buffer) :
-	//     m_shader_buffer(std::move(a_shader_buffer))
-	// {}
+	Gui();                  //! Default constructor
 	~Gui() noexcept;        //! Destructor
 
 	void  init(const rhi::Device &a_device, ror::EventSystem &a_event_system);
@@ -120,7 +117,7 @@ class ROAR_ENGINE_ITEM Gui final
 	rhi::Buffer           m_vertex_buffer{};               //! Vertex buffer with interleaved data of xy,uv,c
 	rhi::Buffer           m_index_buffer{};                //! Index buffer with uint16_t type
 
-	rhi::ShaderBuffer m_shader_buffer{"gui_per_frame_uniform", rhi::ShaderBufferType::ubo, rhi::Layout::std140, gui_buffer_set, gui_buffer_binding};        // this needs to match the one in gui.glsl.vert
+	std::vector<rhi::ShaderBuffer> m_shader_buffer{}; // {"gui_per_frame_uniform", rhi::ShaderBufferType::ubo, rhi::ShaderBufferFrequency::per_frame, rhi::Layout::std140, gui_buffer_set, gui_buffer_binding};        // this needs to match the one in gui.glsl.vert
 };
 
 FORCE_INLINE Gui &gui() noexcept

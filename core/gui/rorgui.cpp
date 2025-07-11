@@ -36,6 +36,7 @@
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
+#include "renderer/rorframes_count.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
 #include "rhi/rorbuffer.hpp"
@@ -575,7 +576,13 @@ void Gui::init(const rhi::Device &a_device, ror::EventSystem &a_event_system)
 
 	this->install_input_handlers();
 
-	this->m_shader_buffer.add_entry("orthographic_projection", rhi::Format::float32_4x4);
+	rhi::ShaderBuffer shader_buffer_template{"gui_per_frame_uniform", rhi::ShaderBufferType::ubo, rhi::ShaderBufferFrequency::per_frame, rhi::Layout::std140, gui_buffer_set, gui_buffer_binding};        // this needs to match the one in gui.glsl.vert
+
+	for (size_t i = 0; i < max_frames_in_flight; ++i)
+	{
+		this->m_shader_buffer.emplace_back(shader_buffer_template.deep_copy());
+		this->m_shader_buffer.back().add_entry("orthographic_projection", rhi::Format::float32_4x4);
+	}
 
 	// Create vertex descriptor
 	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_2};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
@@ -632,7 +639,9 @@ void Gui::upload(const rhi::Device &a_device, const ror::Renderer &a_renderer)
 
 	this->m_texture_image.upload(a_device);
 	this->m_texture_sampler.upload(a_device);
-	this->m_shader_buffer.upload(a_device, rhi::ResourceStorageOption::managed);
+
+	for (size_t i = 0; i < max_frames_in_flight; ++i)
+		this->m_shader_buffer[i].upload(a_device, rhi::ResourceStorageOption::managed);
 
 	a_renderer.get_final_pass_subpass(&pass, &subpass);
 
@@ -640,7 +649,8 @@ void Gui::upload(const rhi::Device &a_device, const ror::Renderer &a_renderer)
 	// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler; set and binding needs changing according to API
 	// layout(std140, set = 0, binding = 3) uniform gui_per_frame_uniform; name and set and binding needs changing according to API
 
-	this->m_shader_program.build_descriptor(a_device, &this->m_shader_buffer, gui_buffer_binding, &this->m_texture_image, &this->m_texture_sampler, gui_image_binding);
+	// FIXME: This shader buffer frequency stuff
+	this->m_shader_program.build_descriptor(a_device, &this->m_shader_buffer[0], gui_buffer_binding, &this->m_texture_image, &this->m_texture_sampler, gui_image_binding);
 	this->m_shader_program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
 
 	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
@@ -960,10 +970,12 @@ void Gui::setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEnco
 	auto ortho_projection_matrix = ror::make_ortho(L, R, B, T, N, F);
 	ortho_projection_matrix.m_values[14] *= -1;        // For some reason that I don't yet understand this is what ImGui requires, this probably has something to do with handedness and NDC from 0 - 1 mapping
 
-	this->m_shader_buffer.buffer_map();
-	this->m_shader_buffer.update("orthographic_projection", &ortho_projection_matrix);
-	this->m_shader_buffer.buffer_unmap();
-	this->m_shader_buffer.buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+	auto current_frame_index = a_renderer.current_frame_index();
+
+	this->m_shader_buffer[current_frame_index].buffer_map();
+	this->m_shader_buffer[current_frame_index].update("orthographic_projection", &ortho_projection_matrix);
+	this->m_shader_buffer[current_frame_index].buffer_unmap();
+	this->m_shader_buffer[current_frame_index].buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 }
 
 void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system)
