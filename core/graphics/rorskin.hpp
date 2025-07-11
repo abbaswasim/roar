@@ -109,12 +109,14 @@ class ROAR_ENGINE_ITEM Skin
 
 	rhi::ShaderBuffer m_joint_offset_shader_buffer{"joint_offset_uniform",
 	                                               rhi::ShaderBufferType::ssbo,
+	                                               rhi::ShaderBufferFrequency::constant,
 	                                               rhi::Layout::std430,
 	                                               settings().skin_joints_set(),
 	                                               settings().skin_joints_binding()};        //! ShaderBuffers for joint_offsets within the skinning shader
 
 	rhi::ShaderBuffer m_inverse_bind_shader_buffer{"joint_inverse_bind_matrices",
 	                                               rhi::ShaderBufferType::ubo,
+	                                               rhi::ShaderBufferFrequency::constant,
 	                                               rhi::Layout::std140,
 	                                               settings().joint_inverse_bind_set(),
 	                                               settings().joint_inverse_bind_binding()};        //! ShaderBuffers for inverse_bind_transforms within the skinning shader
