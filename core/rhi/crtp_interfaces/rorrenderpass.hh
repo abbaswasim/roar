@@ -45,7 +45,8 @@ FORCE_INLINE constexpr void bind_input_textures(_type &a_encoder, rhi::Rendersub
 	for (auto &render_input : a_render_inputs)
 	{
 		assert(render_input.m_render_output && "Render reference shouldn't be null");
-		auto &tr = render_input.m_render_output->m_target_reference.get();
+		auto &tr = render_input.m_render_output->m_target_reference.get();        // NOTE: Might need to add frequency incase these are also buffered,
+		                                                                          // but usually textures are updated and used in the same frame, and second frame GPU side is free to reuse it
 		tr.bind(a_encoder, render_input.m_stage, a_starting_index++);
 	}
 }
@@ -118,7 +119,7 @@ FORCE_INLINE void RenderpassCrtp<_type>::bind_render_buffers(rhi::ComputeCommand
 	auto buffer_inputs = this->render_buffers();
 	for (auto &buffer_input : buffer_inputs)
 	{
-		auto &brs = buffer_input.m_target_reference.get();
+		auto &brs             = buffer_input.m_target_reference.get();
 		auto  frequency       = brs[0].frequency();
 		auto  frequency_index = get_renderer_frequency_index(a_renderer, frequency);
 		brs[frequency_index].buffer_bind(a_encoder, rhi::ShaderStage::compute);

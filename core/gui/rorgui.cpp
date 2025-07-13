@@ -659,8 +659,11 @@ void Gui::upload(const rhi::Device &a_device, const ror::Renderer &a_renderer)
 	this->m_index_buffer.reserve(max_frames_in_flight);
 	for (size_t i = 0; i < max_frames_in_flight; ++i)
 	{
-		this->m_vertex_buffer[i].init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
-		this->m_index_buffer[i].init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
+		this->m_vertex_buffer.emplace_back();
+		this->m_index_buffer.emplace_back();
+
+		this->m_vertex_buffer.back().init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
+		this->m_index_buffer.back().init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
 	}
 }
 
@@ -986,7 +989,7 @@ void Gui::setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEnco
 
 void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system)
 {
-	auto dimensions = a_renderer.dimensions();
+	auto dimensions          = a_renderer.dimensions();
 	auto current_frame_index = a_renderer.current_frame_index();
 	this->draw_test_windows(a_camera, dimensions, a_event_system);
 

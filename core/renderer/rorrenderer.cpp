@@ -1134,7 +1134,7 @@ const rhi::RenderBuffer *Renderer::find_renderbuffer_reference(const std::vector
 void Renderer::setup_references()
 {
 	// Lets setup all the refrences, we have to do this last because hopefully everything is loaded by now
-	// All reference are set here except RenderTargets in subpasses which are done earlier
+	// All references are set here except RenderTargets in subpasses which are done earlier
 	// NOTE: I am doing this for all framegraphs loaded from renderer.json otherwise tests crash, which tests all graphs
 	for (auto &graph : this->m_frame_graphs)
 	{
@@ -1241,7 +1241,10 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 		this->subpass_index(0);           // Start counting renderpass/subpass indices, this is important for keeping track of which multi-buffers to use
 
 		for (auto &render_pass : render_passes)
+		{
 			render_pass.execute(command_buffer, a_scene, surface, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, *this);
+			this->next_renderpass();
+		}
 
 		command_buffer.present_drawable(surface);
 
@@ -1326,6 +1329,7 @@ void Renderer::set_render_mode(uint32_t a_render_mode)
 	}
 }
 
+// This is only used for once a lifetime uploads. Not re-entrant.
 void Renderer::scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene)
 {
 	// This macro builds something like the following but for the whole vector of this shader buffer
@@ -1369,8 +1373,11 @@ void Renderer::scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene)
 
 	for (auto &render_buffer : this->m_input_render_buffers)
 	{
-		render_buffer.m_target_reference.get().upload(a_device);        // This doesn't make it ready so it will be re-created later again unless ready is explicitly called on it
-		render_buffer.m_target_reference.get().ready(true);
+		for (auto &rb_tr : render_buffer.m_target_reference.get())
+		{
+			rb_tr.upload(a_device);        // This doesn't make it ready so it will be re-created later again unless ready is explicitly called on it
+			rb_tr.ready(true);
+		}
 	}
 
 	for (auto &render_buffers : this->m_buffers)
@@ -1899,7 +1906,7 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		const std::vector<const rhi::TextureImage *>   irradiance_images{&input, &irradiance_hdr_patch_ti};
 		const std::vector<const rhi::TextureSampler *> samplers{&input_smplr};
 
-		rhi::ShaderBuffer sizes_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
+		rhi::ShaderBuffer sizes_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::ShaderBufferFrequency::constant, rhi::Layout::std140, 0, 0};
 
 		sizes_shader_buffer.add_entry("mip_offset_size", rhi::Format::uint32_4);
 		sizes_shader_buffer.add_entry("cube_type", rhi::Format::uint32_1);
@@ -1939,7 +1946,7 @@ void setup_environment(rhi::Device &a_device, ror::Renderer &a_renderer, ror::IB
 		const std::vector<const rhi::TextureImage *>   radiance_images{&radiance_hdr_ti, &radiance_patch_ti};
 		const std::vector<const rhi::TextureSampler *> radiance_samplers{&input_sampler};
 
-		rhi::ShaderBuffer mipmaps_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::Layout::std140, 0, 0};
+		rhi::ShaderBuffer mipmaps_shader_buffer{"sizes", rhi::ShaderBufferType::ubo, rhi::ShaderBufferFrequency::constant, rhi::Layout::std140, 0, 0};
 
 		mipmaps_shader_buffer.add_entry("mip_offset_size", rhi::Format::uint32_4);
 		mipmaps_shader_buffer.add_entry("roughness", rhi::Format::float32_1);
@@ -2090,7 +2097,10 @@ void push_brdf_integration_lut_binding(rhi::Device &a_device, ror::Renderer &a_r
 {
 	rhi::descriptor_update_type buffers_images;
 
-	const rhi::descriptor_variant lut_image = &a_renderer.images()[12];
+	// Find brdf_integration_lut in textures
+	auto lut_index = a_renderer.brdf_integration_lut_index();
+	assert(lut_index != -1 && "No brdf_integration_lut index found in the textures");
+	const rhi::descriptor_variant lut_image = &a_renderer.images()[static_cast_safe<size_t>(lut_index)];
 
 	buffers_images[0].emplace_back(std::make_pair(lut_image, 0u));
 	// This shader only have

@@ -143,10 +143,6 @@ void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sce
 			ror::Vector3f  *position{nullptr};
 			ror::Vector4ui *viewport;
 
-			ror::Matrix4f _view_projection{};
-			ror::Matrix4f _projection{};
-			ror::Matrix4f _view{};
-
 			// TODO: This doesn't work at the moment because of no per pass per view uniforms
 			light.get_transformations(&view_projection, &projection, &view, &position, &viewport);
 			a_renderer.update_per_view_uniform(*view, *projection, *viewport, *position);

@@ -498,18 +498,9 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 
 	assert(program_id != -1 && "No program provided for compute pass walk scene");
 
-	auto &compute_pso                       = a_renderer.programs()[static_cast<size_t>(program_id)];
-	auto &trs_buffer                        = find_trs_buffer(a_renderer, a_subpass);
-	auto  per_frame_uniform                 = a_renderer.shader_buffer("per_frame_uniform");
-	auto  nodes_models_uniform              = a_renderer.shader_buffer("nodes_models");
-	auto  morphs_weights_uniform            = a_renderer.shader_buffer("morphs_weights");
-	auto  node_transform_input_uniform      = a_renderer.shader_buffer("node_transform_input");
-	auto  node_transform_output_uniform     = a_renderer.shader_buffer("node_transform_output");
-	auto  animations_uniform                = a_renderer.shader_buffer("animations");
-	auto  animations_sampler_input_uniform  = a_renderer.shader_buffer("animations_sampler_input");
-	auto  animations_sampler_output_uniform = a_renderer.shader_buffer("animations_sampler_output");
-	auto  current_animations_uniform        = a_renderer.shader_buffer("current_animations");
-	auto  per_view_uniform                  = a_renderer.shader_buffer("per_view_uniform");
+	auto &compute_pso       = a_renderer.programs()[static_cast<size_t>(program_id)];
+	auto &trs_buffer        = find_trs_buffer(a_renderer, a_subpass);
+	auto  per_frame_uniform = a_renderer.shader_buffer("per_frame_uniform");
 
 	uint32_t ncount = static_cast_safe<uint32_t>(copy_node_transforms(*this, trs_buffer));
 
@@ -553,6 +544,16 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	static bool first_run = true;
 	if (first_run)
 	{
+		auto nodes_models_uniform              = a_renderer.shader_buffer("nodes_models");
+		auto morphs_weights_uniform            = a_renderer.shader_buffer("morphs_weights");
+		auto node_transform_input_uniform      = a_renderer.shader_buffer("node_transform_input");
+		auto node_transform_output_uniform     = a_renderer.shader_buffer("node_transform_output");
+		auto animations_uniform                = a_renderer.shader_buffer("animations");
+		auto animations_sampler_input_uniform  = a_renderer.shader_buffer("animations_sampler_input");
+		auto animations_sampler_output_uniform = a_renderer.shader_buffer("animations_sampler_output");
+		auto current_animations_uniform        = a_renderer.shader_buffer("current_animations");
+		auto per_view_uniform                  = a_renderer.shader_buffer("per_view_uniform");
+
 		auto anim_handler = [this](Event) {
 			this->m_pause_animation = !this->m_pause_animation;
 		};
@@ -1423,6 +1424,7 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 		// TODO: Should move out of scene and into global end of frame renderpass
 		auto &setting = ror::settings();
 
+		// TODO: Should be done in renderer not in scene, or maybe even at upper level (device)
 		if (setting.m_generate_gui_mesh && setting.m_gui.m_visible)
 			ror::gui().render(a_device, a_renderer, a_encoder, this->m_cameras[0], a_event_system);        // TODO: Fix the camera
 	}
