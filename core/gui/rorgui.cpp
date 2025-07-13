@@ -52,6 +52,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -640,6 +641,7 @@ void Gui::upload(const rhi::Device &a_device, const ror::Renderer &a_renderer)
 	this->m_texture_image.upload(a_device);
 	this->m_texture_sampler.upload(a_device);
 
+	this->m_shader_buffer.reserve(max_frames_in_flight);
 	for (size_t i = 0; i < max_frames_in_flight; ++i)
 		this->m_shader_buffer[i].upload(a_device, rhi::ResourceStorageOption::managed);
 
@@ -653,8 +655,13 @@ void Gui::upload(const rhi::Device &a_device, const ror::Renderer &a_renderer)
 	this->m_shader_program.build_descriptor(a_device, &this->m_shader_buffer[0], gui_buffer_binding, &this->m_texture_image, &this->m_texture_sampler, gui_image_binding);
 	this->m_shader_program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
 
-	this->m_vertex_buffer.init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
-	this->m_index_buffer.init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
+	this->m_vertex_buffer.reserve(max_frames_in_flight);
+	this->m_index_buffer.reserve(max_frames_in_flight);
+	for (size_t i = 0; i < max_frames_in_flight; ++i)
+	{
+		this->m_vertex_buffer[i].init(a_device, setting.m_gui.m_vertex_buffer_size);        // By default in shared mode
+		this->m_index_buffer[i].init(a_device, setting.m_gui.m_index_buffer_size);          // By default in shared mode
+	}
 }
 
 static void show_debug_overlay(bool &a_show_debug)
@@ -823,7 +830,6 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 	io.DisplayFramebufferScale = ImVec2(a_dimensions.z, a_dimensions.w);
 
 	ImGui::NewFrame();
-	static ror::Matrix4f result{};
 
 	auto font_id = setting.m_generic_numbers[0];
 
@@ -900,7 +906,7 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 	ImGui::Render();
 }
 
-void Gui::upload_draw_data(ImDrawData *a_draw_data)
+void Gui::upload_draw_data(ImDrawData *a_draw_data, size_t a_current_frame_index)
 {
 	assert(this->m_device);
 
@@ -913,12 +919,12 @@ void Gui::upload_draw_data(ImDrawData *a_draw_data)
 	size_t vertex_buffer_size = static_cast<size_t>(a_draw_data->TotalVtxCount) * sizeof(ImDrawVert);
 	size_t index_buffer_size  = static_cast<size_t>(a_draw_data->TotalIdxCount) * sizeof(ImDrawIdx);
 
-	this->m_vertex_buffer.resize(a_device, vertex_buffer_size);        // Makes sure its atleast as big as vertex_buffer_size (it could be bigger)
-	this->m_index_buffer.resize(a_device, index_buffer_size);          // Makes sure its atleast as big as index_buffer_size (it could be bigger)
+	this->m_vertex_buffer[a_current_frame_index].resize(a_device, vertex_buffer_size);        // Makes sure its atleast as big as vertex_buffer_size (it could be bigger)
+	this->m_index_buffer[a_current_frame_index].resize(a_device, index_buffer_size);          // Makes sure its atleast as big as index_buffer_size (it could be bigger)
 
 	// NOTE: I am not just calling upload on this because that would require multiple map/unmap sequences, or create holding buffers which cost extra memory
-	ImDrawVert *vertex_buffer = reinterpret_cast<ImDrawVert *>(this->m_vertex_buffer.map());
-	ImDrawIdx  *index_buffer  = reinterpret_cast<ImDrawIdx *>(this->m_index_buffer.map());
+	ImDrawVert *vertex_buffer = reinterpret_cast<ImDrawVert *>(this->m_vertex_buffer[a_current_frame_index].map());
+	ImDrawIdx  *index_buffer  = reinterpret_cast<ImDrawIdx *>(this->m_index_buffer[a_current_frame_index].map());
 
 	for (int n = 0; n < a_draw_data->CmdListsCount; n++)
 	{
@@ -931,20 +937,22 @@ void Gui::upload_draw_data(ImDrawData *a_draw_data)
 		index_buffer += cmd_list->IdxBuffer.Size;
 	}
 
-	this->m_vertex_buffer.unmap();
-	this->m_index_buffer.unmap();
+	this->m_vertex_buffer[a_current_frame_index].unmap();
+	this->m_index_buffer[a_current_frame_index].unmap();
 
-	this->m_vertex_buffer.ready(true);
-	this->m_index_buffer.ready(true);
+	this->m_vertex_buffer[a_current_frame_index].ready(true);
+	this->m_index_buffer[a_current_frame_index].ready(true);
 }
 
 void Gui::setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, const ror::Renderer &a_renderer, ImDrawData *a_draw_data)
 {
+	auto current_frame_index = a_renderer.current_frame_index();
+
 	a_encoder.cull_mode(rhi::PrimitiveCullMode::none);                                             // No face culling
 	a_encoder.front_facing_winding(rhi::PrimitiveWinding::clockwise);                              // What ImGui requires
-	a_encoder.vertex_buffer(this->m_vertex_buffer, 0, 0);                                          // Position at index 0 offset 0 because its provided in attribute
-	a_encoder.vertex_buffer(this->m_vertex_buffer, 0, 1);                                          // UV at index 1 offset 0 because its provided in attribute
-	a_encoder.vertex_buffer(this->m_vertex_buffer, 0, 2);                                          // Color at index 2 offset 0 because its provided in attribute
+	a_encoder.vertex_buffer(this->m_vertex_buffer[current_frame_index], 0, 0);                     // Position at index 0 offset 0 because its provided in attribute
+	a_encoder.vertex_buffer(this->m_vertex_buffer[current_frame_index], 0, 1);                     // UV at index 1 offset 0 because its provided in attribute
+	a_encoder.vertex_buffer(this->m_vertex_buffer[current_frame_index], 0, 2);                     // Color at index 2 offset 0 because its provided in attribute
 	a_encoder.render_pipeline_state(a_device, this->m_shader_program);                             // Include alpha blend state, also calls bind descriptors (important for vulkan)
 	a_encoder.fragment_texture(this->m_texture_image, 0);                                          // Could be overriden by render later
 	a_encoder.fragment_sampler(this->m_texture_sampler, 0);                                        // The only default sampler that should be bilinear according to ImGui requirements
@@ -970,8 +978,6 @@ void Gui::setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEnco
 	auto ortho_projection_matrix = ror::make_ortho(L, R, B, T, N, F);
 	ortho_projection_matrix.m_values[14] *= -1;        // For some reason that I don't yet understand this is what ImGui requires, this probably has something to do with handedness and NDC from 0 - 1 mapping
 
-	auto current_frame_index = a_renderer.current_frame_index();
-
 	this->m_shader_buffer[current_frame_index].buffer_map();
 	this->m_shader_buffer[current_frame_index].update("orthographic_projection", &ortho_projection_matrix);
 	this->m_shader_buffer[current_frame_index].buffer_unmap();
@@ -981,6 +987,7 @@ void Gui::setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEnco
 void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system)
 {
 	auto dimensions = a_renderer.dimensions();
+	auto current_frame_index = a_renderer.current_frame_index();
 	this->draw_test_windows(a_camera, dimensions, a_event_system);
 
 	ImDrawData *draw_data = ImGui::GetDrawData();
@@ -999,7 +1006,7 @@ void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, r
 	// FIXME: Add proper time
 	io.DeltaTime = 1.0f / 60.0f;        // set the time elapsed since the previous frame (in seconds)
 
-	this->upload_draw_data(draw_data);
+	this->upload_draw_data(draw_data, current_frame_index);
 	this->setup_render_state(a_device, a_encoder, a_renderer, draw_data);
 
 	std::vector<std::vector<uint8_t>> vertexBuffer{};
@@ -1055,10 +1062,10 @@ void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, r
 				if (ImTextureID tex_id = pcmd->GetTexID())
 					a_encoder.fragment_texture(*reinterpret_cast<rhi::TextureImage *>(tex_id), gui_color_binding);
 
-				a_encoder.vertex_buffer_offset(this->m_vertex_buffer, vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 0);
-				a_encoder.vertex_buffer_offset(this->m_vertex_buffer, vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 1);
-				a_encoder.vertex_buffer_offset(this->m_vertex_buffer, vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 2);
-				a_encoder.draw_indexed_primitives(rhi::PrimitiveTopology::triangles, pcmd->ElemCount, rhi::Format::uint16_1, this->m_index_buffer, indexBufferOffset + pcmd->IdxOffset * sizeof(ImDrawIdx));
+				a_encoder.vertex_buffer_offset(this->m_vertex_buffer[current_frame_index], vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 0);
+				a_encoder.vertex_buffer_offset(this->m_vertex_buffer[current_frame_index], vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 1);
+				a_encoder.vertex_buffer_offset(this->m_vertex_buffer[current_frame_index], vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 2);
+				a_encoder.draw_indexed_primitives(rhi::PrimitiveTopology::triangles, pcmd->ElemCount, rhi::Format::uint16_1, this->m_index_buffer[current_frame_index], indexBufferOffset + pcmd->IdxOffset * sizeof(ImDrawIdx));
 			}
 		}
 

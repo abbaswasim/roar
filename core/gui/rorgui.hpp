@@ -78,7 +78,7 @@ class ROAR_ENGINE_ITEM Gui final
 	size_t           anchors_count();
 	Anchors::Anchor &anchor(size_t a_index);
 	bool             anchor_moving(size_t a_index);
-	void             upload_draw_data(ImDrawData *a_draw_data);
+	void             upload_draw_data(ImDrawData *a_draw_data, size_t a_current_frame_index);
 
 	Anchors               m_anchors{};                         //! All the anchors in the scene
 	Gizmo                 m_gizmo{};                           //! Single instance of a gizmo that can be used on different objects
@@ -109,15 +109,14 @@ class ROAR_ENGINE_ITEM Gui final
 	bool                  m_show_render_titles{false};         //! Show titles for Multi-Render View
 
 	// Render data
-	const rhi::Device    *m_device{nullptr};               //! Non-Owning pointer to a device that is used to initiliazed this gui
-	rhi::TextureImage     m_texture_image{};               //! Texture image, should probably be a list of these at some point
-	rhi::TextureSampler   m_texture_sampler{};             //! Texture sampler, the default sampler used to render the UI
-	rhi::Program          m_shader_program{-1, -1};        //! Program in undefined/uinitialized state
-	rhi::VertexDescriptor m_vertex_descriptor{};           //! The vertex descriptor of the UI, that is defined by xy, uv, c of ImGUI vertex buffer
-	rhi::Buffer           m_vertex_buffer{};               //! Vertex buffer with interleaved data of xy,uv,c
-	rhi::Buffer           m_index_buffer{};                //! Index buffer with uint16_t type
-
-	std::vector<rhi::ShaderBuffer> m_shader_buffer{}; // {"gui_per_frame_uniform", rhi::ShaderBufferType::ubo, rhi::ShaderBufferFrequency::per_frame, rhi::Layout::std140, gui_buffer_set, gui_buffer_binding};        // this needs to match the one in gui.glsl.vert
+	const rhi::Device             *m_device{nullptr};               //! Non-Owning pointer to a device that is used to initiliazed this gui
+	rhi::TextureImage              m_texture_image{};               //! Texture image, should probably be a list of these at some point
+	rhi::TextureSampler            m_texture_sampler{};             //! Texture sampler, the default sampler used to render the UI
+	rhi::Program                   m_shader_program{-1, -1};        //! Program in undefined/uinitialized state
+	rhi::VertexDescriptor          m_vertex_descriptor{};           //! The vertex descriptor of the UI, that is defined by xy, uv, c of ImGUI vertex buffer
+	std::vector<rhi::Buffer>       m_vertex_buffer{};               //! Vertex buffer with interleaved data of xy,uv,c
+	std::vector<rhi::Buffer>       m_index_buffer{};                //! Index buffer with uint16_t type
+	std::vector<rhi::ShaderBuffer> m_shader_buffer{};               //! this needs to match the one in gui.glsl.vert
 };
 
 FORCE_INLINE Gui &gui() noexcept

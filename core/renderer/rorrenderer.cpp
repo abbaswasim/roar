@@ -1315,6 +1315,7 @@ void Renderer::reset_sets_bindings()
 
 void Renderer::set_render_mode(uint32_t a_render_mode)
 {
+	// This is not fully correct. Some undefined behaviour will occur if we are updating uniforms in flight frames, but its a minor debug issue
 	auto perframe_ubo = this->shader_buffer_vector("per_frame_uniform");
 
 	for (auto &sb : *perframe_ubo)
