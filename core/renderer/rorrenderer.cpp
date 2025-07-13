@@ -1315,11 +1315,14 @@ void Renderer::reset_sets_bindings()
 
 void Renderer::set_render_mode(uint32_t a_render_mode)
 {
-	auto perframe_ubo = this->shader_buffer("per_frame_uniform");
+	auto perframe_ubo = this->shader_buffer_vector("per_frame_uniform");
 
-	perframe_ubo->buffer_map();
-	perframe_ubo->update("render_mode", &a_render_mode);
-	perframe_ubo->buffer_unmap();
+	for (auto &sb : *perframe_ubo)
+	{
+		sb.buffer_map();
+		sb.update("render_mode", &a_render_mode);
+		sb.buffer_unmap();
+	}
 }
 
 void Renderer::scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene)
