@@ -32,6 +32,29 @@
 namespace ror
 {
 
+std::string Light::light_type_string()
+{
+	switch (this->m_type)
+	{
+			// clang-format off
+		case LightType::directional: return "directional";
+		case LightType::spot:        return "spot";
+		case LightType::point:       return "point";
+		case LightType::area:        return "area";
+			// clang-format on
+	}
+}
+
+void Light::string_light_type(std::string a_type)
+{
+	// clang-format off
+	if (a_type == "directional")    this->m_type = LightType::directional;
+	else if (a_type == "spot")      this->m_type = LightType::spot;
+	else if (a_type == "point")     this->m_type = LightType::point;
+	else if (a_type == "area")      this->m_type = LightType::area;
+	// clang-format on
+}
+
 // Looking to create a UBO for directional light like below
 /*
   const uint directional_lights_count = @;

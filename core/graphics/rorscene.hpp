@@ -47,6 +47,7 @@
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
 #include <any>
+#include <cstddef>
 #include <filesystem>
 #include <limits>
 #include <unordered_map>
@@ -54,7 +55,7 @@
 namespace ror
 {
 // TODO: Define properly somewhere
-class ROAR_ENGINE_ITEM ParticleSystem{};
+class ROAR_ENGINE_ITEM ParticleSystem {};
 
 class ROAR_ENGINE_ITEM SceneNode
 {
@@ -179,6 +180,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		void load_specific();
 		void write_specific();
 
+		// TODO: Use existing [Orbit]Camera class here
 		Vector3f   m_camera_center{0.0f, 0.0f, 0.0f};               //! Target position in worldspace
 		Vector3f   m_camera_eye{0.0f, 0.0f, 1.0f};                  //! Eye position in worldspace
 		Vector3f   m_camera_right{1.0f, 0.0f, 0.0f};                //! Right vector in camera's frame of reference
@@ -195,7 +197,10 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		float32_t  m_camera_y_mag{1.0f};                            //! Height of the orthographics camera
 		CameraMode m_camera_mode{CameraMode::orbit};                //! Default orbit camera
 		CameraType m_camera_type{CameraType::perspective};          //! Default perspective camera
-		bool       m_is_valid{false};                               //! Is the data valid to be used by the system
+
+		std::vector<ror::Light> m_lights{};        //! All the lights are saved in here at close
+
+		bool m_is_valid{false};        //! Is the data valid to be used by the system
 	};
 
   private:
@@ -215,6 +220,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void uninstall_input_handlers(ror::EventSystem &a_event_system);
 	void verify_nodes_data_shader_buffer(const ror::Renderer &a_renderer) const;
 	void make_overlays();
+	void update_overlays();
 	void read_nodes();
 	void read_lights();
 	void read_cameras();

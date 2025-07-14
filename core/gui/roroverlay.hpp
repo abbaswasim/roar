@@ -111,6 +111,7 @@ class ROAR_ENGINE_ITEM Overlays final
 
 	void init(ImFont *a_icon_font);
 	void draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport);
+	void clear();
 
 	template <typename _type>
 	void add(std::vector<_type> &a_overlay_target);

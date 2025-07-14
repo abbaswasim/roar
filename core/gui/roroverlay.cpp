@@ -491,4 +491,9 @@ void Overlays::draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f 
 	for (auto &overlay : this->m_overlays)
 		overlay.draw(this->m_draw_list, this->m_roar_icon_font, a_view_projection, a_viewport);
 }
+
+void Overlays::clear()
+{
+	this->m_overlays.clear();
+}
 }        // namespace ror

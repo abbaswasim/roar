@@ -69,11 +69,13 @@ class ROAR_ENGINE_ITEM Light
 		area
 	};
 
-	void update(size_t a_frequency);
-	void upload(rhi::Device &a_device);
-	void fill_shader_buffer();
-	void setup_transformations();
-	void get_transformations(ror::Matrix4f **a_view_projection, ror::Matrix4f **a_projection, ror::Matrix4f **a_view, ror::Vector3f **a_position, ror::Vector4ui **a_viewport);
+	void        update(size_t a_frequency);
+	void        upload(rhi::Device &a_device);
+	void        fill_shader_buffer();
+	std::string light_type_string();
+	void        string_light_type(std::string a_type);
+	void        setup_transformations();
+	void        get_transformations(ror::Matrix4f **a_view_projection, ror::Matrix4f **a_projection, ror::Matrix4f **a_view, ror::Vector3f **a_position, ror::Vector4ui **a_viewport);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto& shader_buffer() const noexcept  { return this->m_shader_buffer;      }
@@ -94,9 +96,9 @@ class ROAR_ENGINE_ITEM Light
 	float32_t   m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates
 	float32_t   m_inner_angle{0.0f};                                   //! Spot light inner angle, in radians, inner and outer might flip because outer > inner always
 	float32_t   m_outer_angle{ror::ror_pi / 4.0f};                     //! Spot light outter angle, in radians, inner and outer might flip because outer > inner always
-	std::string m_light_struct_name{};                                 //! Light struct name cache
+	std::string m_light_struct_name{};                                 //! Light struct name defined based on its LightType and cached
   private:
-	std::vector<rhi::ShaderBuffer> m_shader_buffer{};                  //! Shader buffer for a specific type of light UBO, it needs to be a vector because its a per_frame resource
+	std::vector<rhi::ShaderBuffer> m_shader_buffer{};        //! Shader buffer for a specific type of light UBO, it needs to be a vector because its a per_frame resource
 };
 
 class ROAR_ENGINE_ITEM EnvironmentProbe final

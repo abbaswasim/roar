@@ -245,6 +245,35 @@ void Scene::update_from_scene_state()
 
 	camera.set_from_parameters();
 	camera.setup_frustums();
+
+	// Also let the lights from the following data
+
+	if (this->m_scene_state.m_lights.size() > 0)
+	{
+		assert(this->m_lights.size() == this->m_scene_state.m_lights.size() && "Scene lights don't map correctly to scene state lights");
+
+		size_t state_light_index = 0u;
+		for (auto &light : this->m_lights)
+		{
+			auto &scene_state_light = this->m_scene_state.m_lights[state_light_index];
+
+			light.m_type              = scene_state_light.m_type;
+			light.m_dirty             = scene_state_light.m_dirty;
+			light.m_shadow_viewport   = scene_state_light.m_shadow_viewport;
+			light.m_color             = scene_state_light.m_color;
+			light.m_position          = scene_state_light.m_position;
+			light.m_direction         = scene_state_light.m_direction;
+			light.m_intensity         = scene_state_light.m_intensity;
+			light.m_range             = scene_state_light.m_range;
+			light.m_inner_angle       = scene_state_light.m_inner_angle;
+			light.m_outer_angle       = scene_state_light.m_outer_angle;
+			light.m_light_struct_name = scene_state_light.m_light_struct_name;
+
+			++state_light_index;
+		}
+	}
+
+	this->update_overlays();
 }
 
 void Scene::SceneState::init(std::filesystem::path a_data_path)
@@ -257,6 +286,13 @@ ror::Vector3f read_vector3(json a_json_object)
 	std::array<float32_t, 3> c = a_json_object;
 
 	return ror::Vector3f{c[0], c[1], c[2]};
+}
+
+ror::Vector4ui read_vector4ui(json a_json_object)
+{
+	std::array<uint32_t, 4> c = a_json_object;
+
+	return ror::Vector4ui{c[0], c[1], c[2], c[3]};
 }
 
 void Scene::SceneState::load_specific()
@@ -325,6 +361,55 @@ void Scene::SceneState::load_specific()
 
 		this->m_is_valid = true;
 	}
+
+	auto read_light = [](auto &light) -> auto {
+		ror::Light l{};
+
+		if (light.contains("dirty"))
+			l.m_dirty = light["dirty"];
+
+		if (light.contains("type"))
+			l.string_light_type(light["type"]);
+
+		if (light.contains("shadow_viewport"))
+			l.m_shadow_viewport = read_vector4ui(light["shadow_viewport"]);
+
+		if (light.contains("color"))
+			l.m_color = read_vector3(light["color"]);
+
+		if (light.contains("position"))
+			l.m_position = read_vector3(light["position"]);
+
+		if (light.contains("direction"))
+			l.m_direction = read_vector3(light["direction"]);
+
+		if (light.contains("intensity"))
+			l.m_intensity = light["intensity"];
+
+		if (light.contains("range"))
+			l.m_range = light["range"];
+
+		if (light.contains("inner_angle"))
+			l.m_inner_angle = light["inner_angle"];
+
+		if (light.contains("outer_angle"))
+			l.m_outer_angle = light["outer_angle"];
+
+		if (light.contains("light_struct_name"))
+			l.m_light_struct_name = light["light_struct_name"];
+
+		return l;
+	};
+
+	if (this->m_json_file.contains("lights"))
+	{
+		auto &lights = this->m_json_file["lights"];
+
+		assert(this->m_lights.size() == 0 && "Why do I have lights already");
+
+		for (auto &json_light : lights)
+			this->m_lights.emplace_back(read_light(json_light));
+	}
 }
 
 template <typename _type>
@@ -343,10 +428,10 @@ void replace_next_at(_type a_value, std::string &a_result)
 
 void Scene::SceneState::write_specific()
 {
-	if (this->m_json_file.contains("current_camera"))
-	{
-		auto &camera = this->m_json_file["current_camera"];
+	// if (this->m_json_file.contains("current_camera"))
+	// 	camera = this->m_json_file["current_camera"];
 
+	{
 		std::string patch_str = std::string(R"(
             [
                 { "op": "add", "path": "/type", "value": "@" },
@@ -399,13 +484,83 @@ void Scene::SceneState::write_specific()
 
 		try
 		{
-			json patch = json::parse(patch_str);
+			json patch  = json::parse(patch_str);
+			json camera = json::object();
 			camera.patch_inplace(patch);
+
+			this->m_json_file["current_camera"] = camera;
 		}
 		catch (const json::exception &e)
 		{
 			log_critical("Scene state write failed with message {}", e.what());
 		}
+	}
+
+	// if (this->m_json_file.contains("lights"))
+	// 	lights = this->m_json_file["lights"];
+
+	{
+		json lights = json::array();
+
+		for (auto &l : this->m_lights)
+		{
+			std::string light_str = std::string(R"(
+            [
+                { "op": "add", "path": "/type", "value": "@" },
+                { "op": "add", "path": "/dirty", "value": @ },
+                { "op": "add", "path": "/shadow_viewport", "value": [@, @, @, @] },
+                { "op": "add", "path": "/color", "value": [@, @, @] },
+                { "op": "add", "path": "/position", "value": [@, @, @] },
+                { "op": "add", "path": "/direction", "value": [@, @, @] },
+                { "op": "add", "path": "/intensity", "value": @ },
+                { "op": "add", "path": "/range", "value": @ },
+                { "op": "add", "path": "/inner_angle", "value": @ },
+                { "op": "add", "path": "/outer_angle", "value": @ },
+                { "op": "add", "path": "/light_struct_name", "value": "@" }
+            ])");
+
+			replace_next_at(l.light_type_string(), light_str);
+			replace_next_at(l.m_dirty == true ? "true" : "false", light_str);
+			replace_next_at(l.m_shadow_viewport.x, light_str);
+			replace_next_at(l.m_shadow_viewport.y, light_str);
+			replace_next_at(l.m_shadow_viewport.z, light_str);
+			replace_next_at(l.m_shadow_viewport.w, light_str);
+			replace_next_at(l.m_color.x, light_str);
+			replace_next_at(l.m_color.y, light_str);
+			replace_next_at(l.m_color.z, light_str);
+			replace_next_at(l.m_position.x, light_str);
+			replace_next_at(l.m_position.y, light_str);
+			replace_next_at(l.m_position.z, light_str);
+			replace_next_at(l.m_direction.x, light_str);
+			replace_next_at(l.m_direction.y, light_str);
+			replace_next_at(l.m_direction.z, light_str);
+			replace_next_at(l.m_intensity, light_str);
+			replace_next_at(l.m_range, light_str);
+			replace_next_at(l.m_inner_angle, light_str);
+			replace_next_at(l.m_outer_angle, light_str);
+			replace_next_at(l.m_light_struct_name, light_str);
+
+			try
+			{
+				json light;
+				json patch = json::parse(light_str);
+				light.patch_inplace(patch);
+				lights.emplace_back(light);
+				log_info("writing out a light");
+			}
+			catch (const json::exception &e)
+			{
+				log_critical("Scene state write failed with message {}", e.what());
+			}
+		}
+
+		if (this->m_json_file.contains("lights"))
+		{
+			auto &ls = this->m_json_file["lights"];
+			ls.clear();
+		}
+
+		this->m_json_file["lights"] = lights;
 	}
 }
 
@@ -546,7 +701,7 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 	{
 		auto nodes_models_uniform              = a_renderer.shader_buffer("nodes_models");
 		auto morphs_weights_uniform            = a_renderer.shader_buffer("morphs_weights");
-		auto node_transform_input_uniform      = a_renderer.shader_buffer("node_transform_input");
+		auto node_transform_input_uniform      = a_renderer.shader_buffer("node_transform_input");        // TODO: All these shader buffers should be captured via the input attachments, not directly from renderer
 		auto node_transform_output_uniform     = a_renderer.shader_buffer("node_transform_output");
 		auto animations_uniform                = a_renderer.shader_buffer("animations");
 		auto animations_sampler_input_uniform  = a_renderer.shader_buffer("animations_sampler_input");
@@ -1261,6 +1416,27 @@ void Scene::fill_scene_data()
 	this->m_scene_state.m_camera_y_mag   = camera.y_mag();
 	this->m_scene_state.m_camera_mode    = camera.mode();
 	this->m_scene_state.m_camera_type    = camera.type();
+
+	// Fill scene state lights from scene lights that will be written out later
+	this->m_scene_state.m_lights.clear();
+	this->m_scene_state.m_lights.reserve(this->m_lights.size());
+	for (auto &light : this->m_lights)
+	{
+		this->m_scene_state.m_lights.emplace_back();
+		auto &scene_state_light = this->m_scene_state.m_lights.back();
+
+		scene_state_light.m_type              = light.m_type;
+		scene_state_light.m_dirty             = light.m_dirty;
+		scene_state_light.m_shadow_viewport   = light.m_shadow_viewport;
+		scene_state_light.m_color             = light.m_color;
+		scene_state_light.m_position          = light.m_position;
+		scene_state_light.m_direction         = light.m_direction;
+		scene_state_light.m_intensity         = light.m_intensity;
+		scene_state_light.m_range             = light.m_range;
+		scene_state_light.m_inner_angle       = light.m_inner_angle;
+		scene_state_light.m_outer_angle       = light.m_outer_angle;
+		scene_state_light.m_light_struct_name = light.m_light_struct_name;
+	}
 }
 
 const Light *Scene::light(ror::Light::LightType a_type) const
@@ -1958,7 +2134,6 @@ void Scene::init(const std::filesystem::path &a_level, ror::EventSystem &a_event
 		try
 		{
 			this->m_scene_state.init(state_file);
-			this->m_scene_state.m_is_valid = false;
 		}
 		catch (const json::exception &e)
 		{
@@ -2021,6 +2196,18 @@ void Scene::make_overlays()
 	overlays.add(this->m_lights);
 	overlays.add(this->m_cameras);
 }
+
+void Scene::update_overlays()
+{
+	auto &ui       = ror::gui();
+	auto &overlays = ui.overlays();
+
+	overlays.clear();
+
+	overlays.add(this->m_lights);
+	overlays.add(this->m_cameras);
+}
+
 
 hash_64_t pass_aware_vertex_hash(rhi::RenderpassType a_passtype, const ror::Mesh &a_mesh, size_t a_prim_index, const std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>> &a_skins)
 {
