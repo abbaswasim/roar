@@ -167,4 +167,12 @@ void BufferMetal::upload(const uint8_t *a_data_pointer, size_t a_offset, size_t 
 	this->unmap(a_offset, a_length);
 }
 
+FORCE_INLINE constexpr size_t BufferMetal::size_in_bytes() const noexcept
+{
+	if (this->m_buffer)
+		return ror::static_cast_safe<size_t>(this->m_buffer->length());
+	else
+		return static_cast<size_t>(0);
+}
+
 }        // namespace rhi

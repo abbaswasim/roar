@@ -49,6 +49,7 @@
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include <cassert>
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -60,15 +61,16 @@ class Scene;
 
 struct DebugData
 {
-	std::vector<Lines3f> m_camera_fustrums{};                        //! A line list for each camera, this is just CPU side data
-	std::vector<Lines3f> m_camera_cascades{};                        //! A line list for each frustum cascade, this is just CPU side data
-	DynamicMesh          m_shadow_cascades{};                        //! A few quads to draw the shadow cascades on
-	DynamicMesh          m_frustums[4];                              //! Extends of the 4 cascades
-	int32_t              m_colored_lines_pso{-1};                    //! A generic PSO that can be used to render colored lines
-	int32_t              m_textured_quads_pso{-1};                   //! A generic PSO that can be used to render textured quads
-	int32_t              m_shadow_map_textured_quads_pso{-1};        //! A generic PSO that can be used to render textured quads
-	int32_t              m_default_sampler{-1};                      //! Index of the default sampler all textured quds will use
-	int32_t              m_shadow_texture{-1};                       //! Index of the shadow map texture that I want to display on one quad
+	using LinesSoup = std::unordered_map<size_t, DynamicMesh>;
+
+	LinesSoup   m_lines_soup{};                             //! A list of things that can be updated per frame by keeping its ID
+	DynamicMesh m_shadow_cascades{};                        //! A few quads to draw the shadow cascades on
+	DynamicMesh m_frustums[4];                              //! Extends of the 4 cascades
+	int32_t     m_colored_lines_pso{-1};                    //! A generic PSO that can be used to render colored lines
+	int32_t     m_textured_quads_pso{-1};                   //! A generic PSO that can be used to render textured quads
+	int32_t     m_shadow_map_textured_quads_pso{-1};        //! A generic PSO that can be used to render textured quads
+	int32_t     m_default_sampler{-1};                      //! Index of the default sampler all textured quds will use
+	int32_t     m_shadow_texture{-1};                       //! Index of the shadow map texture that I want to display on one quad
 };
 
 class Renderer final : public Configuration<Renderer>

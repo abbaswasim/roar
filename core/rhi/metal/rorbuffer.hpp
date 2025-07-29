@@ -70,6 +70,7 @@ class ROAR_ENGINE_ITEM BufferMetal
 	FORCE_INLINE constexpr auto ready()              const noexcept { return this->m_ready;            }
 	FORCE_INLINE constexpr auto platform_buffer()    const noexcept { return this->m_buffer;           }
 	FORCE_INLINE constexpr auto storage_mode()       const noexcept { return this->m_storage_mode;     }
+	FORCE_INLINE constexpr size_t size_in_bytes()    const noexcept;
 
 	FORCE_INLINE constexpr void ready(bool a_ready)                        noexcept { this->m_ready = a_ready;       }
 	FORCE_INLINE           void storage_mode(rhi::ResourceStorageOption a_mode)     { this->m_storage_mode = a_mode; }

@@ -37,6 +37,7 @@
 #include "graphics/primitive_geometries.hpp"
 #include "graphics/roranimation.hpp"
 #include "graphics/rordynamic_mesh.hpp"
+#include "graphics/rorline_soup.hpp"
 #include "graphics/rormesh.hpp"
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
@@ -1596,6 +1597,9 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 		for (auto &dm : a_renderer.dynamic_meshes())
 			dm->render(a_device, a_renderer, a_encoder);
 
+		auto &ls = line_soup();
+		ls.render(a_device, a_encoder);
+
 		// Lets update the UI elements
 		// TODO: Should move out of scene and into global end of frame renderpass
 		auto &setting = ror::settings();
@@ -2039,6 +2043,9 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	this->update_bounding_box();
 	this->make_overlays();
 	this->verify_nodes_data_shader_buffer(a_renderer);
+
+	auto &ls = line_soup();
+	ls.init(a_device, a_event_system);
 }
 
 void Scene::upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs)
@@ -2207,7 +2214,6 @@ void Scene::update_overlays()
 	overlays.add(this->m_lights);
 	overlays.add(this->m_cameras);
 }
-
 
 hash_64_t pass_aware_vertex_hash(rhi::RenderpassType a_passtype, const ror::Mesh &a_mesh, size_t a_prim_index, const std::vector<ror::Skin, rhi::BufferAllocator<ror::Skin>> &a_skins)
 {
@@ -2745,6 +2751,10 @@ void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::Eve
 
 	this->deferred_upload(a_device, a_job_system, a_renderer);
 	this->setup_cameras(a_renderer, a_event_system);
+
+	// Upload the global line_soup incase someone wants to use it for debug rendering
+	auto &ls = line_soup();
+	ls.upload(a_device, a_renderer);
 }
 
 void Scene::read_nodes()

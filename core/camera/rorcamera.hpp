@@ -52,9 +52,10 @@
 namespace ror
 {
 
-const float32_t camera_sensitivity = 0.05f;
-const float32_t camera_speed       = 1.0f;
-const size_t    cascade_count      = 4;
+const float32_t camera_sensitivity    = 0.05f;
+const float32_t camera_speed          = 1.0f;
+const size_t    cascade_count         = 4;
+const size_t    frustum_corners_count = 8;
 
 enum class CameraType
 {
@@ -76,8 +77,8 @@ class ROAR_ENGINE_ITEM Camera
 	FORCE_INLINE         Camera()                             = default;        //! Default constructor
 	FORCE_INLINE         Camera(const Camera &a_other)        = default;        //! Copy constructor
 	FORCE_INLINE         Camera(Camera &&a_other) noexcept    = default;        //! Move constructor
-	FORCE_INLINE Camera &operator=(const Camera &a_other)     = default;         //! Copy assignment operator
-	FORCE_INLINE Camera &operator=(Camera &&a_other) noexcept = default;         //! Move assignment operator
+	FORCE_INLINE Camera &operator=(const Camera &a_other)     = default;        //! Copy assignment operator
+	FORCE_INLINE Camera &operator=(Camera &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Camera() noexcept                           = default;        //! Destructor
 
 	// clang-format off
@@ -161,8 +162,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE constexpr auto& height()        const noexcept { return this->m_height;        }
 	FORCE_INLINE constexpr auto& aspect_ratio()  const noexcept { return this->m_aspect_ratio;  }
 	// clang-format on
-	FORCE_INLINE constexpr auto &frustum_corners(size_t a_index) const;
-	FORCE_INLINE constexpr auto &frustum_center(size_t a_index) const;
+	FORCE_INLINE constexpr auto &frustum_corners(size_t a_index = 0u) const;
+	FORCE_INLINE constexpr auto &frustum_center(size_t a_index = 0u) const;
 	FORCE_INLINE void            set_parameters(CameraType a_type, float32_t a_width, float32_t a_height,
 	                                            float32_t a_near, float32_t a_far,
 	                                            Vector3f a_center, Vector3f a_eye,

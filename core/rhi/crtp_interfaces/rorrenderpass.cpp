@@ -23,8 +23,12 @@
 //
 // Version: 1.0.0
 
+#include "bounds/rorbounding.hpp"
 #include "event_system/rorevent_handles.hpp"
+#include "graphics/rorline_soup.hpp"
 #include "graphics/rorscene.hpp"
+#include "math/rormatrix4_functions.hpp"
+#include "math/rorvector3.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
@@ -137,15 +141,19 @@ void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sce
 	{
 		if (light.m_type == ror::Light::LightType::directional)        // TODO: Check all shadow casting lights
 		{
-			ror::Matrix4f  *view_projection{nullptr};
-			ror::Matrix4f  *projection{nullptr};
-			ror::Matrix4f  *view{nullptr};
-			ror::Vector3f  *position{nullptr};
-			ror::Vector4ui *viewport;
+			ror::Matrix4f  *view_projection_light{nullptr};
+			ror::Matrix4f  *projection_light{nullptr};
+			ror::Matrix4f  *view_light{nullptr};
+			ror::Vector3f  *position_light{nullptr};
+			ror::Vector4ui *viewport_light;
 
-			// TODO: This doesn't work at the moment because of no per pass per view uniforms
-			light.get_transformations(&view_projection, &projection, &view, &position, &viewport);
-			a_renderer.update_per_view_uniform(*view, *projection, *viewport, *position);
+			ror::Matrix4f projection_fit{};
+			ror::Matrix4f view_fit{};
+
+			light.get_transformations(&view_projection_light, &projection_light, &view_light, &position_light, &viewport_light);
+			fit_light_frustrum(a_scene, view_fit, projection_fit, *view_light, &position_light, &viewport_light);
+			a_renderer.update_per_view_uniform(view_fit, projection_fit, *viewport_light, *position_light);
+			// a_renderer.update_per_view_uniform(*view, *projection, *viewport, *position);
 			render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
 			break;
 		}
