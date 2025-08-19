@@ -177,17 +177,26 @@ const Vector3f black3f(0.0f, 0.0f, 0.0f);
 const Color3f red3f(1.0f, 0.0f, 0.0f);
 const Color3f green3f(0.0f, 1.0f, 0.0f);
 const Color3f blue3f(0.0f, 0.0f, 1.0f);
+const Color3f half_red3f(0.5f, 0.0f, 0.0f);
+const Color3f half_green3f(0.0f, 0.5f, 0.0f);
+const Color3f half_blue3f(0.0f, 0.0f, 0.5f);
 const Color3f orange3f(1.0f, 0.5f, 0.0f);
 
 const Color3i red3i(255, 0, 0);
 const Color3i green3i(0, 255, 0);
 const Color3i blue3i(0, 0, 255);
+const Color3i half_red3i(128, 0, 0);
+const Color3i half_green3i(0, 128, 0);
+const Color3i half_blue3i(0, 0, 128);
 const Color3i orange3i(255, 128, 0);
 
 const Color3ui red3ui(255, 0, 0);
 const Color3ui green3ui(0, 255, 0);
 const Color3ui blue3ui(0, 0, 255);
-const Color3i  orange3ui(255, 128, 0);
+const Color3ui half_red3ui(128, 0, 0);
+const Color3ui half_green3ui(0, 128, 0);
+const Color3ui half_blue3ui(0, 0, 128);
+const Color3ui orange3ui(255, 128, 0);
 
 template <class _type>
 using vector3_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type;
