@@ -368,7 +368,7 @@
 			"perspective":{
 				"aspectRatio":1.0,
 				"yfov":60.0,
-				"zfar":1000.0,
+				"zfar":10.0,
 				"znear":0.1
 			}
 		},
@@ -377,8 +377,8 @@
 			"orthographic":{
 				"xmag":1.0,
 				"ymag":1.0,
-				"zfar":5000.0,
-				"znear":-50000.0
+				"zfar":100.0,
+				"znear":0.01
 			}
 		}
 	],
