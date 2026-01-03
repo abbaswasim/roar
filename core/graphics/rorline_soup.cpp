@@ -28,6 +28,7 @@
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rorutilities.hpp"
 #include "math/rorvector3.hpp"
+#include "math/rorvector4.hpp"
 #include "rorline_soup.hpp"
 #include <cassert>
 #include <cstddef>
@@ -181,7 +182,39 @@ void LineSoup::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_
 	a_encoder.draw_primitives(rhi::PrimitiveTopology::lines, static_cast_safe<uint32_t>(vertexBufferOffset), this->m_lines_count * 2);
 }
 
-uint32_t LineSoup::push_box(ror::BoundingBoxf &a_box, uint32_t a_lines_index, ror::Vector4f a_color)
+#define push_points()                                                                                       \
+	const uint32_t         lines_count = 12;                                                                \
+	std::vector<float32_t> data{};                                                                          \
+	data.reserve(lines_count * 2 * 4);                                                                      \
+                                                                                                            \
+	ror::push_point(data, l_b_f, a_color);                                                                  \
+	ror::push_point(data, l_t_f, a_color);                                                                  \
+	ror::push_point(data, l_t_f, a_color);                                                                  \
+	ror::push_point(data, r_t_f, a_color);                                                                  \
+	ror::push_point(data, r_t_f, a_color);                                                                  \
+	ror::push_point(data, r_b_f, a_color);                                                                  \
+	ror::push_point(data, r_b_f, a_color);                                                                  \
+	ror::push_point(data, l_b_f, a_color);                                                                  \
+	ror::push_point(data, l_b_b, a_color);                                                                  \
+	ror::push_point(data, l_t_b, a_color);                                                                  \
+	ror::push_point(data, l_t_b, a_color);                                                                  \
+	ror::push_point(data, r_t_b, a_color);                                                                  \
+	ror::push_point(data, r_t_b, a_color);                                                                  \
+	ror::push_point(data, r_b_b, a_color);                                                                  \
+	ror::push_point(data, r_b_b, a_color);                                                                  \
+	ror::push_point(data, l_b_b, a_color);                                                                  \
+	ror::push_point(data, l_b_f, a_color);                                                                  \
+	ror::push_point(data, l_b_b, a_color);                                                                  \
+	ror::push_point(data, l_t_f, a_color);                                                                  \
+	ror::push_point(data, l_t_b, a_color);                                                                  \
+	ror::push_point(data, r_t_f, a_color);                                                                  \
+	ror::push_point(data, r_t_b, a_color);                                                                  \
+	ror::push_point(data, r_b_f, a_color);                                                                  \
+	ror::push_point(data, r_b_b, a_color);                                                                  \
+	a_lines_index = this->push_lines(reinterpret_cast<uint8_t *>(data.data()), lines_count, a_lines_index); \
+	(void) 0
+
+uint32_t LineSoup::push_box(const ror::BoundingBoxf &a_box, uint32_t a_lines_index, ror::Vector4f a_color)
 {
 	auto bmin = a_box.minimum();
 	auto bmax = a_box.maximum();
@@ -196,50 +229,98 @@ uint32_t LineSoup::push_box(ror::BoundingBoxf &a_box, uint32_t a_lines_index, ro
 	ror::Vector3f r_t_b{bmax.x, bmax.y, bmax.z};
 	ror::Vector3f r_b_b{bmax.x, bmin.y, bmax.z};
 
-	const uint32_t         lines_count = 12;
-	std::vector<float32_t> data{};
-	data.reserve(lines_count * 2 * 4);        // 2 points per line, 4 floats each point (x, y, z, c)
+	// Font 4 lines
+	// Back 4 lines
+	// Side 4 lines
+	push_points();
+
+	return a_lines_index;
+}
+
+uint32_t LineSoup::push_box(const ror::Vector3f a_corners[8], uint32_t a_lines_index, ror::Vector4f a_color)
+{
+	// First 4 corners are the nearest the next 4 are the furthest
+	ror::Vector3f l_b_f{a_corners[0]};
+	ror::Vector3f l_t_f{a_corners[1]};
+	ror::Vector3f r_t_f{a_corners[2]};
+	ror::Vector3f r_b_f{a_corners[3]};
+
+	ror::Vector3f l_b_b{a_corners[4]};
+	ror::Vector3f l_t_b{a_corners[5]};
+	ror::Vector3f r_t_b{a_corners[6]};
+	ror::Vector3f r_b_b{a_corners[7]};
 
 	// Font 4 lines
-	ror::push_point(data, l_b_f, a_color);
-	ror::push_point(data, l_t_f, a_color);
-
-	ror::push_point(data, l_t_f, a_color);
-	ror::push_point(data, r_t_f, a_color);
-
-	ror::push_point(data, r_t_f, a_color);
-	ror::push_point(data, r_b_f, a_color);
-
-	ror::push_point(data, r_b_f, a_color);
-	ror::push_point(data, l_b_f, a_color);
-
 	// Back 4 lines
-	ror::push_point(data, l_b_b, a_color);
-	ror::push_point(data, l_t_b, a_color);
-
-	ror::push_point(data, l_t_b, a_color);
-	ror::push_point(data, r_t_b, a_color);
-
-	ror::push_point(data, r_t_b, a_color);
-	ror::push_point(data, r_b_b, a_color);
-
-	ror::push_point(data, r_b_b, a_color);
-	ror::push_point(data, l_b_b, a_color);
-
 	// Side 4 lines
-	ror::push_point(data, l_b_f, a_color);
-	ror::push_point(data, l_b_b, a_color);
+	push_points();
 
-	ror::push_point(data, l_t_f, a_color);
-	ror::push_point(data, l_t_b, a_color);
+	return a_lines_index;
+}
 
-	ror::push_point(data, r_t_f, a_color);
-	ror::push_point(data, r_t_b, a_color);
+uint32_t LineSoup::push_cross(const ror::Vector3f &a_center, const float32_t a_size, uint32_t a_lines_index, ror::Vector4f a_color)
+{
+	const uint32_t         lines_count{15};
+	const float32_t        half_size{a_size / 2.0f};
+	const float32_t        sixth_size{a_size / 20.0f};
+	std::vector<float32_t> data{};
+	data.reserve(lines_count * 2 * 4);
 
-	ror::push_point(data, r_b_f, a_color);
-	ror::push_point(data, r_b_b, a_color);
+	ror::Vector3f xm{a_center.x - half_size, a_center.y, a_center.z};
+	ror::Vector3f xp{a_center.x + half_size, a_center.y, a_center.z};
 
-	this->push_lines(reinterpret_cast<uint8_t *>(data.data()), lines_count, a_lines_index);
+	ror::Vector3f ym{a_center.x, a_center.y - half_size, a_center.z};
+	ror::Vector3f yp{a_center.x, a_center.y + half_size, a_center.z};
+
+	ror::Vector3f zm{a_center.x, a_center.y, a_center.z - half_size};
+	ror::Vector3f zp{a_center.x, a_center.y, a_center.z + half_size};
+
+	// X-Axis
+	ror::push_point(data, xm, a_color);
+	ror::push_point(data, xp, a_color);
+
+	// Y-Axis
+	ror::push_point(data, ym, a_color);
+	ror::push_point(data, yp, a_color);
+
+	// Z-Axis
+	ror::push_point(data, zm, a_color);
+	ror::push_point(data, zp, a_color);
+
+	// X-Axis Arrows
+	ror::push_point(data, xm, ror::half_red4f);
+	ror::push_point(data, xm + ror::Vector3f{sixth_size, +sixth_size, 0.0f}, ror::half_red4f);
+	ror::push_point(data, xm, ror::half_red4f);
+	ror::push_point(data, xm + ror::Vector3f{sixth_size, -sixth_size, 0.0f}, ror::half_red4f);
+
+	ror::push_point(data, xp, ror::red4f);
+	ror::push_point(data, xp - ror::Vector3f{sixth_size, -sixth_size, 0.0f}, ror::red4f);
+	ror::push_point(data, xp, ror::red4f);
+	ror::push_point(data, xp - ror::Vector3f{sixth_size, +sixth_size, 0.0f}, ror::red4f);
+
+	// Y-Axis Arrows
+	ror::push_point(data, ym, ror::half_green4f);
+	ror::push_point(data, ym + ror::Vector3f{+sixth_size, sixth_size, 0.0f}, ror::half_green4f);
+	ror::push_point(data, ym, ror::half_green4f);
+	ror::push_point(data, ym + ror::Vector3f{-sixth_size, sixth_size, 0.0f}, ror::half_green4f);
+
+	ror::push_point(data, yp, ror::green4f);
+	ror::push_point(data, yp - ror::Vector3f{-sixth_size, sixth_size, 0.0f}, ror::green4f);
+	ror::push_point(data, yp, ror::green4f);
+	ror::push_point(data, yp - ror::Vector3f{+sixth_size, sixth_size, 0.0f}, ror::green4f);
+
+	// Z-Axis Arrows
+	ror::push_point(data, zm, ror::half_blue4f);
+	ror::push_point(data, zm + ror::Vector3f{+sixth_size, 0.0f, sixth_size}, ror::half_blue4f);
+	ror::push_point(data, zm, ror::half_blue4f);
+	ror::push_point(data, zm + ror::Vector3f{-sixth_size, 0.0f, sixth_size}, ror::half_blue4f);
+
+	ror::push_point(data, zp, ror::blue4f);
+	ror::push_point(data, zp - ror::Vector3f{-sixth_size, 0.0f, sixth_size}, ror::blue4f);
+	ror::push_point(data, zp, ror::blue4f);
+	ror::push_point(data, zp - ror::Vector3f{+sixth_size, 0.0f, sixth_size}, ror::blue4f);
+
+	a_lines_index = this->push_lines(reinterpret_cast<uint8_t *>(data.data()), lines_count, a_lines_index);
 
 	return a_lines_index;
 }

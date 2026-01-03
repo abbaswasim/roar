@@ -87,7 +87,9 @@ class ROAR_ENGINE_ITEM LineSoup final
 	void     upload(const rhi::Device &a_device, const ror::Renderer &a_renderer);
 	void     render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder);
 	uint32_t push_lines(const uint8_t *a_data, uint32_t a_lines_count, uint32_t a_lines_index = 0xFFFFFFFF);
-	uint32_t push_box(ror::BoundingBoxf &a_box, uint32_t a_lines_index, ror::Vector4f a_color = ror::orange4f);
+	uint32_t push_box(const ror::BoundingBoxf &a_box, uint32_t a_lines_index = 0xFFFFFFFF, ror::Vector4f a_color = ror::orange4f);
+	uint32_t push_box(const ror::Vector3f a_corners[8], uint32_t a_lines_index = 0xFFFFFFFF, ror::Vector4f a_color = ror::orange4f);
+	uint32_t push_cross(const ror::Vector3f &a_center, const float32_t a_size, uint32_t a_lines_index = 0xFFFFFFFF, ror::Vector4f a_color = ror::orange4f);
 
   protected:
   private:
