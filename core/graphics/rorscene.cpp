@@ -1621,13 +1621,16 @@ void Scene::update(ror::Renderer &a_renderer, ror::Timer &a_timer)
 
 void Scene::update_bounding_box()
 {
+
 	size_t node_id = 0;
 	for (auto &node : this->nodes_side_data())
 	{
 		if (node.m_model != -1)
 		{
+			auto scene_node_xform = get_node_global_transform(*this, this->m_nodes[node_id]);
+
 			auto &model = this->m_models[static_cast_safe<size_t>(node.m_model)];
-			auto  bbox  = model.bounding_box_scaled();
+			auto  bbox  = model.bounding_box_scaled(scene_node_xform);
 
 			// TODO: These needs to be traversed to the root to be correct
 			auto &translation = this->m_nodes[node_id].m_trs_transform.m_translation;
@@ -1645,10 +1648,9 @@ void Scene::update_bounding_box()
 	}
 
 	auto extent = this->m_bounding_box.maximum() - this->m_bounding_box.minimum();
+
 	if (extent.x < 0.5f || extent.y < 0.5f)
-	{
 		this->m_bounding_box.set(ror::Vector3f(-1.0f), ror::Vector3f(1.0f));
-	}
 }
 
 uint32_t Scene::models_count()
@@ -1755,33 +1757,6 @@ void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::functio
 
 	a_job_handles.emplace_back(std::move(grid_job_handle));
 	a_job_handles.emplace_back(std::move(upload_job_handle));
-}
-
-auto trs_to_matrix4(ror::Transformf &a_trs)
-{
-	ror::Matrix4f translation = ror::matrix4_translation(a_trs.translation());
-	ror::Matrix4f rotation    = ror::matrix4_rotation(a_trs.rotation());
-	ror::Matrix4f scale       = ror::matrix4_scaling(a_trs.scale());
-
-	return translation * rotation * scale;
-}
-
-template <typename _node_container, typename _node_type>
-auto get_node_global_transform(_node_container &a_model, _node_type &a_node)
-{
-	auto         &model_nodes = a_model.nodes();
-	ror::Matrix4f node_matrix{trs_to_matrix4(a_node.m_trs_transform)};
-	_node_type   *node = &a_node;
-
-	while (node->m_parent != -1)
-	{
-		auto &p     = model_nodes[static_cast<size_t>(node->m_parent)];
-		node_matrix = trs_to_matrix4(p.m_trs_transform) * node_matrix;
-
-		node = &p;
-	}
-
-	return node_matrix;
 }
 
 // Good reference for how to add different geometry to debug data

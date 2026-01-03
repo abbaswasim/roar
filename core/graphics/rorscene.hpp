@@ -55,7 +55,8 @@
 namespace ror
 {
 // TODO: Define properly somewhere
-class ROAR_ENGINE_ITEM ParticleSystem {};
+class ROAR_ENGINE_ITEM ParticleSystem
+{};
 
 class ROAR_ENGINE_ITEM SceneNode
 {
