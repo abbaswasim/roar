@@ -67,6 +67,9 @@ class ROAR_ENGINE_ITEM Transform final
 	FORCE_INLINE void translation(const Vector3<_type> &a_translation) noexcept;
 	FORCE_INLINE void scale(const Vector3<_type> &a_scale) noexcept;
 
+	FORCE_INLINE Matrix4<_type> matrix4f() noexcept;
+	FORCE_INLINE Matrix4<_type> matrix3f() noexcept;
+
   protected:
   private:
 };

@@ -23,7 +23,8 @@
 //
 // Version: 1.0.0
 
-#include "math/rormatrix4.hpp"
+#include "math/rormatrix4_functions.hpp"
+#include "math/rormatrix3_functions.hpp"
 #include "math/rorvector3.hpp"
 #include "rortransform.hpp"
 
@@ -149,6 +150,25 @@ FORCE_INLINE Transform<_type> operator*(const Transform<_type> &a_lhs, const Tra
 	result.m_translation = a_lhs.m_translation + (a_lhs.m_rotation * (a_lhs.m_scale * a_rhs.m_translation));
 
 	return result;
+}
+
+template <class _type>
+FORCE_INLINE Matrix4<_type> Transform<_type>::matrix4f() noexcept
+{
+	ror::Matrix4f translation = ror::matrix4_translation(this->m_translation);
+	ror::Matrix4f rotation    = ror::matrix4_rotation(this->m_rotation);
+	ror::Matrix4f scale       = ror::matrix4_scaling(this->m_scale);
+
+	return translation * rotation * scale;
+}
+
+template <class _type>
+FORCE_INLINE Matrix4<_type> Transform<_type>::matrix3f() noexcept
+{
+	ror::Matrix3f rotation    = ror::matrix3_rotation(this->m_translation);
+	ror::Matrix3f scale       = ror::matrix4_scaling(this->m_scale);
+
+	return rotation * scale;
 }
 
 }        // namespace ror
