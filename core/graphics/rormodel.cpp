@@ -35,6 +35,7 @@
 #include "graphics/rormodel.hpp"
 #include "graphics/rornode.hpp"
 #include "math/rormatrix.hpp"
+#include "math/rormatrix4.hpp"
 #include "math/rorvector.hpp"
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
@@ -1402,16 +1403,16 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 				switch (mat.alpha_mode)
 				{
-    				case cgltf_alpha_mode::cgltf_alpha_mode_opaque:
+					case cgltf_alpha_mode::cgltf_alpha_mode_opaque:
 						material.m_blend_mode = rhi::BlendMode::opaque;
 						break;
-	    			case cgltf_alpha_mode::cgltf_alpha_mode_mask:
+					case cgltf_alpha_mode::cgltf_alpha_mode_mask:
 						material.m_blend_mode = rhi::BlendMode::mask;
 						break;
-	    			case cgltf_alpha_mode::cgltf_alpha_mode_blend:
+					case cgltf_alpha_mode::cgltf_alpha_mode_blend:
 						material.m_blend_mode = rhi::BlendMode::blend;
 						break;
-	    			case cgltf_alpha_mode::cgltf_alpha_mode_max_enum:
+					case cgltf_alpha_mode::cgltf_alpha_mode_max_enum:
 						assert(0 && "Invalid alpha mode");
 						break;
 				}
@@ -1587,9 +1588,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 								assert(attrib.index < 2 && "Don't support more than 2 weight sets");
 								current_index = static_cast<rhi::BufferSemantic>(ror::enum_to_type_cast(rhi::BufferSemantic::vertex_weight_0) << static_cast<uint64_t>(attrib.index));
 								break;
-						    case cgltf_attribute_type::cgltf_attribute_type_invalid:
-						    case cgltf_attribute_type::cgltf_attribute_type_custom:
-						    case cgltf_attribute_type::cgltf_attribute_type_max_enum:
+							case cgltf_attribute_type::cgltf_attribute_type_invalid:
+							case cgltf_attribute_type::cgltf_attribute_type_custom:
+							case cgltf_attribute_type::cgltf_attribute_type_max_enum:
 								assert(0 && "rhi::BufferView not valid yet");
 								break;
 						}
@@ -1758,9 +1759,9 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 								case cgltf_attribute_type::cgltf_attribute_type_color:
 								case cgltf_attribute_type::cgltf_attribute_type_joints:
 								case cgltf_attribute_type::cgltf_attribute_type_weights:
-							    case cgltf_attribute_type::cgltf_attribute_type_invalid:
-							    case cgltf_attribute_type::cgltf_attribute_type_custom:
-							    case cgltf_attribute_type::cgltf_attribute_type_max_enum:
+								case cgltf_attribute_type::cgltf_attribute_type_invalid:
+								case cgltf_attribute_type::cgltf_attribute_type_custom:
+								case cgltf_attribute_type::cgltf_attribute_type_max_enum:
 									assert(0 && "Morph target not supported for this attribute");
 									break;
 							}
@@ -2104,7 +2105,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 
 					switch (canimation.samplers[j].interpolation)
 					{
-					    case cgltf_interpolation_type::cgltf_interpolation_type_linear:
+						case cgltf_interpolation_type::cgltf_interpolation_type_linear:
 							animation_sampler.m_interpolation = AnimationInterpolation::linear;
 							break;
 						case cgltf_interpolation_type::cgltf_interpolation_type_step:
@@ -2153,8 +2154,8 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						case cgltf_animation_path_type::cgltf_animation_path_type_weights:
 							animation_channel.m_target_node_path = AnimationTarget::weight;
 							break;
-					    case cgltf_animation_path_type::cgltf_animation_path_type_invalid:
-					    case cgltf_animation_path_type::cgltf_animation_path_type_max_enum:
+						case cgltf_animation_path_type::cgltf_animation_path_type_invalid:
+						case cgltf_animation_path_type::cgltf_animation_path_type_max_enum:
 							assert(0 && "Can't deal with invalid interpolation");
 					}
 
@@ -2237,7 +2238,7 @@ void Model::update_mesh_program(uint32_t a_mesh_index, uint32_t a_primitive_inde
 	this->m_meshes[a_mesh_index].program(a_primitive_index, a_program_index);
 }
 
-ror::BoundingBoxf Model::bounding_box_scaled()
+ror::BoundingBoxf Model::bounding_box_scaled(const ror::Matrix4f a_scene_xform)
 {
 	ror::log_info("Recreating model bounding box");
 
@@ -2253,16 +2254,34 @@ ror::BoundingBoxf Model::bounding_box_scaled()
 			{
 				auto &mesh_bound = mesh.bounding_box(prim_id);
 
-				// TODO: These needs to be traversed to the root and skeletal/morph target animation bound adjusted to be correct
+				/*
+				// TODO: Use TRS to traverse to the root and skeletal/morph target animation bound adjusted
 				auto T = node.m_trs_transform.translation();
 				auto R = node.m_trs_transform.rotation();
 				auto S = node.m_trs_transform.scale();
 
 				auto min = T + (R * (S * mesh_bound.minimum()));
 				auto max = T + (R * (S * mesh_bound.maximum()));
+				*/
 
-				bbox.add_point(min);
-				bbox.add_point(max);
+				ror::Matrix4f xform = a_scene_xform * get_node_global_transform(*this, node);
+
+				auto min = mesh_bound.minimum();
+				auto max = mesh_bound.maximum();
+
+				const ror::Vector3f corners[8]{
+				    {min.x, min.y, min.z},
+				    {max.x, min.y, min.z},
+				    {min.x, max.y, min.z},
+				    {min.x, min.y, max.z},
+				    {max.x, max.y, min.z},
+				    {min.x, max.y, max.z},
+				    {max.x, min.y, max.z},
+				    {max.x, max.y, max.z},
+				};
+
+				for (const auto &corner : corners)
+					bbox.add_point(xform * corner);
 			}
 		}
 	}

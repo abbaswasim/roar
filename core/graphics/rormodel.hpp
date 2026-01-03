@@ -71,7 +71,7 @@ class ROAR_ENGINE_ITEM Model final
 	void              create_debug(bool a_generate_shaders, std::vector<std::vector<float32_t>> &attributes_data, std::vector<rhi::PrimitiveTopology> a_topology, rhi::BuffersPack &a_buffers_pack);
 	void              reset();
 	void              upload(rhi::Device &a_device);
-	ror::BoundingBoxf bounding_box_scaled();
+	ror::BoundingBoxf bounding_box_scaled(const ror::Matrix4f a_scene_xform);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &images()                 noexcept  {  return this->m_images;             }
@@ -117,6 +117,24 @@ class ROAR_ENGINE_ITEM Model final
 	bool                                                                        m_generate_shaders{true};        //! Flag to determine if the model requires its shaders to be generated or these are provided,
 	                                                                                                             //! For instanced models to many nodes this will generate shaders for all nodes
 };
+
+template <typename _node_container, typename _node_type>
+auto get_node_global_transform(_node_container &a_nodes_container, _node_type &a_node)
+{
+	auto         &nodes = a_nodes_container.nodes();
+	ror::Matrix4f node_matrix{a_node.m_trs_transform.matrix4f()};
+	_node_type   *node = &a_node;
+
+	while (node->m_parent != -1)
+	{
+		auto &parent = nodes[static_cast<size_t>(node->m_parent)];
+		node_matrix  = parent.m_trs_transform.matrix4f() * node_matrix;
+
+		node = &parent;
+	}
+
+	return node_matrix;
+}
 
 }        // namespace ror
 
