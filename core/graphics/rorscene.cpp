@@ -170,6 +170,11 @@ void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_s
 
 	this->update_from_scene_state();
 
+	// Lets double check if we were told to override projection far
+	if (ror::settings().m_fit_far_to_scene)
+		for (auto &cam : this->cameras())
+			cam.set_far_to_scene(bbox);
+
 	auto camera_top_view = [this](Event &) {
 		auto &cam = this->current_camera();
 		cam.orient_top();
@@ -1621,7 +1626,6 @@ void Scene::update(ror::Renderer &a_renderer, ror::Timer &a_timer)
 
 void Scene::update_bounding_box()
 {
-
 	size_t node_id = 0;
 	for (auto &node : this->nodes_side_data())
 	{

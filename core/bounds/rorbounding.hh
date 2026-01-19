@@ -36,10 +36,9 @@ namespace ror
 template <class _type, uint32_t _points_count>
 void BoundingBase<_type, _points_count>::create_from_points(const std::vector<_type> &a_points)
 {
-	auto min = std::numeric_limits<typename _type::value_type>::min();
-	auto max = std::numeric_limits<typename _type::value_type>::max();
+	const auto max = std::numeric_limits<typename _type::value_type>::max();
 
-	_type minimum(max), maximum(min);
+	_type minimum(max), maximum(-max);
 
 	for (auto &p : a_points)
 	{
@@ -824,10 +823,9 @@ FORCE_INLINE void Round<_type, vector2_typename<_type>>::create_from_min_max(_ty
 template <class _type>
 FORCE_INLINE Box<_type, vector2_typename<_type>>::Box()
 {
-	auto min = std::numeric_limits<typename _type::value_type>::min();
-	auto max = std::numeric_limits<typename _type::value_type>::max();
+	const auto max = std::numeric_limits<typename _type::value_type>::max();
 
-	this->set(_type(max, max), _type(min, min));
+	this->set(_type(max, max), _type(-max, -max));
 }
 
 template <class _type>
@@ -866,6 +864,44 @@ template <class _type>
 FORCE_INLINE typename _type::value_type Box<_type, vector2_typename<_type>>::diagonal() const noexcept
 {
 	return this->extent().length();
+}
+
+template <class _type>
+FORCE_INLINE auto Box<_type, vector3_typename<_type>>::corners() const noexcept
+{
+	auto min = this->minimum();
+	auto max = this->maximum();
+
+	// All 8 corners of the bounding box
+	std::array<ror::Vector3f, 8> a_points;
+
+	a_points[0] = {min.x, min.y, min.z};
+	a_points[1] = {max.x, min.y, min.z};
+	a_points[2] = {max.x, max.y, min.z};
+	a_points[3] = {min.x, max.y, min.z};
+	a_points[4] = {min.x, min.y, max.z};
+	a_points[5] = {max.x, min.y, max.z};
+	a_points[6] = {max.x, max.y, max.z};
+	a_points[7] = {min.x, max.y, max.z};
+
+	return a_points;
+}
+
+template <class _type>
+FORCE_INLINE auto Box<_type, vector2_typename<_type>>::corners() const noexcept
+{
+	auto min = this->minimum();
+	auto max = this->maximum();
+
+	// All 8 corners of the bounding box
+	std::array<ror::Vector2f, 4> a_points;
+
+	a_points[0] = {min.x, min.y};
+	a_points[1] = {max.x, min.y};
+	a_points[2] = {max.x, max.y};
+	a_points[3] = {min.x, max.y};
+
+	return a_points;
 }
 
 template <class _type>
@@ -1169,10 +1205,9 @@ FORCE_INLINE void Box<_type, vector2_typename<_type>>::create_from_min_max(_type
 template <class _type>
 FORCE_INLINE Box<_type, vector3_typename<_type>>::Box()
 {
-	auto min = std::numeric_limits<typename _type::value_type>::min();
-	auto max = std::numeric_limits<typename _type::value_type>::max();
+	const auto max = std::numeric_limits<typename _type::value_type>::max();
 
-	this->set(_type(max, max, max), _type(min, min, min));
+	this->set(_type(max, max, max), _type(-max, -max,  -max ));
 }
 
 template <class _type>

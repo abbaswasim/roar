@@ -2360,12 +2360,18 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 
 	const size_t  data_size{6 * 5};
 	float32_t     scale{0.25f};
-	ror::Vector2f offset{0.75f, 0.75f};
+	float32_t     win_w{static_cast<float32_t>(ror::settings().m_window.m_dimensions.z)};
+	float32_t     win_h{static_cast<float32_t>(ror::settings().m_window.m_dimensions.w)};
+	float32_t     pixel_size_w = scale / win_w;
+	float32_t     pixel_size_h = scale / win_h;
+	float32_t     width{shadow_image->width() * pixel_size_w};
+	float32_t     height{shadow_image->height() * pixel_size_h};
+	ror::Vector2f offset{1.0f - width, 1.0f - height};
 	float32_t     quad_vertex_buffer[data_size];
 	for (size_t i = 0; i < data_size; i += 5)
 	{
-		quad_vertex_buffer[i + 0] = quad_vertex_buffer_interleaved[i + 0] * scale + offset.x;
-		quad_vertex_buffer[i + 1] = quad_vertex_buffer_interleaved[i + 1] * scale + offset.y;
+		quad_vertex_buffer[i + 0] = quad_vertex_buffer_interleaved[i + 0] * width + offset.x;
+		quad_vertex_buffer[i + 1] = quad_vertex_buffer_interleaved[i + 1] * height + offset.y;
 		quad_vertex_buffer[i + 2] = quad_vertex_buffer_interleaved[i + 2] * scale;
 
 		quad_vertex_buffer[i + 3] = quad_vertex_buffer_interleaved[i + 3];

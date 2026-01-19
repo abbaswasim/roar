@@ -327,6 +327,7 @@ Settings::Settings()
 	this->m_generate_quad_mesh               = setting.get<bool>("generate_quad_mesh");
 	this->m_generate_fullscreen_quad_mesh    = setting.get<bool>("generate_fullscreen_quad_mesh");
 	this->m_generate_pink_textures           = setting.get<bool>("generate_pink_textures");
+	this->m_fit_far_to_scene                  = setting.get<bool>("fit_far_to_scene");
 
 	this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
 

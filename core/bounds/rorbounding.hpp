@@ -144,7 +144,7 @@ using BoundingRectangle = Box<_type, vector2_typename<_type>>;
 	FORCE_INLINE ~Round() noexcept override                 = default;            \
 	FORCE_INLINE      Round(_type a_center, typename _type::value_type a_radius); \
 	FORCE_INLINE void set(_type a_center, typename _type::value_type a_radius);   \
-	FORCE_INLINE auto radius() const noexcept->typename _type::value_type;        \
+	FORCE_INLINE auto radius() const noexcept -> typename _type::value_type;      \
 	FORCE_INLINE void set_radius(typename _type::value_type a_radius);            \
 	FORCE_INLINE void set_center(_type a_center);                                 \
 	BOUND_COMMON()
@@ -178,6 +178,7 @@ class ROAR_ENGINE_ITEM Round<_type, vector3_typename<_type>> final : public Boun
 	FORCE_INLINE _type                      maximum() const noexcept;              \
 	FORCE_INLINE _type                      extent() const noexcept;               \
 	FORCE_INLINE typename _type::value_type diagonal() const noexcept;             \
+	FORCE_INLINE auto                       corners() const noexcept;              \
 	BOUND_COMMON()
 
 // Bounding rectangle declration

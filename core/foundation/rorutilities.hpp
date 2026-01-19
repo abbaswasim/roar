@@ -200,7 +200,7 @@ FORCE_INLINE _type random()
 	static std::random_device device;
 	static std::mt19937       engine(device());
 #endif
-	return _random(std::numeric_limits<_type>::min(), std::numeric_limits<_type>::max(), engine);
+	return _random(-std::numeric_limits<_type>::max(), std::numeric_limits<_type>::max(), engine);
 }
 
 // Not very high quality and slow random generators, better user ror::Random

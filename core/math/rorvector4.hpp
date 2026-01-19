@@ -130,7 +130,7 @@ const Vector4f waxis4f_negative(0.0f, 0.0f, 0.0f, 0.0f);
 const Vector4f white(1.0f, 1.0f, 1.0f, 1.0f);
 const Vector4f half_white(0.2f, 0.2f, 0.2f, 1.0f);
 const Vector4f black(0.0f, 0.0f, 0.0f, 0.0f);
-const Vector4f min_vector4f(std::numeric_limits<float32_t>::min(), std::numeric_limits<float32_t>::min(), std::numeric_limits<float32_t>::min(), std::numeric_limits<float32_t>::min());
+const Vector4f min_vector4f(-std::numeric_limits<float32_t>::max(), -std::numeric_limits<float32_t>::max(), -std::numeric_limits<float32_t>::max(), -std::numeric_limits<float32_t>::max());
 const Vector4f max_vector4f(std::numeric_limits<float32_t>::max(), std::numeric_limits<float32_t>::max(), std::numeric_limits<float32_t>::max(), std::numeric_limits<float32_t>::max());
 
 const Vector4i zero_vector4i(0, 0, 0, 0);
@@ -142,7 +142,7 @@ const Vector4i negative_xaxis4i(-1, 0, 0, 0);
 const Vector4i negative_yaxis4i(0, -1, 0, 0);
 const Vector4i negative_zaxis4i(0, 0, -1, 0);
 const Vector4i negative_waxis4i(0, 0, 0, 0);
-const Vector4i min_vector4i(std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min());
+const Vector4i min_vector4i(-std::numeric_limits<int32_t>::max(), -std::numeric_limits<int32_t>::max(), -std::numeric_limits<int32_t>::max(), -std::numeric_limits<int32_t>::max());
 const Vector4i max_vector4i(std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max());
 
 const Vector4d zero_vector4d(0.0, 0.0, 0.0, 0.0);
@@ -154,19 +154,19 @@ const Vector4d negative_xaxis4d(-1.0, 0.0, 0.0, 0.0);
 const Vector4d negative_yaxis4d(0.0, -1.0, 0.0, 0.0);
 const Vector4d negative_zaxis4d(0.0, 0.0, -1.0, 0.0);
 const Vector4d negative_waxis4d(0.0, 0.0, 0.0, 0.0);
-const Vector4d min_vector4d(std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min());
+const Vector4d min_vector4d(-std::numeric_limits<double64_t>::max(), -std::numeric_limits<double64_t>::max(), -std::numeric_limits<double64_t>::max(), -std::numeric_limits<double64_t>::max());
 const Vector4d max_vector4d(std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max());
 
 const Vector4f zero_point4f(0.0f, 0.0f, 0.0f, 1.0f);
-const Vector4f min_point4f(std::numeric_limits<float32_t>::min(), std::numeric_limits<float32_t>::min(), std::numeric_limits<float32_t>::min(), 1.0f);
+const Vector4f min_point4f(-std::numeric_limits<float32_t>::max(), -std::numeric_limits<float32_t>::max(), -std::numeric_limits<float32_t>::max(), 1.0f);
 const Vector4f max_point4f(std::numeric_limits<float32_t>::max(), std::numeric_limits<float32_t>::max(), std::numeric_limits<float32_t>::max(), 1.0f);
 
 const Vector4i zero_point4i(0, 0, 0, 1);
-const Vector4i min_point4i(std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::min(), 1.0f);
+const Vector4i min_point4i(-std::numeric_limits<int32_t>::max(), -std::numeric_limits<int32_t>::max(), -std::numeric_limits<int32_t>::max(), 1.0f);
 const Vector4i max_point4i(std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max(), 1.0f);
 
 const Vector4d zero_point4d(0.0, 0.0, 0.0, 1.0);
-const Vector4d min_point4d(std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min(), std::numeric_limits<double64_t>::min(), 1.0f);
+const Vector4d min_point4d(-std::numeric_limits<double64_t>::max(), -std::numeric_limits<double64_t>::max(), -std::numeric_limits<double64_t>::max(), 1.0f);
 const Vector4d max_point4d(std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max(), std::numeric_limits<double64_t>::max(), 1.0f);
 
 const Vector4f white4f(1.0f, 1.0f, 1.0f, 1.0f);

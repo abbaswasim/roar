@@ -185,6 +185,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_generate_canonical_cube_map{false};
 	bool m_invert_canonical_cube_map{false};
 	bool m_generate_pink_textures{false};
+	bool m_fit_far_to_scene{false};
 	bool m_background_srgb_to_linear{false};
 	bool m_force_linear_textures{false};
 	bool m_force_mipmapped_textures{false};

@@ -113,6 +113,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	using Camera::type;
 
 	FORCE_INLINE void set_from_parameters();
+	FORCE_INLINE void set_far_to_scene(ror::BoundingBoxf a_scene_bounds);
 	FORCE_INLINE void bounds(float32_t a_width, float32_t a_height);
 	FORCE_INLINE void volume(Vector3f a_minimum, Vector3f a_maximum);
 	FORCE_INLINE void center(Vector3f a_center);
@@ -186,37 +187,37 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, float32_t a_scale);
 	FORCE_INLINE void forward(double64_t a_zoom_delta);
 
-	Vector3f      m_target{0.0f, 0.0f, 0.0f};               //! Target position in worldspace that doesn't change unlike center
-	Vector3f      m_center{0.0f, 0.0f, 0.0f};               //! Target position in worldspace
-	Vector3f      m_eye{0.0f, 0.0f, 1.0f};                  //! Eye position in worldspace
-	Vector3f      m_right{1.0f, 0.0f, 0.0f};                //! Right vector in camera's frame of reference
-	Vector3f      m_up{0.0f, 1.0f, 0.0f};                   //! Up vector in camera's frame of reference
-	Vector3f      m_forward{0.0f, 0.0f, -1.0f};             //! Forward vector in camera's frame of reference
-	Vector3f      m_minimum{-50.0f, -50.0f, -50.0f};        //! Minimum bound of the bounding volume that the camera will always make sure to see fully
-	Vector3f      m_maximum{50.0f, 50.0f, 50.0f};           //! Maximum bound of the bounding volume that the camera will always make sure to see fully
-	float32_t     m_x_position{0.0f};                       //! Previous cusor position of the mouse pointer
-	float32_t     m_y_position{0.0f};                       //! Previous cusor position of the mouse pointer
-	float32_t     m_y_fov{60.0f};                           //! Y-FOV of the camera
-	float32_t     m_y_fov_target{60.0f};                    //! Copy Y-FOV of the camera for resetting purposes
-	float32_t     m_z_near{0.1f};                           //! z-near of the camera
-	float32_t     m_z_far{1000.0f};                         //! z-far of the camera
-	float32_t     m_aspect_ratio{1.0f};                     //! Aspect ratio of the camera
-	float32_t     m_width{1024.0f};                         //! Width of the rectangle it needs to fill
-	float32_t     m_height{768.0f};                         //! Height of the rectangle it needs to fill
-	float32_t     m_x_mag{1.0f};                            //! Width of the orthographics camera
-	float32_t     m_y_mag{1.0f};                            //! Height of the orthographics camera
-	CameraMode    m_mode{CameraMode::orbit};                //! Default orbit camera
-	Frustum       m_frustums[cascade_count];                //! Frustums for all the cascades, max 4 splits
-	EventSystem  *m_event_system{nullptr};                  //! A non-owning alias of the event system to not have to keep moving this around
-	EventCallback m_move_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_drag_callback{};                        //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_resize_callback{};                      //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_forward_callback{};                     //! forward lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_zoom_callback{};                        //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_frambuffer_resize_callback{};           //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_mode_callback{};                        //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_reset_callback{};                       //! Reset lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_frustum_callback{};                     //! Frustum snapshop lambda function that will be used to subscribe and unsubscribe this camera with event system
+	Vector3f      m_target{0.0f, 0.0f, 0.0f};            //! Target position in worldspace that doesn't change unlike center
+	Vector3f      m_center{0.0f, 0.0f, 0.0f};            //! Target position in worldspace
+	Vector3f      m_eye{0.0f, 0.0f, 1.0f};               //! Eye position in worldspace // TODO: This should be correctly transformed with what's in the scene file translation/rotation scale etc. Its currently not working
+	Vector3f      m_right{1.0f, 0.0f, 0.0f};             //! Right vector in camera's frame of reference
+	Vector3f      m_up{0.0f, 1.0f, 0.0f};                //! Up vector in camera's frame of reference
+	Vector3f      m_forward{0.0f, 0.0f, -1.0f};          //! Forward vector in camera's frame of reference
+	Vector3f      m_minimum{-5.0f, -5.0f, -5.0f};        //! Minimum bound of the bounding volume that the camera will always make sure to see fully
+	Vector3f      m_maximum{10.0f, 10.0f, 10.0f};        //! Maximum bound of the bounding volume that the camera will always make sure to see fully
+	float32_t     m_x_position{0.0f};                    //! Previous cusor position of the mouse pointer
+	float32_t     m_y_position{0.0f};                    //! Previous cusor position of the mouse pointer
+	float32_t     m_y_fov{60.0f};                        //! Y-FOV of the camera
+	float32_t     m_y_fov_target{60.0f};                 //! Copy Y-FOV of the camera for resetting purposes
+	float32_t     m_z_near{0.1f};                        //! z-near of the camera
+	float32_t     m_z_far{10.0f};                        //! z-far of the camera
+	float32_t     m_aspect_ratio{1.0f};                  //! Aspect ratio of the camera
+	float32_t     m_width{1024.0f};                      //! Width of the rectangle it needs to fill
+	float32_t     m_height{768.0f};                      //! Height of the rectangle it needs to fill
+	float32_t     m_x_mag{1.0f};                         //! Width of the orthographics camera
+	float32_t     m_y_mag{1.0f};                         //! Height of the orthographics camera
+	CameraMode    m_mode{CameraMode::orbit};             //! Default orbit camera
+	Frustum       m_frustums[cascade_count];             //! Frustums for all the cascades, max 4 splits
+	EventSystem  *m_event_system{nullptr};               //! A non-owning alias of the event system to not have to keep moving this around
+	EventCallback m_move_callback{};                     //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_drag_callback{};                     //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_resize_callback{};                   //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_forward_callback{};                  //! forward lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_zoom_callback{};                     //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_frambuffer_resize_callback{};        //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_mode_callback{};                     //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_reset_callback{};                    //! Reset lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_frustum_callback{};                  //! Frustum snapshop lambda function that will be used to subscribe and unsubscribe this camera with event system
 };
 }        // namespace ror
 

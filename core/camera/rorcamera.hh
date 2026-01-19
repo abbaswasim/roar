@@ -46,6 +46,23 @@ void OrbitCamera::set_from_parameters()
 	this->update_view(this->m_up);
 }
 
+void OrbitCamera::set_far_to_scene(ror::BoundingBoxf a_scene_bounds)
+{
+	auto scene_bbox_points_ws = a_scene_bounds.corners();        // Initially in world space but converted to ls in next line
+
+	auto far = 0.0f;
+	for (auto &scene_bbox_point : scene_bbox_points_ws)
+	{
+		scene_bbox_point = this->m_view * scene_bbox_point;
+		far              = std::min(far, scene_bbox_point.z);
+	}
+
+	this->m_z_far = -far;        // FIXME: reverse-z consideration
+
+	this->update_projection();
+	this->update_view(this->m_up);
+}
+
 void OrbitCamera::zoom(double64_t a_zoom_delta)
 {
 	auto delta = (camera_sensitivity * 10.0f * static_cast<float32_t>(a_zoom_delta));
