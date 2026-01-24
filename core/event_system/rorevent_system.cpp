@@ -34,8 +34,6 @@
 
 namespace ror
 {
-using std::filesystem::path;
-
 constexpr uint32_t column_size = 40;
 
 static std::string trim_token(std::string a_text)
@@ -164,10 +162,7 @@ static std::string extract_callback_identifier(const std::source_location &a_loc
 		if (is_unnamed)
 			token = "{anonymous_lambda}";
 
-		auto ts = column_size - token.size();
-
-		for (uint32_t i = 0; i < ts; i++)
-			token += " ";
+		token = fit_string_to_size(token, column_size);
 
 		token += " | ";
 
@@ -493,7 +488,7 @@ void EventSystem::print_keybindings() const
 			continue;
 
 		auto handle_str = create_event_handle(entry.first);
-		assert(handle_str.size() < column_size && "Keyboard handle is bigger than 35 characters");
+		assert(handle_str.size() < column_size && "Keyboard handle is bigger than column_size characters");
 
 		result += "\n| ";
 		result += handle_str;
@@ -511,6 +506,7 @@ void EventSystem::print_keybindings() const
 			{
 				for (uint32_t i = 0; i < column_size; i++)
 					result += " ";
+
 				result += " | ";
 			}
 
