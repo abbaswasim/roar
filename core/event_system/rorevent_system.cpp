@@ -95,10 +95,10 @@ static std::string read_file_name(const std::source_location &a_loc)
 	std::string file_name{a_loc.file_name()};
 	std::string roar_name{"roar_engine"};
 
-    auto pos = file_name.find(roar_name);
+	auto pos = file_name.find(roar_name);
 	assert(pos != std::string::npos && "Can't have file outside roar_engine");
 
-    return "./" + file_name.substr(pos);
+	return "./" + file_name.substr(pos);
 }
 
 static std::string fit_string_to_size(std::string a_string, uint32_t a_size)
@@ -131,13 +131,14 @@ static std::string extract_callback_identifier(const std::source_location &a_loc
 	{
 		auto subscribe_pos = line.find("subscribe");
 		if (subscribe_pos == std::string::npos)
-			return "no-name-lambda";
+			return "{anonymous_lambda}";
 
 		auto comma = line.find(',', subscribe_pos);
 		if (comma == std::string::npos)
-			return "no-name-lambda";
+			return "{anonymous_lambda}";
 
-		auto tharrow = line.find("this->", comma);
+		auto is_unnamed = false;
+		auto tharrow    = line.find("this->", comma);
 		if (tharrow != std::string::npos)
 			comma = tharrow + 6;
 		else
@@ -145,6 +146,10 @@ static std::string extract_callback_identifier(const std::source_location &a_loc
 			auto spc = line.find(" ", comma);
 			if (spc != std::string::npos)
 				comma = spc;
+
+			auto anonym = line.find("[", comma);
+			if (anonym != std::string::npos)
+				is_unnamed = true;
 		}
 
 		auto close = line.find(')', comma);
@@ -155,6 +160,9 @@ static std::string extract_callback_identifier(const std::source_location &a_loc
 
 		token = trim_token(token);
 		assert(token.size() < column_size && "Lambda identifier name is too big");
+
+		if (is_unnamed)
+			token = "{anonymous_lambda}";
 
 		auto ts = column_size - token.size();
 
