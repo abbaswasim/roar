@@ -67,6 +67,7 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 
 	glfwSetErrorCallback(glfw_error_callback);
 	glfwSetKeyCallback(window, glfw_key_callback<_type>);
+	glfwSetWindowFocusCallback(window, glfw_window_focus_callback<_type>);             // Accepts focus as an integer, 0 is focus lost and anything else is focus gained
 	glfwSetWindowSizeCallback(window, glfw_window_resize_callback<_type>);             // Accepts size in window/screen coordinate so for a 2x scaled retina this is half of the actual size in pixels
 	glfwSetFramebufferSizeCallback(window, glfw_buffer_resize_callback<_type>);        // Accepts size in buffer coordinate for a 2x scaled retina this is the actual size in pixels
 	glfwSetCursorPosCallback(window, glfw_mouse_move_callback<_type>);
@@ -266,6 +267,13 @@ void glfw_window_resize_callback(GLFWwindow *a_window, int a_width, int a_height
 
 	auto &event_system = glfw_event_system<_type>(a_window);
 	event_system.notify({ror::window_resize, true, ror::Vector2ui{static_cast<uint32_t>(a_width), static_cast<uint32_t>(a_height)}});
+}
+
+template <class _type>
+void glfw_window_focus_callback(GLFWwindow *a_window, int a_focus)
+{
+	auto &event_system = glfw_event_system<_type>(a_window);
+	event_system.notify({ror::window_focus, true, static_cast<uint32_t>(a_focus)});
 }
 
 template <class _type>
