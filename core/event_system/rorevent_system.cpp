@@ -27,9 +27,155 @@
 #include "event_system/rorevent_system.hpp"
 #include "profiling/rorlog.hpp"
 #include "settings/rorsettings.hpp"
+#include <fstream>
+#include <memory>
+#include <regex>
+#include <source_location>
 
 namespace ror
 {
+using std::filesystem::path;
+
+constexpr uint32_t column_size = 40;
+
+static std::string trim_token(std::string a_text)
+{
+	auto not_space = [](unsigned char c) { return !std::isspace(c); };
+
+	a_text.erase(a_text.begin(), std::find_if(a_text.begin(), a_text.end(), not_space));
+	a_text.erase(std::find_if(a_text.rbegin(), a_text.rend(), not_space).base(), a_text.end());
+
+	if (!a_text.empty() && a_text.back() == ';')
+		a_text.pop_back();
+
+	return a_text;
+}
+
+static bool read_specific_line(const std::source_location &a_loc, std::string &a_out_line)
+{
+	auto filename    = a_loc.file_name();
+	auto target_line = a_loc.line();
+
+	std::ifstream in(filename);
+	if (!in.is_open())
+		return false;
+
+	std::string line;
+	std::size_t current_line = 1;
+
+	while (std::getline(in, line))
+	{
+		if (current_line == target_line)
+		{
+			a_out_line = line;
+			return true;
+		}
+		++current_line;
+	}
+
+	return false;        // line not found
+}
+
+static std::string read_function_name(const std::source_location &a_loc)
+{
+	std::string function_name{a_loc.function_name()};
+
+	std::regex  nsp_col_col_regex(R"((?:[A-Za-z_]\w*(?:<[^<>]*>)?::)+[A-Za-z_]\w*(?:<[^<>]*>)?(?=\())");
+	std::smatch identifier;
+
+	auto match_found = std::regex_search(function_name, identifier, nsp_col_col_regex);
+	assert(match_found && "Couldn't extract function name from the function name for lambda");
+	(void) match_found;
+
+	return identifier.str();
+}
+
+static std::string read_file_name(const std::source_location &a_loc)
+{
+	std::string file_name{a_loc.file_name()};
+	std::string roar_name{"roar_engine"};
+
+    auto pos = file_name.find(roar_name);
+	assert(pos != std::string::npos && "Can't have file outside roar_engine");
+
+    return "./" + file_name.substr(pos);
+}
+
+static std::string fit_string_to_size(std::string a_string, uint32_t a_size)
+{
+	(void) a_size;
+	auto str_size = a_string.size();
+	if (str_size > a_size)        // Mean string already too big we need to trim it
+	{
+		assert(a_size > 3 && "String column size is too small for this string");
+		auto str = a_string.substr(str_size - a_size + 3);
+		str      = "..." + str;
+
+		return str;
+	}
+
+	auto diff = a_size - str_size;
+	for (uint32_t i = 0; i < diff; i++)
+		a_string += " ";
+
+	return a_string;
+}
+
+static std::string extract_callback_identifier(const std::source_location &a_loc)
+{
+	std::string function = fit_string_to_size(read_function_name(a_loc), column_size);
+	std::string filename = fit_string_to_size(read_file_name(a_loc), column_size);
+
+	std::string line;
+	if (read_specific_line(a_loc, line))
+	{
+		auto subscribe_pos = line.find("subscribe");
+		if (subscribe_pos == std::string::npos)
+			return "no-name-lambda";
+
+		auto comma = line.find(',', subscribe_pos);
+		if (comma == std::string::npos)
+			return "no-name-lambda";
+
+		auto tharrow = line.find("this->", comma);
+		if (tharrow != std::string::npos)
+			comma = tharrow + 6;
+		else
+		{
+			auto spc = line.find(" ", comma);
+			if (spc != std::string::npos)
+				comma = spc;
+		}
+
+		auto close = line.find(')', comma);
+		if (close == std::string::npos)
+			close = line.size();
+
+		auto token = line.substr(comma, close - comma);
+
+		token = trim_token(token);
+		assert(token.size() < column_size && "Lambda identifier name is too big");
+
+		auto ts = column_size - token.size();
+
+		for (uint32_t i = 0; i < ts; i++)
+			token += " ";
+
+		token += " | ";
+
+		return token + function + " | " + filename + " |";
+	}
+
+	ror::log_critical("Source Location file name probably can't be opened which should be a valid file on the system");
+	return {};
+}
+
+static std::string subscriber_name(const EventSystem::EventSubscriber &a_subscriber)
+{
+	assert(!a_subscriber.m_name.empty() && "Can't find subcriber name");
+	return a_subscriber.m_name;
+}
+
 // clang-format off
 std::string event_type(EventType a_type)
 {
@@ -45,7 +191,7 @@ std::string event_type(EventType a_type)
 	case EventType::error:             return "error:";
 	case EventType::file:              return "file:";
 	case EventType::max:               return "max:";
-}
+    }
 };
 
 std::string event_code(EventCode a_code)
@@ -247,20 +393,26 @@ EventSystem::EventSystem()
 	this->init();
 }
 
-void EventSystem::subscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function)
+void EventSystem::subscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function, const std::source_location &a_loc)
 {
-	this->m_subscribers[a_event_handle].push_back(a_function);
+	std::lock_guard<std::mutex> lock{this->m_mutex};
+
+	this->m_subscribers[a_event_handle].push_back({std::move(a_function), extract_callback_identifier(a_loc)});
 }
 
-void EventSystem::subscribe_early(EventHandle a_event_handle, std::function<void(Event &)> a_function)
+void EventSystem::subscribe_early(EventHandle a_event_handle, std::function<void(Event &)> a_function, const std::source_location &a_loc)
 {
+	std::lock_guard<std::mutex> lock{this->m_mutex};
+
 	auto &subs = this->m_subscribers[a_event_handle];
-	subs.insert(subs.begin(), a_function);
+	subs.insert(subs.begin(), {std::move(a_function), extract_callback_identifier(a_loc)});
 }
 
 void EventSystem::unsubscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function)
 {
-	auto  function_find_predicate = [&a_function](std::function<void(Event &)> &function) { return function.target_type().hash_code() == a_function.target_type().hash_code(); };
+	std::lock_guard<std::mutex> lock{this->m_mutex};
+
+	auto  function_find_predicate = [&a_function](EventSubscriber &subscriber) { return subscriber.m_callback.target_type().hash_code() == a_function.target_type().hash_code(); };
 	auto &subscribers             = this->m_subscribers[a_event_handle];
 	auto  iter                    = std::find_if(subscribers.begin(), subscribers.end(), function_find_predicate);
 
@@ -276,6 +428,8 @@ void EventSystem::init()
 	auto event_state_max    = enum_to_type_cast(EventState::max);
 
 	auto subscribers_count = event_type_max * event_modifier_max * event_state_max;
+
+	std::lock_guard<std::mutex> lock{this->m_mutex};
 	this->m_subscribers.reserve(subscribers_count);
 
 	// This will create some invalid handle combinations like mouse + a + right + move but thats ok
@@ -296,7 +450,7 @@ void EventSystem::notify(Event a_event) const
 		auto &subs = this->m_subscribers.at(a_event.m_handle);
 		for (auto &sub : subs)
 		{
-			sub(a_event);
+			sub.m_callback(a_event);
 			if (!a_event.m_live)        // Some subscribers might consume the event, in which case the order of subscription matters
 				break;
 		}
@@ -314,9 +468,56 @@ void EventSystem::notify(Event a_event) const
 void EventSystem::notify(std::vector<Event> a_events) const
 {
 	for (auto event : a_events)
-	{
 		this->notify(event);
+}
+
+void EventSystem::print_keybindings() const
+{
+	std::string result;
+	result.reserve(this->m_subscribers.size() * 150);
+
+	for (const auto &entry : this->m_subscribers)
+	{
+		if (entry.second.empty())
+			continue;
+
+		if (event_type(entry.first) != EventType::keyboard)
+			continue;
+
+		auto handle_str = create_event_handle(entry.first);
+		assert(handle_str.size() < column_size && "Keyboard handle is bigger than 35 characters");
+
+		result += "\n| ";
+		result += handle_str;
+
+		for (uint32_t i = 0; i < column_size - handle_str.size(); i++)
+			result += " ";
+
+		result += "|";
+
+		uint32_t sub_it = 1;
+		for (const auto &subscriber : entry.second)
+		{
+			result += " ";
+			if (sub_it > 1)
+			{
+				for (uint32_t i = 0; i < column_size; i++)
+					result += " ";
+				result += " | ";
+			}
+
+			result += subscriber_name(subscriber);
+			if (sub_it < entry.second.size())
+			{
+				result += "\n";
+				sub_it++;
+			}
+		}
+
+		// result += " | ";
 	}
+
+	ror::log_info("Here all the keybinding for {} subscribers\n{}", this->m_subscribers.size(), result);
 }
 
 }        // namespace ror

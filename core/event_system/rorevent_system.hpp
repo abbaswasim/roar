@@ -35,12 +35,14 @@
 #include <functional>
 #include <list>
 #include <queue>
+#include <source_location>
 #include <typeinfo>
 #include <unordered_map>
 #include <vector>
 
 namespace ror
 {
+
 create_handle(EventHandle, uint32_t);
 
 class EventHandleHash
@@ -166,9 +168,9 @@ class ROAR_ENGINE_ITEM EventSystem final
   public:
 	EventSystem();                                                                          //! Default constructor
 	FORCE_INLINE              EventSystem(const EventSystem &a_other)     = delete;         //! Copy constructor
-	FORCE_INLINE              EventSystem(EventSystem &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE              EventSystem(EventSystem &&a_other) noexcept = delete;         //! Move constructor
 	FORCE_INLINE EventSystem &operator=(const EventSystem &a_other)       = delete;         //! Copy assignment operator
-	FORCE_INLINE EventSystem &operator=(EventSystem &&a_other) noexcept   = default;        //! Move assignment operator
+	FORCE_INLINE EventSystem &operator=(EventSystem &&a_other) noexcept   = delete;         //! Move assignment operator
 	FORCE_INLINE ~EventSystem() noexcept                                  = default;        //! Destructor
 
 	/**
@@ -185,19 +187,25 @@ class ROAR_ENGINE_ITEM EventSystem final
 	 * will not remove the previously added function
 	 */
 	void unsubscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function);
-	void subscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function);
-	void subscribe_early(EventHandle a_event_handle, std::function<void(Event &)> a_function);
+	void subscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function, const std::source_location &a_loc = std::source_location::current());
+	void subscribe_early(EventHandle a_event_handle, std::function<void(Event &)> a_function, const std::source_location &a_loc = std::source_location::current());
 	void notify(Event a_event) const;
 	void notify(std::vector<Event> a_events) const;
+	void print_keybindings() const;
+
+	struct EventSubscriber
+	{
+		std::function<void(Event &)> m_callback{};
+		std::string                  m_name{};
+	};
 
   protected:
   private:
 	void init();
 
 	// TODO: Add some buffering system at some point
-	// TODO: Make this thread safe
-
-	std::unordered_map<EventHandle, std::vector<std::function<void(Event &)>>, EventHandleHash> m_subscribers{};        //! All the functions that needs to be called for this Event Handle
+	std::unordered_map<EventHandle, std::vector<EventSubscriber>, EventHandleHash> m_subscribers{};        //! All the functions that needs to be called for this Event Handle
+	std::mutex                                                                     m_mutex{};              //! Mutex to lock m_subscribers when used from multiple threads
 };
 
 constexpr EventType event_type(EventHandle a_handle)
