@@ -154,13 +154,18 @@ void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_s
 		this->current_camera().enable();
 	};
 
+	ror::EventCallback camera_reload_callback = [this](ror::Event &) {
+		this->update_camera_from_scene_state();
+	};
+
+	a_event_system.subscribe(ror::keyboard_c_click, camera_cycle_callback);
+	a_event_system.subscribe(ror::keyboard_r_click, camera_reload_callback);
+
 	for (auto &cam : this->cameras())
 	{
 		cam.bounds(dims.x, dims.y);
 		cam.volume(bbox.minimum(), bbox.maximum());
 	}
-
-	a_event_system.subscribe(ror::keyboard_c_click, camera_cycle_callback);
 
 	// Setup cameras
 	for (auto &camera : this->m_cameras)
@@ -223,7 +228,7 @@ void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_s
 	a_event_system.subscribe(keyboard_f_click, frustum_update);
 }
 
-void Scene::update_from_scene_state()
+void Scene::update_camera_from_scene_state()
 {
 	if (!this->m_scene_state.m_is_valid || !settings().m_load_scene_state)
 		return;
@@ -251,9 +256,14 @@ void Scene::update_from_scene_state()
 
 	camera.set_from_parameters();
 	camera.setup_frustums();
+}
 
-	// Also let the lights from the following data
+void Scene::update_lights_from_scene_state()
+{
+	if (!this->m_scene_state.m_is_valid || !settings().m_load_scene_state)
+		return;
 
+	// Update the lights from the following data
 	if (this->m_scene_state.m_lights.size() > 0)
 	{
 		assert(this->m_lights.size() == this->m_scene_state.m_lights.size() && "Scene lights don't map correctly to scene state lights");
@@ -278,6 +288,13 @@ void Scene::update_from_scene_state()
 			++state_light_index;
 		}
 	}
+}
+
+void Scene::update_from_scene_state()
+{
+	// Take the SceneData and fill stuff from it
+	this->update_camera_from_scene_state();
+	this->update_lights_from_scene_state();
 
 	this->update_overlays();
 }

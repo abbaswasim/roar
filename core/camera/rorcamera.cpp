@@ -121,7 +121,7 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		}
 	};
 
-	this->m_mode_callback = [this](ror::Event &) {
+	this->m_camera_mode_callback = [this](ror::Event &) {
 		this->m_mode = this->m_mode == CameraMode::orbit ? CameraMode::fps : CameraMode::orbit;
 	};
 
@@ -335,8 +335,8 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(mouse_command_scroll, this->m_zoom_callback);
 	this->m_event_system->subscribe(mouse_control_scroll, this->m_zoom_callback);
 
-	this->m_event_system->subscribe(keyboard_space_click, this->m_mode_callback);
-	this->m_event_system->subscribe(keyboard_r_click, this->m_reset_callback);
+	this->m_event_system->subscribe(keyboard_space_click, this->m_camera_mode_callback);
+	this->m_event_system->subscribe(keyboard_r_command_click, this->m_reset_callback);
 }
 
 void OrbitCamera::disable()
@@ -362,7 +362,8 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_command_scroll, this->m_zoom_callback);
 	this->m_event_system->unsubscribe(mouse_control_scroll, this->m_zoom_callback);
 
-	this->m_event_system->unsubscribe(keyboard_space_click, this->m_mode_callback);
+	this->m_event_system->unsubscribe(keyboard_space_click, this->m_camera_mode_callback);
+	this->m_event_system->unsubscribe(keyboard_r_command_click, this->m_reset_callback);
 }
 
 void OrbitCamera::update(const Renderer &a_renderer) const

@@ -123,6 +123,8 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	void     update(ror::Renderer &a_renderer, ror::Timer &a_timer);
 	void     update_from_scene_state();
+	void     update_camera_from_scene_state();
+	void     update_lights_from_scene_state();
 	void     setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_system);
 	uint32_t models_count();
 	void     load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffers_packs);

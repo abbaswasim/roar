@@ -215,7 +215,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	EventCallback m_forward_callback{};                  //! forward lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_zoom_callback{};                     //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_frambuffer_resize_callback{};        //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_mode_callback{};                     //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_camera_mode_callback{};              //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_reset_callback{};                    //! Reset lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_frustum_callback{};                  //! Frustum snapshop lambda function that will be used to subscribe and unsubscribe this camera with event system
 };
