@@ -2847,6 +2847,7 @@ static const auto keyboard_fn_option_drag            = create_event_handle(Event
 static const auto keyboard_fn_option_resize          = create_event_handle(EventType::keyboard, EventCode::fn, EventModifier::option, EventState::resize);
 static const auto keyboard_fn_option_focus           = create_event_handle(EventType::keyboard, EventCode::fn, EventModifier::option, EventState::focus);
 static const auto keyboard_question_mark_click       = create_event_handle(EventType::keyboard, EventCode::slash, EventModifier::shift, EventState::down);
+static const auto keyboard_slash_none_click          = create_event_handle(EventType::keyboard, EventCode::slash, EventModifier::none, EventState::click);
 static const auto keyboard_semicolon_click           = create_event_handle(EventType::keyboard, EventCode::semicolon, EventModifier::none, EventState::click);
 static const auto window_click                       = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::click);
 static const auto window_repeat                      = create_event_handle(EventType::window, EventCode::none, EventModifier::none, EventState::repeat);

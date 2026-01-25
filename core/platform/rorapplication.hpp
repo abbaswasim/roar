@@ -83,25 +83,31 @@ class ROAR_ENGINE_ITEM Application : public Crtp<_type, Application>
 	// This is protected so that no one can create pointers to base Application
 	FORCE_INLINE Application()        //! Default constructor
 	{
+		auto &event_system = this->m_context.event_system();
+
 		// TODO: Lets use full dimensions with scalling here
 		auto renderer_resize = [this](Event &a_event) {
-			auto &renderer = this->m_context.renderer();
-			auto payload = a_event.get_payload<ror::Vector2ui>();
-			auto scale{this->framebuffer_scaling()};
+			auto         &renderer = this->m_context.renderer();
+			auto          payload  = a_event.get_payload<ror::Vector2ui>();
+			auto          scale{this->framebuffer_scaling()};
 			ror::Vector4f dimensions_scale{static_cast<float32_t>(payload.x), static_cast<float32_t>(payload.y), scale.x, scale.y};
 			renderer.dimensions(dimensions_scale, this->m_context.device());
 		};
 
-		auto &event_system = this->m_context.event_system();
-		event_system.subscribe(buffer_resize, renderer_resize);
+		ror::EventCallback events_print_callback = [&event_system](ror::Event) {
+			event_system.print_keybindings();
+		};
+
+		event_system.subscribe(ror::buffer_resize, renderer_resize);
+		event_system.subscribe(ror::keyboard_slash_none_click, events_print_callback);
 	}
 
   private:
 	FORCE_INLINE void init()
 	{
 		ror::Vector4ui dimensions = this->dimensions();        // For the first time need to get framebuffer size, for later we have registered a callback
-		auto scale = this->framebuffer_scaling();
-		ror::Vector4f dimensions_scale{static_cast<float32_t>(dimensions.x), static_cast<float32_t>(dimensions.y), scale.x, scale.y};
+		auto           scale      = this->framebuffer_scaling();
+		ror::Vector4f  dimensions_scale{static_cast<float32_t>(dimensions.x), static_cast<float32_t>(dimensions.y), scale.x, scale.y};
 		this->m_context.init(this->platform_window(), this->window(), dimensions_scale);
 		this->m_context.post_init();
 	}

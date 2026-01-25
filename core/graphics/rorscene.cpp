@@ -715,19 +715,19 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 		auto current_animations_uniform        = a_renderer.shader_buffer("current_animations");
 		auto per_view_uniform                  = a_renderer.shader_buffer("per_view_uniform");
 
-		auto anim_handler = [this](Event) {
+		auto animation_start_stop_toggle_callback = [this](Event) {
 			this->m_pause_animation = !this->m_pause_animation;
 		};
 
-		auto fill_mode_handler = [this](Event) {
+		auto triangle_fill_mode_toggle_callback = [this](Event) {
 			if (this->m_triangle_fill_mode == rhi::TriangleFillMode::fill)
 				this->m_triangle_fill_mode = rhi::TriangleFillMode::lines;
 			else
 				this->m_triangle_fill_mode = rhi::TriangleFillMode::fill;
 		};
 
-		a_event_system.subscribe(ror::keyboard_p_down, anim_handler);
-		a_event_system.subscribe(ror::keyboard_t_down, fill_mode_handler);
+		a_event_system.subscribe(ror::keyboard_p_down, animation_start_stop_toggle_callback);
+		a_event_system.subscribe(ror::keyboard_t_down, triangle_fill_mode_toggle_callback);
 
 		rhi::descriptor_update_type buffers_images;
 

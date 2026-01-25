@@ -90,7 +90,7 @@ class ROAR_ENGINE_ITEM Light
 	Matrix4f    m_view_projection{};                                   //! View projection of the light, used in shadow mapping
 	Vector4ui   m_shadow_viewport{};                                   //! Size and position of rendering into the shadowmap
 	Vector3f    m_color{};                                             //! Light color
-	Vector3f    m_position{};                                          //! Position of point and spot lights
+	Vector3f    m_position{};                                          //! Position of lights but only valid for point and spot lights, for all lights position is used to render the light in editor
 	Vector3f    m_direction{};                                         //! Direction of directional and spot lights
 	float32_t   m_intensity{1.0f};                                     //! Light intensity
 	float32_t   m_range{std::numeric_limits<float32_t>::max()};        //! Light range after which light attenuates

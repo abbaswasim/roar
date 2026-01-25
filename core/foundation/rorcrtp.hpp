@@ -79,9 +79,11 @@ class ROAR_ENGINE_ITEM CrtpClient : public Crtp<_type, CrtpClient>
   private:
 };
 
+
 /**
  * And here is an implementation of the CrtpClient interface
  */
+/*
 class ROAR_ENGINE_ITEM CrtpClientImpl : public CrtpClient<CrtpClientImpl>        // Could be final in which case no virtual dtor
 {
   public:
@@ -98,6 +100,7 @@ class ROAR_ENGINE_ITEM CrtpClientImpl : public CrtpClient<CrtpClientImpl>       
   protected:
   private:
 };
+*/
 
 /**
 * Here is a usecase of CrtpClient with all its implementations
