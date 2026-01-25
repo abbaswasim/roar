@@ -79,31 +79,31 @@ auto get_perpendicular(const ror::Vector3f &a_normal)
 
 ror::Vector4f point_light_anchor1(const ror::Light &a_light)
 {
-	return ror::Vector4f{a_light.m_position.x + a_light.m_range, a_light.m_position.y, a_light.m_position.z, 1.0f};
+	return ror::Vector4f{a_light.position().x + a_light.range(), a_light.position().y, a_light.position().z, 1.0f};
 }
 
 ror::Vector4f spot_light_anchor1(const ror::Light &a_light)
 {
-	auto normal = a_light.m_direction.normalized();
-	return ror::Vector4f{a_light.m_position + (normal * a_light.m_range)};
+	auto normal = a_light.direction().normalized();
+	return ror::Vector4f{a_light.position() + (normal * a_light.range())};
 }
 
 ror::Vector4f directional_light_anchor1(const ror::Light &a_light)
 {
-	auto normal = a_light.m_direction.normalized();
-	return ror::Vector4f{a_light.m_position + (normal * 60.0f)};
+	auto normal = a_light.direction().normalized();
+	return ror::Vector4f{a_light.position() + (normal * 60.0f)};
 }
 
 ror::Vector4f area_light_anchor1(const ror::Light &a_light)
 {
-	return ror::Vector4f{a_light.m_position.x + a_light.m_range, a_light.m_position.y, a_light.m_position.z, 1.0f};
+	return ror::Vector4f{a_light.position().x + a_light.range(), a_light.position().y, a_light.position().z, 1.0f};
 }
 
 ror::Vector4f spot_light_radius(const ror::Light &a_light, float32_t a_angle)
 {
-	auto radius = a_light.m_range * std::tan(a_angle);        // angle is already in radians
-	auto normal = a_light.m_direction.normalized();
-	auto center = a_light.m_position + (normal * a_light.m_range);
+	auto radius = a_light.range() * std::tan(a_angle);        // angle is already in radians
+	auto normal = a_light.direction().normalized();
+	auto center = a_light.position() + (normal * a_light.range());
 
 	auto perpendicular = get_perpendicular(normal);
 	auto hand          = perpendicular * radius;
@@ -113,18 +113,18 @@ ror::Vector4f spot_light_radius(const ror::Light &a_light, float32_t a_angle)
 
 ror::Vector4f spot_light_anchor2(const ror::Light &a_light)
 {
-	return spot_light_radius(a_light, a_light.m_outer_angle);
+	return spot_light_radius(a_light, a_light.outer_angle());
 }
 
 ror::Vector4f spot_light_anchor3(const ror::Light &a_light)
 {
-	return spot_light_radius(a_light, a_light.m_inner_angle);
+	return spot_light_radius(a_light, a_light.inner_angle());
 }
 
 void get_light_anchor_positions(const ror::Light &a_light, ror::Vector4f &anchor1, ror::Vector4f &anchor2, ror::Vector4f &anchor3)
 {
 	// clang-format off
-	switch (a_light.m_type)
+	switch (a_light.type())
 	{
 		case Light::LightType::point:         anchor1 = point_light_anchor1(a_light);        break;
 		case Light::LightType::spot:          anchor1 = spot_light_anchor1(a_light);
@@ -139,7 +139,7 @@ void get_light_anchor_positions(const ror::Light &a_light, ror::Vector4f &anchor
 auto get_light_icon(const ror::Light &a_light)
 {
 	// clang-format off
-	switch (a_light.m_type)
+	switch (a_light.type())
 	{
 		case Light::LightType::point:         return ROAR_ICON_POINT_LIGHT;
 		case Light::LightType::spot:          return ROAR_ICON_SPOT_LIGHT;
@@ -159,7 +159,7 @@ void Overlay::add_light_anchors(const ror::Light &a_light)
 	get_light_anchor_positions(a_light, anchor1, anchor2, anchor3);
 
 	// Anchor0 is always position of the light
-	Anchors::Anchor position{ror::Vector4f{a_light.m_position}, 10.0f, 32, icon};        // 10 is for collision rect and 32 is icon size
+	Anchors::Anchor position{ror::Vector4f{a_light.position()}, 10.0f, 32, icon};        // 10 is for collision rect and 32 is icon size
 	position.dorment(true);
 	this->m_anchors.push_anchor(position);
 
@@ -167,7 +167,7 @@ void Overlay::add_light_anchors(const ror::Light &a_light)
 	Anchors::Anchor scale_or_direction{anchor1, 3.0f};
 	this->m_anchors.push_anchor(scale_or_direction);
 
-	if (a_light.m_type == Light::LightType::spot)
+	if (a_light.type() == Light::LightType::spot)
 	{
 		// Anchor2 is scale for point light on the other side and outter angle for spot light
 		Anchors::Anchor outer_angle{anchor2, 3.0f};
@@ -196,7 +196,7 @@ void Overlay::update_other_anchors(const ror::Light &a_light)
 	anchor1.center(anchor1_position);
 	anchor1.new_center(anchor1_position);
 
-	if (a_light.m_type == Light::LightType::spot)
+	if (a_light.type() == Light::LightType::spot)
 	{
 		auto &anchor2 = this->m_anchors.anchor(2);
 		anchor2.center(anchor2_position);
@@ -213,23 +213,23 @@ void Overlay::update_light(bool a_left_released)
 	auto &light = this->light();
 	if (this->m_anchors.moving(0))        // Position of the light
 	{
-		light.m_position = this->m_anchors.anchor(0).position();
+		light.position(this->m_anchors.anchor(0).position());
 		this->update_other_anchors(light);
-		light.m_dirty = true;
+		light.dirty(true);
 	}
 	else if (this->m_anchors.moving(1))        // Scale for the point light, direction for spot and directional
 	{
 		auto  range_target = this->m_anchors.anchor(1).position();
-		auto &p1           = light.m_position;
-		light.m_range      = distance(p1, range_target);
-		light.m_direction  = range_target - p1;        // Only valid for Directional and Spot lights
+		auto &p1           = light.position();
+		light.range(distance(p1, range_target));
+		light.direction(range_target - p1);        // Only valid for Directional and Spot lights
 
 		ror::Vector4f scale_or_direction{};
 
 		if (a_left_released)
 		{
 			// clang-format off
-			switch (light.m_type)
+			switch (light.type())
 			{
 				case Light::LightType::point:       scale_or_direction = point_light_anchor1(light);       break;
 				case Light::LightType::spot:        scale_or_direction = spot_light_anchor1(light);        break;
@@ -241,29 +241,29 @@ void Overlay::update_light(bool a_left_released)
 			this->m_anchors.anchor(1).position(scale_or_direction);
 		}
 		this->update_other_anchors(light);
-		light.m_dirty = true;
+		light.dirty(true);
 	}
-	else if (light.m_type == Light::LightType::spot)
+	else if (light.type() == Light::LightType::spot)
 	{
 		if (this->m_anchors.moving(2))        // Outer angle for spot light
 		{
-			auto  range_target  = this->m_anchors.anchor(2).position();
-			auto &p1            = light.m_position;
-			light.m_outer_angle = angle(range_target - p1, light.m_direction);
+			auto  range_target = this->m_anchors.anchor(2).position();
+			auto &p1           = light.position();
+			light.outer_angle(angle(range_target - p1, light.direction()));
 
 			if (a_left_released)
 				this->m_anchors.anchor(2).position(spot_light_anchor2(light));
 		}
 		else if (this->m_anchors.moving(3))        // Inner angle for spot light
 		{
-			auto  range_target  = this->m_anchors.anchor(3).position();
-			auto &p1            = light.m_position;
-			light.m_inner_angle = angle(range_target - p1, light.m_direction);
+			auto  range_target = this->m_anchors.anchor(3).position();
+			auto &p1           = light.position();
+			light.inner_angle(angle(range_target - p1, light.direction()));
 
 			if (a_left_released)
 				this->m_anchors.anchor(3).position(spot_light_anchor3(light));
 		}
-		light.m_dirty = true;
+		light.dirty(true);
 	}
 }
 
@@ -345,25 +345,25 @@ void draw_circle(ImDrawList *a_drawlist, ror::Vector3f a_center, float32_t a_rad
 
 void draw_point_light_bounds(ImDrawList *a_drawlist, const ror::Light &a_light, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)
 {
-	const ImU32 color = ImGui::ColorConvertFloat4ToU32({a_light.m_color.x, a_light.m_color.y, a_light.m_color.z, 1.0f});
+	const ImU32 color = ImGui::ColorConvertFloat4ToU32({a_light.color().x, a_light.color().y, a_light.color().z, 1.0f});
 
-	draw_circle(a_drawlist, a_light.m_position, a_light.m_range, xaxis3f, color, a_view_projection, a_viewport);
-	draw_circle(a_drawlist, a_light.m_position, a_light.m_range, yaxis3f, color, a_view_projection, a_viewport);
-	draw_circle(a_drawlist, a_light.m_position, a_light.m_range, zaxis3f, color, a_view_projection, a_viewport);
-	draw_circle(a_drawlist, a_light.m_position, a_light.m_range, ror::Vector3f{1.0f, 1.0f, 0.0f}, color, a_view_projection, a_viewport);
-	draw_circle(a_drawlist, a_light.m_position, a_light.m_range, ror::Vector3f{1.0f, -1.0f, 0.0f}, color, a_view_projection, a_viewport);
-	draw_circle(a_drawlist, a_light.m_position, a_light.m_range, ror::Vector3f{0.0f, 1.0f, 1.0f}, color, a_view_projection, a_viewport);
-	draw_circle(a_drawlist, a_light.m_position, a_light.m_range, ror::Vector3f{0.0f, 1.0f, -1.0f}, color, a_view_projection, a_viewport);
+	draw_circle(a_drawlist, a_light.position(), a_light.range(), xaxis3f, color, a_view_projection, a_viewport);
+	draw_circle(a_drawlist, a_light.position(), a_light.range(), yaxis3f, color, a_view_projection, a_viewport);
+	draw_circle(a_drawlist, a_light.position(), a_light.range(), zaxis3f, color, a_view_projection, a_viewport);
+	draw_circle(a_drawlist, a_light.position(), a_light.range(), ror::Vector3f{1.0f, 1.0f, 0.0f}, color, a_view_projection, a_viewport);
+	draw_circle(a_drawlist, a_light.position(), a_light.range(), ror::Vector3f{1.0f, -1.0f, 0.0f}, color, a_view_projection, a_viewport);
+	draw_circle(a_drawlist, a_light.position(), a_light.range(), ror::Vector3f{0.0f, 1.0f, 1.0f}, color, a_view_projection, a_viewport);
+	draw_circle(a_drawlist, a_light.position(), a_light.range(), ror::Vector3f{0.0f, 1.0f, -1.0f}, color, a_view_projection, a_viewport);
 }
 
 void draw_spot_light_bounds(ImDrawList *a_drawlist, const ror::Light &a_light, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)
 {
-	const ImU32 color = ImGui::ColorConvertFloat4ToU32({a_light.m_color.x, a_light.m_color.y, a_light.m_color.z, 1.0f});
+	const ImU32 color = ImGui::ColorConvertFloat4ToU32({a_light.color().x, a_light.color().y, a_light.color().z, 1.0f});
 
-	auto outer_radius = a_light.m_range * std::tan(a_light.m_outer_angle);        // angle is already in radians
-	auto inner_radius = a_light.m_range * std::tan(a_light.m_inner_angle);        // angle is already in radians
-	auto normal       = a_light.m_direction.normalized();
-	auto center       = a_light.m_position + (normal * a_light.m_range);
+	auto outer_radius = a_light.range() * std::tan(a_light.outer_angle());        // angle is already in radians
+	auto inner_radius = a_light.range() * std::tan(a_light.inner_angle());        // angle is already in radians
+	auto normal       = a_light.direction().normalized();
+	auto center       = a_light.position() + (normal * a_light.range());
 
 	draw_circle(a_drawlist, center, outer_radius, normal, color, a_view_projection, a_viewport);
 	draw_circle(a_drawlist, center, inner_radius, normal, color, a_view_projection, a_viewport);
@@ -375,7 +375,7 @@ void draw_spot_light_bounds(ImDrawList *a_drawlist, const ror::Light &a_light, c
 	uint32_t        segments{20};
 	const float32_t pi_seg{ror_pi * 2.0f / static_cast<float32_t>(segments)};
 	auto            result{false};
-	auto            projected_center = ror::project_to_screen(ror::Vector4f{a_light.m_position}, a_view_projection, a_viewport, result);
+	auto            projected_center = ror::project_to_screen(ror::Vector4f{a_light.position()}, a_view_projection, a_viewport, result);
 
 	if (result)
 	{
@@ -401,13 +401,13 @@ void draw_spot_light_bounds(ImDrawList *a_drawlist, const ror::Light &a_light, c
 
 void draw_directional_light_bounds(ImDrawList *a_drawlist, const ror::Light &a_light, const ror::Matrix4f &a_view_projection, const ror::Vector4f &a_viewport)
 {
-	const ImU32 color = ImGui::ColorConvertFloat4ToU32({a_light.m_color.x, a_light.m_color.y, a_light.m_color.z, 1.0f});
+	const ImU32 color = ImGui::ColorConvertFloat4ToU32({a_light.color().x, a_light.color().y, a_light.color().z, 1.0f});
 
 	auto size{20.0f};
-	auto normal = a_light.m_direction.normalized();
-	auto target = a_light.m_position + (normal * size * 3.0f);
+	auto normal = a_light.direction().normalized();
+	auto target = a_light.position() + (normal * size * 3.0f);
 
-	draw_circle(a_drawlist, a_light.m_position, size, normal, color, a_view_projection, a_viewport);
+	draw_circle(a_drawlist, a_light.position(), size, normal, color, a_view_projection, a_viewport);
 
 	auto perpendicular = get_perpendicular(normal);
 	auto hand1         = perpendicular * size;
@@ -421,7 +421,7 @@ void draw_directional_light_bounds(ImDrawList *a_drawlist, const ror::Light &a_l
 	{
 		ror::AxisAnglef axis_angle{ror::Vector3f{normal}, static_cast<float32_t>(i) * pi_seg};
 		auto            rotation = ror::matrix4_rotation(axis_angle);
-		auto            point1   = a_light.m_position + (rotation * hand1);
+		auto            point1   = a_light.position() + (rotation * hand1);
 		auto            point2   = target + (rotation * hand1);
 
 		auto p1 = ror::project_to_screen(ror::Vector4f{point1}, a_view_projection, a_viewport, result1);
@@ -441,21 +441,21 @@ void Overlay::create_light(ImDrawList *a_drawlist, ImFont *a_icon_font, const ro
 	auto  icon{get_light_icon(light)};
 
 	auto        result{false};
-	auto        light_pos = ror::project_to_screen(ror::Vector4f{light.m_position}, a_view_projection, a_viewport, result);
-	const ImU32 color     = ImGui::ColorConvertFloat4ToU32({light.m_color.x, light.m_color.y, light.m_color.z, 1.0f});
+	auto        light_pos = ror::project_to_screen(ror::Vector4f{light.position()}, a_view_projection, a_viewport, result);
+	const ImU32 color     = ImGui::ColorConvertFloat4ToU32({light.color().x, light.color().y, light.color().z, 1.0f});
 
 	if (result)
 	{
 		auto icon_size{32.0f};
 		a_drawlist->AddText(a_icon_font, icon_size, ImVec2{light_pos.x - icon_size * 0.5f, light_pos.y - icon_size * 0.5f}, color, icon);
 
-		if (light.m_type == Light::LightType::point)
+		if (light.type() == Light::LightType::point)
 			draw_point_light_bounds(a_drawlist, light, a_view_projection, a_viewport);
-		else if (light.m_type == Light::LightType::spot)
+		else if (light.type() == Light::LightType::spot)
 			draw_spot_light_bounds(a_drawlist, light, a_view_projection, a_viewport);
-		else if (light.m_type == Light::LightType::directional)
+		else if (light.type() == Light::LightType::directional)
 			draw_directional_light_bounds(a_drawlist, light, a_view_projection, a_viewport);
-		else if (light.m_type == Light::LightType::area)
+		else if (light.type() == Light::LightType::area)
 			draw_area_light_bounds(a_drawlist, light, a_view_projection, a_viewport);
 	}
 }

@@ -139,7 +139,7 @@ void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sce
 {
 	for (auto &light : a_scene.lights())
 	{
-		if (light.m_type == ror::Light::LightType::directional)        // TODO: Check all shadow casting lights
+		if (light.type() == ror::Light::LightType::directional)        // TODO: Check all shadow casting lights
 		{
 			ror::Matrix4f  *view_projection_light{nullptr};
 			ror::Matrix4f  *projection_light{nullptr};

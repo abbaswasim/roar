@@ -273,17 +273,17 @@ void Scene::update_lights_from_scene_state()
 		{
 			auto &scene_state_light = this->m_scene_state.m_lights[state_light_index];
 
-			light.m_type              = scene_state_light.m_type;
-			light.m_dirty             = scene_state_light.m_dirty;
-			light.m_shadow_viewport   = scene_state_light.m_shadow_viewport;
-			light.m_color             = scene_state_light.m_color;
-			light.m_position          = scene_state_light.m_position;
-			light.m_direction         = scene_state_light.m_direction;
-			light.m_intensity         = scene_state_light.m_intensity;
-			light.m_range             = scene_state_light.m_range;
-			light.m_inner_angle       = scene_state_light.m_inner_angle;
-			light.m_outer_angle       = scene_state_light.m_outer_angle;
-			light.m_light_struct_name = scene_state_light.m_light_struct_name;
+			light.type(scene_state_light.type());
+			light.dirty(scene_state_light.dirty());
+			light.intensity(scene_state_light.intensity());
+			light.range(scene_state_light.range());
+			light.inner_angle(scene_state_light.inner_angle());
+			light.outer_angle(scene_state_light.outer_angle());
+			light.light_struct_name(scene_state_light.light_struct_name());
+			light.color(scene_state_light.color());
+			light.shadow_viewport(scene_state_light.shadow_viewport());
+			light.position(scene_state_light.position());
+			light.direction(scene_state_light.direction());
 
 			++state_light_index;
 		}
@@ -389,37 +389,37 @@ void Scene::SceneState::load_specific()
 		ror::Light l{};
 
 		if (light.contains("dirty"))
-			l.m_dirty = light["dirty"];
+			l.dirty(light["dirty"]);
 
 		if (light.contains("type"))
 			l.string_light_type(light["type"]);
 
 		if (light.contains("shadow_viewport"))
-			l.m_shadow_viewport = read_vector4ui(light["shadow_viewport"]);
+			l.shadow_viewport(read_vector4ui(light["shadow_viewport"]));
 
 		if (light.contains("color"))
-			l.m_color = read_vector3(light["color"]);
+			l.color(read_vector3(light["color"]));
 
 		if (light.contains("position"))
-			l.m_position = read_vector3(light["position"]);
+			l.position(read_vector3(light["position"]));
 
 		if (light.contains("direction"))
-			l.m_direction = read_vector3(light["direction"]);
+			l.direction(read_vector3(light["direction"]));
 
 		if (light.contains("intensity"))
-			l.m_intensity = light["intensity"];
+			l.intensity(light["intensity"]);
 
 		if (light.contains("range"))
-			l.m_range = light["range"];
+			l.range(light["range"]);
 
 		if (light.contains("inner_angle"))
-			l.m_inner_angle = light["inner_angle"];
+			l.inner_angle(light["inner_angle"]);
 
 		if (light.contains("outer_angle"))
-			l.m_outer_angle = light["outer_angle"];
+			l.outer_angle(light["outer_angle"]);
 
 		if (light.contains("light_struct_name"))
-			l.m_light_struct_name = light["light_struct_name"];
+			l.light_struct_name(light["light_struct_name"]);
 
 		return l;
 	};
@@ -543,25 +543,25 @@ void Scene::SceneState::write_specific()
             ])");
 
 			replace_next_at(l.light_type_string(), light_str);
-			replace_next_at(l.m_dirty == true ? "true" : "false", light_str);
-			replace_next_at(l.m_shadow_viewport.x, light_str);
-			replace_next_at(l.m_shadow_viewport.y, light_str);
-			replace_next_at(l.m_shadow_viewport.z, light_str);
-			replace_next_at(l.m_shadow_viewport.w, light_str);
-			replace_next_at(l.m_color.x, light_str);
-			replace_next_at(l.m_color.y, light_str);
-			replace_next_at(l.m_color.z, light_str);
-			replace_next_at(l.m_position.x, light_str);
-			replace_next_at(l.m_position.y, light_str);
-			replace_next_at(l.m_position.z, light_str);
-			replace_next_at(l.m_direction.x, light_str);
-			replace_next_at(l.m_direction.y, light_str);
-			replace_next_at(l.m_direction.z, light_str);
-			replace_next_at(l.m_intensity, light_str);
-			replace_next_at(l.m_range, light_str);
-			replace_next_at(l.m_inner_angle, light_str);
-			replace_next_at(l.m_outer_angle, light_str);
-			replace_next_at(l.m_light_struct_name, light_str);
+			replace_next_at(l.dirty() == true ? "true" : "false", light_str);
+			replace_next_at(l.shadow_viewport().x, light_str);
+			replace_next_at(l.shadow_viewport().y, light_str);
+			replace_next_at(l.shadow_viewport().z, light_str);
+			replace_next_at(l.shadow_viewport().w, light_str);
+			replace_next_at(l.color().x, light_str);
+			replace_next_at(l.color().y, light_str);
+			replace_next_at(l.color().z, light_str);
+			replace_next_at(l.position().x, light_str);
+			replace_next_at(l.position().y, light_str);
+			replace_next_at(l.position().z, light_str);
+			replace_next_at(l.direction().x, light_str);
+			replace_next_at(l.direction().y, light_str);
+			replace_next_at(l.direction().z, light_str);
+			replace_next_at(l.intensity(), light_str);
+			replace_next_at(l.range(), light_str);
+			replace_next_at(l.inner_angle(), light_str);
+			replace_next_at(l.outer_angle(), light_str);
+			replace_next_at(l.light_struct_name(), light_str);
 
 			try
 			{
@@ -1448,17 +1448,17 @@ void Scene::fill_scene_data()
 		this->m_scene_state.m_lights.emplace_back();
 		auto &scene_state_light = this->m_scene_state.m_lights.back();
 
-		scene_state_light.m_type              = light.m_type;
-		scene_state_light.m_dirty             = light.m_dirty;
-		scene_state_light.m_shadow_viewport   = light.m_shadow_viewport;
-		scene_state_light.m_color             = light.m_color;
-		scene_state_light.m_position          = light.m_position;
-		scene_state_light.m_direction         = light.m_direction;
-		scene_state_light.m_intensity         = light.m_intensity;
-		scene_state_light.m_range             = light.m_range;
-		scene_state_light.m_inner_angle       = light.m_inner_angle;
-		scene_state_light.m_outer_angle       = light.m_outer_angle;
-		scene_state_light.m_light_struct_name = light.m_light_struct_name;
+		scene_state_light.type(light.type());
+		scene_state_light.dirty(light.dirty());
+		scene_state_light.intensity(light.intensity());
+		scene_state_light.range(light.range());
+		scene_state_light.inner_angle(light.inner_angle());
+		scene_state_light.outer_angle(light.outer_angle());
+		scene_state_light.light_struct_name(light.light_struct_name());
+		scene_state_light.color(light.color());
+		scene_state_light.shadow_viewport(light.shadow_viewport());
+		scene_state_light.position(light.position());
+		scene_state_light.direction(light.direction());
 	}
 }
 
@@ -1466,7 +1466,7 @@ const Light *Scene::light(ror::Light::LightType a_type) const
 {
 	for (auto &light : this->m_lights)
 	{
-		if (light.m_type == a_type)
+		if (light.type() == a_type)
 			return &light;
 	}
 
@@ -2923,52 +2923,46 @@ void Scene::read_lights()
 			auto  type = light["type"];
 
 			if (type == "directional")
-				lit.m_type = Light::LightType::directional;
+				lit.type(Light::LightType::directional);
 			else if (type == "point")
-				lit.m_type = Light::LightType::point;
+				lit.type(Light::LightType::point);
 			else if (type == "spot")
-				lit.m_type = Light::LightType::spot;
+				lit.type(Light::LightType::spot);
 			else if (type == "area")
-				lit.m_type = Light::LightType::area;
+				lit.type(Light::LightType::area);
 
 			if (light.contains("color"))
 			{
 				std::array<float32_t, 3> c = light["color"];
 
-				lit.m_color.x = c[0];
-				lit.m_color.y = c[1];
-				lit.m_color.z = c[2];
+				lit.color({c[0], c[1], c[2]});
 			}
 
 			if (light.contains("position"))
 			{
 				std::array<float32_t, 3> p = light["position"];
 
-				lit.m_position.x = p[0];
-				lit.m_position.y = p[1];
-				lit.m_position.z = p[2];
+				lit.position({p[0], p[1], p[2]});
 			}
 
 			if (light.contains("direction"))
 			{
 				std::array<float32_t, 3> d = light["direction"];
 
-				lit.m_direction.x = d[0];
-				lit.m_direction.y = d[1];
-				lit.m_direction.z = d[2];
+				lit.direction({d[0], d[1], d[2]});
 			}
 
 			if (light.contains("intensity"))
-				lit.m_intensity = light["intensity"];
+				lit.intensity(light["intensity"]);
 
 			if (light.contains("innerAngle"))
-				lit.m_inner_angle = light["innerAngle"];
+				lit.inner_angle(light["innerAngle"]);
 
 			if (light.contains("outerAngle"))
-				lit.m_outer_angle = light["outerAngle"];
+				lit.outer_angle(light["outerAngle"]);
 
 			if (light.contains("range"))
-				lit.m_range = light["range"];
+				lit.range(light["range"]);
 
 			lit.fill_shader_buffer();
 			this->m_lights.emplace_back(std::move(lit));
