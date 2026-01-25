@@ -31,6 +31,7 @@
 #include <memory>
 #include <regex>
 #include <source_location>
+#include <string>
 
 namespace ror
 {
@@ -90,9 +91,12 @@ static std::string read_function_name(const std::source_location &a_loc)
 
 static std::string read_file_name(const std::source_location &a_loc)
 {
+	uint32_t    file_line{a_loc.line()};
 	std::string file_name{a_loc.file_name()};
 	std::string roar_name{"roar_engine"};
 
+	file_name += ":";
+	file_name += std::to_string(file_line);
 	auto pos = file_name.find(roar_name);
 	assert(pos != std::string::npos && "Can't have file outside roar_engine");
 
@@ -487,10 +491,18 @@ void EventSystem::print_keybindings() const
 		if (event_type(entry.first) != EventType::keyboard)
 			continue;
 
+		auto short_event = ror::event_code(ror::event_code(entry.first));
 		auto handle_str = create_event_handle(entry.first);
 		assert(handle_str.size() < column_size && "Keyboard handle is bigger than column_size characters");
+		assert(short_event.size() < (column_size / 3) && "Keyboard handle short event is bigger than half column_size characters");
 
 		result += "\n| ";
+		result += short_event.substr(0, short_event.size() - 1);
+
+		for (uint32_t i = 0; i < (column_size / 3) - short_event.size(); i++)
+			result += " ";
+
+		result += "| ";
 		result += handle_str;
 
 		for (uint32_t i = 0; i < column_size - handle_str.size(); i++)
@@ -504,7 +516,7 @@ void EventSystem::print_keybindings() const
 			result += " ";
 			if (sub_it > 1)
 			{
-				for (uint32_t i = 0; i < column_size; i++)
+				for (uint32_t i = 0; i < column_size + (column_size / 3) + 1; i++)
 					result += " ";
 
 				result += " | ";
