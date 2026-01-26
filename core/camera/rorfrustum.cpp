@@ -23,6 +23,7 @@
 //
 // Version: 1.0.0
 
+#include "bounds/rorbounding.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector3.hpp"
@@ -63,6 +64,8 @@ void Frustum::setup(const ror::Matrix4f &a_view)
 
 	this->m_view = a_view;
 
+	this->m_bounding_box = ror::BoundingBoxf{};        // Reset the bounding box
+
 	auto result = this->m_view.inverse(this->m_view_inverse);
 	assert(result && "Can't invert view matrix");
 	(void) result;
@@ -73,6 +76,8 @@ void Frustum::setup(const ror::Matrix4f &a_view)
 
 		this->m_corners[i] = ror::Vector3f(cs);
 		this->m_center     = this->m_center + this->m_corners[i];
+
+		this->m_bounding_box.add_point(this->m_corners[i]);
 	}
 
 	this->m_center = this->m_center / 8.0f;

@@ -265,6 +265,12 @@ FORCE_INLINE constexpr auto &OrbitCamera::frustum_corners(size_t a_index) const
 	return this->m_frustums[a_index].corners();
 }
 
+FORCE_INLINE constexpr auto &OrbitCamera::frustum_bounding_box(size_t a_index) const
+{
+	assert(a_index < cascade_count && "Cascade index out of bound");
+	return this->m_frustums[a_index].box();
+}
+
 FORCE_INLINE constexpr auto &OrbitCamera::frustum_center(size_t a_index) const
 {
 	assert(a_index < cascade_count && "Cascade index out of bound");

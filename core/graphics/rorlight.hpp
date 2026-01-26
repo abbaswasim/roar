@@ -76,53 +76,52 @@ class ROAR_ENGINE_ITEM Light
 	std::string light_type_string();
 	void        string_light_type(std::string a_type);
 	void        setup_transformations();
-	void        get_transformations(ror::Matrix4f **a_view_projection, ror::Matrix4f **a_projection, ror::Matrix4f **a_view, ror::Vector3f &a_position, ror::Vector4ui **a_viewport, ror::Vector3f **a_direction);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto& dirty()                   noexcept  { return this->m_dirty;              }
-	FORCE_INLINE constexpr auto& type()                    noexcept  { return this->m_type;               }
-	FORCE_INLINE constexpr auto& intensity()               noexcept  { return this->m_intensity;          }
-	FORCE_INLINE constexpr auto& range()                   noexcept  { return this->m_range;              }
-	FORCE_INLINE constexpr auto& inner_angle()             noexcept  { return this->m_inner_angle;        }
-	FORCE_INLINE constexpr auto& outer_angle()             noexcept  { return this->m_outer_angle;        }
-	FORCE_INLINE constexpr auto& light_struct_name()       noexcept  { return this->m_light_struct_name;  }
-	FORCE_INLINE constexpr auto& shader_buffer()           noexcept  { return this->m_shader_buffer;      }
-	FORCE_INLINE constexpr auto& view()                    noexcept  { return this->m_view;               }
-	FORCE_INLINE constexpr auto& projection()              noexcept  { return this->m_projection;         }
-	FORCE_INLINE constexpr auto& view_projection()         noexcept  { return this->m_view_projection;    }
-	FORCE_INLINE constexpr auto& shadow_viewport()         noexcept  { return this->m_shadow_viewport;    }
-	FORCE_INLINE constexpr auto& position()                noexcept  { return this->m_position;           }
-	FORCE_INLINE constexpr auto& direction()               noexcept  { return this->m_direction;          }
-	FORCE_INLINE constexpr auto& dirty()             const noexcept  { return this->m_dirty;              }
-	FORCE_INLINE constexpr auto& type()              const noexcept  { return this->m_type;               }
-	FORCE_INLINE constexpr auto& intensity()         const noexcept  { return this->m_intensity;          }
-	FORCE_INLINE constexpr auto& range()             const noexcept  { return this->m_range;              }
-	FORCE_INLINE constexpr auto& inner_angle()       const noexcept  { return this->m_inner_angle;        }
-	FORCE_INLINE constexpr auto& outer_angle()       const noexcept  { return this->m_outer_angle;        }
-	FORCE_INLINE constexpr auto& light_struct_name() const noexcept  { return this->m_light_struct_name;  }
-	FORCE_INLINE constexpr auto& shader_buffer()     const noexcept  { return this->m_shader_buffer;      }
-	FORCE_INLINE constexpr auto& view()              const noexcept  { return this->m_view;               }
-	FORCE_INLINE constexpr auto& projection()        const noexcept  { return this->m_projection;         }
-	FORCE_INLINE constexpr auto& view_projection()   const noexcept  { return this->m_view_projection;    }
-	FORCE_INLINE constexpr auto& shadow_viewport()   const noexcept  { return this->m_shadow_viewport;    }
-	FORCE_INLINE constexpr auto& position()          const noexcept  { return this->m_position;           }
-	FORCE_INLINE constexpr auto& direction()         const noexcept  { return this->m_direction;          }
-	FORCE_INLINE constexpr auto& color()             const noexcept  { return this->m_color;              }
+	FORCE_INLINE constexpr auto& dirty()                   noexcept  { return this->m_dirty;                  }
+	FORCE_INLINE constexpr auto& type()                    noexcept  { return this->m_type;                   }
+	FORCE_INLINE constexpr auto& intensity()               noexcept  { return this->m_intensity;              }
+	FORCE_INLINE constexpr auto& range()                   noexcept  { return this->m_range;                  }
+	FORCE_INLINE constexpr auto& inner_angle()             noexcept  { return this->m_inner_angle;            }
+	FORCE_INLINE constexpr auto& outer_angle()             noexcept  { return this->m_outer_angle;            }
+	FORCE_INLINE constexpr auto& light_struct_name()       noexcept  { return this->m_light_struct_name;      }
+	FORCE_INLINE constexpr auto& shader_buffer()           noexcept  { return this->m_shader_buffer;          }
+	FORCE_INLINE constexpr auto& view()                    noexcept  { return this->m_view;                   }
+	FORCE_INLINE constexpr auto& projection()              noexcept  { return this->m_projection;             }
+	FORCE_INLINE constexpr auto& view_projection()         noexcept  { return this->m_view_projection;        }
+	FORCE_INLINE constexpr auto& shadow_viewport()         noexcept  { return this->m_shadow_viewport;        }
+	FORCE_INLINE constexpr auto& position()                noexcept  { return this->m_position;               }
+	FORCE_INLINE constexpr auto& direction()               noexcept  { return this->m_normalized_direction;   }
+	FORCE_INLINE constexpr auto& dirty()             const noexcept  { return this->m_dirty;                  }
+	FORCE_INLINE constexpr auto& type()              const noexcept  { return this->m_type;                   }
+	FORCE_INLINE constexpr auto& intensity()         const noexcept  { return this->m_intensity;              }
+	FORCE_INLINE constexpr auto& range()             const noexcept  { return this->m_range;                  }
+	FORCE_INLINE constexpr auto& inner_angle()       const noexcept  { return this->m_inner_angle;            }
+	FORCE_INLINE constexpr auto& outer_angle()       const noexcept  { return this->m_outer_angle;            }
+	FORCE_INLINE constexpr auto& light_struct_name() const noexcept  { return this->m_light_struct_name;      }
+	FORCE_INLINE constexpr auto& shader_buffer()     const noexcept  { return this->m_shader_buffer;          }
+	FORCE_INLINE constexpr auto& view()              const noexcept  { return this->m_view;                   }
+	FORCE_INLINE constexpr auto& projection()        const noexcept  { return this->m_projection;             }
+	FORCE_INLINE constexpr auto& view_projection()   const noexcept  { return this->m_view_projection;        }
+	FORCE_INLINE constexpr auto& shadow_viewport()   const noexcept  { return this->m_shadow_viewport;        }
+	FORCE_INLINE constexpr auto& position()          const noexcept  { return this->m_position;               }
+	FORCE_INLINE constexpr auto& direction()         const noexcept  { return this->m_normalized_direction;   }
+	FORCE_INLINE constexpr auto& color()             const noexcept  { return this->m_color;                  }
 
-	FORCE_INLINE constexpr void dirty(bool a_dirty)                                 noexcept  { this->m_dirty = a_dirty;                           }
-	FORCE_INLINE constexpr void type(LightType a_type)                              noexcept  { this->m_type = a_type;                             }
-	FORCE_INLINE constexpr void intensity(float32_t a_intensity)                    noexcept  { this->m_intensity = a_intensity;                   }
-	FORCE_INLINE constexpr void range(float32_t a_range)                            noexcept  { this->m_range = a_range;                           }
-	FORCE_INLINE constexpr void inner_angle(float32_t a_inner_angle)                noexcept  { this->m_inner_angle = a_inner_angle;               }
-	FORCE_INLINE constexpr void outer_angle(float32_t a_outer_angle)                noexcept  { this->m_outer_angle = a_outer_angle;               }
-	FORCE_INLINE constexpr void light_struct_name(std::string a_light_struct_name)  noexcept  { this->m_light_struct_name = a_light_struct_name;   }
-	FORCE_INLINE           void view(Matrix4f a_view)                               noexcept  { this->m_view = a_view;                             }
-	FORCE_INLINE           void projection(Matrix4f a_projection)                   noexcept  { this->m_projection = a_projection;                 }
-	FORCE_INLINE           void view_projection(Matrix4f a_view_projection)         noexcept  { this->m_view_projection = a_view_projection;       }
-	FORCE_INLINE constexpr void shadow_viewport(Vector4ui a_shadow_viewport)        noexcept  { this->m_shadow_viewport = a_shadow_viewport;       }
-	FORCE_INLINE constexpr void position(Vector3f a_position)                       noexcept  { this->m_position = a_position;                     }
-	FORCE_INLINE constexpr void direction(Vector3f a_direction)                     noexcept  { this->m_direction = a_direction;                   }
-	FORCE_INLINE constexpr void color(Vector3f a_color)                             noexcept  { this->m_color = a_color;                           }
+	FORCE_INLINE constexpr void dirty(bool a_dirty)                                 noexcept  { this->m_dirty = a_dirty;                                   }
+	FORCE_INLINE constexpr void type(LightType a_type)                              noexcept  { this->m_type = a_type;                                     }
+	FORCE_INLINE constexpr void intensity(float32_t a_intensity)                    noexcept  { this->m_intensity = a_intensity;                           }
+	FORCE_INLINE constexpr void range(float32_t a_range)                            noexcept  { this->m_range = a_range;                                   }
+	FORCE_INLINE constexpr void inner_angle(float32_t a_inner_angle)                noexcept  { this->m_inner_angle = a_inner_angle;                       }
+	FORCE_INLINE constexpr void outer_angle(float32_t a_outer_angle)                noexcept  { this->m_outer_angle = a_outer_angle;                       }
+	FORCE_INLINE constexpr void light_struct_name(std::string a_light_struct_name)  noexcept  { this->m_light_struct_name = a_light_struct_name;           }
+	FORCE_INLINE           void view(Matrix4f a_view)                               noexcept  { this->m_view = a_view;                                     }
+	FORCE_INLINE           void projection(Matrix4f a_projection)                   noexcept  { this->m_projection = a_projection;                         }
+	FORCE_INLINE           void view_projection(Matrix4f a_view_projection)         noexcept  { this->m_view_projection = a_view_projection;               }
+	FORCE_INLINE constexpr void shadow_viewport(Vector4ui a_shadow_viewport)        noexcept  { this->m_shadow_viewport = a_shadow_viewport;               }
+	FORCE_INLINE constexpr void position(Vector3f a_position)                       noexcept  { this->m_position = a_position;                             }
+	FORCE_INLINE constexpr void color(Vector3f a_color)                             noexcept  { this->m_color = a_color;                                   }
+	FORCE_INLINE           void direction(Vector3f a_direction)                     noexcept  { this->m_normalized_direction = a_direction.normalized();   }
 	// clang-format on
 
   private:
@@ -138,7 +137,7 @@ class ROAR_ENGINE_ITEM Light
 	Matrix4f                       m_view_projection{};                                   //! View projection of the light, used in shadow mapping
 	Vector4ui                      m_shadow_viewport{};                                   //! Size and position of rendering into the shadowmap
 	Vector3f                       m_position{};                                          //! Position of lights but only valid for point and spot lights, for all lights position is used to render the light in editor
-	Vector3f                       m_direction{};                                         //! Direction of directional and spot lights
+	Vector3f                       m_normalized_direction{};                              //! Direction of directional and spot lights, normalised always on update
 	Vector3f                       m_color{};                                             //! Light color
 	std::vector<rhi::ShaderBuffer> m_shader_buffer{};                                     //! Shader buffer for a specific type of light UBO, it needs to be a vector because its a per_frame resource
 };

@@ -82,6 +82,9 @@ class ROAR_ENGINE_ITEM Camera
 	FORCE_INLINE ~Camera() noexcept                           = default;        //! Destructor
 
 	// clang-format off
+	FORCE_INLINE void view(Matrix4f a_view)                  noexcept { this->m_view = a_view;                  }
+	FORCE_INLINE void projection(Matrix4f a_projection)      noexcept { this->m_projection = a_projection;      }
+
 	FORCE_INLINE constexpr auto& view()          const noexcept { return this->m_view;          }
 	FORCE_INLINE constexpr auto& projection()    const noexcept { return this->m_projection;    }
 	FORCE_INLINE constexpr auto& type()          const noexcept { return this->m_type;          }
@@ -163,6 +166,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE constexpr auto& height()        const noexcept { return this->m_height;        }
 	FORCE_INLINE constexpr auto& aspect_ratio()  const noexcept { return this->m_aspect_ratio;  }
 	// clang-format on
+	FORCE_INLINE constexpr auto &frustum_bounding_box(size_t a_index = 0u) const;
 	FORCE_INLINE constexpr auto &frustum_corners(size_t a_index = 0u) const;
 	FORCE_INLINE constexpr auto &frustum_center(size_t a_index = 0u) const;
 	FORCE_INLINE void            set_parameters(CameraType a_type, float32_t a_width, float32_t a_height,

@@ -56,6 +56,7 @@
 	"generate_quad_mesh" : false,
 	"generate_fullscreen_quad_mesh" : false,
 	"generate_pink_textures" : true,
+	"fit_far_to_scene" : false,
 	"clean_on_boot" : true,
 	"winding" : "counter_clockwise",
 	"application_name" : "Roar Editor",

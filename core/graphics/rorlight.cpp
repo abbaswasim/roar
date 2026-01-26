@@ -34,15 +34,15 @@ namespace ror
 
 std::string Light::light_type_string()
 {
+	// clang-format off
 	switch (this->m_type)
 	{
-			// clang-format off
-		case LightType::directional: return "directional";
-		case LightType::spot:        return "spot";
-		case LightType::point:       return "point";
-		case LightType::area:        return "area";
-			// clang-format on
+	case LightType::directional: return "directional";
+	case LightType::spot:        return "spot";
+	case LightType::point:       return "point";
+	case LightType::area:        return "area";
 	}
+	// clang-format on
 }
 
 void Light::string_light_type(std::string a_type)
@@ -192,7 +192,7 @@ void Light::update(size_t a_frequency)
 			this->m_shader_buffer[a_frequency].update("position", &this->m_position, light_index, stride);
 
 		if (this->m_type != ror::Light::LightType::point)
-			this->m_shader_buffer[a_frequency].update("direction", &this->m_direction, light_index, stride);
+			this->m_shader_buffer[a_frequency].update("direction", &this->m_normalized_direction, light_index, stride);
 
 		this->m_shader_buffer[a_frequency].update("intensity", &this->m_intensity, light_index, stride);
 		this->m_shader_buffer[a_frequency].update("range", &this->m_range, light_index, stride);

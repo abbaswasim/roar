@@ -2705,9 +2705,7 @@ void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::Eve
 
 	// Upload lights
 	for (auto &light : this->m_lights)
-	{
 		light.upload(a_device);
-	}
 
 	// Upload cameras
 	for (auto &camera : this->m_cameras)

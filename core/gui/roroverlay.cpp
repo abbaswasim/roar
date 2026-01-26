@@ -485,7 +485,7 @@ void Overlays::draw(const ror::Matrix4f &a_view_projection, const ror::Vector4f 
 	// TODO: Move these inverses out into camera, also one in anchors
 	auto view_projection_inverse = a_view_projection;
 	auto res                     = view_projection_inverse.invert();
-	assert(res);
+	assert(res && "View projection is not inverable");
 	(void) res;
 
 	for (auto &overlay : this->m_overlays)

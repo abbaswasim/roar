@@ -47,12 +47,13 @@ class ROAR_ENGINE_ITEM Frustum final
 	void setup(const ror::Matrix4f &a_view);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto &corners() const { return this->m_corners; }
-	FORCE_INLINE constexpr auto &center()  const { return this->m_center;  }
-	FORCE_INLINE constexpr auto fov()      const { return this->m_fov;     }
-	FORCE_INLINE constexpr auto far()      const { return this->m_far;     }
-	FORCE_INLINE constexpr auto near()     const { return this->m_near;    }
-	FORCE_INLINE constexpr auto aspect()   const { return this->m_aspect;  }
+	FORCE_INLINE constexpr auto &corners() const { return this->m_corners;       }
+	FORCE_INLINE constexpr auto &center()  const { return this->m_center;        }
+	FORCE_INLINE constexpr auto fov()      const { return this->m_fov;           }
+	FORCE_INLINE constexpr auto far()      const { return this->m_far;           }
+	FORCE_INLINE constexpr auto near()     const { return this->m_near;          }
+	FORCE_INLINE constexpr auto aspect()   const { return this->m_aspect;        }
+	FORCE_INLINE constexpr auto &box()     const { return this->m_bounding_box;  }
 
 	FORCE_INLINE void fov(float32_t a_fov)        { this->m_fov = a_fov;       }
 	FORCE_INLINE void far(float32_t a_far)        { this->m_far = a_far;       }
@@ -71,6 +72,7 @@ class ROAR_ENGINE_ITEM Frustum final
 	ror::Matrix4f        m_view_inverse{};           //! Inverse of the view matrix
 	ror::Planef          m_planes[6];                // The planes that bounds a frustum
 	ror::BoundingSpheref m_bounding_sphere{};        //! Bounding sphere of the frustum
+	ror::BoundingBoxf    m_bounding_box{};           //! Bounding box of the frustum
 
   protected:
   private:

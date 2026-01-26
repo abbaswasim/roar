@@ -368,7 +368,7 @@
 			"perspective":{
 				"aspectRatio":1.0,
 				"yfov":60.0,
-				"zfar":10.0,
+				"zfar":30.0,
 				"znear":0.1
 			}
 		},
