@@ -26,6 +26,7 @@
 #include "bounds/rorbounding.hpp"
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
+#include "foundation/rorsystem.hpp"
 #include "graphics/rorline_soup.hpp"
 #include "graphics/rorscene.hpp"
 #include "math/rormatrix4.hpp"
@@ -508,7 +509,7 @@ void shadow_volume_debug_geometry(ror::Scene &a_scene, ror::EventSystem &a_event
 	ror::push_point(data, a_eye, ror::white4f);
 	ror::push_point(data, a_target, ror::red4f);
 
-	ce = ls.push_lines(reinterpret_cast<uint8_t *>(data.data()), lines_count, ce);
+	ce  = ls.push_lines(reinterpret_cast<uint8_t *>(data.data()), lines_count, ce);
 	lp  = ls.push_cross(a_eye, 2.0f, lp, ror::blue4f);
 	cen = ls.push_cross(a_target, 2.0f, cen, ror::green4f);
 }
@@ -564,6 +565,40 @@ void fit_light_frustrum(ror::Scene &a_scene, const ror::Light &a_light, ror::Mat
 	// shadow_volume_debug_geometry(a_scene, a_event_system, a_light_view_fit, a_projection_fit, a_eye, target, frustum_min_ls, frustum_max_ls);
 }
 
+void render_scene_into_shadowmap(ror::Scene &a_scene, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, const ror::Vector4ui &a_viewport, const ror::Vector3f &a_eye)
+{
+	if constexpr (ror::get_build() == ror::BuildType::build_debug)
+	{
+		// To test with main camera
+		static bool scene_to_shadowmap_toggle = true;
+		static bool use_scene_camera          = false;
+
+		if (scene_to_shadowmap_toggle)
+		{
+			ror::EventCallback toggle_callback = [](ror::Event) {
+				use_scene_camera = !use_scene_camera;
+
+				if (use_scene_camera)
+					ror::log_critical("Will use light camera now");
+				else
+					ror::log_critical("Will use scene camera now");
+			};
+
+			a_event_system.subscribe(ror::keyboard_p_click, toggle_callback);
+			scene_to_shadowmap_toggle = false;
+		}
+
+		if (use_scene_camera)
+		{
+			auto &camera     = a_scene.current_camera();
+			auto  view       = camera.view();
+			auto  projection = camera.projection();
+
+			a_renderer.update_per_view_uniform(view, projection, a_viewport, a_eye);
+		}
+	}
+}
+
 void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
                  rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass)
 {
@@ -580,7 +615,7 @@ void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sce
 			fit_light_frustrum(a_scene, light, view_fit, projection_fit, eye);
 
 			a_renderer.update_per_view_uniform(view_fit, projection_fit, light_shadow_viewport, eye);
-			// a_renderer.update_per_view_uniform(view, projection, light_shadow_viewport, eye);
+			render_scene_into_shadowmap(a_scene, a_event_system, a_renderer, light_shadow_viewport, eye);
 
 			render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
 			break;
