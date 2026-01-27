@@ -26,6 +26,7 @@
 # Add spdlog library
 add_subdirectory(spdlog)
 target_compile_options(spdlog INTERFACE "-Wno-float-equal")
+target_compile_definitions(spdlog PUBLIC FMT_USE_NONTYPE_TEMPLATE_ARGS=0 FMT_USE_CONSTEVAL=0)
 set_target_properties(spdlog PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Add json library
