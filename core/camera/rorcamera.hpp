@@ -123,6 +123,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE void up(Vector3f a_up);
 	FORCE_INLINE void right(Vector3f a_right);
 	FORCE_INLINE void forward(Vector3f a_forward);
+	FORCE_INLINE void eye(Vector3f a_eye);
+	FORCE_INLINE void target(Vector3f a_target);
 	FORCE_INLINE void zoom(double64_t a_zoom_delta);
 	FORCE_INLINE void mode(CameraMode a_mode);
 	FORCE_INLINE void type(CameraType a_type);
@@ -135,10 +137,11 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE void x_mag(float32_t a_x_mag);
 	FORCE_INLINE void y_mag(float32_t a_y_mag);
 	FORCE_INLINE void y_fov(float32_t a_y_fov);
+	FORCE_INLINE void from_scene(bool a_from_scene);
 	void              init(EventSystem &a_event_system);
 	void              enable();
 	void              disable();
-	void              update(const Renderer &a_renderer) const;
+	void              update(const Renderer &a_renderer);
 	void              upload(rhi::Device &a_device);
 	void              setup_frustums();
 	void              orient_top();
@@ -211,6 +214,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	float32_t     m_x_mag{1.0f};                         //! Width of the orthographics camera
 	float32_t     m_y_mag{1.0f};                         //! Height of the orthographics camera
 	CameraMode    m_mode{CameraMode::orbit};             //! Default orbit camera
+	bool          m_from_scene{true};                    //! Should the camera view be created from scene or either using default values for target, view and up or provided by scene file
 	Frustum       m_frustums[cascade_count];             //! Frustums for all the cascades, max 4 splits
 	EventSystem  *m_event_system{nullptr};               //! A non-owning alias of the event system to not have to keep moving this around
 	EventCallback m_move_callback{};                     //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system

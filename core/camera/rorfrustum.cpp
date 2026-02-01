@@ -28,8 +28,6 @@
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
-#include "math/rorvector_functions.hpp"
-#include "profiling/rorlog.hpp"
 #include "rorfrustum.hpp"
 
 namespace ror
@@ -45,13 +43,13 @@ namespace ror
  */
 void Frustum::setup(const ror::Matrix4f &a_view)
 {
-	float32_t s = this->m_aspect;
-	float32_t g = 1.0f / std::tan(ror::to_radians(this->m_fov / 2.0f));
-	// float32_t g = s / std::tan(ror::to_radians(this->m_fov / 2.0f)); // This one is required if m_fov is horizonal fov
-	float32_t n = this->m_near;
-	float32_t f = this->m_far;
+	const float32_t s = this->m_aspect;
+	const float32_t g = 1.0f / std::tan(ror::to_radians(this->m_fov / 2.0f));
+	// const float32_t g = s / std::tan(ror::to_radians(this->m_fov / 2.0f)); // This one is required if m_fov is horizonal fov
+	const float32_t n = this->m_near;
+	const float32_t f = this->m_far;
 
-	ror::Vector4f frustum_corners[8] = {
+	const ror::Vector4f frustum_corners[8] = {
 	    {-(n * s) / g, -n / g, -n, 1.0f},
 	    {(n * s) / g, -n / g, -n, 1.0f},
 	    {(n * s) / g, n / g, -n, 1.0f},

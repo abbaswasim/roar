@@ -572,8 +572,8 @@
 				]
 			},
 			{
-				"width" : 1024,
-				"height" : 768,
+				"width" : 2048,
+				"height" : 2048,
 				"render_targets":[
 					{
 						"index":2,

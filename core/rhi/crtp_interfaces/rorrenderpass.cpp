@@ -609,13 +609,15 @@ void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sce
 			ror::Matrix4f projection_fit{};
 			ror::Matrix4f view_fit{};
 
-			ror::Vector4ui light_shadow_viewport{0, 0, 1024, 768};
+			auto rpd = a_pass.dimensions();
+			ror::Vector4ui light_shadow_viewport{0, 0, rpd.x, rpd.y};
 			ror::Vector3f  eye{};
 
 			fit_light_frustrum(a_scene, light, view_fit, projection_fit, eye);
 
 			a_renderer.update_per_view_uniform(view_fit, projection_fit, light_shadow_viewport, eye);
-			render_scene_into_shadowmap(a_scene, a_event_system, a_renderer, light_shadow_viewport, eye);
+
+			render_scene_into_shadowmap(a_scene, a_event_system, a_renderer, light_shadow_viewport, eye, view_fit, projection_fit);
 
 			render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
 			break;

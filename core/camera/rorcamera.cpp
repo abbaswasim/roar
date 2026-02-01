@@ -228,7 +228,7 @@ void OrbitCamera::update_projection()
 {
 	// Setup perspective projection matrix
 	this->m_aspect_ratio = this->m_width / this->m_height;
-	ror::log_info("near = {} far = {} in {}", this->m_z_near, m_z_far, __FUNCTION__);
+	// ror::log_info("near = {} far = {} in {}", this->m_z_near, m_z_far, __FUNCTION__);
 	if (this->m_type == CameraType::perspective)
 	{
 		// assumes square pixels, if ever there is evidence of non-square pixels, provided by windowing system i.e. glfw use it here instead
@@ -246,8 +246,8 @@ void OrbitCamera::update_projection()
 
 void OrbitCamera::setup_frustums()
 {
-	this->update_view();
-	this->update_projection();
+	// this->update_view();
+	// this->update_projection();
 
 	const size_t cascade_index{0};
 
@@ -260,12 +260,19 @@ void OrbitCamera::setup_frustums()
 
 void OrbitCamera::setup()
 {
-	auto diagonal  = (this->m_maximum - this->m_minimum);
-	this->m_center = this->m_minimum + (diagonal / 2.0f);
-	this->m_target = this->m_center;
-	this->m_eye.x  = this->m_center.x;
-	this->m_eye.y  = this->m_center.y + (diagonal.x / 4.0f);
-	this->m_eye.z  = ((std::max(diagonal.x, diagonal.y) / 2.0f) / std::tan(ror::to_radians(this->m_y_fov / 2)));
+	if (this->m_from_scene)
+	{
+		auto diagonal  = (this->m_maximum - this->m_minimum);
+		this->m_center = this->m_minimum + (diagonal / 2.0f);
+		this->m_target = this->m_center;
+		this->m_eye.x  = this->m_center.x;
+		this->m_eye.y  = this->m_center.y + (diagonal.x / 4.0f);
+		this->m_eye.z  = ((std::max(diagonal.x, diagonal.y) / 2.0f) / std::tan(ror::to_radians(this->m_y_fov / 2)));
+	}
+	else
+	{
+		this->m_center = this->m_target;
+	}
 
 	this->update_view();
 	this->update_projection();
@@ -366,8 +373,10 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(keyboard_r_command_click, this->m_reset_callback);
 }
 
-void OrbitCamera::update(const Renderer &a_renderer) const
+void OrbitCamera::update(const Renderer &a_renderer)
 {
+	this->setup_frustums();
+
 	// TODO: Don't update me if nothing has changed
 	auto per_view_uniform = a_renderer.shader_buffer("per_view_uniform");
 

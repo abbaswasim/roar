@@ -1,118 +1,49 @@
 {
 	"nodes":[
 		{
-			"children":[
-				1,
-				2,
-				3
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"name":"root"
-		},
-		{
 			"name":"plane",
 			"path":"plane/plane.gltf",
+			"animation": 1,
 			"translation":[
 				0.0,
 				0.0,
 				0.0
-			],
-			"rotation":[
-				0.7071068,
-				0.0,
-				0.0,
-				0.7071068
-			],
-			"scale":[
-				1.0,
-				1.0,
-				1.0
 			]
 		},
 		{
-			"name":"sun",
-			"translation":[
-				0.0,
-				0.0,
-				0.0
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"scale":[
-				1.0,
-				1.0,
-				1.0
-			],
-			"light":0
-		},
-		{
-			"name":"maya_camera",
-			"translation":[
-				0.0,
-				0.0,
-				0.0
-			],
-			"rotation":[
-				0.0,
-				0.0,
-				0.0,
-				1.0
-			],
-			"scale":[
-				1.0,
-				1.0,
-				1.0
-			],
-			"camera":0
-		},
-		{
-			"name":"fire",
-			"translation":[
-				10.0,
-				0.0,
-				0.0
-			],
-			"particle_emitter":0
+			"name":"grid"
 		}
 	],
 	"lights":[
 		{
 			"type":"directional",
-			"position":[
-				-10.0,
-				20.0,
-				-5.0
-			],
 			"direction":[
 				10.0,
 				-20.0,
-				5.0
+				-15.0
+			],
+			"position":[
+				-100.0,
+				150.0,
+				-100.0
 			],
 			"color":[
-				0.9,
-				0.5,
-				0.3
+				1.0,
+				1.0,
+				1.0
 			],
-			"intensity":1.0
+			"intensity":5.0
 		},
 		{
 			"type": "spot",
-			"innerAngle": 0.8,
-			"outerAngle": 1.6,
-			"intensity":0.0,
+			"innerAngle": 0.4,
+			"outerAngle": 0.7,
+			"intensity":4.0,
+			"range":100.0,
 			"position":[
-				5.0,
-				10.0,
-				-5.0
+				50.0,
+				100.0,
+				-50.0
 			],
 			"direction":[
 				0.0,
@@ -120,19 +51,19 @@
 				0.0
 			],
 			"color": [
-				1.0,
-				1.0,
+				0.5,
+				0.5,
 				1.0
 			]
 		},
 		{
 			"type": "point",
 			"intensity":0.0,
-			"range":20.0,
+			"range":200.0,
 			"position":[
-				0.0,
+				50.0,
 				100.0,
-				0.0
+				-25.0
 			],
 			"color": [
 				1.0,
@@ -143,10 +74,23 @@
 		{
 			"type": "spot",
 			"intensity":1.0,
+			"range":50.0,
+			"innerAngle": 0.4,
+			"outerAngle": 0.7,
+			"position":[
+				-50.0,
+				50.0,
+				-25.0
+			],
+			"direction":[
+				50.0,
+				-50.0,
+				25.0
+			],
 			"color": [
-				1.0,
-				1.0,
-				1.0
+				0.0,
+				0.5,
+				0.5
 			]
 		}
 	],

@@ -177,6 +177,20 @@ void OrbitCamera::forward(Vector3f a_forward)
 	this->setup();
 }
 
+void OrbitCamera::eye(Vector3f a_eye)
+{
+	this->m_eye = a_eye;
+
+	this->setup();
+}
+
+void OrbitCamera::target(Vector3f a_target)
+{
+	this->m_target = a_target;
+
+	this->setup();
+}
+
 void OrbitCamera::mode(CameraMode a_mode)
 {
 	this->m_mode = a_mode;
@@ -257,6 +271,11 @@ void OrbitCamera::y_fov(float32_t a_y_fov)
 	this->m_y_fov_target = a_y_fov;
 
 	this->update_projection();
+}
+
+void OrbitCamera::from_scene(bool a_from_scene)
+{
+	this->m_from_scene = a_from_scene;
 }
 
 FORCE_INLINE constexpr auto &OrbitCamera::frustum_corners(size_t a_index) const

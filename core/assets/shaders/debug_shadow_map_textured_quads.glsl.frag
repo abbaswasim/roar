@@ -18,7 +18,6 @@ vec4 get_base_color()
 
 layout(location = 0) out vec4 out_color;
 
-
 // source http://glampert.com/2014/01-26/visualizing-the-depth-buffer/
 float linearize_depth(float depth)
 {
@@ -28,12 +27,12 @@ float linearize_depth(float depth)
     return (2.0 * z_near) / (z_far + z_near - depth * (z_far - z_near));
 }
 
-
 void main()
 {
 	vec4 base_color = get_base_color();
 
-	float linear_depth = linearize_depth(base_color.x);
+	// Only needed for perspective projection visualisation
+	// base_color.x = linearize_depth(base_color.x);
 
-	out_color = vec4(linear_depth, linear_depth, linear_depth, 1.0);
+	out_color = vec4(base_color.x, base_color.x, base_color.x, 1.0);
 }

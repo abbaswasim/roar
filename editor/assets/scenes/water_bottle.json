@@ -2,24 +2,11 @@
 	"nodes":[
 		{
 			"name":"sample",
-			"path":"samples/WaterBottle/glTF/WaterBottle.gltf",
 			"program":0,
-			"translation":[
-				0.0,
-				0.0,
-				0.0
-			],
-			"rotation":[
-				0,
-				0,
-				0,
-				1
-			],
-			"scale":[
-				1.0,
-				1.0,
-				1.0
-			]
+			"path":"samples/WaterBottle/glTF/WaterBottle.gltf"
+		},
+		{
+			"name":"grid"
 		}
 	],
 	"lights":[

@@ -1540,9 +1540,9 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	{
 		output.append(shadows_code);
 		output.append("\n");
-		replace_next_at("get_shadow(directional.mvp);", lighting_code);
-		replace_next_at("get_shadow(point.mvp);", lighting_code);
-		replace_next_at("get_shadow(spot.mvp);", lighting_code);
+		replace_next_at("get_shadow(directional.mvp, light.normal_dot_direction);", lighting_code);
+		replace_next_at("get_shadow(point.mvp, light.normal_dot_direction);", lighting_code);
+		replace_next_at("get_shadow(spot.mvp, light.normal_dot_direction);", lighting_code);
 	}
 	else
 	{

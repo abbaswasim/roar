@@ -2356,10 +2356,10 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 	shadow_map_textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
 
 	// This is done last because of the move
-	this->m_debug_data.m_shadow_cascades.setup_vertex_descriptor(&textured_quads_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards
+	this->m_debug_data.m_shadow_cascades.setup_vertex_descriptor(&textured_quads_vertex_descriptor);        // NOTE: Moves vertex_descriptor can't use it afterwards
 
 	const size_t  data_size{6 * 5};
-	float32_t     scale{0.25f};
+	float32_t     scale{0.10f};
 	float32_t     win_w{static_cast<float32_t>(ror::settings().m_window.m_dimensions.z)};
 	float32_t     win_h{static_cast<float32_t>(ror::settings().m_window.m_dimensions.w)};
 	float32_t     pixel_size_w = scale / win_w;
@@ -2436,6 +2436,7 @@ void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 	front_center = front_center / 4.0f;
 	back_center  = back_center / 4.0f;
 
+	// TODO: Abstract this one out so we are able to draw a box anytime from corners
 	// Front quad
 	frustum_vertex_buffer.emplace_back(cam_corners[0]);
 	frustum_vertex_buffer.emplace_back(red3f);

@@ -21,13 +21,14 @@ layout(location = 0) out vec4 out_color;
 // source http://glampert.com/2014/01-26/visualizing-the-depth-buffer/
 float linearize_depth(float depth)
 {
+	// This should come from system, but this is only for debugging when displaying depth in perspective projection
     float z_near = 0.1;
     float z_far  = 1000.0;
 
     return (2.0 * z_near) / (z_far + z_near - depth * (z_far - z_near));
 }
 
-
+// This shader isn't used currently
 void main()
 {
 	vec4 base_color = get_base_color();

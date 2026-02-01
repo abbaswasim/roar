@@ -154,8 +154,8 @@ class ROAR_ENGINE_ITEM Settings final
 	uint32_t m_engine_version{0};
 	uint32_t m_resolve_includes_depth{10};        //! How many levels deep should the includes searching go
 
-	bool m_save_scene_state{true};
-	bool m_load_scene_state{true};
+	bool m_save_scene_state{false};
+	bool m_load_scene_state{false};
 	bool m_clean_on_boot{false};
 	bool m_visualise_mipmaps{false};
 	bool m_vertical_sync{false};

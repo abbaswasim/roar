@@ -2898,6 +2898,36 @@ void Scene::read_cameras()
 				}
 			}
 
+			if (camera.contains("view_from_scene"))
+			{
+				auto cam_from_scene = camera["view_from_scene"];
+				cam.from_scene(cam_from_scene);
+			}
+
+			if (camera.contains("view"))
+			{
+				auto cam_view = camera["view"];
+
+				for (auto &[key, value] : cam_view.items())
+				{
+					if (key == "eye")
+					{
+						std::array<float32_t, 3> eye = value;
+						cam.eye({eye[0], eye[1], eye[2]});
+					}
+					if (key == "target")
+					{
+						std::array<float32_t, 3> target = value;
+						cam.target({target[0], target[1], target[2]});
+					}
+					if (key == "up")
+					{
+						std::array<float32_t, 3> up = value;
+						cam.up({up[0], up[1], up[2]});
+					}
+				}
+			}
+
 			this->m_cameras.emplace_back(std::move(cam));
 		}
 	}
