@@ -52,7 +52,7 @@ void OrbitCamera::set_far_to_scene(ror::BoundingBoxf a_scene_bounds)
 
 void OrbitCamera::zoom(double64_t a_zoom_delta)
 {
-	auto delta = (camera_sensitivity * 10.0f * static_cast<float32_t>(a_zoom_delta));
+	auto delta = (camera_sensitivity * 5.0f * static_cast<float32_t>(a_zoom_delta));
 
 	this->m_y_fov += delta;
 
@@ -64,7 +64,7 @@ void OrbitCamera::zoom(double64_t a_zoom_delta)
 
 void OrbitCamera::forward(double64_t a_zoom_delta)
 {
-	auto delta = (camera_sensitivity * 10.0f * static_cast<float32_t>(a_zoom_delta));
+	auto delta = (camera_sensitivity * 5.0f * static_cast<float32_t>(a_zoom_delta));
 
 	auto forward = this->m_target - this->m_eye;
 

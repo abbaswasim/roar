@@ -36,7 +36,9 @@
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
 #include "math/rorvector_functions.hpp"
+#include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
+#include <cmath>
 
 namespace ror
 {
@@ -130,46 +132,62 @@ void OrbitCamera::init(EventSystem &a_event_system)
 	this->setup();
 }
 
+void OrbitCamera::orient_to_direction(Vector3f a_forward, Vector3f a_up_hint)
+{
+	auto radius = ror::distance(this->m_eye, this->m_target);
+	if (radius < 0.0001f)
+		radius = 1.0f;
+
+	if (a_forward.length_squared() < 1e-6f)
+		a_forward = ror::yaxis3f_negative;
+
+	a_forward.normalize();
+
+	if (std::abs(a_forward.dot_product(a_up_hint)) > 0.99f)
+		a_up_hint = std::abs(a_forward.dot_product(ror::zaxis3f)) > 0.99f ? ror::xaxis3f : ror::zaxis3f;
+
+	auto right = a_forward.cross_product(a_up_hint);
+	if (right.length_squared() < 1e-6f)
+		right = a_forward.cross_product(ror::xaxis3f);
+	right.normalize();
+
+	auto up = right.cross_product(a_forward);
+	up.normalize();
+
+	this->m_forward = a_forward;
+	this->m_right   = right;
+	this->m_up      = up;
+	this->m_eye     = this->m_target - this->m_forward * radius;
+}
+
 void OrbitCamera::orient_top()
 {
-	auto r      = ror::distance(this->m_eye, this->m_center);
-	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y + r, this->m_center.z);
-	this->m_up  = ror::zaxis3f_negative;        // FIXME: This one is not working
+	this->orient_to_direction(ror::yaxis3f_negative, ror::zaxis3f_negative);
 }
 
 void OrbitCamera::orient_bottom()
 {
-	auto r      = ror::distance(this->m_eye, this->m_center);
-	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y - r, this->m_center.z);
-	this->m_up  = ror::zaxis3f;        // FIXME: This one is not working
+	this->orient_to_direction(ror::yaxis3f, ror::zaxis3f);
 }
 
 void OrbitCamera::orient_left()
 {
-	auto r      = ror::distance(this->m_eye, this->m_center);
-	this->m_eye = ror::Vector3f(this->m_center.x - r, this->m_center.x, this->m_center.z);
-	this->m_up  = ror::yaxis3f;
+	this->orient_to_direction(ror::xaxis3f, ror::yaxis3f);
 }
 
 void OrbitCamera::orient_right()
 {
-	auto r      = ror::distance(this->m_eye, this->m_center);
-	this->m_eye = ror::Vector3f(this->m_center.x + r, this->m_center.x, this->m_center.z);
-	this->m_up  = ror::yaxis3f;
+	this->orient_to_direction(ror::xaxis3f_negative, ror::yaxis3f);
 }
 
 void OrbitCamera::orient_front()
 {
-	auto r      = ror::distance(this->m_eye, this->m_center);
-	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y, this->m_center.z + r);
-	this->m_up  = ror::yaxis3f;
+	this->orient_to_direction(ror::zaxis3f_negative, ror::yaxis3f);
 }
 
 void OrbitCamera::orient_back()
 {
-	auto r      = ror::distance(this->m_eye, this->m_center);
-	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y, this->m_center.z - r);
-	this->m_up  = ror::yaxis3f;
+	this->orient_to_direction(ror::zaxis3f, ror::yaxis3f);
 }
 
 void OrbitCamera::update_normal()
@@ -199,8 +217,19 @@ void OrbitCamera::update_vectors()
 
 void OrbitCamera::update_view()
 {
+	auto world_up = ror::yaxis3f;
+	auto forward  = this->m_target - this->m_eye;
+
+	if (forward.length_squared() > 0.0f)
+	{
+		forward.normalize();
+
+		if (std::abs(forward.dot_product(world_up)) > 0.99f)
+			world_up = ror::zaxis3f;        // Avoid degenerate cross when looking straight down/up
+	}
+
 	// Up default is {0.0f, 1.0f, 0.0f} the real world up vector to orient itself
-	this->m_view = ror::make_look_at(this->m_eye, this->m_target, ror::yaxis3f, this->m_up, this->m_right);
+	this->m_view = ror::make_look_at(this->m_eye, this->m_target, world_up, this->m_up, this->m_right);
 
 	this->update_vectors();
 }
@@ -253,19 +282,35 @@ void OrbitCamera::setup()
 
 void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 {
-	auto origin            = this->m_target;        // this->m_mode == CameraMode::orbit ? this->m_target : this->m_eye;
+	bool orbit_mode = this->m_mode == CameraMode::orbit;
+	auto origin     = orbit_mode ? this->m_target : this->m_eye;
+
+	auto view_vector   = this->m_target - this->m_eye;
+	auto view_distance = view_vector.length();
+	if (view_distance < 1e-4f)
+		view_distance = 1.0f;
+
 	auto rotation_matrix_y = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
 
-	// First apply yaw around world up, rotate eye around target without translating direction vectors
-	auto eye_offset = this->m_eye - origin;
-	eye_offset      = rotation_matrix_y * eye_offset;
-	this->m_eye     = origin + eye_offset;
+	// First apply yaw
+	if (orbit_mode)
+	{
+		auto eye_offset = this->m_eye - origin;
+		eye_offset      = rotation_matrix_y * eye_offset;
+		this->m_eye     = origin + eye_offset;
+	}
+	else
+	{
+		this->m_forward = rotation_matrix_y * this->m_forward;
+	}
 
 	this->m_up    = rotation_matrix_y * this->m_up;
 	this->m_right = rotation_matrix_y * this->m_right;
 
-	// Rebuild a stable right vector after yaw to avoid drifting axes
-	auto forward = this->m_target - this->m_eye;
+	// Build a stable right vector after yaw
+	auto forward = orbit_mode ? this->m_target - this->m_eye : this->m_forward;
+	if (forward.length_squared() < 1e-6f)
+		forward = ror::zaxis3f_negative;
 	forward.normalize();
 
 	auto right = forward.cross_product_safe(ror::yaxis3f, this->m_right);
@@ -276,15 +321,23 @@ void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 	ror::AxisAnglef pitch_input{right, ror::to_radians(a_y_delta)};
 	auto            rotation_matrix_p = ror::matrix4_rotation(pitch_input);
 
-	// Then apply pitch around the camera right
-	eye_offset  = this->m_eye - origin;
-	eye_offset  = rotation_matrix_p * eye_offset;
-	this->m_eye = origin + eye_offset;
+	// Then apply pitch
+	if (orbit_mode)
+	{
+		auto eye_offset = this->m_eye - origin;
+		eye_offset      = rotation_matrix_p * eye_offset;
+		this->m_eye     = origin + eye_offset;
+	}
+	else
+	{
+		forward = rotation_matrix_p * forward;
+	}
 
 	this->m_up = rotation_matrix_p * this->m_up;
 
-	// Re-orthonormalize basis to preserve right-handed frame
-	forward = this->m_target - this->m_eye;
+	forward = orbit_mode ? this->m_target - this->m_eye : forward;
+	if (forward.length_squared() < 1e-6f)
+		forward = ror::zaxis3f_negative;
 	forward.normalize();
 
 	this->m_right = forward.cross_product_safe(ror::yaxis3f, right);
@@ -294,6 +347,11 @@ void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 
 	this->m_up = this->m_right.cross_product_safe(forward, this->m_up);
 	this->m_up.normalize();
+
+	this->m_forward = forward;
+
+	if (!orbit_mode)
+		this->m_target = this->m_eye + forward * view_distance;
 }
 
 void OrbitCamera::enable()
@@ -317,7 +375,6 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(mouse_control_scroll, this->m_forward_callback);
 
 	this->m_event_system->subscribe(mouse_command_scroll, this->m_zoom_callback);
-	this->m_event_system->subscribe(mouse_control_scroll, this->m_zoom_callback);
 
 	this->m_event_system->subscribe(keyboard_space_click, this->m_camera_mode_callback);
 }
@@ -343,7 +400,6 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_control_scroll, this->m_forward_callback);
 
 	this->m_event_system->unsubscribe(mouse_command_scroll, this->m_zoom_callback);
-	this->m_event_system->unsubscribe(mouse_control_scroll, this->m_zoom_callback);
 
 	this->m_event_system->unsubscribe(keyboard_space_click, this->m_camera_mode_callback);
 }
@@ -360,7 +416,7 @@ void OrbitCamera::draw_camera_properties()
 
 	std::vector<float32_t> data{};
 
-	ror::Vector3f eye{0.0f, 5.0f, 10.0f};
+	ror::Vector3f eye{this->m_eye};
 	eye.normalize();
 
 	ror::push_point(data, ror::zero_vector3f, ror::red4f);
@@ -376,7 +432,7 @@ void OrbitCamera::draw_camera_properties()
 	ror::push_point(data, ror::zero_vector3f, ror::blue4f);
 
 	ror::push_point(data, ror::zero_vector3f, ror::yellow4f);
-	ror::push_point(data, this->m_up * 10.0f, ror::yellow4f);
+	ror::push_point(data, this->m_up, ror::yellow4f);
 
 	lines   = ls.push_lines(reinterpret_cast<uint8_t *>(data.data()), static_cast_safe<uint32_t>(data.size() / 14), lines);
 	red_x   = ls.push_cross(xaxis3f, 0.5f, red_x, ror::red4f);
@@ -387,6 +443,7 @@ void OrbitCamera::draw_camera_properties()
 
 void OrbitCamera::update()
 {
+	// this->draw_camera_properties(); // Enable when needed to render the axis
 	this->update_view();
 	this->update_normal();
 	this->update_projection();

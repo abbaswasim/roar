@@ -185,6 +185,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	void update_view();
 	void update_normal();
 	void update_projection();
+	void orient_to_direction(Vector3f a_forward, Vector3f a_up_hint);
 	void rotate(float32_t a_x_rotation, float32_t a_y_rotation);
 
 	FORCE_INLINE void update_position_function(double64_t &a_x_delta, double64_t &a_y_delta);

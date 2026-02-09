@@ -2707,10 +2707,6 @@ void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::Eve
 	for (auto &light : this->m_lights)
 		light.upload(a_device);
 
-	// Upload cameras
-	for (auto &camera : this->m_cameras)
-		camera.upload(a_device);
-
 	// Upload all nodes shader buffers
 	for (auto &node : this->m_nodes_data)
 		node.upload(a_device);
@@ -2745,6 +2741,10 @@ void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::Eve
 
 	this->deferred_upload(a_device, a_job_system, a_renderer);
 	this->setup_cameras(a_renderer, a_event_system);
+
+	// Upload cameras
+	for (auto &camera : this->m_cameras)
+		camera.upload(a_renderer);
 
 	// Upload the global line_soup incase someone wants to use it for debug rendering
 	auto &ls = line_soup();

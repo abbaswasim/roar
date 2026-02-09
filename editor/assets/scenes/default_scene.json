@@ -365,12 +365,31 @@
 	"cameras":[
 		{
 			"type":"perspective",
+			"view_from_scene":false,
 			"perspective":{
 				"aspectRatio":1.0,
 				"yfov":60.0,
 				"zfar":30.0,
 				"znear":0.1
+			},
+			"view":{
+				"eye":[
+					0.0,
+					2.0,
+					4.0
+				],
+				"target":[
+					0.0,
+					0.0,
+					0.0
+				],
+				"up":[
+					0.0,
+					1.0,
+					0.0
+				]
 			}
+
 		},
 		{
 			"type":"orthographic",

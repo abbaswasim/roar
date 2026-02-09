@@ -697,7 +697,7 @@ void forward_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene
 	// TODO: This doesn't work at the moment because of no per pass per view uniforms
 	// When per-pass and per-frame versions of uniforms are added, this could also be done at scene::update time
 	auto &camera = a_scene.current_camera();
-	camera.update(a_renderer);
+	camera.upload(a_renderer);
 
 	render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
 }
