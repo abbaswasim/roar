@@ -1225,6 +1225,8 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 	this->m_frames.begin_frame();
 
+	a_scene.current_camera().update();
+
 	rhi::Swapchain surface = a_device.platform_swapchain();
 
 	if (surface)

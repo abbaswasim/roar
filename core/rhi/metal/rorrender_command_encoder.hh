@@ -78,7 +78,8 @@ FORCE_INLINE constexpr void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMo
 	(void) a_offset;
 	(void) a_index;
 
-	assert(0);
+	// "Invalid vertex buffer call, not sure what's going on here. Find out and enable the commented code"
+	std::abort();
 	// this->m_encoder->setVertexBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 
@@ -88,7 +89,8 @@ FORCE_INLINE constexpr void RenderCommandEncoder::cull_mode(rhi::PrimitiveCullMo
 	(void) a_offset;
 	(void) a_index;
 
-	assert(0);
+	// "Invalid vertex buffer call, not sure what's going on here. Find out and enable the commented code"
+	std::abort();
 	// this->m_encoder->setFragmentBuffer(a_buffer.platform_buffer(), a_offset, a_index);
 }
 

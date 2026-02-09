@@ -115,7 +115,6 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 
 	using Camera::type;
 
-	FORCE_INLINE void set_from_parameters();
 	FORCE_INLINE void set_far_to_scene(ror::BoundingBoxf a_scene_bounds);
 	FORCE_INLINE void bounds(float32_t a_width, float32_t a_height);
 	FORCE_INLINE void volume(Vector3f a_minimum, Vector3f a_maximum);
@@ -141,8 +140,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	void              init(EventSystem &a_event_system);
 	void              enable();
 	void              disable();
-	void              update(const Renderer &a_renderer);
-	void              upload(rhi::Device &a_device);
+	void              update();
+	void              upload(const Renderer &a_renderer);
 	void              setup_frustums();
 	void              orient_top();
 	void              orient_bottom();
@@ -150,6 +149,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	void              orient_right();
 	void              orient_front();
 	void              orient_back();
+	void              draw_camera_properties();
 
 	// clang-format off
 	FORCE_INLINE constexpr auto& eye()           const noexcept { return this->m_eye;           }
@@ -180,10 +180,9 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	                                            float32_t a_y_fov, float32_t a_x_mag, float32_t a_y_mag);
 
   private:
-	void reset();
 	void setup();
 	void update_vectors();
-	void update_view(Vector3f a_up = Vector3f{0.0, 1.0, 0.0});
+	void update_view();
 	void update_normal();
 	void update_projection();
 	void rotate(float32_t a_x_rotation, float32_t a_y_rotation);
@@ -194,8 +193,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, float32_t a_scale);
 	FORCE_INLINE void forward(double64_t a_zoom_delta);
 
-	Vector3f      m_target{0.0f, 0.0f, 0.0f};            //! Target position in worldspace that doesn't change unlike center
-	Vector3f      m_center{0.0f, 0.0f, 0.0f};            //! Target position in worldspace
+	Vector3f      m_target{0.0f, 0.0f, 0.0f};            //! Target position in worldspace that moves when zooming using forward
+	Vector3f      m_center{0.0f, 0.0f, 0.0f};            //! Target position in worldspace at the center of the scene, that never changes
 	Vector3f      m_eye{0.0f, 0.0f, 1.0f};               //! Eye position in worldspace // TODO: This should be correctly transformed with what's in the scene file translation/rotation scale etc. Its currently not working
 	Vector3f      m_right{1.0f, 0.0f, 0.0f};             //! Right vector in camera's frame of reference
 	Vector3f      m_up{0.0f, 1.0f, 0.0f};                //! Up vector in camera's frame of reference
@@ -205,7 +204,6 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	float32_t     m_x_position{0.0f};                    //! Previous cusor position of the mouse pointer
 	float32_t     m_y_position{0.0f};                    //! Previous cusor position of the mouse pointer
 	float32_t     m_y_fov{60.0f};                        //! Y-FOV of the camera
-	float32_t     m_y_fov_target{60.0f};                 //! Copy Y-FOV of the camera for resetting purposes
 	float32_t     m_z_near{0.1f};                        //! z-near of the camera
 	float32_t     m_z_far{10.0f};                        //! z-far of the camera
 	float32_t     m_aspect_ratio{1.0f};                  //! Aspect ratio of the camera
@@ -224,7 +222,6 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	EventCallback m_zoom_callback{};                     //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_frambuffer_resize_callback{};        //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_camera_mode_callback{};              //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_reset_callback{};                    //! Reset lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_frustum_callback{};                  //! Frustum snapshop lambda function that will be used to subscribe and unsubscribe this camera with event system
 };
 }        // namespace ror

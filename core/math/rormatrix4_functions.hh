@@ -26,6 +26,7 @@
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "math/rorvector3.hpp"
 #include "rormatrix4_functions.hpp"
 
 namespace ror
@@ -397,49 +398,37 @@ FORCE_INLINE Matrix4<_type> inverse_rotation_translation(const Matrix4<_type> &a
 }
 
 template <class _type>
-FORCE_INLINE Matrix4<_type> make_look_at(_type view_x, _type view_y, _type view_z,
-                                         _type focus_x, _type focus_y, _type focus_z,
-                                         _type up_x, _type up_y, _type up_z)
+FORCE_INLINE Matrix4<_type> make_look_at(const Vector3<_type> &a_eye, const Vector3<_type> &a_target, const Vector3<_type> &a_world_up, const Vector3<_type> &a_old_up, const Vector3<_type> &a_old_right)
 {
-	return make_look_at(Vector3<_type>(view_x, view_y, view_z),
-	                    Vector3<_type>(focus_x, focus_y, focus_z),
-	                    Vector3<_type>(up_x, up_y, up_z));
-}
-
-template <class _type>
-FORCE_INLINE Matrix4<_type> make_look_at(const Vector3<_type> &a_view, const Vector3<_type> &a_target, const Vector3<_type> &a_up)
-{
-	// From http://www.songho.ca/opengl/gl_camera.html
-
-	// compute the forward vector from a_target to a_view
-	Vector3<_type> forward = a_view - a_target;
+	// compute the forward vector from a_view to a_target
+	Vector3<_type> forward = a_target - a_eye;
 	forward.normalize();        // make unit length
 
-	// compute the left vector
-	Vector3<_type> left = a_up.cross_product(forward);        // cross product
-	left.normalize();
+	// compute the right vector
+	Vector3<_type> right = forward.cross_product_safe(a_world_up, a_old_right);
+	right.normalize();
 
 	// recompute the orthonormal up vector
-	Vector3<_type> up = forward.cross_product(left);        // cross product
+	Vector3<_type> up = right.cross_product_safe(forward, a_old_up);
+	up.normalize();
 
 	// init 4x4 matrix
-	Matrix4<_type> matrix;
+	Matrix4<_type> matrix{};
 
-	// set rotation part, inverse rotation matrix: M^-1 = M^T for Euclidean transform
-	matrix.m_values[0]  = left.x;
-	matrix.m_values[4]  = left.y;
-	matrix.m_values[8]  = left.z;
+	matrix.m_values[0]  = right.x;
+	matrix.m_values[4]  = right.y;
+	matrix.m_values[8]  = right.z;
 	matrix.m_values[1]  = up.x;
 	matrix.m_values[5]  = up.y;
 	matrix.m_values[9]  = up.z;
-	matrix.m_values[2]  = forward.x;
-	matrix.m_values[6]  = forward.y;
-	matrix.m_values[10] = forward.z;
+	matrix.m_values[2]  = -forward.x;
+	matrix.m_values[6]  = -forward.y;
+	matrix.m_values[10] = -forward.z;
 
-	// set translation part
-	matrix.m_values[12] = -left.x * a_view.x - left.y * a_view.y - left.z * a_view.z;
-	matrix.m_values[13] = -up.x * a_view.x - up.y * a_view.y - up.z * a_view.z;
-	matrix.m_values[14] = -forward.x * a_view.x - forward.y * a_view.y - forward.z * a_view.z;
+	// set translation part by expanding the dot_product of each manually
+	matrix.m_values[12] = -right.x * a_eye.x - right.y * a_eye.y - right.z * a_eye.z;
+	matrix.m_values[13] = -up.x * a_eye.x - up.y * a_eye.y - up.z * a_eye.z;
+	matrix.m_values[14] = forward.x * a_eye.x + forward.y * a_eye.y + forward.z * a_eye.z;
 
 	return matrix;
 }

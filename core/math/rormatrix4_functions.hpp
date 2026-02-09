@@ -126,11 +126,6 @@ template <class _type>
 FORCE_INLINE Matrix4<_type> inverse_rotation_translation(const Matrix4<_type> &a_matrix);
 
 template <class _type>
-FORCE_INLINE Matrix4<_type> make_look_at(_type view_x, _type view_y, _type view_z,
-                                         _type focus_x, _type focus_y, _type focus_z,
-                                         _type up_x, _type up_y, _type up_z);
-
-template <class _type>
 FORCE_INLINE Matrix4<_type> make_look_at(const Vector3<_type> &a_view, const Vector3<_type> &a_target, const Vector3<_type> &a_up);
 
 template <class _type>

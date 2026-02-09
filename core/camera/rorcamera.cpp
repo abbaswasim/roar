@@ -28,20 +28,20 @@
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
+#include "graphics/rorline_soup.hpp"
 #include "math/roraxis_angle.hpp"
 #include "math/rormatrix3.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
-#include "math/rorquaternion.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
 #include "math/rorvector_functions.hpp"
-#include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
 
 namespace ror
 {
 
+// TODO: Add smoothing and dampning but currently just a lerp(old_property, new_property, 15%) every update should be fine
 void OrbitCamera::init(EventSystem &a_event_system)
 {
 	this->m_move_callback = [this](ror::Event &e) {
@@ -125,67 +125,51 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		this->m_mode = this->m_mode == CameraMode::orbit ? CameraMode::fps : CameraMode::orbit;
 	};
 
-	this->m_reset_callback = [this](ror::Event &) {
-		this->m_center = this->m_target;
-		this->m_y_fov  = this->m_y_fov_target;
-		this->update_projection();
-		this->update_view();
-	};
-
 	this->m_event_system = &a_event_system;
-}
 
-void OrbitCamera::reset()
-{
-	this->update_view();
+	this->setup();
 }
 
 void OrbitCamera::orient_top()
 {
 	auto r      = ror::distance(this->m_eye, this->m_center);
 	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y + r, this->m_center.z);
-
-	this->update_view(ror::zaxis3f_negative);
+	this->m_up  = ror::zaxis3f_negative;        // FIXME: This one is not working
 }
 
 void OrbitCamera::orient_bottom()
 {
 	auto r      = ror::distance(this->m_eye, this->m_center);
 	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y - r, this->m_center.z);
-
-	this->update_view(ror::zaxis3f);
+	this->m_up  = ror::zaxis3f;        // FIXME: This one is not working
 }
 
 void OrbitCamera::orient_left()
 {
 	auto r      = ror::distance(this->m_eye, this->m_center);
 	this->m_eye = ror::Vector3f(this->m_center.x - r, this->m_center.x, this->m_center.z);
-
-	this->update_view(ror::yaxis3f);
+	this->m_up  = ror::yaxis3f;
 }
 
 void OrbitCamera::orient_right()
 {
 	auto r      = ror::distance(this->m_eye, this->m_center);
 	this->m_eye = ror::Vector3f(this->m_center.x + r, this->m_center.x, this->m_center.z);
-
-	this->update_view(ror::yaxis3f);
+	this->m_up  = ror::yaxis3f;
 }
 
 void OrbitCamera::orient_front()
 {
 	auto r      = ror::distance(this->m_eye, this->m_center);
 	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y, this->m_center.z + r);
-
-	this->update_view(ror::yaxis3f);
+	this->m_up  = ror::yaxis3f;
 }
 
 void OrbitCamera::orient_back()
 {
 	auto r      = ror::distance(this->m_eye, this->m_center);
 	this->m_eye = ror::Vector3f(this->m_center.x, this->m_center.y, this->m_center.z - r);
-
-	this->update_view(ror::yaxis3f);
+	this->m_up  = ror::yaxis3f;
 }
 
 void OrbitCamera::update_normal()
@@ -213,13 +197,10 @@ void OrbitCamera::update_vectors()
 	this->m_forward.z = -this->m_view.m_values[10];
 }
 
-void OrbitCamera::update_view(Vector3f a_up)        // Up default is {0.0f, 1.0f, 0.0f} the real world up vector to orient itself
+void OrbitCamera::update_view()
 {
-	// Applying a translation matrix to a vector should have no effect. We can achieve this by setting the vector’s w component to 0, which zeroes out the translational component of a transformation matrix.
-	// On the other hand, we need points to be able to translate, so we set their w component to 1. This gives us the 3D translation results we want.
-
-	// Another way to calculate view transformation is to take the inverse of the camera’s model-to-world transformation.
-	this->m_view = ror::make_look_at(this->m_eye, this->m_center, a_up);
+	// Up default is {0.0f, 1.0f, 0.0f} the real world up vector to orient itself
+	this->m_view = ror::make_look_at(this->m_eye, this->m_target, ror::yaxis3f, this->m_up, this->m_right);
 
 	this->update_vectors();
 }
@@ -228,7 +209,7 @@ void OrbitCamera::update_projection()
 {
 	// Setup perspective projection matrix
 	this->m_aspect_ratio = this->m_width / this->m_height;
-	// ror::log_info("near = {} far = {} in {}", this->m_z_near, m_z_far, __FUNCTION__);
+
 	if (this->m_type == CameraType::perspective)
 	{
 		// assumes square pixels, if ever there is evidence of non-square pixels, provided by windowing system i.e. glfw use it here instead
@@ -240,15 +221,13 @@ void OrbitCamera::update_projection()
 		auto xmag = (mag * this->m_aspect_ratio) * 0.5f;
 		auto ymag = mag * 0.5f;
 
+		// TODO: Make me infinite
 		this->m_projection = ror::make_ortho(-xmag, xmag, -ymag, ymag, this->m_z_near, this->m_z_far);
 	}
 }
 
 void OrbitCamera::setup_frustums()
 {
-	// this->update_view();
-	// this->update_projection();
-
 	const size_t cascade_index{0};
 
 	this->m_frustums[cascade_index].fov(this->m_y_fov);
@@ -260,63 +239,61 @@ void OrbitCamera::setup_frustums()
 
 void OrbitCamera::setup()
 {
+	auto diagonal  = (this->m_maximum - this->m_minimum);
+	this->m_center = this->m_minimum + (diagonal / 2.0f);
+
 	if (this->m_from_scene)
 	{
-		auto diagonal  = (this->m_maximum - this->m_minimum);
-		this->m_center = this->m_minimum + (diagonal / 2.0f);
 		this->m_target = this->m_center;
 		this->m_eye.x  = this->m_center.x;
 		this->m_eye.y  = this->m_center.y + (diagonal.x / 4.0f);
-		this->m_eye.z  = ((std::max(diagonal.x, diagonal.y) / 2.0f) / std::tan(ror::to_radians(this->m_y_fov / 2)));
+		this->m_eye.z  = ((std::max(diagonal.x, diagonal.y) / 2.0f) / std::tan(ror::to_radians(this->m_y_fov / 2.0f)));
 	}
-	else
-	{
-		this->m_center = this->m_target;
-	}
-
-	this->update_view();
-	this->update_projection();
-	this->setup_frustums();
 }
 
 void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 {
-	ror::AxisAnglef yinput{this->m_right, ror::to_radians(a_y_delta)};
+	auto origin            = this->m_target;        // this->m_mode == CameraMode::orbit ? this->m_target : this->m_eye;
+	auto rotation_matrix_y = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
 
-	auto origin        = this->m_mode == CameraMode::orbit ? this->m_center : this->m_eye;
-	auto eye_to_center = this->m_center - this->m_eye;
+	// First apply yaw around world up, rotate eye around target without translating direction vectors
+	auto eye_offset = this->m_eye - origin;
+	eye_offset      = rotation_matrix_y * eye_offset;
+	this->m_eye     = origin + eye_offset;
 
-	if (eye_to_center.dot_product(this->m_forward) < 0.0f)        // Means eye to center is backwards to forward
-		this->m_center = origin = this->m_eye + this->m_forward;
+	this->m_up    = rotation_matrix_y * this->m_up;
+	this->m_right = rotation_matrix_y * this->m_right;
 
-	auto translation0 = ror::matrix4_translation(-origin);
-	auto translation1 = ror::matrix4_translation(origin);
-	auto rotation_x   = ror::matrix4_rotation(yinput);
-	auto rotation_y   = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
+	// Rebuild a stable right vector after yaw to avoid drifting axes
+	auto forward = this->m_target - this->m_eye;
+	forward.normalize();
 
-	if (this->m_mode == CameraMode::orbit)
-		this->m_eye = translation1 * rotation_y * rotation_x * translation0 * this->m_eye;
-	else
-		this->m_center = translation1 * rotation_y * rotation_x * translation0 * this->m_center;
+	auto right = forward.cross_product_safe(ror::yaxis3f, this->m_right);
+	if (right.length_squared() < 1e-6f)
+		right = this->m_right;
+	right.normalize();
 
-	static const Vector3f roar_world_up{0.0f, 1.0f, 0.0f};        //! World Up vector to orient itself
+	ror::AxisAnglef pitch_input{right, ror::to_radians(a_y_delta)};
+	auto            rotation_matrix_p = ror::matrix4_rotation(pitch_input);
 
-	// If current up and world up are closer together than don't reset
-	if (this->m_up.dot_product(roar_world_up) > 0.2f)
-		this->reset();
-	else
-	{
-		yinput     = {this->m_right, ror::to_radians(-a_y_delta)};
-		rotation_x = ror::matrix4_rotation(yinput);
-		rotation_y = ror::matrix4_rotation_around_y(ror::to_radians(-a_x_delta));
+	// Then apply pitch around the camera right
+	eye_offset  = this->m_eye - origin;
+	eye_offset  = rotation_matrix_p * eye_offset;
+	this->m_eye = origin + eye_offset;
 
-		// Rotate the view matrix directly instead of reacreating it via look_at
-		this->m_view *= translation1 * rotation_y * rotation_x * translation0;
+	this->m_up = rotation_matrix_p * this->m_up;
 
-		this->update_vectors();
-	}
+	// Re-orthonormalize basis to preserve right-handed frame
+	forward = this->m_target - this->m_eye;
+	forward.normalize();
 
-	this->update_normal();
+	this->m_right = forward.cross_product_safe(ror::yaxis3f, right);
+	if (this->m_right.length_squared() < 1e-6f)
+		this->m_right = right;
+	this->m_right.normalize();
+
+	this->m_up = this->m_right.cross_product_safe(forward, this->m_up);
+	this->m_up.normalize();
 }
 
 void OrbitCamera::enable()
@@ -343,7 +320,6 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(mouse_control_scroll, this->m_zoom_callback);
 
 	this->m_event_system->subscribe(keyboard_space_click, this->m_camera_mode_callback);
-	this->m_event_system->subscribe(keyboard_r_command_click, this->m_reset_callback);
 }
 
 void OrbitCamera::disable()
@@ -370,13 +346,55 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_control_scroll, this->m_zoom_callback);
 
 	this->m_event_system->unsubscribe(keyboard_space_click, this->m_camera_mode_callback);
-	this->m_event_system->unsubscribe(keyboard_r_command_click, this->m_reset_callback);
 }
 
-void OrbitCamera::update(const Renderer &a_renderer)
+void OrbitCamera::draw_camera_properties()
 {
-	this->setup_frustums();
+	auto &ls = ror::line_soup();
 
+	static uint32_t lines{0xFFFFFFFF};
+	static uint32_t red_x{0xFFFFFFFF};
+	static uint32_t green_y{0xFFFFFFFF};
+	static uint32_t blue_z{0xFFFFFFFF};
+	static uint32_t targetl{0xFFFFFFFF};
+
+	std::vector<float32_t> data{};
+
+	ror::Vector3f eye{0.0f, 5.0f, 10.0f};
+	eye.normalize();
+
+	ror::push_point(data, ror::zero_vector3f, ror::red4f);
+	ror::push_point(data, ror::xaxis3f, ror::red4f);
+
+	ror::push_point(data, ror::zero_vector3f, ror::green4f);
+	ror::push_point(data, ror::yaxis3f, ror::green4f);
+
+	ror::push_point(data, ror::zero_vector3f, ror::blue4f);
+	ror::push_point(data, ror::zaxis3f, ror::blue4f);
+
+	ror::push_point(data, eye, ror::blue4f);
+	ror::push_point(data, ror::zero_vector3f, ror::blue4f);
+
+	ror::push_point(data, ror::zero_vector3f, ror::yellow4f);
+	ror::push_point(data, this->m_up * 10.0f, ror::yellow4f);
+
+	lines   = ls.push_lines(reinterpret_cast<uint8_t *>(data.data()), static_cast_safe<uint32_t>(data.size() / 14), lines);
+	red_x   = ls.push_cross(xaxis3f, 0.5f, red_x, ror::red4f);
+	green_y = ls.push_cross(yaxis3f, 0.5f, green_y, ror::green4f);
+	blue_z  = ls.push_cross(zaxis3f, 0.5f, blue_z, ror::blue4f);
+	targetl = ls.push_cross(this->m_target, 0.5f, targetl, ror::blue4f);
+}
+
+void OrbitCamera::update()
+{
+	this->update_view();
+	this->update_normal();
+	this->update_projection();
+	this->setup_frustums();
+}
+
+void OrbitCamera::upload(const Renderer &a_renderer)
+{
 	// TODO: Don't update me if nothing has changed
 	auto per_view_uniform = a_renderer.shader_buffer("per_view_uniform");
 
@@ -395,8 +413,4 @@ void OrbitCamera::update(const Renderer &a_renderer)
 
 	per_view_uniform->buffer_unmap();
 }
-
-void OrbitCamera::upload(rhi::Device &)
-{}
-
 }        // namespace ror

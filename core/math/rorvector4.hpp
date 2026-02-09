@@ -179,6 +179,9 @@ const Color4f half_red4f(0.5f, 0.0f, 0.0f, 1.0f);
 const Color4f half_green4f(0.0f, 0.5f, 0.0f, 1.0f);
 const Color4f half_blue4f(0.0f, 0.0f, 0.5f, 1.0f);
 const Color4f orange4f(1.0f, 0.5f, 0.0f, 1.0f);
+const Color4f yellow4f(1.0f, 1.0f, 0.0f, 1.0f);
+const Color4f magenta4f(1.0f, 0.0f, 1.0f, 1.0f);
+const Color4f cyan4f(0.0f, 1.0f, 1.0f, 1.0f);
 
 const Color4i red4i(255, 0, 0, 255);
 const Color4i green4i(0, 255, 0, 255);
@@ -187,6 +190,9 @@ const Color4i half_red4i(128, 0, 0, 255);
 const Color4i half_green4i(0, 128, 0, 255);
 const Color4i half_blue4i(0, 0, 128, 255);
 const Color4i orange4i(255, 128, 0, 255);
+const Color4i yellow4i(255, 255, 0, 255);
+const Color4i magenta4i(255, 0, 255, 255);
+const Color4i cyan4i(0, 255, 255, 255);
 
 const Color4ui red4ui(255, 0, 0, 255);
 const Color4ui green4ui(0, 255, 0, 255);
@@ -194,7 +200,10 @@ const Color4ui blue4ui(0, 0, 255, 255);
 const Color4ui half_red4ui(128, 0, 0, 255);
 const Color4ui half_green4ui(0, 128, 0, 255);
 const Color4ui half_blue4ui(0, 0, 128, 255);
-const Color4i  orange4ui(255, 128, 0, 255);
+const Color4ui orange4ui(255, 128, 0, 255);
+const Color4ui yellow4ui(255, 255, 0, 255);
+const Color4ui magenta4ui(255, 0, 255, 255);
+const Color4ui cyan4ui(0, 255, 255, 255);
 
 template <class _type>
 using vector4_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector4<typename _type::value_type>>::value>::type;

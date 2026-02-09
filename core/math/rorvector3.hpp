@@ -115,6 +115,7 @@ class ROAR_ENGINE_ITEM Vector3 final
 	FORCE_INLINE Vector3 inversed() const;                                //! Returns the inversed version of the vector, no check for divide by zero
 	FORCE_INLINE Vector3 abs() const;
 	FORCE_INLINE Vector3 cross_product(const Vector3 &a_other) const;
+	FORCE_INLINE Vector3 cross_product_safe(const Vector3<_type> &a_other, const Vector3<_type> &a_old_normal) const;
 	FORCE_INLINE auto    length() const -> precision;        //! Calculates magnitude of the vector but doesn't check for negative to sqrtf
 	FORCE_INLINE _type   length_squared() const;
 	FORCE_INLINE auto    dot_product(const Vector3 &a_other) const -> precision;
@@ -181,6 +182,9 @@ const Color3f half_red3f(0.5f, 0.0f, 0.0f);
 const Color3f half_green3f(0.0f, 0.5f, 0.0f);
 const Color3f half_blue3f(0.0f, 0.0f, 0.5f);
 const Color3f orange3f(1.0f, 0.5f, 0.0f);
+const Color3f yellow3f(1.0f, 1.0f, 0.0f);
+const Color3f magenta3f(1.0f, 0.0f, 1.0f);
+const Color3f cyan3f(0.0f, 1.0f, 1.0f);
 
 const Color3i red3i(255, 0, 0);
 const Color3i green3i(0, 255, 0);
@@ -189,6 +193,9 @@ const Color3i half_red3i(128, 0, 0);
 const Color3i half_green3i(0, 128, 0);
 const Color3i half_blue3i(0, 0, 128);
 const Color3i orange3i(255, 128, 0);
+const Color3i yellow3i(255, 255, 0);
+const Color3i magenta3i(255, 0, 255);
+const Color3i cyan3i(0, 255, 255);
 
 const Color3ui red3ui(255, 0, 0);
 const Color3ui green3ui(0, 255, 0);
@@ -197,6 +204,9 @@ const Color3ui half_red3ui(128, 0, 0);
 const Color3ui half_green3ui(0, 128, 0);
 const Color3ui half_blue3ui(0, 0, 128);
 const Color3ui orange3ui(255, 128, 0);
+const Color3ui yellow3ui(255, 255, 0);
+const Color3ui magenta3ui(255, 0, 255);
+const Color3ui cyan3ui(0, 255, 255);
 
 template <class _type>
 using vector3_typename = typename std::enable_if<std::is_same<_type, typename ror::Vector3<typename _type::value_type>>::value>::type;

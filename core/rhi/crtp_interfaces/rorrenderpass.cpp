@@ -579,9 +579,9 @@ void render_scene_into_shadowmap(ror::Scene &a_scene, ror::EventSystem &a_event_
 				use_scene_camera = !use_scene_camera;
 
 				if (use_scene_camera)
-					ror::log_critical("Will use light camera now");
+					ror::log_critical("Using Scene camera to render shadowmap");
 				else
-					ror::log_critical("Will use scene camera now");
+					ror::log_critical("Using Light camera to render shadowmap");
 			};
 
 			a_event_system.subscribe(ror::keyboard_p_click, toggle_callback);

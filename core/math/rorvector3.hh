@@ -371,6 +371,20 @@ FORCE_INLINE Vector3<_type> Vector3<_type>::cross_product(const Vector3<_type> &
 }
 
 template <class _type>
+FORCE_INLINE Vector3<_type> Vector3<_type>::cross_product_safe(const Vector3<_type> &a_other, const Vector3<_type> &a_old_normal) const
+{
+	auto normal = Vector3<_type>(y * a_other.z - z * a_other.y,
+	                             a_other.x * z - a_other.z * x,
+	                             x * a_other.y - y * a_other.x);
+
+	// Choose the direction closest to previous
+	if (normal.dot_product(a_old_normal) < 0.0f)
+		normal = -normal;
+
+	return normal;
+}
+
+template <class _type>
 FORCE_INLINE auto Vector3<_type>::length() const -> precision
 {
 	return std::sqrt(static_cast<precision>(x * x + y * y + z * z));
