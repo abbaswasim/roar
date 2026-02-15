@@ -290,26 +290,22 @@ FORCE_INLINE static void verify_or_reset_to(ror::Vector3f &a_target, const ror::
 
 void OrbitCamera::yaw(float32_t a_x_delta, const ror::Vector3f &a_origin)
 {
-	bool orbit_mode = this->m_mode == CameraMode::orbit;
+	const bool orbit_mode      = this->m_mode == CameraMode::orbit;
+	auto       rotation_matrix = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
 
-	auto rotation_matrix_y = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
-
-	// First apply yaw
 	if (orbit_mode)
 	{
 		auto eye_offset = this->m_eye - a_origin;
-		eye_offset      = rotation_matrix_y * eye_offset;
+		eye_offset      = rotation_matrix * eye_offset;
 		this->m_eye     = a_origin + eye_offset;
-		log_critical("Orbit Mode ({}, {}, {}), ({}, {}, {}), ({}, {}, {})", m_eye.x, m_eye.y, m_eye.z, m_forward.x, m_forward.y, m_forward.z, m_target.x, m_target.y, m_target.z);
 	}
 	else
 	{
-		this->m_forward = rotation_matrix_y * this->m_forward;
-		log_critical("FPS Mode ({}, {}, {}), ({}, {}, {}), ({}, {}, {})", m_eye.x, m_eye.y, m_eye.z, m_forward.x, m_forward.y, m_forward.z, m_target.x, m_target.y, m_target.z);
+		this->m_forward = rotation_matrix * this->m_forward;
 	}
 
-	this->m_up    = rotation_matrix_y * this->m_up;
-	this->m_right = rotation_matrix_y * this->m_right;
+	this->m_up    = rotation_matrix * this->m_up;
+	this->m_right = rotation_matrix * this->m_right;
 
 	// Build a stable right vector after yaw
 	auto forward = orbit_mode ? this->m_target - this->m_eye : this->m_forward;
@@ -323,27 +319,26 @@ void OrbitCamera::yaw(float32_t a_x_delta, const ror::Vector3f &a_origin)
 
 void OrbitCamera::pitch(float32_t a_y_delta, const ror::Vector3f &a_origin)
 {
-	bool orbit_mode = this->m_mode == CameraMode::orbit;
-	auto right      = this->m_right;
+	const bool orbit_mode = this->m_mode == CameraMode::orbit;
+	auto       right      = this->m_right;
 
 	auto forward = orbit_mode ? this->m_target - this->m_eye : this->m_forward;
 
 	ror::AxisAnglef pitch_input{right, ror::to_radians(a_y_delta)};
-	auto            rotation_matrix_p = ror::matrix4_rotation(pitch_input);
+	auto            rotation_matrix = ror::matrix4_rotation(pitch_input);
 
-	// Then apply pitch
 	if (orbit_mode)
 	{
 		auto eye_offset = this->m_eye - a_origin;
-		eye_offset      = rotation_matrix_p * eye_offset;
+		eye_offset      = rotation_matrix * eye_offset;
 		this->m_eye     = a_origin + eye_offset;
 	}
 	else
 	{
-		forward = rotation_matrix_p * forward;
+		forward = rotation_matrix * forward;
 	}
 
-	this->m_up = rotation_matrix_p * this->m_up;
+	this->m_up = rotation_matrix * this->m_up;
 
 	forward = orbit_mode ? this->m_target - this->m_eye : forward;
 	verify_or_reset_to(forward, ror::zaxis3f_negative);
@@ -365,9 +360,9 @@ void OrbitCamera::roll(float32_t a_delta, const ror::Vector3f &a_origin)
 
 void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 {
-	bool orbit_mode = this->m_mode == CameraMode::orbit;
-	auto origin     = orbit_mode ? this->m_target : this->m_eye;
+	auto origin = this->m_mode == CameraMode::orbit ? this->m_target : this->m_eye;
 
+	// Order is important don't re-order
 	this->yaw(a_x_delta, origin);
 	this->pitch(a_y_delta, origin);
 	this->roll(a_y_delta, origin);
@@ -377,7 +372,7 @@ void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
 	if (view_distance < 1e-4f)
 		view_distance = 1.0f;
 
-	if (!orbit_mode)
+	if (this->m_mode == CameraMode::fps)
 		this->m_target = this->m_eye + this->m_forward * view_distance;
 }
 
