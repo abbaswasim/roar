@@ -49,7 +49,7 @@ float simple_pcf(vec3 uv)
 	return shadow;
 }
 
-// Get bias
+// TODO: Add moments shadow mapping based PCF https://momentsingraphics.de/I3D2015.html
 float get_shadow(const mat4 light_space, const float ndotl)
 {
 	highp vec4 light_space_position = light_space * in_vertex_position;

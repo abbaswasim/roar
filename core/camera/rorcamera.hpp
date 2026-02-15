@@ -187,6 +187,9 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	void update_projection();
 	void orient_to_direction(Vector3f a_forward, Vector3f a_up_hint);
 	void rotate(float32_t a_x_rotation, float32_t a_y_rotation);
+	void yaw(float32_t a_x_delta, const ror::Vector3f &a_origin);
+	void pitch(float32_t a_y_delta, const ror::Vector3f &a_origin);
+	void roll(float32_t a_delta, const ror::Vector3f &a_origin);
 
 	FORCE_INLINE void update_position_function(double64_t &a_x_delta, double64_t &a_y_delta);
 	FORCE_INLINE void left_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, float32_t a_scale);
