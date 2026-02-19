@@ -120,6 +120,7 @@ class ROAR_ENGINE_ITEM Matrix3x4 final
 	FORCE_INLINE bool  invert();                                         //!< Inverts the matrix and returns true. If inverse is not possile returns false
 	FORCE_INLINE bool  inverse(Matrix3x4 &a_output_matrix) const;        //!< Sets a_output_matrix to inverse if its possible and returns true otherwise returns false
 	FORCE_INLINE void  normalize();                                      //!< Normalizes the matrix x, y, z axis
+	FORCE_INLINE bool  is_right_handed();                                //!< Check if the matrix is right handed or not
 	FORCE_INLINE void  orthogonalize();                                  //!< Orthogonalizes the basis axis using Gram–Schmidt process,
 	FORCE_INLINE bool  is_orthogonal() const;
 };

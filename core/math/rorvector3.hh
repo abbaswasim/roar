@@ -373,15 +373,27 @@ FORCE_INLINE Vector3<_type> Vector3<_type>::cross_product(const Vector3<_type> &
 template <class _type>
 FORCE_INLINE Vector3<_type> Vector3<_type>::cross_product_safe(const Vector3<_type> &a_other, const Vector3<_type> &a_old_normal) const
 {
-	auto normal = Vector3<_type>(y * a_other.z - z * a_other.y,
-	                             a_other.x * z - a_other.z * x,
-	                             x * a_other.y - y * a_other.x);
+	auto v1 = *this;
+	auto v2 = a_other;
 
-	// Choose the direction closest to previous
-	if (normal.dot_product(a_old_normal) < 0.0f)
-		normal = -normal;
+	if constexpr (ror::get_build() == BuildType::build_debug)
+	{
+		v1.normalize();
+		v2.normalize();
+	}
 
-	return normal;
+	if (distance_squared(v1, v2) > ror::ror_epsilon_squared)
+	{
+		auto normal = v1.cross_product(v2);
+
+		// Choose the direction closest to previous
+		if (normal.dot_product(a_old_normal) < static_cast<_type>(0.0f))
+			normal = -normal;
+
+		return normal;
+	}
+
+	return a_old_normal;
 }
 
 template <class _type>

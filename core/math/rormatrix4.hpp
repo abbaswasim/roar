@@ -134,9 +134,10 @@ class ROAR_ENGINE_ITEM Matrix4 final
 	FORCE_INLINE void    transpose() noexcept;                           //!< Transposes the matrix
 	FORCE_INLINE Matrix4 transposed() const;                             //!< Returns transpose of the matrix unchanged
 
-	FORCE_INLINE void normalize();            //!< Normalizes the matrix x, y, z axis
-	FORCE_INLINE void orthogonalize();        //!< Orthogonalizes the basis axis using Gram–Schmidt process,
-	                                          //!< it can fail if the axis are co-linear. It doesn't normalize the basis
+	FORCE_INLINE void normalize();              //!< Normalizes the matrix x, y, z axis
+	FORCE_INLINE bool is_right_handed();        //!< Check if the matrix is right handed or not
+	FORCE_INLINE void orthogonalize();          //!< Orthogonalizes the basis axis using Gram–Schmidt process,
+	                                            //!< it can fail if the axis are co-linear. It doesn't normalize the basis
 	FORCE_INLINE bool is_orthogonal() const;
 
 	FORCE_INLINE Vector3<_type> perspective_transform(const Vector3<_type> &a_vector);        //!< Transforms a_vector perpective correct. Matrix has to be a perspective matrix

@@ -394,4 +394,26 @@ constexpr _type srgb_to_linear(_type a_srgb)
 	return a_srgb;
 }
 
+template <class _simulation>
+    requires std::invocable<_simulation &, float32_t>
+void consume_in_chunks(const float32_t a_value, const float32_t a_chunk, _simulation &&a_simulation_step)
+{
+	const float32_t abs_chunk = std::abs(a_chunk);
+
+	if (abs_chunk <= ror::ror_epsilon)
+		return;        // too small delta to do anyting about
+
+	float32_t remaining = a_value;
+
+	while (std::abs(remaining) > ror::ror_epsilon)
+	{
+		const float32_t abs_step = std::min(abs_chunk, std::abs(remaining));
+		const float32_t step     = std::copysign(abs_step, remaining);
+
+		a_simulation_step(step);
+
+		remaining -= step;
+	}
+}
+
 }        // namespace ror

@@ -132,9 +132,10 @@ class ROAR_ENGINE_ITEM Matrix3 final
 	FORCE_INLINE void    transpose() noexcept;                           //!< Transposes the matrix
 	FORCE_INLINE Matrix3 transposed() const;                             //!< Returns transpose of the matrix unchanged
 
-	FORCE_INLINE void normalize();            //!< Normalizes the matrix x, y, z axis
-	FORCE_INLINE void orthogonalize();        //!< Orthogonalizes the basis axis using Gram–Schmidt process,
-	                                          //!< it can fail if the axis are co-linear. It doesn't normalize the basis
+	FORCE_INLINE void normalize();              //!< Normalizes the matrix x, y, z axis
+	FORCE_INLINE bool is_right_handed();        //!< Check if the matrix is right handed or not
+	FORCE_INLINE void orthogonalize();          //!< Orthogonalizes the basis axis using Gram–Schmidt process,
+	                                            //!< it can fail if the axis are co-linear. It doesn't normalize the basis
 	FORCE_INLINE bool is_orthogonal() const;
 };
 

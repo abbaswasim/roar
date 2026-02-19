@@ -26,7 +26,6 @@
 #include "camera/rorcamera.hpp"
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
-#include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "graphics/rorline_soup.hpp"
@@ -37,8 +36,8 @@
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
 #include "math/rorvector_functions.hpp"
-#include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
+#include "settings/rorsettings.hpp"
 #include <cmath>
 
 namespace ror
@@ -58,22 +57,16 @@ void OrbitCamera::init(EventSystem &a_event_system)
 	this->m_drag_callback = [this](ror::Event &e) {
 		if (e.is_compatible<ror::Vector2d>())
 		{
-			float scale    = 1.0f;
-			auto  vec2     = std::any_cast<ror::Vector2d>(e.m_payload);
-			auto  code     = event_code(e.m_handle);
-			auto  modifier = event_modifier(e.m_handle);
-
-			if (modifier == EventModifier::command)
-				scale = 0.01f;
-			else if (modifier == EventModifier::control)
-				scale = 2.5f;
+			auto vec2     = std::any_cast<ror::Vector2d>(e.m_payload);
+			auto code     = event_code(e.m_handle);
+			auto modifier = event_modifier(e.m_handle);
 
 			if (code == EventCode::left_mouse)
-				this->left_key_drag(vec2.x, vec2.y, scale);
+				this->left_key_drag(vec2.x, vec2.y, modifier);
 			else if (code == EventCode::middle_mouse)
-				this->middle_key_drag(vec2.x, vec2.y, scale);
+				this->middle_key_drag(vec2.x, vec2.y, modifier);
 			else if (code == EventCode::right_mouse)
-				this->right_key_drag(vec2.x, vec2.y, scale);
+				this->right_key_drag(vec2.x, vec2.y, modifier);
 		}
 	};
 
@@ -136,20 +129,11 @@ void OrbitCamera::init(EventSystem &a_event_system)
 void OrbitCamera::orient_to_direction(Vector3f a_forward, Vector3f a_up_hint)
 {
 	auto radius = ror::distance(this->m_eye, this->m_target);
+
 	if (radius < 0.0001f)
 		radius = 1.0f;
 
-	if (a_forward.length_squared() < 1e-6f)
-		a_forward = ror::yaxis3f_negative;
-
-	a_forward.normalize();
-
-	if (std::abs(a_forward.dot_product(a_up_hint)) > 0.99f)
-		a_up_hint = std::abs(a_forward.dot_product(ror::zaxis3f)) > 0.99f ? ror::xaxis3f : ror::zaxis3f;
-
 	auto right = a_forward.cross_product(a_up_hint);
-	if (right.length_squared() < 1e-6f)
-		right = a_forward.cross_product(ror::xaxis3f);
 	right.normalize();
 
 	auto up = right.cross_product(a_forward);
@@ -218,19 +202,8 @@ void OrbitCamera::update_vectors()
 
 void OrbitCamera::update_view()
 {
-	auto world_up = ror::yaxis3f;
-	auto forward  = this->m_target - this->m_eye;
-
-	if (forward.length_squared() > 0.0f)
-	{
-		forward.normalize();
-
-		if (std::abs(forward.dot_product(world_up)) > 0.99f)
-			world_up = ror::zaxis3f;        // Avoid degenerate cross when looking straight down/up
-	}
-
 	// Up default is {0.0f, 1.0f, 0.0f} the real world up vector to orient itself
-	this->m_view = ror::make_look_at(this->m_eye, this->m_target, world_up, this->m_up, this->m_right);
+	this->m_view = ror::make_look_at(this->m_eye, this->m_target, ror::yaxis3f, this->m_up, this->m_right);
 
 	this->update_vectors();
 }
@@ -281,99 +254,77 @@ void OrbitCamera::setup()
 	}
 }
 
-FORCE_INLINE static void verify_or_reset_to(ror::Vector3f &a_target, const ror::Vector3f &a_canonical)
+void OrbitCamera::rotate_eye_target(const ror::Matrix4f &a_rotation_matrix, const ror::Vector3f &a_origin)
 {
-	if (a_target.length_squared() < 1e-6f)
-		a_target = a_canonical;
-	a_target.normalize();
+	this->rotate_at_origin(a_rotation_matrix, a_origin, this->m_eye);
+	this->rotate_at_origin(a_rotation_matrix, a_origin, this->m_target);
 }
 
 void OrbitCamera::yaw(float32_t a_x_delta, const ror::Vector3f &a_origin)
 {
-	const bool orbit_mode      = this->m_mode == CameraMode::orbit;
-	auto       rotation_matrix = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
-
-	if (orbit_mode)
-	{
-		auto eye_offset = this->m_eye - a_origin;
-		eye_offset      = rotation_matrix * eye_offset;
-		this->m_eye     = a_origin + eye_offset;
-	}
-	else
-	{
-		this->m_forward = rotation_matrix * this->m_forward;
-	}
-
-	this->m_up    = rotation_matrix * this->m_up;
-	this->m_right = rotation_matrix * this->m_right;
-
-	// Build a stable right vector after yaw
-	auto forward = orbit_mode ? this->m_target - this->m_eye : this->m_forward;
-	verify_or_reset_to(forward, ror::zaxis3f_negative);
-
-	auto right = forward.cross_product_safe(ror::yaxis3f, this->m_right);
-	verify_or_reset_to(right, this->m_right);
-
-	this->m_right = right;
+	auto rotation_matrix = ror::matrix4_rotation_around_y(ror::to_radians(a_x_delta));
+	rotate_eye_target(rotation_matrix, a_origin);
 }
 
 void OrbitCamera::pitch(float32_t a_y_delta, const ror::Vector3f &a_origin)
 {
-	const bool orbit_mode = this->m_mode == CameraMode::orbit;
-	auto       right      = this->m_right;
-
-	auto forward = orbit_mode ? this->m_target - this->m_eye : this->m_forward;
+	auto right = this->m_right;
 
 	ror::AxisAnglef pitch_input{right, ror::to_radians(a_y_delta)};
 	auto            rotation_matrix = ror::matrix4_rotation(pitch_input);
 
-	if (orbit_mode)
-	{
-		auto eye_offset = this->m_eye - a_origin;
-		eye_offset      = rotation_matrix * eye_offset;
-		this->m_eye     = a_origin + eye_offset;
-	}
-	else
-	{
-		forward = rotation_matrix * forward;
-	}
-
-	this->m_up = rotation_matrix * this->m_up;
-
-	forward = orbit_mode ? this->m_target - this->m_eye : forward;
-	verify_or_reset_to(forward, ror::zaxis3f_negative);
-
-	this->m_right = forward.cross_product_safe(ror::yaxis3f, right);
-	verify_or_reset_to(this->m_right, right);
-
-	this->m_up = this->m_right.cross_product_safe(forward, this->m_up);
-	this->m_up.normalize();
-
-	this->m_forward = forward;
+	rotate_eye_target(rotation_matrix, a_origin);
 }
 
 void OrbitCamera::roll(float32_t a_delta, const ror::Vector3f &a_origin)
 {
-	(void) a_delta;
+	// NOTE: Not currently working
 	(void) a_origin;
+	ror::AxisAnglef roll_input{this->m_forward, ror::to_radians(a_delta)};
+	auto            rotation_matrix = ror::matrix4_rotation(roll_input);
+
+	this->m_up    = rotation_matrix * this->m_up;
+	this->m_right = rotation_matrix * this->m_right;
+
+	this->m_up.normalize();
+	this->m_right.normalize();
 }
 
-void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta)
+void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta, EventModifier a_modifier)
 {
-	auto origin = this->m_mode == CameraMode::orbit ? this->m_target : this->m_eye;
+	auto origin = this->m_mode == CameraMode::orbit ? this->m_center : this->m_eye;
 
-	// Order is important don't re-order
-	this->yaw(a_x_delta, origin);
-	this->pitch(a_y_delta, origin);
-	this->roll(a_y_delta, origin);
+	float scale = 1.0f;
+	if (a_modifier == EventModifier::command)
+		scale = 0.01f;
+	else if (a_modifier == EventModifier::control)
+		scale = 2.5f;
 
-	auto view_vector   = this->m_target - this->m_eye;
-	auto view_distance = view_vector.length();
-	if (view_distance < 1e-4f)
-		view_distance = 1.0f;
+	a_x_delta *= scale;
+	a_y_delta *= scale;
 
-	if (this->m_mode == CameraMode::fps)
-		this->m_target = this->m_eye + this->m_forward * view_distance;
+	const float32_t simuluation_tick = ror::settings().m_simulation_step;
+
+	if (a_modifier == EventModifier::option)
+	{
+		auto roll_delta = static_cast<float32_t>((a_x_delta + a_y_delta) * 0.5f);
+		consume_in_chunks(roll_delta, simuluation_tick, [this, origin](float32_t step) {
+			this->roll(step, origin);
+			this->update_view();
+		});
+		return;
+	}
+
+	// Order is important don't re-order, roll is not applied as usual and applied in isolation
+	consume_in_chunks(a_x_delta, simuluation_tick, [this, origin](float32_t step) {
+		this->yaw(step, origin);
+		this->update_view();
+	});
+
+	consume_in_chunks(a_y_delta, simuluation_tick, [this, origin](float32_t step) {
+		this->pitch(step, origin);
+		this->update_view();
+	});
 }
 
 void OrbitCamera::enable()
@@ -389,6 +340,9 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(mouse_left_mouse_control_drag, this->m_drag_callback);
 	this->m_event_system->subscribe(mouse_middle_mouse_control_drag, this->m_drag_callback);
 	this->m_event_system->subscribe(mouse_right_mouse_control_drag, this->m_drag_callback);
+	this->m_event_system->subscribe(mouse_left_mouse_option_drag, this->m_drag_callback);
+	this->m_event_system->subscribe(mouse_middle_mouse_option_drag, this->m_drag_callback);
+	this->m_event_system->subscribe(mouse_right_mouse_option_drag, this->m_drag_callback);
 
 	this->m_event_system->subscribe(buffer_resize, this->m_resize_callback);
 
@@ -414,6 +368,9 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_left_mouse_control_drag, this->m_drag_callback);
 	this->m_event_system->unsubscribe(mouse_middle_mouse_control_drag, this->m_drag_callback);
 	this->m_event_system->unsubscribe(mouse_right_mouse_control_drag, this->m_drag_callback);
+	this->m_event_system->unsubscribe(mouse_left_mouse_option_drag, this->m_drag_callback);
+	this->m_event_system->unsubscribe(mouse_middle_mouse_option_drag, this->m_drag_callback);
+	this->m_event_system->unsubscribe(mouse_right_mouse_option_drag, this->m_drag_callback);
 
 	this->m_event_system->unsubscribe(buffer_resize, this->m_resize_callback);
 
@@ -465,7 +422,8 @@ void OrbitCamera::draw_camera_properties()
 
 void OrbitCamera::update()
 {
-	// this->draw_camera_properties(); // Enable when needed to render the axis
+	// this->draw_camera_properties();        // Enable when needed to render the axis
+
 	this->update_view();
 	this->update_normal();
 	this->update_projection();

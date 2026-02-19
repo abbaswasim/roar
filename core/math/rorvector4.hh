@@ -399,6 +399,32 @@ FORCE_INLINE Vector4<_type> Vector4<_type>::cross_product(const Vector4<_type> &
 }
 
 template <class _type>
+FORCE_INLINE Vector4<_type> Vector4<_type>::cross_product_safe(const Vector4<_type> &a_other, const Vector4<_type> &a_old_normal) const
+{
+	auto v1 = *this;
+	auto v2 = a_other;
+
+	if constexpr (ror::get_build() == BuildType::build_debug)
+	{
+		v1.normalize();
+		v2.normalize();
+	}
+
+	if (distance_squared(v1, v2) > ror::ror_epsilon_squared)
+	{
+		auto normal = v1.cross_product(v2);
+
+		// Choose the direction closest to previous
+		if (normal.dot_product(a_old_normal) < static_cast<_type>(0.0f))
+			normal = -normal;
+
+		return normal;
+	}
+
+	return a_old_normal;
+}
+
+template <class _type>
 FORCE_INLINE auto Vector4<_type>::length() const -> precision
 {
 	return std::sqrt(static_cast<precision>(x * x + y * y + z * z + w * w));

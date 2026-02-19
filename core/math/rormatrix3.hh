@@ -404,6 +404,18 @@ FORCE_INLINE void Matrix3<_type>::normalize()
 }
 
 template <class _type>
+FORCE_INLINE bool Matrix3<_type>::is_right_handed()
+{
+	Vector3<_type> x = this->x_axis();
+	Vector3<_type> y = this->y_axis();
+	Vector3<_type> z = this->z_axis();
+
+	_type det = x.dot_product(y.cross_product(z));
+
+	return det > static_cast<_type>(0.0f);
+}
+
+template <class _type>
 FORCE_INLINE void Matrix3<_type>::orthogonalize()
 {
 	if (!this->is_orthogonal())

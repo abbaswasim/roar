@@ -97,6 +97,7 @@ class ROAR_ENGINE_ITEM Vector4 final
 	FORCE_INLINE Vector4 inversed() const;                                //! Returns the inversed version, doesn't check for divide by zero
 	FORCE_INLINE Vector4 abs() const;
 	FORCE_INLINE Vector4 cross_product(const Vector4 &a_other) const;
+	FORCE_INLINE Vector4 cross_product_safe(const Vector4<_type> &a_other, const Vector4<_type> &a_old_normal) const;
 	FORCE_INLINE auto    length() const -> precision;        //! Calculates magnitude, doesn't check for negative to sqrtf
 	FORCE_INLINE _type   length_squared() const;
 	FORCE_INLINE auto    dot_product(const Vector4 &a_other) const -> precision;

@@ -215,4 +215,18 @@ FORCE_INLINE _type vector_select(const vector_type<_type, uint32_t> &a_vector, c
 		             (a_vector.y != 0 ? a_first.y : a_second.y));
 	}
 }
+
+template <class _type>
+FORCE_INLINE bool vector_is_parallel(const float32_t &a_max_angle_degrees, const _type &a_first, const _type &a_second)
+{
+	float32_t dot           = a_first.dot_product(a_second);
+	float32_t lenth_product = a_first.length() * a_second.length();
+	float32_t threshold     = lenth_product * std::cosf(ror::to_radians(a_max_angle_degrees));
+
+	if (dot > threshold || dot < -threshold)
+		return true;
+
+	return false;
+}
+
 }        // namespace ror

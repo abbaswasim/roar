@@ -44,8 +44,9 @@ Settings::Settings()
 	this->m_engine_name        = setting.get<std::string>("engine_name");
 	this->m_shaders_watch_path = setting.get<std::string>("shaders_watch_path");
 
-	this->m_zoom_speed  = setting.get<float32_t>("zoom_speed");
-	this->m_depth_clear = setting.get<float32_t>("depth");
+	this->m_zoom_speed      = setting.get<float32_t>("zoom_speed");
+	this->m_simulation_step = setting.get<float32_t>("simulation_step");
+	this->m_depth_clear     = setting.get<float32_t>("depth");
 
 	this->m_unit                      = setting.get<uint32_t>("unit");
 	this->m_threads_multiplier        = setting.get<uint32_t>("threads_multiplier");
@@ -327,7 +328,7 @@ Settings::Settings()
 	this->m_generate_quad_mesh               = setting.get<bool>("generate_quad_mesh");
 	this->m_generate_fullscreen_quad_mesh    = setting.get<bool>("generate_fullscreen_quad_mesh");
 	this->m_generate_pink_textures           = setting.get<bool>("generate_pink_textures");
-	this->m_fit_far_to_scene                  = setting.get<bool>("fit_far_to_scene");
+	this->m_fit_far_to_scene                 = setting.get<bool>("fit_far_to_scene");
 
 	this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
 

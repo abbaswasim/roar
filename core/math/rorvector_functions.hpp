@@ -195,6 +195,18 @@ FORCE_INLINE _type vector_clamp_safe(const _type &a_vector, const _type &a_first
 template <class _type>
 FORCE_INLINE _type vector_select(const vector_type<_type, uint32_t> &a_vector, const _type &a_first, const _type &a_second);
 
+/**
+ * @brief      Checks if a_first is parallel aligned or in opposite direction to a_second
+ * @details    Checks if a_first is parallel aligned or in opposite direction to a_second using the a_max_angle_degrees threshold
+ * @param      a_max_angle_degrees The threshold within which the check is performed. If vectors are as close as this, they are considered parallel.
+ * @param      a_first first vector
+ * @param      a_second second vector
+ * @return     true if parallel or false otherwise
+ */
+
+template <class _type>
+FORCE_INLINE bool vector_is_parallel(const float32_t &a_max_angle_degrees, const _type &a_first, const _type &a_second);
+
 template <typename _type,
 		  std::enable_if_t<std::is_same<_type, ror::Vector3<float>>::value || std::is_same<_type, ror::Vector4<float>>::value, bool> = true>
 constexpr void srgb_to_linear(_type &a_srgb)

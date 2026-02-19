@@ -186,16 +186,18 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	void update_normal();
 	void update_projection();
 	void orient_to_direction(Vector3f a_forward, Vector3f a_up_hint);
-	void rotate(float32_t a_x_rotation, float32_t a_y_rotation);
+	void rotate(float32_t a_x_rotation, float32_t a_y_rotation, EventModifier a_modifier);
+	void rotate_eye_target(const ror::Matrix4f &a_rotation_matrix, const ror::Vector3f &a_origin);
 	void yaw(float32_t a_x_delta, const ror::Vector3f &a_origin);
 	void pitch(float32_t a_y_delta, const ror::Vector3f &a_origin);
 	void roll(float32_t a_delta, const ror::Vector3f &a_origin);
 
 	FORCE_INLINE void update_position_function(double64_t &a_x_delta, double64_t &a_y_delta);
-	FORCE_INLINE void left_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, float32_t a_scale);
-	FORCE_INLINE void middle_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, float32_t a_scale);
-	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, float32_t a_scale);
+	FORCE_INLINE void left_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, EventModifier a_modifier);
+	FORCE_INLINE void middle_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, EventModifier a_modifier);
+	FORCE_INLINE void right_key_drag(double64_t &a_x_delta, double64_t &a_y_delta, EventModifier a_modifier);
 	FORCE_INLINE void forward(double64_t a_zoom_delta);
+	FORCE_INLINE void rotate_at_origin(const ror::Matrix4f &a_rotation_matrix, const ror::Vector3f &a_origin, ror::Vector3f &a_input_output);
 
 	Vector3f      m_target{0.0f, 0.0f, 0.0f};            //! Target position in worldspace that moves when zooming using forward
 	Vector3f      m_center{0.0f, 0.0f, 0.0f};            //! Target position in worldspace at the center of the scene, that never changes

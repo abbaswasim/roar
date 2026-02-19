@@ -82,7 +82,7 @@ void OrbitCamera::update_position_function(double64_t &a_x_new_position, double6
 	this->m_y_position = static_cast<float>(a_y_new_position);
 }
 
-void OrbitCamera::left_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position, float32_t a_scale)
+void OrbitCamera::left_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position, EventModifier a_modifier)
 {
 	auto x_delta = this->m_x_position - a_x_new_position;
 	auto y_delta = this->m_y_position - a_y_new_position;
@@ -90,16 +90,23 @@ void OrbitCamera::left_key_drag(double64_t &a_x_new_position, double64_t &a_y_ne
 	this->m_x_position = static_cast<float>(a_x_new_position);
 	this->m_y_position = static_cast<float>(a_y_new_position);
 
-	this->rotate(static_cast<float32_t>(x_delta * a_scale), static_cast<float32_t>(y_delta * a_scale));
+	this->rotate(static_cast<float32_t>(x_delta), static_cast<float32_t>(y_delta), a_modifier);
 }
 
-void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position, float32_t a_scale)
+void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position, EventModifier a_modifier)
 {
+	float scale = 1.0f;
+
+	if (a_modifier == EventModifier::command)
+		scale = 0.01f;
+	else if (a_modifier == EventModifier::control)
+		scale = 2.5f;
+
 	auto x_delta = this->m_x_position - a_x_new_position;
 	auto y_delta = this->m_y_position - a_y_new_position;
 
-	auto delta_x = this->m_right * (camera_sensitivity * static_cast<float32_t>(-x_delta * a_scale));
-	auto delta_y = this->m_up * (camera_sensitivity * static_cast<float32_t>(y_delta * a_scale));
+	auto delta_x = this->m_right * (camera_sensitivity * static_cast<float32_t>(-x_delta * scale));
+	auto delta_y = this->m_up * (camera_sensitivity * static_cast<float32_t>(y_delta * scale));
 
 	auto translation = ror::matrix4_translation(-delta_x - delta_y);
 
@@ -109,11 +116,11 @@ void OrbitCamera::right_key_drag(double64_t &a_x_new_position, double64_t &a_y_n
 	this->m_y_position = static_cast<float>(a_y_new_position);
 }
 
-void OrbitCamera::middle_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position, float32_t a_scale)
+void OrbitCamera::middle_key_drag(double64_t &a_x_new_position, double64_t &a_y_new_position, EventModifier a_modifier)
 {
 	(void) a_x_new_position;
 	(void) a_y_new_position;
-	(void) a_scale;
+	(void) a_modifier;
 }
 
 void OrbitCamera::volume(Vector3f a_minimum, Vector3f a_maximum)
@@ -257,6 +264,13 @@ FORCE_INLINE void OrbitCamera::set_parameters(CameraType a_type, float32_t a_wid
 	this->m_y_fov   = a_y_fov;
 	this->m_x_mag   = a_x_mag;
 	this->m_y_mag   = a_y_mag;
+}
+
+FORCE_INLINE void OrbitCamera::rotate_at_origin(const ror::Matrix4f &a_rotation_matrix, const ror::Vector3f &a_origin, ror::Vector3f &a_input_output)
+{
+	auto eye_offset = a_input_output - a_origin;
+	eye_offset      = a_rotation_matrix * eye_offset;
+	a_input_output  = a_origin + eye_offset;
 }
 
 }        // namespace ror

@@ -247,6 +247,10 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::control);
 	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::control);
 
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::option);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::option);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::option);
+
 	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::shift);
 	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::shift);
 	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::shift);

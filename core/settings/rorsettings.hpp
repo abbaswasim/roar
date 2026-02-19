@@ -136,6 +136,7 @@ class ROAR_ENGINE_ITEM Settings final
 	std::vector<std::string> m_clean_dirs{};        //! Directories to clean on boot
 
 	float32_t m_zoom_speed{20.0f};
+	float32_t m_simulation_step{2.0f};
 	float32_t m_fog_start{0.0f};
 	float32_t m_fog_end{500.0f};
 	float32_t m_depth_clear{1.0f};

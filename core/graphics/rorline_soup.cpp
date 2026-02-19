@@ -260,7 +260,7 @@ uint32_t LineSoup::push_box(const ror::Vector3f a_corners[8], uint32_t a_lines_i
 
 uint32_t LineSoup::push_cross(const ror::Vector3f &a_center, const float32_t a_size, uint32_t a_lines_index, ror::Vector4f a_color)
 {
-	const uint32_t         lines_count{15};
+	const uint32_t         lines_count{18};
 	const float32_t        half_size{a_size / 2.0f};
 	const float32_t        sixth_size{a_size / 20.0f};
 	std::vector<float32_t> data{};
@@ -275,16 +275,27 @@ uint32_t LineSoup::push_cross(const ror::Vector3f &a_center, const float32_t a_s
 	ror::Vector3f zm{a_center.x, a_center.y, a_center.z - half_size};
 	ror::Vector3f zp{a_center.x, a_center.y, a_center.z + half_size};
 
+	ror::Vector4f light_tint{0.4f};
+
 	// X-Axis
-	ror::push_point(data, xm, a_color);
+	ror::push_point(data, xm, a_color + light_tint);
+	ror::push_point(data, a_center, a_color + light_tint);
+
+	ror::push_point(data, a_center, a_color);
 	ror::push_point(data, xp, a_color);
 
 	// Y-Axis
-	ror::push_point(data, ym, a_color);
+	ror::push_point(data, ym, a_color + light_tint);
+	ror::push_point(data, a_center, a_color + light_tint);
+
+	ror::push_point(data, a_center, a_color);
 	ror::push_point(data, yp, a_color);
 
 	// Z-Axis
-	ror::push_point(data, zm, a_color);
+	ror::push_point(data, zm, a_color + light_tint);
+	ror::push_point(data, a_center, a_color + light_tint);
+
+	ror::push_point(data, a_center, a_color);
 	ror::push_point(data, zp, a_color);
 
 	// X-Axis Arrows

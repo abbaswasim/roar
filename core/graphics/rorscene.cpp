@@ -254,7 +254,6 @@ void Scene::update_camera_from_scene_state()
 	                      this->m_scene_state.m_camera_x_mag,
 	                      this->m_scene_state.m_camera_y_mag);
 
-	camera.set_from_parameters();
 	camera.setup_frustums();
 }
 

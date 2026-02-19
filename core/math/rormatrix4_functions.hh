@@ -412,6 +412,10 @@ FORCE_INLINE Matrix4<_type> make_look_at(const Vector3<_type> &a_eye, const Vect
 	Vector3<_type> up = right.cross_product_safe(forward, a_old_up);
 	up.normalize();
 
+	// Recompute the orthonormal right and up vectors once more to make sure the matrix is orthogonal
+	right = forward.cross_product(up);
+	up    = right.cross_product(forward);
+
 	// init 4x4 matrix
 	Matrix4<_type> matrix{};
 
@@ -426,9 +430,11 @@ FORCE_INLINE Matrix4<_type> make_look_at(const Vector3<_type> &a_eye, const Vect
 	matrix.m_values[10] = -forward.z;
 
 	// set translation part by expanding the dot_product of each manually
-	matrix.m_values[12] = -right.x * a_eye.x - right.y * a_eye.y - right.z * a_eye.z;
-	matrix.m_values[13] = -up.x * a_eye.x - up.y * a_eye.y - up.z * a_eye.z;
-	matrix.m_values[14] = forward.x * a_eye.x + forward.y * a_eye.y + forward.z * a_eye.z;
+	// clang-format off
+	matrix.m_values[12] = -right.x   * a_eye.x - right.y   * a_eye.y - right.z   * a_eye.z;
+	matrix.m_values[13] = -up.x      * a_eye.x - up.y      * a_eye.y - up.z      * a_eye.z;
+	matrix.m_values[14] =  forward.x * a_eye.x + forward.y * a_eye.y + forward.z * a_eye.z;
+	// clang-format on
 
 	return matrix;
 }
