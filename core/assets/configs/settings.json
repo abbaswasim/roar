@@ -254,7 +254,8 @@
 	},
 	"environment" :
 	{
-		"visible" : true,
+		"visible" : false,
+		"lighting" : true,
 		"mode" : "skybox",
 		"mipmap" : 0
 	}

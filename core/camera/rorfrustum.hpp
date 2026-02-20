@@ -62,6 +62,7 @@ class ROAR_ENGINE_ITEM Frustum final
 	// clang-format on
 
   protected:
+  private:
 	float32_t            m_near{0.01f};              //! Near of the projection
 	float32_t            m_far{1000.0f};             //! Far of the projection
 	float32_t            m_fov{60.0f};               //! FOV of the frustrum, copies of when a camera setup it up
@@ -73,9 +74,6 @@ class ROAR_ENGINE_ITEM Frustum final
 	ror::Planef          m_planes[6];                // The planes that bounds a frustum
 	ror::BoundingSpheref m_bounding_sphere{};        //! Bounding sphere of the frustum
 	ror::BoundingBoxf    m_bounding_box{};           //! Bounding box of the frustum
-
-  protected:
-  private:
 };
 
 }        // namespace ror

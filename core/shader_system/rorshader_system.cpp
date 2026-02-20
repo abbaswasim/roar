@@ -1174,7 +1174,7 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 		output_append("shadow_map_sampler;\n", "sampler2D", setting.shadow_map_sampler_set(), setting.shadow_map_sampler_binding());
 
 	// Only here because we want to see what incremental binding we end up with
-	if (setting.m_environment.m_visible)
+	if (setting.m_environment.m_lighting)
 	{
 		output_append("brdf_integration_sampler;\n", "sampler2D", setting.brdf_integration_sampler_set(), setting.brdf_integration_sampler_binding());
 		output_append("skybox_sampler;\n", "samplerCube", setting.skybox_sampler_set(), setting.skybox_sampler_binding());

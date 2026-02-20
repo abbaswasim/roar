@@ -117,6 +117,7 @@ class ROAR_ENGINE_ITEM Settings final
 		};
 
 		bool          m_visible{true};
+		bool          m_lighting{true};
 		VisualizeMode m_mode{VisualizeMode::skybox};
 		uint32_t      m_mipmap{0};
 	};

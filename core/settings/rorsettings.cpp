@@ -344,9 +344,10 @@ Settings::Settings()
 		this->m_default_vertex_descriptor.attributes.push_back({semantic, format});
 	}
 
-	this->m_environment.m_visible = setting.get<bool>("environment:visible");
-	this->m_environment.m_mode    = get_environment_mode(setting.get<std::string>("environment:mode"));
-	this->m_environment.m_mipmap  = setting.get<uint32_t>("environment:mipmap");
+	this->m_environment.m_visible  = setting.get<bool>("environment:visible");
+	this->m_environment.m_lighting = setting.get<bool>("environment:lighting");
+	this->m_environment.m_mode     = get_environment_mode(setting.get<std::string>("environment:mode"));
+	this->m_environment.m_mipmap   = setting.get<uint32_t>("environment:mipmap");
 }
 
 void Settings::setup_generic_numbers(EventSystem &a_event_system)

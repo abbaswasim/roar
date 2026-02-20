@@ -2061,10 +2061,11 @@ void Renderer::upload_environments(rhi::Device &a_device)
 {
 	auto &setting = ror::settings();
 
-	if (!setting.m_environment.m_visible)
+	if (!setting.m_environment.m_lighting)
 		return;
 
-	this->create_environment_mesh(a_device);
+	if (setting.m_environment.m_visible)
+		this->create_environment_mesh(a_device);
 
 	for (auto &environment : this->m_environments)
 		guess_environment_type(*this, environment);

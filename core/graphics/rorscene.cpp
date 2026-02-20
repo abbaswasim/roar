@@ -985,7 +985,7 @@ void render_mesh(const rhi::Device &a_device, ror::Model &a_model, ror::Mesh &a_
 		}
 
 		// This shouldn't be done with each mesh. Rather once at render subpass time, find a solution. The reason its done here is because of binding_index
-		if (settings().m_environment.m_visible)
+		if (settings().m_environment.m_lighting)
 		{
 			auto &env                    = a_renderer.current_environment();
 			auto &skybox_image           = renderer_images[static_cast_safe<size_t>(env.skybox())];        // TODO: I don't think anyone is using this at render time, apart from the skybox itself which is renderered separately
@@ -2481,7 +2481,7 @@ void Scene::push_shader_updates(const ror::Renderer &a_renderer)
 	auto &updator       = shader_updater();
 	auto  has_shadows   = this->m_has_shadows;
 	auto &shaders       = this->m_shaders;
-	auto  with_environment{settings().m_environment.m_visible};
+	auto  with_environment{settings().m_environment.m_lighting};
 
 	static std::mutex cache_mutex;        // Mutex to lock the lambda cache access
 
@@ -2626,7 +2626,7 @@ void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::Eve
 	this->init_upload_debug_geometry(a_device, a_renderer);
 
 	auto &render_passes = a_renderer.current_frame_graph();
-	auto  with_environment{ror::settings().m_environment.m_visible};
+	auto  with_environment{ror::settings().m_environment.m_lighting};
 
 	// Now lets upload them
 	for (auto &shader : this->m_shaders)
