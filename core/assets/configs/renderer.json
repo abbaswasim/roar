@@ -594,7 +594,7 @@
 				"cull_mode" : "back",
 				"subpasses":[
 					{
-						"name":"shadow_mapping",
+						"name":"shadow_mapping_c0",
 						"type":"shadow",
 						"state":"transient",
 						"cull_mode" : "back",
@@ -609,6 +609,33 @@
 								"stage" : "vertex"
 							}
 						]
+					}
+				]
+			},
+			{
+				"inherits" : 2,
+				"subpasses":[
+					{
+						"name":"shadow_mapping_c1",
+						"type":"shadow"
+					}
+				]
+			},
+			{
+				"inherits" : 2,
+				"subpasses":[
+					{
+						"name":"shadow_mapping_c2",
+						"type":"shadow"
+					}
+				]
+			},
+			{
+				"inherits" : 2,
+				"subpasses":[
+					{
+						"name":"shadow_mapping_c3",
+						"type":"shadow"
 					}
 				]
 			},

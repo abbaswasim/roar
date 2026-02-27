@@ -113,6 +113,7 @@
 	"cameras":[
 		{
 			"type":"perspective",
+			"cascade_lambda":0.8,
 			"perspective":{
 				"aspectRatio":1.0,
 				"yfov":60.0,
@@ -122,6 +123,7 @@
 		},
 		{
 			"type":"orthographic",
+			"cascade_lambda":0.8,
 			"orthographic":{
 				"xmag":1.0,
 				"ymag":1.0,

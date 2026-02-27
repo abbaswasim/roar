@@ -224,6 +224,11 @@ void OrbitCamera::from_scene(bool a_from_scene)
 	this->m_from_scene = a_from_scene;
 }
 
+void OrbitCamera::cascade_lambda(float32_t a_cascade_lambda)
+{
+	this->m_cascade_lambda = a_cascade_lambda;
+}
+
 FORCE_INLINE constexpr auto &OrbitCamera::frustum_corners(size_t a_index) const
 {
 	assert(a_index < cascade_count && "Cascade index out of bound");

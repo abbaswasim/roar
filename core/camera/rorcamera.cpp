@@ -229,6 +229,30 @@ void OrbitCamera::update_projection()
 	}
 }
 
+void OrbitCamera::build_cascades()
+{
+	// The bigger the lambda is the smaller are the first few splits for example
+	// for lambda = 0.5  splits are 0.13028727, 0.2772918, 0.49387014, 1, just about right
+	// for lambda = 0.95 splits are 0.02254583, 0.07685446, 0.2633533, 1, too conservative
+	float32_t lambda = this->m_cascade_lambda;        // Default is 0.5 but can be adjusted in the settings or scene which overrides the settings for current run
+
+	float32_t range = this->m_z_far - this->m_z_near;
+	float32_t ratio = this->m_z_far / this->m_z_near;
+
+	// Calculate split depths based on view camera frustum
+	// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html with implementations
+	// https://johanmedestrom.wordpress.com/2016/03/18/opengl-cascaded-shadow-maps/ and
+	// https://github.com/SaschaWillems/Vulkan/examples/shadowmappingcascade/shadowmappingcascade.cpp
+	for (uint32_t i = 0; i < cascade_count; i++)
+	{
+		float32_t power           = (i + 1) / static_cast<float32_t>(cascade_count);
+		float32_t log             = this->m_z_near * std::pow(ratio, power);        // Calculate logrithmic split
+		float32_t uniform         = this->m_z_near + range * power;                 // Calculate normal split
+		float32_t depth           = lambda * (log - uniform) + uniform;             // The equation is (d = lambda(log) + (1 - lambda) * uniform) but its simplified here
+		this->m_cascade_splits[i] = (depth - this->m_z_near) / range;               // Normalise the depth range from [n-f] to [0-1]
+	}
+}
+
 void OrbitCamera::setup_frustums()
 {
 	const size_t cascade_index{0};
@@ -238,8 +262,13 @@ void OrbitCamera::setup_frustums()
 	this->m_frustums[cascade_index].near(this->m_z_near);
 	this->m_frustums[cascade_index].aspect(this->m_aspect_ratio);
 	this->m_frustums[cascade_index].setup(this->m_view);
+
+	this->build_cascades();
 }
 
+// TODO: Fit near and far to the geometry as close as possible.
+// Before splitting the view frustum, we might adjust the camera's near and far planes so that the view frustum contains the visible objects as
+// tightly as possible. This will minimize the amount of empty space in the view frustum, increasing the available shadow-map resolution.
 void OrbitCamera::setup()
 {
 	auto diagonal  = (this->m_maximum - this->m_minimum);
@@ -294,7 +323,7 @@ void OrbitCamera::rotate(float32_t a_x_delta, float32_t a_y_delta, EventModifier
 {
 	auto origin = this->m_mode == CameraMode::orbit ? this->m_center : this->m_eye;
 
-	float scale = 1.0f;
+	float32_t scale = 1.0f;
 	if (a_modifier == EventModifier::command)
 		scale = 0.01f;
 	else if (a_modifier == EventModifier::control)

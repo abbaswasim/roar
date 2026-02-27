@@ -98,6 +98,7 @@
 		{
 			"type":"perspective",
 			"view_from_scene":false,
+			"cascade_lambda":0.95,
 			"perspective":{
 				"aspectRatio":1.0,
 				"yfov":60.0,
@@ -107,8 +108,8 @@
 			"view":{
 				"eye":[
 					0.0,
-					5.0,
-					10.0
+					2.0,
+					4.0
 				],
 				"target":[
 					0.0,
@@ -124,6 +125,7 @@
 		},
 		{
 			"type":"orthographic",
+			"cascade_lambda":0.25,
 			"orthographic":{
 				"xmag":1.0,
 				"ymag":1.0,

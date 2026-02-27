@@ -30,24 +30,8 @@
 #include "foundation/rortypes.hpp"
 #include "math/rormatrix3.hpp"
 #include "math/rormatrix4.hpp"
-#include "math/rormatrix4_functions.hpp"
 #include "math/rorvector3.hpp"
-#include "math/rorvector4.hpp"
-#include "rhi/rordevice.hpp"
-#include "rhi/rorshader_buffer.hpp"
-#include "rhi/rorshader_buffer_template.hpp"
 #include "rorfrustum.hpp"
-#include "settings/rorsettings.hpp"
-#include <functional>
-
-/*  OrbitCamera usage
- *  After window creation call camera_init();
- *  and set visual volume to limit the camera to a specific bounding box
- *  by calling glfw_camera_visual_volume(min, max);
- *  use glfw_camera_update() to update the viewport and get updated mvp
- */
-
-#define USE_GLFW
 
 namespace ror
 {
@@ -137,12 +121,14 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE void y_mag(float32_t a_y_mag);
 	FORCE_INLINE void y_fov(float32_t a_y_fov);
 	FORCE_INLINE void from_scene(bool a_from_scene);
+	FORCE_INLINE void cascade_lambda(float32_t a_cascade_lambda);
 	void              init(EventSystem &a_event_system);
 	void              enable();
 	void              disable();
 	void              update();
 	void              upload(const Renderer &a_renderer);
 	void              setup_frustums();
+	void              build_cascades();
 	void              orient_top();
 	void              orient_bottom();
 	void              orient_left();
@@ -152,22 +138,23 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	void              draw_camera_properties();
 
 	// clang-format off
-	FORCE_INLINE constexpr auto& eye()           const noexcept { return this->m_eye;           }
-	FORCE_INLINE constexpr auto& up()            const noexcept { return this->m_up;            }
-	FORCE_INLINE constexpr auto& right()         const noexcept { return this->m_right;         }
-	FORCE_INLINE constexpr auto& forward()       const noexcept { return this->m_forward;       }
-	FORCE_INLINE constexpr auto& center()        const noexcept { return this->m_center;        }
-	FORCE_INLINE constexpr auto& minimum()       const noexcept { return this->m_minimum;       }
-	FORCE_INLINE constexpr auto& maximum()       const noexcept { return this->m_maximum;       }
-	FORCE_INLINE constexpr auto& mode()          const noexcept { return this->m_mode;          }
-	FORCE_INLINE constexpr auto& x_mag()         const noexcept { return this->m_x_mag;         }
-	FORCE_INLINE constexpr auto& y_mag()         const noexcept { return this->m_y_mag;         }
-	FORCE_INLINE constexpr auto& y_fov()         const noexcept { return this->m_y_fov;         }
-	FORCE_INLINE constexpr auto& z_near()        const noexcept { return this->m_z_near;        }
-	FORCE_INLINE constexpr auto& z_far()         const noexcept { return this->m_z_far;         }
-	FORCE_INLINE constexpr auto& width()         const noexcept { return this->m_width;         }
-	FORCE_INLINE constexpr auto& height()        const noexcept { return this->m_height;        }
-	FORCE_INLINE constexpr auto& aspect_ratio()  const noexcept { return this->m_aspect_ratio;  }
+	FORCE_INLINE constexpr auto& eye()             const noexcept { return this->m_eye;           }
+	FORCE_INLINE constexpr auto& up()              const noexcept { return this->m_up;            }
+	FORCE_INLINE constexpr auto& right()           const noexcept { return this->m_right;         }
+	FORCE_INLINE constexpr auto& forward()         const noexcept { return this->m_forward;       }
+	FORCE_INLINE constexpr auto& center()          const noexcept { return this->m_center;        }
+	FORCE_INLINE constexpr auto& minimum()         const noexcept { return this->m_minimum;       }
+	FORCE_INLINE constexpr auto& maximum()         const noexcept { return this->m_maximum;       }
+	FORCE_INLINE constexpr auto& mode()            const noexcept { return this->m_mode;          }
+	FORCE_INLINE constexpr auto& x_mag()           const noexcept { return this->m_x_mag;         }
+	FORCE_INLINE constexpr auto& y_mag()           const noexcept { return this->m_y_mag;         }
+	FORCE_INLINE constexpr auto& y_fov()           const noexcept { return this->m_y_fov;         }
+	FORCE_INLINE constexpr auto& z_near()          const noexcept { return this->m_z_near;        }
+	FORCE_INLINE constexpr auto& z_far()           const noexcept { return this->m_z_far;         }
+	FORCE_INLINE constexpr auto& width()           const noexcept { return this->m_width;         }
+	FORCE_INLINE constexpr auto& height()          const noexcept { return this->m_height;        }
+	FORCE_INLINE constexpr auto& aspect_ratio()    const noexcept { return this->m_aspect_ratio;  }
+	FORCE_INLINE constexpr auto& cascade_lambda()  const noexcept { return this->m_cascade_lambda;}
 	// clang-format on
 	FORCE_INLINE constexpr auto &frustum_bounding_box(size_t a_index = 0u) const;
 	FORCE_INLINE constexpr auto &frustum_corners(size_t a_index = 0u) const;
@@ -199,36 +186,38 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE void forward(double64_t a_zoom_delta);
 	FORCE_INLINE void rotate_at_origin(const ror::Matrix4f &a_rotation_matrix, const ror::Vector3f &a_origin, ror::Vector3f &a_input_output);
 
-	Vector3f      m_target{0.0f, 0.0f, 0.0f};            //! Target position in worldspace that moves when zooming using forward
-	Vector3f      m_center{0.0f, 0.0f, 0.0f};            //! Target position in worldspace at the center of the scene, that never changes
-	Vector3f      m_eye{0.0f, 0.0f, 1.0f};               //! Eye position in worldspace // TODO: This should be correctly transformed with what's in the scene file translation/rotation scale etc. Its currently not working
-	Vector3f      m_right{1.0f, 0.0f, 0.0f};             //! Right vector in camera's frame of reference
-	Vector3f      m_up{0.0f, 1.0f, 0.0f};                //! Up vector in camera's frame of reference
-	Vector3f      m_forward{0.0f, 0.0f, -1.0f};          //! Forward vector in camera's frame of reference
-	Vector3f      m_minimum{-5.0f, -5.0f, -5.0f};        //! Minimum bound of the bounding volume that the camera will always make sure to see fully
-	Vector3f      m_maximum{10.0f, 10.0f, 10.0f};        //! Maximum bound of the bounding volume that the camera will always make sure to see fully
-	float32_t     m_x_position{0.0f};                    //! Previous cusor position of the mouse pointer
-	float32_t     m_y_position{0.0f};                    //! Previous cusor position of the mouse pointer
-	float32_t     m_y_fov{60.0f};                        //! Y-FOV of the camera
-	float32_t     m_z_near{0.1f};                        //! z-near of the camera
-	float32_t     m_z_far{10.0f};                        //! z-far of the camera
-	float32_t     m_aspect_ratio{1.0f};                  //! Aspect ratio of the camera
-	float32_t     m_width{1024.0f};                      //! Width of the rectangle it needs to fill
-	float32_t     m_height{768.0f};                      //! Height of the rectangle it needs to fill
-	float32_t     m_x_mag{1.0f};                         //! Width of the orthographics camera
-	float32_t     m_y_mag{1.0f};                         //! Height of the orthographics camera
-	CameraMode    m_mode{CameraMode::orbit};             //! Default orbit camera
-	bool          m_from_scene{true};                    //! Should the camera view be created from scene or either using default values for target, view and up or provided by scene file
-	Frustum       m_frustums[cascade_count];             //! Frustums for all the cascades, max 4 splits
-	EventSystem  *m_event_system{nullptr};               //! A non-owning alias of the event system to not have to keep moving this around
-	EventCallback m_move_callback{};                     //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_drag_callback{};                     //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_resize_callback{};                   //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_forward_callback{};                  //! forward lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_zoom_callback{};                     //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_frambuffer_resize_callback{};        //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_camera_mode_callback{};              //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_frustum_callback{};                  //! Frustum snapshop lambda function that will be used to subscribe and unsubscribe this camera with event system
+	Vector3f      m_target{0.0f, 0.0f, 0.0f};             //! Target position in worldspace that moves when zooming using forward
+	Vector3f      m_center{0.0f, 0.0f, 0.0f};             //! Target position in worldspace at the center of the scene, that never changes
+	Vector3f      m_eye{0.0f, 0.0f, 1.0f};                //! Eye position in worldspace // TODO: This should be correctly transformed with what's in the scene file translation/rotation scale etc. Its currently not working
+	Vector3f      m_right{1.0f, 0.0f, 0.0f};              //! Right vector in camera's frame of reference
+	Vector3f      m_up{0.0f, 1.0f, 0.0f};                 //! Up vector in camera's frame of reference
+	Vector3f      m_forward{0.0f, 0.0f, -1.0f};           //! Forward vector in camera's frame of reference
+	Vector3f      m_minimum{-5.0f, -5.0f, -5.0f};         //! Minimum bound of the bounding volume that the camera will always make sure to see fully
+	Vector3f      m_maximum{10.0f, 10.0f, 10.0f};         //! Maximum bound of the bounding volume that the camera will always make sure to see fully
+	float32_t     m_x_position{0.0f};                     //! Previous cusor position of the mouse pointer
+	float32_t     m_y_position{0.0f};                     //! Previous cusor position of the mouse pointer
+	float32_t     m_y_fov{60.0f};                         //! Y-FOV of the camera
+	float32_t     m_z_near{0.1f};                         //! z-near of the camera
+	float32_t     m_z_far{10.0f};                         //! z-far of the camera
+	float32_t     m_aspect_ratio{1.0f};                   //! Aspect ratio of the camera
+	float32_t     m_width{1024.0f};                       //! Width of the rectangle it needs to fill
+	float32_t     m_height{768.0f};                       //! Height of the rectangle it needs to fill
+	float32_t     m_x_mag{1.0f};                          //! Width of the orthographics camera
+	float32_t     m_y_mag{1.0f};                          //! Height of the orthographics camera
+	float32_t     m_cascade_lambda{0.5f};                 //! The cascade split lambda for this camera
+	float32_t     m_cascade_splits[cascade_count];        //! Z-position (Depth) splits in the camera frustum to be used for each cascade frustum, these are normalised [0-1]
+	CameraMode    m_mode{CameraMode::orbit};              //! Default orbit camera
+	bool          m_from_scene{true};                     //! Should the camera view be created from scene or either using default values for target, view and up or provided by scene file
+	Frustum       m_frustums[cascade_count];              //! Frustums for all the cascades, max 4 splits
+	EventSystem  *m_event_system{nullptr};                //! A non-owning alias of the event system to not have to keep moving this around
+	EventCallback m_move_callback{};                      //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_drag_callback{};                      //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_resize_callback{};                    //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_forward_callback{};                   //! forward lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_zoom_callback{};                      //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_frambuffer_resize_callback{};         //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_camera_mode_callback{};               //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_frustum_callback{};                   //! Frustum snapshop lambda function that will be used to subscribe and unsubscribe this camera with event system
 };
 }        // namespace ror
 

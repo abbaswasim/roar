@@ -710,139 +710,15 @@ rhi::RenderOutputType to_render_output_type(nlohmann::json a_type)
 	return type;
 }
 
-void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame_graph, ror::Vector2ui a_dimensions,
-                      std::vector<rhi::TextureImage>              &a_textures,
-                      std::vector<std::vector<rhi::ShaderBuffer>> &a_buffers)
+void read_render_subpasses(json &a_render_subpasses, rhi::Renderpass &a_render_pass,
+                           std::vector<rhi::TextureImage>              &a_textures,
+                           std::vector<std::vector<rhi::ShaderBuffer>> &a_buffers,
+                           uint32_t                                    &a_shadow_pass_count)
 {
-	rhi::Renderpass render_pass;
-
-	if (a_render_pass.contains("disabled"))
-	{
-		auto disabled = a_render_pass["disabled"];
-		render_pass.enabled(!disabled);
-	}
-
-	render_pass.dimensions(a_dimensions);
-
-	ror::Vector2ui dims = render_pass.dimensions();
-
-	if (a_render_pass.contains("width"))
-		dims.x = (a_render_pass["width"]);
-
-	if (a_render_pass.contains("height"))
-		dims.y = (a_render_pass["height"]);
-
-	render_pass.dimensions(dims);
-
-	if (a_render_pass.contains("depends_on"))
-	{
-		auto parents = a_render_pass["depends_on"];
-		render_pass.parent_ids(parents);
-	}
-
-	if (a_render_pass.contains("cull_mode"))
-	{
-		auto cull_mode = a_render_pass["cull_mode"];
-		render_pass.cull_mode(rhi::string_to_cull_mode(cull_mode));
-	}
-
-	if (a_render_pass.contains("background"))
-	{
-		auto color = a_render_pass["background"];
-		assert(color.size() == 4 && "Renderpass background color is not correctly defined");
-
-		ror::Vector4f bc{color[0], color[1], color[2], color[3]};
-		if (ror::settings().m_background_srgb_to_linear)
-			ror::srgb_to_linear(bc);
-
-		render_pass.background(bc);
-	}
-
-	assert((a_render_pass.contains("render_targets") || a_render_pass.contains("render_buffers")) && "Render pass must have render targets or render buffers");
-
-	if (a_render_pass.contains("render_targets"))
-	{
-		auto render_targets = a_render_pass["render_targets"];
-
-		std::vector<rhi::RenderTarget> rts;
-
-		for (auto &rt : render_targets)
-		{
-			assert(rt.contains("index") && rt.contains("load_action") && rt.contains("store_action") && rt.contains("type") && "Render Target must contain all index, type, load and store actions");
-
-			uint32_t index       = rt["index"];
-			auto     loadaction  = rt["load_action"];
-			auto     storeaction = rt["store_action"];
-			auto     typ         = rt["type"];
-
-			rhi::LoadAction       load_action  = to_load_action(loadaction);
-			rhi::StoreAction      store_action = to_store_action(storeaction);
-			rhi::RenderOutputType type         = to_render_output_type(typ);
-
-			// Emplaces a RenderTarget
-			assert(index < a_textures.size() && "Index is out of bound for render targets provided");
-
-			rhi::RenderTarget::TextureReference tr{index, &a_textures};
-
-			rts.emplace_back(index, std::move(tr), load_action, store_action, type);
-		}
-
-		// Check if there are any depth buffers attached or not
-		bool has_depth{false};
-		for (auto &rt : rts)
-		{
-			if (is_pixel_format_depth_format(rt.m_target_reference.get().format()))
-			{
-				assert(!has_depth && "Too many depth buffers attached");
-				has_depth = true;
-				break;
-			}
-		}
-
-		if (!has_depth)
-			ror::log_info("No depth buffer provided for this render pass");
-
-		render_pass.render_targets(std::move(rts));
-	}
-
-	if (a_render_pass.contains("render_buffers"))
-	{
-		auto render_buffers = a_render_pass["render_buffers"];
-
-		std::vector<rhi::RenderBuffer> rbs;
-
-		for (auto &rb : render_buffers)
-		{
-			assert(rb.contains("index") && rb.contains("load_action") && rb.contains("store_action") && rb.contains("type") && "Render Buffer must contain all index, load and store actions");
-
-			uint32_t index       = rb["index"];
-			auto     loadaction  = rb["load_action"];
-			auto     storeaction = rb["store_action"];
-			auto     typ         = rb["type"];
-
-			rhi::LoadAction       load_action  = to_load_action(loadaction);
-			rhi::StoreAction      store_action = to_store_action(storeaction);
-			rhi::RenderOutputType type         = to_render_output_type(typ);
-
-			// Emplaces a BufferTarget
-			assert(index < a_buffers.size() && "Index is out of bound for render buffers provided");
-
-			rhi::RenderBuffer::ShaderBufferReference sr{index, &a_buffers};        // Remember the reference is now a vector and based on which frame and render pass we are in, that specific copy will be used
-
-			rbs.emplace_back(index, std::move(sr), load_action, store_action, type);
-		}
-
-		render_pass.render_buffers(std::move(rbs));
-	}
-
-	assert(a_render_pass.contains("subpasses") && "There must be at least one subpass in a render pass");
-
-	auto subpasses = a_render_pass["subpasses"];
-
 	std::vector<rhi::Rendersubpass> rsps;
-	rsps.reserve(subpasses.size());
+	rsps.reserve(a_render_subpasses.size());
 
-	for (auto &subpass : subpasses)
+	for (auto &subpass : a_render_subpasses)
 	{
 		rhi::Rendersubpass rsp{};
 
@@ -854,8 +730,11 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			rsp.technique(subpass["technique"] == "fragment" ? rhi::RenderpassTechnique::fragment : rhi::RenderpassTechnique::compute);
 		}
 
-		if (subpass.contains("type"))
-			rsp.type(string_to_renderpass_type(subpass["type"]));
+		assert(subpass.contains("type") && "A subpass must contain a type");
+		rsp.type(string_to_renderpass_type(subpass["type"]));
+
+		if (rsp.type() == rhi::RenderpassType::shadow)
+			a_shadow_pass_count++;
 
 		if (subpass.contains("cull_mode"))
 		{
@@ -864,7 +743,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		}
 		else
 		{
-			rsp.cull_mode(render_pass.cull_mode());
+			rsp.cull_mode(a_render_pass.cull_mode());
 		}
 
 		if (subpass.contains("state"))
@@ -958,13 +837,13 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		// This means does not have render_targets, then we use all the RTs from render pass
 		if (subpass_rt_indicies.size() == 0)
 		{
-			auto renderpass_rt_indicies = render_pass.render_targets();
+			auto renderpass_rt_indicies = a_render_pass.render_targets();
 			subpass_rt_indicies.reserve(renderpass_rt_indicies.size());
 			for (size_t i = 0; i < renderpass_rt_indicies.size(); ++i)
 				subpass_rt_indicies.push_back(static_cast<uint32_t>(i));
 		}
 
-		auto render_pass_rts = render_pass.render_targets();
+		auto render_pass_rts = a_render_pass.render_targets();
 		if (rsp.has_depth_attachment(render_pass_rts, subpass_rt_indicies))
 			rsp.has_depth(true);
 		else
@@ -973,9 +852,174 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		rsps.emplace_back(std::move(rsp));
 	}
 
-	render_pass.subpasses(std::move(rsps));
+	a_render_pass.subpasses(std::move(rsps));
+}
+
+void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame_graph, ror::Vector2ui a_dimensions,
+                      std::vector<rhi::TextureImage>              &a_textures,
+                      std::vector<std::vector<rhi::ShaderBuffer>> &a_buffers,
+                      uint32_t                                    &a_shadow_pass_count)
+{
+	rhi::Renderpass render_pass;
+	bool            inherits{false};
+
+	if (a_render_pass.contains("inherits"))
+	{
+		auto index = a_render_pass["inherits"];
+		assert(index < a_frame_graph.size() && "Inherited index must be valid index of already seen renderpasses");
+		render_pass = a_frame_graph[index];
+		inherits    = true;
+	}
+
+	if (a_render_pass.contains("disabled"))
+	{
+		auto disabled = a_render_pass["disabled"];
+		render_pass.enabled(!disabled);
+	}
+
+	render_pass.dimensions(a_dimensions);
+
+	ror::Vector2ui dims = render_pass.dimensions();
+
+	if (a_render_pass.contains("width"))
+		dims.x = (a_render_pass["width"]);
+
+	if (a_render_pass.contains("height"))
+		dims.y = (a_render_pass["height"]);
+
+	render_pass.dimensions(dims);
+
+	if (a_render_pass.contains("depends_on"))
+	{
+		auto parents = a_render_pass["depends_on"];
+		render_pass.parent_ids(parents);
+	}
+
+	if (a_render_pass.contains("cull_mode"))
+	{
+		auto cull_mode = a_render_pass["cull_mode"];
+		render_pass.cull_mode(rhi::string_to_cull_mode(cull_mode));
+	}
+
+	if (a_render_pass.contains("background"))
+	{
+		auto color = a_render_pass["background"];
+		assert(color.size() == 4 && "Renderpass background color is not correctly defined");
+
+		ror::Vector4f bc{color[0], color[1], color[2], color[3]};
+		if (ror::settings().m_background_srgb_to_linear)
+			ror::srgb_to_linear(bc);
+
+		render_pass.background(bc);
+	}
+
+	assert((a_render_pass.contains("render_targets") || a_render_pass.contains("render_buffers") || inherits) && "Render pass must have render targets or render buffers");
+
+	if (a_render_pass.contains("render_targets"))
+	{
+		auto render_targets = a_render_pass["render_targets"];
+
+		std::vector<rhi::RenderTarget> rts;
+
+		for (auto &rt : render_targets)
+		{
+			assert(rt.contains("index") && rt.contains("load_action") && rt.contains("store_action") && rt.contains("type") && "Render Target must contain all index, type, load and store actions");
+
+			uint32_t index       = rt["index"];
+			auto     loadaction  = rt["load_action"];
+			auto     storeaction = rt["store_action"];
+			auto     typ         = rt["type"];
+
+			rhi::LoadAction       load_action  = to_load_action(loadaction);
+			rhi::StoreAction      store_action = to_store_action(storeaction);
+			rhi::RenderOutputType type         = to_render_output_type(typ);
+
+			// Emplaces a RenderTarget
+			assert(index < a_textures.size() && "Index is out of bound for render targets provided");
+
+			rhi::RenderTarget::TextureReference tr{index, &a_textures};
+
+			rts.emplace_back(index, std::move(tr), load_action, store_action, type);
+		}
+
+		// Check if there are any depth buffers attached or not
+		bool has_depth{false};
+		for (auto &rt : rts)
+		{
+			if (is_pixel_format_depth_format(rt.m_target_reference.get().format()))
+			{
+				assert(!has_depth && "Too many depth buffers attached");
+				has_depth = true;
+				break;
+			}
+		}
+
+		if (!has_depth)
+			ror::log_info("No depth buffer provided for this render pass");
+
+		render_pass.render_targets(std::move(rts));
+	}
+
+	if (a_render_pass.contains("render_buffers"))
+	{
+		auto render_buffers = a_render_pass["render_buffers"];
+
+		std::vector<rhi::RenderBuffer> rbs;
+
+		for (auto &rb : render_buffers)
+		{
+			assert(rb.contains("index") && rb.contains("load_action") && rb.contains("store_action") && rb.contains("type") && "Render Buffer must contain all index, load and store actions");
+
+			uint32_t index       = rb["index"];
+			auto     loadaction  = rb["load_action"];
+			auto     storeaction = rb["store_action"];
+			auto     typ         = rb["type"];
+
+			rhi::LoadAction       load_action  = to_load_action(loadaction);
+			rhi::StoreAction      store_action = to_store_action(storeaction);
+			rhi::RenderOutputType type         = to_render_output_type(typ);
+
+			// Emplaces a BufferTarget
+			assert(index < a_buffers.size() && "Index is out of bound for render buffers provided");
+
+			rhi::RenderBuffer::ShaderBufferReference sr{index, &a_buffers};        // Remember the reference is now a vector and based on which frame and render pass we are in, that specific copy will be used
+
+			rbs.emplace_back(index, std::move(sr), load_action, store_action, type);
+		}
+
+		render_pass.render_buffers(std::move(rbs));
+	}
+
+	assert(a_render_pass.contains("subpasses") && "There must be at least one subpass in a render pass");
+
+	auto subpasses = a_render_pass["subpasses"];
+
+	read_render_subpasses(subpasses, render_pass, a_textures, a_buffers, a_shadow_pass_count);
 
 	a_frame_graph.emplace_back(std::move(render_pass));
+}
+
+// Sets the shadow depth textures used in eacch of the renderpass and subpass in the current framegraph, duplicate work for some but no harm done
+void setup_shadow_cascade_texture_depth(std::vector<rhi::Renderpass> &a_renderpasses,
+                                        uint32_t                     &a_shadow_pass_count)
+{
+	for (auto &renderpass : a_renderpasses)
+	{
+		std::vector<rhi::Rendersubpass> rendersubpasses          = renderpass.subpasses();
+		auto                           &renderpass_rendertargets = renderpass.render_targets();
+		for (auto &subpass : rendersubpasses)
+		{
+			if (subpass.type() == rhi::RenderpassType::shadow)
+			{
+				auto &subpass_rendertargets = subpass.render_targets();
+				for (size_t i = 0; i < subpass_rendertargets.size(); ++i)
+				{
+					auto &texture = renderpass_rendertargets[subpass_rendertargets[i]].m_target_reference.get();
+					texture.depth(a_shadow_pass_count);
+				}
+			}
+		}
+	}
 }
 
 void Renderer::load_frame_graphs()
@@ -1003,36 +1047,52 @@ void Renderer::load_frame_graphs()
 	}
 
 	assert((frame_graph.contains("forward") || frame_graph.contains("deferred")) && "There must be at least one frame graph provided");
+	std::unordered_map<std::string, uint32_t> shadow_pass_counts{};
 
 	if (frame_graph.contains("forward"))
 	{
 		auto forward_passes = frame_graph["forward"];
+		this->m_frame_graphs["forward"].reserve(forward_passes.size());
 		for (auto &forward_pass : forward_passes)
 		{
 			ror::Vector2ui dimensions{static_cast<uint32_t>(this->m_dimensions.x), static_cast<uint32_t>(this->m_dimensions.y)};
-			read_render_pass(forward_pass, this->m_frame_graphs["forward"], dimensions, this->m_images, this->m_buffers);
+			read_render_pass(forward_pass, this->m_frame_graphs["forward"], dimensions, this->m_images, this->m_buffers, shadow_pass_counts["forward"]);
 		}
 	}
 
 	if (frame_graph.contains("deferred"))
 	{
 		auto deferred_passes = frame_graph["deferred"];
+		this->m_frame_graphs["deferred"].reserve(deferred_passes.size());
 		for (auto &deferred_pass : deferred_passes)
 		{
 			ror::Vector2ui dimensions{static_cast<uint32_t>(this->m_dimensions.x), static_cast<uint32_t>(this->m_dimensions.y)};
-			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], dimensions, this->m_images, this->m_buffers);
+			read_render_pass(deferred_pass, this->m_frame_graphs["deferred"], dimensions, this->m_images, this->m_buffers, shadow_pass_counts["deferred"]);
 		}
 	}
 
 	if (frame_graph.contains("current"))
+	{
 		this->m_current_frame_graph = &this->m_frame_graphs[frame_graph["current"]];
+		this->m_shadowpasses_count  = shadow_pass_counts[frame_graph["current"]];
+	}
 	else
 	{
 		if (frame_graph.contains("forward"))
+		{
 			this->m_current_frame_graph = &this->m_frame_graphs["forward"];
+			this->m_shadowpasses_count  = shadow_pass_counts["forward"];
+		}
 		else
+		{
 			this->m_current_frame_graph = &this->m_frame_graphs["deferred"];
+			this->m_shadowpasses_count  = shadow_pass_counts["deferred"];
+		}
 	}
+
+	assert(this->m_shadowpasses_count == cascade_count && "Shadow passes count must match cascade count");
+	// Setup all render targets texture references to be arrays of depth shadowpasses_count because we are using a texture array for cascades
+	setup_shadow_cascade_texture_depth(*this->m_current_frame_graph, this->m_shadowpasses_count);
 
 	this->m_renderpasses_count = m_current_frame_graph->size();
 
@@ -1040,7 +1100,7 @@ void Renderer::load_frame_graphs()
 		this->m_subpasses_count += renderpass.subpasses().size();
 
 	this->setup_final_pass();
-	this->setup_shadow_pass();
+	this->setup_shadow_passes();
 
 	// Lets duplicate the shader buffers needed per render pass or subpass and per frame according to the frame graph and buffers frequency
 	this->setup_shader_buffers();
@@ -1428,6 +1488,8 @@ void Renderer::dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_devi
 	this->upload_frame_graphs(a_device);
 }
 
+// This must be called before shadow map texture setup, as we need to make sure its either an atlas or array before we reach here
+// Otherwise it will be set once and we won't be able to update its size for later coming shadow subpasses
 void Renderer::upload_frame_graphs(rhi::Device &a_device)
 {
 	auto render_passes = this->m_current_frame_graph;
@@ -2227,30 +2289,33 @@ void Renderer::setup_final_pass()
 	assert(0 && "Haven't found a final pass");
 }
 
-void Renderer::setup_shadow_pass()
+void Renderer::setup_shadow_passes()
 {
 	int32_t pass_index{0};
+	int32_t shadow_pass_index{0};
 	for (auto &pass : this->current_frame_graph())
 	{
 		for (auto &subpass : pass.subpasses())
 		{
 			if (subpass.type() == rhi::RenderpassType::shadow)
 			{
-				this->m_shadow_pass = pass_index;
-				return;
+				assert(shadow_pass_index < static_cast_safe<int32_t>(cascade_count) && "Way more shadow passes than cascade_count");
+				this->m_shadow_passes[shadow_pass_index++] = pass_index;
 			}
 		}
 		pass_index++;
 	}
 
-	ror::log_info("Haven't found a shadow pass in the render graph");
+	for (size_t i = 0; i < cascade_count; ++i)
+		if (this->m_shadow_passes[i] == -1)
+			ror::log_info("Haven't found a shadow cascade pass in the render graph for cascade {}", i);
 }
 
-const rhi::Texture *Renderer::get_shadow_texture() const
+const rhi::Texture *Renderer::get_shadow_texture(size_t a_cascade_index) const
 {
-	if (this->m_shadow_pass != -1)
+	if (this->m_shadow_passes[a_cascade_index] != -1)
 	{
-		auto &pass = this->current_frame_graph()[static_cast<size_t>(this->m_shadow_pass)];
+		auto &pass = this->current_frame_graph()[static_cast<size_t>(this->m_shadow_passes[a_cascade_index])];
 		for (auto &subpass : pass.subpasses())
 		{
 			if (subpass.type() == rhi::RenderpassType::shadow)
@@ -2260,7 +2325,7 @@ const rhi::Texture *Renderer::get_shadow_texture() const
 				{
 					auto rt_local_index = rts[0];
 					auto rt             = pass.render_targets()[rt_local_index];
-					return &this->m_textures[static_cast<size_t>(rt.m_target_reference.m_index)];        // Althought this index is of a texture image its must be the same as texture, because they are created at the same time
+					return &this->m_textures[static_cast<size_t>(rt.m_target_reference.m_index)];        // Although this index is of a texture image its must be the same as texture, because they are created at the same time
 				}
 				else
 					log_critical("Struggling to find shadow image in the renderer");

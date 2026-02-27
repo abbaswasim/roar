@@ -65,13 +65,13 @@ class ROAR_ENGINE_ITEM Frustum final
   private:
 	float32_t            m_near{0.01f};              //! Near of the projection
 	float32_t            m_far{1000.0f};             //! Far of the projection
-	float32_t            m_fov{60.0f};               //! FOV of the frustrum, copies of when a camera setup it up
-	float32_t            m_aspect{1.0f};             //! Aspect of the frustrum, copies of when a camera setup it up
+	float32_t            m_fov{60.0f};               //! FOV of the frustrum, copies of when a camera set it up
+	float32_t            m_aspect{1.0f};             //! Aspect of the frustrum, copies of when a camera set it up
 	ror::Vector3f        m_corners[8];               //! The 8 corners of the frustum
 	ror::Vector3f        m_center;                   //! The center of the frustum
 	ror::Matrix4f        m_view{};                   //! View matrix of the frustum
 	ror::Matrix4f        m_view_inverse{};           //! Inverse of the view matrix
-	ror::Planef          m_planes[6];                // The planes that bounds a frustum
+	ror::Planef          m_planes[6];                //! The planes that bounds a frustum
 	ror::BoundingSpheref m_bounding_sphere{};        //! Bounding sphere of the frustum
 	ror::BoundingBoxf    m_bounding_box{};           //! Bounding box of the frustum
 };

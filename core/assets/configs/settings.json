@@ -13,6 +13,7 @@
 	"debug_mesh_color" : [0.0, 1.0, 0.0, 0.8],
 	"vsync": false,
 	"zoom_speed": 3.14,
+	"simulation_step": 2.0,
 	"buffers_format": "buffers_format.json",
 	"default_scene": "default_scene.json",
 	"save_scene_state": true,

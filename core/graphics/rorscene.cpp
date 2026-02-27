@@ -2903,6 +2903,12 @@ void Scene::read_cameras()
 				cam.from_scene(cam_from_scene);
 			}
 
+			if (camera.contains("cascade_lambda"))
+			{
+				auto csl = camera["cascade_lambda"];
+				cam.cascade_lambda(csl);
+			}
+
 			if (camera.contains("view"))
 			{
 				auto cam_view = camera["view"];
