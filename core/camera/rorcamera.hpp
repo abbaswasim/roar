@@ -155,6 +155,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE constexpr auto& height()          const noexcept { return this->m_height;        }
 	FORCE_INLINE constexpr auto& aspect_ratio()    const noexcept { return this->m_aspect_ratio;  }
 	FORCE_INLINE constexpr auto& cascade_lambda()  const noexcept { return this->m_cascade_lambda;}
+	FORCE_INLINE constexpr auto& frustums()        const noexcept { return this->m_frustums;      }
 	// clang-format on
 	FORCE_INLINE constexpr auto &frustum_bounding_box(size_t a_index = 0u) const;
 	FORCE_INLINE constexpr auto &frustum_corners(size_t a_index = 0u) const;
@@ -218,6 +219,12 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	EventCallback m_frambuffer_resize_callback{};         //! Framebuffer resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_camera_mode_callback{};               //! Mode lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_frustum_callback{};                   //! Frustum snapshop lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_camera_top_view{};                    //! Event callbacks to orient camera to top view
+	EventCallback m_camera_bottom_view{};                 //! Event callbacks to orient camera to bottom view
+	EventCallback m_camera_left_view{};                   //! Event callbacks to orient camera to left view
+	EventCallback m_camera_right_view{};                  //! Event callbacks to orient camera to right view
+	EventCallback m_camera_front_view{};                  //! Event callbacks to orient camera to front view
+	EventCallback m_camera_back_view{};                   //! Event callbacks to orient camera to back view
 };
 }        // namespace ror
 

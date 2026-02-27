@@ -121,6 +121,30 @@ void OrbitCamera::init(EventSystem &a_event_system)
 		this->m_mode = this->m_mode == CameraMode::orbit ? CameraMode::fps : CameraMode::orbit;
 	};
 
+	this->m_camera_top_view = [this](Event &) {
+		this->orient_top();
+	};
+
+	this->m_camera_bottom_view = [this](Event &) {
+		this->orient_bottom();
+	};
+
+	this->m_camera_left_view = [this](Event &) {
+		this->orient_left();
+	};
+
+	this->m_camera_right_view = [this](Event &) {
+		this->orient_right();
+	};
+
+	this->m_camera_front_view = [this](Event &) {
+		this->orient_front();
+	};
+
+	this->m_camera_back_view = [this](Event &) {
+		this->orient_back();
+	};
+
 	this->m_event_system = &a_event_system;
 
 	this->setup();
@@ -249,21 +273,34 @@ void OrbitCamera::build_cascades()
 		float32_t log             = this->m_z_near * std::pow(ratio, power);        // Calculate logrithmic split
 		float32_t uniform         = this->m_z_near + range * power;                 // Calculate normal split
 		float32_t depth           = lambda * (log - uniform) + uniform;             // The equation is (d = lambda(log) + (1 - lambda) * uniform) but its simplified here
-		this->m_cascade_splits[i] = (depth - this->m_z_near) / range;               // Normalise the depth range from [n-f] to [0-1]
+		this->m_cascade_splits[i] = (depth - this->m_z_near) / range;               // Normalise the depth range from [n,f] to [0,1]
 	}
 }
 
 void OrbitCamera::setup_frustums()
 {
-	const size_t cascade_index{0};
-
-	this->m_frustums[cascade_index].fov(this->m_y_fov);
-	this->m_frustums[cascade_index].far(this->m_z_far);
-	this->m_frustums[cascade_index].near(this->m_z_near);
-	this->m_frustums[cascade_index].aspect(this->m_aspect_ratio);
-	this->m_frustums[cascade_index].setup(this->m_view);
-
 	this->build_cascades();
+
+	float32_t near  = this->m_z_near;
+	float32_t far   = this->m_z_far;
+	float32_t range = this->m_z_far - this->m_z_near;
+	// float32_t ratio = this->m_z_far / this->m_z_near;
+
+	for (uint32_t i = 0; i < cascade_count; i++)
+	{
+		auto cascade_split = this->m_cascade_splits[i];
+		if (i > 0)
+			near = this->m_cascade_splits[i - 1] * range;
+
+		far = cascade_split * range;
+
+		this->m_frustums[i].near(near);
+		this->m_frustums[i].far(far);
+		this->m_frustums[i].fov(this->m_y_fov);
+		this->m_frustums[i].aspect(this->m_aspect_ratio);
+
+		this->m_frustums[i].setup(this->m_view);
+	}
 }
 
 // TODO: Fit near and far to the geometry as close as possible.
@@ -382,6 +419,13 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(mouse_command_scroll, this->m_zoom_callback);
 
 	this->m_event_system->subscribe(keyboard_space_click, this->m_camera_mode_callback);
+
+	this->m_event_system->subscribe(keyboard_num8_click, this->m_camera_top_view);
+	this->m_event_system->subscribe(keyboard_num2_click, this->m_camera_bottom_view);
+	this->m_event_system->subscribe(keyboard_num4_click, this->m_camera_left_view);
+	this->m_event_system->subscribe(keyboard_num6_click, this->m_camera_right_view);
+	this->m_event_system->subscribe(keyboard_num5_click, this->m_camera_front_view);
+	this->m_event_system->subscribe(keyboard_num0_click, this->m_camera_back_view);
 }
 
 void OrbitCamera::disable()
@@ -410,6 +454,13 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(mouse_command_scroll, this->m_zoom_callback);
 
 	this->m_event_system->unsubscribe(keyboard_space_click, this->m_camera_mode_callback);
+
+	this->m_event_system->unsubscribe(keyboard_num8_click, this->m_camera_top_view);
+	this->m_event_system->unsubscribe(keyboard_num2_click, this->m_camera_bottom_view);
+	this->m_event_system->unsubscribe(keyboard_num4_click, this->m_camera_left_view);
+	this->m_event_system->unsubscribe(keyboard_num6_click, this->m_camera_right_view);
+	this->m_event_system->unsubscribe(keyboard_num5_click, this->m_camera_front_view);
+	this->m_event_system->unsubscribe(keyboard_num0_click, this->m_camera_back_view);
 }
 
 void OrbitCamera::draw_camera_properties()

@@ -180,43 +180,6 @@ void Scene::setup_cameras(ror::Renderer &a_renderer, ror::EventSystem &a_event_s
 		for (auto &cam : this->cameras())
 			cam.set_far_to_scene(bbox);
 
-	auto camera_top_view = [this](Event &) {
-		auto &cam = this->current_camera();
-		cam.orient_top();
-	};
-
-	auto camera_bottom_view = [this](Event &) {
-		auto &cam = this->current_camera();
-		cam.orient_bottom();
-	};
-
-	auto camera_left_view = [this](Event &) {
-		auto &cam = this->current_camera();
-		cam.orient_left();
-	};
-
-	auto camera_right_view = [this](Event &) {
-		auto &cam = this->current_camera();
-		cam.orient_right();
-	};
-
-	auto camera_front_view = [this](Event &) {
-		auto &cam = this->current_camera();
-		cam.orient_front();
-	};
-
-	auto camera_back_view = [this](Event &) {
-		auto &cam = this->current_camera();
-		cam.orient_back();
-	};
-
-	a_event_system.subscribe(keyboard_num8_click, camera_top_view);
-	a_event_system.subscribe(keyboard_num2_click, camera_bottom_view);
-	a_event_system.subscribe(keyboard_num4_click, camera_left_view);
-	a_event_system.subscribe(keyboard_num6_click, camera_right_view);
-	a_event_system.subscribe(keyboard_num5_click, camera_front_view);
-	a_event_system.subscribe(keyboard_num0_click, camera_back_view);
-
 	auto frustum_update = [&a_renderer, this](Event &) {
 		auto &camera = this->current_camera();
 		camera.setup_frustums();
@@ -972,7 +935,8 @@ void render_mesh(const rhi::Device &a_device, ror::Model &a_model, ror::Mesh &a_
 		auto &renderer_samplers = a_renderer.samplers();
 		if (a_scene.has_shadows())
 		{
-			auto *shadow_texture = a_renderer.get_shadow_texture();
+			// TODO: Cache this in scene
+			auto *shadow_texture = a_renderer.get_shadow_texture(0);        // Any shadow texture from any shadow pass will be fine, as we use an array for all
 			if (shadow_texture)
 			{
 				auto &image   = renderer_images[static_cast_safe<size_t>(shadow_texture->texture_image())];
@@ -2395,11 +2359,11 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 						auto &vs_shader_index = shader_hash_to_index[vs_hash];
 						auto &vs_shader       = this->m_shaders[vs_shader_index];
 						auto  vs_job_handle   = a_job_system.push_job([mesh_index, prim_index, passtype, &a_renderer, &vs_shader, &model]() -> auto {
-                            auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype, a_renderer);
-                            vs_shader.source(vs);
-                            vs_shader.compile();
-                            return true;
-                        });
+							auto vs = ror::generate_primitive_vertex_shader(model, mesh_index, static_cast_safe<uint32_t>(prim_index), passtype, a_renderer);
+							vs_shader.source(vs);
+							vs_shader.compile();
+							return true;
+						});
 
 						job_handles.emplace_back(std::move(vs_job_handle));
 					}
@@ -2409,11 +2373,11 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 						auto &fs_shader_index = shader_hash_to_index[fs_hash];
 						auto &fs_shader       = this->m_shaders[fs_shader_index];
 						auto  fs_job_handle   = a_job_system.push_job([prim_index, passtype, has_shadows = this->m_has_shadows, &fs_shader, &mesh, &model, &a_renderer]() -> auto {
-                            auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
-                            fs_shader.source(fs);
-                            fs_shader.compile();
-                            return true;
-                        });
+							auto fs = ror::generate_primitive_fragment_shader(mesh, model.materials(), static_cast_safe<uint32_t>(prim_index), passtype, a_renderer, has_shadows);
+							fs_shader.source(fs);
+							fs_shader.compile();
+							return true;
+						});
 
 						job_handles.emplace_back(std::move(fs_job_handle));
 					}
