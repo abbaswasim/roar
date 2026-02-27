@@ -137,6 +137,7 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto subpass_index()           const noexcept { return this->m_subpass_index;                   }
 	FORCE_INLINE constexpr auto renderpasses_count()      const noexcept { assert(this->m_renderpasses_count);
 		                                                                         return this->m_renderpasses_count;        }
+	FORCE_INLINE constexpr auto shaodwpasses_count()      const noexcept { return this->m_shadowpasses_count;              }
 	FORCE_INLINE constexpr auto subpasses_count()         const noexcept { assert(this->m_subpasses_count);
 		                                                                         return this->m_subpasses_count;           }
 
@@ -197,7 +198,7 @@ class Renderer final : public Configuration<Renderer>
 
 	void                upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system);
 	void                update_frustums_geometry(const ror::OrbitCamera &a_camera);
-	const rhi::Texture *get_shadow_texture() const;
+	const rhi::Texture *get_shadow_texture(size_t a_cascade_index) const;
 
   protected:
   private:
@@ -233,7 +234,7 @@ class Renderer final : public Configuration<Renderer>
 	void     load_buffer_templates();
 	void     setup_references();
 	void     setup_final_pass();
-	void     setup_shadow_pass();
+	void     setup_shadow_passes();
 	void     setup_shader_buffers();
 
 	ror::Frames                             m_frames{};                                       //! All the frames in flight
@@ -260,11 +261,12 @@ class Renderer final : public Configuration<Renderer>
 	int32_t                                 m_grid_id{-1};                                    //! Reference to the grid for easy access
 	uint32_t                                m_canonical_cube{};                               //! Canonical cube for debugging purposes
 	uint32_t                                m_final_pass{};                                   //! Index of the final pass in the render pass chains in framegraph
-	size_t                                  m_renderpasses_count{0};                          //! Total amount of renderpasses in the framegraph
-	size_t                                  m_subpasses_count{0};                             //! Total amount of subpasses in the framegraph
+	uint32_t                                m_shadowpasses_count{0};                          //! Total amount of shadow passes in the current framegraph
+	size_t                                  m_renderpasses_count{0};                          //! Total amount of renderpasses in the current framegraph
+	size_t                                  m_subpasses_count{0};                             //! Total amount of subpasses in the current framegraph
 	size_t                                  m_renderpass_index{0};                            //! Which renderpass are we currently rendering from the frame graph. This is state
 	size_t                                  m_subpass_index{0};                               //! Which subpass are we currently rendering from the frame graph. This is state
-	int32_t                                 m_shadow_pass{-1};                                //! Index of the shadow pass in the render pass chains in framegraph
+	int32_t                                 m_shadow_passes[cascade_count];                   //! Indices of the shadow passes in the render pass chains in framegraph
 	EventCallback                           m_semi_colon_key_callback{};                      //! Semi colon key call back to enable disable the grid
 	std::function<void(IBLEnvironment &)>   m_environment_upload{};                           //! Environment upload lambda used by environment cycle menthod
 };

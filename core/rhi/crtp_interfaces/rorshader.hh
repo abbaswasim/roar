@@ -48,10 +48,27 @@ FORCE_INLINE void ShaderCrtp<_type>::source(const std::string &a_source)
 	this->m_shader->update({a_source.begin(), a_source.end()}, false, false, false);
 }
 
+static inline void add_line_numbers(std::string &a_shader)
+{
+	uint32_t count{1};
+	a_shader.insert(0, std::format("{:4}: ", count));
+	std::string search{'\n'};
+	auto        index = a_shader.find(search);
+
+	while (index != std::string::npos)
+	{
+		std::string replacement{"\n" + std::format("{:4}: ", ++count)};
+		a_shader.replace(index, search.length(), replacement);
+		index = a_shader.find(search, index + 1);
+	}
+
+	a_shader.append("\n");
+}
+
 template <class _type>
 FORCE_INLINE void ShaderCrtp<_type>::compile()
 {
-	std::string info_log;
+	std::string info_log{};
 
 	// Doing a resolve_includes() very late here so I don't have to do it for small snipets multiple times
 	std::string shader_source{this->source()};
@@ -60,7 +77,8 @@ FORCE_INLINE void ShaderCrtp<_type>::compile()
 
 	if (!compile_to_spirv(shader_source, this->m_type, "main", this->m_spirv, info_log))
 	{
-		ror::log_critical("Shader to SPIR-V conversion failed shader :{}\n \n{}", this->shader_path().c_str(), info_log.c_str());
+		add_line_numbers(info_log);
+		ror::log_critical("Shader to SPIR-V conversion failed shader :{}\n{}", this->shader_path().c_str(), info_log.c_str());
 	}
 
 	this->platform_source();
@@ -115,7 +133,7 @@ auto ShaderCrtp<_type>::generated_name() const noexcept
 	name += std::to_string(index++);
 	switch (this->type())
 	{
-		// clang-format off
+			// clang-format off
 		case rhi::ShaderType::none:                name += ".none";             break;
 		case rhi::ShaderType::mesh:                name += ".mesh";             break;
 		case rhi::ShaderType::task:                name += ".task";             break;
@@ -128,7 +146,7 @@ auto ShaderCrtp<_type>::generated_name() const noexcept
 		case rhi::ShaderType::ray_closest_hit:     name += ".ray_closest_hit";  break;
 		case rhi::ShaderType::ray_intersection:    name += ".ray_intersection"; break;
 		case rhi::ShaderType::ray_generation:      name += ".ray_generation";   break;
-		// clang-format on
+			// clang-format on
 	}
 
 	return name;
