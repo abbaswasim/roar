@@ -507,7 +507,7 @@ void OrbitCamera::update()
 	this->update_view();
 	this->update_normal();
 	this->update_projection();
-	this->setup_frustums();
+	this->setup_frustums();        // Don't update unless projection properties changed
 }
 
 void OrbitCamera::upload(const Renderer &a_renderer)

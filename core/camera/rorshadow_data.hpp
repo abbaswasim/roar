@@ -28,6 +28,7 @@
 #include "camera/rorcamera.hpp"
 #include "foundation/rormacros.hpp"
 #include "graphics/rorlight.hpp"
+#include "graphics/rorscene.hpp"
 
 namespace ror
 {
@@ -52,7 +53,7 @@ class ROAR_ENGINE_ITEM ShadowData final
 	void build(ror::Scene &a_scene, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, ror::Light &a_light, const ror::OrbitCamera &a_camera, const ror::Vector2ui &a_dimensions);
 	void update_per_view_uniform(ror::Renderer &a_renderer, uint32_t a_cascade_index);
 
-	void fit_light_frustrum_cascades(const ror::Light &a_light, const ror::OrbitCamera &a_camera);
+	void fit_light_frustrum_cascades(ror::Scene &a_scene, const ror::Light &a_light, const ror::OrbitCamera &a_camera);
 
   protected:
   private:
