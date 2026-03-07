@@ -1171,7 +1171,7 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 
 	// Only here because we want to see what incremental binding we end up with
 	if (a_add_shadow_map)
-		output_append("shadow_map_sampler;\n", "sampler2D", setting.shadow_map_sampler_set(), setting.shadow_map_sampler_binding());
+		output_append("shadow_map_sampler;\n", "sampler2DArray", setting.shadow_map_sampler_set(), setting.shadow_map_sampler_binding());
 
 	// Only here because we want to see what incremental binding we end up with
 	if (setting.m_environment.m_lighting)

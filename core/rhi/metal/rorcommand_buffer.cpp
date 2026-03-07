@@ -152,7 +152,7 @@ void texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, const rhi
 	MTL::CommandBuffer *platform_command_buffer = command_buffer.platform_command_buffer();
 	auto                blit_encoder            = platform_command_buffer->blitCommandEncoder();
 
-	auto mip_levels_count = rhi::calculate_texture_mip_levels(w, h, 1);
+	auto mip_levels_count = rhi::calculate_texture_mip_levels(w, h);
 
 	ror::Vector2ui offset{0, 0};
 

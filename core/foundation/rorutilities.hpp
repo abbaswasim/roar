@@ -416,4 +416,10 @@ void consume_in_chunks(const float32_t a_value, const float32_t a_chunk, _simula
 	}
 }
 
+// A quick way to get boolean environment variables quickly and reliably
+FORCE_INLINE constexpr bool get_boolean_environment_variable(const char *a_variable)
+{
+	return std::getenv(a_variable) && std::atoi(std::getenv(a_variable));
+}
+
 }        // namespace ror

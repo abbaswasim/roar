@@ -27,39 +27,41 @@
 
 #include "camera/rorcamera.hpp"
 #include "foundation/rormacros.hpp"
-#include "foundation/rortypes.hpp"
 #include "graphics/rorlight.hpp"
 
 namespace ror
 {
-template <uint32_t _size>
-class ROAR_ENGINE_ITEM ShadowMap final
+template <uint32_t _cascade_count>
+class ROAR_ENGINE_ITEM ShadowData final
 {
   public:
-	FORCE_INLINE            ShadowMap()                             = default;        //! Default constructor
-	FORCE_INLINE            ShadowMap(const ShadowMap &a_other)     = default;        //! Copy constructor
-	FORCE_INLINE            ShadowMap(ShadowMap &&a_other) noexcept = default;        //! Move constructor
-	FORCE_INLINE ShadowMap &operator=(const ShadowMap &a_other)     = default;        //! Copy assignment operator
-	FORCE_INLINE ShadowMap &operator=(ShadowMap &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE ~ShadowMap() noexcept                              = default;        //! Destructor
+	FORCE_INLINE             ShadowData()                              = default;        //! Default constructor
+	FORCE_INLINE             ShadowData(const ShadowData &a_other)     = default;        //! Copy constructor
+	FORCE_INLINE             ShadowData(ShadowData &&a_other) noexcept = default;        //! Move constructor
+	FORCE_INLINE ShadowData &operator=(const ShadowData &a_other)      = default;        //! Copy assignment operator
+	FORCE_INLINE ShadowData &operator=(ShadowData &&a_other) noexcept  = default;        //! Move assignment operator
+	FORCE_INLINE ~ShadowData() noexcept                                = default;        //! Destructor
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &eyes()           const { return this->m_eyes;           }
-	FORCE_INLINE constexpr auto &viewports()      const { return this->m_viewports;      }
+	FORCE_INLINE constexpr auto &viewport()       const { return this->m_viewport;       }
 	FORCE_INLINE constexpr auto &views()          const { return this->m_views;          }
 	FORCE_INLINE constexpr auto &projections()    const { return this->m_projections;    }
 	// clang-format on
 
-	void build(const ror::Light &a_light, const ror::OrbitCamera &a_camera, const ror::Vector2ui &a_dimensions);
+	void build(ror::Scene &a_scene, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, ror::Light &a_light, const ror::OrbitCamera &a_camera, const ror::Vector2ui &a_dimensions);
+	void update_per_view_uniform(ror::Renderer &a_renderer, uint32_t a_cascade_index);
+
+	void fit_light_frustrum_cascades(const ror::Light &a_light, const ror::OrbitCamera &a_camera);
 
   protected:
   private:
-	ror::Vector3f  m_eyes[_size];
-	ror::Vector4ui m_viewports[_size];
-	ror::Matrix4f  m_views[_size];
-	ror::Matrix4f  m_projections[_size];
+	ror::Vector4ui m_viewport;                           //! Viewport for each cascade, as all have the same dimensions
+	ror::Vector3f  m_eyes[_cascade_count];               //! Eye positions for each cascade
+	ror::Matrix4f  m_views[_cascade_count];              //! Views matrices for each cascade
+	ror::Matrix4f  m_projections[_cascade_count];        //! Projection matrices for each cascade
 };
 
 }        // namespace ror
 
-#include "rorshadow_map.hh"
+#include "rorshadow_data.hh"

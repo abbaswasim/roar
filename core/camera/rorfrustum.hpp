@@ -47,13 +47,14 @@ class ROAR_ENGINE_ITEM Frustum final
 	void setup(const ror::Matrix4f &a_view);
 
 	// clang-format off
-	FORCE_INLINE constexpr auto &corners() const { return this->m_corners;       }
-	FORCE_INLINE constexpr auto &center()  const { return this->m_center;        }
-	FORCE_INLINE constexpr auto fov()      const { return this->m_fov;           }
-	FORCE_INLINE constexpr auto far()      const { return this->m_far;           }
-	FORCE_INLINE constexpr auto near()     const { return this->m_near;          }
-	FORCE_INLINE constexpr auto aspect()   const { return this->m_aspect;        }
-	FORCE_INLINE constexpr auto &box()     const { return this->m_bounding_box;  }
+	FORCE_INLINE constexpr auto &corners()    const { return this->m_corners;          }
+	FORCE_INLINE constexpr auto &center()     const { return this->m_center;           }
+	FORCE_INLINE constexpr auto fov()         const { return this->m_fov;              }
+	FORCE_INLINE constexpr auto far()         const { return this->m_far;              }
+	FORCE_INLINE constexpr auto near()        const { return this->m_near;             }
+	FORCE_INLINE constexpr auto aspect()      const { return this->m_aspect;           }
+	FORCE_INLINE constexpr auto &box()        const { return this->m_bounding_box;     }
+	FORCE_INLINE constexpr auto &sphere()     const { return this->m_bounding_sphere;  }
 
 	FORCE_INLINE void fov(float32_t a_fov)        { this->m_fov = a_fov;       }
 	FORCE_INLINE void far(float32_t a_far)        { this->m_far = a_far;       }
@@ -67,10 +68,8 @@ class ROAR_ENGINE_ITEM Frustum final
 	float32_t            m_far{1000.0f};             //! Far of the projection
 	float32_t            m_fov{60.0f};               //! FOV of the frustrum, copies of when a camera set it up
 	float32_t            m_aspect{1.0f};             //! Aspect of the frustrum, copies of when a camera set it up
-	ror::Vector3f        m_corners[8];               //! The 8 corners of the frustum
-	ror::Vector3f        m_center;                   //! The center of the frustum
-	ror::Matrix4f        m_view{};                   //! View matrix of the frustum
-	ror::Matrix4f        m_view_inverse{};           //! Inverse of the view matrix
+	ror::Vector3f        m_corners[8];               //! The 8 corners of the frustum in world space
+	ror::Vector3f        m_center;                   //! The center of the frustum in world space
 	ror::Planef          m_planes[6];                //! The planes that bounds a frustum
 	ror::BoundingSpheref m_bounding_sphere{};        //! Bounding sphere of the frustum
 	ror::BoundingBoxf    m_bounding_box{};           //! Bounding box of the frustum

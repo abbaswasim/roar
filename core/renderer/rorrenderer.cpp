@@ -875,6 +875,9 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 	rhi::Renderpass render_pass;
 	bool            inherits{false};
 
+	// Let's first use the provided propertiese here before its specific values or read or inherit resets it to the parent
+	render_pass.dimensions(a_dimensions);
+
 	if (a_render_pass.contains("inherits"))
 	{
 		auto index = a_render_pass["inherits"];
@@ -888,8 +891,6 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 		auto disabled = a_render_pass["disabled"];
 		render_pass.enabled(!disabled);
 	}
-
-	render_pass.dimensions(a_dimensions);
 
 	ror::Vector2ui dims = render_pass.dimensions();
 

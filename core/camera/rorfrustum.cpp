@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "bounds/rorbounding.hpp"
+#include "foundation/rortypes.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector3.hpp"
@@ -60,17 +61,18 @@ void Frustum::setup(const ror::Matrix4f &a_view)
 	    {-(f * s) / g, f / g, -f, 1.0f},
 	};
 
-	this->m_view = a_view;
+	this->m_bounding_box    = ror::BoundingBoxf{};           // Reset the bounding box
+	this->m_bounding_sphere = ror::BoundingSpheref{};        // Reset the bounding sphere
+	this->m_center          = {};                            // Reset the center
 
-	this->m_bounding_box = ror::BoundingBoxf{};        // Reset the bounding box
-
-	auto result = this->m_view.inverse(this->m_view_inverse);
+	ror::Matrix4f view_inverse{};
+	auto          result = a_view.inverse(view_inverse);
 	assert(result && "Can't invert view matrix");
 	(void) result;
 
 	for (int i = 0; i < 8; ++i)
 	{
-		auto cs = this->m_view_inverse * frustum_corners[i];
+		auto cs = view_inverse * frustum_corners[i];
 
 		this->m_corners[i] = ror::Vector3f(cs);
 		this->m_center     = this->m_center + this->m_corners[i];
@@ -79,6 +81,23 @@ void Frustum::setup(const ror::Matrix4f &a_view)
 	}
 
 	this->m_center = this->m_center / 8.0f;
+
+	this->m_bounding_sphere.add_bounding(this->m_bounding_box);        // Need to test this or use the one below
+	// this->m_bounding_sphere.create_from_min_max(this->m_bounding_box.minimum(), this->m_bounding_box.maximum());
+
+	float32_t radius  = this->m_bounding_sphere.radius();
+	radius            = std::ceil(radius * 16.0f) / 16.0f;        // Why this mul and div by 16, I don't understand
+	auto radius_delta = ror::Vector3f{radius - this->m_bounding_sphere.radius()};
+
+	this->m_bounding_sphere.set_radius(radius);
+	// Lets also move the bounding box by this difference in radius after the ceil
+	auto bmin = this->m_bounding_box.minimum();
+	auto bmax = this->m_bounding_box.maximum();
+
+	bmin -= radius_delta;
+	bmax += radius_delta;
+
+	this->m_bounding_box.set(bmin, bmax);
 }
 
 }        // namespace ror

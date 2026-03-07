@@ -115,6 +115,7 @@ set(ROAR_HEADERS
 set(ROAR_SOURCES
   ${ROAR_SOURCE_DIR}/camera/rorcamera.cpp
   ${ROAR_SOURCE_DIR}/camera/rorfrustum.cpp
+  ${ROAR_SOURCE_DIR}/camera/rorshadow_data.cpp
   ${ROAR_SOURCE_DIR}/profiling/rorlog.cpp
   ${ROAR_SOURCE_DIR}/profiling/rortimer.cpp
   ${ROAR_SOURCE_DIR}/foundation/rorrandom.cpp

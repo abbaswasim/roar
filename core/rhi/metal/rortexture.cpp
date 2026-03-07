@@ -165,6 +165,7 @@ void TextureImageMetal::upload(const rhi::Device &a_device)
 	texture_descriptor->setTextureType(to_metal_texture_target(this->target()));
 	texture_descriptor->setMipmapLevelCount(this->levels());
 	texture_descriptor->setUsage(MTL::TextureUsageUnknown);
+	texture_descriptor->setArrayLength(is_array ? this->depth() : 1);
 
 	bool needs_upload = true;
 
@@ -217,8 +218,8 @@ void TextureImageMetal::upload(const rhi::Device &a_device)
 				{
 					auto &miplevel = this->mips()[level_index];
 
-					size = MTL::Size{miplevel.m_width, miplevel.m_height, miplevel.m_depth};
-					blit_command_encoder->copyFromBuffer(source_buffer, miplevel.m_offset, miplevel.m_width * this->bytes_per_pixel(), miplevel.m_width * miplevel.m_height * this->bytes_per_pixel(), size,
+					size = MTL::Size{miplevel.m_width, miplevel.m_height, 1};        // Copying one level at a time
+					blit_command_encoder->copyFromBuffer(source_buffer, miplevel.m_offset, miplevel.m_width * this->bytes_per_pixel(), miplevel.m_size, size,
 					                                     this->m_texture, face, level, texture_origin);
 
 					++level_index;
