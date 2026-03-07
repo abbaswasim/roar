@@ -53,7 +53,7 @@ FORCE_INLINE auto TextureImageCrtp<_type>::height() const noexcept
 template <class _type>
 FORCE_INLINE auto TextureImageCrtp<_type>::depth() const noexcept
 {
-	return this->m_mips[0].m_depth;
+	return this->m_depth;
 }
 
 template <class _type>
@@ -77,10 +77,10 @@ FORCE_INLINE auto TextureImageCrtp<_type>::usage() const noexcept
 template <class _type>
 FORCE_INLINE auto TextureImageCrtp<_type>::levels() const noexcept
 {
-	auto layers = is_texture_array(this->m_target) ? this->m_mips[0].m_depth : 1u;
-	auto faces  = is_texture_cubemap(this->m_target) ? 6u : 1u;
+	if (this->m_mipmapped)
+		return calculate_texture_mip_levels(this->m_mips[0].m_width, this->m_mips[0].m_height);
 
-	return ror::static_cast_safe<uint32_t>(this->m_mips.size() / (layers * faces));
+	return 1u;
 }
 
 template <class _type>
@@ -109,7 +109,7 @@ FORCE_INLINE void TextureImageCrtp<_type>::height(uint32_t a_height) noexcept
 template <class _type>
 FORCE_INLINE void TextureImageCrtp<_type>::depth(uint32_t a_depth) noexcept
 {
-	this->m_mips[0].m_depth = a_depth;
+	this->m_depth = a_depth;
 }
 
 template <class _type>
@@ -279,36 +279,34 @@ FORCE_INLINE auto TextureImageCrtp<_type>::setup() noexcept
 {
 	assert(this->m_mips.size() && "No mips available");
 
-	uint32_t width{this->width()};
-	uint32_t height{this->height()};
-	uint32_t depth{this->depth()};
-	uint32_t faces{is_texture_cubemap(this->m_target) ? 6u : 1u};
-	uint32_t layers{is_texture_array(this->m_target) ? depth : 1u};
+	const auto width{this->width()};
+	const auto height{this->height()};
+	const auto depth{this->depth()};
+	const auto faces{is_texture_cubemap(this->m_target) ? 6u : 1u};
+	const auto layers{is_texture_array(this->m_target) ? depth : 1u};
 
-	uint32_t mip_levels_count{this->m_mipmapped ? calculate_texture_mip_levels(width, height, is_texture_array(this->m_target) ? 1 : depth) : 1};
+	const auto mip_levels_count{this->m_mipmapped ? calculate_texture_mip_levels(width, height) : 1};
 
 	this->m_mips.resize(mip_levels_count * faces * layers);
 
 	size_t size{0};
 	size_t level_index{0};
 
-	for (size_t layer = 0; layer < layers; ++layer)
+	for (auto layer = 0u; layer < layers; ++layer)
 	{
-		for (size_t face = 0; face < faces; ++face)
+		for (auto face = 0u; face < faces; ++face)
 		{
-			for (size_t level = 0; level < mip_levels_count; ++level)
+			for (auto level = 0u; level < mip_levels_count; ++level)
 			{
-				uint32_t mip_width  = std::max(1u, width >> level);
-				uint32_t mip_height = std::max(1u, height >> level);
-				uint32_t mip_depth  = std::max(1u, depth >> level);
+				const auto mip_width  = std::max(1u, width >> level);
+				const auto mip_height = std::max(1u, height >> level);
 
 				auto &miplevel    = this->m_mips[level_index];
 				miplevel.m_width  = mip_width;
 				miplevel.m_height = mip_height;
-				miplevel.m_depth  = mip_depth;
 				miplevel.m_offset = size * this->m_bytes_per_pixel;
 
-				miplevel.m_size = mip_width * mip_height * mip_depth;
+				miplevel.m_size = mip_width * mip_height;
 				size += miplevel.m_size;
 				miplevel.m_size *= this->m_bytes_per_pixel;
 
@@ -438,17 +436,17 @@ void TextureImageCrtp<_type>::verify_sizes(bool a_is_cube) const noexcept
 	assert(this->data());
 	if (this->mip_gen_mode() == rhi::TextureMipGenMode::manual && this->mipmapped())
 	{
-		assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
+		assert(this->size() == ((last_mip.m_width * last_mip.m_height * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
 	}
 	else
 	{
 		if (a_is_cube)
 		{
-			assert(this->size() == ((last_mip.m_width * last_mip.m_height * last_mip.m_depth * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
+			assert(this->size() == ((last_mip.m_width * last_mip.m_height * this->bytes_per_pixel()) + last_mip.m_offset) && "Image size doesn't match the expected texture size");
 		}
 		else
 		{
-			assert(this->size() == (first_mip.m_width * first_mip.m_height * first_mip.m_depth * this->bytes_per_pixel()) && "Image size doesn't match the expected texture size");
+			assert(this->size() == (first_mip.m_width * first_mip.m_height * this->bytes_per_pixel()) && "Image size doesn't match the expected texture size");
 		}
 	}
 

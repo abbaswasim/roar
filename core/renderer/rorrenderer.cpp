@@ -85,12 +85,24 @@ define_translation_unit_vtable(Renderer)
 
 rhi::TextureTarget string_to_texture_target(const std::string &a_target)
 {
-	if (a_target == "2D")
+	if (a_target == "1D")
+		return rhi::TextureTarget::texture_1D;
+	else if (a_target == "2D")
 		return rhi::TextureTarget::texture_2D;
 	else if (a_target == "3D")
 		return rhi::TextureTarget::texture_3D;
 	else if (a_target == "CUBE")
 		return rhi::TextureTarget::texture_cube;
+	else if (a_target == "2D_MS")
+		return rhi::TextureTarget::texture_2D_MS;
+	else if (a_target == "2D_MS_ARRAY")
+		return rhi::TextureTarget::texture_2D_MS_array;
+	else if (a_target == "1D_ARRAY")
+		return rhi::TextureTarget::texture_1D_array;
+	else if (a_target == "2D_ARRAY")
+		return rhi::TextureTarget::texture_2D_array;
+	else if (a_target == "CUBE_ARRAY")
+		return rhi::TextureTarget::texture_cube_array;
 	else
 		assert(0 && "Implement other texture targets support");
 
@@ -1828,7 +1840,7 @@ static void patch_mip_levels(rhi::Device &a_device, uint32_t a_mip_width, uint32
                              const std::vector<const rhi::TextureImage *> &a_images, const std::vector<const rhi::TextureSampler *> &a_samplers,
                              rhi::ShaderBuffer &a_mipmaps_shader_buffer, const char *a_stage, IBLEnvironment::InputType a_type, bool a_is_radiance = false)
 {
-	auto           mip_levels_count = rhi::calculate_texture_mip_levels(a_mip_width, a_mip_height, 1);
+	auto           mip_levels_count = rhi::calculate_texture_mip_levels(a_mip_width, a_mip_height);
 	ror::Vector4ui mip_offset_size{0, 0, a_mip_width, a_mip_width};
 	uint32_t       cube_type{enum_to_type_cast(a_type)};
 
