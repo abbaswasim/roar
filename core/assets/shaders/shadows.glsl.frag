@@ -27,33 +27,52 @@ void get_correct_light_depth(inout float light_depth, vec3 shadow_pos_dx, vec3 s
 }
 
 // Not great but works, not currently used
-float simple_pcf(vec3 uv)
+// float simple_pcf(vec3 uv)
+// {
+// 	// PCF
+// 	float shadow     = 0.0;
+// 	vec2  texel_size = 1.0 / textureSize(shadow_map_sampler, 0);
+// 	for (int x = -1; x <= 1; ++x)
+// 	{
+// 		for (int y = -1; y <= 1; ++y)
+// 		{
+// 			float pcfDepth = texture(shadow_map_sampler, uv.xy + vec2(x, y) * texel_size).r;
+// 			shadow += uv.z > pcfDepth ? 0.0 : 1.0;
+// 		}
+// 	}
+
+// 	shadow /= 9.0;
+
+// 	if (uv.z > 1.0)
+// 		shadow = 0.0;
+
+// 	return shadow;
+// }
+
+int select_cascade(float view_depth, vec4 cascade_splits)
 {
-	// PCF
-	float shadow     = 0.0;
-	vec2  texel_size = 1.0 / textureSize(shadow_map_sampler, 0);
-	for (int x = -1; x <= 1; ++x)
-	{
-		for (int y = -1; y <= 1; ++y)
-		{
-			float pcfDepth = texture(shadow_map_sampler, uv.xy + vec2(x, y) * texel_size).r;
-			shadow += uv.z > pcfDepth ? 0.0 : 1.0;
-		}
-	}
+	if (view_depth <= cascade_splits.x)
+		return 0;
+	if (view_depth <= cascade_splits.y)
+		return 1;
+	if (view_depth <= cascade_splits.z)
+		return 2;
 
-	shadow /= 9.0;
-
-	if (uv.z > 1.0)
-		shadow = 0.0;
-
-	return shadow;
+	return 3;
 }
 
 // TODO: Add moments shadow mapping based PCF https://momentsingraphics.de/I3D2015.html
-float get_shadow(const mat4 light_space, const float ndotl)
+vec3 light_space_position(const mat4 light_space)
 {
 	highp vec4 light_space_position = light_space * in_vertex_position;
 	highp vec3 position             = light_space_position.xyz / light_space_position.w;
+
+	return position;
+}
+
+float get_shadow(const mat4 light_space, const int cascade_index, const float ndotl)
+{
+	highp vec3 position = light_space_position(light_space);
 
 	position.xy = position.xy * 0.5 + 0.5;
 	position.y  = 1.0 - position.y;        // Flip due to Metal/Vulkan
@@ -69,8 +88,30 @@ float get_shadow(const mat4 light_space, const float ndotl)
 
 	get_correct_light_depth(position.z, ddX, ddY);
 
-	float depth = texture(shadow_map_sampler, uv).r;
+	float depth = texture(shadow_map_sampler, vec3(uv, cascade_index)).r;
 	return position.z > depth ? 0.1 : 1.0;
 
 	// return simple_pcf(position);
+}
+
+float get_shadow(const Directional_lights directional, const float ndotl)
+{
+	int        cascade_index = select_cascade(-in_vertex_position.z, directional.cascade_splits);
+	const mat4 light_space   = directional.mvp[cascade_index];
+
+	return get_shadow(light_space, cascade_index, ndotl);
+}
+
+float get_shadow(const Point_lights point, const float ndotl)
+{
+	const mat4 light_space = point.mvp;
+
+	return get_shadow(light_space, 0, ndotl);
+}
+
+float get_shadow(const Spot_lights spot, const float ndotl)
+{
+	const mat4 light_space = spot.mvp;
+
+	return get_shadow(light_space, 0, ndotl);
 }

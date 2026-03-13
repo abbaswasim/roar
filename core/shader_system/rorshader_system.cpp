@@ -820,11 +820,13 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 // TODO: Work out the vec3 padding issues in this UBO
 // TODO: Use renderer lights to_glsl for each light to get these
 const std::string fs_directional_light_common_str = R"com(
-const uint directional_lights_count = @;
+const uint directional_lights_count    = @;
+const uint directional_cascades_count  = @;
 
 struct Directional_lights
 {
-	mat4  mvp;
+	mat4  mvp[directional_cascades_count];
+	vec4  cascade_splits;
 	vec3  color;
 	vec3  direction;
 	float intensity;
@@ -838,7 +840,8 @@ layout(std140, set = @, binding = @) uniform directional_light_uniform
 )com";
 
 const std::string fs_point_light_common_str = R"com(
-const uint point_lights_count = @;
+const uint point_lights_count    = @;
+const uint point_cascades_count  = @;
 
 struct Point_lights
 {
@@ -856,7 +859,8 @@ layout(std140, set = @, binding = @) uniform point_light_uniform
 )com";
 
 const std::string fs_spot_light_common_str = R"com(
-const uint spot_lights_count = @;
+const uint spot_lights_count    = @;
+const uint spot_cascades_count  = @;
 
 struct Spot_lights
 {
@@ -879,6 +883,7 @@ layout(std140, set = @, binding = @) uniform spot_light_uniform
 std::string fs_light_common(uint32_t a_lights_count, uint32_t a_set, uint32_t a_binding, std::string light_code)
 {
 	replace_next_at(a_lights_count, light_code);
+	replace_next_at(ror::cascade_count, light_code);
 	replace_next_at(a_set, light_code);
 	replace_next_at(a_binding, light_code);
 
@@ -972,6 +977,7 @@ vec4 get_base_color()
 if called like texture_lookup(mat_comp, "base_color");
 */
 
+// FIXME: roar crashes if there is no texture coordinate set in the model
 // This will always create a vec2/3/4/float get_{a_comp_name}() function for valid component because at least a factor is always there
 template <typename _factor_type>
 std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_comp, const std::string &a_comp_name, const std::string &a_retrun_type = "vec4", const std::string &a_swizzle = "")
@@ -1540,9 +1546,9 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	{
 		output.append(shadows_code);
 		output.append("\n");
-		replace_next_at("get_shadow(directional.mvp, light.normal_dot_direction);", lighting_code);
-		replace_next_at("get_shadow(point.mvp, light.normal_dot_direction);", lighting_code);
-		replace_next_at("get_shadow(spot.mvp, light.normal_dot_direction);", lighting_code);
+		replace_next_at("get_shadow(directional, light.normal_dot_direction);", lighting_code);
+		replace_next_at("get_shadow(point, light.normal_dot_direction);", lighting_code);
+		replace_next_at("get_shadow(spot, light.normal_dot_direction);", lighting_code);
 	}
 	else
 	{

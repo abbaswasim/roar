@@ -117,11 +117,13 @@ class RenderTarget final : public RenderOutput
 	FORCE_INLINE RenderTarget &operator=(RenderTarget &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE ~RenderTarget() noexcept override                           = default;        //! Destructor
 
-	FORCE_INLINE RenderTarget(uint32_t a_target, TextureReference a_target_reference, LoadAction a_load_action, StoreAction a_store_action, RenderOutputType a_type) :
-	    RenderOutput(a_target, a_load_action, a_store_action, a_type), m_target_reference(a_target_reference)
+	FORCE_INLINE RenderTarget(uint32_t a_target, TextureReference a_target_reference, LoadAction a_load_action, StoreAction a_store_action, RenderOutputType a_type, uint32_t a_layer, uint32_t a_level) :
+	    RenderOutput(a_target, a_load_action, a_store_action, a_type), m_target_reference(a_target_reference), m_layer(a_layer), m_level(a_level)
 	{}
 
 	TextureReference m_target_reference;        //! Reference to target texture
+	uint32_t         m_layer{0};                //! Which level of the texture this render target is trying to render into
+	uint32_t         m_level{0};                //! Which mip level of the texture this render target is trying to render into
 
   protected:
   private:

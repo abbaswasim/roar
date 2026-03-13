@@ -112,7 +112,7 @@ else
 fi
 
 if [ "$sanitized" = true ] ; then
-	build_sanitized+="1"
+	build_sanitized+="1 -DENABLE_RTTI=1"
 else
 	build_sanitized+="0"
 fi

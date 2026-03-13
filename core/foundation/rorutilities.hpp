@@ -284,18 +284,46 @@ FORCE_INLINE void vector_remove_duplicates(std::vector<_type> &a_vector, _predic
 	a_vector.erase(last, a_vector.end());
 }
 
-template <class _type_to,
-          class _type_from,
-          class _type_big = typename std::conditional<std::is_integral<_type_from>::value, unsigned long long, long double>::type>
-constexpr FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
+template <class _type_to, class _type_from>
+[[nodiscard]] constexpr FORCE_INLINE _type_to static_cast_safe(_type_from a_value)
 {
 	if constexpr (get_build() == BuildType::build_debug)
 	{
-		if (a_value < static_cast<_type_from>(0))
-			throw std::runtime_error("Safe casting from negative values is undefined.");
+		using to_limits = std::numeric_limits<_type_to>;
 
-		if (static_cast<_type_big>(a_value) > static_cast<_type_big>(std::numeric_limits<_type_to>::max()))
-			throw std::runtime_error("Loss of data doing safe casting.");
+		if constexpr (std::is_integral_v<_type_from> && std::is_integral_v<_type_to>)        // Handle integer → integer
+		{
+			if constexpr (std::is_signed_v<_type_from> == std::is_signed_v<_type_to>)
+			{
+				if (a_value < static_cast<_type_from>(to_limits::min()) || a_value > static_cast<_type_from>(to_limits::max()))        // Same signedness
+					throw std::runtime_error("static_cast_safe: integer out of range");
+			}
+			else if constexpr (std::is_signed_v<_type_from>)
+			{
+				if (a_value < 0 || static_cast<std::make_unsigned_t<_type_from>>(a_value) > to_limits::max())        // signed → unsigned
+					throw std::runtime_error("static_cast_safe: signed to unsigned overflow");
+			}
+			else
+			{
+				if (a_value > static_cast<std::make_unsigned_t<_type_to>>(to_limits::max()))        // unsigned → signed
+					throw std::runtime_error("static_cast_safe: unsigned to signed overflow");
+			}
+		}
+		else if constexpr (std::is_floating_point_v<_type_from> && std::is_integral_v<_type_to>)        // Floating → integral
+		{
+			if (!std::isfinite(a_value) || a_value < static_cast<_type_from>(to_limits::min()) || a_value > static_cast<_type_from>(to_limits::max()))
+				throw std::runtime_error("static_cast_safe: float to int overflow");
+		}
+		else if constexpr (std::is_integral_v<_type_from> && std::is_floating_point_v<_type_to>)        // Integral → floating
+		{
+			if (!std::isfinite(static_cast<_type_to>(a_value)))
+				throw std::runtime_error("static_cast_safe: int to float overflow");
+		}
+		else if constexpr (std::is_floating_point_v<_type_from> && std::is_floating_point_v<_type_to>)        // Floating → floating
+		{
+			if (!std::isfinite(static_cast<_type_to>(a_value)))
+				throw std::runtime_error("static_cast_safe: float overflow");
+		}
 	}
 
 	return static_cast<_type_to>(a_value);

@@ -942,6 +942,8 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 			auto     loadaction  = rt["load_action"];
 			auto     storeaction = rt["store_action"];
 			auto     typ         = rt["type"];
+			uint32_t layer{rt.contains("layer") ? static_cast<uint32_t>(rt["layer"]) : 0u};
+			uint32_t level{rt.contains("level") ? static_cast<uint32_t>(rt["level"]) : 0u};
 
 			rhi::LoadAction       load_action  = to_load_action(loadaction);
 			rhi::StoreAction      store_action = to_store_action(storeaction);
@@ -952,7 +954,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 
 			rhi::RenderTarget::TextureReference tr{index, &a_textures};
 
-			rts.emplace_back(index, std::move(tr), load_action, store_action, type);
+			rts.emplace_back(index, std::move(tr), load_action, store_action, type, layer, level);
 		}
 
 		// Check if there are any depth buffers attached or not
@@ -1169,7 +1171,7 @@ const rhi::RenderTarget *Renderer::find_rendertarget_reference(const std::vector
 		this->m_input_render_targets.reserve(render_targets_max);        // Should be enough otherwise an error will happen which I will know about
 
 	rhi::RenderTarget::TextureReference tr{a_index, &this->m_images};
-	this->m_input_render_targets.emplace_back(a_index, std::move(tr), load_action, store_action, type);
+	this->m_input_render_targets.emplace_back(a_index, std::move(tr), load_action, store_action, type, 0, 0);
 
 	assert(this->m_input_render_targets.size() <= render_targets_max && "Need more space for input render targets");
 
@@ -1498,7 +1500,7 @@ void Renderer::dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_devi
 		}
 	}
 
-	this->upload_frame_graphs(a_device);
+	(void) a_device;
 }
 
 // This must be called before shadow map texture setup, as we need to make sure its either an atlas or array before we reach here

@@ -116,7 +116,13 @@ void Light::fill_shader_buffer()
 
 	rhi::ShaderBufferTemplate::Struct light_type(this->m_light_struct_name, static_cast_safe<uint32_t>(fixed_light_count));
 
-	light_type.add_entry("mvp", rhi::Format::float32_4x4, rhi::Layout::std140, 1);
+	const auto mvp_count = static_cast<uint32_t>(this->m_type == ror::Light::LightType::directional ? ror::cascade_count : 1u);
+
+	light_type.add_entry("mvp", rhi::Format::float32_4x4, rhi::Layout::std140, mvp_count);
+
+	if (this->m_type == ror::Light::LightType::directional)
+		light_type.add_entry("cascade_splits", rhi::Format::float32_4, rhi::Layout::std140, 1);
+
 	light_type.add_entry("color", rhi::Format::float32_3, rhi::Layout::std140, 1);
 
 	if (this->m_type != ror::Light::LightType::directional)
@@ -141,7 +147,7 @@ void Light::fill_shader_buffer()
 void Light::setup_transformations()
 {
 	this->m_view_projection = this->m_projection * this->m_view;
-	this->m_dirty = true;
+	this->m_dirty           = true;
 }
 
 void Light::update(size_t a_frequency)
@@ -158,7 +164,17 @@ void Light::update(size_t a_frequency)
 		auto     stride      = this->m_shader_buffer[a_frequency].stride(this->m_light_struct_name);
 		uint32_t light_index = 0;
 
-		this->m_shader_buffer[a_frequency].update("mvp", &this->m_view_projection.m_values, light_index, stride);
+		if (this->m_type == ror::Light::LightType::directional)
+		{
+			uint32_t mvps_size{ror::cascade_count * 16 * 4};        // cascades for each matrix float32
+			this->m_shader_buffer[a_frequency].update("mvp", &this->m_cascades_data.m_mvps[0].m_values, mvps_size); // NOTE: This has to be done like this instead of index by index, due to the array inside UBO issue
+			this->m_shader_buffer[a_frequency].update("cascade_splits", this->m_cascades_data.m_splits.data(), light_index, stride);
+		}
+		else
+		{
+			this->m_shader_buffer[a_frequency].update("mvp", &this->m_view_projection.m_values, light_index, stride);
+		}
+
 		this->m_shader_buffer[a_frequency].update("color", &this->m_color, light_index, stride);
 
 		if (this->m_type != ror::Light::LightType::directional)

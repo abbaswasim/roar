@@ -30,16 +30,11 @@
 namespace rhi
 {
 
-const rhi::RenderTarget &subpass_render_target(const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass a_subpass, size_t a_index)
+const rhi::RenderTarget &subpass_render_target(const rhi::Renderpass &a_renderpass, size_t a_rt_index)
 {
-	auto &subpass_rts    = a_subpass.render_targets();
 	auto &renderpass_rts = a_renderpass.render_targets();
-
-	assert(a_index < subpass_rts.size() && "Subpass RT index out of bound");
-	auto renderpass_index = subpass_rts[a_index];
-	assert(renderpass_index < renderpass_rts.size() && "Renderpass RT index out of bound");
-
-	return renderpass_rts[renderpass_index];
+	assert(a_rt_index < renderpass_rts.size() && "Renderpass RT index out of bound");
+	return renderpass_rts[a_rt_index];
 }
 
 template <typename _type>

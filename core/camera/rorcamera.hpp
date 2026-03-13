@@ -156,7 +156,9 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE constexpr auto& aspect_ratio()    const noexcept { return this->m_aspect_ratio;  }
 	FORCE_INLINE constexpr auto& cascade_lambda()  const noexcept { return this->m_cascade_lambda;}
 	FORCE_INLINE constexpr auto& frustums()        const noexcept { return this->m_frustums;      }
+	FORCE_INLINE constexpr auto& cascade_splits()  const noexcept { return this->m_cascade_splits;}
 	// clang-format on
+
 	FORCE_INLINE constexpr auto &frustum_bounding_box(size_t a_index = 0u) const;
 	FORCE_INLINE constexpr auto &frustum_corners(size_t a_index = 0u) const;
 	FORCE_INLINE constexpr auto &frustum_center(size_t a_index = 0u) const;

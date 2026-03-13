@@ -27,10 +27,10 @@
 #include "profiling/rorlog.hpp"
 #include "rhi/metal/rorcommand_buffer.hpp"
 #include "rhi/rorcompute_command_encoder.hpp"
+#include "rhi/rordevice.hpp"
 #include "rhi/rorrender_command_encoder.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rortypes.hpp"
-#include "rhi/rordevice.hpp"
 #include "settings/rorsettings.hpp"
 
 #include <Metal/MTLComputePass.hpp>
@@ -151,6 +151,10 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 						depth_attachment->setTexture(msaa_texture);
 					else
 						depth_attachment->setTexture(render_texture.platform_handle());
+
+					if (is_texture_array(render_texture.target()))
+						depth_attachment->setSlice(render_target.m_layer);        // Which array layer to render into
+					depth_attachment->setLevel(render_target.m_level);            // Which mip level to render into
 				}
 				else
 				{
@@ -169,6 +173,10 @@ void RenderpassMetal::upload(rhi::Device &a_device)
 					{
 						color_attachment->setStoreAction(to_metal_store_action(render_target.m_store_action));
 						color_attachment->setTexture(render_texture.platform_handle());
+
+						if (is_texture_array(render_texture.target()))
+							color_attachment->setSlice(render_target.m_layer);        // Which array layer to render into
+						color_attachment->setLevel(render_target.m_level);            // Which mip level to render into
 					}
 				}
 

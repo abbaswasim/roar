@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "camera/rorcamera.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rorsystem.hpp"
 #include "foundation/rortypes.hpp"
@@ -34,12 +35,19 @@
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rorshader_buffer.hpp"
 #include "roar_export_import.hpp"
+#include <array>
 
 namespace ror
 {
 class ROAR_ENGINE_ITEM Light
 {
   public:
+	struct CascadeData
+	{
+		std::array<ror::Matrix4f, ror::cascade_count> m_mvps{};              //! MVP of each cascade
+		std::array<float32_t, ror::cascade_count>     m_splits{0.0f};        //! split of each cascade in camera space
+	};
+
 	// FORCE_INLINE        Light()                             = default;        //! Default constructors
 	FORCE_INLINE        Light(const Light &a_other)         = delete;         //! Copy constructor
 	FORCE_INLINE        Light(Light &&a_other) noexcept     = default;        //! Move constructor
@@ -92,6 +100,7 @@ class ROAR_ENGINE_ITEM Light
 	FORCE_INLINE constexpr auto& shadow_viewport()         noexcept  { return this->m_shadow_viewport;        }
 	FORCE_INLINE constexpr auto& position()                noexcept  { return this->m_position;               }
 	FORCE_INLINE constexpr auto& direction()               noexcept  { return this->m_normalized_direction;   }
+	FORCE_INLINE constexpr auto& cascade_data()            noexcept  { return this->m_cascades_data;          }
 	FORCE_INLINE constexpr auto& dirty()             const noexcept  { return this->m_dirty;                  }
 	FORCE_INLINE constexpr auto& type()              const noexcept  { return this->m_type;                   }
 	FORCE_INLINE constexpr auto& intensity()         const noexcept  { return this->m_intensity;              }
@@ -107,6 +116,7 @@ class ROAR_ENGINE_ITEM Light
 	FORCE_INLINE constexpr auto& position()          const noexcept  { return this->m_position;               }
 	FORCE_INLINE constexpr auto& direction()         const noexcept  { return this->m_normalized_direction;   }
 	FORCE_INLINE constexpr auto& color()             const noexcept  { return this->m_color;                  }
+	FORCE_INLINE constexpr auto& cascade_data()      const noexcept  { return this->m_cascades_data;          }
 
 	FORCE_INLINE constexpr void dirty(bool a_dirty)                                 noexcept  { this->m_dirty = a_dirty;                                   }
 	FORCE_INLINE constexpr void type(LightType a_type)                              noexcept  { this->m_type = a_type;                                     }
@@ -122,6 +132,7 @@ class ROAR_ENGINE_ITEM Light
 	FORCE_INLINE constexpr void position(Vector3f a_position)                       noexcept  { this->m_position = a_position;                             }
 	FORCE_INLINE constexpr void color(Vector3f a_color)                             noexcept  { this->m_color = a_color;                                   }
 	FORCE_INLINE           void direction(Vector3f a_direction)                     noexcept  { this->m_normalized_direction = a_direction.normalized();   }
+	FORCE_INLINE constexpr void cascade_data(const CascadeData &a_cascades_data)     noexcept { this->m_cascades_data = a_cascades_data;                   }
 	// clang-format on
 
   private:
@@ -139,6 +150,7 @@ class ROAR_ENGINE_ITEM Light
 	Vector3f                       m_position{};                                          //! Position of lights but only valid for point and spot lights, for all lights position is used to render the light in editor
 	Vector3f                       m_normalized_direction{};                              //! Direction of directional and spot lights, normalised always on update
 	Vector3f                       m_color{};                                             //! Light color
+	CascadeData                    m_cascades_data{};                                     //! Constains view projection and camera space cascade splits for each cascade
 	std::vector<rhi::ShaderBuffer> m_shader_buffer{};                                     //! Shader buffer for a specific type of light UBO, it needs to be a vector because its a per_frame resource
 };
 

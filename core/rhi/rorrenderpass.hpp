@@ -53,7 +53,7 @@ void end_renderpass(rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::C
 namespace rhi
 {
 
-const rhi::RenderTarget &subpass_render_target(const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass a_subpass, size_t a_index);
+const rhi::RenderTarget &subpass_render_target(const rhi::Renderpass &a_renderpass, size_t a_index);
 
 void renderpass_execute(rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface,
                         ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,

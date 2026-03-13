@@ -205,7 +205,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 	uint32_t attachment_index{0};
 	for (auto &rt_index : a_render_subpass.render_targets())
 	{
-		auto            &rendertarget            = subpass_render_target(a_renderpass, a_render_subpass, rt_index);
+		auto            &rendertarget            = subpass_render_target(a_renderpass, rt_index);
 		rhi::PixelFormat attachment_format       = rendertarget.m_target_reference.get().format();
 		auto             attachment_format_metal = to_metal_pixelformat(attachment_format);
 

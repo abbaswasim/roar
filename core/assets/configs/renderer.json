@@ -70,6 +70,7 @@
 		{
 			"name":"shadow",
 			"format":"depth32_float32",
+			"target":"2D_ARRAY",
 			"sampler" : 2
 		},
 		{
@@ -579,6 +580,7 @@
 						"index":2,
 						"load_action":"clear",
 						"store_action":"store",
+						"layer":0,
 						"type":"depth"
 					}
 				],
@@ -614,6 +616,15 @@
 			},
 			{
 				"inherits" : 2,
+				"render_targets":[
+					{
+						"index":2,
+						"load_action":"clear",
+						"store_action":"store",
+						"layer":1,
+						"type":"depth"
+					}
+				],
 				"subpasses":[
 					{
 						"name":"shadow_mapping_c1",
@@ -623,6 +634,15 @@
 			},
 			{
 				"inherits" : 2,
+				"render_targets":[
+					{
+						"index":2,
+						"load_action":"clear",
+						"store_action":"store",
+						"layer":2,
+						"type":"depth"
+					}
+				],
 				"subpasses":[
 					{
 						"name":"shadow_mapping_c2",
@@ -632,6 +652,15 @@
 			},
 			{
 				"inherits" : 2,
+				"render_targets":[
+					{
+						"index":2,
+						"load_action":"clear",
+						"store_action":"store",
+						"layer":3,
+						"type":"depth"
+					}
+				],
 				"subpasses":[
 					{
 						"name":"shadow_mapping_c3",
