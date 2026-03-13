@@ -75,6 +75,7 @@
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
+// #include <patched_imgui/imgui.h> // If imgui required thats how you will include it
 #include <mutex>
 #include <string>
 #include <type_traits>
@@ -1505,6 +1506,11 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 	assert(dd.morph_weights);
 	assert(dd.indices);
 
+	// Just a test, but remember this will create Button as many times as Scene::render is called for each renderpass
+	// ImGui::Begin("New ImGui window");
+	// ImGui::Button("Click");
+	// ImGui::End();
+
 	dd.encoder = &a_encoder;
 
 	const auto &per_view_uniforms     = a_renderer.shader_buffer("per_view_uniform");        // Shared per_view_uniform amongst all cameras
@@ -1584,14 +1590,6 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 
 		auto &ls = line_soup();
 		ls.render(a_device, a_encoder);
-
-		// Lets update the UI elements
-		// TODO: Should move out of scene and into global end of frame renderpass
-		auto &setting = ror::settings();
-
-		// TODO: Should be done in renderer not in scene, or maybe even at upper level (device)
-		if (setting.m_generate_gui_mesh && setting.m_gui.m_visible)
-			ror::gui().render(a_device, a_renderer, a_encoder, this->m_cameras[0], a_event_system);        // TODO: Fix the camera
 	}
 }
 

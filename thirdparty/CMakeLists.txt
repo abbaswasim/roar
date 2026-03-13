@@ -159,7 +159,7 @@ set(IMGUI_SOURCE_FILES
 	imgui_widgets.cpp)
 
 # need to patch the imgui headers before built into imgui target, build will happen on all sources in binary/imgui dir
-set(IMGUI_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/imgui)
+set(IMGUI_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/patched_imgui)
 file(MAKE_DIRECTORY ${IMGUI_BUILD_DIR})
 
 # I have to run 3 different processes one after another otherwise they are run concurently
@@ -186,7 +186,7 @@ foreach(src_file IN ZIP_LISTS IMGUI_HEADER_FILES IMGUI_SOURCE_FILES)
 endforeach()
 
 add_library(imgui STATIC ${IMGUI_SOURCES})
-target_include_directories(imgui PUBLIC ${IMGUI_BUILD_DIR})
+target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_sources(imgui PRIVATE ${IMGUI_SOURCES})
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
 

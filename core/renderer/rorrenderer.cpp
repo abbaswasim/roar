@@ -40,6 +40,7 @@
 #include "graphics/rorenvironment.hpp"
 #include "graphics/rormaterial.hpp"
 #include "graphics/rorscene.hpp"
+#include "gui/rorgui.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector2.hpp"
@@ -1301,8 +1302,13 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 	this->m_frames.begin_frame();
 
 	a_scene.current_camera().update();
+	ror::gui().new_frame(this->dimensions());
 
 	rhi::Swapchain surface = a_device.platform_swapchain();
+
+	ror::gui().draw_window(this->m_shadow_window_index, [this]() {
+		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_shadow_image)), ImVec2(400, 400));
+	});
 
 	if (surface)
 	{
@@ -2244,6 +2250,9 @@ void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSyst
 	this->scene_buffers_upload(a_device, a_scene);
 	this->upload_environments(a_device);
 	this->upload_debug_geometry(a_device, a_event_system);
+
+	this->m_shadow_image        = this->get_shadow_image(0);        // Any shadow texture from any shadow pass will be fine, as we use an array for all
+	this->m_shadow_window_index = ror::gui().make_window(a_device, *this, "Shadow Cascade visualisation", nullptr, "gui_array.glsl.frag");
 }
 
 std::vector<rhi::RenderpassType> Renderer::render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const
@@ -2324,6 +2333,14 @@ void Renderer::setup_shadow_passes()
 	for (size_t i = 0; i < cascade_count; ++i)
 		if (this->m_shadow_passes[i] == -1)
 			ror::log_info("Haven't found a shadow cascade pass in the render graph for cascade {}", i);
+}
+
+const rhi::TextureImage *Renderer::get_shadow_image(size_t a_cascade_index) const
+{
+	auto *shadow_texture  = this->get_shadow_texture(a_cascade_index);        // Any shadow texture from any shadow pass will be fine, as we use an array for all
+	auto &renderer_images = this->images();
+
+	return &renderer_images[static_cast_safe<size_t>(shadow_texture->texture_image())];
 }
 
 const rhi::Texture *Renderer::get_shadow_texture(size_t a_cascade_index) const

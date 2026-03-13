@@ -32,6 +32,7 @@
 #include "graphics/rorlight.hpp"
 #include "graphics/rorline_soup.hpp"
 #include "graphics/rorscene.hpp"
+#include "gui/rorgui.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector2.hpp"
@@ -246,6 +247,16 @@ void forward_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene
 	camera.upload(a_renderer);
 
 	render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
+
+	// Lets update the UI elements
+	auto &setting = ror::settings();
+
+	ror::gui().draw_gui_windows(a_scene.current_camera(), a_event_system);
+
+	ror::gui().end_frame();
+
+	if (setting.m_generate_gui_mesh && setting.m_gui.m_visible)
+		ror::gui().render(a_device, a_renderer, a_command_encoder);
 }
 
 void node_transform_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,

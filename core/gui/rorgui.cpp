@@ -25,21 +25,18 @@
 
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
-#include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "gui/rorgizmo.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
 #include "math/rorvector2.hpp"
-#include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "profiling/rortimer.hpp"
 #include "renderer/rorframes_count.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rorbuffer.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_attribute.hpp"
@@ -51,8 +48,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -625,18 +622,34 @@ void Gui::init(const rhi::Device &a_device, ror::EventSystem &a_event_system)
 	this->m_overlays.init(this->m_default_font);
 }
 
+// static rhi::Program             a_shader_program{-1, -1};        //! Program in undefined/uinitialized state
+// static const rhi::TextureImage *a_texture_image;                 //! Texture image, should probably be a list of these at some point
+
+rhi::Program Gui::make_program(const rhi::Device &a_device, const ror::Renderer &a_renderer, const char *a_vertex_shader, const char *a_fragment_shader)
+{
+	// Create shader program
+	// TODO: Patch with gui_buffer/image_set/binding/per_frame_uniform etc
+	const char *vs_name = (a_vertex_shader ? a_vertex_shader : "gui.glsl.vert");
+	const char *fs_name = (a_fragment_shader ? a_fragment_shader : "gui.glsl.frag");
+
+	rhi::Shader vs_shader = rhi::build_shader<rhi::Shader>(a_device, vs_name);
+	rhi::Shader fs_shader = rhi::build_shader<rhi::Shader>(a_device, fs_name);
+
+	rhi::Renderpass    *pass{nullptr};
+	rhi::Rendersubpass *subpass{nullptr};
+	a_renderer.get_final_pass_subpass(&pass, &subpass);
+
+	rhi::Program program{0, 0};        // Don't need the vert and frag IDs can be anything
+
+	program.build_descriptor(a_device, &this->m_shader_buffer[0], ror::gui_buffer_binding, &this->m_texture_image, &this->m_texture_sampler, ror::gui_image_binding);
+	program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
+
+	return program;
+}
+
 void Gui::upload(const rhi::Device &a_device, const ror::Renderer &a_renderer)
 {
 	auto &setting = ror::settings();
-
-	// Create shader program
-	// TODO: Patch with gui_buffer/image_set/binding
-	auto vs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.vert");
-	auto fs_shader = rhi::build_shader<rhi::Shader>(a_device, "gui.glsl.frag");
-
-	// Needs final pass stuff
-	rhi::Renderpass    *pass{nullptr};
-	rhi::Rendersubpass *subpass{nullptr};
 
 	this->m_texture_image.upload(a_device);
 	this->m_texture_sampler.upload(a_device);
@@ -645,15 +658,13 @@ void Gui::upload(const rhi::Device &a_device, const ror::Renderer &a_renderer)
 	for (size_t i = 0; i < max_frames_in_flight; ++i)
 		this->m_shader_buffer[i].upload(a_device, rhi::ResourceStorageOption::managed);
 
-	a_renderer.get_final_pass_subpass(&pass, &subpass);
-
 	// Only requires the following descriptors
 	// layout(set = 0, binding = 0) uniform highp sampler2D base_color_sampler; set and binding needs changing according to API
 	// layout(std140, set = 0, binding = 3) uniform gui_per_frame_uniform; name and set and binding needs changing according to API
 
-	// FIXME: This shader buffer frequency stuff
-	this->m_shader_program.build_descriptor(a_device, &this->m_shader_buffer[0], gui_buffer_binding, &this->m_texture_image, &this->m_texture_sampler, gui_image_binding);
-	this->m_shader_program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
+	// FIXME: This shader buffer frequency stuff for vulkan
+	// FIXME: For vulkan need to understand what it does with texture, as its already uploaded and I don't want this to happen again
+	this->m_shader_program = this->make_program(a_device, a_renderer, nullptr, "gui.glsl.frag");
 
 	this->m_vertex_buffer.reserve(max_frames_in_flight);
 	this->m_index_buffer.reserve(max_frames_in_flight);
@@ -819,21 +830,27 @@ static void show_settings(bool &a_show_settings, ror::EventSystem &a_event_syste
 	ImGui::End();
 }
 
-void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensions, ror::EventSystem &a_event_system)
+void Gui::new_frame(const ror::Vector4f &a_dimensions)
 {
-	auto &setting = ror::settings();
-
-	// Lets render GUI
-	// static bool show_another_window{true};
-	// static float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
-
 	ImGuiIO &io = ImGui::GetIO();
 
 	io.DisplaySize             = ImVec2(a_dimensions.x / a_dimensions.z, a_dimensions.y / a_dimensions.w);
 	io.DisplayFramebufferScale = ImVec2(a_dimensions.z, a_dimensions.w);
 
 	ImGui::NewFrame();
+}
 
+void Gui::end_frame()
+{
+	ImGui::EndFrame();
+	ImGui::Render();
+}
+
+void Gui::draw_gui_windows(ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system)
+{
+	auto &setting = ror::settings();
+
+	// Lets render GUI
 	auto font_id = setting.m_generic_numbers[0];
 
 	if (font_id >= 0 && font_id < static_cast_safe<int32_t>(this->m_fonts.size()))
@@ -863,8 +880,9 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 		// ImGui::Text("Instancing");
 		// ImGui::End();
 
-		auto drawlist = imgui_draw_list();
-		auto dis      = io.DisplaySize;
+		auto     drawlist = imgui_draw_list();
+		ImGuiIO &io       = ImGui::GetIO();
+		auto     dis      = io.DisplaySize;
 
 		auto          mpos  = ImGui::GetMousePos();
 		auto          mcpos = io.MouseClickedPos[0];        // Left click only
@@ -889,24 +907,7 @@ void Gui::draw_test_windows(ror::OrbitCamera &a_camera, ror::Vector4f &a_dimensi
 			this->m_overlays.draw(view_projection, view_port);
 	}
 
-	// // 3. Show another simple window.
-	// if (show_another_window)
-	// {
-	// 	ImGui::Begin("Another Window", &show_another_window);        // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-	// 	ImGui::Text("Hello from another window!");
-
-	// 	// a_drawlist->AddText(nullptr, color == imgui_black ? 13.0f : 12.0f, ImVec2{x - text_offset, y - 5.0f}, color, names[j - 1]);
-	// 	ImGui::PushFont(this->m_fonts[this->m_fonts.size() - 2]);
-	// 	if (ImGui::Button(ROAR_ICON_CAMERA "Close Me"))
-	// 		show_another_window = false;
-	// 	ImGui::PopFont();
-	// 	ImGui::End();
-	// }
-
 	ImGui::PopFont();
-
-	ImGui::EndFrame();
-	ImGui::Render();
 }
 
 void Gui::upload_draw_data(ImDrawData *a_draw_data, size_t a_current_frame_index)
@@ -951,12 +952,13 @@ void Gui::setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEnco
 {
 	auto current_frame_index = a_renderer.current_frame_index();
 
-	a_encoder.cull_mode(rhi::PrimitiveCullMode::none);                                             // No face culling
-	a_encoder.front_facing_winding(rhi::PrimitiveWinding::clockwise);                              // What ImGui requires
-	a_encoder.vertex_buffer(this->m_vertex_buffer[current_frame_index], 0, 0);                     // Position at index 0 offset 0 because its provided in attribute
-	a_encoder.vertex_buffer(this->m_vertex_buffer[current_frame_index], 0, 1);                     // UV at index 1 offset 0 because its provided in attribute
-	a_encoder.vertex_buffer(this->m_vertex_buffer[current_frame_index], 0, 2);                     // Color at index 2 offset 0 because its provided in attribute
-	a_encoder.render_pipeline_state(a_device, this->m_shader_program);                             // Include alpha blend state, also calls bind descriptors (important for vulkan)
+	a_encoder.cull_mode(rhi::PrimitiveCullMode::none);                                // No face culling
+	a_encoder.front_facing_winding(rhi::PrimitiveWinding::clockwise);                 // What ImGui requires
+	a_encoder.vertex_buffer(this->m_vertex_buffer[current_frame_index], 0, 0);        // Position at index 0 offset 0 because its provided in attribute
+	a_encoder.vertex_buffer(this->m_vertex_buffer[current_frame_index], 0, 1);        // UV at index 1 offset 0 because its provided in attribute
+	a_encoder.vertex_buffer(this->m_vertex_buffer[current_frame_index], 0, 2);        // Color at index 2 offset 0 because its provided in attribute
+	a_encoder.render_pipeline_state(a_device, this->m_shader_program);                // Include alpha blend state, also calls bind descriptors (important for vulkan)
+	// a_encoder.render_pipeline_state(a_device, a_shader_program);
 	a_encoder.fragment_texture(this->m_texture_image, 0);                                          // Could be overriden by render later
 	a_encoder.fragment_sampler(this->m_texture_sampler, 0);                                        // The only default sampler that should be bilinear according to ImGui requirements
 	a_encoder.depth_stencil_state(a_renderer.render_state().depth_state_always_no_write());        // No depth test as we are rendering painter style quads
@@ -987,11 +989,11 @@ void Gui::setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEnco
 	this->m_shader_buffer[current_frame_index].buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 }
 
-void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, ror::OrbitCamera &a_camera, ror::EventSystem &a_event_system)
+void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder)
 {
-	auto dimensions          = a_renderer.dimensions();
-	auto current_frame_index = a_renderer.current_frame_index();
-	this->draw_test_windows(a_camera, dimensions, a_event_system);
+	// Before we can start rendering, lets give all unique gui_windows draw objects
+	for (auto &gui_window : this->m_windows)
+		gui_window.set_draw_objects(&a_device, &a_encoder, &this->m_shader_program);
 
 	ImDrawData *draw_data = ImGui::GetDrawData();
 	if (!draw_data)
@@ -1009,11 +1011,10 @@ void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, r
 	// FIXME: Add proper time
 	io.DeltaTime = 1.0f / 60.0f;        // set the time elapsed since the previous frame (in seconds)
 
+	auto current_frame_index = a_renderer.current_frame_index();
+
 	this->upload_draw_data(draw_data, current_frame_index);
 	this->setup_render_state(a_device, a_encoder, a_renderer, draw_data);
-
-	std::vector<std::vector<uint8_t>> vertexBuffer{};
-	std::vector<std::vector<uint8_t>> indexBuffer{};
 
 	// Will project scissor/clipping rectangles into framebuffer space
 	ImVec2 clip_off   = draw_data->DisplayPos;              // (0,0) unless using multi-viewports
@@ -1061,7 +1062,7 @@ void Gui::render(const rhi::Device &a_device, const ror::Renderer &a_renderer, r
 				                   static_cast<uint32_t>(clip_max.x - clip_min.x),
 				                   static_cast<uint32_t>(clip_max.y - clip_min.y)});
 
-				// Bind texture, this might be redundant if there is only ever going be one texture
+				// Bind the texture for this draw
 				if (ImTextureID tex_id = pcmd->GetTexID())
 					a_encoder.fragment_texture(*reinterpret_cast<rhi::TextureImage *>(tex_id), gui_color_binding);
 
