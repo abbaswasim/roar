@@ -162,24 +162,25 @@ Settings::Settings()
 	}
 
 	{
-		this->m_gui.m_scale              = setting.get<uint32_t>("gui:scale");
-		this->m_gui.m_visible            = setting.get<bool>("gui:visible");
-		this->m_gui.m_show_anchors       = setting.get<bool>("gui:show_anchors");
-		this->m_gui.m_show_gizmo         = setting.get<bool>("gui:show_gizmo");
-		this->m_gui.m_show_overlays      = setting.get<bool>("gui:show_overlays");
-		this->m_gui.m_show_settings      = setting.get<bool>("gui:show_settings");
-		this->m_gui.m_show_debug         = setting.get<bool>("gui:show_debug");
-		this->m_gui.m_dump_texture       = setting.get<bool>("gui:dump_texture");
-		this->m_gui.m_default_font       = setting.get<uint32_t>("gui:default_font");
-		this->m_gui.m_font_size          = setting.get<uint32_t>("gui:font_size");
-		this->m_gui.m_vertex_buffer_size = setting.get<uint32_t>("gui:vertex_buffer_size");
-		this->m_gui.m_index_buffer_size  = setting.get<uint32_t>("gui:index_buffer_size");
-		this->m_gui.m_anchor_size        = setting.get<float32_t>("gui:anchor_size");
-		this->m_gui.m_overlay_scale      = setting.get<float32_t>("gui:overlay_scale");
-		this->m_gui.m_gizmo_size         = setting.get<float32_t>("gui:gizmo_size");
-		this->m_gui.m_fonts              = setting.get<std::vector<std::string>>("gui:fonts");
-		this->m_gui.m_render_modes       = setting.get<std::vector<std::string>>("gui:render_modes");
-		this->m_gui.m_font_scale         = setting.get<float32_t>("gui:font_scale");
+		this->m_gui.m_scale               = setting.get<uint32_t>("gui:scale");
+		this->m_gui.m_visible             = setting.get<bool>("gui:visible");
+		this->m_gui.m_show_anchors        = setting.get<bool>("gui:show_anchors");
+		this->m_gui.m_show_gizmo          = setting.get<bool>("gui:show_gizmo");
+		this->m_gui.m_show_overlays       = setting.get<bool>("gui:show_overlays");
+		this->m_gui.m_show_settings       = setting.get<bool>("gui:show_settings");
+		this->m_gui.m_show_debug          = setting.get<bool>("gui:show_debug");
+		this->m_gui.m_dump_texture        = setting.get<bool>("gui:dump_texture");
+		this->m_gui.m_enable_render_modes = setting.get<bool>("gui:enable_render_modes");
+		this->m_gui.m_default_font        = setting.get<uint32_t>("gui:default_font");
+		this->m_gui.m_font_size           = setting.get<uint32_t>("gui:font_size");
+		this->m_gui.m_vertex_buffer_size  = setting.get<uint32_t>("gui:vertex_buffer_size");
+		this->m_gui.m_index_buffer_size   = setting.get<uint32_t>("gui:index_buffer_size");
+		this->m_gui.m_anchor_size         = setting.get<float32_t>("gui:anchor_size");
+		this->m_gui.m_overlay_scale       = setting.get<float32_t>("gui:overlay_scale");
+		this->m_gui.m_gizmo_size          = setting.get<float32_t>("gui:gizmo_size");
+		this->m_gui.m_fonts               = setting.get<std::vector<std::string>>("gui:fonts");
+		this->m_gui.m_render_modes        = setting.get<std::vector<std::string>>("gui:render_modes");
+		this->m_gui.m_font_scale          = setting.get<float32_t>("gui:font_scale");
 
 		auto gco = setting.get<std::vector<float32_t>>("gui:anchor_color");
 		if (gco.size() >= 4)

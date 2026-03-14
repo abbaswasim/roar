@@ -356,6 +356,19 @@ class ShaderBufferBase : public ShaderBufferCrtp<ShaderBufferBase<_api_buffer>>,
 		std::memcpy(this->m_mapped_address + a_offset, a_data, a_length);
 	}
 
+	template<typename _type>
+	FORCE_INLINE void buffer_print(size_t a_offset, size_t a_stride, size_t a_index, size_t a_count, size_t a_item_count)
+	{
+		assert(this->m_mapped_address && "Need to map the shader buffer first before copy is called");
+
+		auto ptr = reinterpret_cast<_type>(this->m_mapped_address + (a_stride * a_index) + a_offset);
+
+		for (size_t i = 0; i < a_count / a_item_count; ++i)
+		{
+			std::cout << ptr[i] << ",";
+		}
+	}
+
 	ShaderBufferBase deep_copy()
 	{
 		ShaderBufferBase shaderbuffer{this->top_level().m_name, this->type(), this->frequency(), this->layout(), this->set(), this->binding()};

@@ -314,6 +314,7 @@ class ROAR_ENGINE_ITEM Settings final
 		bool                     m_show_settings{true};
 		bool                     m_show_debug{true};
 		bool                     m_dump_texture{true};
+		bool                     m_enable_render_modes{true};
 		GuiTheme                 m_theme{GuiTheme::dark};
 		uint32_t                 m_default_font{0};
 		uint32_t                 m_vertex_buffer_size{2000000};        // Initial Size of vertex buffer

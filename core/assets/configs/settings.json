@@ -189,6 +189,7 @@
 		"show_settings" : false,
 		"show_debug" : true,
 		"dump_texture" : true,
+		"enable_render_modes" : false,
 		"theme" : "dark",
 		"default_font" : 0,
 		"font_size" : 32,

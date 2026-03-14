@@ -1571,6 +1571,12 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	else
 		replace_next_at("//", main_code);
 
+	// Enable/Disable render modes
+	if (ror::settings().m_gui.m_enable_render_modes)
+		replace_next_at("", main_code);
+	else
+		replace_next_at("//", main_code);
+
 	output.append(main_code);
 
 	return output;

@@ -43,5 +43,5 @@ void main()
 	out_color  = diffuse_specular_color + emissive_color;
 	@out_color = material.base_color;        // If the material is unlit this will be uncommented otherwise left commented
 
-	set_render_mode(material, fragment);
+	@set_render_mode(material, fragment);
 }
