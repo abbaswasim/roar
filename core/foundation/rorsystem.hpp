@@ -130,11 +130,11 @@ constexpr OsType get_os()
 #ifdef ROR_OS_TYPE_MAC
 	os_type = OsType::os_mac;
 #elif defined ROR_OS_TYPE_ANDROID
-	os_type       = OsType::os_android;
+	os_type = OsType::os_android;
 #elif defined ROR_OS_TYPE_IOS
-	os_type       = OsType::os_ios;
+	os_type = OsType::os_ios;
 #elif defined ROR_OS_TYPE_IOS_SIMULATOR
-	os_type   = OsType::os_ios_simulator;
+	os_type = OsType::os_ios_simulator;
 #elif defined ROR_OS_TYPE_LINUX        // Linux means Linux desktop not Android linux
 	os_type = OsType::os_linux;
 #elif defined ROR_OS_TYPE_WINDOWS
@@ -151,14 +151,27 @@ constexpr ArchType get_arch()
 #ifdef ROR_ARCH_TYPE_ARM
 	arch_type = ArchType::arch_arm;
 #elif defined ROR_ARCH_TYPE_ARM64
-	arch_type     = ArchType::arch_arm64;
+	arch_type = ArchType::arch_arm64;
 #elif defined ROR_ARCH_TYPE_X86
-	arch_type     = ArchType::arch_x86;
+	arch_type = ArchType::arch_x86;
 #elif defined ROR_ARCH_TYPE_X86_64
 	arch_type = ArchType::arch_x86_64;
 #endif
 
 	return arch_type;
+}
+
+constexpr bool get_sanitized()
+{
+#if defined(__has_feature)
+#	if __has_feature(address_sanitizer) || __has_feature(undefined_behavior_sanitizer)
+	return true;
+#	elif
+	return false;
+#	endif
+#elif
+	return false;
+#endif
 }
 
 constexpr CompilerType get_compiler()
@@ -183,7 +196,7 @@ constexpr BuildType get_build()
 #ifdef ROR_BUILD_TYPE_RELEASE
 	build_type = BuildType::build_release;
 #elif defined ROR_BUILD_TYPE_DEBUG
-	build_type    = BuildType::build_debug;
+	build_type = BuildType::build_debug;
 #endif
 
 	return build_type;
