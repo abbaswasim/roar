@@ -1426,35 +1426,36 @@ void Scene::fill_scene_data()
 	}
 }
 
-const Light *Scene::light(ror::Light::LightType a_type) const
+const Light *Scene::light(ror::Light::LightType a_type, uint32_t a_index) const
 {
+	uint32_t index = 0;
 	for (auto &light : this->m_lights)
 	{
-		if (light.type() == a_type)
+		if (light.type() == a_type && a_index == index++)        // NOTE: && means index++ is only executed if there is a type match
 			return &light;
 	}
 
 	return nullptr;
 }
 
-const Light *Scene::directional_light() const
+const Light *Scene::directional_light(uint32_t a_index) const
 {
-	return this->light(ror::Light::LightType::directional);
+	return this->light(ror::Light::LightType::directional, a_index);
 }
 
-const Light *Scene::spot_light() const
+const Light *Scene::spot_light(uint32_t a_index) const
 {
-	return this->light(ror::Light::LightType::spot);
+	return this->light(ror::Light::LightType::spot, a_index);
 }
 
-const Light *Scene::point_light() const
+const Light *Scene::point_light(uint32_t a_index) const
 {
-	return this->light(ror::Light::LightType::point);
+	return this->light(ror::Light::LightType::point, a_index);
 }
 
-const Light *Scene::area_light() const
+const Light *Scene::area_light(uint32_t a_index) const
 {
-	return this->light(ror::Light::LightType::area);
+	return this->light(ror::Light::LightType::area, a_index);
 }
 
 void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
@@ -1581,16 +1582,8 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 		this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
 		for (auto &dm : this->m_dynamic_meshes)
 			dm.render(a_device, a_renderer, a_encoder);
-
-		// Lets render all the renderer dynamic mesh, usually it only has a skybox cubmap
-		// TODO: Check why the order of this and the one above matters, if scene dynamic meshes are rendererd first nothing shows
-		this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
-		for (auto &dm : a_renderer.dynamic_meshes())
-			dm->render(a_device, a_renderer, a_encoder);
-
-		auto &ls = line_soup();
-		ls.render(a_device, a_encoder);
 	}
+	this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
 }
 
 void Scene::update(ror::Renderer &a_renderer, ror::Timer &a_timer)
@@ -1994,15 +1987,25 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	if (!shader_gen_job_handle.data())
 		ror::log_critical("Can't generate model shaders.");
 
+	// // Shader generation/compilation uses SPIRV-Cross which can require a deep call stack for large shaders.
+	// // Running it on worker threads can overflow their smaller default stacks on macOS, leading to seemingly
+	// // unrelated EXC_BAD_ACCESS crashes inside SPIRV-Cross containers/strings.
+	// this->generate_shaders(a_renderer, a_job_system);
+
 	if (!gui_gen_job_handle.data())
 		ror::log_critical("Can't generate ui.");
+
+	// TODO: Check if there are more than one directional light and error
 
 	this->update_bounding_box();
 	this->make_overlays();
 	this->verify_nodes_data_shader_buffer(a_renderer);
 
-	auto &ls = line_soup();
-	ls.init(a_device, a_event_system);
+	for (size_t i = 0; i < line_soups_count; ++i)
+	{
+		auto &ls = ror::line_soup(i);
+		ls.init(a_device);
+	}
 }
 
 void Scene::upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs)
@@ -2708,8 +2711,12 @@ void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::Eve
 		camera.upload(a_renderer);
 
 	// Upload the global line_soup incase someone wants to use it for debug rendering
-	auto &ls = line_soup();
-	ls.upload(a_device, a_renderer);
+
+	for (size_t i = 0; i < line_soups_count; ++i)
+	{
+		auto &ls = ror::line_soup(i);
+		ls.upload(a_device, a_renderer);
+	}
 }
 
 void Scene::read_nodes()
@@ -2926,6 +2933,9 @@ void Scene::read_lights()
 			else if (type == "area")
 				lit.type(Light::LightType::area);
 
+			if (light.contains("shadow_caster"))
+				this->m_shadow_light_index = static_cast_safe<uint32_t>(this->m_lights.size());
+
 			if (light.contains("color"))
 			{
 				std::array<float32_t, 3> c = light["color"];
@@ -2963,6 +2973,9 @@ void Scene::read_lights()
 			this->m_lights.emplace_back(std::move(lit));
 		}
 	}
+
+	assert(this->m_shadow_light_index < this->m_lights.size() && "Shadow caster index is invalid when checked against all lights");
+	assert(this->m_lights[this->m_shadow_light_index].type() == Light::LightType::directional && "Shadow caster light is not a directional light, only support directional lights casting shadows");
 }
 
 void Scene::read_programs()

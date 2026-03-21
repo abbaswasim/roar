@@ -135,11 +135,11 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	void     reset_to_default_state(ror::Renderer &a_renderer, rhi::RenderCommandEncoder &a_encoder, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass);
 	void     fill_scene_data();
 
-	const Light *light(ror::Light::LightType a_type) const;
-	const Light *directional_light() const;
-	const Light *spot_light() const;
-	const Light *point_light() const;
-	const Light *area_light() const;
+	const Light *light(ror::Light::LightType a_type, uint32_t a_index = 0) const;
+	const Light *directional_light(uint32_t a_index = 0) const;
+	const Light *spot_light(uint32_t a_index = 0) const;
+	const Light *point_light(uint32_t a_index = 0) const;
+	const Light *area_light(uint32_t a_index = 0) const;
 
 	// clang-format off
 	FORCE_INLINE constexpr       auto &models()                 noexcept   {  return this->m_models;          }
@@ -160,6 +160,8 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 	FORCE_INLINE constexpr const auto &current_camera()   const noexcept   {  return this->m_cameras[this->m_current_camera_index]; }
 	FORCE_INLINE constexpr       auto &current_camera()         noexcept   {  return this->m_cameras[this->m_current_camera_index]; }
+	FORCE_INLINE constexpr const auto &shadow_light()     const noexcept   {  return this->m_lights[this->m_shadow_light_index]; }
+	FORCE_INLINE constexpr       auto &shadow_light()           noexcept   {  return this->m_lights[this->m_shadow_light_index]; }
 	// clang-format on
 
 	void upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs);
@@ -263,6 +265,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	std::vector<ror::DynamicMesh>    m_dynamic_meshes{};                                       //! All the dynamic meshes created in the scene could be rendererd at once in the end
 	SceneState                       m_scene_state;                                            //! All the scene data that can be saved and restored to and from disk
 	uint32_t                         m_current_camera_index{0};                                //! Camera to use to render the scene
+	uint32_t                         m_shadow_light_index{0};                                  //! Light that will be used for shadowing
 };
 
 void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);
