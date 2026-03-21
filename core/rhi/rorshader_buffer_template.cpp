@@ -237,7 +237,7 @@ void ShaderBufferTemplate::Struct::add_entry(const std::string &a_name, Format a
 {
 	const uint32_t base_alignment = format_base_alignment(a_type);
 	const uint32_t aligned_offset = ror::align(this->m_offset, (a_count != 1 && a_layout == Layout::std140 ? 16 : base_alignment));        // a_count != 1 means either 0, unbounded array or > 1 a sized array
-	const uint32_t size           = rhi::vertex_format_to_bytes(a_type);
+	const uint32_t size           = rhi::vertex_format_to_bytes(a_type); // TODO: Think about how the size is used when the entry is an aarry inside the UBO not the whole UBO being an array
 	const uint32_t gl_size        = glsl_size(a_type);
 	const uint32_t size_in_array  = glsl_size_vec3_correction(a_type, gl_size);
 	const uint32_t stride         = (a_count != 1 ? (a_layout == Layout::std140 ? std::max(16u, size_in_array) : size_in_array) : gl_size);

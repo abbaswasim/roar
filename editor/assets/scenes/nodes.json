@@ -17,6 +17,7 @@
 	"lights":[
 		{
 			"type":"directional",
+			"shadow_caster":true,
 			"direction":[
 				10.0,
 				-20.0,

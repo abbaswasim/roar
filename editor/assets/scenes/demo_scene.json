@@ -25,6 +25,7 @@
 	"lights":[
 		{
 			"type":"directional",
+			"shadow_caster":true,
 			"position":[
 				-10.0,
 				20.0,
