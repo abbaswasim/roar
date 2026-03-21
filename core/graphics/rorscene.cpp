@@ -2000,12 +2000,6 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	this->update_bounding_box();
 	this->make_overlays();
 	this->verify_nodes_data_shader_buffer(a_renderer);
-
-	for (size_t i = 0; i < line_soups_count; ++i)
-	{
-		auto &ls = ror::line_soup(i);
-		ls.init(a_device);
-	}
 }
 
 void Scene::upload_models(ror::JobSystem &a_job_system, rhi::Device &a_device, const ror::Renderer &a_renderer, rhi::BuffersPack &a_buffers_packs)
@@ -2709,14 +2703,6 @@ void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::Eve
 	// Upload cameras
 	for (auto &camera : this->m_cameras)
 		camera.upload(a_renderer);
-
-	// Upload the global line_soup incase someone wants to use it for debug rendering
-
-	for (size_t i = 0; i < line_soups_count; ++i)
-	{
-		auto &ls = ror::line_soup(i);
-		ls.upload(a_device, a_renderer);
-	}
 }
 
 void Scene::read_nodes()

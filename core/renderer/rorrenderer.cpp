@@ -27,18 +27,16 @@
 #include "configuration/rorconfiguration.hpp"
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
-#include "foundation/rorcompiler_workarounds.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "geometry/rorgeometry_utilities.hh"
-#include "geometry/rorgeometry_utilities.hpp"
 #include "graphics/primitive_geometries.hpp"
 #include "graphics/rordynamic_mesh.hpp"
 #include "graphics/rorenvironment.hpp"
-#include "graphics/rormaterial.hpp"
+#include "graphics/rorline_soup.hpp"
 #include "graphics/rorscene.hpp"
 #include "gui/rorgui.hpp"
 #include "math/rormatrix4.hpp"
@@ -51,16 +49,10 @@
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
 #include "resources/rorresource.hpp"
-#include "rhi/rorbuffer.hpp"
-#include "rhi/rorcommand_buffer.hpp"
 #include "rhi/rorcompute_dispatch.hpp"
-#include "rhi/rordevice.hpp"
 #include "rhi/rorhandles.hpp"
 #include "rhi/rorrenderpass.hpp"
-#include "rhi/rorshader.hpp"
-#include "rhi/rorshader_buffer.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
-#include "rhi/rorshader_input.hpp"
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "rhi/rorvertex_description.hpp"
@@ -70,9 +62,7 @@
 #include <cassert>
 #include <cstddef>
 #include <filesystem>
-#include <iterator>
 #include <nlohmann/json.hpp>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -1303,6 +1293,7 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 	a_scene.current_camera().update();
 	ror::gui().new_frame(this->dimensions());
+	this->update_shadow_cascades(a_scene);
 
 	rhi::Swapchain surface = a_device.platform_swapchain();
 
@@ -2204,17 +2195,18 @@ void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSyst
 		shader.upload(a_device);
 	}
 
+	rhi::Renderpass    *pass{nullptr};
+	rhi::Rendersubpass *subpass{nullptr};
+
+	// TODO: This should be lighting pass if these programs are for IBLs
+	this->get_final_pass_subpass(&pass, &subpass);
+
 	// This upload uses default vertex descriptor for render programs which is no good for much but good enough for some, also doesn't make a difference to compute programs
 	int32_t program_id{0};
 	for (auto &program : this->m_programs)
 	{
-		auto program_update = [&a_device, &program, program_id, this, &a_buffer_pack](rhi::Device &device, std::unordered_set<hash_64_t> *) {
-			rhi::Renderpass    *pass{nullptr};
-			rhi::Rendersubpass *subpass{nullptr};
-			bool                pre_multiplied{false};
-
-			// TODO: This should be lighting pass if these programs are for IBLs
-			this->get_final_pass_subpass(&pass, &subpass);
+		auto program_update = [&a_device, &program, program_id, this, &a_buffer_pack, pass, subpass](rhi::Device &device, std::unordered_set<hash_64_t> *) {
+			bool pre_multiplied{false};
 
 			program.build_descriptor(device, this->m_shaders);
 			// This now also requires a call to DescriptorSet::push_binding(uint32_t a_binding, VkDescriptorType a_type, VkDescriptorImageInfo *a_image_info, VkDescriptorBufferInfo *a_buffer_info)
@@ -2253,6 +2245,13 @@ void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSyst
 
 	this->m_shadow_image        = this->get_shadow_image(0);        // Any shadow texture from any shadow pass will be fine, as we use an array for all
 	this->m_shadow_window_index = ror::gui().make_window(a_device, *this, "Shadow Cascade visualisation", nullptr, "gui_array.glsl.frag");
+
+	// Upload the global line_soup when its used for debug rendering
+	for (size_t i = 0; i < ror::line_soups_count; ++i)
+	{
+		auto &ls = ror::line_soup(i);
+		ls.upload(a_device, *pass, *subpass);
+	}
 }
 
 std::vector<rhi::RenderpassType> Renderer::render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const
@@ -2313,6 +2312,38 @@ void Renderer::setup_final_pass()
 	assert(0 && "Haven't found a final pass");
 }
 
+const rhi::Renderpass &Renderer::get_shadow_pass(uint32_t a_cascade_index)
+{
+	assert(a_cascade_index < ror::cascade_count && "Cascade index out of bound looking for shaodw passes");
+	assert(this->m_shadow_passes[a_cascade_index] != -1 && "No valid shadow pass index exists in renderer");
+
+	auto &pass = this->current_frame_graph()[static_cast<size_t>(this->m_shadow_passes[a_cascade_index])];
+	return pass;
+}
+
+// Must happen after the current frame index is incremented
+void Renderer::update_shadow_cascades(ror::Scene &a_scene)
+{
+	const auto &camera        = a_scene.current_camera();
+	const auto &shadow_pass   = this->get_shadow_pass();
+	const auto &viewport_dims = shadow_pass.dimensions();
+	auto       &frustums      = camera.frustums();
+	auto       &light         = a_scene.shadow_light();
+
+	this->m_shadow_cascades_data.build(light, camera, viewport_dims);
+
+	for (uint32_t i = 0; i < ror::cascade_count; ++i)
+	{
+		this->m_shadow_cascade_cache.m_mvps[i]   = this->m_shadow_cascades_data.projection(i) * this->m_shadow_cascades_data.view(i);
+		this->m_shadow_cascade_cache.m_splits[i] = frustums[i].far();        // These are the actual values in depth, not the split normalised percenentage values
+	}
+
+	light.cascade_data(this->m_shadow_cascade_cache);
+	light.update(this->current_frame_index());
+
+	// For testing purposes lets render the boxes as well
+}
+
 void Renderer::setup_shadow_passes()
 {
 	int32_t pass_index{0};
@@ -2332,7 +2363,7 @@ void Renderer::setup_shadow_passes()
 
 	for (size_t i = 0; i < cascade_count; ++i)
 		if (this->m_shadow_passes[i] == -1)
-			ror::log_info("Haven't found a shadow cascade pass in the render graph for cascade {}", i);
+			ror::log_critical("Haven't found a shadow cascade pass in the render graph for cascade {}", i);
 }
 
 const rhi::TextureImage *Renderer::get_shadow_image(size_t a_cascade_index) const
@@ -2396,15 +2427,28 @@ void Renderer::update_per_view_uniform(const ror::Matrix4f &a_view, const ror::M
 
 	auto view_projection = a_projection * a_view;
 
+	// log_warn("About to set and print the renderer MVP");
+	// print_matrix(view_projection);
+
 	per_view_uniform->buffer_map();
 
 	per_view_uniform->update("view_mat4", &a_view.m_values);
 	per_view_uniform->update("projection_mat4", &a_projection.m_values);
 	per_view_uniform->update("view_projection_mat4", &view_projection.m_values);
 	per_view_uniform->update("camera_position", &a_eye.x);
-	per_view_uniform->update("viewport", &a_viewport.x);
+	per_view_uniform->update("viewport", &a_viewport.x);        // TODO: This viewport needs to be set via some Metal/Vulkan API as well set_viewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT)
 
 	per_view_uniform->buffer_unmap();
+}
+
+void Renderer::update_cascade_per_view_uniform(uint32_t a_cascade_index)
+{
+	const auto &projection = this->m_shadow_cascades_data.projection(a_cascade_index);
+	const auto &view       = this->m_shadow_cascades_data.view(a_cascade_index);
+	const auto &eye        = this->m_shadow_cascades_data.eye(a_cascade_index);
+	const auto &viewport   = this->m_shadow_cascades_data.viewport();
+
+	this->update_per_view_uniform(view, projection, viewport, eye);
 }
 
 void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system)

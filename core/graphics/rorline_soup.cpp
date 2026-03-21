@@ -61,7 +61,7 @@ void LineSoup::reset()
 
 void LineSoup::init(const rhi::Device &a_device)
 {
-	this->m_device       = &a_device;
+	this->m_device = &a_device;
 
 	// Create vertex descriptor
 	rhi::VertexAttribute vap{0, 0, 1, 0, 0, 0, rhi::BufferSemantic::vertex_position, rhi::VertexFormat::float32_3};        // location, offset, count, buffer_offset, binding, buffer_index, semantic, format
@@ -75,8 +75,10 @@ void LineSoup::init(const rhi::Device &a_device)
 	this->m_vertex_descriptor = rhi::VertexDescriptor{vattribs, vlayouts};
 }
 
-void LineSoup::upload(const rhi::Device &a_device, const ror::Renderer &a_renderer)
+void LineSoup::upload(const rhi::Device &a_device, const rhi::Renderpass &a_target_pass, const rhi::Rendersubpass &a_target_subpass)
 {
+	this->init(a_device);
+
 	auto vertex_buffer_size{10000u};
 
 	// Create shader program
@@ -84,18 +86,12 @@ void LineSoup::upload(const rhi::Device &a_device, const ror::Renderer &a_render
 	auto vs_shader = rhi::build_shader<rhi::Shader>(a_device, "line_soup.glsl.vert");
 	auto fs_shader = rhi::build_shader<rhi::Shader>(a_device, "line_soup.glsl.frag");
 
-	// Needs final pass stuff
-	rhi::Renderpass    *pass{nullptr};
-	rhi::Rendersubpass *subpass{nullptr};
-
-	a_renderer.get_final_pass_subpass(&pass, &subpass);
-
 	// Only requires the following descriptors
 	// layout(std140, set = 0, binding = 20) uniform per_view_uniform; name and set and binding needs changing according to API
 
 	uint32_t lines_soup_buffer_binding{0};
 	this->m_shader_program.build_descriptor(a_device, nullptr, lines_soup_buffer_binding, nullptr, nullptr, 0);
-	this->m_shader_program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "line_soup_pso", false, false, false);
+	this->m_shader_program.upload(a_device, a_target_pass, a_target_subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "line_soup_pso", false, false, false);
 
 	this->m_vertex_buffer.init(a_device, vertex_buffer_size);        // By default in shared mode
 }

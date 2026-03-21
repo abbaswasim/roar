@@ -82,8 +82,7 @@ class ROAR_ENGINE_ITEM LineSoup final
 
 	LineSoup();        //! Default constructor
 
-	void     init(const rhi::Device &a_device);
-	void     upload(const rhi::Device &a_device, const ror::Renderer &a_renderer);
+	void     upload(const rhi::Device &a_device, const rhi::Renderpass &a_target_pass, const rhi::Rendersubpass &a_target_subpass);
 	void     render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder);
 	uint32_t push_lines(const uint8_t *a_data, uint32_t a_lines_count, uint32_t a_lines_index = 0xFFFFFFFF);
 	uint32_t push_box(const ror::BoundingBoxf &a_box, uint32_t a_lines_index = 0xFFFFFFFF, ror::Vector4f a_color = ror::orange4f);
@@ -94,6 +93,7 @@ class ROAR_ENGINE_ITEM LineSoup final
 
   protected:
   private:
+	void init(const rhi::Device &a_device);
 	void install_input_handlers();
 	void uninstall_input_handlers();
 	void setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder);

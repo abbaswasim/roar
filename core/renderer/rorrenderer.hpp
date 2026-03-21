@@ -26,6 +26,7 @@
 #pragma once
 
 #include "camera/rorcamera.hpp"
+#include "camera/rorshadow_data.hpp"
 #include "configuration/rorconfiguration.hpp"
 #include "foundation/rorjobsystem.hpp"
 #include "foundation/rormacros.hpp"
@@ -93,6 +94,7 @@ class Renderer final : public Configuration<Renderer>
 	void                             push_dependent_shader_record(rhi::Shader &a_shader, int32_t a_shader_id, std::string a_name);
 	void                             get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const;
 	void                             update_per_view_uniform(const ror::Matrix4f &a_view, const ror::Matrix4f &a_projection, const ror::Vector4ui &a_viewport, const ror::Vector3f &a_eye);
+	void                             update_cascade_per_view_uniform(uint32_t a_cascade_index);
 
 	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
 
@@ -118,6 +120,8 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &viewport()               const noexcept { return this->m_viewport;                        }
 	FORCE_INLINE constexpr auto &frame_graphs()           const noexcept { return this->m_frame_graphs;                    }
 	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;            }
+	FORCE_INLINE constexpr auto &shadow_cascade_cache()   const noexcept { return this->m_shadow_cascade_cache;            }
+	FORCE_INLINE constexpr auto &shadow_cascades_data()   const noexcept { return this->m_shadow_cascades_data;            }
 	FORCE_INLINE constexpr auto current_frame_index()     const noexcept { return this->m_frames.current_frame_index();    }
 	FORCE_INLINE constexpr auto &dynamic_meshes()         const noexcept { return this->m_dynamic_meshes;                  }
 	FORCE_INLINE constexpr auto canonical_cube()          const noexcept { return this->m_canonical_cube;                  }
@@ -201,6 +205,7 @@ class Renderer final : public Configuration<Renderer>
 	std::vector<rhi::RenderpassType> render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const;
 	const rhi::RenderTarget         *find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
 	const rhi::RenderBuffer         *find_renderbuffer_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
+	const rhi::Renderpass           &get_shadow_pass(uint32_t a_cascade_index = 0);        // The first cascade render pass is a good representation of all the passes, they are mostly the same
 	void                             generate_shader_buffers_mapping();
 	void                             generate_shader_callbacks_mapping();
 
@@ -226,6 +231,7 @@ class Renderer final : public Configuration<Renderer>
 	void     setup_final_pass();
 	void     setup_shadow_passes();
 	void     setup_shader_buffers();
+	void     update_shadow_cascades(ror::Scene &a_scene);
 
 	ror::Frames                             m_frames{};                                       //! All the frames in flight
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
@@ -247,6 +253,8 @@ class Renderer final : public Configuration<Renderer>
 	std::vector<ror::DynamicMesh *>         m_dynamic_meshes{};                               //! Non-Owning pointers to all the dynamic meshes created in the renderer should be rendererd at the end, mostly has cubemap meshes etc
 	ror::DynamicMesh                        m_cube_map_mesh{};                                //! Single instance of a cubemap mesh used by all environments
 	DebugData                               m_debug_data{};                                   //! Other debug data like shadow map quads and camera frustums
+	ror::Light::CascadeData                 m_shadow_cascade_cache{};                         //! Cache of shadow data for current scene's current camera and current directional shadow light
+	ror::ShadowData<ror::cascade_count>     m_shadow_cascades_data{};                         //! Cache of shadow data for all cascades that is used to build shadow_cascades_data for the directional light
 	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use
 	int32_t                                 m_grid_id{-1};                                    //! Reference to the grid for easy access
 	uint32_t                                m_canonical_cube{};                               //! Canonical cube for debugging purposes
@@ -258,7 +266,7 @@ class Renderer final : public Configuration<Renderer>
 	size_t                                  m_subpasses_count{0};                             //! Total amount of subpasses in the current framegraph
 	size_t                                  m_renderpass_index{0};                            //! Which renderpass are we currently rendering from the frame graph. This is state
 	size_t                                  m_subpass_index{0};                               //! Which subpass are we currently rendering from the frame graph. This is state
-	int32_t                                 m_shadow_passes[cascade_count];                   //! Indices of the shadow passes in the render pass chains in framegraph
+	int32_t                                 m_shadow_passes[ror::cascade_count];              //! Indices of the shadow passes in the render pass chains in framegraph
 	EventCallback                           m_semi_colon_key_callback{};                      //! Semi colon key call back to enable disable the grid
 	std::function<void(IBLEnvironment &)>   m_environment_upload{};                           //! Environment upload lambda used by environment cycle menthod
 };
