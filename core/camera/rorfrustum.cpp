@@ -65,6 +65,7 @@ void Frustum::setup(const ror::Matrix4f &a_view)
 	this->m_bounding_sphere = ror::BoundingSpheref{};        // Reset the bounding sphere
 	this->m_center          = {};                            // Reset the center
 
+	float32_t     radius{0.0f};
 	ror::Matrix4f view_inverse{};
 	auto          result = a_view.inverse(view_inverse);
 	assert(result && "Can't invert view matrix");
@@ -82,17 +83,24 @@ void Frustum::setup(const ror::Matrix4f &a_view)
 
 	this->m_center = this->m_center / 8.0f;
 
-	this->m_bounding_sphere.add_bounding(this->m_bounding_box);        // Need to test this or use the one below
-	// this->m_bounding_sphere.create_from_min_max(this->m_bounding_box.minimum(), this->m_bounding_box.maximum());
+	this->m_bounding_sphere.set_center(this->m_center);
+	this->m_bounding_sphere.set_center(this->m_bounding_box.center());
 
-	float32_t radius  = this->m_bounding_sphere.radius();
-	radius            = std::ceil(radius * 16.0f) / 16.0f;        // Why this mul and div by 16, I don't understand
-	auto radius_delta = ror::Vector3f{radius - this->m_bounding_sphere.radius()};
+	auto bc = this->m_bounding_box.center();
 
-	this->m_bounding_sphere.set_radius(radius);
+	ror::log_critical("center({}, {}, {}) == bboxcenter({}, {}, {})", m_center.x, m_center.y, m_center.z, bc.x, bc.y, bc.z);
+
+	radius = this->m_bounding_box.diagonal() / 2.0f;
+	radius = ror::distance(this->m_bounding_box.center(), this->m_bounding_box.maximum());
+
+	const auto new_radius = std::ceil(radius * 16.0f) / 16.0f;        // This rounds radius up to the next multiple of 1/16 or 0.0625
+
+	this->m_bounding_sphere.set_radius(new_radius);
+
 	// Lets also move the bounding box by this difference in radius after the ceil
-	auto bmin = this->m_bounding_box.minimum();
-	auto bmax = this->m_bounding_box.maximum();
+	auto radius_delta = ror::Vector3f{new_radius - radius};
+	auto bmin         = this->m_bounding_box.minimum();
+	auto bmax         = this->m_bounding_box.maximum();
 
 	bmin -= radius_delta;
 	bmax += radius_delta;

@@ -26,8 +26,20 @@
 #include "graphics/rorline_soup.hpp"
 #include "rorshadow_data.hpp"
 
+#include "gui/rorgui.hpp"
+#include "renderer/rorrenderer.hpp"
+#include "graphics/rorscene.hpp"
+
 namespace ror
 {
+
+struct drawing_stuff
+{
+	ror::Frustum                 m_frustum;
+	std::array<ror::Vector3f, 8> m_projection_corners_ws;
+	ror::Vector3f                m_eye;
+	ror::Vector3f                m_center;
+};
 
 //--------------------------------------------------------------------------------------
 // Copied from https://github.com/walbourn/directx-sdk-samples-reworked/blob/main/CascadedShadowMaps11/CascadedShadowMaps11.cpp to find a scene + view frustum fit
@@ -38,6 +50,7 @@ struct TriangleT
 	ror::Vector3f pt[3];
 	bool          culled;
 };
+
 //--------------------------------------------------------------------------------------
 // Computing an accurate near and flar plane will decrease surface acne and Peter-panning.
 // Surface acne is the term for erroneous self shadowing.  Peter-panning is the effect where
@@ -50,17 +63,17 @@ struct TriangleT
 // a_scene_points_ls    Is all point of Scene AABB in light space
 //--------------------------------------------------------------------------------------
 void compute_near_and_far(float32_t                   &a_near_plane,
-                                 float32_t                   &a_far_plane,
-                                 ror::Vector3f                camera_bounds_min_ls,
-                                 ror::Vector3f                camera_bounds_max_ls,
-                                 std::array<ror::Vector3f, 8> a_scene_bbox_points_ls)
+                          float32_t                   &a_far_plane,
+                          ror::Vector3f                camera_bounds_min_ls,
+                          ror::Vector3f                camera_bounds_max_ls,
+                          std::array<ror::Vector3f, 8> a_scene_bbox_points_ls)
 {
 	// Initialize the near and far planes
 	a_near_plane = FLT_MAX;
 	a_far_plane  = -FLT_MAX;
 
 	TriangleT triangleList[16];
-	int32_t  iTriangleCnt = 1;
+	int32_t   iTriangleCnt = 1;
 
 	triangleList[0].pt[0]  = a_scene_bbox_points_ls[0];
 	triangleList[0].pt[1]  = a_scene_bbox_points_ls[1];
@@ -318,120 +331,195 @@ void compute_near_and_far(float32_t                   &a_near_plane,
 	}
 }
 
-/*
 void shadow_volume_debug_geometry(ror::Scene &a_scene, ror::EventSystem &a_event_system, ror::Matrix4f &a_light_view_fit, ror::Matrix4f &a_projection_fit,
                                   ror::Vector3f &a_eye, ror::Vector3f &a_target, ror::Vector3f frustum_min_ls, ror::Vector3f frustum_max_ls)
 {
-	(void) a_event_system;
+    (void) a_event_system;
 
-	auto       &scene_camera       = a_scene.current_camera();
-	const auto &scene_bbox_ws      = a_scene.bounding_box();
-	const auto &frustum_corners_ws = scene_camera.frustum_corners();        // frustum_corners returns corners in world space
+    auto       &scene_camera       = a_scene.current_camera();
+    const auto &scene_bbox_ws      = a_scene.bounding_box();
+    const auto &frustum_corners_ws = scene_camera.frustum_corners();        // frustum_corners returns corners in world space
 
-	static bool light_to_camera_toggle = true;
-	static bool use_light_camera       = false;
+    static bool light_to_camera_toggle = true;
+    static bool use_light_camera       = false;
 
-	if (use_light_camera)
-	{
-		scene_camera.view(a_light_view_fit);
-		scene_camera.projection(a_projection_fit);
-	}
+    if (use_light_camera)
+    {
+        scene_camera.view(a_light_view_fit);
+        scene_camera.projection(a_projection_fit);
+    }
 
-	ror::EventCallback toggle_callback = [](ror::Event) {
-		use_light_camera = !use_light_camera;
+    ror::EventCallback toggle_callback = [](ror::Event) {
+        use_light_camera = !use_light_camera;
 
-		if (use_light_camera)
-			ror::log_critical("Will use light camera now");
-		else
-			ror::log_critical("Will use scene camera now");
-	};
+        if (use_light_camera)
+            ror::log_critical("Will use light camera now");
+        else
+            ror::log_critical("Will use scene camera now");
+    };
 
-	if (light_to_camera_toggle)
-	{
-		a_event_system.subscribe(ror::keyboard_p_click, toggle_callback);
-		light_to_camera_toggle = false;
-	}
+    if (light_to_camera_toggle)
+    {
+        a_event_system.subscribe(ror::keyboard_p_click, toggle_callback);
+        light_to_camera_toggle = false;
+    }
 
-	// Now lets display the light orthographic projection
-	ror::Vector3f l_b_f{frustum_min_ls.x, frustum_min_ls.y, frustum_min_ls.z};
-	ror::Vector3f l_t_f{frustum_min_ls.x, frustum_max_ls.y, frustum_min_ls.z};
-	ror::Vector3f r_t_f{frustum_max_ls.x, frustum_max_ls.y, frustum_min_ls.z};
-	ror::Vector3f r_b_f{frustum_max_ls.x, frustum_min_ls.y, frustum_min_ls.z};
+    // Now lets display the light orthographic projection
+    ror::Vector3f l_b_f{frustum_min_ls.x, frustum_min_ls.y, frustum_min_ls.z};
+    ror::Vector3f l_t_f{frustum_min_ls.x, frustum_max_ls.y, frustum_min_ls.z};
+    ror::Vector3f r_t_f{frustum_max_ls.x, frustum_max_ls.y, frustum_min_ls.z};
+    ror::Vector3f r_b_f{frustum_max_ls.x, frustum_min_ls.y, frustum_min_ls.z};
 
-	ror::Vector3f l_b_b{frustum_min_ls.x, frustum_min_ls.y, frustum_max_ls.z};
-	ror::Vector3f l_t_b{frustum_min_ls.x, frustum_max_ls.y, frustum_max_ls.z};
-	ror::Vector3f r_t_b{frustum_max_ls.x, frustum_max_ls.y, frustum_max_ls.z};
-	ror::Vector3f r_b_b{frustum_max_ls.x, frustum_min_ls.y, frustum_max_ls.z};
+    ror::Vector3f l_b_b{frustum_min_ls.x, frustum_min_ls.y, frustum_max_ls.z};
+    ror::Vector3f l_t_b{frustum_min_ls.x, frustum_max_ls.y, frustum_max_ls.z};
+    ror::Vector3f r_t_b{frustum_max_ls.x, frustum_max_ls.y, frustum_max_ls.z};
+    ror::Vector3f r_b_b{frustum_max_ls.x, frustum_min_ls.y, frustum_max_ls.z};
 
-	ror::Vector3f light_projection_corners_ws[8];
+    ror::Vector3f light_projection_corners_ws[8];
 
-	ror::Matrix4f light_view_inv{};
-	bool          result = a_light_view_fit.inverse(light_view_inv);
-	assert(result && "Light view can't be inverted while fitting it to the shadow volume");
-	(void) result;
+    ror::Matrix4f light_view_inv{};
+    bool          result = a_light_view_fit.inverse(light_view_inv);
+    assert(result && "Light view can't be inverted while fitting it to the shadow volume");
+    (void) result;
 
-	light_projection_corners_ws[0] = light_view_inv * l_b_f;
-	light_projection_corners_ws[1] = light_view_inv * l_t_f;
-	light_projection_corners_ws[2] = light_view_inv * r_t_f;
-	light_projection_corners_ws[3] = light_view_inv * r_b_f;
+    light_projection_corners_ws[0] = light_view_inv * l_b_f;
+    light_projection_corners_ws[1] = light_view_inv * l_t_f;
+    light_projection_corners_ws[2] = light_view_inv * r_t_f;
+    light_projection_corners_ws[3] = light_view_inv * r_b_f;
 
-	light_projection_corners_ws[4] = light_view_inv * l_b_b;
-	light_projection_corners_ws[5] = light_view_inv * l_t_b;
-	light_projection_corners_ws[6] = light_view_inv * r_t_b;
-	light_projection_corners_ws[7] = light_view_inv * r_b_b;
+    light_projection_corners_ws[4] = light_view_inv * l_b_b;
+    light_projection_corners_ws[5] = light_view_inv * l_t_b;
+    light_projection_corners_ws[6] = light_view_inv * r_t_b;
+    light_projection_corners_ws[7] = light_view_inv * r_b_b;
 
-	static uint32_t light_projection_ws_index{0xFFFFFFFF};
-	static uint32_t light_lines_ws_index{0xFFFFFFFF};
-	static uint32_t frustum_corners_ws_index{0xFFFFFFFF};
+    static uint32_t light_projection_ws_index{0xFFFFFFFF};
+    static uint32_t light_lines_ws_index{0xFFFFFFFF};
+    static uint32_t frustum_corners_ws_index{0xFFFFFFFF};
 
-	auto &ls = ror::line_soup();
+    auto &ls = ror::line_soup();
 
-	light_lines_ws_index      = ls.push_box(scene_bbox_ws, light_lines_ws_index, ror::orange4f);
-	light_projection_ws_index = ls.push_box(light_projection_corners_ws, light_projection_ws_index, ror::red4f);
-	frustum_corners_ws_index  = ls.push_box(frustum_corners_ws, frustum_corners_ws_index, ror::green4f);
+    light_lines_ws_index      = ls.push_box(scene_bbox_ws, light_lines_ws_index, ror::orange4f);
+    light_projection_ws_index = ls.push_box(light_projection_corners_ws, light_projection_ws_index, ror::red4f);
+    frustum_corners_ws_index  = ls.push_box(frustum_corners_ws, frustum_corners_ws_index, ror::green4f);
 
-	static uint32_t ce{0xFFFFFFFF};
-	static uint32_t cen{0xFFFFFFFF};
-	static uint32_t lp{0xFFFFFFFF};
+    static uint32_t ce{0xFFFFFFFF};
+    static uint32_t cen{0xFFFFFFFF};
+    static uint32_t lp{0xFFFFFFFF};
 
-	const uint32_t         lines_count = 2;
-	std::vector<float32_t> data{};
-	data.reserve(lines_count * 2 * 4);
+    const uint32_t         lines_count = 2;
+    std::vector<float32_t> data{};
+    data.reserve(lines_count * 2 * 4);
 
-	ror::push_point(data, a_eye, ror::white4f);
-	ror::push_point(data, a_target, ror::red4f);
+    ror::push_point(data, a_eye, ror::white4f);
+    ror::push_point(data, a_target, ror::red4f);
 
-	ce  = ls.push_lines(reinterpret_cast<uint8_t *>(data.data()), lines_count, ce);
-	lp  = ls.push_cross(a_eye, 2.0f, lp, ror::blue4f);
-	cen = ls.push_cross(a_target, 2.0f, cen, ror::green4f);
+    ce  = ls.push_lines(reinterpret_cast<uint8_t *>(data.data()), lines_count, ce);
+    lp  = ls.push_cross(a_eye, 2.0f, lp, ror::blue4f);
+    cen = ls.push_cross(a_target, 2.0f, cen, ror::green4f);
 }
-*/
 
-void shadow_volume_debug_geometry(ror::Scene &a_scene, const std::array<ror::Frustum, ror::cascade_count> &a_frustums)
+void fit_light_frustrum(ror::Scene &a_scene, const ror::Light &a_light, ror::Matrix4f &a_light_view_fit, ror::Matrix4f &a_projection_fit, ror::Vector3f &a_eye);
+void fit_light_frustrum_cascades(ror::Scene &a_scene, const ror::Light &a_light, ror::Matrix4f &a_light_view_fit, ror::Matrix4f &a_projection_fit, ror::Vector3f &a_eye);
+void render_scene_into_shadowmap(ror::Scene &a_scene, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, const ror::Vector4ui &a_viewport, const ror::Vector3f &a_eye, const ror::Matrix4f &a_view, const ror::Matrix4f &a_projection);
+void shadow_volume_debug_geometry(ror::Scene &a_scene, const std::array<drawing_stuff, ror::cascade_count> &a_drawings_stuff);
+
+void shadow_volume_debug_geometry(ror::Scene &a_scene, const std::array<drawing_stuff, ror::cascade_count> &a_drawings_stuff)
 {
-	auto &ls = ror::line_soup();
+	auto &ls = ror::line_soup(1);
 
-	static uint32_t scene_bbox_index{0xFFFFFFFF};
-	scene_bbox_index = ls.push_box(a_scene.bounding_box(), scene_bbox_index, ror::orange4f);
+	(void) a_scene;
+	std::array<uint32_t, ror::cascade_count> frustum_indices{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+	std::array<uint32_t, ror::cascade_count> frustum_bbox_indices{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+	std::array<uint32_t, ror::cascade_count> projs_bbox_indices{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+	std::array<uint32_t, ror::cascade_count> eyes_indices{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+	std::array<uint32_t, ror::cascade_count> centers_indices{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+	std::array<uint32_t, ror::cascade_count> sphere_indices{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+	std::array<uint32_t, ror::cascade_count> sphere_cross_indices{0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+	std::array<uint32_t, ror::cascade_count> sphere_segments{5, 6, 8, 10};
+	uint32_t                                 center_lines_indices{0xFFFFFFFF};
 
-	static std::array<uint32_t, ror::cascade_count> frustum_indices{
-	    0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+	static std::unordered_map<std::string, bool> options = {{"Frustum Corners", false},
+	                                                        {"Frustum Box", false},
+	                                                        {"Projection corners", false},
+	                                                        {"Spheres", false},
+	                                                        {"SpheresCross", false},
+	                                                        {"Scene Bounding", false}};
 
-	const ror::Vector4f colors[ror::cascade_count] = {ror::green4f, ror::red4f, ror::blue4f, ror::yellow4f};
+	static uint32_t global_cascade_index  = 0;
+	static int32_t  display_cascade_index = 0;
 
-	for (size_t cascade = 0; cascade < ror::cascade_count; ++cascade)
+	if (global_cascade_index == 0)
 	{
-		frustum_indices[cascade] = ls.push_box(a_frustums[cascade].corners(), frustum_indices[cascade], colors[cascade]);
-	}
-}
+		ls.reset();
+		if (ImGui::Begin("Cascade selection"))
+		{
+			for (auto &op_it : options)
+				ImGui::Checkbox(op_it.first.c_str(), &op_it.second);
 
-// void print_matrix(ror::Matrix4f &a_matrix)
-// {
-// 	std::cout << "[";
-// 	for (size_t i = 0; i < 15; ++i)
-// 		std::cout << std::fixed << a_matrix.m_values[i] << ", ";
-// 	std::cout << std::fixed << a_matrix.m_values[15] << "]\n";
-// }
+			ImGui::SliderInt("Cascade Index", &display_cascade_index, 0, 4);
+		}
+		ImGui::End();
+
+		ror::Vector4f       div{0.6f, 0.6f, 0.6f, 1.0f};
+		const ror::Vector4f colors[ror::cascade_count] = {ror::green4f, ror::red4f, ror::cyan4f, ror::yellow4f};
+
+		(void) colors;
+		const uint32_t         lines_count{ror::cascade_count};
+		std::vector<float32_t> data{};
+		data.reserve(lines_count * 2 * 4);
+
+		auto render_cascade_geometry = [&ls, &a_drawings_stuff, &colors,
+		                                &frustum_indices, &frustum_bbox_indices,
+		                                &projs_bbox_indices, &eyes_indices, &centers_indices,
+		                                &sphere_indices, &sphere_cross_indices, &sphere_segments](size_t cascade) {
+			const Vector4f black4f2(0.0f, 0.0f, 0.0f, 0.0f);
+
+			if (options["Frustum Corners"])
+				frustum_indices[cascade] = ls.push_box(a_drawings_stuff[cascade].m_frustum.corners(), frustum_indices[cascade], colors[cascade], false);
+
+			if (options["Frustum Box"])
+				frustum_bbox_indices[cascade] = ls.push_box(a_drawings_stuff[cascade].m_frustum.box(), frustum_bbox_indices[cascade], colors[cascade]);
+
+			if (options["Projection corners"])
+				projs_bbox_indices[cascade] = ls.push_box(a_drawings_stuff[cascade].m_projection_corners_ws.data(), projs_bbox_indices[cascade], colors[cascade]);
+
+			eyes_indices[cascade]    = ls.push_cross(a_drawings_stuff[cascade].m_eye, 2.0f, eyes_indices[cascade], ror::blue4f);
+			centers_indices[cascade] = ls.push_cross(a_drawings_stuff[cascade].m_center, 2.0f, centers_indices[cascade], ror::red4f);
+
+			auto sphere = a_drawings_stuff[cascade].m_frustum.sphere();
+
+			if (options["Spheres"])
+				sphere_indices[cascade] = ls.push_sphere(sphere, sphere_indices[cascade], sphere_segments[cascade], colors[cascade]);
+
+			if (options["SpheresCross"])
+				sphere_cross_indices[cascade] = ls.push_cross(sphere.center(), sphere.radius() * 2.0f, sphere_cross_indices[cascade], ror::orange4f);
+		};
+
+		if (display_cascade_index == 4)
+		{
+			for (size_t cascade = 0; cascade < ror::cascade_count; ++cascade)
+				render_cascade_geometry(cascade);
+		}
+		else
+		{
+			render_cascade_geometry(static_cast_safe<size_t>(display_cascade_index));
+		}
+
+		for (size_t cascade = 0; cascade < ror::cascade_count; ++cascade)
+		{
+			ror::push_point(data, a_drawings_stuff[cascade].m_eye, ror::red4f);
+			ror::push_point(data, a_drawings_stuff[cascade].m_center, ror::red4f);
+		}
+		center_lines_indices = ls.push_lines(reinterpret_cast<uint8_t *>(data.data()), lines_count, center_lines_indices);
+
+		uint32_t scene_bbox_index{0xFFFFFFFF};
+		if (options["Scene Bounding"])
+			scene_bbox_index = ls.push_box(a_scene.bounding_box(), scene_bbox_index, ror::orange4f);
+	}
+
+	global_cascade_index++;
+	global_cascade_index = global_cascade_index % cascade_count;
+}
 
 // NOTE: Projection deterimines the size of the box you see, while viewing determines where the box is located.
 // In orthographics projection the viewing eye position really doesn't matter as long as the box covers the sceen
@@ -499,14 +587,6 @@ void fit_light_frustrum(const ror::Light &a_light, ror::Matrix4f &a_light_view_f
 
 	a_projection_fit = ror::make_ortho(min.x, max.x, min.y, max.y, min.z, max.z);
 	a_light_view_fit = ror::make_look_at(a_eye, target, ror::yaxis3f, ror::yaxis3f, ror::xaxis3f);
-
-	// ror::log_warn("About to print the shadow matrices used for light from ({}, {}, {})", a_eye.x, a_eye.y, a_eye.z);
-
-	// auto mvp = a_projection_fit * a_light_view_fit;
-
-	// print_matrix(mvp);
-	// print_matrix(a_projection_fit);
-	// print_matrix(a_light_view_fit);
 }
 
 void render_scene_into_shadowmap(ror::Scene &a_scene, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, const ror::Vector4ui &a_viewport, const ror::Vector3f &a_eye, const ror::Matrix4f &a_view, const ror::Matrix4f &a_projection)

@@ -151,25 +151,21 @@ void shadow_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_sce
 	// TODO: Need to do front face culling
 	// TODO: Disable depth clipping so occluder objects near the light are pancaked to z=0, find out how its done in vulkan and metal https://therealmjp.github.io/posts/shadow-maps/ (Disabling Z Clipping)
 	/*
+
 	  // Make sure this is only done for 3D objects and not objects like plane which will disappear
 	  glCullFace(GL_FRONT);
 	  RenderSceneToDepthMap();
 	  glCullFace(GL_BACK); // don't forget to reset original culling face
+
 	*/
 
-	for (auto &light : a_scene.lights())
-	{
-		if (light.type() == ror::Light::LightType::directional)        // TODO: Check all shadow casting lights
-		{
-			ror::ShadowData<ror::cascade_count> cascaded_shadow_map{};
+	static uint32_t cascade_index = 0;
 
-			cascaded_shadow_map.build(a_scene, a_event_system, a_renderer, light, a_scene.current_camera(), a_pass.dimensions());
-			cascaded_shadow_map.update_per_view_uniform();
+	a_renderer.update_cascade_per_view_uniform(cascade_index);        // The renderer knows about current frame, pass, renderpass as it uses it here to work out which per_view uniform to update
 
-			render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
-			break;
-		}
-	}
+	render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
+
+	cascade_index = (cascade_index + 1) % ror::cascade_count;
 }
 
 void light_bin_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
@@ -232,6 +228,48 @@ void tone_mapping_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene 
 	// ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
+void draw_canonical()
+{
+	auto    &ls = ror::line_soup(0);
+	uint32_t box_id{0xFFFFFFFF};
+	uint32_t sphere_id{0xFFFFFFFF};
+
+	uint32_t sphereC_id{0xFFFFFFFF};
+
+	static std::unordered_map<std::string, bool> options = {{"Box", false},
+	                                                        {"Sphere", false},
+	                                                        {"SphereC", false}};
+	if (ImGui::Begin("Canonical test"))
+	{
+		for (auto &op_it : options)
+			ImGui::Checkbox(op_it.first.c_str(), &op_it.second);
+	}
+	ImGui::End();
+
+	ror::Vector3f        min{-2, -2, -2};
+	ror::Vector3f        max{2, 2, 2};
+	ror::BoundingBoxf    box{};
+	ror::BoundingSpheref sphere{};
+	ror::BoundingSpheref sphereC{};
+
+	box.create_from_min_max(min, max);
+
+	sphere.set_center(box.center());
+	sphere.set_radius(box.diagonal() / 2.0f);
+
+	sphereC.set_center(box.center());
+	sphereC.set_radius(2.0f);
+
+	if (options["Box"])
+		box_id = ls.push_box(box, box_id, ror::red4f);
+
+	if (options["Sphere"])
+		sphere_id = ls.push_sphere(sphere, sphere_id, 10, ror::green4f);
+
+	if (options["SphereC"])
+		sphereC_id = ls.push_sphere(sphereC, sphereC_id, 10, ror::red4f);
+}
+
 void forward_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
                         rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass)
 {
@@ -247,6 +285,20 @@ void forward_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene
 	camera.upload(a_renderer);
 
 	render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
+
+	// Lets render all the renderer dynamic mesh, usually it only has a skybox cubmap
+	// TODO: Check why the order of this and the one above matters, if scene dynamic meshes are rendererd first nothing shows
+	// This doesn't render anymore as its using sampler2D but now shadow depth is sampler2DArray
+	for (auto &dynamic_mesh : a_renderer.dynamic_meshes())
+		dynamic_mesh->render(a_device, a_renderer, a_command_encoder);
+
+	// draw_canonical();
+
+	for (size_t i = 0; i < ror::line_soups_count; ++i)
+	{
+		auto &lin_soup = ror::line_soup(i);
+		lin_soup.render(a_device, a_command_encoder);
+	}
 
 	// Lets update the UI elements
 	auto &setting = ror::settings();

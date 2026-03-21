@@ -30,7 +30,6 @@
 #include "foundation/rortypes.hpp"
 #include "math/rorvector4.hpp"
 #include "renderer/rorrenderer.hpp"
-#include "rhi/rordevice.hpp"
 #include <cstdint>
 #include <type_traits>
 
@@ -83,13 +82,15 @@ class ROAR_ENGINE_ITEM LineSoup final
 
 	LineSoup();        //! Default constructor
 
-	void     init(const rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void     init(const rhi::Device &a_device);
 	void     upload(const rhi::Device &a_device, const ror::Renderer &a_renderer);
 	void     render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder);
 	uint32_t push_lines(const uint8_t *a_data, uint32_t a_lines_count, uint32_t a_lines_index = 0xFFFFFFFF);
 	uint32_t push_box(const ror::BoundingBoxf &a_box, uint32_t a_lines_index = 0xFFFFFFFF, ror::Vector4f a_color = ror::orange4f);
-	uint32_t push_box(const ror::Vector3f a_corners[8], uint32_t a_lines_index = 0xFFFFFFFF, ror::Vector4f a_color = ror::orange4f);
+	uint32_t push_box(const ror::Vector3f a_corners[8], uint32_t a_lines_index = 0xFFFFFFFF, ror::Vector4f a_color = ror::orange4f, bool a_mark_center = false);
 	uint32_t push_cross(const ror::Vector3f &a_center, const float32_t a_size, uint32_t a_lines_index = 0xFFFFFFFF, ror::Vector4f a_color = ror::orange4f);
+	uint32_t push_sphere(const ror::BoundingSpheref &a_sphere, uint32_t a_lines_index = 0xFFFFFFFF, uint32_t a_segments = 20u, ror::Vector4f a_color = ror::orange4f);
+	void     reset();
 
   protected:
   private:
@@ -98,7 +99,6 @@ class ROAR_ENGINE_ITEM LineSoup final
 	void setup_render_state(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder);
 
 	const rhi::Device    *m_device{nullptr};               //! Non-Owning pointer to a device that is used to initiliazed this line soup
-	ror::EventSystem     *m_event_system{nullptr};         //! Non-owning pointer to the event system
 	EventCallback         m_show_toggle_callback{};        //! Show/Unshow function that will be used to subscribe and unsubscribe this with event system
 	bool                  m_visible{true};                 //! Is the thing showing, can we go and render
 	uint32_t              m_lines_count{0u};               //! All the lines pushed in to the soup so far
@@ -156,10 +156,13 @@ FORCE_INLINE constexpr void push_point(std::vector<float32_t> &a_data, float32_t
 	push_color(a_data, r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
 }
 
-FORCE_INLINE LineSoup &line_soup() noexcept
+const size_t line_soups_count{1 + 1};        // Make a global line soup but 1[x] others that get like line_soup(3); and that you can reset every frame by calling ls.reset();
+
+FORCE_INLINE LineSoup &line_soup(size_t a_index = 0u) noexcept
 {
-	static LineSoup lines{};        // Global lines container
-	return lines;
+	static std::array<LineSoup, line_soups_count> lines{};        // Global lines container
+	assert(a_index < lines.size() && "Lines soup index out of bound, do you need to increase the size of default containers");
+	return lines[a_index];
 }
 
 }        // namespace ror

@@ -267,6 +267,7 @@ void OrbitCamera::build_cascades()
 	// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html with implementations
 	// https://johanmedestrom.wordpress.com/2016/03/18/opengl-cascaded-shadow-maps/ and
 	// https://github.com/SaschaWillems/Vulkan/examples/shadowmappingcascade/shadowmappingcascade.cpp
+
 	for (uint32_t i = 0; i < cascade_count; i++)
 	{
 		float32_t power           = (i + 1) / static_cast<float32_t>(cascade_count);
@@ -426,6 +427,13 @@ void OrbitCamera::enable()
 	this->m_event_system->subscribe(keyboard_num6_click, this->m_camera_right_view);
 	this->m_event_system->subscribe(keyboard_num5_click, this->m_camera_front_view);
 	this->m_event_system->subscribe(keyboard_num0_click, this->m_camera_back_view);
+
+	this->m_event_system->subscribe(keyboard_t_control_click, this->m_camera_top_view);
+	this->m_event_system->subscribe(keyboard_b_control_click, this->m_camera_bottom_view);
+	this->m_event_system->subscribe(keyboard_l_control_click, this->m_camera_left_view);
+	this->m_event_system->subscribe(keyboard_r_control_click, this->m_camera_right_view);
+	this->m_event_system->subscribe(keyboard_f_control_click, this->m_camera_front_view);
+	this->m_event_system->subscribe(keyboard_k_control_click, this->m_camera_back_view);
 }
 
 void OrbitCamera::disable()
@@ -461,6 +469,13 @@ void OrbitCamera::disable()
 	this->m_event_system->unsubscribe(keyboard_num6_click, this->m_camera_right_view);
 	this->m_event_system->unsubscribe(keyboard_num5_click, this->m_camera_front_view);
 	this->m_event_system->unsubscribe(keyboard_num0_click, this->m_camera_back_view);
+
+	this->m_event_system->unsubscribe(keyboard_t_control_click, this->m_camera_top_view);
+	this->m_event_system->unsubscribe(keyboard_b_control_click, this->m_camera_bottom_view);
+	this->m_event_system->unsubscribe(keyboard_l_control_click, this->m_camera_left_view);
+	this->m_event_system->unsubscribe(keyboard_r_control_click, this->m_camera_right_view);
+	this->m_event_system->unsubscribe(keyboard_f_control_click, this->m_camera_front_view);
+	this->m_event_system->unsubscribe(keyboard_k_control_click, this->m_camera_back_view);
 }
 
 void OrbitCamera::draw_camera_properties()

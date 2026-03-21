@@ -28,7 +28,6 @@
 #include "camera/rorcamera.hpp"
 #include "foundation/rormacros.hpp"
 #include "graphics/rorlight.hpp"
-#include "graphics/rorscene.hpp"
 
 namespace ror
 {
@@ -48,12 +47,14 @@ class ROAR_ENGINE_ITEM ShadowData final
 	FORCE_INLINE constexpr auto &viewport()       const { return this->m_viewport;       }
 	FORCE_INLINE constexpr auto &views()          const { return this->m_views;          }
 	FORCE_INLINE constexpr auto &projections()    const { return this->m_projections;    }
+
+	FORCE_INLINE constexpr auto &eye(uint32_t a_cascade_index)           const { assert(a_cascade_index < ror::cascade_count && "Cascade index is invalid"); return this->m_eyes[a_cascade_index];           }
+	FORCE_INLINE constexpr auto &view(uint32_t a_cascade_index)          const { assert(a_cascade_index < ror::cascade_count && "Cascade index is invalid"); return this->m_views[a_cascade_index];          }
+	FORCE_INLINE constexpr auto &projection(uint32_t a_cascade_index)    const { assert(a_cascade_index < ror::cascade_count && "Cascade index is invalid"); return this->m_projections[a_cascade_index];    }
 	// clang-format on
 
-	void build(ror::Scene &a_scene, ror::EventSystem &a_event_system, ror::Renderer &a_renderer, ror::Light &a_light, const ror::OrbitCamera &a_camera, const ror::Vector2ui &a_dimensions);
-	void update_per_view_uniform(ror::Renderer &a_renderer, uint32_t a_cascade_index);
-
-	void fit_light_frustrum_cascades(ror::Scene &a_scene, const ror::Light &a_light, const ror::OrbitCamera &a_camera);
+	void build(ror::Light &a_light, const ror::OrbitCamera &a_camera, const ror::Vector2ui &a_dimensions);
+	void fit_light_frustrum_cascades(const ror::Light &a_light, const ror::OrbitCamera &a_camera);
 
   protected:
   private:

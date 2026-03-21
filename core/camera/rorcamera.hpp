@@ -175,6 +175,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	void update_view();
 	void update_normal();
 	void update_projection();
+	void toggle_projection(const ror::Vector3f &a_focus_point = ror::zero_vector3f);
 	void orient_to_direction(Vector3f a_forward, Vector3f a_up_hint);
 	void rotate(float32_t a_x_rotation, float32_t a_y_rotation, EventModifier a_modifier);
 	void rotate_eye_target(const ror::Matrix4f &a_rotation_matrix, const ror::Vector3f &a_origin);

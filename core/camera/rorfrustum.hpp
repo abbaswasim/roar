@@ -71,8 +71,8 @@ class ROAR_ENGINE_ITEM Frustum final
 	ror::Vector3f        m_corners[8];               //! The 8 corners of the frustum in world space
 	ror::Vector3f        m_center;                   //! The center of the frustum in world space
 	ror::Planef          m_planes[6];                //! The planes that bounds a frustum
-	ror::BoundingSpheref m_bounding_sphere{};        //! Bounding sphere of the frustum
-	ror::BoundingBoxf    m_bounding_box{};           //! Bounding box of the frustum
+	ror::BoundingSpheref m_bounding_sphere{};        //! Bounding sphere of the frustum world space
+	ror::BoundingBoxf    m_bounding_box{};           //! Bounding box of the frustum world space
 };
 
 }        // namespace ror

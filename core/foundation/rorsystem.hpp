@@ -161,19 +161,6 @@ constexpr ArchType get_arch()
 	return arch_type;
 }
 
-constexpr bool get_sanitized()
-{
-#if defined(__has_feature)
-#	if __has_feature(address_sanitizer) || __has_feature(undefined_behavior_sanitizer)
-	return true;
-#	elif
-	return false;
-#	endif
-#elif
-	return false;
-#endif
-}
-
 constexpr CompilerType get_compiler()
 {
 	CompilerType compiler_type = CompilerType::comp_clang;

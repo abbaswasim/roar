@@ -167,3 +167,42 @@ define_type_to_shader_semantics(float32_t)
 	return rhi::BufferSemantic::vertex_morph_weight;
 }
 }        // namespace rhi
+
+/*
+Reference on how to render many instances.
+
+struct CrowdInstance
+{
+    uint skeletonID
+    uint animationID
+    float animationTime
+
+    float4x4 worldMatrix
+
+    uint boneOffset
+}
+
+StructuredBuffer<float4x4> BoneMatrices[instanceCount * bonesPerSkeleton]
+
+You would need
+
+5000 characters
+100 bones each
+
+500,000 matrices
+
+A compute shader can be used to transform all of the instances in one go
+
+instanceID = globalID / boneCount
+boneID     = globalID % boneCount
+
+instance = CrowdInstances[instanceID]
+
+clip = AnimationClips[instance.animationID]
+
+t = instance.animationTime
+
+localTransform = sampleClip(clip, boneID, t)
+
+LocalBoneTransforms[instanceID][boneID] = localTransform
+*/
