@@ -32,7 +32,6 @@
 #include "roranchor.hpp"
 #include "rorgizmo.hpp"
 #include "roroverlay.hpp"
-#include "settings/rorsettings.hpp"
 
 #include <span>
 #include <vector>
