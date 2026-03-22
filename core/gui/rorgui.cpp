@@ -819,14 +819,20 @@ static bool rendering_mode_selector(uint32_t &a_render_mode_index, bool &a_show_
 static void show_settings(bool &a_show_settings, ror::EventSystem &a_event_system, bool &a_show_render_titles)
 {
 	ImGui::Begin("Roar settings...", &a_show_settings);
-
-	uint32_t render_mode_index{0};
-	if (rendering_mode_selector(render_mode_index, a_show_render_titles))
+	if (ror::settings().m_gui.m_enable_render_modes)
 	{
-		auto render_mode_handle = create_event_handle(EventType::renderer);
-		a_event_system.notify({render_mode_handle, true, render_mode_index});
+		uint32_t render_mode_index{0};
+		if (rendering_mode_selector(render_mode_index, a_show_render_titles))
+		{
+			auto render_mode_handle = create_event_handle(EventType::renderer);
+			a_event_system.notify({render_mode_handle, true, render_mode_index});
+		}
 	}
-
+	else
+	{
+		ImGui::Text("<Render modes disabled in settings>");
+		ImGui::Text("<Set enable_render_modes:true in settings.json>");
+	}
 	ImGui::End();
 }
 

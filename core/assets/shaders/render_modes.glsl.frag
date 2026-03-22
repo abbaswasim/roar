@@ -60,7 +60,7 @@ void set_render_mode(Material material, Fragment fragment)
 
 	if (!("Shaded"))
 	{
-		out_color = vec4(1.0, 0.0, 1.0, 1.0);
+		out_color = vec4(1.0, 0.0, 1.0, 1.0); //TODO: Find out why I am doing this? this doesn't make sense. 
 	}
 
 	if ("Multi-Render View")
@@ -284,5 +284,21 @@ void set_render_mode(Material material, Fragment fragment)
 		vec3  H     = normalize(fragment.view + light.direction);
 		float VoH   = clamp(dot(fragment.view, H), 0.0, 1.0);
 		out_color   = vec4(VoH, VoH, VoH, 1.0);
+	}
+	else if ("Cascade visualisation")
+	{
+		Directional_lights directional = in_directional_light_uniforms.directional_lights[0];
+		uint cascade_index = select_cascade(-in_vertex_position.z, directional.cascade_splits);
+		float strength = 0.3;
+
+		// Colors used are from Sascha Willems shadowmappingcascade/scene.frag
+		if (cascade_index == 0)
+			out_color.rgb = mix(out_color_copy.rgb, vec3(1.0f, 0.25f, 0.25f), strength);
+		else if (cascade_index == 1)
+			out_color.rgb = mix(out_color_copy.rgb, vec3(0.25f, 1.0f, 0.25f), strength);
+		else if (cascade_index == 2)
+			out_color.rgb = mix(out_color_copy.rgb, vec3(0.25f, 0.25f, 1.0f), strength);
+		else if (cascade_index == 3)
+			out_color.rgb = mix(out_color_copy.rgb, vec3(1.0f, 1.0f, 0.25f), strength);
 	}
 }
