@@ -194,8 +194,10 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 		Vector3f   m_camera_minimum{-50.0f, -50.0f, -50.0f};        //! Minimum bound of the bounding volume that the camera will always make sure to see fully
 		Vector3f   m_camera_maximum{50.0f, 50.0f, 50.0f};           //! Maximum bound of the bounding volume that the camera will always make sure to see fully
 		float32_t  m_camera_y_fov{60.0f};                           //! Y-FOV of the camera
-		float32_t  m_camera_z_near{0.1f};                           //! z-near of the camera
-		float32_t  m_camera_z_far{1000.0f};                         //! z-far of the camera
+		float32_t  m_camera_persp_z_near{0.1f};                     //! z-near of the camera perspective properties
+		float32_t  m_camera_persp_z_far{1000.0f};                   //! z-far of the camera perspective properties
+		float32_t  m_camera_ortho_z_near{-1000.0f};                 //! z-near of the camera orthographic properties
+		float32_t  m_camera_ortho_z_far{1000.0f};                   //! z-far of the camera orthographic properties
 		float32_t  m_camera_width{1024.0f};                         //! Width of the rectangle it needs to fill
 		float32_t  m_camera_height{768.0f};                         //! Height of the rectangle it needs to fill
 		float32_t  m_camera_x_mag{1.0f};                            //! Width of the orthographics camera

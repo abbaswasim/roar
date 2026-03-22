@@ -696,19 +696,18 @@ ror::OrbitCamera read_node_camera(cgltf_camera *a_camera)
 		camera.fov(perspective_camera.yfov);
 
 		if (perspective_camera.has_zfar)
-			camera.far(perspective_camera.zfar);
+			camera.perspective_far(perspective_camera.zfar);
 
-		camera.near(perspective_camera.znear);
+		camera.pespective_near(perspective_camera.znear);
 	}
 	else if (a_camera->type == cgltf_camera_type_orthographic)
 	{
 		cgltf_camera_orthographic &orthographic_camera = a_camera->data.orthographic;
 		camera.type(ror::CameraType::orthographic);
-		camera.far(orthographic_camera.zfar);
-		camera.near(orthographic_camera.znear);
-		(void) orthographic_camera.xmag;
-		(void) orthographic_camera.ymag;
-		ror::log_warn("Unused orthographic camera parameter xmag and ymag");
+		camera.orthographic_far(orthographic_camera.zfar);
+		camera.orthographic_near(orthographic_camera.znear);
+		camera.x_mag(orthographic_camera.xmag);
+		camera.y_mag(orthographic_camera.ymag);
 	}
 	else
 	{

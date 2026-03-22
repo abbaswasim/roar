@@ -47,7 +47,7 @@ void OrbitCamera::set_far_to_scene(ror::BoundingBoxf a_scene_bounds)
 		far              = std::min(far, scene_bbox_point.z);
 	}
 
-	this->m_z_far = -far;        // FIXME: reverse-z consideration
+	this->m_perspective_z_far = -far;        // FIXME: reverse-z consideration
 }
 
 void OrbitCamera::zoom(double64_t a_zoom_delta)
@@ -174,14 +174,24 @@ void OrbitCamera::type(CameraType a_type)
 	Camera::type(a_type);
 }
 
-void OrbitCamera::near(float32_t a_near)
+void OrbitCamera::pespective_near(float32_t a_near)
 {
-	this->m_z_near = a_near;
+	this->m_perspective_z_near = a_near;
 }
 
-void OrbitCamera::far(float32_t a_far)
+void OrbitCamera::perspective_far(float32_t a_far)
 {
-	this->m_z_far = a_far;
+	this->m_perspective_z_far = a_far;
+}
+
+void OrbitCamera::orthographic_near(float32_t a_near)
+{
+	this->m_orthographic_z_near = a_near;
+}
+
+void OrbitCamera::orthographic_far(float32_t a_far)
+{
+	this->m_orthographic_z_far = a_far;
 }
 
 void OrbitCamera::fov(float32_t a_y_fov)
@@ -248,27 +258,30 @@ FORCE_INLINE constexpr auto &OrbitCamera::frustum_center(size_t a_index) const
 }
 
 FORCE_INLINE void OrbitCamera::set_parameters(CameraType a_type, float32_t a_width, float32_t a_height,
-                                              float32_t a_near, float32_t a_far,
+                                              float32_t a_persp_near, float32_t a_persp_far,
+                                              float32_t a_ortho_near, float32_t a_ortho_far,
                                               Vector3f a_center, Vector3f a_eye,
                                               Vector3f a_up, Vector3f a_right, Vector3f a_forward,
                                               Vector3f a_minimum, Vector3f a_maximum,
                                               float32_t a_y_fov, float32_t a_x_mag, float32_t a_y_mag)
 {
-	this->m_type    = a_type;
-	this->m_width   = a_width;
-	this->m_height  = a_height;
-	this->m_z_near  = a_near;
-	this->m_z_far   = a_far;
-	this->m_center  = a_center;
-	this->m_eye     = a_eye;
-	this->m_up      = a_up;
-	this->m_right   = a_right;
-	this->m_forward = a_forward;
-	this->m_minimum = a_minimum;
-	this->m_maximum = a_maximum;
-	this->m_y_fov   = a_y_fov;
-	this->m_x_mag   = a_x_mag;
-	this->m_y_mag   = a_y_mag;
+	this->m_type                = a_type;
+	this->m_width               = a_width;
+	this->m_height              = a_height;
+	this->m_perspective_z_near  = a_persp_near;
+	this->m_perspective_z_far   = a_persp_far;
+	this->m_orthographic_z_near = a_ortho_near;
+	this->m_orthographic_z_far  = a_ortho_far;
+	this->m_center              = a_center;
+	this->m_eye                 = a_eye;
+	this->m_up                  = a_up;
+	this->m_right               = a_right;
+	this->m_forward             = a_forward;
+	this->m_minimum             = a_minimum;
+	this->m_maximum             = a_maximum;
+	this->m_y_fov               = a_y_fov;
+	this->m_x_mag               = a_x_mag;
+	this->m_y_mag               = a_y_mag;
 }
 
 FORCE_INLINE void OrbitCamera::rotate_at_origin(const ror::Matrix4f &a_rotation_matrix, const ror::Vector3f &a_origin, ror::Vector3f &a_input_output)

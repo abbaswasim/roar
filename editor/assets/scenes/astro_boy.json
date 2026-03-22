@@ -93,9 +93,9 @@
 			"type":"perspective",
 			"perspective":{
 				"aspectRatio":1.0,
-				"yfov":60.0,
-				"zfar":1000.0,
-				"znear":0.1
+				"yfov":60.0 ,
+				"znear":0.1,
+				"zfar":1000.0
 			}
 		},
 		{
@@ -103,8 +103,8 @@
 			"orthographic":{
 				"xmag":1.0,
 				"ymag":1.0,
-				"zfar":100.0,
-				"znear":0.01
+				"znear":-1000.0,
+				"zfar":1000.0
 			}
 		}
 	],

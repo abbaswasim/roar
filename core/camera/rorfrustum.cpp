@@ -63,7 +63,6 @@ void Frustum::setup(const ror::Matrix4f &a_view)
 
 	this->m_bounding_box    = ror::BoundingBoxf{};           // Reset the bounding box
 	this->m_bounding_sphere = ror::BoundingSpheref{};        // Reset the bounding sphere
-	this->m_center          = {};                            // Reset the center
 
 	float32_t     radius{0.0f};
 	ror::Matrix4f view_inverse{};
@@ -76,25 +75,17 @@ void Frustum::setup(const ror::Matrix4f &a_view)
 		auto cs = view_inverse * frustum_corners[i];
 
 		this->m_corners[i] = ror::Vector3f(cs);
-		this->m_center     = this->m_center + this->m_corners[i];
-
 		this->m_bounding_box.add_point(this->m_corners[i]);
 	}
 
-	this->m_center = this->m_center / 8.0f;
-
-	this->m_bounding_sphere.set_center(this->m_center);
-	this->m_bounding_sphere.set_center(this->m_bounding_box.center());
-
-	auto bc = this->m_bounding_box.center();
-
-	ror::log_critical("center({}, {}, {}) == bboxcenter({}, {}, {})", m_center.x, m_center.y, m_center.z, bc.x, bc.y, bc.z);
+	this->m_center = this->m_bounding_box.center();
 
 	radius = this->m_bounding_box.diagonal() / 2.0f;
 	radius = ror::distance(this->m_bounding_box.center(), this->m_bounding_box.maximum());
 
 	const auto new_radius = std::ceil(radius * 16.0f) / 16.0f;        // This rounds radius up to the next multiple of 1/16 or 0.0625
 
+	this->m_bounding_sphere.set_center(this->m_center);
 	this->m_bounding_sphere.set_radius(new_radius);
 
 	// Lets also move the bounding box by this difference in radius after the ceil

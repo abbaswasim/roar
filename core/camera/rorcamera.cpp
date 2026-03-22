@@ -232,6 +232,29 @@ void OrbitCamera::update_view()
 	this->update_vectors();
 }
 
+void OrbitCamera::toggle_projection(const ror::Vector3f &a_focus_point)
+{
+	if (this->m_type == CameraType::perspective)
+	{
+		ror::Vector3f v{a_focus_point - this->m_eye};
+
+		auto distance    = v.dot_product(this->m_forward);
+		auto depth_ratio = ror::to_radians(this->m_y_fov);
+
+		if (distance < 0.001f)
+			distance = 0.001f;
+
+		this->m_y_mag = depth_ratio * distance;
+		this->m_x_mag = depth_ratio * distance * this->m_aspect_ratio;
+
+		this->m_type = CameraType::orthographic;
+	}
+	else
+	{
+		this->m_type = CameraType::perspective;
+	}
+}
+
 void OrbitCamera::update_projection()
 {
 	// Setup perspective projection matrix
@@ -240,7 +263,7 @@ void OrbitCamera::update_projection()
 	if (this->m_type == CameraType::perspective)
 	{
 		// assumes square pixels, if ever there is evidence of non-square pixels, provided by windowing system i.e. glfw use it here instead
-		this->m_projection = ror::make_infinite_perspective(ror::to_radians(this->m_y_fov), this->m_aspect_ratio, this->m_z_near, this->m_z_far);
+		this->m_projection = ror::make_infinite_perspective(ror::to_radians(this->m_y_fov), this->m_aspect_ratio, this->m_perspective_z_near, this->m_perspective_z_far);
 	}
 	else
 	{
@@ -249,7 +272,7 @@ void OrbitCamera::update_projection()
 		auto ymag = mag * 0.5f;
 
 		// TODO: Make me infinite
-		this->m_projection = ror::make_ortho(-xmag, xmag, -ymag, ymag, this->m_z_near, this->m_z_far);
+		this->m_projection = ror::make_ortho(-xmag, xmag, -ymag, ymag, this->m_orthographic_z_near, this->m_orthographic_z_far);
 	}
 }
 
@@ -260,8 +283,8 @@ void OrbitCamera::build_cascades()
 	// for lambda = 0.95 splits are 0.02254583, 0.07685446, 0.2633533, 1, too conservative
 	float32_t lambda = this->m_cascade_lambda;        // Default is 0.5 but can be adjusted in the settings or scene which overrides the settings for current run
 
-	float32_t range = this->m_z_far - this->m_z_near;
-	float32_t ratio = this->m_z_far / this->m_z_near;
+	float32_t range = this->m_perspective_z_far - this->m_perspective_z_near;
+	float32_t ratio = this->m_perspective_z_far / this->m_perspective_z_near;
 
 	// Calculate split depths based on view camera frustum
 	// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html with implementations
@@ -271,10 +294,10 @@ void OrbitCamera::build_cascades()
 	for (uint32_t i = 0; i < cascade_count; i++)
 	{
 		float32_t power           = (i + 1) / static_cast<float32_t>(cascade_count);
-		float32_t log             = this->m_z_near * std::pow(ratio, power);        // Calculate logrithmic split
-		float32_t uniform         = this->m_z_near + range * power;                 // Calculate normal split
-		float32_t depth           = lambda * (log - uniform) + uniform;             // The equation is (d = lambda(log) + (1 - lambda) * uniform) but its simplified here
-		this->m_cascade_splits[i] = (depth - this->m_z_near) / range;               // Normalise the depth range from [n,f] to [0,1]
+		float32_t log             = this->m_perspective_z_near * std::pow(ratio, power);        // Calculate logrithmic split
+		float32_t uniform         = this->m_perspective_z_near + range * power;                 // Calculate normal split
+		float32_t depth           = lambda * (log - uniform) + uniform;                         // The equation is (d = lambda(log) + (1 - lambda) * uniform) but its simplified here
+		this->m_cascade_splits[i] = (depth - this->m_perspective_z_near) / range;               // Normalise the depth range from [n,f] to [0,1]
 	}
 }
 
@@ -282,9 +305,9 @@ void OrbitCamera::setup_frustums()
 {
 	this->build_cascades();
 
-	float32_t near  = this->m_z_near;
-	float32_t far   = this->m_z_far;
-	float32_t range = this->m_z_far - this->m_z_near;
+	float32_t near  = this->m_perspective_z_near;
+	float32_t far   = this->m_perspective_z_far;
+	float32_t range = this->m_perspective_z_far - this->m_perspective_z_near;
 	// float32_t ratio = this->m_z_far / this->m_z_near;
 
 	for (uint32_t i = 0; i < cascade_count; i++)

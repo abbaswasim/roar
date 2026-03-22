@@ -205,8 +205,10 @@ void Scene::update_camera_from_scene_state()
 	camera.set_parameters(this->m_scene_state.m_camera_type,
 	                      this->m_scene_state.m_camera_width,
 	                      this->m_scene_state.m_camera_height,
-	                      this->m_scene_state.m_camera_z_near,
-	                      this->m_scene_state.m_camera_z_far,
+	                      this->m_scene_state.m_camera_persp_z_near,
+	                      this->m_scene_state.m_camera_persp_z_far,
+	                      this->m_scene_state.m_camera_ortho_z_near,
+	                      this->m_scene_state.m_camera_ortho_z_far,
 	                      this->m_scene_state.m_camera_center,
 	                      this->m_scene_state.m_camera_eye,
 	                      this->m_scene_state.m_camera_up,
@@ -303,10 +305,14 @@ void Scene::SceneState::load_specific()
 			this->m_camera_minimum = read_vector3(camera["minimum"]);
 		if (camera.contains("maximum"))
 			this->m_camera_maximum = read_vector3(camera["maximum"]);
-		if (camera.contains("znear"))
-			this->m_camera_z_near = camera["znear"];
-		if (camera.contains("zfar"))
-			this->m_camera_z_far = camera["zfar"];
+		if (camera.contains("persp_znear"))
+			this->m_camera_persp_z_near = camera["persp_znear"];
+		if (camera.contains("persp_zfar"))
+			this->m_camera_persp_z_far = camera["persp_zfar"];
+		if (camera.contains("ortho_znear"))
+			this->m_camera_ortho_z_near = camera["ortho_znear"];
+		if (camera.contains("ortho_zfar"))
+			this->m_camera_ortho_z_far = camera["ortho_zfar"];
 		if (camera.contains("width"))
 			this->m_camera_width = camera["width"];
 		if (camera.contains("height"))
@@ -423,8 +429,10 @@ void Scene::SceneState::write_specific()
                 { "op": "add", "path": "/type", "value": "@" },
                 { "op": "add", "path": "/width", "value": @ },
                 { "op": "add", "path": "/height", "value": @ },
-                { "op": "add", "path": "/zfar", "value": @ },
-                { "op": "add", "path": "/znear", "value": @ },
+                { "op": "add", "path": "/persp_zfar", "value": @ },
+                { "op": "add", "path": "/persp_znear", "value": @ },
+                { "op": "add", "path": "/ortho_zfar", "value": @ },
+                { "op": "add", "path": "/ortho_znear", "value": @ },
                 { "op": "add", "path": "/center", "value": [@, @, @] },
                 { "op": "add", "path": "/eye", "value": [@, @, @] },
                 { "op": "add", "path": "/up", "value": [@, @, @] },
@@ -440,8 +448,10 @@ void Scene::SceneState::write_specific()
 		replace_next_at(this->m_camera_type == ror::CameraType::perspective ? "perspective" : "orthographic", patch_str);
 		replace_next_at(this->m_camera_width, patch_str);
 		replace_next_at(this->m_camera_height, patch_str);
-		replace_next_at(this->m_camera_z_far, patch_str);
-		replace_next_at(this->m_camera_z_near, patch_str);
+		replace_next_at(this->m_camera_persp_z_far, patch_str);
+		replace_next_at(this->m_camera_persp_z_near, patch_str);
+		replace_next_at(this->m_camera_ortho_z_far, patch_str);
+		replace_next_at(this->m_camera_ortho_z_near, patch_str);
 		replace_next_at(this->m_camera_center.x, patch_str);
 		replace_next_at(this->m_camera_center.y, patch_str);
 		replace_next_at(this->m_camera_center.z, patch_str);
@@ -1387,22 +1397,24 @@ void Scene::fill_scene_data()
 {
 	auto &camera = this->current_camera();
 
-	this->m_scene_state.m_camera_center  = camera.center();
-	this->m_scene_state.m_camera_eye     = camera.eye();
-	this->m_scene_state.m_camera_right   = camera.right();
-	this->m_scene_state.m_camera_up      = camera.up();
-	this->m_scene_state.m_camera_forward = camera.forward();
-	this->m_scene_state.m_camera_minimum = camera.minimum();
-	this->m_scene_state.m_camera_maximum = camera.maximum();
-	this->m_scene_state.m_camera_y_fov   = camera.y_fov();
-	this->m_scene_state.m_camera_z_near  = camera.z_near();
-	this->m_scene_state.m_camera_z_far   = camera.z_far();
-	this->m_scene_state.m_camera_width   = camera.width();
-	this->m_scene_state.m_camera_height  = camera.height();
-	this->m_scene_state.m_camera_x_mag   = camera.x_mag();
-	this->m_scene_state.m_camera_y_mag   = camera.y_mag();
-	this->m_scene_state.m_camera_mode    = camera.mode();
-	this->m_scene_state.m_camera_type    = camera.type();
+	this->m_scene_state.m_camera_center       = camera.center();
+	this->m_scene_state.m_camera_eye          = camera.eye();
+	this->m_scene_state.m_camera_right        = camera.right();
+	this->m_scene_state.m_camera_up           = camera.up();
+	this->m_scene_state.m_camera_forward      = camera.forward();
+	this->m_scene_state.m_camera_minimum      = camera.minimum();
+	this->m_scene_state.m_camera_maximum      = camera.maximum();
+	this->m_scene_state.m_camera_y_fov        = camera.y_fov();
+	this->m_scene_state.m_camera_persp_z_near = camera.perspective_z_near();
+	this->m_scene_state.m_camera_persp_z_far  = camera.perspective_z_far();
+	this->m_scene_state.m_camera_ortho_z_near = camera.orthographic_z_near();
+	this->m_scene_state.m_camera_ortho_z_far  = camera.orthographic_z_far();
+	this->m_scene_state.m_camera_width        = camera.width();
+	this->m_scene_state.m_camera_height       = camera.height();
+	this->m_scene_state.m_camera_x_mag        = camera.x_mag();
+	this->m_scene_state.m_camera_y_mag        = camera.y_mag();
+	this->m_scene_state.m_camera_mode         = camera.mode();
+	this->m_scene_state.m_camera_type         = camera.type();
 
 	// Fill scene state lights from scene lights that will be written out later
 	this->m_scene_state.m_lights.clear();
@@ -2814,11 +2826,11 @@ void Scene::read_cameras()
 						}
 						if (key == "znear")
 						{
-							cam.near(value);
+							cam.pespective_near(value);
 						}
 						if (key == "zfar")
 						{
-							cam.far(value);
+							cam.perspective_far(value);
 						}
 					}
 				}
@@ -2842,11 +2854,11 @@ void Scene::read_cameras()
 						}
 						if (key == "znear")
 						{
-							cam.near(value);
+							cam.orthographic_near(value);
 						}
 						if (key == "zfar")
 						{
-							cam.far(value);
+							cam.orthographic_far(value);
 						}
 					}
 				}

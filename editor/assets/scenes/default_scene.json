@@ -399,8 +399,8 @@
 			"orthographic":{
 				"xmag":1.0,
 				"ymag":1.0,
-				"zfar":100.0,
-				"znear":0.01
+				"zfar":1000.0,
+				"znear":-1000.0
 			}
 		}
 	],
