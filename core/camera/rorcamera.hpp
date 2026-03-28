@@ -31,6 +31,7 @@
 #include "math/rormatrix3.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rorvector3.hpp"
+#include "math/rorray.hpp"
 #include "rorfrustum.hpp"
 
 namespace ror
@@ -81,8 +82,9 @@ class ROAR_ENGINE_ITEM Camera
 	Matrix4f   m_view{};                               //! View matrix
 	Matrix4f   m_projection{};                         //! Projection matrix
 	Matrix4f   m_view_projection{};                    //! View projection matrix
-	Matrix4f   m_inverse_projection{};                 //! Inverse of Projection matrix
-	Matrix4f   m_inverse_view_projection{};            //! Inverse of View projection matrix
+	Matrix4f   m_view_inverse{};                       //! Inverse of viewing matrix
+	Matrix4f   m_projection_inverse{};                 //! Inverse of Projection matrix
+	Matrix4f   m_view_projection_inverse{};            //! Inverse of View projection matrix
 	Matrix3f   m_normal{};                             //! Normal matrix
 	CameraType m_type{CameraType::perspective};        //! Default perspective camera
 };
@@ -138,6 +140,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	void              orient_front();
 	void              orient_back();
 	void              draw_camera_properties();
+	ror::Ray3f        get_ray_from(const ror::Vector2f &a_mouse_position) const;
 
 	// clang-format off
 	FORCE_INLINE constexpr auto& eye()                  const noexcept { return this->m_eye;                 }
@@ -180,6 +183,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	void update_view();
 	void update_normal();
 	void update_projection();
+	void update_dependents();
 	void toggle_projection(const ror::Vector3f &a_focus_point = ror::zero_vector3f);
 	void orient_to_direction(Vector3f a_forward, Vector3f a_up_hint);
 	void rotate(float32_t a_x_rotation, float32_t a_y_rotation, EventModifier a_modifier);
@@ -221,8 +225,8 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	bool          m_from_scene{true};                      //! Should the camera view be created from scene or either using default values for target, view and up or provided by scene file
 	Frustum       m_frustums[cascade_count];               //! Frustums for all the cascades, max 4 splits
 	EventSystem  *m_event_system{nullptr};                 //! A non-owning alias of the event system to not have to keep moving this around
-	EventCallback m_move_callback{};                       //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
-	EventCallback m_drag_callback{};                       //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system
+	EventCallback m_move_callback{};                       //! Move lambda function that will be used to subscribe and unsubscribe this camera with event system for mouse move events
+	EventCallback m_drag_callback{};                       //! Drag lambda function that will be used to subscribe and unsubscribe this camera with event system for mouse drag events
 	EventCallback m_resize_callback{};                     //! Resize lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_forward_callback{};                    //! forward lambda function that will be used to subscribe and unsubscribe this camera with event system
 	EventCallback m_zoom_callback{};                       //! Zoom lambda function that will be used to subscribe and unsubscribe this camera with event system
