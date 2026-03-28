@@ -288,7 +288,8 @@ void set_render_mode(Material material, Fragment fragment)
 	else if ("Cascade visualisation")
 	{
 		Directional_lights directional = in_directional_light_uniforms.directional_lights[0];
-		uint cascade_index = select_cascade(-in_vertex_position.z, directional.cascade_splits);
+		float view_space_depth = get_view_space_depth();
+		uint  cascade_index = select_cascade(-view_space_depth, directional.cascade_splits);
 		float strength = 0.3;
 
 		// Colors used are from Sascha Willems shadowmappingcascade/scene.frag

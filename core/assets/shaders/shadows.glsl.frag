@@ -94,10 +94,23 @@ float get_shadow(const mat4 light_space, const int cascade_index, const float nd
 	// return simple_pcf(position);
 }
 
+float get_view_space_depth()
+{
+	vec4 zrow = vec4(in_per_view_uniform.view_mat4[0][2],
+	                 in_per_view_uniform.view_mat4[1][2],
+	                 in_per_view_uniform.view_mat4[2][2],
+	                 in_per_view_uniform.view_mat4[3][2]);
+
+	float view_space_depth = dot(zrow, vec4(in_vertex_position.xyz, 1.0));
+
+	return view_space_depth;
+}
+
 float get_shadow(const Directional_lights directional, const float ndotl)
 {
-	int        cascade_index = select_cascade(-in_vertex_position.z, directional.cascade_splits);
-	const mat4 light_space   = directional.mvp[cascade_index];
+	float      view_space_depth = get_view_space_depth();
+	int        cascade_index    = select_cascade(-view_space_depth, directional.cascade_splits);
+	const mat4 light_space      = directional.mvp[cascade_index];
 
 	return get_shadow(light_space, cascade_index, ndotl);
 }
