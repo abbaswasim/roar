@@ -166,93 +166,64 @@ std::filesystem::path find_resource(const std::filesystem::path &a_path, Resourc
 	auto project_root_path = get_project_root().path();        // Here calling get_project_root without any arguments relies on clients who must have called and initalized project_root
 
 	// Is it at the root of the project?
-	std::filesystem::path p{project_root_path / a_path};
-
-	// If the file exists don't muck around just return
-	if (std::filesystem::exists(p))
 	{
-		return p;
+		std::filesystem::path candidate{project_root_path / a_path};
+		if (std::filesystem::exists(candidate))
+			return candidate;
 	}
-	else        // Try to find it on the filesystem inside the project root
 	{
-		std::filesystem::path q{project_root_path / resource_semantic_path};
+		std::filesystem::path candidate{project_root_path / resource_semantic_path};
+		if (std::filesystem::exists(candidate))
+			return candidate;
+	}
+	{
+		// Some times projects have "assets" folder, lets search that too
+		std::filesystem::path candidate{project_root_path / "assets" / a_path};
+		if (std::filesystem::exists(candidate))
+			return candidate;
+	}
+	{
+		std::filesystem::path candidate{project_root_path / "assets" / resource_semantic_path};
+		if (std::filesystem::exists(candidate))
+			return candidate;
+	}
+	{
+		// Split the path for parent and file name, its ok if these don't exist and return ""
+		auto parent_path = a_path.parent_path();
+		auto file_name   = a_path.filename();
 
-		if (std::filesystem::exists(q))
 		{
-			return q;
+			std::filesystem::path candidate{project_root_path / parent_path / "assets" / file_name};
+			if (std::filesystem::exists(candidate))
+				return candidate;
 		}
-		else
 		{
-			// Some times projects have "assets" folder, lets search that too
-			std::filesystem::path r{project_root_path / "assets" / a_path};
-
-			if (std::filesystem::exists(r))
+			std::filesystem::path candidate{project_root_path / parent_path / "assets" / resource_semantic_path};
+			if (std::filesystem::exists(candidate))
+				return candidate;
+		}
+		{
+			std::filesystem::path candidate{project_root_path / parent_path / semantic_path / file_name};
+			if (std::filesystem::exists(candidate))
+				return candidate;
+		}
+		{
+			// Now we are desperate, trying hard to find this resource
+			for (auto item : {ResourceSemantic::materials,
+			                  ResourceSemantic::textures,
+			                  ResourceSemantic::shaders,
+			                  ResourceSemantic::scripts,
+			                  ResourceSemantic::objects,
+			                  ResourceSemantic::configs,
+			                  ResourceSemantic::models,
+			                  ResourceSemantic::scenes,
+			                  ResourceSemantic::misc})        // Different way of dealing with caches and logs
 			{
-				return r;
-			}
-			else
-			{
-				std::filesystem::path s{project_root_path / "assets" / resource_semantic_path};
+				auto items_path = get_resource_semantic_string(item);
 
-				if (std::filesystem::exists(s))
-				{
-					return s;
-				}
-				else
-				{
-					// Split the path for parent and file name, its ok if these don't exist and return ""
-					auto parent_path = a_path.parent_path();
-					auto file_name   = a_path.filename();
-
-					std::filesystem::path t{project_root_path / parent_path / "assets" / file_name};
-
-					if (std::filesystem::exists(t))
-					{
-						return t;
-					}
-					else
-					{
-						std::filesystem::path u{project_root_path / parent_path / "assets" / resource_semantic_path};
-
-						if (std::filesystem::exists(u))
-						{
-							return u;
-						}
-						else
-						{
-							std::filesystem::path v{project_root_path / parent_path / semantic_path / file_name};
-
-							if (std::filesystem::exists(v))
-							{
-								return v;
-							}
-							else
-							{
-								// Now we are desperate, trying hard to find this resource
-								for (auto item : {ResourceSemantic::materials,
-								                  ResourceSemantic::textures,
-								                  ResourceSemantic::shaders,
-								                  ResourceSemantic::scripts,
-								                  ResourceSemantic::objects,
-								                  ResourceSemantic::configs,
-								                  ResourceSemantic::models,
-								                  ResourceSemantic::scenes,
-								                  ResourceSemantic::misc})        // Different way of dealing with caches and logs
-								{
-									auto items_path = get_resource_semantic_string(item);
-
-									std::filesystem::path w{project_root_path /
-									                        semantic_path / parent_path / items_path / file_name};
-
-									if (std::filesystem::exists(w))
-									{
-										return w;
-									}
-								}
-							}
-						}
-					}
-				}
+				std::filesystem::path candidate{project_root_path / semantic_path / parent_path / items_path / file_name};
+				if (std::filesystem::exists(candidate))
+					return candidate;
 			}
 		}
 	}

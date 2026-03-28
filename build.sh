@@ -8,7 +8,8 @@ type="build" # clean, configure, build
 test=false
 editor=true
 verbose=false
-sanitized=false
+asanitized=false
+ubsanitized=false
 pedantic=true
 volk=true
 
@@ -20,7 +21,8 @@ build_volk="-DROAR_USE_VOLK="
 build_api="-DROAR_RENDER_TYPE="
 build_tests="-DROAR_BUILD_TESTS="
 build_editor="-DROAR_BUILD_EDITOR="
-build_sanitized="-DROAR_BUILD_SANITIZED="
+build_asanitized="-DROAR_BUILD_ASANITIZED="
+build_ubsanitized="-DROAR_BUILD_UBSANITIZED="
 build_pedantic="-DROAR_BUILD_PEDANTIC="
 build_build_type="--config "
 build_target="--target "
@@ -34,7 +36,8 @@ print_help() {
 -t [true/false]                           Builds tests
 -e [true/false]                           Builds editor
 -v [true/false]                           Verbose make output
--s [true/false]                           Build with clang sanatisers enabled [clang only]
+-s [true/false]                           Build with clang ASAN enabled [clang only]
+-u [true/false]                           Build with clang UBSan enabled [clang only]
 -p [true/false]                           Build with extra warning and errors enabled
 -k [true/false]                           Build with volk vulkan library
 "
@@ -49,22 +52,24 @@ do
         t) test=${OPTARG};;
         e) editor=${OPTARG};;
         v) verbose=${OPTARG};;
-        s) sanitized=${OPTARG};;
+        s) asanitized=${OPTARG};;
+        u) ubsanitized=${OPTARG};;
         p) pedantic=${OPTARG};;
         k) volk=${OPTARG};;
         h) print_help ; exit 0;;
     esac
 done
 
-echo "api:        $api";
-echo "build:      $build";
-echo "type:       $type";
-echo "test:       $test";
-echo "editor:     $editor";
-echo "verbose:    $verbose";
-echo "sanitized:  $sanitized";
-echo "pedantic:   $pedantic";
-echo "volk:       $volk";
+echo "api:          $api";
+echo "build:        $build";
+echo "type:         $type";
+echo "test:         $test";
+echo "editor:       $editor";
+echo "verbose:      $verbose";
+echo "Asanitized:   $asanitized";
+echo "UBsanitized:  $ubsanitized";
+echo "pedantic:     $pedantic";
+echo "volk:         $volk";
 
 NUMCPUS=8 # Default number looks good
 
@@ -111,10 +116,16 @@ else
 	build_editor+="0"
 fi
 
-if [ "$sanitized" = true ] ; then
-	build_sanitized+="1 -DENABLE_RTTI=1"
+if [ "$asanitized" = true ] ; then
+	build_asanitized+="1 -DENABLE_RTTI=1"
 else
-	build_sanitized+="0"
+	build_asanitized+="0"
+fi
+
+if [ "$ubsanitized" = true ] ; then
+	build_ubsanitized+="1 -DENABLE_RTTI=1"
+else
+	build_ubsanitized+="0"
 fi
 
 if [ "$pedantic" = true ] ; then
@@ -134,7 +145,8 @@ cmake_conf_cmd+=" $configure_build_type"
 cmake_conf_cmd+=" $build_api"
 cmake_conf_cmd+=" $build_tests"
 cmake_conf_cmd+=" $build_editor"
-cmake_conf_cmd+=" $build_sanitized"
+cmake_conf_cmd+=" $build_asanitized"
+cmake_conf_cmd+=" $build_ubsanitized"
 cmake_conf_cmd+=" $build_pedantic"
 cmake_conf_cmd+=" $build_volk"
 

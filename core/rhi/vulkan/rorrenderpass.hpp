@@ -69,6 +69,7 @@ class RenderpassVulkan : public RenderpassCrtp<RenderpassVulkan>
 		// a_surface->setup_framebuffer(a_device.platform_device(), a_index, this);
 	}
 
+	// polymorphic dispatch into specific type of render pass and its subpass types
 	void execute(rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface,
 	             ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,
 	             rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer);

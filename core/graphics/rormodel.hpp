@@ -133,7 +133,7 @@ auto get_node_global_transform(_node_container &a_nodes_container, _node_type &a
 		node = &parent;
 	}
 
-	return node_matrix;
+	return std::move(node_matrix);
 }
 
 }        // namespace ror

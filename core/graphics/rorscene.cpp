@@ -390,7 +390,7 @@ void Scene::SceneState::load_specific()
 		if (light.contains("light_struct_name"))
 			l.light_struct_name(light["light_struct_name"]);
 
-		return l;
+		return std::move(l);
 	};
 
 	if (this->m_json_file.contains("lights"))

@@ -122,6 +122,7 @@ target_compile_options(basisu PRIVATE "-Wno-deprecated-declarations")
 target_compile_options(basisu PRIVATE "-Wno-deprecated-builtins")
 target_compile_options(basisu PUBLIC "-fno-strict-aliasing")
 set_property(TARGET basisu PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_compile_options(basisu PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-nontrivial-memcall>)
 
 # Add par
 add_library(par INTERFACE)
@@ -189,6 +190,7 @@ add_library(imgui STATIC ${IMGUI_SOURCES})
 target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 target_sources(imgui PRIVATE ${IMGUI_SOURCES})
 set_property(TARGET imgui PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_compile_options(imgui PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-nontrivial-memcall>)
 
 # SPIRV-Cross
 set(SPIRV_CROSS_STATIC ON)

@@ -149,7 +149,7 @@ auto ShaderCrtp<_type>::generated_name() const noexcept
 			// clang-format on
 	}
 
-	return name;
+	return std::move(name);
 }
 
 template <class _type>
@@ -166,7 +166,7 @@ auto ShaderCrtp<_type>::write_source() const noexcept
 		}
 	}
 
-	return name;
+	return std::move(name);
 }
 
 // NOTE: When using this function, you still need to compile() and upload()
