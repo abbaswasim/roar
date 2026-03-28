@@ -40,7 +40,7 @@ BufferCrtp<_type>::BufferCrtp()
 
 template <typename _type>
 template <typename U, std::enable_if_t<std::is_same<U, Static>::value, bool>>
-auto BufferCrtp<_type>::_offset(size_t a_bytes)
+auto BufferCrtp<_type>::_offset(size_t a_bytes) REQUIRES(!*this->m_mutex)
 {
 	assert(a_bytes > 0 && "Requested bytes must be positive");
 
@@ -64,7 +64,7 @@ auto BufferCrtp<_type>::_offset(size_t a_bytes)
 
 template <typename _type>
 template <typename U, std::enable_if_t<std::is_same<U, Dynamic>::value, bool>>
-auto BufferCrtp<_type>::_offset(size_t a_bytes)
+auto BufferCrtp<_type>::_offset(size_t a_bytes) REQUIRES(!*this->m_mutex)
 {
 	assert(a_bytes > 0 && "Requested bytes must be positive");
 
@@ -90,7 +90,7 @@ auto BufferCrtp<_type>::_offset(size_t a_bytes)
 }
 
 template <typename _type>
-auto BufferCrtp<_type>::offset(size_t a_bytes)
+auto BufferCrtp<_type>::offset(size_t a_bytes) REQUIRES(!*this->m_mutex)
 {
 	// Do the allocation
 	return this->_offset(a_bytes);
@@ -99,7 +99,7 @@ auto BufferCrtp<_type>::offset(size_t a_bytes)
 // Request is only defined for Static buffer, we can't return a pointer of a dynamic buffer
 template <typename _type>
 template <typename U, std::enable_if_t<std::is_same<U, Static>::value, bool>>
-auto *BufferCrtp<_type>::request(size_t a_bytes)
+auto *BufferCrtp<_type>::request(size_t a_bytes) REQUIRES(!*this->m_mutex)
 {
 	// This is only defined for Static buffers because this->m_data.data() might be invalid when _offset returns with a different size
 	return this->m_data.data() + this->_offset(a_bytes);
