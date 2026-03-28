@@ -265,46 +265,46 @@ class ROAR_ENGINE_ITEM JobSystem final
 		FORCE_INLINE WorkerQueue &operator=(WorkerQueue &&a_other) noexcept   = delete;         //! Move assignment operator
 		FORCE_INLINE ~WorkerQueue() noexcept                                  = default;        //! Destructor
 
-		FORCE_INLINE void push(std::shared_ptr<Job> a_job)
+		FORCE_INLINE void push(std::shared_ptr<Job> a_job) REQUIRES(!this->m_lock)
 		{
-			std::lock_guard<std::mutex> lock{this->m_lock};
-			this->m_worker_queue.emplace_back(a_job);
+			std::lock_guard<std::mutex> lock{this->m_lock};        // No scoped_guard required as we are only locking one mutex that is for multiple
+			this->m_worker_queue.emplace_back(std::move(a_job));
 		}
 
-		FORCE_INLINE std::shared_ptr<Job> pop()
+		FORCE_INLINE std::shared_ptr<Job> pop() REQUIRES(!this->m_lock)
 		{
 			std::lock_guard<std::mutex> lock{this->m_lock};
-			return this->_pop();
+			return pop_unlocked();
 		}
 
 #if defined(WORK_STEALING)
-		FORCE_INLINE std::shared_ptr<Job> steal()
+		FORCE_INLINE std::shared_ptr<Job> steal() REQUIRES(!this->m_lock)
 		{
 			std::lock_guard<std::mutex> lock{this->m_lock};
-			return this->_pop();
+			return pop_unlocked();
 		}
 #endif
 
-		FORCE_INLINE bool empty()
+		FORCE_INLINE bool empty() const REQUIRES(!this->m_lock)
 		{
 			std::lock_guard<std::mutex> lock{this->m_lock};
 			return this->m_worker_queue.empty();
 		}
 
-	  protected:
 	  private:
-		FORCE_INLINE std::shared_ptr<Job> _pop()
+		FORCE_INLINE std::shared_ptr<Job> pop_unlocked()
 		{
 			if (this->m_worker_queue.empty())
 				return nullptr;
 
-			auto front = this->m_worker_queue.front();
+			auto front = std::move(this->m_worker_queue.front());
 			this->m_worker_queue.pop_front();
 			return front;
 		}
 
+	  private:
 		std::deque<std::shared_ptr<Job>> m_worker_queue{};        // WorkerQueue queues containing all the jobs for this worker
-		std::mutex                       m_lock{};                // Used to lock shared variables in this worker
+		mutable std::mutex               m_lock{};                // Used to lock shared variables in this worker
 	};
 
   public:
@@ -327,7 +327,7 @@ class ROAR_ENGINE_ITEM JobSystem final
 		auto index = this->random_worker();
 		this->worker(index).push(job);
 #else
-		this->m_worker_queue.push(job);            // WorkerQueue is thread safe by itself
+		this->m_worker_queue.push(job);        // WorkerQueue is thread safe by itself
 #endif
 
 		// std::lock_guard<std::mutex> lock(this->m_lock);        // Don't need to take a lock, condition variable doesn't need one. Keep here to debug issues
@@ -346,7 +346,7 @@ class ROAR_ENGINE_ITEM JobSystem final
 		auto index = this->random_worker();
 		this->worker(index).push(job);
 #else
-		this->m_worker_queue.push(job);            // WorkerQueue is thread safe by itself
+		this->m_worker_queue.push(job);        // WorkerQueue is thread safe by itself
 #endif
 
 		// std::lock_guard<std::mutex> lock(this->m_lock);        // Don't need to take a lock, condition variable doesn't need one. Keep here to debug issues
@@ -366,7 +366,7 @@ class ROAR_ENGINE_ITEM JobSystem final
 		auto index = this->random_worker();
 		this->worker(index).push(job);
 #else
-		this->m_worker_queue.push(job);            // WorkerQueue is thread safe by itself
+		this->m_worker_queue.push(job);        // WorkerQueue is thread safe by itself
 #endif
 
 		// std::lock_guard<std::mutex> lock(this->m_lock);        // Don't need to take a lock, condition variable doesn't need one. Keep here to debug issues
@@ -408,7 +408,7 @@ class ROAR_ENGINE_ITEM JobSystem final
 		return this->push_job([]() {}, handles);
 	}
 
-	FORCE_INLINE void stop()
+	FORCE_INLINE void stop() REQUIRES(!this->m_lock)
 	{
 		{
 			std::lock_guard<std::mutex> lock{this->m_lock};

@@ -1746,11 +1746,27 @@ void Renderer::install_input_handlers(ror::EventSystem &a_event_system)
 		this->cycle_environment();
 	};
 
+	this->m_click_callback = [this](ror::Event &e) {
+		if (e.is_compatible<ror::Vector2f>())
+		{
+			auto vec2 = std::any_cast<ror::Vector2f>(e.m_payload);
+
+			if (this->m_scene)
+				(void) this->update_click_function(*this->m_scene, vec2);
+			else
+				ror::log_warn("Click event ignored, renderer has no scene bound");
+		}
+	};
+
 	a_event_system.subscribe(keyboard_e_click, cycle_env);
+	a_event_system.subscribe(mouse_left_mouse_click, this->m_click_callback);
 }
 
-void Renderer::uninstall_input_handlers(ror::EventSystem &)
-{}
+void Renderer::uninstall_input_handlers(ror::EventSystem &a_event_system)
+{
+	// a_event_system.unsubscribe(keyboard_e_click, cycle_env);
+	a_event_system.unsubscribe(mouse_left_mouse_click, this->m_click_callback);
+}
 
 void Renderer::create_environment_mesh(rhi::Device &a_device)
 {
@@ -2188,6 +2204,8 @@ void push_brdf_integration_lut_binding(rhi::Device &a_device, ror::Renderer &a_r
 
 void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSystem &a_event_system, const ror::Vector4f &a_dimensions, rhi::BuffersPack &a_buffer_pack)
 {
+	this->m_scene = &a_scene;
+
 	this->dimensions(a_dimensions, a_device);
 	for (auto &shader : this->m_shaders)
 	{

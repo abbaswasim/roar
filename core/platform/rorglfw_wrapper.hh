@@ -324,7 +324,12 @@ void glfw_mouse_button_callback(GLFWwindow *a_window, int a_button, int a_action
 
 	auto  event_handle = create_event_handle(EventType::mouse, ec, em, es);
 	auto &event_system = glfw_event_system<_type>(a_window);
-	event_system.notify({event_handle, true});
+
+	double x_pos{0.0};
+	double y_pos{0.0};
+
+	glfwGetCursorPos(a_window, &x_pos, &y_pos);
+	event_system.notify({event_handle, true, ror::Vector2f{static_cast<float32_t>(x_pos), static_cast<float32_t>(y_pos)}});
 }
 
 template <class _type>

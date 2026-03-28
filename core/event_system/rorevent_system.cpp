@@ -400,14 +400,14 @@ EventSystem::EventSystem()
 	this->init();
 }
 
-void EventSystem::subscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function, const std::source_location &a_loc)
+void EventSystem::subscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function, const std::source_location &a_loc) REQUIRES(!this->m_mutex)
 {
 	std::lock_guard<std::mutex> lock{this->m_mutex};
 
 	this->m_subscribers[a_event_handle].push_back({std::move(a_function), extract_callback_identifier(a_loc)});
 }
 
-void EventSystem::subscribe_early(EventHandle a_event_handle, std::function<void(Event &)> a_function, const std::source_location &a_loc)
+void EventSystem::subscribe_early(EventHandle a_event_handle, std::function<void(Event &)> a_function, const std::source_location &a_loc) REQUIRES(!this->m_mutex)
 {
 	std::lock_guard<std::mutex> lock{this->m_mutex};
 
@@ -415,7 +415,7 @@ void EventSystem::subscribe_early(EventHandle a_event_handle, std::function<void
 	subs.insert(subs.begin(), {std::move(a_function), extract_callback_identifier(a_loc)});
 }
 
-void EventSystem::unsubscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function)
+void EventSystem::unsubscribe(EventHandle a_event_handle, std::function<void(Event &)> a_function) REQUIRES(!this->m_mutex)
 {
 	std::lock_guard<std::mutex> lock{this->m_mutex};
 
@@ -427,7 +427,7 @@ void EventSystem::unsubscribe(EventHandle a_event_handle, std::function<void(Eve
 		subscribers.erase(iter);
 }
 
-void EventSystem::init()
+void EventSystem::init() REQUIRES(!this->m_mutex)
 {
 	auto event_type_max     = enum_to_type_cast(EventType::max);
 	auto event_code_max     = enum_to_type_cast(EventCode::max);
@@ -488,18 +488,18 @@ void EventSystem::print_keybindings() const
 		if (entry.second.empty())
 			continue;
 
-		if (event_type(entry.first) != EventType::keyboard)
+		if (event_type(entry.first) != EventType::keyboard && event_type(entry.first) != EventType::mouse)
 			continue;
 
 		auto short_event = ror::event_code(ror::event_code(entry.first));
 		auto handle_str = create_event_handle(entry.first);
 		assert(handle_str.size() < column_size && "Keyboard handle is bigger than column_size characters");
-		assert(short_event.size() < (column_size / 3) && "Keyboard handle short event is bigger than half column_size characters");
+		assert(short_event.size() < (column_size / 2) && "Keyboard handle short event is bigger than half column_size characters");
 
 		result += "\n| ";
 		result += short_event.substr(0, short_event.size() - 1);
 
-		for (uint32_t i = 0; i < (column_size / 3) - short_event.size(); i++)
+		for (uint32_t i = 0; i < (column_size / 2) - short_event.size(); i++)
 			result += " ";
 
 		result += "| ";
@@ -516,7 +516,7 @@ void EventSystem::print_keybindings() const
 			result += " ";
 			if (sub_it > 1)
 			{
-				for (uint32_t i = 0; i < column_size + (column_size / 3) + 1; i++)
+				for (uint32_t i = 0; i < column_size + (column_size / 2) + 1; i++)
 					result += " ";
 
 				result += " | ";

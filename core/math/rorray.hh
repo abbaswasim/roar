@@ -51,13 +51,13 @@ FORCE_INLINE void Ray<_type>::set_normalized(_type a_origin, _type a_direction)
 }
 
 template <class _type>
-FORCE_INLINE _type Ray<_type>::origin()
+FORCE_INLINE _type Ray<_type>::origin() const
 {
 	return this->m_origin;
 }
 
 template <class _type>
-FORCE_INLINE _type Ray<_type>::direction()
+FORCE_INLINE _type Ray<_type>::direction() const
 {
 	return this->m_direction;
 }

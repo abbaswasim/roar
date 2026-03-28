@@ -1147,7 +1147,7 @@ void Model::reset()
 	}
 }
 
-// Obsolete method but shows a way how to make a model at runtime
+// NOTE: Obsolete method but shows a way how to make a model at runtime
 void Model::create_grid(bool a_generate_shaders, rhi::BuffersPack &a_buffers_pack)
 {
 	ror::Material material;

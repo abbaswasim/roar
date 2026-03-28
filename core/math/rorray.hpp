@@ -33,9 +33,6 @@ template <class _type>
 class ROAR_ENGINE_ITEM Ray final
 {
   public:
-	_type m_origin;           //! Starting point of ray
-	_type m_direction;        //! Direction of the ray from m_origin. Always normalized (unit vector)
-
 	FORCE_INLINE      Ray()                             = default;        //! Default constructor
 	FORCE_INLINE      Ray(const Ray &a_other)           = default;        //! Copy constructor
 	FORCE_INLINE      Ray(Ray &&a_other) noexcept       = default;        //! Move constructor
@@ -48,8 +45,8 @@ class ROAR_ENGINE_ITEM Ray final
 	FORCE_INLINE void set(_type a_origin, _type a_direction);
 	FORCE_INLINE void set_normalized(_type a_origin, _type a_direction);        //! Direction is already normalized so won't do it again
 
-	FORCE_INLINE _type origin();
-	FORCE_INLINE _type direction();
+	FORCE_INLINE _type origin() const;
+	FORCE_INLINE _type direction() const;
 
 	FORCE_INLINE void set_origin(_type a_origin);
 	FORCE_INLINE void set_direction(_type a_direction);
@@ -62,10 +59,15 @@ class ROAR_ENGINE_ITEM Ray final
 
   protected:
   private:
+	_type m_origin;           //! Starting point of ray
+	_type m_direction;        //! Direction of the ray from m_origin. Always normalized (unit vector)
 };
 
-using Ray3 = Ray<Vector3f>;
-using Ray2 = Ray<Vector2f>;
+using Ray3f = Ray<Vector3f>;
+using Ray2f = Ray<Vector2f>;
+
+using Ray3d = Ray<Vector3d>;
+using Ray2d = Ray<Vector2d>;
 
 }        // namespace ror
 

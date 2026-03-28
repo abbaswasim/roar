@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <string_view>
 #include <utility>
 
@@ -96,3 +97,19 @@ constexpr auto type_name()
 }
 
 }        // namespace ror
+// There is a bug with -Wthread-safety and -Wthread-safety-negative, details https://github.com/llvm/llvm-project/issues/157975
+// Lets define THREAD_ANNOTATION_ATTRIBUTE but in abstract form otherwise compiler complains
+#if defined(__clang__)
+  #define MY_TH_AN_ATT(x) __attribute__((x))
+#else
+  #define MY_TH_AN_ATT(x)
+#endif
+
+#define CAPABILITY(x) MY_TH_AN_ATT(capability(x))
+#define SCOPED_CAPABILITY MY_TH_AN_ATT(scoped_lockable)
+#define REQUIRES(...) MY_TH_AN_ATT(requires_capability(__VA_ARGS__))
+#define ACQUIRE(...) MY_TH_AN_ATT(acquire_capability(__VA_ARGS__))
+#define RELEASE(...) MY_TH_AN_ATT(release_capability(__VA_ARGS__))
+#define EXCLUDES(...) MY_TH_AN_ATT(locks_excluded(__VA_ARGS__))
+
+static inline const std::mutex& operator!(const std::mutex& m) { return m; }

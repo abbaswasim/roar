@@ -84,7 +84,7 @@ FORCE_INLINE float32_t FrameCounter::fps(double64_t a_update_interval_ms)
 	{
 		fraction = this->m_accumulated_time - a_update_interval_ms;
 
-		this->m_framerate          = this->m_accumulated_frames;
+		this->m_framerate          = static_cast<float32_t>(this->m_accumulated_frames);
 		this->m_accumulated_time   = fraction;
 		this->m_accumulated_frames = 0;
 	}

@@ -423,7 +423,7 @@ Resource::Resource(std::filesystem::path a_absolute_path, ResourceSemantic a_sem
 	this->m_extension = get_resource_extension(this->m_absolute_path);
 }
 
-void Resource::create()
+void Resource::create() REQUIRES(!this->m_mutex)
 {
 	std::lock_guard<std::mutex> lock(this->m_mutex);
 
@@ -459,7 +459,7 @@ void Resource::create()
 	this->m_dirty = true;
 }
 
-void Resource::remove()
+void Resource::remove() REQUIRES(!this->m_mutex)
 {
 	ror::log_info("Removing resource {}", this->m_absolute_path.c_str());
 
@@ -481,7 +481,7 @@ void Resource::remove()
 	this->m_dirty = false;
 }
 
-void Resource::load()
+void Resource::load() REQUIRES(!this->m_mutex)
 {
 	// Create cache or load cached file name
 
@@ -574,7 +574,7 @@ void Resource::write_or_unmap()
 	// TODO: Use the mmap feature too if (this->m_maped == true)
 }
 
-void Resource::flush()
+void Resource::flush() REQUIRES(!this->m_mutex)
 {
 	std::lock_guard<std::mutex> lock(this->m_mutex);
 
@@ -601,7 +601,7 @@ const std::vector<uint8_t> &Resource::data(bool a_force) const
 	return this->m_data;
 }
 
-std::string Resource::data_copy()
+std::string Resource::data_copy() REQUIRES(!this->m_mutex)
 {
 	assert(this->m_semantic == ror::ResourceSemantic::shaders || this->m_semantic == ror::ResourceSemantic::misc);        // This is not strictly necessary but could be costly otherwise
 
@@ -627,7 +627,7 @@ ResourceSemantic Resource::semantic() const
 
 // NOTE: The a_force argument is important. If someone is going to force an update of a Resource
 // They must be 100% sure its not used concurrently
-void Resource::update(bytes_vector &&a_data, bool a_force, bool a_append, bool a_mark_dirty)
+void Resource::update(bytes_vector &&a_data, bool a_force, bool a_append, bool a_mark_dirty) REQUIRES(!this->m_mutex)
 {
 	// If we are going to update a resource it can't be anything but a shader that is usually used concurrently
 	// In this case data(), which provides reference to m_data won't be safe, hence that is blocked, shaders can only use data_copy

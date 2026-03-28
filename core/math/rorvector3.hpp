@@ -159,7 +159,7 @@ const Vector3i zaxis3i(0, 0, 1);
 const Vector3i negative_xaxis3i(-1, 0, 0);
 const Vector3i negative_yaxis3i(0, -1, 0);
 const Vector3i negative_zaxis3i(0, 0, -1);
-const Vector3f min_vector3i(-std::numeric_limits<int32_t>::max(), -std::numeric_limits<int32_t>::max(), -std::numeric_limits<int32_t>::max());
+const Vector3i min_vector3i(-std::numeric_limits<int32_t>::max(), -std::numeric_limits<int32_t>::max(), -std::numeric_limits<int32_t>::max());
 const Vector3i max_vector3i(std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max(), std::numeric_limits<int32_t>::max());
 
 const Vector3d zero_vector3d(0.0, 0.0, 0.0);

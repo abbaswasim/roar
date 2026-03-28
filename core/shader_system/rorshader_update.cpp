@@ -70,7 +70,7 @@ ShaderUpdater::~ShaderUpdater() noexcept
 		this->m_watcher->stop();
 }
 
-void ShaderUpdater::push_program_record(int32_t a_program_id, std::vector<rhi::Program> &a_programs, std::vector<rhi::Shader> &a_shaders, UpdateCallback a_callback, std::vector<std::string> *a_dependencies)
+void ShaderUpdater::push_program_record(int32_t a_program_id, std::vector<rhi::Program> &a_programs, std::vector<rhi::Shader> &a_shaders, UpdateCallback a_callback, std::vector<std::string> *a_dependencies) REQUIRES(!this->m_mutex)
 {
 	std::lock_guard<std::mutex> lock{this->m_mutex};
 
@@ -102,14 +102,14 @@ void ShaderUpdater::push_program_record(int32_t a_program_id, std::vector<rhi::P
 	this->m_program_records.emplace_back(a_program_id, a_programs, a_shaders, a_callback);
 }
 
-void ShaderUpdater::push_shader_update_record(int32_t a_counter, std::string a_shader)
+void ShaderUpdater::push_shader_update_record(int32_t a_counter, std::string a_shader) REQUIRES(!this->m_mutex)
 {
 	std::lock_guard<std::mutex> lock{this->m_mutex};
 
 	this->m_shaders_update_records.emplace_back(a_counter, a_shader);
 }
 
-void ShaderUpdater::resolve_updates(rhi::Device &a_device, ror::JobSystem &a_job_system)
+void ShaderUpdater::resolve_updates(rhi::Device &a_device, ror::JobSystem &a_job_system) REQUIRES(!this->m_mutex)
 {
 	std::lock_guard<std::mutex> lock{this->m_mutex};
 

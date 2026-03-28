@@ -212,26 +212,27 @@ class Renderer final : public Configuration<Renderer>
 	void upload_remaining_textures(rhi::Device &a_device);
 	void upload_samplers(rhi::Device &a_device);
 
-	void     install_input_handlers(ror::EventSystem &a_event_system);
-	void     uninstall_input_handlers(ror::EventSystem &a_event_system);
-	void     update_shader(rhi::Device &a_device, std::string &a_shader);
-	void     patch_shader(rhi::Shader &a_shader, std::string &a_shader_name);
-	uint32_t environment_visualize_mode(uint32_t a_environment_index);
-	void     create_environment_mesh(rhi::Device &a_device);
-	void     create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a_event_system);
-	void     load_programs();
-	void     load_debug_data();
-	void     load_frame_graphs();
-	void     load_textures();
-	void     load_samplers();
-	void     load_environments();
-	void     load_buffers();
-	void     load_buffer_templates();
-	void     setup_references();
-	void     setup_final_pass();
-	void     setup_shadow_passes();
-	void     setup_shader_buffers();
-	void     update_shadow_cascades(ror::Scene &a_scene);
+	void                install_input_handlers(ror::EventSystem &a_event_system);
+	void                uninstall_input_handlers(ror::EventSystem &a_event_system);
+	void                update_shader(rhi::Device &a_device, std::string &a_shader);
+	void                patch_shader(rhi::Shader &a_shader, std::string &a_shader_name);
+	uint32_t            environment_visualize_mode(uint32_t a_environment_index);
+	void                create_environment_mesh(rhi::Device &a_device);
+	void                create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void                load_programs();
+	void                load_debug_data();
+	void                load_frame_graphs();
+	void                load_textures();
+	void                load_samplers();
+	void                load_environments();
+	void                load_buffers();
+	void                load_buffer_templates();
+	void                setup_references();
+	void                setup_final_pass();
+	void                setup_shadow_passes();
+	void                setup_shader_buffers();
+	void                update_shadow_cascades(ror::Scene &a_scene);
+	std::vector<size_t> update_click_function(ror::Scene &a_scene, const ror::Vector2f &a_mouse_position);
 
 	ror::Frames                             m_frames{};                                       //! All the frames in flight
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
@@ -267,7 +268,9 @@ class Renderer final : public Configuration<Renderer>
 	size_t                                  m_renderpass_index{0};                            //! Which renderpass are we currently rendering from the frame graph. This is state
 	size_t                                  m_subpass_index{0};                               //! Which subpass are we currently rendering from the frame graph. This is state
 	int32_t                                 m_shadow_passes[ror::cascade_count];              //! Indices of the shadow passes in the render pass chains in framegraph
+	ror::Scene                             *m_scene{nullptr};                                 //! Non-owning alias to the currently rendered scene (main/global scene)
 	EventCallback                           m_semi_colon_key_callback{};                      //! Semi colon key call back to enable disable the grid
+	EventCallback                           m_click_callback{};                               //! Click lambda function that will be used to subscribe and unsubsribe this camera with event system for mouse click events
 	std::function<void(IBLEnvironment &)>   m_environment_upload{};                           //! Environment upload lambda used by environment cycle menthod
 };
 }        // namespace ror

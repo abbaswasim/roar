@@ -30,8 +30,8 @@
 #include "foundation/rortypes.hpp"
 #include "math/rormatrix3.hpp"
 #include "math/rormatrix4.hpp"
-#include "math/rorvector3.hpp"
 #include "math/rorray.hpp"
+#include "math/rorvector3.hpp"
 #include "rorfrustum.hpp"
 
 namespace ror

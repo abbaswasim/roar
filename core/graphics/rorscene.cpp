@@ -1719,7 +1719,7 @@ void Scene::create_global_program(const char *a_vertex_shader,
 	}
 }
 
-// Obsolete method. Here to show how one can create a model with a global program
+// NOTE: Obsolete method. Here to show how one can create a model with a global program
 void Scene::generate_grid_model(ror::JobSystem &a_job_system, const std::function<bool(size_t)> &a_upload_job, std::vector<ror::JobHandle<bool>> &a_job_handles, size_t a_model_index, rhi::BuffersPack &a_buffer_pack)
 {
 	auto grid_generation_job = [this, &a_buffer_pack](size_t model_index, size_t node_index) -> auto {
@@ -1866,7 +1866,7 @@ void Scene::generate_debug_model(size_t a_model_index, rhi::BuffersPack &a_buffe
 	ror::Vector4f color{setting.m_debug_mesh_color};
 
 #define add_pos4_col4(output, input, scale, offset, xform)   \
-	for (size_t i = 0; i < geometry_data.size(); ++i)        \
+	for (size_t i = 0; i < input.size(); ++i)                \
 	{                                                        \
 		auto xtdata = xform * ((input[i] * scale) + offset); \
 		output.push_back(xtdata.x);                          \
@@ -1942,7 +1942,7 @@ void Scene::load_models(ror::JobSystem &a_job_system, rhi::Device &a_device, con
 	auto &setting = ror::settings();
 	auto  model_nodes{this->models_count()};
 
-	// Add node placeholders all the procedurally created models here
+	// Add node placeholders for all the procedurally created models here
 	if (setting.m_generate_debug_mesh)
 		model_nodes++;        // for debug model
 
