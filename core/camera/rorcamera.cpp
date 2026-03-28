@@ -276,6 +276,15 @@ void OrbitCamera::update_projection()
 	}
 }
 
+void OrbitCamera::update_dependents()
+{
+	auto result = this->m_view.inverse(this->m_view_inverse);
+	assert(result && "Can't invert view matrix");
+	result = this->m_projection.inverse(this->m_projection_inverse);
+	assert(result && "Can't invert projection matrix");
+	(void) result;
+}
+
 void OrbitCamera::build_cascades()
 {
 	// The bigger the lambda is the smaller are the first few splits for example
@@ -293,7 +302,7 @@ void OrbitCamera::build_cascades()
 
 	for (uint32_t i = 0; i < cascade_count; i++)
 	{
-		float32_t power           = (i + 1) / static_cast<float32_t>(cascade_count);
+		float32_t power           = (static_cast<float32_t>(i) + 1.0f) / static_cast<float32_t>(cascade_count);
 		float32_t log             = this->m_perspective_z_near * std::pow(ratio, power);        // Calculate logrithmic split
 		float32_t uniform         = this->m_perspective_z_near + range * power;                 // Calculate normal split
 		float32_t depth           = lambda * (log - uniform) + uniform;                         // The equation is (d = lambda(log) + (1 - lambda) * uniform) but its simplified here
@@ -545,6 +554,7 @@ void OrbitCamera::update()
 	this->update_view();
 	this->update_normal();
 	this->update_projection();
+	this->update_dependents();
 	this->setup_frustums();        // Don't update unless projection properties changed
 }
 
@@ -558,8 +568,8 @@ void OrbitCamera::upload(const Renderer &a_renderer)
 	per_view_uniform->update("view_mat4", &this->m_view.m_values);
 	per_view_uniform->update("projection_mat4", &this->m_projection.m_values);
 	per_view_uniform->update("view_projection_mat4", &this->m_view_projection.m_values);
-	per_view_uniform->update("inverse_projection_mat4", &this->m_inverse_projection.m_values);
-	per_view_uniform->update("inverse_view_projection_mat4", &this->m_inverse_view_projection.m_values);
+	per_view_uniform->update("inverse_projection_mat4", &this->m_projection_inverse.m_values);
+	per_view_uniform->update("inverse_view_projection_mat4", &this->m_view_projection_inverse.m_values);
 	per_view_uniform->update("normal_mat3", &this->m_normal.m_values);
 	per_view_uniform->update("camera_position", &this->m_eye.x);
 
