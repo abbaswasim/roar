@@ -76,6 +76,7 @@ function(build_options target_name extra_pedantic)
 		# -fno-omit-frame-pointer
 		# -fno-optimize-sibling-calls
 		-Wno-poison-system-directories
+		# -Wno-deprecated-declarations
 		-Wno-gnu-zero-variadic-macro-arguments) # TODO: Find a solution to this for gtest
 
 	  target_compile_options(${target_name} PRIVATE
@@ -92,7 +93,7 @@ function(build_options target_name extra_pedantic)
 	endif()
 	# target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments)
 
-	if (ROAR_BUILD_SANITIZED)
+	if (ROAR_BUILD_ASANITIZED AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	  target_compile_options(${target_name} PRIVATE
 		# -fsanitize=memory
 		# -fsanitize=thread
@@ -102,13 +103,22 @@ function(build_options target_name extra_pedantic)
 		# -fsanitize=float-cast-overflow
 		# -fno-sanitize=null
 		# -fno-sanitize=alignment
+		-fsanitize=address
+		-fno-omit-frame-pointer)
+	  target_link_options(${target_name} PRIVATE
 		-fsanitize=address)
+	endif()
 
+	if (ROAR_BUILD_UBSANITIZED AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	  target_compile_options(${target_name} PRIVATE
+		-fsanitize=undefined
+		-fno-sanitize-recover=undefined
+		-fno-omit-frame-pointer)
 	  target_link_options(${target_name} PRIVATE
 		# -fsanitize=undefined
 		# -fsanitize=memory
 		# -fsanitize=thread
-		-fsanitize=address)
+		-fsanitize=undefined)
 	endif()
   endif()
 
