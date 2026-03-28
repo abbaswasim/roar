@@ -200,8 +200,6 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto shader_buffer_vector(const std::string &a_name) const          { return this->m_buffers_mapping.at(a_name);              }
 	// clang-format on
 
-	declare_translation_unit_vtable();
-
 	std::vector<rhi::RenderpassType> render_pass_types(const std::vector<rhi::Renderpass> &a_pass) const;
 	const rhi::RenderTarget         *find_rendertarget_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);
 	const rhi::RenderBuffer         *find_renderbuffer_reference(const std::vector<rhi::Renderpass> &a_renderpasses, uint32_t a_index);

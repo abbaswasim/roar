@@ -59,7 +59,7 @@ class ROAR_ENGINE_ITEM GuiWindow final
 	FORCE_INLINE            GuiWindow(GuiWindow &&a_other) noexcept = default;        //! Move constructor
 	FORCE_INLINE GuiWindow &operator=(const GuiWindow &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE GuiWindow &operator=(GuiWindow &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~GuiWindow() noexcept                      = default;        //! Destructor
+	FORCE_INLINE ~GuiWindow() noexcept                              = default;        //! Destructor
 
 	GuiWindow(std::string a_frame_title, rhi::Program a_program) :
 	    m_frame_title(a_frame_title), m_set_program(a_program)

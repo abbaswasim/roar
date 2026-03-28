@@ -71,9 +71,6 @@
 
 namespace ror
 {
-define_translation_unit_vtable(Renderer)
-{}
-
 rhi::TextureTarget string_to_texture_target(const std::string &a_target)
 {
 	if (a_target == "1D")

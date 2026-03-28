@@ -48,8 +48,6 @@ class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 	FORCE_INLINE UnixApp &operator=(UnixApp &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE ~UnixApp() noexcept override                   = default;        //! Destructor
 
-	declare_translation_unit_vtable();
-
 	FORCE_INLINE UnixApp()
 #if defined USE_GLFW
 	    :
@@ -92,8 +90,5 @@ class ROAR_ENGINE_ITEM UnixApp final : public Application<UnixApp>
 	GLFWwindowWrapper<UnixApp> m_glfw_window;        //! A GLFW wrapper that takes care of GLFW platform specific stuff
 #endif
 };
-
-define_translation_unit_vtable(UnixApp)
-{}
 
 }        // namespace ror

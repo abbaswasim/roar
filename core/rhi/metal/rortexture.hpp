@@ -89,7 +89,6 @@ class ROAR_ENGINE_ITEM TextureMetal final : public TextureCrtp<TextureMetal>
 
   protected:
   private:
-	declare_translation_unit_vtable();
 };
 
 // The following will create something like

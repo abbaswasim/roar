@@ -25,8 +25,8 @@
 
 #pragma once
 #include "foundation/rormacros.hpp"
-#include "rorframes_count.hpp"
 #include "rhi/rorframe_data.hpp"
+#include "rorframes_count.hpp"
 #include <array>
 #include <cstddef>
 
@@ -41,7 +41,7 @@ class ROAR_ENGINE_ITEM Frames final
 	FORCE_INLINE         Frames(Frames &&a_other) noexcept    = default;        //! Move constructor
 	FORCE_INLINE Frames &operator=(const Frames &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Frames &operator=(Frames &&a_other) noexcept = default;        //! Move assignment operator
-	FORCE_INLINE virtual ~Frames() noexcept                   = default;        //! Destructor
+	FORCE_INLINE ~Frames() noexcept                           = default;        //! Destructor
 
 	size_t current_frame_index() const
 	{

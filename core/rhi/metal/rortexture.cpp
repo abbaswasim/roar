@@ -264,8 +264,4 @@ define_translation_unit_vtable(TextureImageMetal)
 
 define_translation_unit_vtable(TextureSamplerMetal)
 {}
-
-define_translation_unit_vtable(TextureMetal)
-{}
-
 }        // namespace rhi
