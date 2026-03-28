@@ -225,3 +225,8 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(glfw)
+
+# Suppress deprecation warnings in vendored GLFW sources (e.g. sprintf on macOS)
+if (APPLE AND TARGET glfw)
+	target_compile_options(glfw PRIVATE -Wno-deprecated-declarations)
+endif()
