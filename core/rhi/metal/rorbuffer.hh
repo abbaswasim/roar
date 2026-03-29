@@ -142,7 +142,7 @@ void BufferMetal::upload(const rhi::Device &a_device, const uint8_t *a_data_poin
 	else if (this->storage_mode() == rhi::ResourceStorageOption::shared ||
 	         this->storage_mode() == rhi::ResourceStorageOption::managed)
 	{
-		std::memcpy(this->map() + a_offset, a_data_pointer + a_offset, a_length);
+		std::memcpy(this->map() + a_offset, a_data_pointer, a_length);        // NOTE: No a_offset for a_data_pointer is expected. upload expexts a_data_point to be pointing at the location to copy from a_length bytes
 		this->unmap(a_offset, a_length);
 		this->ready(true);
 	}
