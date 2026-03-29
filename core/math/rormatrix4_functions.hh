@@ -590,19 +590,7 @@ FORCE_INLINE Matrix4<_type> matrix4_interpolate(const Matrix4<_type> &a_matrix1,
 	Matrix4<_type> temp;
 
 	for (uint32_t i = 0; i < 16; ++i)
-	{
 		temp.m_values[i] = interpolate(a_matrix1.m_values[i], a_matrix2.m_values[i], a_t);
-	}
-
-	// Vector3<_type> x = temp.x_axis();
-	// Vector3<_type> y = temp.y_axis();
-	// Vector3<_type> z = temp.z_axis();
-	// Vector3<_type> t = temp.origin();
-
-	// temp.set_x_axis(x);
-	// temp.set_y_axis(y);
-	// temp.set_z_axis(z);
-	// temp.set_origin(t);
 
 	return temp;
 }
@@ -689,6 +677,33 @@ FORCE_INLINE _type screen_to_world_scale(_type a_screen_size, const ror::Vector4
 	auto b = ror::project_to_world(center1, view_projection_inverse, a_viewport);
 
 	return (a - b).length();
+}
+
+template <class _type>
+FORCE_INLINE ror::Vector3<_type> transform_point(const ror::Matrix4<_type> &a_xform, const ror::Vector3<_type> &a_point)
+{
+	ror::Vector4<_type> result = a_xform * ror::Vector4<_type>{a_point.x, a_point.y, a_point.z, 1.0f};
+
+	return {result.x, result.y, result.z};
+}
+
+template <class _type>
+FORCE_INLINE ror::Vector3<_type> transform_vector(const ror::Matrix4<_type> &a_xform, const ror::Vector3<_type> &a_vector)
+{
+	ror::Vector4<_type> result = a_xform * ror::Vector4<_type>{a_vector.x, a_vector.y, a_vector.z, static_cast<_type>(0.0f)};
+
+	return {result.x, result.y, result.z};
+}
+
+template <class _type>
+FORCE_INLINE ror::Ray<ror::Vector3<_type>> transform_ray(const ror::Matrix4f &a_world_to_object, const ror::Ray<ror::Vector3<_type>> &a_ray_ws)
+{
+	ror::Ray<ror::Vector3<_type>> ray_os{};
+
+	ray_os.set_origin(transform_point(a_world_to_object, a_ray_ws.origin()));
+	ray_os.set_direction(transform_vector(a_world_to_object, a_ray_ws.direction()));
+
+	return ray_os;
 }
 
 }        // namespace ror

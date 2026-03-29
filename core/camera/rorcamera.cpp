@@ -547,6 +547,21 @@ void OrbitCamera::draw_camera_properties()
 	targetl = ls.push_cross(this->m_target, 0.5f, targetl, ror::blue4f);
 }
 
+ror::Ray3f OrbitCamera::get_ray_from(const ror::Vector2f &a_mouse_position) const
+{
+	float32_t ndc_x = (2.0f * a_mouse_position.x) / this->m_width - 1.0f;
+	float32_t ndc_y = 1.0f - (2.0f * a_mouse_position.y) / this->m_height;
+
+	ror::Vector4f clip_coords{ndc_x, ndc_y, -1.0f, 1.0f};
+	ror::Vector4f eye_coords = this->m_projection_inverse * clip_coords;
+	eye_coords               = ror::Vector4f(eye_coords.x, eye_coords.y, -1.0f, 0.0f);
+
+	const auto &origin    = this->m_eye;
+	const auto  direction = ror::Vector3f(this->m_view_inverse * eye_coords).normalized();
+
+	return ror::Ray3f{origin, direction};
+}
+
 void OrbitCamera::update()
 {
 	// this->draw_camera_properties();        // Enable when needed to render the axis

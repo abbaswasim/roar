@@ -25,6 +25,7 @@
 
 #pragma once
 
+#include "math/rorray.hpp"
 #include "rormatrix4.hpp"
 
 /**
@@ -165,6 +166,15 @@ FORCE_INLINE ror::Vector4<_type> project_to_world(const ror::Vector4<_type> &scr
 
 template <class _type>
 FORCE_INLINE _type screen_to_world_scale(_type a_screen_size, const ror::Vector4<_type> a_origin, const ror::Matrix4<_type> &a_view_projection, const ror::Vector4<_type> &a_viewport);
+
+template <class _type>
+FORCE_INLINE ror::Vector3<_type> transform_point(const ror::Matrix4<_type> &a_xform, const ror::Vector3<_type> &a_point);
+
+template <class _type>
+FORCE_INLINE ror::Vector3<_type> transform_vector(const ror::Matrix4<_type> &a_xform, const ror::Vector3<_type> &a_vector);
+
+template <class _type>
+FORCE_INLINE ror::Ray<ror::Vector3<_type>> transform_ray(const ror::Matrix4f &a_world_to_object, const ror::Ray<ror::Vector3<_type>> &a_ray_ws);
 
 }        // namespace ror
 

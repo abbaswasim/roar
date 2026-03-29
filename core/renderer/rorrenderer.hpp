@@ -210,27 +210,27 @@ class Renderer final : public Configuration<Renderer>
 	void upload_remaining_textures(rhi::Device &a_device);
 	void upload_samplers(rhi::Device &a_device);
 
-	void                install_input_handlers(ror::EventSystem &a_event_system);
-	void                uninstall_input_handlers(ror::EventSystem &a_event_system);
-	void                update_shader(rhi::Device &a_device, std::string &a_shader);
-	void                patch_shader(rhi::Shader &a_shader, std::string &a_shader_name);
-	uint32_t            environment_visualize_mode(uint32_t a_environment_index);
-	void                create_environment_mesh(rhi::Device &a_device);
-	void                create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a_event_system);
-	void                load_programs();
-	void                load_debug_data();
-	void                load_frame_graphs();
-	void                load_textures();
-	void                load_samplers();
-	void                load_environments();
-	void                load_buffers();
-	void                load_buffer_templates();
-	void                setup_references();
-	void                setup_final_pass();
-	void                setup_shadow_passes();
-	void                setup_shader_buffers();
-	void                update_shadow_cascades(ror::Scene &a_scene);
-	std::vector<size_t> update_click_function(ror::Scene &a_scene, const ror::Vector2f &a_mouse_position);
+	void     install_input_handlers(ror::EventSystem &a_event_system);
+	void     uninstall_input_handlers(ror::EventSystem &a_event_system);
+	void     update_shader(rhi::Device &a_device, std::string &a_shader);
+	void     patch_shader(rhi::Shader &a_shader, std::string &a_shader_name);
+	uint32_t environment_visualize_mode(uint32_t a_environment_index);
+	void     create_environment_mesh(rhi::Device &a_device);
+	void     create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a_event_system);
+	void     load_programs();
+	void     load_debug_data();
+	void     load_frame_graphs();
+	void     load_textures();
+	void     load_samplers();
+	void     load_environments();
+	void     load_buffers();
+	void     load_buffer_templates();
+	void     setup_references();
+	void     setup_final_pass();
+	void     setup_shadow_passes();
+	void     setup_shader_buffers();
+	void     update_shadow_cascades(ror::Scene &a_scene);
+	void     update_click_function(ror::Scene &a_scene, const ror::Vector2f &a_mouse_position);
 
 	ror::Frames                             m_frames{};                                       //! All the frames in flight
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders

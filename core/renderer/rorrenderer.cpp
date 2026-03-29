@@ -59,9 +59,12 @@
 #include "settings/rorsettings.hpp"
 #include "shader_system/rorshader_system.hpp"
 #include "shader_system/rorshader_update.hpp"
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstddef>
 #include <filesystem>
+#include <limits>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_map>
@@ -2412,6 +2415,152 @@ const rhi::Texture *Renderer::get_shadow_texture(size_t a_cascade_index) const
 	}
 
 	return nullptr;
+}
+
+// Ray-AABB intersection test, by the slab method.  Highly optimized from https://tavianator.com/cgit/dimension.git/tree/libdimension/bvh/bvh.c#n196
+bool ray_box_intersection(const ror::Ray3f &a_ray, const ror::Matrix4f &a_world_to_object, ror::BoundingBoxf &a_bbox, float32_t a_t)
+{
+	// This is actually correct, even though it appears not to handle edge cases
+	// (ray.n.{x,y,z} == 0).  It works because the infinities that result from
+	// dividing by zero will still behave correctly in the comparisons.  Rays
+	// which are parallel to an axis and outside the box will have tmin == inf
+	// or tmax == -inf, while rays inside the box will have tmin and tmax unchanged.
+
+	auto xformed_ray = ror::transform_ray(a_world_to_object, a_ray);
+
+	const auto origin    = xformed_ray.origin();
+	const auto direction = xformed_ray.direction();
+
+	const auto min = a_bbox.minimum();
+	const auto max = a_bbox.maximum();
+
+	ror::Vector3f inv_direction{1.0f / direction.x, 1.0f / direction.y, 1.0f / direction.z};
+
+	float32_t tx1 = (min.x - origin.x) * inv_direction.x;
+	float32_t tx2 = (max.x - origin.x) * inv_direction.x;
+
+	float32_t tmin = std::min(tx1, tx2);
+	float32_t tmax = std::max(tx1, tx2);
+
+	float32_t ty1 = (min.y - origin.y) * inv_direction.y;
+	float32_t ty2 = (max.y - origin.y) * inv_direction.y;
+
+	tmin = std::max(tmin, std::min(ty1, ty2));
+	tmax = std::min(tmax, std::max(ty1, ty2));
+
+	float32_t tz1 = (min.z - origin.z) * inv_direction.z;
+	float32_t tz2 = (max.z - origin.z) * inv_direction.z;
+
+	tmin = std::max(tmin, std::min(tz1, tz2));
+	tmax = std::min(tmax, std::max(tz1, tz2));
+
+	return tmax >= std::max(0.0f, tmin) && tmin < a_t;
+}
+
+void Renderer::update_click_function(ror::Scene &a_scene, const ror::Vector2f &a_mouse_position)
+{
+	// auto camera_eye = a_scene.current_camera().eye();
+	auto  mouse_pos = a_mouse_position;
+
+	// GLFW provides cursor positions in window/screen coordinates, while the camera bounds are updated from framebuffer sizes.
+	// On Retina, framebuffer coords != window coords, so scale to framebuffer space for correct NDC/ray generation.
+	mouse_pos.x *= this->m_dimensions.z;
+	mouse_pos.y *= this->m_dimensions.w;
+
+	auto ray = a_scene.current_camera().get_ray_from(mouse_pos);
+	// Use the camera-projected ray origin (near plane) to support both perspective and orthographic cameras.
+	// For perspective cameras this is colinear with the eye; for orthographic cameras the eye is not on the ray.
+
+	// TODO: First do a scene bounding box test, before jumping into more stuff
+	auto       &scene_nodes      = a_scene.nodes();
+	const auto &scene_nodes_data = a_scene.nodes_side_data();
+	auto       &scene_models     = a_scene.models();
+	float32_t   t_max{std::numeric_limits<float32_t>::max()};
+
+	struct PickHit
+	{
+		size_t    m_resolved_node_index{0};        // Node index in the resolved nodes_models array (matches nodes_offsets.node_offset.x)
+		size_t    m_scene_node_id{0};              // Scene node instance
+		int32_t   m_model_id{-1};                  // Scene node's model id
+		size_t    m_model_node_id{0};              // Node id within the model
+		int32_t   m_mesh_id{-1};                   // Mesh id within the model
+		size_t    m_primitive_id{0};               // Primitive within the mesh
+		float32_t m_local_ray_t{0.0f};
+		float32_t m_ray_t{0.0f};
+		float32_t m_distance_to_eye{0.0f};
+	};
+
+	std::vector<PickHit> hits{};
+	hits.reserve(20);
+
+	for (size_t scene_node_id = 0; scene_node_id < scene_nodes.size(); ++scene_node_id)
+	{
+		const auto &scene_node      = scene_nodes[scene_node_id];
+		const auto &scene_node_data = scene_nodes_data[scene_node_id];
+		if (scene_node_data.m_model == -1)
+			continue;
+
+		auto &scene_model      = scene_models[static_cast_safe<size_t>(scene_node_data.m_model)];
+		auto &model_nodes      = scene_model.nodes_side_data();
+		auto  scene_node_xform = node_global_transform(a_scene, scene_node);
+
+		for (uint32_t model_node_index = 0; model_node_index < model_nodes.size(); ++model_node_index)
+		{
+			auto &model_node = scene_model.nodes()[model_node_index];
+
+			if (model_node.m_mesh_index != -1 && model_node.m_visible)
+			{
+				auto &mesh = scene_model.meshes()[static_cast<size_t>(model_node.m_mesh_index)];
+				(void) mesh;
+				auto model_node_xform = node_global_transform(scene_model, model_node);
+				auto world_xform      = scene_node_xform * model_node_xform;
+				auto inv_world_xform  = world_xform;
+				bool invertable       = inv_world_xform.invert();
+
+				if (!invertable)
+					continue;
+
+				for (size_t prim_id = 0; prim_id < mesh.primitives_count(); ++prim_id)
+				{
+					auto &primitive_bbox = mesh.bounding_box(prim_id);
+
+					if (ray_box_intersection(ray, inv_world_xform, primitive_bbox, t_max))
+					{
+						PickHit ph{};
+
+						// ph.m_resolved_node_index;        // Node index in the resolved nodes_models array (matches nodes_offsets.node_offset.x)
+						ph.m_scene_node_id = scene_node_id;                  // Scene node instance
+						ph.m_model_id      = scene_node_data.m_model;        // Scene node's model id
+						ph.m_model_node_id = model_node_index;               // Node id within the model
+						ph.m_mesh_id       = model_node.m_mesh_index;        // Mesh id within the model
+						ph.m_primitive_id  = prim_id;                        // Primitive within the mesh
+
+						hits.emplace_back(std::move(ph));
+					}
+				}
+			}
+		}
+	}
+
+	// Lets print out what we found out
+	if (hits.size() > 0)
+		log_info("Hits registered {}", hits.size());
+
+	for (auto &ph : hits)
+	{
+		const auto &scene_node_data = scene_nodes_data[ph.m_scene_node_id];
+		const auto &scene_model     = scene_models[static_cast_safe<size_t>(ph.m_model_id)];
+		const auto &model_nodes     = scene_model.nodes_side_data();
+		const auto &model_node      = model_nodes[ph.m_model_node_id];
+		log_info("{}, {}, {}, {}, {}, {}, {}",
+		         scene_node_data.m_model_path.c_str(),
+		         model_node.name().c_str(),
+		         ph.m_scene_node_id,
+		         ph.m_model_id,
+		         ph.m_model_node_id,
+		         ph.m_mesh_id,
+		         ph.m_primitive_id);
+	}
 }
 
 void Renderer::get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const
