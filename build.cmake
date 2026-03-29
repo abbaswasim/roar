@@ -34,6 +34,17 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_CXX_EXTENSIONS false)
 
+if (ROAR_BUILD_ASANITIZED AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  # Apply sanitizers globally so thirdparty targets are instrumented too.
+  add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=address)
+endif()
+
+if (ROAR_BUILD_UBSANITIZED AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-fsanitize=undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=undefined)
+endif()
+
 function(build_options target_name extra_pedantic)
   if (CMAKE_BUILD_TYPE MATCHES "Debug")
 	target_compile_definitions(${target_name} PRIVATE RORDEBUG)
@@ -92,38 +103,11 @@ function(build_options target_name extra_pedantic)
 	  )
 	endif()
 	# target_compile_options(${target_name} PRIVATE -Wno-gnu-zero-variadic-macro-arguments)
-
-	if (ROAR_BUILD_ASANITIZED AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	  target_compile_options(${target_name} PRIVATE
-		# -fsanitize=memory
-		# -fsanitize=thread
-		# -fsanitize=undefined
-		# -fno-sanitize-recover=all
-		# -fsanitize=float-divide-by-zero
-		# -fsanitize=float-cast-overflow
-		# -fno-sanitize=null
-		# -fno-sanitize=alignment
-		-fsanitize=address
-		-fno-omit-frame-pointer)
-	  target_link_options(${target_name} PRIVATE
-		-fsanitize=address)
-	endif()
-
-	if (ROAR_BUILD_UBSANITIZED AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-	  target_compile_options(${target_name} PRIVATE
-		-fsanitize=undefined
-		-fno-sanitize-recover=undefined
-		-fno-omit-frame-pointer)
-	  target_link_options(${target_name} PRIVATE
-		# -fsanitize=undefined
-		# -fsanitize=memory
-		# -fsanitize=thread
-		-fsanitize=undefined)
-	endif()
+	# Sanitizer options are added globally above so thirdparty is covered too.
   endif()
 
   if (${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
-      target_compile_options(${target_name} PRIVATE -Wno-invalid-constexpr -Wno-c++20-extensions -Wno-c++20-compat -Wno-return-type -Wno-attributes)
+    target_compile_options(${target_name} PRIVATE -Wno-invalid-constexpr -Wno-c++20-extensions -Wno-c++20-compat -Wno-return-type -Wno-attributes)
   endif()
 
 endfunction(build_options)
