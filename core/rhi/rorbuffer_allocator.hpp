@@ -25,10 +25,10 @@
 
 #pragma once
 
-#include "profiling/rorlog.hpp"
 #include "rhi/rorbuffers_pack.hpp"
 #include "rhi/rortypes.hpp"
 #include <cstddef>
+#include <type_traits>
 
 // #define WITHOUT_BUFFER_ALLOCATOR
 
@@ -196,3 +196,15 @@ bool operator!=(const BufferAllocator<_type_0> &, const BufferAllocator<_type_1>
 //	return false;
 // }
 }        // namespace rhi
+
+// BufferAllocator hands out pointers into a larger raw byte buffer (BuffersPack).
+// libc++ ASan container annotations poison [size, capacity) to detect container-overflow.
+// That poisoning breaks the "raw upload" use-case when we memcpy/submit the backing store.
+#if defined(_LIBCPP_HAS_ASAN_CONTAINER_ANNOTATIONS_FOR_ALL_ALLOCATORS)
+namespace std
+{
+template <class _type>
+struct __asan_annotate_container_with_allocator<rhi::BufferAllocator<_type>> : std::false_type
+{};
+}        // namespace std
+#endif
