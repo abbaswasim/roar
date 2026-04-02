@@ -115,6 +115,16 @@
 			"name":"brdf_integration_lut",
 			"format":"r16g16_float32",
 			"writeable": true
+		},
+		{
+			"name":"pick_color",
+			"format":"b8g8r8a8_uint32_norm_srgb",
+			"target":"2D"
+		},
+		{
+			"name":"pick_depth",
+			"format":"depth32_float32",
+			"target":"2D"
 		}
 	],
 	"samplers":[
@@ -665,6 +675,54 @@
 					{
 						"name":"shadow_mapping_c3",
 						"type":"shadow"
+					}
+				]
+			},
+			{
+				"width" : 80,
+				"height" : 60,
+				"render_targets":[
+					{
+						"index":13,
+						"load_action":"clear",
+						"store_action":"store",
+						"layer":0,
+						"type":"color"
+					},
+					{
+						"index":14,
+						"load_action":"clear",
+						"store_action":"discard",
+						"layer":0,
+						"type":"depth"
+					}
+				],
+				"background":[0.0, 0.0, 0.0, 1.0],
+				"cull_mode" : "back",
+				"subpasses":[
+					{
+						"name":"picking",
+						"type":"pick",
+						"state":"transient",
+						"debug_output":true,
+						"cull_mode" : "back",
+						"render_targets":[0, 1],
+						"rendered_inputs":[
+							{
+								"index" : 2,
+								"stage" : "fragment"
+							}
+						],
+						"buffer_inputs":[
+							{
+								"index" : 2,
+								"stage" : "vertex"
+							},
+							{
+								"index" : 3,
+								"stage" : "vertex"
+							}
+						]
 					}
 				]
 			},

@@ -99,6 +99,7 @@ constexpr auto to_renderpasstype(uint32_t a_index)
 	{
 			// clang-format off
 		case rhi::RenderpassType::lut:                  return rpt;
+		case rhi::RenderpassType::pick:                 return rpt;
 		case rhi::RenderpassType::main:                 return rpt;
 		case rhi::RenderpassType::depth:                return rpt;
 		case rhi::RenderpassType::shadow:               return rpt;

@@ -531,6 +531,7 @@ enum class ShadingMode
 enum class RenderpassType
 {
 	lut,
+	pick,
 	main,
 	depth,
 	shadow,

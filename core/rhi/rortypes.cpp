@@ -826,6 +826,7 @@ std::string renderpass_type_to_string(const rhi::RenderpassType &a_type)
 	switch (a_type)
 	{
 		case rhi::RenderpassType::lut: 					    return "lut";
+		case rhi::RenderpassType::pick: 				    return "pick";
 		case rhi::RenderpassType::main: 				    return "main";
 		case rhi::RenderpassType::depth: 				    return "depth";
 		case rhi::RenderpassType::shadow: 				    return "shadow";

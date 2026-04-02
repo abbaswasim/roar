@@ -45,6 +45,8 @@
 #include "rhi/rortexture.hpp"
 #include "rhi/rortypes.hpp"
 #include "settings/rorsettings.hpp"
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <functional>
 #include <vector>
@@ -393,6 +395,17 @@ void deferred_clustered_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::
 
 void lut_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
               rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass)
+{
+	// clang-format off
+	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_pass; (void) a_subpass;
+	// clang-format on
+
+	ror::log_critical("Compute pass {} not implemented, implement me", __FUNCTION__);
+}
+
+void pick_pass(rhi::ComputeCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system,
+               ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,
+               rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass)
 {
 	// clang-format off
 	(void) a_command_encoder; (void) a_scene; (void) a_job_system; (void) a_event_system; (void) a_buffer_pack; (void) a_device; (void) a_timer; (void) a_renderer; (void) a_pass; (void) a_subpass;

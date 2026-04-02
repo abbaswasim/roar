@@ -45,6 +45,7 @@ FORCE_INLINE constexpr void pass_by_type(_type &a_command_encoder, ror::Scene &a
 	switch (a_subpass.type())
 	{
 	case rhi::RenderpassType::lut:                     lut_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);                    break;
+	case rhi::RenderpassType::pick:                    pick_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);                   break;
 	case rhi::RenderpassType::main:                    main_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);                   break;
 	case rhi::RenderpassType::depth:                   depth_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);                  break;
 	case rhi::RenderpassType::shadow:                  shadow_pass(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);                 break;

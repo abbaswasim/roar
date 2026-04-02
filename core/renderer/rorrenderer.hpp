@@ -230,7 +230,7 @@ class Renderer final : public Configuration<Renderer>
 	void     setup_shadow_passes();
 	void     setup_shader_buffers();
 	void     update_shadow_cascades(ror::Scene &a_scene);
-	void     update_click_function(ror::Scene &a_scene, const ror::Vector2f &a_mouse_position);
+	void     update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse_position);
 
 	ror::Frames                             m_frames{};                                       //! All the frames in flight
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders

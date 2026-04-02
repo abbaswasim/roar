@@ -39,17 +39,10 @@
 #include "math/rortransform.hpp"
 #include "profiling/rortimer.hpp"
 #include "renderer/rorrenderer.hpp"
-#include "rhi/rorprogram.hpp"
 #include "rhi/rorrenderpass.hpp"
-#include "rhi/rorshader.hpp"
-#include "rhi/rorshader_buffer.hpp"
-#include "rhi/rorshader_buffer_template.hpp"
 #include "rhi/rortypes.hpp"
-#include "settings/rorsettings.hpp"
-#include <any>
 #include <cstddef>
 #include <filesystem>
-#include <limits>
 #include <unordered_map>
 
 namespace ror
@@ -272,5 +265,24 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 
 void get_animation_sizes(ror::Scene &a_scene, uint32_t &a_animation_size, uint32_t &a_animation_count, uint32_t &a_sampler_input_size, uint32_t &a_sampler_output_size, uint32_t &a_weights_output_size);
 void fill_morph_weights(ror::Scene &a_scene, rhi::ShaderBuffer &a_shader_buffer, uint32_t a_weights_size);
+
+// TODO: Optimise, as calculating parent over and over isn't ideal. But this is only used in picking, not always in realtime
+template <typename _node_container, typename _node_type>
+ror::Matrix4f node_global_transform(_node_container &a_nodes_container, _node_type &a_node)
+{
+	auto         &nodes = a_nodes_container.nodes();
+	ror::Matrix4f node_matrix{a_node.m_trs_transform.matrix4f()};
+	_node_type   *node = &a_node;
+
+	while (node->m_parent != -1)
+	{
+		auto &parent = nodes[static_cast<size_t>(node->m_parent)];
+		node_matrix  = parent.m_trs_transform.matrix4f() * node_matrix;
+
+		node = &parent;
+	}
+
+	return node_matrix;
+}
 
 }        // namespace ror

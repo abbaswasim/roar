@@ -642,6 +642,7 @@ rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
 {
 	// clang-format off
 	if      (a_type == "lut")                    return rhi::RenderpassType::lut;
+	else if (a_type == "pick")                   return rhi::RenderpassType::pick;
 	else if (a_type == "main")                   return rhi::RenderpassType::main;
 	else if (a_type == "depth")                  return rhi::RenderpassType::depth;
 	else if (a_type == "shadow")                 return rhi::RenderpassType::shadow;
@@ -1492,6 +1493,21 @@ void Renderer::dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_devi
 				    subpass.type() == rhi::RenderpassType::main)
 				{
 					pass.dimensions(dimensions);
+				}
+				// For other renderpasses that needs retina adjustments
+				else if (subpass.type() == rhi::RenderpassType::pick)        // Add any other passes which are supposed to work with screen coordinates but not final output
+				{
+					auto scale_u32 = [](uint32_t a_value, float32_t a_scale) {
+						assert(a_scale > 0.0f && "Scale must be positive");
+						return std::max(1u, static_cast<uint32_t>(std::lround(static_cast<float32_t>(a_value) * a_scale)));
+					};
+
+					auto base_dimensions = pass.dimensions();
+
+					base_dimensions.x = scale_u32(base_dimensions.x, a_dimensions.z);
+					base_dimensions.y = scale_u32(base_dimensions.y, a_dimensions.w);
+
+					pass.dimensions(base_dimensions);
 				}
 			}
 		}
@@ -2457,17 +2473,15 @@ bool ray_box_intersection(const ror::Ray3f &a_ray, const ror::Matrix4f &a_world_
 	return tmax >= std::max(0.0f, tmin) && tmin < a_t;
 }
 
-void Renderer::update_click_function(ror::Scene &a_scene, const ror::Vector2f &a_mouse_position)
+void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse_position)
 {
-	// auto camera_eye = a_scene.current_camera().eye();
-	auto  mouse_pos = a_mouse_position;
-
 	// GLFW provides cursor positions in window/screen coordinates, while the camera bounds are updated from framebuffer sizes.
 	// On Retina, framebuffer coords != window coords, so scale to framebuffer space for correct NDC/ray generation.
-	mouse_pos.x *= this->m_dimensions.z;
-	mouse_pos.y *= this->m_dimensions.w;
+	// m_dimensions.z/w has the width and height retina scaling factors from glfw
+	a_mouse_position.x *= this->m_dimensions.z;
+	a_mouse_position.y *= this->m_dimensions.w;
 
-	auto ray = a_scene.current_camera().get_ray_from(mouse_pos);
+	auto ray = a_scene.current_camera().get_ray_from(a_mouse_position);
 	// Use the camera-projected ray origin (near plane) to support both perspective and orthographic cameras.
 	// For perspective cameras this is colinear with the eye; for orthographic cameras the eye is not on the ray.
 
