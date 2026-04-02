@@ -763,17 +763,25 @@ static bool rendering_mode_selector(uint32_t &a_render_mode_index, bool &a_show_
 {
 	bool return_state{false};
 
+	static uint32_t selected = {0};
+
 	if (ImGui::TreeNode("Render mode selector"))
 	{
-		int selected = 0;
+		uint32_t mode_index = 0;
 		for (auto &render_mode : ror::Settings().m_gui.m_render_modes)
 		{
 			if (render_mode.c_str()[0] != '-')
 			{
+				ImGuiSelectableFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+				if (selected == mode_index)
+					flags |= ImGuiTreeNodeFlags_Selected;
+
 				ImGui::TreePush(render_mode.c_str() + 1);
-				if (ImGui::Selectable(render_mode.c_str()))
+				ImGui::TreeNodeEx(render_mode.c_str(), flags);
+				if (ImGui::IsItemClicked())
 				{
-					a_render_mode_index = static_cast_safe<uint32_t>(selected);
+					selected            = mode_index;
+					a_render_mode_index = static_cast_safe<uint32_t>(mode_index);
 					return_state        = true;
 
 					if (render_mode == "Multi-Render View")
@@ -789,7 +797,7 @@ static bool rendering_mode_selector(uint32_t &a_render_mode_index, bool &a_show_
 				ImGui::Text("%s", render_mode.c_str() + 1);
 			}
 
-			selected++;
+			mode_index++;
 		}
 		ImGui::TreePop();
 	}
