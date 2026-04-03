@@ -35,6 +35,8 @@
 #include "graphics/rorenvironment.hpp"
 #include "profiling/rortimer.hpp"
 #include "renderer/rorframes.hpp"
+#include "renderer/rorframes_count.hpp"
+#include "renderer/rorpicking.hpp"
 #include "rhi/rorbuffer_allocator.hpp"
 #include "rhi/rorrenderpass.hpp"
 #include "rhi/rorshader_buffer_template.hpp"
@@ -236,6 +238,7 @@ class Renderer final : public Configuration<Renderer>
 	void     update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse_position);
 
 	ror::Frames                             m_frames{};                                       //! All the frames in flight
+	ror::Picking<ror::max_frames_in_flight> m_pickables{};                                    //! All the pickable nodes witin the scene for each frame for a single pick
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
 	std::vector<rhi::Program>               m_programs{};                                     //! All the global shader programs
 	std::vector<rhi::TextureImage>          m_images{};                                       //! All the texture images some render passes might want to write into

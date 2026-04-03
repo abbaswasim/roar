@@ -62,6 +62,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <limits>
 #include <nlohmann/json.hpp>
@@ -1301,7 +1302,7 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 	});
 
 	ror::gui().draw_window(this->m_picking_window_index, [this]() {
-		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_pick_image)), ImVec2(400, 400));
+		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_pick_image)), ImVec2(200, 200));
 	});
 
 	if (surface)
@@ -2406,7 +2407,7 @@ void Renderer::setup_shadow_passes()
 
 const rhi::TextureImage *Renderer::get_pass_image(rhi::RenderpassType a_pass_type, uint32_t a_render_target_index) const
 {
-	auto *pass_texture  = this->get_pass_texture(a_pass_type, a_render_target_index);
+	auto *pass_texture    = this->get_pass_texture(a_pass_type, a_render_target_index);
 	auto &renderer_images = this->images();
 
 	return &renderer_images[static_cast_safe<size_t>(pass_texture->texture_image())];
@@ -2499,6 +2500,32 @@ bool ray_box_intersection(const ror::Ray3f &a_ray, const ror::Matrix4f &a_world_
 	return tmax >= std::max(0.0f, tmin) && tmin < a_t;
 }
 
+static void print_pickables(ror::Scene &a_scene, std::vector<PickHit> &a_hits)
+{
+	const auto &scene_nodes_data = a_scene.nodes_side_data();
+	auto       &scene_models     = a_scene.models();
+
+	// Lets print out what we found out
+	if (a_hits.size() > 0)
+		log_info("Hits registered {}", a_hits.size());
+
+	for (auto &ph : a_hits)
+	{
+		const auto &scene_node_data = scene_nodes_data[ph.m_scene_node_id];
+		const auto &scene_model     = scene_models[static_cast_safe<size_t>(ph.m_model_id)];
+		const auto &model_nodes     = scene_model.nodes_side_data();
+		const auto &model_node      = model_nodes[ph.m_model_node_id];
+		log_info("{}, {}, {}, {}, {}, {}, {}",
+		         scene_node_data.m_model_path.c_str(),
+		         model_node.name().c_str(),
+		         ph.m_scene_node_id,
+		         ph.m_model_id,
+		         ph.m_model_node_id,
+		         ph.m_mesh_id,
+		         ph.m_primitive_id);
+	}
+}
+
 void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse_position)
 {
 	// GLFW provides cursor positions in window/screen coordinates, while the camera bounds are updated from framebuffer sizes.
@@ -2515,23 +2542,10 @@ void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse
 	auto       &scene_nodes      = a_scene.nodes();
 	const auto &scene_nodes_data = a_scene.nodes_side_data();
 	auto       &scene_models     = a_scene.models();
+	auto        current_frame_id = static_cast_safe<uint32_t>(this->current_frame_index());
 	float32_t   t_max{std::numeric_limits<float32_t>::max()};
 
-	struct PickHit
-	{
-		size_t    m_resolved_node_index{0};        // Node index in the resolved nodes_models array (matches nodes_offsets.node_offset.x)
-		size_t    m_scene_node_id{0};              // Scene node instance
-		int32_t   m_model_id{-1};                  // Scene node's model id
-		size_t    m_model_node_id{0};              // Node id within the model
-		int32_t   m_mesh_id{-1};                   // Mesh id within the model
-		size_t    m_primitive_id{0};               // Primitive within the mesh
-		float32_t m_local_ray_t{0.0f};
-		float32_t m_ray_t{0.0f};
-		float32_t m_distance_to_eye{0.0f};
-	};
-
-	std::vector<PickHit> hits{};
-	hits.reserve(20);
+	auto &hits = this->m_pickables.hits(current_frame_id);
 
 	for (size_t scene_node_id = 0; scene_node_id < scene_nodes.size(); ++scene_node_id)
 	{
@@ -2564,16 +2578,16 @@ void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse
 				{
 					auto &primitive_bbox = mesh.bounding_box(prim_id);
 
+					// TODO: Do bounding sphere intersection as thats cheaper
 					if (ray_box_intersection(ray, inv_world_xform, primitive_bbox, t_max))
 					{
-						PickHit ph{};
+						ror::PickHit ph{};
 
-						// ph.m_resolved_node_index;        // Node index in the resolved nodes_models array (matches nodes_offsets.node_offset.x)
-						ph.m_scene_node_id = scene_node_id;                  // Scene node instance
-						ph.m_model_id      = scene_node_data.m_model;        // Scene node's model id
-						ph.m_model_node_id = model_node_index;               // Node id within the model
-						ph.m_mesh_id       = model_node.m_mesh_index;        // Mesh id within the model
-						ph.m_primitive_id  = prim_id;                        // Primitive within the mesh
+						ph.m_scene_node_id = static_cast_safe<uint32_t>(scene_node_id);        // Scene node instance
+						ph.m_model_id      = scene_node_data.m_model;                          // Scene node's model id
+						ph.m_model_node_id = model_node_index;                                 // Node id within the model
+						ph.m_mesh_id       = model_node.m_mesh_index;                          // Mesh id within the model
+						ph.m_primitive_id  = static_cast_safe<uint32_t>(prim_id);              // Primitive within the mesh
 
 						hits.emplace_back(std::move(ph));
 					}
@@ -2582,25 +2596,8 @@ void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse
 		}
 	}
 
-	// Lets print out what we found out
-	if (hits.size() > 0)
-		log_info("Hits registered {}", hits.size());
-
-	for (auto &ph : hits)
-	{
-		const auto &scene_node_data = scene_nodes_data[ph.m_scene_node_id];
-		const auto &scene_model     = scene_models[static_cast_safe<size_t>(ph.m_model_id)];
-		const auto &model_nodes     = scene_model.nodes_side_data();
-		const auto &model_node      = model_nodes[ph.m_model_node_id];
-		log_info("{}, {}, {}, {}, {}, {}, {}",
-		         scene_node_data.m_model_path.c_str(),
-		         model_node.name().c_str(),
-		         ph.m_scene_node_id,
-		         ph.m_model_id,
-		         ph.m_model_node_id,
-		         ph.m_mesh_id,
-		         ph.m_primitive_id);
-	}
+	if (ror::settings().m_print_pickable_objects)
+		print_pickables(a_scene, hits);
 }
 
 void Renderer::get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const

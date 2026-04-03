@@ -310,6 +310,7 @@ Settings::Settings()
 		assert(0 && "No polygon fill mode specified");
 
 	this->m_print_generated_shaders          = setting.get<bool>("print_generated_shaders");
+	this->m_print_pickable_objects           = setting.get<bool>("print_pickable_objects");
 	this->m_print_generated_msl_shaders      = setting.get<bool>("print_generated_msl_shaders");
 	this->m_print_generated_glsl_shaders     = setting.get<bool>("print_generated_glsl_shaders");
 	this->m_print_generated_vertex_shaders   = setting.get<bool>("print_generated_vertex_shaders");

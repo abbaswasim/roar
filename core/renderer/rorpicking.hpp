@@ -25,36 +25,44 @@
 
 #pragma once
 #include "foundation/rormacros.hpp"
+#include <array>
+#include <vector>
 
 namespace ror
 {
-
 struct PickHit
 {
-	size_t    m_resolved_node_index{0};        // Node index in the resolved nodes_models array (matches nodes_offsets.node_offset.x)
-	size_t    m_scene_node_id{0};              // Scene node instance
-	int32_t   m_model_id{-1};                  // Scene node's model id
-	size_t    m_model_node_id{0};              // Node id within the model
-	int32_t   m_mesh_id{-1};                   // Mesh id within the model
-	size_t    m_primitive_id{0};               // Primitive within the mesh
-	float32_t m_local_ray_t{0.0f};
-	float32_t m_ray_t{0.0f};
-	float32_t m_distance_to_eye{0.0f};
+	uint32_t m_scene_node_id{0};        //! Scene node id
+	int32_t  m_model_id{-1};            //! Scene node's model id
+	uint32_t m_model_node_id{0};        //! Node id within the model
+	int32_t  m_mesh_id{-1};             //! Mesh id within the model
+	uint32_t m_primitive_id{0};         //! Primitive id within the mesh
 };
 
+template <size_t _frame_count>
 class ROAR_ENGINE_ITEM Picking final
 {
   public:
-	FORCE_INLINE          Picking()                             = default;        //! Default constructor
 	FORCE_INLINE          Picking(const Picking &a_other)       = default;        //! Copy constructor
 	FORCE_INLINE          Picking(Picking &&a_other) noexcept   = default;        //! Move constructor
 	FORCE_INLINE Picking &operator=(const Picking &a_other)     = default;        //! Copy assignment operator
 	FORCE_INLINE Picking &operator=(Picking &&a_other) noexcept = default;        //! Move assignment operator
 	FORCE_INLINE ~Picking() noexcept                            = default;        //! Destructor
 
+	// clang-format off
+	FORCE_INLINE void register_hit(PickHit a_hit)               {    this->m_hits.emplace_back(a_hit);               }
+	FORCE_INLINE constexpr auto &hits(uint32_t a_frame)         {    return this->m_hits[a_frame];                   }
+	FORCE_INLINE constexpr void  clear()                        {    return this->m_hits.clear();                    }
+	FORCE_INLINE          Picking()                             {    for (auto& h: this->m_hits) h.reserve(20);      }        //! Default constructor
+	// clang-format on
+
   protected:
   private:
-	std::vector<PickHit> m_frames{};
+	// clang-format off
+	FORCE_INLINE constexpr auto &hits()                   const {    return this->m_hits;                            }
+	// clang-format on
+
+	std::array<std::vector<PickHit>, _frame_count> m_hits{};        //! All the hits for all the frames
 };
 
 }        // namespace ror

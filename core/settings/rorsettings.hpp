@@ -167,6 +167,7 @@ class ROAR_ENGINE_ITEM Settings final
 	bool m_fog_enabled{false};
 	bool m_force_rgba_textures{false};
 	bool m_force_ldr_textures{false};
+	bool m_print_pickable_objects{false};
 	bool m_print_generated_shaders{false};
 	bool m_print_generated_msl_shaders{false};
 	bool m_print_generated_glsl_shaders{false};
