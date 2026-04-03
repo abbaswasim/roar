@@ -191,7 +191,10 @@ class Renderer final : public Configuration<Renderer>
 
 	void                     upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system);
 	void                     update_frustums_geometry(const ror::OrbitCamera &a_camera);
+	const rhi::Texture      *get_render_target_texture(const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, uint32_t a_render_target_index) const;
+	const rhi::Texture      *get_pass_texture(rhi::RenderpassType a_subpass_type, uint32_t a_render_target_index = 0) const;
 	const rhi::Texture      *get_shadow_texture(size_t a_cascade_index) const;
+	const rhi::TextureImage *get_pass_image(rhi::RenderpassType a_pass_type, uint32_t a_render_target_index = 0) const;
 	const rhi::TextureImage *get_shadow_image(size_t a_cascade_index) const;
 
   protected:
@@ -260,7 +263,9 @@ class Renderer final : public Configuration<Renderer>
 	uint32_t                                m_final_pass{};                                   //! Index of the final pass in the render pass chains in framegraph
 	uint32_t                                m_shadowpasses_count{0};                          //! Total amount of shadow passes in the current framegraph
 	const rhi::TextureImage                *m_shadow_image{nullptr};                          //! Cached copy of the image used as render target for shadow maps
-	size_t                                  m_shadow_window_index{0};                         //! Index of the gui windows used to rendder the shadow image into
+	const rhi::TextureImage                *m_pick_image{nullptr};                            //! Cached copy of the image used as render target for picking
+	size_t                                  m_shadow_window_index{0};                         //! Index of the gui windows used to render the shadow image into
+	size_t                                  m_picking_window_index{0};                        //! Index of the gui windows used to render the picking render target image into
 	size_t                                  m_renderpasses_count{0};                          //! Total amount of renderpasses in the current framegraph
 	size_t                                  m_subpasses_count{0};                             //! Total amount of subpasses in the current framegraph
 	size_t                                  m_renderpass_index{0};                            //! Which renderpass are we currently rendering from the frame graph. This is state

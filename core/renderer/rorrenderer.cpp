@@ -29,7 +29,6 @@
 #include "event_system/rorevent_system.hpp"
 #include "foundation/rorhash.hpp"
 #include "foundation/rorjobsystem.hpp"
-#include "foundation/rormacros.hpp"
 #include "foundation/rortypes.hpp"
 #include "foundation/rorutilities.hpp"
 #include "geometry/rorgeometry_utilities.hh"
@@ -1286,7 +1285,6 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 {
 	(void) a_job_system;
 	(void) a_event_system;
-	(void) a_buffer_pack;
 	(void) a_device;
 	(void) a_timer;
 
@@ -1300,6 +1298,10 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 	ror::gui().draw_window(this->m_shadow_window_index, [this]() {
 		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_shadow_image)), ImVec2(400, 400));
+	});
+
+	ror::gui().draw_window(this->m_picking_window_index, [this]() {
+		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_pick_image)), ImVec2(400, 400));
 	});
 
 	if (surface)
@@ -2277,8 +2279,10 @@ void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSyst
 	this->upload_environments(a_device);
 	this->upload_debug_geometry(a_device, a_event_system);
 
-	this->m_shadow_image        = this->get_shadow_image(0);        // Any shadow texture from any shadow pass will be fine, as we use an array for all
-	this->m_shadow_window_index = ror::gui().make_window(a_device, *this, "Shadow Cascade visualisation", nullptr, "gui_array.glsl.frag");
+	this->m_shadow_image         = this->get_shadow_image(0);                                 // Any shadow texture from any shadow pass will be fine, as we use an array for all
+	this->m_pick_image           = this->get_pass_image(rhi::RenderpassType::pick, 0);        // Get the pick texture at index 0
+	this->m_shadow_window_index  = ror::gui().make_window(a_device, *this, "Shadow Cascade visualisation", nullptr, "gui_array.glsl.frag");
+	this->m_picking_window_index = ror::gui().make_window(a_device, *this, "Picking renderpass visualisation", nullptr, "gui_pick.glsl.frag");
 
 	// Upload the global line_soup when its used for debug rendering
 	for (size_t i = 0; i < ror::line_soups_count; ++i)
@@ -2400,6 +2404,14 @@ void Renderer::setup_shadow_passes()
 			ror::log_critical("Haven't found a shadow cascade pass in the render graph for cascade {}", i);
 }
 
+const rhi::TextureImage *Renderer::get_pass_image(rhi::RenderpassType a_pass_type, uint32_t a_render_target_index) const
+{
+	auto *pass_texture  = this->get_pass_texture(a_pass_type, a_render_target_index);
+	auto &renderer_images = this->images();
+
+	return &renderer_images[static_cast_safe<size_t>(pass_texture->texture_image())];
+}
+
 const rhi::TextureImage *Renderer::get_shadow_image(size_t a_cascade_index) const
 {
 	auto *shadow_texture  = this->get_shadow_texture(a_cascade_index);        // Any shadow texture from any shadow pass will be fine, as we use an array for all
@@ -2408,26 +2420,40 @@ const rhi::TextureImage *Renderer::get_shadow_image(size_t a_cascade_index) cons
 	return &renderer_images[static_cast_safe<size_t>(shadow_texture->texture_image())];
 }
 
+const rhi::Texture *Renderer::get_render_target_texture(const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, uint32_t a_render_target_index) const
+{
+	auto &rts = a_subpass.render_targets();
+	assert(a_render_target_index < rts.size() && "Render target index is out of bound");
+	auto rt_local_index = rts[a_render_target_index];
+	auto rt             = a_pass.render_targets()[rt_local_index];
+	return &this->m_textures[static_cast<size_t>(rt.m_target_reference.m_index)];        // Although this index is of a texture image its must be the same as texture, because they are created at the same time
+}
+
+const rhi::Texture *Renderer::get_pass_texture(rhi::RenderpassType a_subpass_type, uint32_t a_render_target_index) const
+{
+	auto &passes = this->current_frame_graph();
+	for (auto &pass : passes)
+		for (auto &subpass : pass.subpasses())
+			if (subpass.type() == a_subpass_type)
+				return this->get_render_target_texture(pass, subpass, a_render_target_index);
+
+	return nullptr;
+}
+
 const rhi::Texture *Renderer::get_shadow_texture(size_t a_cascade_index) const
 {
 	if (this->m_shadow_passes[a_cascade_index] != -1)
 	{
 		auto &pass = this->current_frame_graph()[static_cast<size_t>(this->m_shadow_passes[a_cascade_index])];
 		for (auto &subpass : pass.subpasses())
-		{
 			if (subpass.type() == rhi::RenderpassType::shadow)
 			{
 				auto &rts = subpass.render_targets();
 				if (rts.size() == 1)
-				{
-					auto rt_local_index = rts[0];
-					auto rt             = pass.render_targets()[rt_local_index];
-					return &this->m_textures[static_cast<size_t>(rt.m_target_reference.m_index)];        // Although this index is of a texture image its must be the same as texture, because they are created at the same time
-				}
+					return this->get_render_target_texture(pass, subpass, 0);
 				else
 					log_critical("Struggling to find shadow image in the renderer");
 			}
-		}
 	}
 
 	return nullptr;
