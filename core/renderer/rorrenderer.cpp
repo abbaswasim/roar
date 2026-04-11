@@ -40,6 +40,7 @@
 #include "gui/rorgui.hpp"
 #include "math/rormatrix4.hpp"
 #include "math/rormatrix4_functions.hpp"
+#include "math/rorray.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector3.hpp"
 #include "math/rorvector4.hpp"
@@ -1302,7 +1303,12 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 	});
 
 	ror::gui().draw_window(this->m_picking_window_index, [this]() {
-		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_pick_image)), ImVec2(200, 200));
+		auto pass = this->get_pass(rhi::RenderpassType::pick);
+
+		assert(pass != nullptr && "Couldn't find pick subpass");
+		const auto &d = pass->dimensions();
+
+		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_pick_image)), ImVec2(static_cast<float32_t>(d.x), static_cast<float32_t>(d.y)));
 	});
 
 	if (surface)
@@ -2430,13 +2436,53 @@ const rhi::Texture *Renderer::get_render_target_texture(const rhi::Renderpass &a
 	return &this->m_textures[static_cast<size_t>(rt.m_target_reference.m_index)];        // Although this index is of a texture image its must be the same as texture, because they are created at the same time
 }
 
-const rhi::Texture *Renderer::get_pass_texture(rhi::RenderpassType a_subpass_type, uint32_t a_render_target_index) const
+rhi::Renderpass *Renderer::get_pass(rhi::RenderpassType a_subpass_type) const
 {
 	auto &passes = this->current_frame_graph();
-	for (auto &pass : passes)
-		for (auto &subpass : pass.subpasses())
+
+	for (size_t i = 0; i < passes.size(); ++i)
+	{
+		auto &pass      = passes[i];
+		auto &subpasses = pass.subpasses();
+		for (auto &subpass : subpasses)
 			if (subpass.type() == a_subpass_type)
-				return this->get_render_target_texture(pass, subpass, a_render_target_index);
+			{
+				return &passes[i];
+			}
+	}
+
+	return nullptr;
+}
+
+std::pair<rhi::Renderpass *, rhi::Rendersubpass *> Renderer::get_pass_subpass(rhi::RenderpassType a_subpass_type) const
+{
+	std::pair<rhi::Renderpass *, rhi::Rendersubpass *> output{};
+
+	auto &passes = this->current_frame_graph();
+	for (size_t i = 0; i < passes.size(); ++i)
+	{
+		auto &pass      = passes[i];
+		auto &subpasses = pass.subpasses();
+		for (size_t j = 0; j < subpasses.size(); ++j)
+		{
+			auto &subpass = subpasses[j];
+			if (subpass.type() == a_subpass_type)
+			{
+				output.first  = &passes[i];
+				output.second = &subpasses[j];
+			}
+		}
+	}
+
+	return output;
+}
+
+const rhi::Texture *Renderer::get_pass_texture(rhi::RenderpassType a_subpass_type, uint32_t a_render_target_index) const
+{
+	auto pass_subpass = this->get_pass_subpass(a_subpass_type);
+
+	if (pass_subpass.first != nullptr && pass_subpass.second != nullptr)
+		return this->get_render_target_texture(*pass_subpass.first, *pass_subpass.second, a_render_target_index);
 
 	return nullptr;
 }
@@ -2500,14 +2546,14 @@ bool ray_box_intersection(const ror::Ray3f &a_ray, const ror::Matrix4f &a_world_
 	return tmax >= std::max(0.0f, tmin) && tmin < a_t;
 }
 
-static void print_pickables(ror::Scene &a_scene, std::vector<PickHit> &a_hits)
+static void print_pickables(ror::Scene &a_scene, std::vector<PickHit> &a_hits, const ror::Vector2f &a_target)
 {
 	const auto &scene_nodes_data = a_scene.nodes_side_data();
 	auto       &scene_models     = a_scene.models();
 
 	// Lets print out what we found out
 	if (a_hits.size() > 0)
-		log_info("Hits registered {}", a_hits.size());
+		log_info("Hits registered {} at location ({}, {})", a_hits.size(), a_target.x, a_target.y);
 
 	for (auto &ph : a_hits)
 	{
@@ -2526,26 +2572,13 @@ static void print_pickables(ror::Scene &a_scene, std::vector<PickHit> &a_hits)
 	}
 }
 
-void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse_position)
+static void populate_pickables(ror::Scene &a_scene, ror::Ray3f &a_ray, std::vector<PickHit> &a_hits)
 {
-	// GLFW provides cursor positions in window/screen coordinates, while the camera bounds are updated from framebuffer sizes.
-	// On Retina, framebuffer coords != window coords, so scale to framebuffer space for correct NDC/ray generation.
-	// m_dimensions.z/w has the width and height retina scaling factors from glfw
-	a_mouse_position.x *= this->m_dimensions.z;
-	a_mouse_position.y *= this->m_dimensions.w;
-
-	auto ray = a_scene.current_camera().get_ray_from(a_mouse_position);
-	// Use the camera-projected ray origin (near plane) to support both perspective and orthographic cameras.
-	// For perspective cameras this is colinear with the eye; for orthographic cameras the eye is not on the ray.
-
 	// TODO: First do a scene bounding box test, before jumping into more stuff
 	auto       &scene_nodes      = a_scene.nodes();
 	const auto &scene_nodes_data = a_scene.nodes_side_data();
 	auto       &scene_models     = a_scene.models();
-	auto        current_frame_id = static_cast_safe<uint32_t>(this->current_frame_index());
 	float32_t   t_max{std::numeric_limits<float32_t>::max()};
-
-	auto &hits = this->m_pickables.hits(current_frame_id);
 
 	for (size_t scene_node_id = 0; scene_node_id < scene_nodes.size(); ++scene_node_id)
 	{
@@ -2579,7 +2612,7 @@ void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse
 					auto &primitive_bbox = mesh.bounding_box(prim_id);
 
 					// TODO: Do bounding sphere intersection as thats cheaper
-					if (ray_box_intersection(ray, inv_world_xform, primitive_bbox, t_max))
+					if (ray_box_intersection(a_ray, inv_world_xform, primitive_bbox, t_max))
 					{
 						ror::PickHit ph{};
 
@@ -2589,15 +2622,38 @@ void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse
 						ph.m_mesh_id       = model_node.m_mesh_index;                          // Mesh id within the model
 						ph.m_primitive_id  = static_cast_safe<uint32_t>(prim_id);              // Primitive within the mesh
 
-						hits.emplace_back(std::move(ph));
+						a_hits.emplace_back(std::move(ph));
 					}
 				}
 			}
 		}
 	}
+}
+
+void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse_position)
+{
+	// GLFW provides cursor positions in window/screen coordinates, while the camera bounds are updated from framebuffer sizes.
+	// On Retina, framebuffer coords != window coords, so scale to framebuffer space for correct NDC/ray generation.
+	// m_dimensions.z/w has the width and height retina scaling factors from glfw
+	a_mouse_position.x *= this->m_dimensions.z;
+	a_mouse_position.y *= this->m_dimensions.w;
+
+	// Add artificial offest to match the tip of the pointer
+	a_mouse_position += settings().m_pick_offset;
+
+	// TODO: Use the camera-projected ray origin (near plane) to support both perspective and orthographic cameras. For perspective cameras this is colinear with the eye; for orthographic cameras the eye is not on the ray.
+	auto  current_frame_id = static_cast_safe<uint32_t>(this->current_frame_index());
+	auto  ray              = a_scene.current_camera().get_ray_from(a_mouse_position);
+	auto &hits             = this->m_pickables.hits(current_frame_id);
+	hits.clear();
+
+	for (uint32_t i = 0; i < ror::max_frames_in_flight; ++i)
+		this->m_pickables.register_target(a_mouse_position, i);
+
+	populate_pickables(a_scene, ray, hits);
 
 	if (ror::settings().m_print_pickable_objects)
-		print_pickables(a_scene, hits);
+		print_pickables(a_scene, hits, a_mouse_position);
 }
 
 void Renderer::get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const

@@ -40,6 +40,7 @@
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "renderer/rorrenderer.hpp"
+#include "renderer/rortiler.hpp"
 #include "rhi/crtp_interfaces/rorrenderpass.hpp"
 #include "rhi/rorbuffer.hpp"
 #include "rhi/rortexture.hpp"

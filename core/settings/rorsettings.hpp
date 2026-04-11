@@ -215,6 +215,7 @@ class ROAR_ENGINE_ITEM Settings final
 	Window m_window{};
 
 	ror::Vector4i m_viewport{0, 0, 1024, 768};
+	ror::Vector2f m_pick_offset{-2.0f, -4.0f};
 
 	rhi::PrimitiveWinding m_primitive_winding{rhi::PrimitiveWinding::counter_clockwise};
 

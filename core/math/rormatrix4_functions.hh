@@ -28,6 +28,7 @@
 #include "foundation/rorutilities.hpp"
 #include "math/rorvector3.hpp"
 #include "rormatrix4_functions.hpp"
+#include <tuple>
 
 namespace ror
 {
@@ -629,26 +630,35 @@ FORCE_INLINE ror::Vector4<_type> project_to_screen(const ror::Vector4<_type> &wo
 	return output;
 }
 
+/**
+ * @brief      Unproject a 3D position on the screen to world
+ * @details    This method unprojects a 3D position with a depth already available and a screen position to the world. Mostly used in gizoms, overlays etc
+ *             Basially it askss "Which exact world-space point produced this screen-space sample"
+ * @param      a_screen_position           The screen position with a pre-defined depth as well.
+ * @param      a_view_projection_inverse   The inverse of the camera view projection matrix
+ * @param      a_viewport                  The viewport of the current window
+ * @return     return                      A vector4 in the world with the current screen position and depth given
+ */
 template <class _type>
-FORCE_INLINE ror::Vector4<_type> project_to_world(const ror::Vector4<_type> &screen_position, const ror::Matrix4<_type> &view_projection_inverse, const ror::Vector4<_type> &view_port)
+FORCE_INLINE ror::Vector4<_type> project_to_world(const ror::Vector4<_type> &a_screen_position, const ror::Matrix4<_type> &a_view_projection_inverse, const ror::Vector4<_type> &a_viewport)
 {
 	// view_projection must be inverted externally
-	ror::Vector4f output{screen_position};
+	ror::Vector4f output{a_screen_position};
 
 	// Reverse the viewport transform
-	output.x = (screen_position.x - view_port.x) / view_port.z;
-	output.y = (screen_position.y - view_port.y) / view_port.w;
+	output.x = (a_screen_position.x - a_viewport.x) / a_viewport.z;
+	output.y = (a_screen_position.y - a_viewport.y) / a_viewport.w;
 	// output.z = screen_position.z;
 	// output.w = screen_position.w;
 
 	// Reverse the viewport height transform
-	output.y = 1.0f - output.y;
+	output.y = static_cast<_type>(1.0f) - output.y;
 
 	// Reverse the (-1, 1) range to (0, 1) range
 	// Convert screen position to metal/vulkan NDC space (-1, -1, 0) - (1, 1, 1)
 	// Only x and y needs mapping z is in 0 - 1 range because its normalized
-	output.x = output.x * 2.0f - 1.0f;
-	output.y = output.y * 2.0f - 1.0f;
+	output.x = output.x * static_cast<_type>(2.0f) - static_cast<_type>(1.0f);
+	output.y = output.y * static_cast<_type>(2.0f) - static_cast<_type>(1.0f);
 
 	// Reverse the w division
 	output.x *= output.w;
@@ -656,9 +666,73 @@ FORCE_INLINE ror::Vector4<_type> project_to_world(const ror::Vector4<_type> &scr
 	output.z *= output.w;
 
 	// Invert the projection transform
-	output = view_projection_inverse * output;
+	output = a_view_projection_inverse * output;
+
+	// NOTE: Might still need a /w to check later if w != 1
 
 	return output;
+}
+
+/**
+ * @brief      Find plane hit parallel to camera ray at distance depth
+ * @details    This method find the intersection of ray with frustum at given depth. Given a screen pixel, will construct the camera ray passing through that pixel,
+ *             then find where that ray hits a plane parallel to the camera image plane at distance depth.
+ * @param      a_screen_position                  Screen position and viewport coordinates
+ * @param      a_viewport                         The viewport of the screen
+ * @param      a_y_fov_radians                    The Y-FOV of the camaera in radians
+ * @param      a_camera[eye,right,up,forward]     Camera parameters
+ * @param      a_depth                            The depth used to calculate the plane to intersect with
+ * @return     return type
+ */
+template <class _type>
+ror::Vector3<_type> project_to_world_at_depth(const ror::Vector2<_type> &a_screen_position, const ror::Vector4ui &a_viewport, float a_y_fovy_radians, float a_depth,
+                                              const ror::Vector3<_type> &a_camera_eye, const ror::Vector3<_type> &a_camera_right, const ror::Vector3<_type> &a_camera_up, const ror::Vector3<_type> &a_camera_forward)
+{
+	const _type aspect = static_cast<_type>(a_viewport.z) / static_cast<_type>(a_viewport.w);
+
+	const _type x_ndc = static_cast<_type>(2.0f) * a_screen_position.x / static_cast<_type>(a_viewport.z) - static_cast<_type>(1.0f);
+	const _type y_ndc = static_cast<_type>(1.0f) - static_cast<_type>(2.0f) * a_screen_position.y / static_cast<_type>(a_viewport.w);        // top-left origin
+
+	const _type tan_half_fov_y = std::tan(a_y_fovy_radians * static_cast<_type>(0.5f));
+
+	const _type x_cam = x_ndc * tan_half_fov_y * aspect;
+	const _type y_cam = y_ndc * tan_half_fov_y;
+
+	const ror::Vector3<_type> ray_dir{a_camera_right * x_cam + a_camera_up * y_cam + a_camera_forward};
+	ray_dir.normalized();
+
+	// const ror::Vector3f planePoint = cameraPos + cameraForward * d;
+	const _type denominator = ray_dir.dot_product(a_camera_forward);
+	const _type t           = a_depth / denominator;        // same as dot(planePoint-cameraPos, forward)/dot(rayDir, forward)
+
+	return a_camera_eye + ray_dir * t;
+}
+
+/**
+ * @brief      Projects a screen rectangle to world space at depth
+ * @details    This method uses the project_to_world_at_point for each corner of the screen rectangle passed and returns the world space rectangle.
+ * @param      a_rectangle                        The screenspace rectangle to project into the world
+ * @param      a_viewport                         The viewport of the screen
+ * @param      a_y_fov_radians                    The Y-FOV of the camaera in radians
+ * @param      a_depth                            The depth used to calculate the plane to intersect with
+ * @param      a_camera[eye,right,up,forward]     Camera parameters
+ * @return     return A rectangle in worldspace for the screen space rectangle
+ */
+template <class _type>
+std::tuple<ror::Vector3<_type>, ror::Vector3<_type>, ror::Vector3<_type>, ror::Vector3<_type>>
+    project_screen_rectangle_to_world(const ror::Vector4f &a_rectangle, /*Contains left, top, right, bottom pixel edges of the rectangle*/ const ror::Vector4ui &a_viewport, _type a_y_fov_radians, _type a_depth,
+                                      const ror::Vector3f &a_camera_eye, const ror::Vector3f &a_camera_right, const ror::Vector3f &a_camera_up, const ror::Vector3f &a_camera_forward)
+{
+	const ror::Vector3<_type> p0 = ror::project_to_world_at_depth(ror::Vector2f{a_rectangle.x, a_rectangle.y}, a_viewport, a_y_fov_radians, a_depth,
+	                                                              a_camera_eye, a_camera_right, a_camera_up, a_camera_forward);
+	const ror::Vector3<_type> p1 = ror::project_to_world_at_depth(ror::Vector2f{a_rectangle.z, a_rectangle.y}, a_viewport, a_y_fov_radians, a_depth,
+	                                                              a_camera_eye, a_camera_right, a_camera_up, a_camera_forward);
+	const ror::Vector3<_type> p2 = ror::project_to_world_at_depth(ror::Vector2f{a_rectangle.z, a_rectangle.w}, a_viewport, a_y_fov_radians, a_depth,
+	                                                              a_camera_eye, a_camera_right, a_camera_up, a_camera_forward);
+	const ror::Vector3<_type> p3 = ror::project_to_world_at_depth(ror::Vector2f{a_rectangle.x, a_rectangle.w}, a_viewport, a_y_fov_radians, a_depth,
+	                                                              a_camera_eye, a_camera_right, a_camera_up, a_camera_forward);
+
+	return std::tuple<ror::Vector3<_type>, ror::Vector3<_type>, ror::Vector3<_type>, ror::Vector3<_type>>{p0, p1, p2, p3};
 }
 
 template <class _type>
@@ -704,6 +778,22 @@ FORCE_INLINE ror::Ray<ror::Vector3<_type>> transform_ray(const ror::Matrix4f &a_
 	ray_os.set_direction(transform_vector(a_world_to_object, a_ray_ws.direction()));
 
 	return ray_os;
+}
+
+template <class _type>
+ror::Matrix4<_type> clipspace_crop_matrix(_type a_left, _type a_right, _type a_bottom, _type a_top)
+{
+	const _type sx = 2.0f / (a_right - a_left);
+	const _type sy = 2.0f / (a_top - a_bottom);
+	const _type tx = -(a_right + a_left) / (a_right - a_left);
+	const _type ty = -(a_top + a_bottom) / (a_top - a_bottom);
+
+	ror::Matrix4<_type> crop{sx, static_cast<_type>(0.0f), static_cast<_type>(0.0f), static_cast<_type>(0.0f),
+	                         static_cast<_type>(0.0f), sy, static_cast<_type>(0.0f), static_cast<_type>(0.0f),
+	                         static_cast<_type>(0.0f), static_cast<_type>(0.0f), static_cast<_type>(1.0f), static_cast<_type>(0.0f),
+	                         tx, ty, static_cast<_type>(0.0f), static_cast<_type>(1.0f)};
+
+	return crop;
 }
 
 }        // namespace ror

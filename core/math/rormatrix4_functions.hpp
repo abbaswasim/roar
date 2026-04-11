@@ -165,6 +165,14 @@ template <class _type>
 FORCE_INLINE ror::Vector4<_type> project_to_world(const ror::Vector4<_type> &screen_position, const ror::Matrix4<_type> &view_projection_inverse, const ror::Vector4<_type> &view_port);
 
 template <class _type>
+FORCE_INLINE ror::Vector3<_type> project_to_world_at_depth(const ror::Vector2<_type> &a_screen_position, const ror::Vector4ui &a_viewport, float a_y_fovy_radians, float a_depth,
+                                                           const ror::Vector3<_type> &a_camera_eye, const ror::Vector3<_type> &a_camera_right, const ror::Vector3<_type> &a_camera_up, const ror::Vector3<_type> &a_camera_forward);
+template <class _type>
+FORCE_INLINE std::tuple<ror::Vector3<_type>, ror::Vector3<_type>, ror::Vector3<_type>, ror::Vector3<_type>>
+             project_screen_rectangle_to_world(const ror::Vector4f &a_rectangle, /*Contains left, top, right, bottom pixel edges of the rectangle*/ const ror::Vector4ui &a_viewport, _type a_y_fov_radians, _type a_depth,
+                                               const ror::Vector3f &a_camera_eye, const ror::Vector3f &a_camera_right, const ror::Vector3f &a_camera_up, const ror::Vector3f &a_camera_forward);
+
+template <class _type>
 FORCE_INLINE _type screen_to_world_scale(_type a_screen_size, const ror::Vector4<_type> a_origin, const ror::Matrix4<_type> &a_view_projection, const ror::Vector4<_type> &a_viewport);
 
 template <class _type>
@@ -175,6 +183,9 @@ FORCE_INLINE ror::Vector3<_type> transform_vector(const ror::Matrix4<_type> &a_x
 
 template <class _type>
 FORCE_INLINE ror::Ray<ror::Vector3<_type>> transform_ray(const ror::Matrix4f &a_world_to_object, const ror::Ray<ror::Vector3<_type>> &a_ray_ws);
+
+template <class _type>
+ror::Matrix4<_type> clipspace_crop_matrix(_type a_left, _type a_right, _type a_bottom, _type a_top);
 
 }        // namespace ror
 

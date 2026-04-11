@@ -124,8 +124,10 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &current_frame_graph()    const noexcept { return *this->m_current_frame_graph;            }
 	FORCE_INLINE constexpr auto &shadow_cascade_cache()   const noexcept { return this->m_shadow_cascade_cache;            }
 	FORCE_INLINE constexpr auto &shadow_cascades_data()   const noexcept { return this->m_shadow_cascades_data;            }
-	FORCE_INLINE constexpr auto current_frame_index()     const noexcept { return this->m_frames.current_frame_index();    }
+	FORCE_INLINE constexpr auto &pickables()              const noexcept { return this->m_pickables;                       }
+	FORCE_INLINE constexpr auto &pickables()                    noexcept { return this->m_pickables;                       }
 	FORCE_INLINE constexpr auto &dynamic_meshes()         const noexcept { return this->m_dynamic_meshes;                  }
+	FORCE_INLINE constexpr auto current_frame_index()     const noexcept { return this->m_frames.current_frame_index();    }
 	FORCE_INLINE constexpr auto canonical_cube()          const noexcept { return this->m_canonical_cube;                  }
 	FORCE_INLINE constexpr auto frames_count()            const noexcept { return this->m_frames.max_frames();             }
 	FORCE_INLINE constexpr auto renderpass_index()        const noexcept { return this->m_renderpass_index;                }
@@ -136,8 +138,10 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto subpasses_count()         const noexcept { assert(this->m_subpasses_count);
 		                                                                         return this->m_subpasses_count;           }
 
-	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];}
-	FORCE_INLINE           auto &current_environment()                                                   noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];}
+	FORCE_INLINE constexpr auto &pick_target()                                                     const noexcept  { return this->m_pickables.target(static_cast<uint32_t>(this->current_frame_index()));   }
+	FORCE_INLINE constexpr auto &pick_target()                                                           noexcept  { return this->m_pickables.target(static_cast<uint32_t>(this->current_frame_index()));   }
+	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];  }
+	FORCE_INLINE           auto &current_environment()                                                   noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];  }
 
 	FORCE_INLINE constexpr void shaders(const std::vector<rhi::Shader>            &a_shaders)             noexcept { this->m_shaders = a_shaders;                                                            }
 	FORCE_INLINE constexpr void programs(const std::vector<rhi::Program>          &a_programs)            noexcept { this->m_programs = a_programs;                                                          }
@@ -198,6 +202,9 @@ class Renderer final : public Configuration<Renderer>
 	const rhi::Texture      *get_shadow_texture(size_t a_cascade_index) const;
 	const rhi::TextureImage *get_pass_image(rhi::RenderpassType a_pass_type, uint32_t a_render_target_index = 0) const;
 	const rhi::TextureImage *get_shadow_image(size_t a_cascade_index) const;
+	rhi::Renderpass         *get_pass(rhi::RenderpassType a_subpass_type) const;
+
+	std::pair<rhi::Renderpass *, rhi::Rendersubpass *> get_pass_subpass(rhi::RenderpassType a_subpass_type) const;
 
   protected:
   private:

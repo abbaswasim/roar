@@ -25,6 +25,7 @@
 
 #pragma once
 #include "foundation/rormacros.hpp"
+#include "math/rorvector2.hpp"
 #include <array>
 #include <vector>
 
@@ -50,10 +51,12 @@ class ROAR_ENGINE_ITEM Picking final
 	FORCE_INLINE ~Picking() noexcept                            = default;        //! Destructor
 
 	// clang-format off
-	FORCE_INLINE void register_hit(PickHit a_hit)               {    this->m_hits.emplace_back(a_hit);               }
-	FORCE_INLINE constexpr auto &hits(uint32_t a_frame)         {    return this->m_hits[a_frame];                   }
-	FORCE_INLINE constexpr void  clear()                        {    return this->m_hits.clear();                    }
-	FORCE_INLINE          Picking()                             {    for (auto& h: this->m_hits) h.reserve(20);      }        //! Default constructor
+	FORCE_INLINE void register_hit(PickHit a_hit)                                 { this->m_hits.emplace_back(a_hit);               }
+	FORCE_INLINE void register_target(ror::Vector2f a_target, uint32_t a_frame)   { this->m_targets[a_frame] = a_target;            }
+	FORCE_INLINE constexpr auto &hits(uint32_t a_frame)                           { return this->m_hits[a_frame];                   }
+	FORCE_INLINE constexpr auto &target(uint32_t a_frame)                  const  { return this->m_targets[a_frame];                }
+	FORCE_INLINE constexpr void  clear()                                          { return this->m_hits.clear();                    }
+	FORCE_INLINE          Picking()                                               { for (auto& h: this->m_hits) h.reserve(20);      }        //! Default constructor
 	// clang-format on
 
   protected:
@@ -62,7 +65,8 @@ class ROAR_ENGINE_ITEM Picking final
 	FORCE_INLINE constexpr auto &hits()                   const {    return this->m_hits;                            }
 	// clang-format on
 
-	std::array<std::vector<PickHit>, _frame_count> m_hits{};        //! All the hits for all the frames
+	std::array<ror::Vector2f, _frame_count>        m_targets{};        //! All the hit location in the framebuffer
+	std::array<std::vector<PickHit>, _frame_count> m_hits{};           //! All the hits for all the frames
 };
 
 }        // namespace ror

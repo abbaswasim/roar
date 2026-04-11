@@ -121,6 +121,11 @@ Settings::Settings()
 
 	this->m_viewport = this->m_window.m_dimensions;
 
+	{
+		this->m_pick_offset.x = static_cast<float32_t>(setting.get<int32_t>("pick_offset:x"));
+		this->m_pick_offset.y = static_cast<float32_t>(setting.get<int32_t>("pick_offset:y"));
+	}
+
 	auto winding = setting.get<std::string>("winding");
 
 	if (winding != "")

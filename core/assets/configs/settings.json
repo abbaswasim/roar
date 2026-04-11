@@ -34,6 +34,7 @@
 	"force_mipmapped_textures" : true,
 	"force_rgba_textures" : true,
 	"force_ldr_textures" : false,
+	"print_pickable_objects" : true,
 	"print_generated_shaders" : false,
 	"print_generated_msl_shaders" : false,
 	"print_generated_glsl_shaders" : false,
@@ -160,6 +161,11 @@
 		"y" : 0,
 		"width" : 1024,
 		"height" : 768
+	},
+	"pick_offset" :
+	{
+		"x" : -0,
+		"y" : -0
 	},
 	"clean_dirs" :
 	[
