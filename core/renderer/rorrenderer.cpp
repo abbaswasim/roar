@@ -161,6 +161,22 @@ rhi::TextureBorder string_to_texture_border(const std::string &a_filter)
 	return rhi::TextureBorder::transparent;
 }
 
+rhi::TextureUsage string_to_texture_usage(const std::string &a_usage)
+{
+	if (a_usage == "shader_read")
+		return rhi::TextureUsage::shader_read;
+	else if (a_usage == "shader_write")
+		return rhi::TextureUsage::shader_write;
+	else if (a_usage == "render_target")
+		return rhi::TextureUsage::render_target;
+	else if (a_usage == "render_target_read")
+		return rhi::TextureUsage::render_target_read;
+	else
+		assert(0 && "Unknown type textuer usage");
+
+	return rhi::TextureUsage::shader_read;
+}
+
 void Renderer::patch_shader(rhi::Shader &a_shader, std::string &a_shader_name)
 {
 	auto shader_callback = this->m_callbacks_mapping.find(a_shader_name);
@@ -354,9 +370,8 @@ void read_into_texture_image(rhi::TextureImage &a_texture_image, nlohmann::json 
 	if (a_texture.contains("name"))        // Name is also used as path
 		a_texture_image.name(a_texture["name"]);
 
-	if (a_texture.contains("writeable"))
-		if (a_texture["writeable"] == true)
-			a_texture_image.usage(rhi::TextureUsage::shader_write);
+	if (a_texture.contains("usage"))
+		a_texture_image.usage(string_to_texture_usage(a_texture["usage"]));
 
 	auto size_in_bytes{0ul};
 	if (a_texture.contains("mipmapped"))
@@ -727,6 +742,7 @@ void read_render_subpasses(json &a_render_subpasses, rhi::Renderpass &a_render_p
                            std::vector<std::vector<rhi::ShaderBuffer>> &a_buffers,
                            uint32_t                                    &a_shadow_pass_count)
 {
+	(void) a_buffers;
 	std::vector<rhi::Rendersubpass> rsps;
 	rsps.reserve(a_render_subpasses.size());
 
@@ -927,6 +943,7 @@ void read_render_pass(json &a_render_pass, std::vector<rhi::Renderpass> &a_frame
 	}
 
 	assert((a_render_pass.contains("render_targets") || a_render_pass.contains("render_buffers") || inherits) && "Render pass must have render targets or render buffers");
+	(void) inherits;
 
 	if (a_render_pass.contains("render_targets"))
 	{
