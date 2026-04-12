@@ -138,6 +138,9 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto subpasses_count()         const noexcept { assert(this->m_subpasses_count);
 		                                                                         return this->m_subpasses_count;           }
 
+	FORCE_INLINE constexpr auto &vertex_descriptors(size_t a_index)                                const noexcept  { return this->m_vertex_descriptors[a_index];                                            }
+	FORCE_INLINE constexpr auto &vertex_descriptors()                                              const noexcept  { return this->m_vertex_descriptors;                                                     }
+	FORCE_INLINE constexpr auto &vertex_descriptors()                                                    noexcept  { return this->m_vertex_descriptors;                                                     }
 	FORCE_INLINE constexpr auto &pick_target()                                                     const noexcept  { return this->m_pickables.target(static_cast<uint32_t>(this->current_frame_index()));   }
 	FORCE_INLINE constexpr auto &pick_target()                                                           noexcept  { return this->m_pickables.target(static_cast<uint32_t>(this->current_frame_index()));   }
 	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];  }
@@ -230,6 +233,7 @@ class Renderer final : public Configuration<Renderer>
 	void     create_environment_mesh(rhi::Device &a_device);
 	void     create_grid_mesh(const rhi::Device &a_device, ror::EventSystem &a_event_system);
 	void     load_programs();
+	void     load_vertex_descriptors(rhi::BuffersPack &a_buffer_pack);
 	void     load_debug_data();
 	void     load_frame_graphs();
 	void     load_textures();
@@ -248,6 +252,8 @@ class Renderer final : public Configuration<Renderer>
 	ror::Picking<ror::max_frames_in_flight> m_pickables{};                                    //! All the pickable nodes witin the scene for each frame for a single pick
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
 	std::vector<rhi::Program>               m_programs{};                                     //! All the global shader programs
+	std::vector<uint32_t>                   m_program_vertex_desriptor_ids{};                 //! All the global shader programs descriptor indices in the vertex descriptors array
+	std::vector<rhi::VertexDescriptor>      m_vertex_descriptors{};                           //! All the global vertex descriptors used by the programs, instead of relying on default ones
 	std::vector<rhi::TextureImage>          m_images{};                                       //! All the texture images some render passes might want to write into
 	std::vector<rhi::TextureSampler>        m_samplers{};                                     //! All samplers in the renderer, usually should only have a mipmapped and non-mipmapped sampler, but could have more
 	std::vector<rhi::Texture>               m_textures{};                                     //! All textures the renderer has loaded. This is only used to associate samplers with images

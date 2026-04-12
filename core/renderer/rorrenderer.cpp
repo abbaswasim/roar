@@ -205,6 +205,7 @@ void Renderer::load_programs()
 
 	if (this->m_json_file.contains("programs"))
 	{
+		assert(this->m_json_file.contains("vertex_descriptors") && "Programs must be accompanied by vertex descriptors");
 		auto programs = this->m_json_file["programs"];
 		for (auto &program : programs)
 		{
@@ -225,6 +226,16 @@ void Renderer::load_programs()
 
 				this->m_programs.emplace_back(cid);
 			}
+
+			if (program.contains("vertex_descriptor"))
+			{
+				auto vid = program["vertex_descriptor"];
+				this->m_program_vertex_desriptor_ids.emplace_back(vid);
+			}
+			else
+			{
+				this->m_program_vertex_desriptor_ids.emplace_back(0);
+			}
 		}
 	}
 
@@ -234,6 +245,31 @@ void Renderer::load_programs()
 	{
 		this->push_shader_record(shader, shader_id);
 		shader_id++;
+	}
+}
+
+void Renderer::load_vertex_descriptors(rhi::BuffersPack &a_buffer_pack)
+{
+	if (this->m_json_file.contains("vertex_descriptors"))
+	{
+		auto descriptors = this->m_json_file["vertex_descriptors"];
+		this->m_vertex_descriptors.reserve(descriptors.size());
+		for (auto &descriptor : descriptors)
+		{
+			rhi::VertexDescriptor vd{};
+
+			vd.attributes().reserve(descriptor.size());
+
+			for (auto &&[key, value] : descriptor.items())
+			{
+				rhi::BufferSemantic semantic = rhi::get_format_semantic(key);
+				rhi::VertexFormat   format   = rhi::string_to_vertex_format(value);
+
+				vd.add(semantic, format, &a_buffer_pack);
+			}
+
+			this->m_vertex_descriptors.emplace_back(std::move(vd));
+		}
 	}
 }
 
@@ -639,35 +675,6 @@ void Renderer::load_buffers()
 	this->reset_sets_bindings();
 }
 
-rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
-{
-	// clang-format off
-	if      (a_type == "lut")                    return rhi::RenderpassType::lut;
-	else if (a_type == "pick")                   return rhi::RenderpassType::pick;
-	else if (a_type == "main")                   return rhi::RenderpassType::main;
-	else if (a_type == "depth")                  return rhi::RenderpassType::depth;
-	else if (a_type == "shadow")                 return rhi::RenderpassType::shadow;
-	else if (a_type == "light_bin")              return rhi::RenderpassType::light_bin;
-	else if (a_type == "reflection")             return rhi::RenderpassType::reflection;
-	else if (a_type == "refraction")             return rhi::RenderpassType::refraction;
-	else if (a_type == "pre_process")            return rhi::RenderpassType::pre_process;
-	else if (a_type == "post_process")           return rhi::RenderpassType::post_process;
-	else if (a_type == "tone_mapping")           return rhi::RenderpassType::tone_mapping;
-	else if (a_type == "forward_light")          return rhi::RenderpassType::forward_light;
-	else if (a_type == "node_transform")         return rhi::RenderpassType::node_transform;
-	else if (a_type == "deferred_gbuffer")       return rhi::RenderpassType::deferred_gbuffer;
-	else if (a_type == "reflection_probes")      return rhi::RenderpassType::reflection_probes;
-	else if (a_type == "image_based_light")      return rhi::RenderpassType::image_based_light;
-	else if (a_type == "ambient_occlusion")      return rhi::RenderpassType::ambient_occlusion;
-	else if (a_type == "skeletal_transform")     return rhi::RenderpassType::skeletal_transform;
-	else if (a_type == "deferred_clustered")     return rhi::RenderpassType::deferred_clustered;
-	else if (a_type == "image_based_light_lut")  return rhi::RenderpassType::image_based_light_lut;
-	// clang-format on
-
-	assert(0);
-	return rhi::RenderpassType::main;
-}
-
 rhi::LoadAction to_load_action(nlohmann::json a_loadaction)
 {
 	rhi::LoadAction load_action{rhi::LoadAction::clear};
@@ -736,7 +743,7 @@ void read_render_subpasses(json &a_render_subpasses, rhi::Renderpass &a_render_p
 		}
 
 		assert(subpass.contains("type") && "A subpass must contain a type");
-		rsp.type(string_to_renderpass_type(subpass["type"]));
+		rsp.type(rhi::string_to_renderpass_type(subpass["type"]));
 
 		if (rsp.type() == rhi::RenderpassType::shadow)
 			a_shadow_pass_count++;
@@ -1861,7 +1868,7 @@ void Renderer::create_environment_mesh(rhi::Device &a_device)
 
 		pso->update_descriptor(device, renderer, buffers_images, with_environment);
 
-		pso->upload(device, *pass, *subpass, descriptor, renderer.m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_render_pso", true, false, false);
+		pso->upload(device, *pass, *subpass, descriptor, renderer.m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "skybox_render_pso", true, false, false, false);
 	};
 
 	skybox_update_lambda(a_device, *this);
@@ -2231,6 +2238,8 @@ void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSyst
 {
 	this->m_scene = &a_scene;
 
+	this->load_vertex_descriptors(a_buffer_pack);
+
 	this->dimensions(a_dimensions, a_device);
 	for (auto &shader : this->m_shaders)
 	{
@@ -2259,7 +2268,10 @@ void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSyst
 			// program.update_descriptor(device, *this, buffers_images, with_environment);
 			// because it should be done when we know what buffers/images it uses
 
-			program.upload(device, *pass, *subpass, this->m_shaders, a_buffer_pack, pre_multiplied);        // TODO: Retrieve pre-multiplied state from renderer for each shader
+			const auto &vd = this->m_vertex_descriptors[this->m_program_vertex_desriptor_ids[static_cast<size_t>(program_id)]];
+
+			program.upload(device, *pass, *subpass, this->m_shaders, vd, a_buffer_pack, pre_multiplied);        // TODO: Retrieve pre-multiplied state from renderer for each shader
+			                                                                                                    // FIXME: This upload is not working for some global programs as the default vertex descriptor isn't any good and the errors says its for forward_light because we did get_final_pass
 		};
 
 		program_update(a_device, nullptr);
@@ -2754,7 +2766,7 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 	shadow_map_textured_quads_pso->update_descriptor(a_device, *this, buffers_images, with_environment);
 
 	// Shadow cascades pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
-	shadow_map_textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false);
+	shadow_map_textured_quads_pso->upload(a_device, *pass, *subpass, textured_quads_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "cascades_debug_view", true, false, false, false);
 
 	// This is done last because of the move
 	this->m_debug_data.m_shadow_cascades.setup_vertex_descriptor(&textured_quads_vertex_descriptor);        // NOTE: Moves vertex_descriptor can't use it afterwards
@@ -2810,7 +2822,7 @@ void Renderer::upload_debug_geometry(const rhi::Device &a_device, ror::EventSyst
 	lines_pso->update_descriptor(a_device, *this, buffers_images, false);
 
 	// Lines pso requires a reupload because previously it was created with default vertex descriptor, which is no good here
-	lines_pso->upload(a_device, *pass, *subpass, colored_lines_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "cascades_debug_view", true, false, false);
+	lines_pso->upload(a_device, *pass, *subpass, colored_lines_vertex_descriptor, this->m_shaders, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "cascades_debug_view", true, false, false, false);
 
 	// This is done last because of the move
 	this->m_debug_data.m_frustums[cascade_index].setup_vertex_descriptor(&colored_lines_vertex_descriptor);        // Moves vertex_descriptor can't use it afterwards

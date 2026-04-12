@@ -43,19 +43,59 @@
 		},
 		{
 			"vertex":7,
-			"fragment":8
+			"fragment":8,
+			"vertex_descriptor":1
 		},
 		{
 			"vertex":13,
-			"fragment":14
+			"fragment":14,
+			"vertex_descriptor":3
 		},
 		{
 			"vertex":15,
-			"fragment":16
+			"fragment":16,
+			"vertex_descriptor":1
 		},
 		{
 			"vertex":15,
-			"fragment":17
+			"fragment":17,
+			"vertex_descriptor":1
+		}
+	],
+	"vertex_descriptors":[
+		{
+			"vertex_position" : "float32_4"
+		},
+		{
+			"vertex_position" : "float32_4",
+			"vertex_texture_coord_0": "float32_2"
+		},
+		{
+			"vertex_position" : "float32_4",
+			"vertex_color_0" : "float32_3"
+		},
+		{
+			"vertex_position" : "float32_4",
+			"vertex_texture_coord_0": "float32_2",
+			"vertex_color_0" : "float32_4"
+		},
+		{
+			"vertex_position": "float32_4",
+			"vertex_texture_coord_0": "float32_4",
+			"vertex_texture_coord_1": "float32_4",
+			"vertex_texture_coord_2": "float32_4",
+			"vertex_normal": "float32_4",
+			"vertex_bent_normal": "float32_4",
+			"vertex_tangent": "float32_4",
+			"vertex_color_0": "float32_4",
+			"vertex_color_1": "float32_4",
+			"vertex_bone_id_0": "float32_4",
+			"vertex_bone_id_1": "float32_4",
+			"vertex_weight_0": "float32_4",
+			"vertex_weight_1": "float32_4",
+			"vertex_morph_target": "float32_4",
+			"vertex_morph_weight": "float32_4",
+			"vertex_index": "float32_4"
 		}
 	],
 	"textures":[
