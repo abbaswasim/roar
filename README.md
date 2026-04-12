@@ -64,6 +64,50 @@ Roar uses NASA standard aeroplane conventions as described on page: [Euler angle
   * attitude=Z
   * bank=X
 
+### How does roar save transform data for reach scene and model nodes
+Roar uses two buffers one called `nodes_models` for the whole scene and another called `nodes_offsets` per draw call.
+
+* Nodes Models SSBO
+`nodes_models` is a single big GPU array of matrices that looks like `mat4 node_model[]` in shaders and its defined in `renderer.json`. It contains the resolved (global/world) transform for every node that can be drawn/skinned/morphed. Roar packs them linearly (scene nodes first, then model-instance nodes), and updates them each frame (typically via the node-transform compute pass).
+
+* Nodes Offsets
+`nodes_offsets` is a tiny per-renderable index/offset UBO that looks like `uvec4 node_offset` in shaders and is defined in renderer.json as a template. However each `node_data` for scene as well as model nodes contain its own copy. It stores indices into other big arrays. Roar fills it per node like below:
+
+* node_offset.x = “resolved node index” into nodes_models.node_model[] for this node.
+* node_offset.y = “base index of this model instance’s node block” inside nodes_models.
+* node_offset.z = “base index into the global morph weights array” for this mesh’s morph targets.
+* node_offset.w = currently unused.
+
+This data lives in NodeData’s own `nodes_offsets` buffer and gets written by NodeData::update_offsets(). This NodeData's `nodes_offset` is an instantiation of renderer's nodes_offset buffer template. Shaders can then use it like below to access the specific model matrix.
+
+```c++
+ uint node_index = in_nodes_offsets.node_offset.x;
+ vertex_position = in_nodes_models.node_model[node_index] * vec4(vertex_position.xyz, 1.0);
+```
+
+Roar renders each node/mesh as a separate draw, and binds that node’s nodes_offsets before drawing it.
+
+`node_offset.y` is used for skinning and its joint matrices. Roar stores joint transforms inside the same `nodes_models.node_model[]` array as everything else. The skin’s `joint_redirect[]` values are indices of joint nodes within the model’s node list stored as uint16_t. But `nodes_models` is a global packed array (scene + all model instances). So you need a per-instance base to “relocate” those joint indices into the packed array.
+
+That’s exactly what this line does:
+```c++
+ joint_global_index = joint_redirect[local_joint] + node_offset.y
+```
+
+and it becomes like so in skinned shaders:
+```c++
+ inverse_transform  = inverse(in_nodes_models.node_model[node_offset.x]);                //(mesh node’s global matrix inverse)
+ joint_transform    = in_nodes_models.node_model[joint_redirect[index] + node_offset.y]; //(joint node’s global matrix)
+ joint_transform    = inverse_transform * joint_transform * joint_inverse_bind;
+```
+
+`node_offset.z` is used for morph targets. Morph weights are also stored in one packed array `morphs_weights.morph_weights[]``, so each mesh with morphs needs a base offset. The shader generator uses:
+
+```c++
+ uint weight_offset = in_nodes_offsets.node_offset.z;
+ morph_weights[weight_offset + i].
+```
+
 ### To replicate a github actions build error locally
 
 ```bash

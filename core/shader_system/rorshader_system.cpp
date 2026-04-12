@@ -647,7 +647,6 @@ std::string vertex_shader_input_output(const rhi::VertexDescriptor &a_vertex_des
 // TODO: Use https://github.com/aras-p/glsl-optimizer on the output for further optimising the GLSL
 std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_primitive_index, rhi::RenderpassType a_renderpass_type, const ror::Renderer &a_renderer)
 {
-	(void) a_renderer;
 	const auto &mesh                     = a_model.meshes()[a_mesh_index];
 	auto       &vertex_descriptor        = mesh.vertex_descriptor(a_primitive_index);
 	auto       &vertex_target_descriptor = mesh.target_descriptor(a_primitive_index);
@@ -1593,17 +1592,9 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	return output;
 }
 
-std::string fs_set_picking(const ror::Material &a_material, bool a_has_color_0, bool a_has_color_1, bool a_has_uv0, bool a_has_uv1, bool a_has_uv2)
+std::string fs_set_picking(const ror::Material &a_material)
 {
-	(void) a_has_uv0;
-	(void) a_has_uv1;
-	(void) a_has_uv2;
-	(void) a_has_color_0;
-	(void) a_has_color_1;
-
 	std::string output{};
-
-	// std::string main_code{};
 
 	std::string main_code{R"alp(
 layout(location = 0) out uint out_index;
@@ -1612,22 +1603,16 @@ vec4 base_color()
 {
 	return @
 }
-
 @
-
 void main()
 {
 	vec4 color = base_color();
-
 	@
-
 	if (color.a < 0.3)
 		discard;
 
 	out_index = in_nodes_offsets.node_offset.x;
 })alp"};
-
-	output.append("\n");
 
 	if (a_material.m_base_color.m_type != ror::Material::ComponentType::none)
 		replace_next_at("get_base_color();", main_code);
@@ -1644,8 +1629,6 @@ void main()
 		replace_next_at("", main_code);
 		replace_next_at("", main_code);
 	}
-
-	output.append("\n");
 
 	output.append(main_code);
 
@@ -1701,7 +1684,7 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	output.append(texture_lookups(material, has_tangent, is_picking));
 
 	if (is_picking)
-		output.append(fs_set_picking(material, has_color_0, has_color_1, has_uv0, has_uv1, has_uv2));
+		output.append(fs_set_picking(material));
 	else
 		output.append(fs_set_main(material, a_has_shadow, has_normal, has_color_0, has_color_1, has_uv0, has_uv1, has_uv2));
 
