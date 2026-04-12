@@ -1471,19 +1471,8 @@ const Light *Scene::area_light(uint32_t a_index) const
 	return this->light(ror::Light::LightType::area, a_index);
 }
 
-void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
+DrawData fill_draw_data(rhi::BuffersPack &a_buffers_pack, rhi::RenderCommandEncoder &a_encoder)
 {
-	(void) a_pass;
-	(void) a_event_system;
-	(void) a_device;
-	(void) a_encoder;
-	(void) a_buffers_pack;
-	(void) a_renderer;
-	(void) a_subpass;
-
-	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
-	this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
-
 	DrawData dd;
 
 	dd.positions       = &a_buffers_pack.buffer(rhi::BufferSemantic::vertex_position);
@@ -1520,12 +1509,25 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 	assert(dd.morph_weights);
 	assert(dd.indices);
 
-	// Just a test, but remember this will create Button as many times as Scene::render is called for each renderpass
-	// ImGui::Begin("New ImGui window");
-	// ImGui::Button("Click");
-	// ImGui::End();
-
 	dd.encoder = &a_encoder;
+
+	return dd;
+}
+
+void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
+{
+	(void) a_pass;
+	(void) a_event_system;
+	(void) a_device;
+	(void) a_encoder;
+	(void) a_buffers_pack;
+	(void) a_renderer;
+	(void) a_subpass;
+
+	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
+	this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
+
+	DrawData dd = fill_draw_data(a_buffers_pack, a_encoder);
 
 	const auto &per_view_uniforms     = a_renderer.shader_buffer("per_view_uniform");        // Shared per_view_uniform amongst all cameras
 	const auto &per_frame_uniform     = a_renderer.shader_buffer("per_frame_uniform");
@@ -1543,6 +1545,7 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 	for (auto &light_type : this->m_lights)
 		light_type.shader_buffer()[a_renderer.current_frame_index()].buffer_bind(a_encoder, rhi::ShaderStage::fragment);
 
+	// Bind nodes_models, node_offsets are done per primitive below as model_nodes_data bind
 	const auto &index_buffer_out = a_renderer.shader_buffer("nodes_models");
 	index_buffer_out->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
 
@@ -1565,6 +1568,7 @@ void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_enc
 				{
 					auto &mesh = meshes[static_cast<size_t>(model_node.m_mesh_index)];
 					model_nodes_data[node_data_index].bind(a_encoder, rhi::ShaderStage::vertex);
+					model_nodes_data[node_data_index].bind(a_encoder, rhi::ShaderStage::fragment);
 					if (mesh.skin_index() != -1 && model_node.m_skin_index != -1)
 					{
 						assert(mesh.skin_index() == model_node.m_skin_index && "Mesh and Node skin indices should be the same");

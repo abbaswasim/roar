@@ -154,12 +154,13 @@
 		{
 			"name":"brdf_integration_lut",
 			"format":"r16g16_float32",
-			"writeable": true
+			"usage": "shader_write"
 		},
 		{
 			"name":"pick_color",
-			"format":"b8g8r8a8_uint32_norm_srgb",
-			"target":"2D"
+			"format":"r32_uint32",
+			"target":"2D",
+			"usage": "render_target_read"
 		},
 		{
 			"name":"pick_depth",
