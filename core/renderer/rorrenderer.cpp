@@ -2961,39 +2961,6 @@ void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 }
 
 /*
-void setup_corners_foge(ror::Vector3f corners[8], ror::Matrix4f a_view, float32_t aspect, float32_t fov, float32_t near, float32_t far)
-{
-    float32_t s = aspect;
-    float32_t g = 1.0f / std::tan(ror::to_radians(fov / 2.0f));
-    // float32_t g = s / std::tan(ror::to_radians(fov / 2.0f));        // This is not the right version of 'g' because my y_fov is not y_fov confirm?
-    float32_t n = near;
-    float32_t f = far;
-
-    ror::Vector4f frustumCorners[8] = {
-        {-(n * s) / g, -n / g, -n, 1.0f},
-        {(n * s) / g, -n / g, -n, 1.0f},
-        {(n * s) / g, n / g, -n, 1.0f},
-        {-(n * s) / g, n / g, -n, 1.0f},
-        {-(f * s) / g, -f / g, -f, 1.0f},
-        {(f * s) / g, -f / g, -f, 1.0f},
-        {(f * s) / g, f / g, -f, 1.0f},
-        {-(f * s) / g, f / g, -f, 1.0f},
-    };
-
-    auto inverse = a_view;
-
-    auto result = a_view.inverse(inverse);
-    assert(result && "Can't invert view projection");
-    (void) result;
-
-    for (int i = 0; i < 8; ++i)
-    {
-        auto cs = inverse * frustumCorners[i];
-
-        corners[i] = ror::Vector3f(cs);
-    }
-}
-
 void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
 {
     (void) a_camera;
@@ -3257,5 +3224,495 @@ void Renderer::update_frustums_geometry(const ror::OrbitCamera &a_camera)
     uint32_t lines_count = static_cast<uint32_t>(frustum_vertex_buffer.size());
     this->m_debug_data.m_frustums[0].upload_data(reinterpret_cast<const uint8_t *>(frustum_vertex_buffer.data()), lines_count * 3 * sizeof(float), lines_count);
 }
+
+// Confirm if this a_bbox can only be axis aligned? if yes this is wrong. After xforming mesh bboxes with its global transform this won't be axis aligned.
+bool ray_intersects_aabb(const ror::Ray3f &a_ray, const ror::BoundingBoxf &a_bbox, float32_t &a_out_t_near) noexcept
+{
+    const auto origin    = a_ray.origin();
+    const auto direction = a_ray.direction();
+
+    const auto min = a_bbox.minimum();
+    const auto max = a_bbox.maximum();
+
+    float32_t t_min{-std::numeric_limits<float32_t>::infinity()};
+    float32_t t_max{std::numeric_limits<float32_t>::infinity()};
+
+    const float32_t eps{0.0000001f};
+
+    auto test_axis = [&](float32_t origin_component, float32_t direction_component, float32_t min_component, float32_t max_component) {
+        if (std::abs(direction_component) < eps)
+            return origin_component >= min_component && origin_component <= max_component;
+
+        float32_t inv_d = 1.0f / direction_component;
+        float32_t t0    = (min_component - origin_component) * inv_d;
+        float32_t t1    = (max_component - origin_component) * inv_d;
+
+        if (t0 > t1)
+            std::swap(t0, t1);
+
+        t_min = std::max(t_min, t0);
+        t_max = std::min(t_max, t1);
+
+        return t_max >= t_min;
+    };
+
+    if (!test_axis(origin.x, direction.x, min.x, max.x))
+        return false;
+    if (!test_axis(origin.y, direction.y, min.y, max.y))
+        return false;
+    if (!test_axis(origin.z, direction.z, min.z, max.z))
+        return false;
+
+    if (t_max < 0.0f)        // AABB is completely behind the ray
+        return false;
+
+    // If we're inside the box, entry is behind the origin; use exit intersection instead
+    a_out_t_near = (t_min >= 0.0f) ? t_min : t_max;
+    return a_out_t_near >= 0.0f;
+}
+
+bool ray_intersects_triangle(const ror::Ray3f    &a_ray,
+                             const ror::Vector3f &a_v0,
+                             const ror::Vector3f &a_v1,
+                             const ror::Vector3f &a_v2,
+                             float32_t           &a_out_t) noexcept
+{
+    const float32_t eps{0.0000001f};
+
+    const auto &orig = a_ray.origin();
+    const auto &dir  = a_ray.direction();
+
+    auto e1 = a_v1 - a_v0;
+    auto e2 = a_v2 - a_v0;
+
+    auto pvec = dir.cross_product(e2);
+    auto det  = e1.dot_product(pvec);
+
+    if (std::abs(det) < eps)
+        return false;
+
+    auto inv_det = 1.0f / det;
+    auto tvec    = orig - a_v0;
+    auto u       = tvec.dot_product(pvec) * inv_det;
+    if (u < 0.0f || u > 1.0f)
+        return false;
+
+    auto qvec = tvec.cross_product(e1);
+    auto v    = dir.dot_product(qvec) * inv_det;
+    if (v < 0.0f || (u + v) > 1.0f)
+        return false;
+
+    auto t = e2.dot_product(qvec) * inv_det;
+    if (t < 0.0f)
+        return false;
+
+    a_out_t = t;
+    return true;
+}
+
+std::vector<size_t> Renderer::update_click_function(ror::Scene &a_scene, const ror::Vector2f &a_mouse_position)
+{
+    auto camera_eye = a_scene.current_camera().eye();
+    auto mouse_pos  = a_mouse_position;
+
+    // GLFW provides cursor positions in window/screen coordinates, while the camera bounds are updated from framebuffer sizes.
+    // On Retina, framebuffer coords != window coords, so scale to framebuffer space for correct NDC/ray generation.
+    mouse_pos.x *= this->m_dimensions.z;
+    mouse_pos.y *= this->m_dimensions.w;
+
+    auto ray_from_mouse = a_scene.current_camera().get_ray_from(mouse_pos);
+    // Use the camera-projected ray origin (near plane) to support both perspective and orthographic cameras.
+    // For perspective cameras this is colinear with the eye; for orthographic cameras the eye is not on the ray.
+    auto  ray          = ray_from_mouse;
+    auto *buffers_pack = this->m_buffers_pack;
+    if (!buffers_pack)
+    {
+        ror::log_warn("Pick ignored, renderer has no buffers_pack bound");
+        return {};
+    }
+
+    struct PickHit
+    {
+        size_t            m_resolved_node_index{0};        // Node index in the resolved nodes_models array (matches nodes_offsets.node_offset.x)
+        size_t            m_scene_node_id{0};              // Scene node instance
+        int32_t           m_model_id{-1};                  // Scene node's model id
+        size_t            m_model_node_id{0};              // Node id within the model
+        int32_t           m_mesh_id{-1};                   // Mesh id within the model
+        size_t            m_primitive_id{0};               // Primitive within the mesh
+        float32_t         m_local_ray_t{0.0f};
+        float32_t         m_ray_t{0.0f};
+        float32_t         m_distance_to_eye{0.0f};
+        ror::BoundingBoxf m_bbox{};
+    };
+
+    std::vector<PickHit> hits{};
+    auto                &nodes      = a_scene.nodes();
+    const auto          &nodes_data = a_scene.nodes_side_data();
+    auto                &models     = a_scene.models();
+    hits.reserve(nodes.size() * 4);
+
+    size_t    aabb_candidates{0};
+    PickHit   best_aabb_hit{};
+    bool      has_best_aabb_hit{false};
+    float32_t best_aabb_t_world{std::numeric_limits<float32_t>::max()};
+
+    struct DebugCandidate
+    {
+        bool              m_valid{false};
+        size_t            m_scene_node_id{0};
+        int32_t           m_model_id{-1};
+        size_t            m_model_node_id{0};
+        int32_t           m_mesh_id{-1};
+        size_t            m_primitive_id{0};
+        rhi::VertexFormat m_pos_format{rhi::VertexFormat::invalid};
+        uint32_t          m_pos_stride{0};
+        uint32_t          m_pos_count{0};
+        size_t            m_pos_base_offset{0};
+        rhi::VertexFormat m_idx_format{rhi::VertexFormat::invalid};
+        uint32_t          m_idx_count{0};
+        size_t            m_idx_base_offset{0};
+        float32_t         m_t_aabb_local{0.0f};
+        float32_t         m_t_world_aabb{0.0f};
+    };
+    DebugCandidate debug_candidate{};
+
+    size_t resolved_model_nodes_base = nodes.size();        // After scene nodes, all model nodes are packed linearly
+    for (size_t scene_node_id = 0; scene_node_id < nodes.size(); ++scene_node_id)
+    {
+        const auto &scene_node_data = nodes_data[scene_node_id];
+        if (scene_node_data.m_model == -1)
+            continue;
+
+        auto &model            = models[static_cast<size_t>(scene_node_data.m_model)];
+        auto  scene_node_xform = node_global_transform(a_scene, nodes[scene_node_id]);
+        auto &model_nodes      = model.nodes();
+        auto &model_meshes     = model.meshes();
+
+        for (size_t model_node_id = 0; model_node_id < model_nodes.size(); ++model_node_id)
+        {
+            auto &model_node = model_nodes[model_node_id];
+            if (!model_node.m_visible || model_node.m_mesh_index == -1)
+                continue;
+
+            auto &mesh = model_meshes[static_cast<size_t>(model_node.m_mesh_index)];
+
+            auto model_node_xform = node_global_transform(model, model_node);
+            auto world_xform      = scene_node_xform * model_node_xform;
+            auto inv_world_xform  = world_xform;
+            bool invertable       = inv_world_xform.invert();
+            if (!invertable)
+                continue;
+
+            for (size_t prim_id = 0; prim_id < mesh.primitives_count(); ++prim_id)
+            {
+                auto &primitive_object_bounds = mesh.bounding_box(prim_id);
+
+                // True OBB test by transforming ray into local space and intersecting against the primitive local AABB.
+                auto       origin_local    = inv_world_xform * ray.origin();
+                auto       direction_local = transform_direction(inv_world_xform, ray.direction());
+                ror::Ray3f ray_local{origin_local, direction_local};
+
+                float32_t t_aabb_local{0.0f};
+                if (ray_intersects_aabb(ray_local, primitive_object_bounds, t_aabb_local))
+                {
+                    aabb_candidates++;
+
+                    auto local_aabb_hit_point = ray_local.origin() + (ray_local.direction() * t_aabb_local);
+                    auto world_aabb_hit_point = world_xform * local_aabb_hit_point;
+                    auto t_world_aabb         = (world_aabb_hit_point - ray.origin()).dot_product(ray.direction());
+                    if (t_world_aabb >= 0.0f && t_world_aabb < best_aabb_t_world)
+                    {
+                        best_aabb_t_world     = t_world_aabb;
+                        has_best_aabb_hit     = true;
+                        auto primitive_bounds = world_bounds_from_object_bounds(primitive_object_bounds, world_xform);
+                        auto distance         = (world_aabb_hit_point - camera_eye).length();
+
+                        const size_t resolved_node_index = resolved_model_nodes_base + model_node_id;
+                        best_aabb_hit                    = {resolved_node_index, scene_node_id, scene_node_data.m_model, model_node_id, model_node.m_mesh_index, prim_id, t_aabb_local, t_world_aabb, distance, primitive_bounds};
+                    }
+
+                    auto &vd       = mesh.vertex_descriptor(prim_id);
+                    auto &pos_attr = vd.attribute(rhi::BufferSemantic::vertex_position);
+                    auto &pos_vl   = vd.layout(rhi::BufferSemantic::vertex_position);
+
+                    if (!debug_candidate.m_valid)
+                    {
+                        debug_candidate.m_valid           = true;
+                        debug_candidate.m_scene_node_id   = scene_node_id;
+                        debug_candidate.m_model_id        = scene_node_data.m_model;
+                        debug_candidate.m_model_node_id   = model_node_id;
+                        debug_candidate.m_mesh_id         = model_node.m_mesh_index;
+                        debug_candidate.m_primitive_id    = prim_id;
+                        debug_candidate.m_pos_format      = pos_attr.format();
+                        debug_candidate.m_pos_stride      = pos_vl.stride();
+                        debug_candidate.m_pos_count       = pos_attr.count();
+                        debug_candidate.m_pos_base_offset = pos_attr.buffer_offset() + pos_attr.offset();
+                        debug_candidate.m_t_aabb_local    = t_aabb_local;
+                        debug_candidate.m_t_world_aabb    = t_world_aabb;
+                        if (mesh.has_indices(prim_id))
+                        {
+                            auto &idx_attr                    = vd.attribute(rhi::BufferSemantic::vertex_index);
+                            debug_candidate.m_idx_format      = idx_attr.format();
+                            debug_candidate.m_idx_count       = idx_attr.count();
+                            debug_candidate.m_idx_base_offset = idx_attr.buffer_offset() + idx_attr.offset();
+                        }
+                    }
+
+                    if (pos_attr.format() != rhi::VertexFormat::float32_3 && pos_attr.format() != rhi::VertexFormat::float32_4)
+                        continue;
+
+                    const auto &positions_buffer = buffers_pack->buffer(static_cast<size_t>(pos_attr.buffer_index()));
+                    const auto *positions_data   = positions_buffer.data().data();
+
+                    const size_t   pos_base_offset = pos_attr.buffer_offset() + pos_attr.offset();
+                    const uint32_t pos_stride      = pos_vl.stride();
+                    const uint32_t pos_count       = pos_attr.count();
+
+                    if (pos_stride == 0 || pos_count == 0)
+                        continue;
+
+                    const size_t pos_required = pos_base_offset + static_cast<size_t>(pos_count - 1) * pos_stride + sizeof(float32_t) * 3;
+                    if (pos_required > positions_buffer.filled_size())
+                        continue;
+
+                    float32_t best_t_triangle_local{std::numeric_limits<float32_t>::max()};
+                    bool      triangle_hit{false};
+
+                    auto load_position = [&](uint32_t a_index) {
+                        const auto *ptr = reinterpret_cast<const float32_t *>(positions_data + pos_base_offset + static_cast<size_t>(a_index) * pos_stride);
+                        return ror::Vector3f{ptr[0], ptr[1], ptr[2]};
+                    };
+
+                    if (mesh.has_indices(prim_id))
+                    {
+                        auto       &idx_attr       = vd.attribute(rhi::BufferSemantic::vertex_index);
+                        auto       &idx_vl         = vd.layout(rhi::BufferSemantic::vertex_index);
+                        const auto &indices_buffer = buffers_pack->buffer(static_cast<size_t>(idx_attr.buffer_index()));
+                        const auto *indices_data   = indices_buffer.data().data();
+
+                        auto idx_bytes = rhi::format_to_bytes(idx_attr.format());
+                        if (idx_bytes != 1 && idx_bytes != 2 && idx_bytes != 4)
+                            continue;
+
+                        const size_t   idx_base_offset = idx_attr.buffer_offset() + idx_attr.offset();
+                        const auto     idx_count       = idx_attr.count();
+                        const uint32_t idx_stride      = (idx_vl.stride() != 0) ? idx_vl.stride() : static_cast<uint32_t>(idx_bytes);
+
+                        const size_t idx_required = idx_base_offset + static_cast<size_t>(idx_count) * idx_stride;
+                        if (idx_required > indices_buffer.filled_size())
+                            continue;
+
+                        auto read_index = [&](uint32_t a_i) -> uint32_t {
+                            const size_t byte_offset = idx_base_offset + static_cast<size_t>(a_i) * idx_stride;
+                            if (idx_bytes == 1)
+                                return *reinterpret_cast<const uint8_t *>(indices_data + byte_offset);
+                            if (idx_bytes == 2)
+                                return *reinterpret_cast<const uint16_t *>(indices_data + byte_offset);
+                            return *reinterpret_cast<const uint32_t *>(indices_data + byte_offset);
+                        };
+
+                        for (uint32_t ii = 0; (ii + 2) < idx_count; ii += 3)
+                        {
+                            const uint32_t i0 = read_index(ii + 0);
+                            const uint32_t i1 = read_index(ii + 1);
+                            const uint32_t i2 = read_index(ii + 2);
+
+                            if (i0 >= pos_count || i1 >= pos_count || i2 >= pos_count)
+                                continue;
+
+                            const auto v0 = load_position(i0);
+                            const auto v1 = load_position(i1);
+                            const auto v2 = load_position(i2);
+
+                            float32_t t_tri_local{0.0f};
+                            if (ray_intersects_triangle(ray_local, v0, v1, v2, t_tri_local))
+                            {
+                                if (t_tri_local < best_t_triangle_local)
+                                {
+                                    best_t_triangle_local = t_tri_local;
+                                    triangle_hit          = true;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (uint32_t vi = 0; (vi + 2) < pos_count; vi += 3)
+                        {
+                            const auto v0 = load_position(vi + 0);
+                            const auto v1 = load_position(vi + 1);
+                            const auto v2 = load_position(vi + 2);
+
+                            float32_t t_tri_local{0.0f};
+                            if (ray_intersects_triangle(ray_local, v0, v1, v2, t_tri_local))
+                            {
+                                if (t_tri_local < best_t_triangle_local)
+                                {
+                                    best_t_triangle_local = t_tri_local;
+                                    triangle_hit          = true;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!triangle_hit)
+                        continue;
+
+                    auto local_hit_point = ray_local.origin() + (ray_local.direction() * best_t_triangle_local);
+                    auto hit_point       = world_xform * local_hit_point;
+
+                    auto eye_to_hit = hit_point - camera_eye;
+                    auto distance   = eye_to_hit.length();        // World distance
+                    auto t_world    = (hit_point - ray.origin()).dot_product(ray.direction());
+                    if (t_world < 0.0f)
+                        continue;
+
+                    auto primitive_world_bounds = world_bounds_from_object_bounds(primitive_object_bounds, world_xform);
+
+                    const size_t resolved_node_index = resolved_model_nodes_base + model_node_id;
+                    hits.push_back({resolved_node_index, scene_node_id, scene_node_data.m_model, model_node_id, model_node.m_mesh_index, prim_id, best_t_triangle_local, t_world, distance, primitive_world_bounds});
+                }
+            }
+        }
+
+        resolved_model_nodes_base += model_nodes.size();
+    }
+
+    std::sort(hits.begin(), hits.end(), [](const PickHit &a_lhs, const PickHit &a_rhs) { return a_lhs.m_ray_t < a_rhs.m_ray_t; });
+
+    std::vector<size_t> result{};
+    result.reserve(hits.size());
+    std::unordered_set<size_t> seen{};
+    seen.reserve(hits.size());
+    for (auto &hit : hits)
+    {
+        if (seen.emplace(hit.m_resolved_node_index).second)
+            result.emplace_back(hit.m_resolved_node_index);
+    }
+
+    if (hits.empty())
+    {
+        if (has_best_aabb_hit)
+        {
+            ror::log_warn("Pick triangle miss (aabb_candidates={}), falling back to AABB hit scene_node_id={} model_node_id={} mesh_id={} prim_id={}",
+                          aabb_candidates,
+                          best_aabb_hit.m_scene_node_id,
+                          best_aabb_hit.m_model_node_id,
+                          best_aabb_hit.m_mesh_id,
+                          best_aabb_hit.m_primitive_id);
+            hits.emplace_back(best_aabb_hit);
+            seen.clear();
+            result.clear();
+            if (seen.emplace(best_aabb_hit.m_resolved_node_index).second)
+                result.emplace_back(best_aabb_hit.m_resolved_node_index);
+
+            if (debug_candidate.m_valid)
+            {
+                ror::log_warn("Pick debug AABB candidate scene_node_id={} model_id={} model_node_id={} mesh_id={} prim_id={} t_world_aabb={} t_local_aabb={}",
+                              debug_candidate.m_scene_node_id,
+                              debug_candidate.m_model_id,
+                              debug_candidate.m_model_node_id,
+                              debug_candidate.m_mesh_id,
+                              debug_candidate.m_primitive_id,
+                              debug_candidate.m_t_world_aabb,
+                              debug_candidate.m_t_aabb_local);
+                ror::log_warn("Pick debug pos format={} stride={} count={} base_offset={}",
+                              static_cast<uint32_t>(debug_candidate.m_pos_format),
+                              debug_candidate.m_pos_stride,
+                              debug_candidate.m_pos_count,
+                              debug_candidate.m_pos_base_offset);
+                if (debug_candidate.m_idx_count != 0)
+                {
+                    ror::log_warn("Pick debug idx format={} count={} base_offset={}",
+                                  static_cast<uint32_t>(debug_candidate.m_idx_format),
+                                  debug_candidate.m_idx_count,
+                                  debug_candidate.m_idx_base_offset);
+                }
+            }
+        }
+        else
+        {
+            ror::log_info("Pick miss at mouse_window=({}, {}) mouse_framebuffer=({}, {}) ray_origin=({}, {}, {}) ray_dir=({}, {}, {})",
+                          a_mouse_position.x, a_mouse_position.y,
+                          mouse_pos.x, mouse_pos.y,
+                          ray.origin().x, ray.origin().y, ray.origin().z,
+                          ray.direction().x, ray.direction().y, ray.direction().z);
+        }
+
+        return result;
+    }
+
+    {
+        const size_t max_print = std::min<size_t>(hits.size(), 10);
+        for (size_t i = 0; i < max_print; ++i)
+        {
+            const auto &h           = hits[i];
+            const auto &scene_data  = nodes_data[h.m_scene_node_id];
+            const auto &model       = models[static_cast<size_t>(h.m_model_id)];
+            const auto &model_ndata = model.nodes_side_data()[h.m_model_node_id];
+
+            ror::log_info("Pick hit[{}] t_world={} t_local={} scene_node_id={} scene_name='{}' model_node_id={} model_node_name='{}' mesh_id={} prim_id={}",
+                          i,
+                          h.m_ray_t,
+                          h.m_local_ray_t,
+                          h.m_scene_node_id,
+                          scene_data.name(),
+                          h.m_model_node_id,
+                          model_ndata.name(),
+                          h.m_mesh_id,
+                          h.m_primitive_id);
+        }
+    }
+
+    const auto &best_hit  = hits.front();
+    const auto &best_data = nodes_data[best_hit.m_scene_node_id];
+    const auto  hit_point = ray.origin() + (ray.direction() * best_hit.m_ray_t);
+    const auto  bbox_min  = best_hit.m_bbox.minimum();
+    const auto  bbox_max  = best_hit.m_bbox.maximum();
+
+    const auto &best_model           = models[static_cast<size_t>(best_hit.m_model_id)];
+    const auto &best_model_node_data = best_model.nodes_side_data()[best_hit.m_model_node_id];
+
+    ror::log_info("Picked mouse_window=({}, {}) mouse_framebuffer=({}, {}) ray_origin=({}, {}, {}) ray_dir=({}, {}, {}) resolved_node_index={} scene_node_id={} scene_name='{}' model_id={} model_path='{}' model_node_id={} model_node_name='{}' mesh_id={} primitive_id={} distance={} hits={}",
+                  a_mouse_position.x,
+                  a_mouse_position.y,
+                  mouse_pos.x,
+                  mouse_pos.y,
+                  ray.origin().x,
+                  ray.origin().y,
+                  ray.origin().z,
+                  ray.direction().x,
+                  ray.direction().y,
+                  ray.direction().z,
+                  best_hit.m_resolved_node_index,
+                  best_hit.m_scene_node_id,
+                  best_data.name(),
+                  best_hit.m_model_id,
+                  best_data.m_model_path,
+                  best_hit.m_model_node_id,
+                  best_model_node_data.name(),
+                  best_hit.m_mesh_id,
+                  best_hit.m_primitive_id,
+                  best_hit.m_distance_to_eye,
+                  hits.size());
+    ror::log_info("Hit point ({}, {}, {}), bbox min ({}, {}, {}), bbox max ({}, {}, {})",
+                  hit_point.x, hit_point.y, hit_point.z,
+                  bbox_min.x, bbox_min.y, bbox_min.z,
+                  bbox_max.x, bbox_max.y, bbox_max.z);
+
+    return result;
+}
+
+ror::BoundingBoxf world_bounds_from_object_bounds(const ror::BoundingBoxf &a_object_bounds, const ror::Matrix4f &a_world_xform)
+{
+    ror::BoundingBoxf bbox{};
+    auto              corners = a_object_bounds.corners();
+    for (const auto &corner : corners)
+        bbox.add_point(a_world_xform * corner);
+
+    return bbox;
+}
+
 */
+
 }        // namespace ror

@@ -529,8 +529,6 @@ void EventSystem::print_keybindings() const
 				sub_it++;
 			}
 		}
-
-		// result += " | ";
 	}
 
 	ror::log_info("Here all the keybinding for {} subscribers\n{}", this->m_subscribers.size(), result);
