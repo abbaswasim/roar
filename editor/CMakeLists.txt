@@ -39,6 +39,17 @@ set_target_properties(${ROAR_EDITOR_NAME} PROPERTIES CMAKE_VISIBILITY_INLINES_HI
 set_target_properties(${ROAR_EDITOR_NAME} PROPERTIES CMAKE_CXX_VISIBILITY_PRESET hidden)   # Set default to hide symbols visibility for Roar Editor
 set_target_properties(${ROAR_EDITOR_NAME} PROPERTIES CMAKE_C_VISIBILITY_PRESET hidden)     # Set default to hide symbols visibility for Roar Editor
 
+# If want to make a MacOS bundle just uncomment the below
+# set(roar_editor_icon_file roar_editor)
+# add_executable(${ROAR_EDITOR_NAME} MACOSX_BUNDLE ${roar_editor_icon_file} ${ROAR_EDITOR_SOURCES} ${ROAR_EDITOR_HEADERS})
+# set_target_properties(${ROAR_EDITOR_NAME} PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "RoarEditor")     # Set MacOS bundle name
+# set_source_files_properties(glfw.icns PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+# set_target_properties(${ROAR_EDITOR_NAME} PROPERTIES
+#                           MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
+#                           MACOSX_BUNDLE_LONG_VERSION_STRING "1.0.0.0"
+#                           MACOSX_BUNDLE_ICON_FILE roar_editor.icns
+#                           MACOSX_BUNDLE_INFO_PLIST "${ROAR_EDITOR_SOURCE_DIR}/Info.plist.in")
+
 target_include_directories(${ROAR_EDITOR_NAME} PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
 target_include_directories(${ROAR_EDITOR_NAME} PUBLIC ${ROAR_EDITOR_SOURCE_DIR})
 target_include_directories(${ROAR_EDITOR_NAME} PUBLIC ${ROAR_EDITOR_ROOT_DIR})
