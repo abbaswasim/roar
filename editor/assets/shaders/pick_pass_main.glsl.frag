@@ -1,0 +1,1 @@
+../../../core/assets/shaders/pick_pass_main.glsl.frag

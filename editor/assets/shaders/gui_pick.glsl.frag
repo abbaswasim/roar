@@ -1,0 +1,1 @@
+../../../core/assets/shaders/gui_pick.glsl.frag

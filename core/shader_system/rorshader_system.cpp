@@ -1596,23 +1596,9 @@ std::string fs_set_picking(const ror::Material &a_material)
 {
 	std::string output{};
 
-	std::string main_code{R"alp(
-layout(location = 0) out uint out_index;
-
-vec4 base_color()
-{
-	return @
-}
-@
-void main()
-{
-	vec4 color = base_color();
-	@
-	if (color.a < 0.3)
-		discard;
-
-	out_index = in_nodes_offsets.node_offset.x;
-})alp"};
+	// Read pick_pass_main.glsl.frag resource and create a string because we are also editing it
+	auto       &main_resource = ror::load_resource("shaders/pick_pass_main.glsl.frag", ror::ResourceSemantic::shaders);
+	std::string main_code{main_resource.data_copy()};
 
 	if (a_material.m_base_color.m_type != ror::Material::ComponentType::none)
 		replace_next_at("get_base_color();", main_code);
@@ -1721,6 +1707,8 @@ std::vector<std::string> &mesh_shaders_dependencies()
 	    "shadows.glsl.frag",
 	    "shading_standard.glsl.frag",
 	    "lighting.glsl.frag",
+	    "pick_pass_main.glsl.frag",
+	    "gui_pick.glsl.frag",
 	    "main.glsl.frag"};
 
 	return deps;
