@@ -553,17 +553,17 @@ void main()
 {
 )vsm";
 
-std::string vs_set_main(bool a_has_normal, bool a_has_tangent, bool a_has_bent_normal, uint32_t a_uv_count, uint32_t a_color_count)
+std::string vs_set_main(bool a_has_normal, bool a_has_tangent, bool a_has_bent_normal, uint32_t a_uv_count, uint32_t a_color_count, bool is_pick)
 {
 	auto result{vs_main_str};
 
-	if (a_has_normal)
+	if (a_has_normal && !is_pick)
 		result.append("\tset_normal();\n");
 
-	if (a_has_tangent)
+	if (a_has_tangent && !is_pick)
 		result.append("\tset_tangent();\n");
 
-	if (a_has_bent_normal)
+	if (a_has_bent_normal && !is_pick)
 		result.append("\tset_bent_normal();\n");
 
 	if (a_uv_count > 0)
@@ -597,7 +597,7 @@ static const std::unordered_map<rhi::BufferSemantic, rhi::VertexFormat> attrib_i
     {rhi::BufferSemantic::vertex_color_0, rhi::VertexFormat::float32_4},
     {rhi::BufferSemantic::vertex_color_1, rhi::VertexFormat::float32_4}};
 
-std::string vertex_shader_input_output(const rhi::VertexDescriptor &a_vertex_descriptor, uint32_t a_target_offset, const std::string &a_prefix, bool a_output, bool a_depth_shadow)
+std::string vertex_shader_input_output(const rhi::VertexDescriptor &a_vertex_descriptor, uint32_t a_target_offset, const std::string &a_prefix, bool a_output, bool a_depth_shadow, bool a_pick)
 {
 	std::string result{};
 	auto       &attributes = a_vertex_descriptor.attributes();
@@ -607,6 +607,7 @@ std::string vertex_shader_input_output(const rhi::VertexDescriptor &a_vertex_des
 	const std::string out{" out"};
 	const std::string precision{" highp"};        // TODO: Need to abstract out precision
 
+	// if (a_prefix == "" || !a_output)
 	if (!(a_prefix != "" && a_output))        // Don't write out anything to output if we are traversing morph targets
 	{
 		for (auto &attrib : attributes)
@@ -619,7 +620,7 @@ std::string vertex_shader_input_output(const rhi::VertexDescriptor &a_vertex_des
 			if (out_format_iter != attrib_in_out_format.end())
 				in_out_format = out_format_iter->second;
 
-			if (is_attribute_required_in_pass(semantic, a_depth_shadow))
+			if (is_attribute_required_in_pass(semantic, a_depth_shadow, a_pick))
 			{
 				auto location          = attrib.location();
 				auto in_out_format_str = attribute_format(in_out_format);
@@ -664,6 +665,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	auto        has_morphs_normal        = mesh.has_morphs(rhi::BufferSemantic::vertex_normal);
 	auto        has_morphs_tangent       = mesh.has_morphs(rhi::BufferSemantic::vertex_tangent);
 	auto        is_depth_shadow          = (a_renderpass_type == rhi::RenderpassType::depth || a_renderpass_type == rhi::RenderpassType::shadow);
+	auto        is_pick                  = (a_renderpass_type == rhi::RenderpassType::pick);
 
 	std::unordered_map<rhi::BufferSemantic, std::pair<uint32_t, bool>> targets_count{
 	    {rhi::BufferSemantic::vertex_position, {0, true}},
@@ -678,12 +680,12 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	std::string result{"#version 450\n\n#extension GL_EXT_shader_16bit_storage : require\nprecision highp float;\nprecision highp int;\n\n"};        // TODO: abstract out version
 
 	// Write out vertex shader input output
-	result.append(ror::vertex_shader_input_output(vertex_descriptor, 0, "", true, is_depth_shadow));
+	result.append(ror::vertex_shader_input_output(vertex_descriptor, 0, "", true, is_depth_shadow, is_pick));
 
 	uint32_t j = 0;
 	for (const auto &v : vertex_target_descriptor)
 	{
-		result.append(ror::vertex_shader_input_output(v, j++, "target", false, is_depth_shadow));
+		result.append(ror::vertex_shader_input_output(v, j++, "target", false, is_depth_shadow, is_pick));
 
 		const auto &attributes = v.attributes();
 
@@ -712,7 +714,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		auto in_out_format_str = attribute_format(in_out_format);
 		auto semantic_str      = get_format_semantic(tc.first);
 
-		if (tc.second.first > 0 && is_attribute_required_in_pass(tc.first, is_depth_shadow))
+		if (tc.second.first > 0 && is_attribute_required_in_pass(tc.first, is_depth_shadow, is_pick))
 			result.append(vs_morph_attribute_common(tc.second.first, semantic_str, in_out_format_str));
 	}
 
@@ -762,7 +764,7 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 		result.append(tmp);        // Add set_position
 	}
 
-	if (!is_depth_shadow)
+	if (!is_depth_shadow && !is_pick)
 	{
 		if (has_normal)
 		{
@@ -810,7 +812,8 @@ std::string generate_primitive_vertex_shader(const ror::Model &a_model, uint32_t
 	                          (is_depth_shadow ? false : has_tangent),
 	                          false,        //  bent normal
 	                          (is_depth_shadow ? false : uv_sets),
-	                          (is_depth_shadow ? false : color_sets)));        // Add main as well
+	                          (is_depth_shadow ? false : color_sets),
+	                          is_pick));        // Add main as well
 
 	return result;
 }
@@ -1050,11 +1053,18 @@ std::string texture_lookup(const ror::Material::Component<_factor_type> &a_mat_c
 }
 
 // Calls texture_lookup for all material components if it has textures
-std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
+std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent, bool a_is_pick_pass)
 {
 	std::string output{""};
 
 	output.append(texture_lookup(a_material.m_base_color, "base_color"));
+
+	if (a_material.m_blend_mode == rhi::BlendMode::mask)
+		output.append("\nfloat get_opacity()\n{\n\treturn in_material_factors.opacity_factor;\n}\n");
+
+	if (a_is_pick_pass)
+		return output;
+
 	output.append(texture_lookup(a_material.m_diffuse_color, "diffuse_color"));
 	output.append(texture_lookup(a_material.m_specular_glossyness, "specular_glossyness"));
 	output.append(texture_lookup(a_material.m_emissive, "emissive"));
@@ -1103,15 +1113,12 @@ std::string texture_lookups(const ror::Material &a_material, bool a_has_tangent)
 		output.append("vec3 get_normal(const in vec3 N)\n{\n\treturn normalize(N);\n}\n");
 	}
 
-	if (a_material.m_blend_mode == rhi::BlendMode::mask)
-		output.append("\nfloat get_opacity()\n{\n\treturn in_material_factors.opacity_factor;\n}\n");
-
 	output.append("\nfloat get_f0()\n{\n\treturn in_material_factors.f0_factor;\n}\n");
 
 	return output;
 }
 
-std::string material_samplers(const ror::Material &a_material, bool a_add_shadow_map)
+std::string material_samplers(const ror::Material &a_material, bool a_add_shadow_map, bool a_is_pick_pass)
 {
 	// TODO: Understand how does samplers gets to have the same bindings as other things
 	// TODO: Support separate image and sampler, instead of currently the combined image samplers
@@ -1128,6 +1135,10 @@ std::string material_samplers(const ror::Material &a_material, bool a_add_shadow
 
 	if (a_material.m_base_color.m_texture != -1)
 		output_append("base_color_sampler;\n");
+
+	if (a_is_pick_pass)
+		return output;
+
 	if (a_material.m_diffuse_color.m_texture != -1)
 		output_append("diffuse_color_sampler;\n");
 	if (a_material.m_specular_glossyness.m_texture != -1)
@@ -1525,11 +1536,11 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	auto            &shading_standard_resource = ror::load_resource("shaders/shading_standard.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string_view shading_standard_code{reinterpret_cast<const char *>(shading_standard_resource.data(true).data()), shading_standard_resource.data(true).size()};
 
-	// Read lighting.glsl.frag resource and create a string_view
+	// Read lighting.glsl.frag resource and create a string because we are also editing it
 	auto       &lighting_resource = ror::load_resource("shaders/lighting.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string lighting_code{lighting_resource.data_copy()};
 
-	// Read main.glsl.frag resource and create a string_view
+	// Read main.glsl.frag resource and create a string because we are also editing it
 	auto       &main_resource = ror::load_resource("shaders/main.glsl.frag", ror::ResourceSemantic::shaders);
 	std::string main_code{main_resource.data_copy()};
 
@@ -1582,9 +1593,69 @@ std::string fs_set_main(const ror::Material &a_material, bool a_has_shadow, bool
 	return output;
 }
 
+std::string fs_set_picking(const ror::Material &a_material, bool a_has_color_0, bool a_has_color_1, bool a_has_uv0, bool a_has_uv1, bool a_has_uv2)
+{
+	(void) a_has_uv0;
+	(void) a_has_uv1;
+	(void) a_has_uv2;
+	(void) a_has_color_0;
+	(void) a_has_color_1;
+
+	std::string output{};
+
+	// std::string main_code{};
+
+	std::string main_code{R"alp(
+layout(location = 0) out uint out_index;
+
+vec4 base_color()
+{
+	return @
+}
+
+@
+
+void main()
+{
+	vec4 color = base_color();
+
+	@
+
+	if (color.a < 0.3)
+		discard;
+
+	out_index = in_nodes_offsets.node_offset.x;
+})alp"};
+
+	output.append("\n");
+
+	if (a_material.m_base_color.m_type != ror::Material::ComponentType::none)
+		replace_next_at("get_base_color();", main_code);
+	else
+		replace_next_at("vec4(1.0);", main_code);
+
+	if (a_material.m_blend_mode == rhi::BlendMode::mask)
+	{
+		replace_next_at(resolve_alpha_code, main_code);
+		replace_next_at("resolve_alpha(color.a);", main_code);
+	}
+	else
+	{
+		replace_next_at("", main_code);
+		replace_next_at("", main_code);
+	}
+
+	output.append("\n");
+
+	output.append(main_code);
+
+	return output;
+}
+
 std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const materials_vector &a_materials, uint32_t a_primitive_index, rhi::RenderpassType a_passtype, const ror::Renderer &a_renderer, bool a_has_shadow)
 {
 	const auto  is_depth_shadow   = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
+	const auto  is_picking        = (a_passtype == rhi::RenderpassType::pick);
 	const auto &vertex_descriptor = a_mesh.vertex_descriptor(a_primitive_index);
 	const auto  type              = vertex_descriptor.type();
 	const auto  has_uv0           = (type & ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0)) == ror::enum_to_type_cast(rhi::BufferSemantic::vertex_texture_coord_0);
@@ -1617,13 +1688,22 @@ std::string generate_primitive_fragment_shader(const ror::Mesh &a_mesh, const ma
 	output.append(ror::fragment_shader_input_output(vertex_descriptor));
 	output.append(per_view_common(a_renderer));
 	output.append(per_frame_uniform);
-	output.append(material_samplers(material, a_has_shadow));
+	output.append(material_samplers(material, a_has_shadow, is_picking));
 	output.append(material.shader_buffer().to_glsl_string());
-	output.append(fs_light_common(1, setting.directional_light_set(), setting.directional_light_binding(), fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count
-	output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
-	output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
-	output.append(texture_lookups(material, has_tangent));
-	output.append(fs_set_main(material, a_has_shadow, has_normal, has_color_0, has_color_1, has_uv0, has_uv1, has_uv2));
+
+	if (!is_picking)
+	{
+		output.append(fs_light_common(1, setting.directional_light_set(), setting.directional_light_binding(), fs_directional_light_common_str));        // TODO: Make conditional, and abstract out lights_count
+		output.append(fs_light_common(1, setting.point_light_set(), setting.point_light_binding(), fs_point_light_common_str));                          // TODO: Make conditional, and abstract out lights_count
+		output.append(fs_light_common(1, setting.spot_light_set(), setting.spot_light_binding(), fs_spot_light_common_str));                             // TODO: Make conditional, and abstract out lights_count
+	}
+
+	output.append(texture_lookups(material, has_tangent, is_picking));
+
+	if (is_picking)
+		output.append(fs_set_picking(material, has_color_0, has_color_1, has_uv0, has_uv1, has_uv2));
+	else
+		output.append(fs_set_main(material, a_has_shadow, has_normal, has_color_0, has_color_1, has_uv0, has_uv1, has_uv2));
 
 	return output;
 }
