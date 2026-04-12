@@ -3,6 +3,11 @@ build-metal-release
 build-metal-debug
 build-vulkan-release
 build-vulkan-debug
+build-metal-xcode-debug
+build-metal-debug-xcode
+.projectile-cache.eld
+AGENTS.md
+RoarEngine.xcodeproj
 xcode-project
 build-xcode
 *.log
