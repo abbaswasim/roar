@@ -223,6 +223,7 @@ FORCE_INLINE auto VertexDescriptor::hash_64() const
 FORCE_INLINE auto VertexDescriptor::hash_64_pass_aware(rhi::RenderpassType a_passtype) const
 {
 	auto is_depth_shadow = (a_passtype == rhi::RenderpassType::depth || a_passtype == rhi::RenderpassType::shadow);
+	auto is_pick         = (a_passtype == rhi::RenderpassType::pick);
 
 	const auto type = this->type();
 
@@ -231,7 +232,7 @@ FORCE_INLINE auto VertexDescriptor::hash_64_pass_aware(rhi::RenderpassType a_pas
 	for (auto &attrib : this->m_attributes)
 	{
 		const auto semantics = attrib.semantics();
-		if (is_attribute_required_in_pass(semantics, is_depth_shadow))
+		if (is_attribute_required_in_pass(semantics, is_depth_shadow, is_pick))
 		{
 			const auto location = attrib.location();
 			const auto offset   = attrib.offset();        // Could also add buffer_offset but for a specific format it will always be the same

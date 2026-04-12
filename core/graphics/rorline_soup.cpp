@@ -91,7 +91,7 @@ void LineSoup::upload(const rhi::Device &a_device, const rhi::Renderpass &a_targ
 
 	uint32_t lines_soup_buffer_binding{0};
 	this->m_shader_program.build_descriptor(a_device, nullptr, lines_soup_buffer_binding, nullptr, nullptr, 0);
-	this->m_shader_program.upload(a_device, a_target_pass, a_target_subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "line_soup_pso", false, false, false);
+	this->m_shader_program.upload(a_device, a_target_pass, a_target_subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::lines, "line_soup_pso", false, false, false, false);
 
 	this->m_vertex_buffer.init(a_device, vertex_buffer_size);        // By default in shared mode
 }

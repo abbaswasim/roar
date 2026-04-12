@@ -134,7 +134,8 @@ class ROAR_ENGINE_ITEM Settings final
 	std::string m_engine_name{"Roar"};
 	std::string m_shaders_watch_path{};
 
-	std::vector<std::string> m_clean_dirs{};        //! Directories to clean on boot
+	std::vector<std::string>         m_clean_dirs{};          //! Directories to clean on boot
+	std::vector<rhi::RenderpassType> m_uniqe_passes{};        //! Unique renderpasses which will get their own vertex/fragment shaders no matter if thier input outputs are the same as other passes
 
 	float32_t m_zoom_speed{20.0f};
 	float32_t m_simulation_step{2.0f};
@@ -310,6 +311,7 @@ class ROAR_ENGINE_ITEM Settings final
 		uint32_t                 m_font_size{13};
 		uint32_t                 m_scale{1};
 		bool                     m_visible{true};
+		bool                     m_software_cursor{false};
 		bool                     m_show_anchors{true};
 		bool                     m_show_gizmo{true};
 		bool                     m_show_overlays{true};

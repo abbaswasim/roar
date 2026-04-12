@@ -150,6 +150,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr const auto &bounding_box()     const noexcept   {  return this->m_bounding_box;    }
 	FORCE_INLINE constexpr       auto &dymanic_meshes()   const noexcept   {  return this->m_dynamic_meshes;  }
 	FORCE_INLINE constexpr       auto  has_shadows()      const noexcept   {  return this->m_has_shadows;     }
+	FORCE_INLINE constexpr       auto  has_picking()      const noexcept   {  return this->m_has_picking;     }
 
 	FORCE_INLINE constexpr const auto &current_camera()   const noexcept   {  return this->m_cameras[this->m_current_camera_index]; }
 	FORCE_INLINE constexpr       auto &current_camera()         noexcept   {  return this->m_cameras[this->m_current_camera_index]; }
@@ -256,6 +257,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	bool                             m_indices_dirty{true};                                    //! If the scene graph indicies are dirty and not uploaded yet
 	bool                             m_pause_animation{false};                                 //! Should the animation be running or not
 	bool                             m_has_shadows{false};                                     //! To tell any fragment shaders for any pass generated to use shadow mapping, this is NOT about shadow pass itself
+	bool                             m_has_picking{false};                                     //! To tell the system we have a pick pass to be used to create the right type of vertex and fragment shaders
 	rhi::TriangleFillMode            m_triangle_fill_mode{rhi::TriangleFillMode::fill};        //! Triangle fill mode, initially filled but could be lines too
 	std::vector<ror::DynamicMesh>    m_dynamic_meshes{};                                       //! All the dynamic meshes created in the scene could be rendererd at once in the end
 	SceneState                       m_scene_state;                                            //! All the scene data that can be saved and restored to and from disk

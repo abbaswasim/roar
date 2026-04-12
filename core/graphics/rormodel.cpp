@@ -1975,7 +1975,7 @@ void Model::load_from_gltf_file(std::filesystem::path a_filename, std::vector<ro
 						node.m_trs_transform.m_scale = ror::Vector3f(cnode->scale[0], cnode->scale[1], cnode->scale[2]);
 
 						if (cnode->scale[0] != cnode->scale[1] || cnode->scale[0] != cnode->scale[2] || cnode->scale[1] != cnode->scale[2])
-							ror::log_critical("There is non-uniform scale in model {}, make sure the vertex shader normalisation code has no-uniform scale support", a_filename.c_str());
+							ror::log_warn("There is non-uniform scale in model {}, make sure the vertex shader normalisation code has no-uniform scale support", a_filename.c_str());
 					}
 
 					if (cnode->has_matrix)

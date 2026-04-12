@@ -853,4 +853,38 @@ std::string renderpass_type_to_string(const rhi::RenderpassType &a_type)
 	return "";
 }
 
+rhi::RenderpassType string_to_renderpass_type(const std::string &a_type)
+{
+	// clang-format off
+	if (a_type == "lut") 					return rhi::RenderpassType::lut;
+	if (a_type == "pick") 					return rhi::RenderpassType::pick;
+	if (a_type == "main") 					return rhi::RenderpassType::main;
+	if (a_type == "depth") 					return rhi::RenderpassType::depth;
+	if (a_type == "shadow") 				return rhi::RenderpassType::shadow;
+	if (a_type == "light_bin") 				return rhi::RenderpassType::light_bin;
+	if (a_type == "reflection") 			return rhi::RenderpassType::reflection;
+	if (a_type == "refraction") 			return rhi::RenderpassType::refraction;
+	if (a_type == "pre_process") 			return rhi::RenderpassType::pre_process;
+	if (a_type == "post_process") 			return rhi::RenderpassType::post_process;
+	if (a_type == "tone_mapping") 			return rhi::RenderpassType::tone_mapping;
+	if (a_type == "forward_light") 			return rhi::RenderpassType::forward_light;
+	if (a_type == "node_transform") 		return rhi::RenderpassType::node_transform;
+	if (a_type == "deferred_gbuffer") 		return rhi::RenderpassType::deferred_gbuffer;
+	if (a_type == "reflection_probes") 		return rhi::RenderpassType::reflection_probes;
+	if (a_type == "image_based_light") 		return rhi::RenderpassType::image_based_light;
+	if (a_type == "ambient_occlusion") 		return rhi::RenderpassType::ambient_occlusion;
+	if (a_type == "skeletal_transform") 	return rhi::RenderpassType::skeletal_transform;
+	if (a_type == "deferred_clustered") 	return rhi::RenderpassType::deferred_clustered;
+	if (a_type == "image_based_light_lut") 	return rhi::RenderpassType::image_based_light_lut;
+	// clang-format on
+
+	assert(0 && "rhi::RenderpassType is not expected");
+	return rhi::RenderpassType::main;
+}
+
+uint32_t renderpass_type_to_index(const rhi::RenderpassType a_type)
+{
+	return static_cast<uint32_t>(a_type);
+}
+
 }        // namespace rhi

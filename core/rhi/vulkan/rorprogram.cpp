@@ -1577,12 +1577,13 @@ void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a
 }
 
 // This one is used in Renderer::upload, with default vertex descriptor
-void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha)
+void ProgramVulkan::upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
 	assert(device);
 	(void) device;
 	(void) a_buffer_pack;
+	(void) a_vertex_descriptor; // Won't be using this as Vulkan does reflection
 
 	// TODO: Add support for non-mesh vertex and fragment pipelines, would require a RenderpassType as a must
 

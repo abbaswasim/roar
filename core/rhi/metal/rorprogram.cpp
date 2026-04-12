@@ -94,40 +94,50 @@ static auto append_to_metal_vertex_descriptor(MTL::VertexDescriptor *mtl_vertex_
 	return mtl_vertex_descriptor;
 }
 
-static auto get_default_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
+// static auto get_default_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
+// {
+// 	auto                 &setting = ror::settings();
+// 	rhi::VertexDescriptor descriptor{};
+
+// 	for (auto att_pair : setting.m_default_vertex_descriptor.attributes)
+// 		descriptor.add(att_pair.first, att_pair.second, &a_buffer_pack);
+
+// 	return descriptor;
+// }
+
+// static auto get_default_mtl_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
+// {
+// 	auto  vertex_descriptor     = get_default_vertex_descriptor(a_buffer_pack);
+// 	auto *mtl_vertex_descriptor = MTL::VertexDescriptor::alloc()->init();
+
+// 	for (auto &attrib : vertex_descriptor.attributes())
+// 		append_to_metal_vertex_descriptor(mtl_vertex_descriptor, attrib, vertex_descriptor);
+
+// 	return mtl_vertex_descriptor;
+// }
+
+static auto get_mtl_vertex_descriptor(const rhi::VertexDescriptor &a_vertex_descriptor)
 {
-	auto                 &setting = ror::settings();
-	rhi::VertexDescriptor descriptor{};
-
-	for (auto att_pair : setting.m_default_vertex_descriptor.attributes)
-		descriptor.add(att_pair.first, att_pair.second, &a_buffer_pack);
-
-	return descriptor;
-}
-
-static auto get_default_mtl_vertex_descriptor(rhi::BuffersPack &a_buffer_pack)
-{
-	auto  vertex_descriptor     = get_default_vertex_descriptor(a_buffer_pack);
 	auto *mtl_vertex_descriptor = MTL::VertexDescriptor::alloc()->init();
 
-	for (auto &attrib : vertex_descriptor.attributes())
-		append_to_metal_vertex_descriptor(mtl_vertex_descriptor, attrib, vertex_descriptor);
+	for (auto &attrib : a_vertex_descriptor.attributes())
+		append_to_metal_vertex_descriptor(mtl_vertex_descriptor, attrib, a_vertex_descriptor);
 
 	return mtl_vertex_descriptor;
 }
 
-static auto walk_vertex_descriptor_attributes(MTL::VertexDescriptor *a_target, const rhi::VertexDescriptor &a_vertex_descriptor, bool a_depth_shadow)
+static auto walk_vertex_descriptor_attributes(MTL::VertexDescriptor *a_target, const rhi::VertexDescriptor &a_vertex_descriptor, bool a_depth_shadow, bool a_pick)
 {
 	// Lets read all the descriptors we might need to use for normal attributes + morph target attributes
 	const auto &attributes = a_vertex_descriptor.attributes();
 	for (auto &attrib : attributes)
 	{
-		if (is_attribute_required_in_pass(attrib.semantics(), a_depth_shadow))
+		if (is_attribute_required_in_pass(attrib.semantics(), a_depth_shadow, a_pick))
 			append_to_metal_vertex_descriptor(a_target, attrib, a_vertex_descriptor);
 	}
 }
 
-static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>> &a_meshes, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_depth_shadow)
+static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::BufferAllocator<ror::Mesh>> &a_meshes, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_depth_shadow, bool a_pick)
 {
 	const auto &mesh                     = a_meshes[a_mesh_index];
 	const auto &vertex_descriptor        = mesh.vertex_descriptor(a_prim_index);
@@ -141,19 +151,19 @@ static auto get_metal_vertex_descriptor(const std::vector<ror::Mesh, rhi::Buffer
 		descriptors.emplace_back(morph_descriptor);
 
 	for (auto &descriptor : descriptors)
-		walk_vertex_descriptor_attributes(mtl_vertex_descriptor, descriptor.get(), a_depth_shadow);
+		walk_vertex_descriptor_attributes(mtl_vertex_descriptor, descriptor.get(), a_depth_shadow, a_pick);
 
 	return mtl_vertex_descriptor;
 }
 
-static MTL::VertexDescriptor *get_metal_vertex_descriptor(const rhi::VertexDescriptor &a_vertex_descriptor, bool a_depth_shadow)
+static MTL::VertexDescriptor *get_metal_vertex_descriptor(const rhi::VertexDescriptor &a_vertex_descriptor, bool a_depth_shadow, bool a_pick)
 {
 	if (a_vertex_descriptor.attributes().size() == 0)
 		return nullptr;
 
 	auto *mtl_vertex_descriptor = MTL::VertexDescriptor::alloc()->init();
 
-	walk_vertex_descriptor_attributes(mtl_vertex_descriptor, a_vertex_descriptor, a_depth_shadow);
+	walk_vertex_descriptor_attributes(mtl_vertex_descriptor, a_vertex_descriptor, a_depth_shadow, a_pick);
 
 	return mtl_vertex_descriptor;
 }
@@ -174,6 +184,7 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 	auto      *device                     = a_device;
 	NS::Error *pError                     = nullptr;
 	auto      *render_pipeline_descriptor = MTL::RenderPipelineDescriptor::alloc()->init();
+	bool       blend_allowed              = a_render_subpass.type() != rhi::RenderpassType::pick && a_blend_mode == rhi::BlendMode::blend ? true : false;
 
 	assert(device);
 	assert(render_pipeline_descriptor && "Can't allocate metal render pipeline descriptor");
@@ -226,14 +237,11 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 			colorAttachment->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
 			colorAttachment->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
 
-			colorAttachment->setBlendingEnabled(false);
+			colorAttachment->setBlendingEnabled(blend_allowed);
 
-			if (a_blend_mode == rhi::BlendMode::blend)
+			if (blend_allowed && a_premultiplied_alpha)
 			{
-				colorAttachment->setBlendingEnabled(true);
-
-				if (a_premultiplied_alpha)
-					colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
+				colorAttachment->setSourceRGBBlendFactor(MTL::BlendFactorOne);
 			}
 		}
 	}
@@ -248,7 +256,11 @@ static MTL::RenderPipelineState *create_fragment_render_pipeline(MTL::Device    
 	if (!pipeline_state)
 	{
 		assert(pError != nullptr && "Failed render pipeline creation didn't bring any errors");
-		ror::log_critical("Metal render program creation failed with error: {}", pError->localizedDescription()->utf8String());
+		ror::log_critical("Metal render program creation failed possibly for '{}' pass with error: {}\nVS path: {} \nFS path: {}\nMSL vertex shader source:\n{}\nMSL fragment shader source:\n{}\nGLSL vertex shader source:\n{}\nGLSL fragment shader source:\n{}",
+		                  rhi::renderpass_type_to_string(a_render_subpass.type()).c_str(), pError->localizedDescription()->utf8String(),
+		                  a_vertex_shader.shader_path().c_str(), a_fragment_shader.shader_path().c_str(),
+		                  a_vertex_shader.msl_source(), a_fragment_shader.msl_source(),
+		                  a_vertex_shader.source(), a_fragment_shader.source());
 		return nullptr;
 	}
 
@@ -293,6 +305,7 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_
                           const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha)
 {
 	auto        is_depth_shadow = (a_subpass.type() == rhi::RenderpassType::depth || a_subpass.type() == rhi::RenderpassType::shadow);
+	auto        is_pick         = (a_subpass.type() == rhi::RenderpassType::pick);
 	auto       *device          = a_device.platform_device();
 	const auto &mesh            = a_model.meshes()[a_mesh_index];
 	const auto &materials       = a_model.materials();
@@ -332,7 +345,7 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_
 
 	this->release();
 
-	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_model.meshes(), a_mesh_index, a_prim_index, is_depth_shadow);
+	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_model.meshes(), a_mesh_index, a_prim_index, is_depth_shadow, is_pick);
 	this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, a_renderpass, a_subpass, mtl_vertex_descriptor, material.m_blend_mode, mesh.primitive_type(a_prim_index), mesh.name().c_str(), a_subpass.has_depth(), a_premultiplied_alpha);
 }
 
@@ -350,7 +363,7 @@ void ProgramMetal::release()
 
 void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader,
                           const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name,
-                          bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
+                          bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_is_pick, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
 
@@ -370,12 +383,12 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_
 
 	this->release();
 
-	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_vertex_descriptor, a_is_depth_shadow);
+	auto *mtl_vertex_descriptor = get_metal_vertex_descriptor(a_vertex_descriptor, a_is_depth_shadow, a_is_pick);
 	this->m_pipeline_state      = create_fragment_render_pipeline(device, a_vs_shader, a_fs_shader, a_renderpass, a_subpass, mtl_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_premultiplied_alpha);
 }
 
 void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_renderpass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders,
-                          rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha)
+                          rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_is_pick, bool a_premultiplied_alpha)
 {
 	auto vs_id = this->vertex_id();
 	auto fs_id = this->fragment_id();
@@ -389,7 +402,7 @@ void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_render
 		const auto &vs = a_shaders[static_cast<size_t>(vs_id)];
 		const auto &fs = a_shaders[static_cast<size_t>(fs_id)];
 
-		this->upload(a_device, a_renderpass, a_subpass, vs, fs, a_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_is_depth_shadow, a_premultiplied_alpha);
+		this->upload(a_device, a_renderpass, a_subpass, vs, fs, a_vertex_descriptor, a_blend_mode, a_toplogy, a_pso_name, a_subpass_has_depth, a_is_depth_shadow, a_is_pick, a_premultiplied_alpha);
 	}
 	else
 	{
@@ -421,9 +434,10 @@ void ProgramMetal::upload(const rhi::Device &a_device, rhi::Renderpass &a_render
 	}
 }
 
-void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha)
+void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha)
 {
 	auto *device = a_device.platform_device();
+	(void) a_buffer_pack;
 
 	// TODO: Add support for non-mesh vertex and fragment pipelines, would require a RenderpassType as a must
 
@@ -443,7 +457,7 @@ void ProgramMetal::upload(const rhi::Device &a_device, const rhi::Renderpass &a_
 
 		if (vs.function() != nullptr && fs.function() != nullptr)
 		{
-			auto *mtl_vertex_descriptor = get_default_mtl_vertex_descriptor(a_buffer_pack);
+			auto *mtl_vertex_descriptor = get_mtl_vertex_descriptor(a_vertex_descriptor);
 			this->m_pipeline_state      = create_fragment_render_pipeline(device, vs, fs, a_pass, a_subpass, mtl_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "GlobalRenderPassPipeline", true, a_premultiplied_alpha);
 		}
 	}

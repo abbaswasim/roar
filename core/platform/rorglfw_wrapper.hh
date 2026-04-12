@@ -75,6 +75,9 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 	glfwSetScrollCallback(window, glfw_mouse_scroll_callback<_type>);
 	glfwSetDropCallback(window, glfw_file_drop_callback<_type>);
 
+	if (ror::settings().m_gui.m_software_cursor)
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
 	return window;
 }
 

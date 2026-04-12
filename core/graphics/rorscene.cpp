@@ -2222,6 +2222,16 @@ hash_64_t pass_aware_fragment_hash(hash_64_t a_fragment_hash, hash_64_t a_vertex
 	return fragment_hash;
 }
 
+hash_64_t pass_aware_hash_enforce(hash_64_t a_hash, rhi::RenderpassType a_passtype)
+{
+	// Both vertex and fragment hashes are not really _pass_ aware. They just use the pass type to make sure it reads the right attributes/input/outputs
+	// It doesn't add the pass type as a hash, this method can be used to override that
+	auto out_hash = a_hash;
+	hash_combine_64(out_hash, rhi::renderpass_type_to_index(a_passtype));
+
+	return out_hash;
+}
+
 auto Scene::find_global_program(rhi::RenderpassType a_passtype, uint32_t a_model_id, uint32_t a_mesh_id, size_t a_prim_id, Scene::GlobalProgram **a_global_program)
 {
 	for (size_t i = 0; i < this->m_global_programs[a_passtype].size(); ++i)
@@ -2241,6 +2251,15 @@ auto Scene::find_global_program(rhi::RenderpassType a_passtype, uint32_t a_model
 	return false;
 }
 
+static bool is_pass_unique(rhi::RenderpassType a_passtype)
+{
+	for (auto &unique_passtype : ror::settings().m_uniqe_passes)
+		if (unique_passtype == a_passtype)
+			return true;
+
+	return false;
+}
+
 void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_job_system)
 {
 	const std::vector<rhi::RenderpassType> render_pass_types = a_renderer.render_pass_types();
@@ -2254,14 +2273,18 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 	// For each render pass in the framegraph create programs the model meshes can use
 
 	for (auto &passtype : render_pass_types)
+	{
 		if (passtype == rhi::RenderpassType::shadow)
 			this->m_has_shadows = true;
+		if (passtype == rhi::RenderpassType::pick)
+			this->m_has_picking = true;
+	}
 
 	// This should be shaders_count * 2 * render_passes.size();
 	// Then fill me up in a loop before entering the next loop with jobs in it
 	this->m_shaders.reserve(shaders_count * 2 * render_pass_types.size());
 
-	log_warn("About to create {} shaders ", shaders_count * 2 * render_pass_types.size());
+	log_info("About to create {} shaders ", shaders_count * 2 * render_pass_types.size());
 
 	// Two pass approach, first create all the shaders into m_shaders, then allocate each to a job to fill it in with data
 	std::unordered_map<hash_64_t, std::atomic_flag> shader_hash_to_flag{};         // Used to check if this is generated or not
@@ -2287,6 +2310,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 		auto &pass_programs        = this->m_programs[passtype];
 		auto  pass_string          = std::string("_") + rhi::renderpass_type_to_string(passtype);        // This will be the generated shader name but mostly the first pass will be dominent, because the rest won't be unique
 		pass_programs.reserve(shaders_count);                                                            // Pre-reserve so no reallocation happen under the hood while jobs are using it, times 2 for both vertex and fragment
+		bool pass_unique = is_pass_unique(passtype);
 
 		// Create vertex and fragment shaders but don't generate sources yet
 		uint32_t model_index = 0;
@@ -2298,7 +2322,9 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 				for (size_t prim_index = 0; prim_index < mesh.primitives_count(); ++prim_index)
 				{
 					// auto vs_hash = mesh.vertex_hash(prim_index);
-					auto vs_hash     = pass_aware_vertex_hash(passtype, mesh, prim_index, model.skins());
+					auto vs_hash = pass_aware_vertex_hash(passtype, mesh, prim_index, model.skins());
+					if (pass_unique)
+						vs_hash = pass_aware_hash_enforce(vs_hash, passtype);
 					auto old_fs_hash = mesh.fragment_hash(prim_index);
 					auto fs_hash     = pass_aware_fragment_hash(old_fs_hash, vs_hash);
 
@@ -2349,6 +2375,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 
 	for (auto &passtype : render_pass_types)
 	{
+		bool pass_unique = is_pass_unique(passtype);
 		// Generate vertex and fragment shaders for pre allocated shaders
 		for (auto &model : this->m_models)
 		{
@@ -2360,7 +2387,10 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 					// auto  vs_hash         = mesh.vertex_hash(prim_index);
 					auto old_fs_hash = mesh.fragment_hash(prim_index);
 					auto vs_hash     = pass_aware_vertex_hash(passtype, mesh, prim_index, model.skins());
-					auto fs_hash     = pass_aware_fragment_hash(old_fs_hash, vs_hash);
+					if (pass_unique)
+						vs_hash = pass_aware_hash_enforce(vs_hash, passtype);
+
+					auto fs_hash = pass_aware_fragment_hash(old_fs_hash, vs_hash);
 
 					if (!shader_hash_to_flag[vs_hash].test_and_set())        // Not generated yet
 					{
@@ -2422,7 +2452,7 @@ void Scene::generate_shaders(const ror::Renderer &a_renderer, ror::JobSystem &a_
 		}
 	}
 
-	log_warn("Actual number of shaders created {} ", this->m_shaders.size());
+	log_info("Actual number of shaders created {} ", this->m_shaders.size());
 
 	// Just a cleanup for global programs
 	this->m_global_programs.clear();
@@ -2706,7 +2736,22 @@ void Scene::upload(rhi::Device &a_device, ror::JobSystem &a_job_system, ror::Eve
 			auto csp = pprgs.compute_pipeline_state();
 
 			if (rsp == nullptr && csp == nullptr)
+			{
+				auto pass_subpass = a_renderer.get_pass_subpass(passtype1);
+				assert(pass_subpass.first && pass_subpass.second && "Can't find pass and subpass for this type");
+				auto program_id = pass_subpass.second->program_id();
+				if (program_id != -1)
+				{
+					rhi::Program &pass_pso = a_renderer.programs()[static_cast<size_t>(program_id)];
+					auto          prsp     = pass_pso.render_pipeline_state();
+					auto          pcsp     = pass_pso.compute_pipeline_state();
+
+					if (prsp != nullptr || pcsp != nullptr)
+						continue;
+				}
+
 				ror::log_critical("Pass type {}, program {} is null {}, {}", rhi::renderpass_type_to_string(passtype1), reinterpret_cast<void *>(&pprgs), reinterpret_cast<void *>(rsp), reinterpret_cast<void *>(csp));
+			}
 		}
 	}
 
@@ -2753,7 +2798,7 @@ void Scene::read_nodes()
 			nod.m_trs_transform.scale({s[0], s[1], s[2]});
 
 			if (s[0] != s[1] || s[0] != s[2] || s[1] != s[2])
-				ror::log_critical("There is non-uniform scale in node {}, make sure the vertex shader normalisation code has no-uniform scale support", nod_data.name().c_str());
+				ror::log_warn("There is non-uniform scale in node {}, make sure the vertex shader normalisation code has no-uniform scale support", nod_data.name().c_str());
 		}
 
 		if (node.contains("path"))

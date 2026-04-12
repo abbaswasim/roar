@@ -156,7 +156,7 @@ void DynamicMesh::setup_shaders(const ror::Renderer &a_renderer, rhi::BlendMode 
 	this->m_shader_program.build_descriptor(*this->m_device, shaders);
 
 	// This means it is only guaranteed to render in last/main render pass
-	this->m_shader_program.upload(*this->m_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, a_blend_mode, this->m_topology, "tri_pso", true, false, false);
+	this->m_shader_program.upload(*this->m_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, a_blend_mode, this->m_topology, "tri_pso", true, false, false, false);
 }
 
 void DynamicMesh::setup_descriptors(const ror::Renderer &a_renderer, rhi::descriptor_update_type &a_buffers_images, bool a_use_environment)

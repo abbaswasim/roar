@@ -169,6 +169,7 @@ Settings::Settings()
 	{
 		this->m_gui.m_scale               = setting.get<uint32_t>("gui:scale");
 		this->m_gui.m_visible             = setting.get<bool>("gui:visible");
+		this->m_gui.m_software_cursor     = setting.get<bool>("gui:software_cursor");
 		this->m_gui.m_show_anchors        = setting.get<bool>("gui:show_anchors");
 		this->m_gui.m_show_gizmo          = setting.get<bool>("gui:show_gizmo");
 		this->m_gui.m_show_overlays       = setting.get<bool>("gui:show_overlays");
@@ -338,6 +339,11 @@ Settings::Settings()
 	this->m_fit_far_to_scene                 = setting.get<bool>("fit_far_to_scene");
 
 	this->m_clean_dirs = setting.get<std::vector<std::string>>("clean_dirs");
+
+	auto unique_passes = setting.get<std::vector<std::string>>("unique_passes");
+	this->m_uniqe_passes.reserve(unique_passes.size());
+	for (auto &pass_str : unique_passes)
+		this->m_uniqe_passes.emplace_back(rhi::string_to_renderpass_type(pass_str));
 
 	auto attribs = setting.find("default_vertex_descriptor");
 

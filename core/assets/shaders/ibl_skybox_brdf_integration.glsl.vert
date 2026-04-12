@@ -4,7 +4,7 @@ precision highp float;
 precision highp int;
 
 layout(location = 0) in highp vec4 in_vertex_position;
-layout(location = 1) in highp vec2 in_vertex_texture_coord0;
+layout(location = 1) in highp vec2 in_vertex_texture_coord_0;
 
 layout(location = 0) out highp vec2 out_vertex_uv;
 
@@ -24,7 +24,7 @@ float scale = -100.0; // This will make it big and Negative scale will flip the 
 
 void main()
 {
-	out_vertex_uv = in_vertex_texture_coord0;
+	out_vertex_uv = in_vertex_texture_coord_0;
 
 	gl_Position = in_per_view_uniforms.projection_mat4 * in_per_view_uniforms.view_mat4 * vec4(in_vertex_position.xyz * vec3(scale), 1.0);
 

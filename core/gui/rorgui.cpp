@@ -642,7 +642,7 @@ rhi::Program Gui::make_program(const rhi::Device &a_device, const ror::Renderer 
 	rhi::Program program{0, 0};        // Don't need the vert and frag IDs can be anything
 
 	program.build_descriptor(a_device, &this->m_shader_buffer[0], ror::gui_buffer_binding, &this->m_texture_image, &this->m_texture_sampler, ror::gui_image_binding);
-	program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, true);
+	program.upload(a_device, *pass, *subpass, vs_shader, fs_shader, this->m_vertex_descriptor, rhi::BlendMode::blend, rhi::PrimitiveTopology::triangles, "gui_pso", true, false, false, true);
 
 	return program;
 }
@@ -846,7 +846,8 @@ static void show_settings(bool &a_show_settings, ror::EventSystem &a_event_syste
 
 void Gui::new_frame(const ror::Vector4f &a_dimensions)
 {
-	ImGuiIO &io = ImGui::GetIO();
+	ImGuiIO &io        = ImGui::GetIO();
+	io.MouseDrawCursor = ror::settings().m_gui.m_software_cursor;
 
 	io.DisplaySize             = ImVec2(a_dimensions.x / a_dimensions.z, a_dimensions.y / a_dimensions.w);
 	io.DisplayFramebufferScale = ImVec2(a_dimensions.z, a_dimensions.w);

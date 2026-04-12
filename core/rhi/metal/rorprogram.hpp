@@ -76,12 +76,12 @@ class ProgramMetal : public ProgramCrtp<ProgramMetal>
 	void update_descriptor(const rhi::Device &){}
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_renderpass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders,
 	            const ror::Model &a_model, uint32_t a_mesh_index, uint32_t a_prim_index, bool a_premultiplied_alpha);
-	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha);
+	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const std::vector<rhi::Shader> &a_shaders, const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BuffersPack &a_buffer_pack, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, const rhi::Shader &a_vs_shader, const rhi::Shader &a_fs_shader,
 	            const rhi::VertexDescriptor &a_vertex_descriptor, rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name,
-	            bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
+	            bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_is_pick, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass, const rhi::VertexDescriptor &a_vertex_descriptor, const std::vector<rhi::Shader> &a_shaders,
-	            rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_premultiplied_alpha);
+	            rhi::BlendMode a_blend_mode, rhi::PrimitiveTopology a_toplogy, const char *a_pso_name, bool a_subpass_has_depth, bool a_is_depth_shadow, bool a_is_pick, bool a_premultiplied_alpha);
 	void upload(const rhi::Device &a_device, const std::vector<rhi::Shader> &a_shaders);        // Easy way to create a compute pipeline without hassle, currently unused
 
 	FORCE_INLINE constexpr auto *compute_pipeline_state() const noexcept

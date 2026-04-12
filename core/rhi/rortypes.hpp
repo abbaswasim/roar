@@ -1221,7 +1221,7 @@ constexpr auto vertex_format_to_glsl_type(rhi::VertexFormat a_format)
 
 constexpr auto pixel_format_to_string(PixelFormat a_format)
 {
-// clang-format off
+	// clang-format off
 	switch(a_format)
 	{
 		case PixelFormat::invalid:                       return "invalid";
@@ -1364,12 +1364,12 @@ constexpr auto pixel_format_to_string(PixelFormat a_format)
 		case PixelFormat::b10g10r10_xr:                  return "b10g10r10_xr";
 		case PixelFormat::b10g10r10_xr_srgb:             return "b10g10r10_xr_srgb";
 	}
-// clang-format on
+	// clang-format on
 }
 
 constexpr auto vertex_format_to_string(VertexFormat a_format)
 {
-// clang-format off
+	// clang-format off
 	switch(a_format)
 	{
 		case VertexFormat::invalid:              return "invalid";
@@ -1463,7 +1463,7 @@ constexpr auto vertex_format_to_string(VertexFormat a_format)
 		case VertexFormat::struct_1:             return "struct_1";
 		case VertexFormat::struct_0:             return "struct_0";
 	}
-// clang-format on
+	// clang-format on
 }
 
 constexpr auto primitve_toplogy_to_class(PrimitiveTopology a_toplogy)
@@ -1482,19 +1482,29 @@ constexpr auto primitve_toplogy_to_class(PrimitiveTopology a_toplogy)
 	assert(0);
 }
 
-constexpr bool is_attribute_required_in_pass(rhi::BufferSemantic a_semantic, bool a_depth_shadow)
+constexpr bool is_attribute_required_in_pass(rhi::BufferSemantic a_semantic, bool a_depth_shadow, bool a_pick)
 {
+	auto depth_shadow_semantic = (a_semantic == rhi::BufferSemantic::vertex_position ||
+	                              a_semantic == rhi::BufferSemantic::vertex_bone_id_0 ||
+	                              a_semantic == rhi::BufferSemantic::vertex_bone_id_1 ||
+	                              a_semantic == rhi::BufferSemantic::vertex_weight_0 ||
+	                              a_semantic == rhi::BufferSemantic::vertex_weight_1 ||
+	                              a_semantic == rhi::BufferSemantic::vertex_morph_target ||
+	                              a_semantic == rhi::BufferSemantic::vertex_morph_weight);
+
+	auto pick_semantics = (depth_shadow_semantic || (a_semantic == rhi::BufferSemantic::vertex_texture_coord_0 ||
+	                                                 a_semantic == rhi::BufferSemantic::vertex_texture_coord_1 ||
+	                                                 a_semantic == rhi::BufferSemantic::vertex_texture_coord_2 ||
+	                                                 a_semantic == rhi::BufferSemantic::vertex_color_0 ||
+	                                                 a_semantic == rhi::BufferSemantic::vertex_color_1));
+
 	if (a_semantic < rhi::BufferSemantic::vertex_index)        // Only need vertex attributes that are bellow vertex_index, FIXME: what happens to custom ones?
 	{
-		if (!a_depth_shadow)
+		if (!a_depth_shadow && !a_pick)
 			return true;
-		else if (a_semantic == rhi::BufferSemantic::vertex_position ||
-		         a_semantic == rhi::BufferSemantic::vertex_bone_id_0 ||
-		         a_semantic == rhi::BufferSemantic::vertex_bone_id_1 ||
-		         a_semantic == rhi::BufferSemantic::vertex_weight_0 ||
-		         a_semantic == rhi::BufferSemantic::vertex_weight_1 ||
-		         a_semantic == rhi::BufferSemantic::vertex_morph_target ||
-		         a_semantic == rhi::BufferSemantic::vertex_morph_weight)
+		else if (a_depth_shadow && depth_shadow_semantic)
+			return true;
+		else if (a_pick && pick_semantics)
 			return true;
 		else
 			return false;
@@ -1575,6 +1585,8 @@ rhi::PrimitiveWinding  string_to_primitive_winding(const std::string &a_winding)
 rhi::PrimitiveCullMode string_to_cull_mode(const std::string &a_cull_mode);
 bool                   is_pixel_format_depth_format(const rhi::PixelFormat a_format);
 std::string            renderpass_type_to_string(const rhi::RenderpassType &a_type);
+rhi::RenderpassType    string_to_renderpass_type(const std::string &a_type);
+uint32_t               renderpass_type_to_index(const rhi::RenderpassType a_type);
 
 const auto format_to_bytes = vertex_format_to_bytes;
 

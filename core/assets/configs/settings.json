@@ -65,6 +65,7 @@
 	"application_version" : [1, 0, 0],
 	"engine_name" : "Roar",
 	"engine_version" : [1, 0, 0],
+	"unique_passes" : ["pick"],
 	"sets_bindings" :
 	{
 		"shadow_map_sampler" : [0, 0],
@@ -189,6 +190,7 @@
 	{
 		"scale" : 1,
 		"visible" : true,
+		"software_cursor" : false,
 		"show_anchors" : false,
 		"show_gizmo" : false,
 		"show_overlays" : false,
