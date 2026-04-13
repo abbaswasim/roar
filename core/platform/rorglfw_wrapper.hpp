@@ -107,7 +107,7 @@ class ROAR_ENGINE_ITEM GLFWwindowWrapper final
 
   protected:
   private:
-	GLFWwindow *m_window{nullptr};        //! The window to which all the calls are directed
+	std::array<GLFWwindow *, 2> m_windows{nullptr};        //! The window to which all the calls are directed
 };
 
 }        // namespace ror
