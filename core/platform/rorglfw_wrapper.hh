@@ -85,16 +85,20 @@ template <class _type>
 GLFWwindowWrapper<_type>::GLFWwindowWrapper(_type *a_pointer) noexcept
 {
 	auto &settings = ror::settings();
-	this->m_windows[0] = glfw_create_window<_type>(settings.m_roar_title, static_cast<int32_t>(settings.m_window.m_dimensions.z), static_cast<int32_t>(settings.m_window.m_dimensions.w),
-	                                           static_cast<int32_t>(settings.m_depth_buffer_bits), static_cast<int32_t>(settings.m_multisample_count), settings.m_resizable, settings.m_always_on_top);
-	glfwSetWindowUserPointer(this->m_windows[0], a_pointer);
-	glfw_register_for_global_events<_type>(this->m_windows[0]);
+	for (auto &window : this->m_windows)
+	{
+		window = glfw_create_window<_type>(settings.m_roar_title, static_cast<int32_t>(settings.m_window.m_dimensions.z), static_cast<int32_t>(settings.m_window.m_dimensions.w),
+		                                               static_cast<int32_t>(settings.m_depth_buffer_bits), static_cast<int32_t>(settings.m_multisample_count), settings.m_resizable, settings.m_always_on_top);
+		glfwSetWindowUserPointer(window, a_pointer);
+		glfw_register_for_global_events<_type>(window);
+	}
 }
 
 template <class _type>
 GLFWwindowWrapper<_type>::~GLFWwindowWrapper() noexcept
 {
-	glfwDestroyWindow(this->m_windows[0]);
+	for (auto &window : this->m_windows)
+		glfwDestroyWindow(window);
 	glfwTerminate();
 }
 
@@ -119,13 +123,13 @@ FORCE_INLINE void GLFWwindowWrapper<_type>::loop()
 }
 
 template <class _type>
-FORCE_INLINE GLFWwindow *GLFWwindowWrapper<_type>::window()
+FORCE_INLINE GLFWwindow *GLFWwindowWrapper<_type>::window(size_t a_window_index)
 {
-	return this->m_windows[0];
+	return this->m_windows[a_window_index];
 }
 
 template <class _type>
-FORCE_INLINE ror::Vector4ui GLFWwindowWrapper<_type>::dimensions()
+FORCE_INLINE ror::Vector4ui GLFWwindowWrapper<_type>::dimensions(size_t a_window_index)
 {
 	/*
 	  Almost all positions and sizes in GLFW are measured in screen coordinates relative to one of the two origins above.
@@ -141,8 +145,8 @@ FORCE_INLINE ror::Vector4ui GLFWwindowWrapper<_type>::dimensions()
 
 	ror::Vector4i dimensions;
 
-	glfwGetFramebufferSize(this->m_windows[0], &dimensions.x, &dimensions.y);
-	glfwGetWindowSize(this->m_windows[0], &dimensions.z, &dimensions.w);
+	glfwGetFramebufferSize(this->m_windows[a_window_index], &dimensions.x, &dimensions.y);
+	glfwGetWindowSize(this->m_windows[a_window_index], &dimensions.z, &dimensions.w);
 
 	return {static_cast<uint32_t>(dimensions.x), static_cast<uint32_t>(dimensions.y),
 	        static_cast<uint32_t>(dimensions.z), static_cast<uint32_t>(dimensions.w)};

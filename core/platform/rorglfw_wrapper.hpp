@@ -102,8 +102,8 @@ class ROAR_ENGINE_ITEM GLFWwindowWrapper final
 	FORCE_INLINE ~GLFWwindowWrapper() noexcept;
 
 	FORCE_INLINE void        loop();
-	FORCE_INLINE GLFWwindow *window();
-	FORCE_INLINE ror::Vector4ui dimensions();
+	FORCE_INLINE GLFWwindow *window(size_t a_window_index);
+	FORCE_INLINE ror::Vector4ui dimensions(size_t a_window_index);
 
   protected:
   private:
