@@ -102,12 +102,12 @@ class ROAR_ENGINE_ITEM GLFWwindowWrapper final
 	FORCE_INLINE ~GLFWwindowWrapper() noexcept;
 
 	FORCE_INLINE void        loop();
-	FORCE_INLINE GLFWwindow *window(size_t a_window_index);
-	FORCE_INLINE ror::Vector4ui dimensions(size_t a_window_index);
+	FORCE_INLINE GLFWwindow *window();
+	FORCE_INLINE ror::Vector4ui dimensions();
 
   protected:
   private:
-	std::array<GLFWwindow *, 2> m_windows{nullptr};        //! The window to which all the calls are directed
+	GLFWwindow *m_window{nullptr};        //! The window to which all the calls are directed
 };
 
 }        // namespace ror

@@ -27,7 +27,6 @@
 
 #include "event_system/rorevent_handles.hpp"
 #include "event_system/rorevent_system.hpp"
-#include "foundation/rorutilities.hpp"
 #include "math/rorvector2.hpp"
 #include "math/rorvector4.hpp"
 #include "platform/rorglfw_wrapper.hpp"
@@ -49,6 +48,15 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 		exit(EXIT_FAILURE);
 	}
 
+	int xpos, ypos;
+	int width;
+	int offset = 20;
+
+	glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &xpos, &ypos, &width, nullptr);
+	glfwWindowHint(GLFW_POSITION_X, xpos + width - ror::settings().m_window.m_dimensions.z - offset);
+	glfwWindowHint(GLFW_POSITION_Y, ypos + offset);
+
+	glfwWindowHint(GLFW_DECORATED, window_decorated());
 	glfwWindowHint(GLFW_DEPTH_BITS, a_depth_bits);
 	glfwWindowHint(GLFW_SAMPLES, a_samples);
 	glfwWindowHint(GLFW_RESIZABLE, a_resizable);
@@ -85,20 +93,16 @@ template <class _type>
 GLFWwindowWrapper<_type>::GLFWwindowWrapper(_type *a_pointer) noexcept
 {
 	auto &settings = ror::settings();
-	for (auto &window : this->m_windows)
-	{
-		window = glfw_create_window<_type>(settings.m_roar_title, static_cast<int32_t>(settings.m_window.m_dimensions.z), static_cast<int32_t>(settings.m_window.m_dimensions.w),
-		                                               static_cast<int32_t>(settings.m_depth_buffer_bits), static_cast<int32_t>(settings.m_multisample_count), settings.m_resizable, settings.m_always_on_top);
-		glfwSetWindowUserPointer(window, a_pointer);
-		glfw_register_for_global_events<_type>(window);
-	}
+	this->m_window = glfw_create_window<_type>(settings.m_roar_title, static_cast<int32_t>(settings.m_window.m_dimensions.z), static_cast<int32_t>(settings.m_window.m_dimensions.w),
+	                                           static_cast<int32_t>(settings.m_depth_buffer_bits), static_cast<int32_t>(settings.m_multisample_count), settings.m_resizable, settings.m_always_on_top);
+	glfwSetWindowUserPointer(this->m_window, a_pointer);
+	glfw_register_for_global_events<_type>(this->m_window);
 }
 
 template <class _type>
 GLFWwindowWrapper<_type>::~GLFWwindowWrapper() noexcept
 {
-	for (auto &window : this->m_windows)
-		glfwDestroyWindow(window);
+	glfwDestroyWindow(this->m_window);
 	glfwTerminate();
 }
 
@@ -114,8 +118,8 @@ FORCE_INLINE _type *glfw_user_pointer(GLFWwindow *a_window)
 template <class _type>
 FORCE_INLINE void GLFWwindowWrapper<_type>::loop()
 {
-	auto *app = glfw_user_pointer<_type>(this->m_windows[0]);
-	while (!glfwWindowShouldClose(this->m_windows[0]))
+	auto *app = glfw_user_pointer<_type>(this->m_window);
+	while (!glfwWindowShouldClose(this->m_window))
 	{
 		glfwPollEvents();
 		app->update();
@@ -123,13 +127,13 @@ FORCE_INLINE void GLFWwindowWrapper<_type>::loop()
 }
 
 template <class _type>
-FORCE_INLINE GLFWwindow *GLFWwindowWrapper<_type>::window(size_t a_window_index)
+FORCE_INLINE GLFWwindow *GLFWwindowWrapper<_type>::window()
 {
-	return this->m_windows[a_window_index];
+	return this->m_window;
 }
 
 template <class _type>
-FORCE_INLINE ror::Vector4ui GLFWwindowWrapper<_type>::dimensions(size_t a_window_index)
+FORCE_INLINE ror::Vector4ui GLFWwindowWrapper<_type>::dimensions()
 {
 	/*
 	  Almost all positions and sizes in GLFW are measured in screen coordinates relative to one of the two origins above.
@@ -145,8 +149,8 @@ FORCE_INLINE ror::Vector4ui GLFWwindowWrapper<_type>::dimensions(size_t a_window
 
 	ror::Vector4i dimensions;
 
-	glfwGetFramebufferSize(this->m_windows[a_window_index], &dimensions.x, &dimensions.y);
-	glfwGetWindowSize(this->m_windows[a_window_index], &dimensions.z, &dimensions.w);
+	glfwGetFramebufferSize(this->m_window, &dimensions.x, &dimensions.y);
+	glfwGetWindowSize(this->m_window, &dimensions.z, &dimensions.w);
 
 	return {static_cast<uint32_t>(dimensions.x), static_cast<uint32_t>(dimensions.y),
 	        static_cast<uint32_t>(dimensions.z), static_cast<uint32_t>(dimensions.w)};
