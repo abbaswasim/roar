@@ -146,12 +146,13 @@
 	{
 		"x" : 0,
 		"y" : 0,
-		"width" : 1024,
-		"height" : 768,
+		"width" : 1440,
+		"height" : 900,
 		"bpp" : 72,
 		"transparent": false,
 		"premultiplied": false,
 		"prerotated": false,
+		"decorated": false,
 		"color_format" : "b8g8r8a8_uint32_norm_srgb",
 		"depth_stencil_format" : "depth32_float32",
 		"buffer_count" : 3
@@ -199,6 +200,7 @@
 		"dump_texture" : true,
 		"enable_render_modes" : false,
 		"theme" : "dark",
+		"debug_window" : "Debug...",
 		"default_font" : 0,
 		"font_size" : 32,
 		"font_scale" : 0.45,

@@ -33,7 +33,6 @@
 #include "rorgizmo.hpp"
 #include "roroverlay.hpp"
 
-#include <span>
 #include <vector>
 
 namespace ror
@@ -66,14 +65,19 @@ class ROAR_ENGINE_ITEM GuiWindow final
 	{}
 
 	template <typename _draw_call, typename... _call_args>
-	FORCE_INLINE void draw(_draw_call &&a_draw_call, _call_args &&...a_call_args)
+	FORCE_INLINE void draw(bool &a_toggle, _draw_call &&a_draw_call, _call_args &&...a_call_args)
 	{
-		ImGui::Begin(this->m_frame_title.c_str());
-		ImGui::GetWindowDrawList()->AddCallback(set_callback, static_cast<void *>(this));
+		if (!a_toggle)
+			return;
 
-		std::invoke(std::forward<_draw_call>(a_draw_call), std::forward<_call_args>(a_call_args)...);
+		if (ImGui::Begin(this->m_frame_title.c_str(), &a_toggle))
+		{
+			ImGui::GetWindowDrawList()->AddCallback(set_callback, static_cast<void *>(this));
 
-		ImGui::GetWindowDrawList()->AddCallback(reset_callback, static_cast<void *>(this));
+			std::invoke(std::forward<_draw_call>(a_draw_call), std::forward<_call_args>(a_call_args)...);
+
+			ImGui::GetWindowDrawList()->AddCallback(reset_callback, static_cast<void *>(this));
+		}
 		ImGui::End();
 	}
 
@@ -125,6 +129,8 @@ static inline void reset_callback(const ImDrawList *, const ImDrawCmd *cmd)
 	gui_window->reset_call();
 };
 
+FORCE_INLINE bool &gui_show_debug_window() noexcept;
+
 class ROAR_ENGINE_ITEM Gui final
 {
   public:
@@ -170,11 +176,19 @@ class ROAR_ENGINE_ITEM Gui final
 	}
 
 	template <typename _draw_call, typename... _draw_args>
-	FORCE_INLINE constexpr void draw_window(size_t a_index, _draw_call &&a_draw_call, _draw_args... a_draw_args)
+	FORCE_INLINE constexpr void draw_window(size_t a_index, bool &a_toggle, _draw_call &&a_draw_call, _draw_args... a_draw_args)
 	{
 		assert(a_index < this->m_windows.size() && "Window index out of bounds");
 
-		this->m_windows[a_index].draw(a_draw_call, a_draw_args...);
+		this->m_windows[a_index].draw(a_toggle, a_draw_call, a_draw_args...);
+	}
+
+	template <typename _draw_call, typename... _draw_args>
+	FORCE_INLINE constexpr void draw_debug_window(size_t a_index, _draw_call &&a_draw_call, _draw_args... a_draw_args)
+	{
+		assert(a_index < this->m_windows.size() && "Window index out of bounds");
+
+		this->m_windows[a_index].draw(gui_show_debug_window(), a_draw_call, a_draw_args...);
 	}
 
 	enum imgui_keys
@@ -183,6 +197,11 @@ class ROAR_ENGINE_ITEM Gui final
 		imgui_keys_right,
 		imgui_keys_middle
 	};
+
+	auto &show_debug_window_toggle()
+	{
+		return this->m_show_debug_window;
+	}
 
   protected:
   private:
@@ -195,33 +214,35 @@ class ROAR_ENGINE_ITEM Gui final
 	bool             anchor_moving(size_t a_index);
 	void             upload_draw_data(ImDrawData *a_draw_data, size_t a_current_frame_index);
 
-	Anchors               m_anchors{};                         //! All the anchors in the scene
-	Gizmo                 m_gizmo{};                           //! Single instance of a gizmo that can be used on different objects
-	Overlays              m_overlays{};                        //! Instance of all overlays that can be used on different objects like Lights and Cameras etc
-	std::vector<ImFont *> m_fonts{};                           //! All the fonts provided in gui fonts list
-	uint32_t              m_current_font{0};                   //! Index of the default pointer
-	ImFont               *m_default_font{nullptr};             //! Non-Owning pointer to a default pointer
-	ror::EventSystem     *m_event_system{nullptr};             //! Non-owning pointer to the event system
-	EventCallback         m_move_callback{};                   //! Mouse move function that will be used to subscribe and unsubscribe this imgui with event system
-	EventCallback         m_left_down_callback{};              //! Mouse down click function that will be used to subscribe and unsubscribe this imgui with event system
-	EventCallback         m_left_up_callback{};                //! Mouse up function that will be used to subscribe and unsubscribe this imgui with event system
-	EventCallback         m_right_down_callback{};             //! Same but for right click
-	EventCallback         m_right_up_callback{};               //! Same but for right click
-	EventCallback         m_mouse_wheel_callback{};            //! Mouse wheel event to scroll up
-	EventCallback         m_tab_key_callback{};                //! Tab key call back to enable disable the UI
-	EventCallback         m_gizmo_toggle_callback{};           //! Call back to enable disable the Gizmo UI, keyboard g
-	EventCallback         m_overlays_toggle_callback{};        //! Call back to enable disable the overlays UI, keyboard o
-	EventCallback         m_settings_toggle_callback{};        //! Call back to enable disable the settings UI, keyboard s
-	EventCallback         m_debug_toggle_callback{};           //! Call back to enable disable the Debug UI, keyboard d
-	EventCallback         m_anchors_toggle_callback{};         //! Tab key call back to enable disable the UI, keyboard a
-	EventCallback         m_demo_windown_callback{};           //! Demo window toggle callback, keyboard ?
-	bool                  m_show_demo_window{false};           //! Show ImGui Demo test window
-	bool                  m_show_gizmo{false};                 //! Show Gizmo or not
-	bool                  m_show_overlays{false};              //! Show Overlays or not
-	bool                  m_show_anchors{false};               //! Show Anchors or not
-	bool                  m_show_settings{false};              //! Show settings or not
-	bool                  m_show_debug{false};                 //! Show Debug window or not
-	bool                  m_show_render_titles{false};         //! Show titles for Multi-Render View
+	Anchors               m_anchors{};                              //! All the anchors in the scene
+	Gizmo                 m_gizmo{};                                //! Single instance of a gizmo that can be used on different objects
+	Overlays              m_overlays{};                             //! Instance of all overlays that can be used on different objects like Lights and Cameras etc
+	std::vector<ImFont *> m_fonts{};                                //! All the fonts provided in gui fonts list
+	uint32_t              m_current_font{0};                        //! Index of the default pointer
+	ImFont               *m_default_font{nullptr};                  //! Non-Owning pointer to a default pointer
+	ror::EventSystem     *m_event_system{nullptr};                  //! Non-owning pointer to the event system
+	EventCallback         m_move_callback{};                        //! Mouse move function that will be used to subscribe and unsubscribe this imgui with event system
+	EventCallback         m_left_down_callback{};                   //! Mouse down click function that will be used to subscribe and unsubscribe this imgui with event system
+	EventCallback         m_left_up_callback{};                     //! Mouse up function that will be used to subscribe and unsubscribe this imgui with event system
+	EventCallback         m_right_down_callback{};                  //! Same but for right click
+	EventCallback         m_right_up_callback{};                    //! Same but for right click
+	EventCallback         m_mouse_wheel_callback{};                 //! Mouse wheel event to scroll up
+	EventCallback         m_tab_key_callback{};                     //! Tab key call back to enable disable the UI
+	EventCallback         m_gizmo_toggle_callback{};                //! Call back to enable disable the Gizmo UI, keyboard g
+	EventCallback         m_overlays_toggle_callback{};             //! Call back to enable disable the overlays UI, keyboard o
+	EventCallback         m_settings_toggle_callback{};             //! Call back to enable disable the settings UI, keyboard s
+	EventCallback         m_debug_overlay_toggle_callback{};        //! Call back to enable disable the Debug overlay, keyboard cmd+d
+	EventCallback         m_debug_window_toggle_callback{};         //! Call back to enable disable the Debug window, keyboard d
+	EventCallback         m_anchors_toggle_callback{};              //! Tab key call back to enable disable the UI, keyboard a
+	EventCallback         m_demo_windown_callback{};                //! Demo window toggle callback, keyboard ?
+	bool                  m_show_demo_window{false};                //! Show ImGui Demo test window
+	bool                  m_show_gizmo{false};                      //! Show Gizmo or not
+	bool                  m_show_overlays{false};                   //! Show Overlays or not
+	bool                  m_show_anchors{false};                    //! Show Anchors or not
+	bool                  m_show_settings{false};                   //! Show settings or not
+	bool                  m_show_debug_overlay{false};              //! Show Debug overlay or not
+	bool                  m_show_debug_window{false};               //! Show Debug window or not
+	bool                  m_show_render_titles{false};              //! Show titles for Multi-Render View
 
 	// Render data
 	const rhi::Device             *m_device{nullptr};               //! Non-Owning pointer to a device that is used to initiliazed this gui
@@ -239,6 +260,25 @@ FORCE_INLINE Gui &gui() noexcept
 {
 	static Gui ui{};        // Global gui container
 	return ui;
+}
+
+FORCE_INLINE bool &gui_show_debug_window() noexcept
+{
+	return ror::gui().show_debug_window_toggle();
+}
+
+template <typename _draw_call, typename... _call_args>
+void append_to_debug_window(_draw_call &&a_draw_call, _call_args &&...a_call_args)
+{
+	auto &debug_toggle = gui_show_debug_window();
+	if (!debug_toggle)
+		return;
+
+	if (ImGui::Begin(debug_window().c_str(), &debug_toggle))
+	{
+		std::invoke(std::forward<_draw_call>(a_draw_call), std::forward<_call_args>(a_call_args)...);
+	}
+	ImGui::End();
 }
 
 }        // namespace ror

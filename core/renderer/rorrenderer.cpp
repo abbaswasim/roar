@@ -1322,17 +1322,22 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 	rhi::Swapchain surface = a_device.platform_swapchain();
 
-	ror::gui().draw_window(this->m_shadow_window_index, [this]() {
+	ror::gui().draw_debug_window(this->m_shadow_window_index, [this]() {
 		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_shadow_image)), ImVec2(400, 400));
 	});
 
-	ror::gui().draw_window(this->m_picking_window_index, [this]() {
+	ror::gui().draw_debug_window(this->m_picking_window_index, [this]() {
 		auto pass = this->get_pass(rhi::RenderpassType::pick);
 
 		assert(pass != nullptr && "Couldn't find pick subpass");
 		const auto &d = pass->dimensions();
 
 		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_pick_image)), ImVec2(static_cast<float32_t>(d.x), static_cast<float32_t>(d.y)));
+	});
+
+	append_to_debug_window([]() {
+		static uint32_t frame_count = 0;
+		ImGui::Text("Renderer frame index: (%ul)", frame_count++);
 	});
 
 	if (surface)
@@ -2317,8 +2322,8 @@ void Renderer::upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSyst
 
 	this->m_shadow_image         = this->get_shadow_image(0);                                 // Any shadow texture from any shadow pass will be fine, as we use an array for all
 	this->m_pick_image           = this->get_pass_image(rhi::RenderpassType::pick, 0);        // Get the pick texture at index 0
-	this->m_shadow_window_index  = ror::gui().make_window(a_device, *this, "Shadow Cascade visualisation", nullptr, "gui_array.glsl.frag");
-	this->m_picking_window_index = ror::gui().make_window(a_device, *this, "Picking renderpass visualisation", nullptr, "gui_pick.glsl.frag");
+	this->m_shadow_window_index  = ror::gui().make_window(a_device, *this, debug_window().c_str(), nullptr, "gui_array.glsl.frag");
+	this->m_picking_window_index = ror::gui().make_window(a_device, *this, debug_window().c_str(), nullptr, "gui_pick.glsl.frag");
 
 	// Upload the global line_soup when its used for debug rendering
 	for (size_t i = 0; i < ror::line_soups_count; ++i)

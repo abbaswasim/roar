@@ -79,6 +79,7 @@ Settings::Settings()
 	this->m_window.m_transparent      = setting.get<bool>("window:transparent");
 	this->m_window.m_premultiplied    = setting.get<bool>("window:premultiplied");
 	this->m_window.m_prerotated       = setting.get<bool>("window:prerotated");
+	this->m_window.m_decorated        = setting.get<bool>("window:decorated");
 	this->m_fullscreen                = setting.get<bool>("fullscreen");
 	this->m_resizable                 = setting.get<bool>("resizable");
 	this->m_always_on_top             = setting.get<bool>("always_on_top");
@@ -207,6 +208,8 @@ Settings::Settings()
 		{
 			assert(0 && "Unknown theme in settings.json at gui:theme");
 		}
+
+		this->m_gui.m_debug_window = setting.get<std::string>("gui:debug_window");
 
 		assert(this->m_gui.m_default_font < this->m_gui.m_fonts.size() && "Default font index is out of range");
 	}

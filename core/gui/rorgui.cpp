@@ -160,20 +160,27 @@ Gui::Gui()
 		this->m_show_settings = !this->m_show_settings;
 	};
 
-	this->m_debug_toggle_callback = [&io, this](ror::Event &e) {
+	this->m_debug_window_toggle_callback = [&io, this](ror::Event &e) {
 		if (io.WantCaptureKeyboard)
 			e.m_live = false;
 
-		this->m_show_debug = !this->m_show_debug;
+		this->m_show_debug_window = !this->m_show_debug_window;
+	};
+
+	this->m_debug_overlay_toggle_callback = [&io, this](ror::Event &e) {
+		if (io.WantCaptureKeyboard)
+			e.m_live = false;
+
+		this->m_show_debug_overlay = !this->m_show_debug_overlay;
 	};
 
 	auto &setting = ror::settings();
 
-	this->m_show_anchors  = setting.m_gui.m_show_anchors;
-	this->m_show_gizmo    = setting.m_gui.m_show_gizmo;
-	this->m_show_overlays = setting.m_gui.m_show_overlays;
-	this->m_show_settings = setting.m_gui.m_show_settings;
-	this->m_show_debug    = setting.m_gui.m_show_debug;
+	this->m_show_anchors       = setting.m_gui.m_show_anchors;
+	this->m_show_gizmo         = setting.m_gui.m_show_gizmo;
+	this->m_show_overlays      = setting.m_gui.m_show_overlays;
+	this->m_show_settings      = setting.m_gui.m_show_settings;
+	this->m_show_debug_overlay = setting.m_gui.m_show_debug;
 }
 
 Gui::~Gui() noexcept        //! Destructor
@@ -199,7 +206,8 @@ void Gui::install_input_handlers()
 		this->m_event_system->subscribe(keyboard_o_click, this->m_overlays_toggle_callback);
 		this->m_event_system->subscribe(keyboard_a_click, this->m_anchors_toggle_callback);
 		this->m_event_system->subscribe(keyboard_s_click, this->m_settings_toggle_callback);
-		this->m_event_system->subscribe(keyboard_d_click, this->m_debug_toggle_callback);
+		this->m_event_system->subscribe(keyboard_d_click, this->m_debug_window_toggle_callback);
+		this->m_event_system->subscribe(keyboard_d_command_click, this->m_debug_overlay_toggle_callback);
 
 		this->m_event_system->subscribe(keyboard_question_mark_click, this->m_demo_windown_callback);
 	}
@@ -223,7 +231,8 @@ void Gui::uninstall_input_handlers()
 		this->m_event_system->unsubscribe(keyboard_o_click, this->m_overlays_toggle_callback);
 		this->m_event_system->unsubscribe(keyboard_a_click, this->m_anchors_toggle_callback);
 		this->m_event_system->unsubscribe(keyboard_s_click, this->m_settings_toggle_callback);
-		this->m_event_system->unsubscribe(keyboard_d_click, this->m_debug_toggle_callback);
+		this->m_event_system->unsubscribe(keyboard_d_click, this->m_debug_window_toggle_callback);
+		this->m_event_system->unsubscribe(keyboard_d_command_click, this->m_debug_overlay_toggle_callback);
 
 		this->m_event_system->unsubscribe(keyboard_question_mark_click, this->m_demo_windown_callback);
 	}
@@ -879,8 +888,8 @@ void Gui::draw_gui_windows(ror::OrbitCamera &a_camera, ror::EventSystem &a_event
 	if (this->m_show_settings)
 		show_settings(this->m_show_settings, a_event_system, this->m_show_render_titles);
 
-	if (this->m_show_debug)
-		show_debug_overlay(this->m_show_debug);
+	if (this->m_show_debug_overlay)
+		show_debug_overlay(this->m_show_debug_overlay);
 
 	if (this->m_show_render_titles)
 		show_multi_render_view_titles(this->m_show_render_titles);

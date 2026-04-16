@@ -207,6 +207,7 @@ class ROAR_ENGINE_ITEM Settings final
 		bool             m_transparent{false};
 		bool             m_premultiplied{false};
 		bool             m_prerotated{false};
+		bool             m_decorated{true};
 		uint32_t         m_buffer_count{3};
 		rhi::PixelFormat m_pixel_format{rhi::PixelFormat::r8g8b8a8_uint32_norm};
 		rhi::PixelFormat m_depth_stencil_format{rhi::PixelFormat::depth24_norm_stencil8_uint32};
@@ -319,6 +320,7 @@ class ROAR_ENGINE_ITEM Settings final
 		bool                     m_show_debug{true};
 		bool                     m_dump_texture{true};
 		bool                     m_enable_render_modes{true};
+		bool                     m_enable_debug_window{true};
 		GuiTheme                 m_theme{GuiTheme::dark};
 		uint32_t                 m_default_font{0};
 		uint32_t                 m_vertex_buffer_size{2000000};        // Initial Size of vertex buffer
@@ -331,6 +333,7 @@ class ROAR_ENGINE_ITEM Settings final
 		ror::Vector4f            m_anchor_click_color{0.7f, 0.1f, 0.1f, 1.0f};
 		std::vector<std::string> m_fonts{};
 		std::vector<std::string> m_render_modes{};
+		std::string              m_debug_window{"Debug..."};
 	};
 
 	Gui m_gui{};
@@ -430,6 +433,24 @@ FORCE_INLINE auto window_prerotated()
 {
 	auto &setting = ror::settings();
 	return setting.m_window.m_prerotated;
+}
+
+FORCE_INLINE auto window_decorated()
+{
+	auto &setting = ror::settings();
+	return setting.m_window.m_decorated;
+}
+
+FORCE_INLINE auto& debug_window()
+{
+	auto &setting = ror::settings();
+	return setting.m_gui.m_debug_window;
+}
+
+FORCE_INLINE auto& debug_window_toggle()
+{
+	auto &setting = ror::settings();
+	return setting.m_gui.m_enable_debug_window;
 }
 
 }        // namespace ror
