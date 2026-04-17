@@ -247,6 +247,7 @@ class Renderer final : public Configuration<Renderer>
 	void     setup_shader_buffers();
 	void     update_shadow_cascades(ror::Scene &a_scene);
 	void     update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse_position);
+	void     draw_ui();
 
 	ror::Frames                             m_frames{};                                       //! All the frames in flight
 	ror::Picking<ror::max_frames_in_flight> m_pickables{};                                    //! All the pickable nodes witin the scene for each frame for a single pick

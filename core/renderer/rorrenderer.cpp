@@ -1306,6 +1306,64 @@ void Renderer::load_specific()
 	this->setup_references();
 }
 
+void Renderer::draw_ui()
+{
+	append_to_debug_window([this]() {
+		if (ImGui::BeginTabBar(ror::debug_tabbar().c_str()))
+		{
+			if (ImGui::BeginTabItem("Shadow cascades"))
+			{
+				ror::gui().draw_debug_window(this->m_shadow_window_index, [this]() {
+					ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_shadow_image)), ImVec2(400, 400));
+				});
+
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("Picking pass"))
+			{
+				auto pass = this->get_pass(rhi::RenderpassType::pick);
+				assert(pass != nullptr && "Couldn't find pick subpass");
+
+				/* NOTE: Mutating d mostly changes “how we interpret/render into the pick pass” (viewport/crop/tile math),
+				   But it does not automatically resize the pick pass attachments/framebuffers; those stay stale until you
+				   run the same resize path used in Renderer::upload_frame_graphs() + pass.upload().
+				   This is why we just mutate the image size for display purposes
+				 */
+				static auto scale     = 1.0f;
+				const auto  scale_min = 0.1f;
+				const auto  scale_max = 3.0f;
+				ImGui::DragScalar("Scale", ImGuiDataType_Float, &scale, 0.02f, &scale_min, &scale_max);
+
+				auto d = pass->dimensions();
+				d.x    = static_cast<uint32_t>(static_cast<float32_t>(d.x) * scale);
+				d.y    = static_cast<uint32_t>(static_cast<float32_t>(d.y) * scale);
+				ImGui::Text("Pick pass dimensions (%u, %u)", d.x, d.y);
+
+				ror::gui().draw_debug_window(this->m_picking_window_index, [this, d]() {
+					ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_pick_image)),
+					             ImVec2(static_cast<float32_t>(d.x), static_cast<float32_t>(d.y)));
+				});
+
+				ImGui::EndTabItem();
+			}
+		}
+		ImGui::EndTabBar();
+	});
+
+	append_to_debug_window([]() {
+		if (ImGui::BeginTabBar(ror::debug_tabbar().c_str()))
+		{
+			if (ImGui::BeginTabItem("SomethingElse"))
+			{
+				ImGui::Text("SomethingElse will go here");
+				ImGui::EndTabItem();
+			}
+		}
+		ImGui::EndTabBar();
+	});
+}
+
 // This is the entry into rendering
 void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer)
 {
@@ -1322,23 +1380,7 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 	rhi::Swapchain surface = a_device.platform_swapchain();
 
-	ror::gui().draw_debug_window(this->m_shadow_window_index, [this]() {
-		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_shadow_image)), ImVec2(400, 400));
-	});
-
-	ror::gui().draw_debug_window(this->m_picking_window_index, [this]() {
-		auto pass = this->get_pass(rhi::RenderpassType::pick);
-
-		assert(pass != nullptr && "Couldn't find pick subpass");
-		const auto &d = pass->dimensions();
-
-		ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_pick_image)), ImVec2(static_cast<float32_t>(d.x), static_cast<float32_t>(d.y)));
-	});
-
-	append_to_debug_window([]() {
-		static uint32_t frame_count = 0;
-		ImGui::Text("Renderer frame index: (%ul)", frame_count++);
-	});
+	this->draw_ui();
 
 	if (surface)
 	{

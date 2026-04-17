@@ -50,7 +50,7 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 
 	int xpos, ypos;
 	int width;
-	int offset = 20;
+	int offset = 35;
 
 	glfwGetMonitorWorkarea(glfwGetPrimaryMonitor(), &xpos, &ypos, &width, nullptr);
 	glfwWindowHint(GLFW_POSITION_X, xpos + width - ror::settings().m_window.m_dimensions.z - offset);
