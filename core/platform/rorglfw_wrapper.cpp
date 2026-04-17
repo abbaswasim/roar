@@ -231,17 +231,17 @@ EventModifier glfw_window_modifier_state(GLFWwindow *a_window)
 		return EventModifier::command;
 
 	auto krc = glfwGetKey(a_window, GLFW_KEY_RIGHT_CONTROL);
-	auto klc = glfwGetKey(a_window,GLFW_KEY_LEFT_CONTROL);
+	auto klc = glfwGetKey(a_window, GLFW_KEY_LEFT_CONTROL);
 	if (krc == GLFW_PRESS || klc == GLFW_PRESS)
 		return EventModifier::control;
 
 	auto krs = glfwGetKey(a_window, GLFW_KEY_RIGHT_SHIFT);
-	auto kls = glfwGetKey(a_window,GLFW_KEY_LEFT_SHIFT);
+	auto kls = glfwGetKey(a_window, GLFW_KEY_LEFT_SHIFT);
 	if (krs == GLFW_PRESS || kls == GLFW_PRESS)
 		return EventModifier::shift;
 
 	auto kra = glfwGetKey(a_window, GLFW_KEY_RIGHT_ALT);
-	auto kla = glfwGetKey(a_window,GLFW_KEY_LEFT_ALT);
+	auto kla = glfwGetKey(a_window, GLFW_KEY_LEFT_ALT);
 	if (kra == GLFW_PRESS || kla == GLFW_PRESS)
 		return EventModifier::option;
 
@@ -256,7 +256,6 @@ EventModifier glfw_window_modifier_state(GLFWwindow *a_window)
 	return EventModifier::none;
 }
 
-
 void glfw_error_callback(int a_error, const char *a_description)
 {
 	(void) a_error;
@@ -264,4 +263,9 @@ void glfw_error_callback(int a_error, const char *a_description)
 	ror::log_error("glfw_error {}", a_description);
 }
 
+void glfw_toggle_decorations(GLFWwindow *window)
+{
+	int32_t decorated = glfwGetWindowAttrib(window, GLFW_DECORATED);
+	glfwSetWindowAttrib(window, GLFW_DECORATED, decorated ? GLFW_FALSE : GLFW_TRUE);
+}
 }        // namespace ror

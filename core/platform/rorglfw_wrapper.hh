@@ -234,6 +234,11 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 		}
 	});
 
+	event_system.subscribe(keyboard_m_click, [a_window](Event &a_event) {
+		(void) a_event;
+		glfw_toggle_decorations(a_window);
+	});
+
 	// One can use the following type of functions to implement mouse move, left click, scroll etc
 	/*
 	event_system.subscribe(mouse_move, [](Event &a_event) { (void) a_event; auto v = a_event.get_payload<ror::Vector2d>(); std::cout << "moving (" << v.x << "," << v.y << ")" << std::endl;});

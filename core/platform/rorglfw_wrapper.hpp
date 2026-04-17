@@ -59,6 +59,8 @@ EventModifier glfw_window_modifier_state(GLFWwindow *a_window);
 EventState    glfw_action_to_event_state(int a_state);
 
 void glfw_error_callback(int a_error, const char *a_description);
+void glfw_toggle_decorations(GLFWwindow *window);
+
 template <class _type>
 void glfw_window_resize_callback(GLFWwindow *a_window, int a_width, int a_height);        // Accepts size in window/screen coordinates so for a 2x scaled retina this is half of the actual size in pixels
 template <class _type>
