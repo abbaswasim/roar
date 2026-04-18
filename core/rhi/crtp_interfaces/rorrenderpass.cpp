@@ -127,6 +127,133 @@ void lut_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene,
 	ror::log_critical("Render pass {} not implemented, implement me", __FUNCTION__);
 }
 
+ror::Tile get_pick_tile(ror::Renderer &a_renderer, rhi::Renderpass &a_pass)
+{
+	const auto tile_origin     = a_renderer.pick_target();
+	const auto tile_dimensions = a_pass.dimensions();
+
+	ror::Tile rect{};
+	rect.m_left   = static_cast<uint32_t>((tile_origin.x));
+	rect.m_top    = static_cast<uint32_t>((tile_origin.y));
+	rect.m_right  = static_cast<uint32_t>(rect.m_left + tile_dimensions.x);
+	rect.m_bottom = static_cast<uint32_t>(rect.m_top + tile_dimensions.y);
+
+	return rect;
+}
+
+ror::Matrix4f clipspace_crop_matrix(ror::Renderer &a_renderer, rhi::Renderpass &a_pass)
+{
+	const auto full_dimensions = a_renderer.dimensions();
+	auto       rect            = get_pick_tile(a_renderer, a_pass);
+
+	const auto l = (2.0f * static_cast<float32_t>(rect.m_left)) / full_dimensions.x - 1.0f;
+	const auto r = (2.0f * static_cast<float32_t>(rect.m_right)) / full_dimensions.x - 1.0f;
+	const auto t = 1.0f - (2.0f * static_cast<float32_t>(rect.m_top)) / full_dimensions.y;
+	const auto b = 1.0f - (2.0f * static_cast<float32_t>(rect.m_bottom)) / full_dimensions.y;
+
+	return ror::clipspace_crop_matrix(l, r, b, t);
+}
+
+void render_pick_tile(ror::Renderer &a_renderer, const ror::OrbitCamera &a_camera)
+{
+	auto main_pass = a_renderer.get_pass(rhi::RenderpassType::forward_light);
+	auto pick_pass = a_renderer.get_pass(rhi::RenderpassType::pick);
+
+	assert(main_pass && "Can't find main pass");
+	assert(pick_pass && "Can't find pick pass");
+
+	auto tile = get_pick_tile(a_renderer, *pick_pass);
+
+	const auto  full_dimensions = main_pass->dimensions();
+	const auto  full_width      = full_dimensions.x;
+	const auto  full_height     = full_dimensions.y;
+	const auto  fovyRadians     = ror::to_radians(a_camera.y_fov());
+	const auto &cameraPos       = a_camera.eye();
+	const auto &cameraRight     = a_camera.right();
+	const auto &cameraUp        = a_camera.up();
+	const auto &cameraForward   = a_camera.forward();
+
+	auto q = ror::project_screen_rectangle_to_world(ror::Vector4f{static_cast<float32_t>(tile.m_left), static_cast<float32_t>(tile.m_top),
+	                                                              static_cast<float32_t>(tile.m_right), static_cast<float32_t>(tile.m_bottom)},
+	                                                ror::Vector4ui{0, 0, full_width, full_height}, fovyRadians, 1.0f,        // chosen depth of 1.0f, just after the near plane
+	                                                cameraPos, cameraRight, cameraUp, cameraForward);
+
+	auto &ls = ror::line_soup();
+
+	static uint32_t rect{0xFFFFFFFF};
+
+	const uint32_t         lines_count = 4;
+	std::vector<float32_t> data{};
+	data.reserve(lines_count * 2 * 4);
+
+	ror::Vector3f tl{std::get<0>(q)};
+	ror::Vector3f tr{std::get<1>(q)};
+	ror::Vector3f br{std::get<2>(q)};
+	ror::Vector3f bl{std::get<3>(q)};
+
+	ror::push_point(data, tl, ror::yellow4f);
+	ror::push_point(data, tr, ror::yellow4f);
+
+	ror::push_point(data, tr, ror::yellow4f);
+	ror::push_point(data, br, ror::yellow4f);
+
+	ror::push_point(data, br, ror::yellow4f);
+	ror::push_point(data, bl, ror::yellow4f);
+
+	ror::push_point(data, bl, ror::yellow4f);
+	ror::push_point(data, tl, ror::yellow4f);
+
+	rect = ls.push_lines(reinterpret_cast<uint8_t *>(data.data()), lines_count, rect);
+}
+
+void pick_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system,
+               ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,
+               rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass)
+{
+	(void) a_job_system;
+	(void) a_timer;
+
+	// TODO: FIXME: Disable blending etc
+	auto &camera = a_scene.current_camera();
+	camera.upload(a_renderer);
+
+	const auto tile_dimensions = a_pass.dimensions();
+	auto       crop            = rhi::clipspace_crop_matrix(a_renderer, a_pass);
+	auto       projection      = crop * camera.projection();
+	auto       view            = camera.view();
+	auto       view_projection = projection * view;
+
+	ror::Matrix4f projection_inverse{};
+	ror::Matrix4f view_projection_inverse{};
+
+	auto invertable = projection.inverse(projection_inverse);
+	assert(invertable && "Can't invert cropped projection matrix");
+	invertable = view_projection.inverse(view_projection_inverse);
+	assert(invertable && "Can't invert cropped view_projection matrix");
+	(void) invertable;
+
+	{
+		auto per_view_uniform = a_renderer.shader_buffer("per_view_uniform");
+
+		per_view_uniform->buffer_map();
+
+		per_view_uniform->update("projection_mat4", &projection.m_values);
+		per_view_uniform->update("view_projection_mat4", &view_projection.m_values);
+		per_view_uniform->update("inverse_projection_mat4", &projection_inverse.m_values);
+		per_view_uniform->update("inverse_view_projection_mat4", &view_projection_inverse.m_values);
+
+		ror::Vector4ui viewport{0, 0, tile_dimensions.x, tile_dimensions.y};
+		per_view_uniform->update("viewport", &viewport.x);
+
+		per_view_uniform->buffer_unmap();
+	}
+
+	a_scene.render_simple(a_device, a_command_encoder, a_buffer_pack, a_renderer, a_pass, a_subpass, a_event_system);
+	a_renderer.signal_pick();
+
+	a_pass.enabled(false);
+}
+
 void main_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system,
                ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack,
                rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer, rhi::Renderpass &a_pass, rhi::Rendersubpass &a_subpass)
@@ -287,7 +414,32 @@ void forward_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene
 	auto &camera = a_scene.current_camera();
 	camera.upload(a_renderer);
 
-	render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
+	static bool setup{true};
+	static bool should_render_scene{true};
+	if (setup)
+	{
+		a_event_system.subscribe(ror::keyboard_z_command_click, [](ror::Event &) {
+			should_render_scene = !should_render_scene;
+		});
+		setup = false;
+	}
+
+	if (should_render_scene)
+		render_scene(a_command_encoder, a_scene, a_job_system, a_event_system, a_buffer_pack, a_device, a_timer, a_renderer, a_pass, a_subpass);
+	else
+	{
+		const auto &per_view_uniforms = a_renderer.shader_buffer("per_view_uniform");        // Shared per_view_uniform amongst all cameras
+		const auto &per_frame_uniform = a_renderer.shader_buffer("per_frame_uniform");
+		// const auto &weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
+
+		// Vertex shader bindings
+		per_view_uniforms->buffer_bind(a_command_encoder, rhi::ShaderStage::vertex);
+
+		// Fragment shader bindings
+		per_view_uniforms->buffer_bind(a_command_encoder, rhi::ShaderStage::fragment);
+		// Fragment shader bindings per frame
+		per_frame_uniform->buffer_bind(a_command_encoder, rhi::ShaderStage::fragment);
+	}
 
 	// Lets render all the renderer dynamic mesh, usually it only has a skybox cubmap
 	// TODO: Check why the order of this and the one above matters, if scene dynamic meshes are rendererd first nothing shows

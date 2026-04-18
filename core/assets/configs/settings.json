@@ -201,6 +201,7 @@
 		"enable_render_modes" : false,
 		"theme" : "dark",
 		"debug_window" : "Debug...",
+		"debug_bar" : "##MainDebugTabBar",
 		"default_font" : 0,
 		"font_size" : 32,
 		"font_scale" : 0.45,

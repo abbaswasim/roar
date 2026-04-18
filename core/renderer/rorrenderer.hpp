@@ -33,6 +33,7 @@
 #include "foundation/rorutilities.hpp"
 #include "graphics/rordynamic_mesh.hpp"
 #include "graphics/rorenvironment.hpp"
+#include "graphics/rornode.hpp"
 #include "profiling/rortimer.hpp"
 #include "renderer/rorframes.hpp"
 #include "renderer/rorframes_count.hpp"
@@ -126,6 +127,9 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &shadow_cascades_data()   const noexcept { return this->m_shadow_cascades_data;            }
 	FORCE_INLINE constexpr auto &pickables()              const noexcept { return this->m_pickables;                       }
 	FORCE_INLINE constexpr auto &pickables()                    noexcept { return this->m_pickables;                       }
+	FORCE_INLINE constexpr auto pick_hits()               const noexcept { return this->m_pickables.hits();                }
+	FORCE_INLINE constexpr auto &pick_target()            const noexcept { return this->m_pickables.target();              }
+	FORCE_INLINE constexpr auto &pick_target()                  noexcept { return this->m_pickables.target();              }
 	FORCE_INLINE constexpr auto &dynamic_meshes()         const noexcept { return this->m_dynamic_meshes;                  }
 	FORCE_INLINE constexpr auto current_frame_index()     const noexcept { return this->m_frames.current_frame_index();    }
 	FORCE_INLINE constexpr auto canonical_cube()          const noexcept { return this->m_canonical_cube;                  }
@@ -250,7 +254,7 @@ class Renderer final : public Configuration<Renderer>
 	void     draw_ui();
 
 	ror::Frames                             m_frames{};                                       //! All the frames in flight
-	ror::Picking<ror::max_frames_in_flight> m_pickables{};                                    //! All the pickable nodes witin the scene for each frame for a single pick
+	ror::Picking                            m_pickables{};                                    //! All the pickable nodes witin the scene for the a single pick
 	std::vector<rhi::Shader>                m_shaders{};                                      //! All the global shaders
 	std::vector<rhi::Program>               m_programs{};                                     //! All the global shader programs
 	std::vector<uint32_t>                   m_program_vertex_desriptor_ids{};                 //! All the global shader programs descriptor indices in the vertex descriptors array
@@ -277,6 +281,7 @@ class Renderer final : public Configuration<Renderer>
 	int32_t                                 m_current_environment{-1};                        //! Which of the available environments should we use
 	int32_t                                 m_grid_id{-1};                                    //! Reference to the grid for easy access
 	uint32_t                                m_canonical_cube{};                               //! Canonical cube for debugging purposes
+	int32_t                                 m_pick_queue{-1};                                 //! This is a queue of frames to wait before a pick pulling is valid, -1 means no picking signaled
 	uint32_t                                m_final_pass{};                                   //! Index of the final pass in the render pass chains in framegraph
 	uint32_t                                m_shadowpasses_count{0};                          //! Total amount of shadow passes in the current framegraph
 	const rhi::TextureImage                *m_shadow_image{nullptr};                          //! Cached copy of the image used as render target for shadow maps
@@ -292,6 +297,7 @@ class Renderer final : public Configuration<Renderer>
 	EventCallback                           m_semi_colon_key_callback{};                      //! Semi colon key call back to enable disable the grid
 	EventCallback                           m_click_callback{};                               //! Click lambda function that will be used to subscribe and unsubsribe this camera with event system for mouse click events
 	std::function<void(IBLEnvironment &)>   m_environment_upload{};                           //! Environment upload lambda used by environment cycle menthod
+	ror::NodeData                          *m_selected_node{nullptr};                         //! If not nullptr will contain the last selected node when picking
 };
 }        // namespace ror
 

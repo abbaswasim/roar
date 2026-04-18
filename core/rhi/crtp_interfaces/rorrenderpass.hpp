@@ -272,7 +272,8 @@ class RenderpassCrtp : public ror::Crtp<_type, RenderpassCrtp>
 	FORCE_INLINE constexpr auto &subpasses()           const noexcept { return this->m_subpasses;          }
 	FORCE_INLINE constexpr auto &render_targets()      const noexcept { return this->m_render_targets;     }
 	FORCE_INLINE constexpr auto &render_buffers()      const noexcept { return this->m_render_buffers;     }
-	FORCE_INLINE constexpr auto  dimensions()          const noexcept { return this->m_dimensions;         }
+	FORCE_INLINE constexpr auto &dimensions()          const noexcept { return this->m_dimensions;         }
+	FORCE_INLINE constexpr auto &dimensions()                noexcept { return this->m_dimensions;         }
 	FORCE_INLINE constexpr auto  cull_mode()           const noexcept { return this->m_cull_mode;          }
 	FORCE_INLINE constexpr auto &parent_ids()          const noexcept { return this->m_parent_ids;         }
 	FORCE_INLINE constexpr auto &parents()             const noexcept { return this->m_parents;            }

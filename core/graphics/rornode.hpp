@@ -82,10 +82,11 @@ class ROAR_ENGINE_ITEM NodeData
 		this->m_shader_buffer.upload(a_device);
 	}
 
-	FORCE_INLINE void update_offsets(ror::Vector4ui a_index)
+	FORCE_INLINE void update_offsets(ror::Vector4ui a_node_offset)
 	{
+		this->m_node_offsets = a_node_offset;
 		this->m_shader_buffer.buffer_map();
-		this->m_shader_buffer.update("node_offset", &a_index.x);
+		this->m_shader_buffer.update("node_offset", &this->m_node_offsets.x);
 		this->m_shader_buffer.buffer_unmap();
 	}
 
@@ -101,6 +102,7 @@ class ROAR_ENGINE_ITEM NodeData
 	FORCE_INLINE constexpr auto &shader_buffer()                  const noexcept  { return this->m_shader_buffer;           }
 	FORCE_INLINE constexpr auto &name()                           noexcept        { return this->m_name;                    }
 	FORCE_INLINE constexpr auto &children()                       noexcept        { return this->m_children;                }
+	FORCE_INLINE constexpr auto &node_offsets()                   const noexcept  { return this->m_node_offsets;            }
 
 	FORCE_INLINE void name(std::string a_name)                    noexcept        { this->m_name = a_name;                  }
 	FORCE_INLINE void children(std::vector<uint32_t> a_children)  noexcept        { this->m_children = a_children;          }
@@ -109,8 +111,9 @@ class ROAR_ENGINE_ITEM NodeData
 
   private:
 	// Node suplimentary data, should probably be combined with Node at some point
-	std::string           m_name{};            //! Name of this node for debugging and tooling purposes
-	std::vector<uint32_t> m_children{};        //! All the list of childrens for each node
+	std::string           m_name{};                //! Name of this node for debugging and tooling purposes
+	std::vector<uint32_t> m_children{};            //! All the list of childrens for each node
+	ror::Vector4ui        m_node_offsets{};        //! Node offsets in nodes_models array etc
 
 	// We have a template of "nodes_offets" provided in renderer.json. Which means we have multiple descriptions of nodes_offsets
 	// And these needs to be maintained which isn't ideal. One option is to add renderer in NodeData to initialise m_shader_buffer[]

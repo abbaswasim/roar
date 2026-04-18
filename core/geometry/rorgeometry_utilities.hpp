@@ -52,7 +52,7 @@ FORCE_INLINE void make_box_triangles(const _type &a_size, const _type &a_origin,
 
 /**
  * @brief      Creates a Box with size in all 3 or 2 dimensions
- * @param      a_size float defining its size in all 3 or 2 dimentions
+ * @param      a_size float defining its size in all 3 or 2 dimensions
  * @param      a_origin Origin of the Box
  * @param      a_output A vector to append the vertices created to
  */
@@ -61,7 +61,7 @@ FORCE_INLINE void make_box_triangles(float32_t a_size, const _type &a_origin, st
 
 /**
  * @brief      Creates a Box with size in all 3 or 2 dimensions at origin
- * @param      a_size float defining its size in all 3 or 2 dimentions
+ * @param      a_size float defining its size in all 3 or 2 dimensions
  * @param      a_output A vector to append the vertices created to
  */
 template <class _type>
@@ -69,7 +69,7 @@ FORCE_INLINE void make_box_triangles(float32_t a_size, std::vector<_type> &a_out
 
 /**
  * @brief      Creates a Box with size in all 3 or 2 dimensions at origin
- * @param      a_size float defining its size in all 3 or 2 dimentions
+ * @param      a_size float defining its size in all 3 or 2 dimensions
  * @return     return A vector to append the vertices created to
  */
 template <class _type>

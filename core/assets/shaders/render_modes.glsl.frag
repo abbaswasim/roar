@@ -302,4 +302,7 @@ void set_render_mode(Material material, Fragment fragment)
 		else if (cascade_index == 3)
 			out_color.rgb = mix(out_color_copy.rgb, vec3(1.0f, 1.0f, 0.25f), strength);
 	}
+
+	// This is in render modes which means if render modes are disabled, you won't be able to pick objects, its expected
+	out_color.rgb = mix(out_color_copy.rgb, vec3(0.25f, 0.25f, 1.0f), 0.4 * in_nodes_offsets.node_offset.w );
 }

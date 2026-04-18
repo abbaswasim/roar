@@ -83,8 +83,8 @@ class ROAR_ENGINE_ITEM TextureMetal final : public TextureCrtp<TextureMetal>
 	FORCE_INLINE TextureMetal &operator=(TextureMetal &&a_other) noexcept    = default;        //! Move assignment operator
 	FORCE_INLINE ~TextureMetal() noexcept override                           = default;        //! Destructor
 
-	FORCE_INLINE TextureMetal(rhi::TextureImageHandle a_image_handle, rhi::TextureSamplerHandle a_sampler_handle) :
-	    TextureCrtp(a_image_handle, a_sampler_handle)
+	FORCE_INLINE TextureMetal(rhi::TextureImageHandle a_image_handle, rhi::TextureSamplerHandle a_sampler_handle, rhi::BufferHandle a_buffer_handle = static_cast<rhi::BufferHandle>(-1)) :
+	    TextureCrtp(a_image_handle, a_sampler_handle, a_buffer_handle)
 	{}
 
   protected:

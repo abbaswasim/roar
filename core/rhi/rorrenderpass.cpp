@@ -106,12 +106,23 @@ void rendersubpass_execute(rhi::Renderpass &a_renderpass, rhi::Rendersubpass &a_
 void renderpass_execute(rhi::Renderpass &a_renderpass, rhi::CommandBuffer &a_command_buffer, ror::Scene &a_scene, rhi::Swapchain a_surface, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,
                         rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer, ror::Renderer &a_renderer)
 {
-	assert(a_renderpass.subpasses().size() && "There must be at least one subpass in a renderpass");
-	assert(a_renderpass.subpasses().size() == a_renderpass.platform_renderpass_count() && "Platform renderpasses are not same as subpasses count");
+	auto &subpasses           = a_renderpass.subpasses();
+	auto  render_subpass_left = subpasses.size();
 
-	auto       &subpasses           = a_renderpass.subpasses();
-	uint32_t    render_pass_index   = 0;
-	auto        render_subpass_left = subpasses.size();
+	assert(subpasses.size() && "There must be at least one subpass in a renderpass");
+	assert(subpasses.size() == a_renderpass.platform_renderpass_count() && "Platform renderpasses are not same as subpasses count");
+
+	// If a pass is disabled (e.g. pick pass after it runs once), skip executing it entirely.
+	// This avoids clearing/stomping its render targets every frame via load_action=clear.
+	// However we must increment the global subpass ordinal accross the whole framegraph so its correct
+	if (!a_renderpass.enabled())
+	{
+		for (size_t i = 0; i < render_subpass_left; ++i)
+			a_renderer.next_subpass();
+		return;
+	}
+
+	uint32_t    render_pass_index = 0;
 	static bool first_frame{true};
 	bool        is_fragment{subpasses[0].technique() == rhi::RenderpassTechnique::fragment};
 

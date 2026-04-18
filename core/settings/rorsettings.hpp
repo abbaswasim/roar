@@ -218,6 +218,7 @@ class ROAR_ENGINE_ITEM Settings final
 
 	ror::Vector4i m_viewport{0, 0, 1024, 768};
 	ror::Vector2f m_pick_offset{-2.0f, -4.0f};
+	bool          m_draw_pick_tile{false};
 
 	rhi::PrimitiveWinding m_primitive_winding{rhi::PrimitiveWinding::counter_clockwise};
 
@@ -334,6 +335,7 @@ class ROAR_ENGINE_ITEM Settings final
 		std::vector<std::string> m_fonts{};
 		std::vector<std::string> m_render_modes{};
 		std::string              m_debug_window{"Debug..."};
+		std::string              m_debug_tabbar{"##MainDebugTabBar"};
 	};
 
 	Gui m_gui{};
@@ -441,13 +443,19 @@ FORCE_INLINE auto window_decorated()
 	return setting.m_window.m_decorated;
 }
 
-FORCE_INLINE auto& debug_window()
+FORCE_INLINE auto &debug_window()
 {
 	auto &setting = ror::settings();
 	return setting.m_gui.m_debug_window;
 }
 
-FORCE_INLINE auto& debug_window_toggle()
+FORCE_INLINE auto &debug_tabbar()
+{
+	auto &setting = ror::settings();
+	return setting.m_gui.m_debug_tabbar;
+}
+
+FORCE_INLINE auto &debug_window_toggle()
 {
 	auto &setting = ror::settings();
 	return setting.m_gui.m_enable_debug_window;

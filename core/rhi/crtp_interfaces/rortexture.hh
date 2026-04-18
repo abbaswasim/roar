@@ -406,10 +406,17 @@ rhi::TextureSamplerHandle TextureCrtp<_type>::texture_sampler()
 }
 
 template <class _type>
+rhi::BufferHandle TextureCrtp<_type>::texture_buffer()
+{
+	return this->m_backing_buffer;
+}
+
+template <class _type>
 rhi::TextureImageHandle TextureCrtp<_type>::texture_image() const
 {
 	return this->m_texture_image;
 }
+
 template <class _type>
 rhi::TextureSamplerHandle TextureCrtp<_type>::texture_sampler() const
 {
@@ -417,14 +424,27 @@ rhi::TextureSamplerHandle TextureCrtp<_type>::texture_sampler() const
 }
 
 template <class _type>
+rhi::BufferHandle TextureCrtp<_type>::texture_buffer() const
+{
+	return this->m_backing_buffer;
+}
+
+template <class _type>
 void TextureCrtp<_type>::texture_image(rhi::TextureImageHandle a_handle)
 {
 	this->m_texture_image = a_handle;
 }
+
 template <class _type>
 void TextureCrtp<_type>::texture_sampler(rhi::TextureSamplerHandle a_handle)
 {
 	this->m_texture_sampler = a_handle;
+}
+
+template <class _type>
+void TextureCrtp<_type>::texture_buffer(rhi::BufferHandle a_handle)
+{
+	this->m_backing_buffer = a_handle;
 }
 
 template <class _type>

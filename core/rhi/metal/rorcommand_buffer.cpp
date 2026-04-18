@@ -24,6 +24,7 @@
 // Version: 1.0.0
 
 #include "foundation/rormacros.hpp"
+#include "foundation/rorutilities.hpp"
 #include "math/rorvector4.hpp"
 #include "profiling/rorlog.hpp"
 #include "rhi/metal/rorcommand_buffer.hpp"
@@ -67,17 +68,17 @@ rhi::Buffer read_pixels(rhi::Device &a_device, const rhi::TextureImage &a_textur
 	rhi::CommandBuffer  command_buffer{a_device, true};
 	MTL::CommandBuffer *cmd_buffer = command_buffer.platform_command_buffer();
 
-	auto mip = a_texture.mip(a_level);
+	const auto mip = a_texture.mip(a_level);
 
-	auto width  = mip.m_width;
-	auto height = mip.m_height;
+	const auto width  = mip.m_width;
+	const auto height = mip.m_height;
 
-	auto bytes_per_pixel = a_texture.bytes_per_pixel();
-	auto bytes_per_row   = width * bytes_per_pixel;
-	auto bytes_per_image = height * bytes_per_row;
+	const auto bytes_per_pixel = a_texture.bytes_per_pixel();
+	// const auto bytes_per_row   = ror::align(width * bytes_per_pixel, 256); // Check why some things this should be aligned but no metal validation issues
+	const auto bytes_per_row   = width * bytes_per_pixel;
+	const auto bytes_per_image = height * bytes_per_row;
 
-	rhi::Buffer read_buffer;
-	read_buffer.init(a_device, bytes_per_image);
+	rhi::Buffer read_buffer = backing_buffer(a_device, a_texture, a_level);
 
 	auto blit_encoder = cmd_buffer->blitCommandEncoder();
 

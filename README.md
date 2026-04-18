@@ -76,7 +76,7 @@ Roar uses two buffers one called `nodes_models` for the whole scene and another 
 * node_offset.x = “resolved node index” into nodes_models.node_model[] for this node.
 * node_offset.y = “base index of this model instance’s node block” inside nodes_models.
 * node_offset.z = “base index into the global morph weights array” for this mesh’s morph targets.
-* node_offset.w = currently unused.
+* node_offset.w = Used to denote if an object is selected while picking or not. 1 means selected 0 means not
 
 This data lives in NodeData’s own `nodes_offsets` buffer and gets written by NodeData::update_offsets(). This NodeData's `nodes_offset` is an instantiation of renderer's nodes_offset buffer template. Shaders can then use it like below to access the specific model matrix.
 

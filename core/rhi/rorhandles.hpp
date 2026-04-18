@@ -98,5 +98,6 @@ create_handle(TextureImageHandle, int32_t);
 create_handle(TextureSamplerHandle, uint32_t);
 create_handle(TextureHandle, int32_t);
 create_handle(TextureAPIHandle, int32_t);
+create_handle(BufferHandle, int32_t);
 
 }        // namespace rhi

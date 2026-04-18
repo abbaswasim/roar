@@ -445,11 +445,15 @@ void Renderer::load_textures()
 			this->m_images.emplace_back(std::move(texture_image));
 
 			rhi::TextureSamplerHandle sampler{0};
+			rhi::BufferHandle         buffer{-1};
 
 			if (texture.contains("sampler"))
 				sampler = static_cast<rhi::TextureSamplerHandle>(texture["sampler"]);
 
-			this->m_textures.emplace_back(image, sampler);
+			if (texture.contains("backing_buffer"))
+				buffer = static_cast<rhi::BufferHandle>(texture["backing_buffer"]);
+
+			this->m_textures.emplace_back(image, sampler, buffer);
 		}
 	}
 	else
@@ -554,12 +558,15 @@ void Renderer::load_environments()
 	rhi::TextureImage name##_texture_image;                                                                    \
 	name##_texture_image.push_empty_mip();                                                                     \
 	auto name##sampler = static_cast<rhi::TextureSamplerHandle>(0);                                            \
+	auto name##buffer  = static_cast<rhi::BufferHandle>(-1);                                                   \
 	if (environment.contains(#name))                                                                           \
 	{                                                                                                          \
 		auto texture_description = environment[#name];                                                         \
 		read_into_texture_image(name##_texture_image, texture_description, s, rhi::TextureUsage::shader_read); \
 		if (texture_description.contains("sampler"))                                                           \
 			name##sampler = static_cast<rhi::TextureSamplerHandle>(texture_description["sampler"]);            \
+		if (texture_description.contains("backing_buffer"))                                                    \
+			name##buffer = static_cast<rhi::BufferHandle>(texture_description["backing_buffer"]);              \
 		ibl_environment.name##_sampler(static_cast<uint32_t>(name##sampler));                                  \
 	}                                                                                                          \
 	else                                                                                                       \
@@ -569,7 +576,7 @@ void Renderer::load_environments()
 	ibl_environment.name(static_cast_safe<uint32_t>(this->m_images.size()));                                   \
 	auto name##image = static_cast<rhi::TextureImageHandle>(static_cast<int32_t>(this->m_images.size()));      \
 	this->m_images.emplace_back(std::move(name##_texture_image));                                              \
-	this->m_textures.emplace_back(name##image, name##sampler);                                                 \
+	this->m_textures.emplace_back(name##image, name##sampler, name##buffer);                                   \
 	(void) 0
 
 			read_env_texture(input, false);
@@ -1339,6 +1346,7 @@ void Renderer::draw_ui()
 				d.x    = static_cast<uint32_t>(static_cast<float32_t>(d.x) * scale);
 				d.y    = static_cast<uint32_t>(static_cast<float32_t>(d.y) * scale);
 				ImGui::Text("Pick pass dimensions (%u, %u)", d.x, d.y);
+				ImGui::Checkbox("Draw Pick tile", &ror::settings().m_draw_pick_tile);
 
 				ror::gui().draw_debug_window(this->m_picking_window_index, [this, d]() {
 					ImGui::Image(reinterpret_cast<ImTextureID>(const_cast<rhi::TextureImage *>(this->m_pick_image)),
@@ -1362,6 +1370,63 @@ void Renderer::draw_ui()
 		}
 		ImGui::EndTabBar();
 	});
+}
+
+void toggle_node_selection(ror::NodeData *a_node, bool a_visible)
+{
+	auto offsets = a_node->node_offsets();
+	offsets.w    = a_visible ? 1 : 0;
+	a_node->update_offsets(offsets);
+}
+
+void Renderer::toggle_selection(ror::NodeData *a_node)
+{
+	if (this->m_selected_node)
+		toggle_node_selection(this->m_selected_node, false);
+
+	toggle_node_selection(a_node, true);
+	this->m_selected_node = a_node;
+}
+
+void set_node_selected(ror::Scene &a_scene, ror::Renderer &a_renderer, uint32_t a_object_index)
+{
+	for (auto &node : a_scene.nodes_side_data())
+	{
+		auto offsets = node.node_offsets();
+		if (a_object_index == offsets.x)
+		{
+			a_renderer.toggle_selection(&node);
+			return;
+		}
+	}
+
+	for (auto &node : a_scene.nodes_side_data())
+	{
+		if (node.m_model != -1)
+		{
+			auto &model = a_scene.models()[static_cast<size_t>(node.m_model)];
+			for (auto &model_node : model.nodes_side_data())
+			{
+				auto offsets = model_node.node_offsets();
+				if (a_object_index == offsets.x)
+				{
+					a_renderer.toggle_selection(&model_node);
+					return;
+				}
+			}
+		}
+	}
+}
+
+void pull_selected(rhi::Device &a_device, ror::Renderer &a_renderer, ror::Scene &a_scene)
+{
+	auto     pick_image   = a_renderer.get_pass_image(rhi::RenderpassType::pick);
+	auto     buffer       = read_pixels(a_device, *pick_image, 0, 0);        // This is blocking so anything after is blocking
+	auto    *data         = reinterpret_cast<uint32_t *>(buffer.map());
+	uint32_t object_index = data[0];
+
+	if (object_index != 0)
+		set_node_selected(a_scene, a_renderer, object_index - 1);  // 1 based indexed for picking so we can use 0-based index as a nothing selected signal
 }
 
 // This is the entry into rendering
@@ -1394,6 +1459,9 @@ void Renderer::render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::Ev
 
 		this->renderpass_index(0);        // Start counting renderpass/subpass indices, this is important for keeping track of which multi-buffers to use
 		this->subpass_index(0);           // Start counting renderpass/subpass indices, this is important for keeping track of which multi-buffers to use
+
+		if (picking_available())
+			pull_selected(a_device, *this, a_scene);
 
 		for (auto &render_pass : render_passes)
 		{
@@ -2718,15 +2786,15 @@ void Renderer::update_click_function(ror::Scene &a_scene, ror::Vector2f &a_mouse
 	a_mouse_position += settings().m_pick_offset;
 
 	// TODO: Use the camera-projected ray origin (near plane) to support both perspective and orthographic cameras. For perspective cameras this is colinear with the eye; for orthographic cameras the eye is not on the ray.
-	auto  current_frame_id = static_cast_safe<uint32_t>(this->current_frame_index());
-	auto  ray              = a_scene.current_camera().get_ray_from(a_mouse_position);
-	auto &hits             = this->m_pickables.hits(current_frame_id);
+	auto  ray  = a_scene.current_camera().get_ray_from(a_mouse_position);
+	auto &hits = this->m_pickables.hits();
 	hits.clear();
 
-	for (uint32_t i = 0; i < ror::max_frames_in_flight; ++i)
-		this->m_pickables.register_target(a_mouse_position, i);
-
 	populate_pickables(a_scene, ray, hits);
+	this->m_pickables.register_target(a_mouse_position);
+
+	auto pick_pass = this->get_pass(rhi::RenderpassType::pick);
+	pick_pass->enabled(true);
 
 	if (ror::settings().m_print_pickable_objects)
 		print_pickables(a_scene, hits, a_mouse_position);

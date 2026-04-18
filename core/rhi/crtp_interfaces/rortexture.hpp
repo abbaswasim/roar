@@ -180,22 +180,26 @@ class ROAR_ENGINE_ITEM TextureCrtp : public ror::Crtp<_type, TextureCrtp>
 	FORCE_INLINE TextureCrtp &operator=(TextureCrtp &&a_other) noexcept   = default;        //! Move assignment operator
 	FORCE_INLINE virtual ~TextureCrtp() noexcept override                 = default;        //! Destructor
 
-	FORCE_INLINE TextureCrtp(rhi::TextureImageHandle a_image_handle, rhi::TextureSamplerHandle a_sampler_handle) :
-	    m_texture_image(a_image_handle), m_texture_sampler(a_sampler_handle)
+	FORCE_INLINE TextureCrtp(rhi::TextureImageHandle a_image_handle, rhi::TextureSamplerHandle a_sampler_handle, rhi::BufferHandle a_buffer_handle = static_cast<rhi::BufferHandle>(-1)) :
+	    m_texture_image(a_image_handle), m_texture_sampler(a_sampler_handle), m_backing_buffer(a_buffer_handle)
 	{}
 
 	rhi::TextureImageHandle   texture_image();
 	rhi::TextureSamplerHandle texture_sampler();
+	rhi::BufferHandle         texture_buffer();
 	rhi::TextureImageHandle   texture_image() const;
 	rhi::TextureSamplerHandle texture_sampler() const;
+	rhi::BufferHandle         texture_buffer() const;
 	void                      texture_image(rhi::TextureImageHandle a_handle);
 	void                      texture_sampler(rhi::TextureSamplerHandle a_handle);
+	void                      texture_buffer(rhi::BufferHandle a_handle);
 
   protected:
 	FORCE_INLINE TextureCrtp() = default;        //! Default constructor
   private:
 	rhi::TextureImageHandle   m_texture_image{-1};         //! TextureImage handle, -1 means invalid handle which is possible
 	rhi::TextureSamplerHandle m_texture_sampler{0};        //! TextureSampler handle, 0 means default sampler
+	rhi::BufferHandle         m_backing_buffer{-1};        //! Buffer handle, -1 mean invalid and there is no backing buffer
 };
 
 // static_assert(std::is_trivially_copyable_v<Texture>, "Texture is not trivially copyable");

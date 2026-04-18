@@ -140,6 +140,7 @@ class ROAR_ENGINE_ITEM Scene : public Configuration<Scene>
 	FORCE_INLINE constexpr       auto &models()           const noexcept   {  return this->m_models;          }
 	FORCE_INLINE constexpr const auto &nodes()            const noexcept   {  return this->m_nodes;           }
 	FORCE_INLINE constexpr const auto &nodes_side_data()  const noexcept   {  return this->m_nodes_data;      }
+	FORCE_INLINE constexpr       auto &nodes_side_data()        noexcept   {  return this->m_nodes_data;      }
 	FORCE_INLINE constexpr const auto &particles()        const noexcept   {  return this->m_particles;       }
 	FORCE_INLINE constexpr const auto &programs()         const noexcept   {  return this->m_programs;        }
 	FORCE_INLINE constexpr const auto &shaders()          const noexcept   {  return this->m_shaders;         }

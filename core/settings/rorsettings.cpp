@@ -210,6 +210,7 @@ Settings::Settings()
 		}
 
 		this->m_gui.m_debug_window = setting.get<std::string>("gui:debug_window");
+		this->m_gui.m_debug_tabbar = setting.get<std::string>("gui:debug_bar");
 
 		assert(this->m_gui.m_default_font < this->m_gui.m_fonts.size() && "Default font index is out of range");
 	}

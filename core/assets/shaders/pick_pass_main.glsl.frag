@@ -12,5 +12,5 @@ void main()
 	if (color.a < 0.3)
 		discard;
 
-	out_index = in_nodes_offsets.node_offset.x;
+	out_index = in_nodes_offsets.node_offset.x + 1; // 1 based indexed for picking so we can use 0-based index as a nothing selected signal
 }
