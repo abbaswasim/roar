@@ -160,7 +160,8 @@
 			"name":"pick_color",
 			"format":"r32_uint32",
 			"target":"2D",
-			"usage": "render_target_read"
+			"usage": "render_target_read",
+			"backing_buffer": 11
 		},
 		{
 			"name":"pick_depth",
