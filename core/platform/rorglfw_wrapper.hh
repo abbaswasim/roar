@@ -186,7 +186,8 @@ void glfw_register_drag_event(GLFWwindow *a_window, EventCode a_mouse_button, Ev
 		state->m_pressed  = true;
 		state->m_dragging = false;
 
-		// a_event.m_live = false;        // NOTE: We can’t “conditionally” swallow the original mouse_*_down only if it later becomes a drag (it has already propagated). To always swallow down too uncomment this
+		// a_event.m_live = false; NOTE: We can’t “conditionally” swallow the original mouse_*_down because we don't know if its a drag or not.
+		// And it has to propagated fully before we know it will become a drag. If we always swallow "down" then no body will be able to recieve down events as drag_set is subscribed early
 
 		if (a_event.is_compatible<ror::Vector2f>())
 		{

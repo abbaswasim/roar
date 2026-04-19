@@ -1372,20 +1372,33 @@ void Renderer::draw_ui()
 	});
 }
 
-void toggle_node_selection(ror::NodeData *a_node, bool a_visible)
+void toggle_node_selection(ror::NodeData &a_node, bool a_visible)
 {
-	auto offsets = a_node->node_offsets();
+	auto offsets = a_node.node_offsets();
 	offsets.w    = a_visible ? 1 : 0;
-	a_node->update_offsets(offsets);
+	a_node.update_offsets(offsets);
 }
 
-void Renderer::toggle_selection(ror::NodeData *a_node)
+void Renderer::toggle_selection(ror::NodeData &a_node)
 {
+	if (this->m_selected_node == &a_node)
+	{
+		toggle_node_selection(*this->m_selected_node, false);
+		this->m_selected_node = nullptr;
+		return;
+	}
+
 	if (this->m_selected_node)
-		toggle_node_selection(this->m_selected_node, false);
+		toggle_node_selection(*this->m_selected_node, false);
 
 	toggle_node_selection(a_node, true);
-	this->m_selected_node = a_node;
+	this->m_selected_node = &a_node;
+
+	// Lets also modify the camera center, TODO: Make this a setting
+	auto nodes_models = this->shader_buffer("nodes_models");
+	auto world        = reinterpret_cast<ror::Matrix4f *>(nodes_models->map())[a_node.node_offsets().x];
+	nodes_models->unmap();
+	this->m_scene->current_camera().center(world.origin());
 }
 
 void set_node_selected(ror::Scene &a_scene, ror::Renderer &a_renderer, uint32_t a_object_index)
@@ -1395,7 +1408,7 @@ void set_node_selected(ror::Scene &a_scene, ror::Renderer &a_renderer, uint32_t 
 		auto offsets = node.node_offsets();
 		if (a_object_index == offsets.x)
 		{
-			a_renderer.toggle_selection(&node);
+			a_renderer.toggle_selection(node);
 			return;
 		}
 	}
@@ -1410,7 +1423,7 @@ void set_node_selected(ror::Scene &a_scene, ror::Renderer &a_renderer, uint32_t 
 				auto offsets = model_node.node_offsets();
 				if (a_object_index == offsets.x)
 				{
-					a_renderer.toggle_selection(&model_node);
+					a_renderer.toggle_selection(model_node);
 					return;
 				}
 			}
@@ -1426,7 +1439,7 @@ void pull_selected(rhi::Device &a_device, ror::Renderer &a_renderer, ror::Scene 
 	uint32_t object_index = data[0];
 
 	if (object_index != 0)
-		set_node_selected(a_scene, a_renderer, object_index - 1);  // 1 based indexed for picking so we can use 0-based index as a nothing selected signal
+		set_node_selected(a_scene, a_renderer, object_index - 1);        // 1 based indexed for picking so we can use 0-based index as a nothing selected signal
 }
 
 // This is the entry into rendering
