@@ -105,7 +105,7 @@
 		"descriptor_sets_size" : 4,
 		"descriptor_pool_size" : 1024,
 		"validation" : true,
-		"api_dump" : true,
+		"api_dump" : false,
 		"verbose_log" : false,
 		"sets_bindings" :
 		{
@@ -198,7 +198,7 @@
 		"show_settings" : false,
 		"show_debug" : true,
 		"dump_texture" : true,
-		"enable_render_modes" : false,
+		"enable_render_modes" : true,
 		"theme" : "dark",
 		"debug_window" : "Debug...",
 		"debug_bar" : "##MainDebugTabBar",
@@ -269,7 +269,7 @@
 	},
 	"environment" :
 	{
-		"visible" : false,
+		"visible" : true,
 		"lighting" : true,
 		"mode" : "skybox",
 		"mipmap" : 0
