@@ -718,7 +718,7 @@ void Scene::compute_pass_walk_scene(rhi::ComputeCommandEncoder &a_command_encode
 		};
 
 		a_event_system.subscribe(ror::keyboard_p_down, animation_start_stop_toggle_callback);
-		a_event_system.subscribe(ror::keyboard_t_down, triangle_fill_mode_toggle_callback);
+		a_event_system.subscribe(ror::keyboard_t_command_down, triangle_fill_mode_toggle_callback);
 
 		rhi::descriptor_update_type buffers_images;
 
@@ -807,6 +807,114 @@ FORCE_INLINE void enable_material_component(const Material::Component<_type>    
 	}
 };
 
+void render_mesh_simple(const rhi::Device &a_device, ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const ror::Renderer &a_renderer, ror::Scene &a_scene, const rhi::Rendersubpass &subpass)
+{
+	auto &programs      = a_scene.programs();
+	auto &pass_programs = programs.at(subpass.type());
+
+	for (size_t prim_id = 0; prim_id < a_mesh.primitives_count(); ++prim_id)
+	{
+		auto material_index = a_mesh.material(prim_id);
+		assert(material_index != -1 && "Material index can't be -1");
+		auto &material         = a_model.materials()[static_cast<uint32_t>(material_index)];
+		auto &material_factors = material.shader_buffer();
+		material_factors.buffer_bind(*a_dd.encoder, rhi::ShaderStage::fragment);
+
+		const rhi::Program *pso{nullptr};
+		pso = &pass_programs[static_cast<size_t>(a_mesh.program(prim_id))];
+
+		if (subpass.program_id() != -1)        // this means we have a renderer subpass program that overrides what's generated for the primitive
+			pso = &a_renderer.program(static_cast<size_t>(subpass.program_id()));
+
+		assert(pso && "There should be a PSO available for the mesh primitive");
+
+		if (!pso->render_pipeline_state())
+			continue;
+
+		a_dd.encoder->render_pipeline_state(a_device, *pso);
+		a_dd.encoder->cull_mode(subpass.cull_mode());
+
+		// Bind standard vertex attributes
+		auto &vertex_attributes = a_mesh.vertex_descriptor(prim_id);
+		for (auto &va : vertex_attributes.attributes())
+		{
+			rhi::Buffer *va_buffer{nullptr};
+			if (va.semantics() == rhi::BufferSemantic::vertex_position)
+				va_buffer = a_dd.positions;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_texture_coord_0)
+				va_buffer = a_dd.texture_coords0;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_texture_coord_1)
+				va_buffer = a_dd.texture_coords1;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_texture_coord_2)
+				va_buffer = a_dd.texture_coords2;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_color_0)
+				va_buffer = a_dd.colors0;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_color_1)
+				va_buffer = a_dd.colors1;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_bone_id_0)
+				va_buffer = a_dd.joint_ids0;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_bone_id_1)
+				va_buffer = a_dd.joint_ids1;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_weight_0)
+				va_buffer = a_dd.weights0;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_weight_1)
+				va_buffer = a_dd.weights1;
+			else if (va.semantics() == rhi::BufferSemantic::vertex_index)
+			{}
+			else        // The rest are unused
+			{}
+
+			if (va_buffer)
+				// Offset is 0 here because we have provided attribute offset in attribute descriptor
+				a_dd.encoder->vertex_buffer(*va_buffer, 0, va.location());
+		}
+
+		// Bind morph targets vertex attributes
+		auto &morph_target_vertex_descriptors = a_mesh.target_descriptor(prim_id);
+		for (auto &morph_descriptor : morph_target_vertex_descriptors)
+		{
+			for (auto &va : morph_descriptor.attributes())
+			{
+				rhi::Buffer *va_buffer{nullptr};
+				if (va.semantics() == rhi::BufferSemantic::vertex_position)
+					va_buffer = a_dd.positions;
+				else
+				{}        // Rest are ignored
+
+				if (va_buffer)
+					a_dd.encoder->vertex_buffer(*va_buffer, 0, va.location());
+			}
+		}
+
+		auto &textures = a_model.textures();
+		auto &images   = a_model.images();
+		auto &samplers = a_model.samplers();
+		{
+			auto binding_index{0u};
+
+			enable_material_component(material.m_base_color, textures, images, samplers, binding_index, a_dd);
+		}
+
+		if (a_mesh.has_indices(prim_id))
+		{
+			auto &index_buffer_attribute = vertex_attributes.attribute(rhi::BufferSemantic::vertex_index);
+
+			if (index_buffer_attribute.count() > 0)
+				a_dd.encoder->draw_indexed_primitives(a_mesh.primitive_type(prim_id),
+				                                      index_buffer_attribute.count(),
+				                                      index_buffer_attribute.format(),
+				                                      *a_dd.indices,
+				                                      index_buffer_attribute.buffer_offset() + index_buffer_attribute.offset());
+		}
+		else
+		{
+			auto &vertex_buffer_attribute = vertex_attributes.attribute(rhi::BufferSemantic::vertex_position);
+			a_dd.encoder->draw_primitives(a_mesh.primitive_type(prim_id), 0, vertex_buffer_attribute.count());
+		}
+	}
+}
+
+// TODO: Simplify and combine these render_mesh and render_mesh_simple methods
 void render_mesh(const rhi::Device &a_device, ror::Model &a_model, ror::Mesh &a_mesh, DrawData &a_dd, const ror::Renderer &a_renderer, ror::Scene &a_scene, const rhi::Rendersubpass &subpass)
 {
 	auto &programs      = a_scene.programs();
@@ -1512,6 +1620,73 @@ DrawData fill_draw_data(rhi::BuffersPack &a_buffers_pack, rhi::RenderCommandEnco
 	dd.encoder = &a_encoder;
 
 	return dd;
+}
+
+void Scene::render_simple(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
+{
+	(void) a_pass;
+	(void) a_event_system;
+	(void) a_device;
+	(void) a_encoder;
+	(void) a_buffers_pack;
+	(void) a_renderer;
+	(void) a_subpass;
+
+	a_encoder.triangle_fill_mode(this->m_triangle_fill_mode);
+	this->reset_to_default_state(a_renderer, a_encoder, a_pass, a_subpass);
+
+	DrawData dd = fill_draw_data(a_buffers_pack, a_encoder);
+
+	const auto &per_view_uniforms     = a_renderer.shader_buffer("per_view_uniform");        // Shared per_view_uniform amongst all cameras
+	const auto &per_frame_uniform     = a_renderer.shader_buffer("per_frame_uniform");
+	const auto &weights_shader_buffer = a_renderer.shader_buffer("morphs_weights");
+
+	// Vertex shader bindings
+	per_view_uniforms->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+
+	// Fragment shader bindings
+	per_view_uniforms->buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+
+	// Fragment shader bindings per frame
+	per_frame_uniform->buffer_bind(a_encoder, rhi::ShaderStage::fragment);
+
+	// Bind nodes_models, node_offsets are done per primitive below as model_nodes_data bind
+	const auto &index_buffer_out = a_renderer.shader_buffer("nodes_models");
+	index_buffer_out->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+
+	const auto pick_hits = a_renderer.pick_hits();
+
+	for (auto &hit : pick_hits)
+	{
+		// auto &scene_node_data  = this->m_nodes_data[hit.m_scene_node_id];                         //! Scene node id
+		auto &model            = this->m_models[static_cast_safe<size_t>(hit.m_model_id)];        //! Scene node's model id
+		auto &model_nodes_data = model.nodes_side_data();
+		auto &meshes           = model.meshes();
+
+		model_nodes_data[hit.m_model_node_id].bind(a_encoder, rhi::ShaderStage::vertex);
+		model_nodes_data[hit.m_model_node_id].bind(a_encoder, rhi::ShaderStage::fragment);
+
+		auto &model_node = model.nodes()[hit.m_model_node_id];                //! Node id within the model
+		auto &mesh       = meshes[static_cast<size_t>(hit.m_mesh_id)];        //! Mesh id within the model
+
+		if (mesh.skin_index() != -1 && model_node.m_skin_index != -1)
+		{
+			assert(mesh.skin_index() == model_node.m_skin_index && "Mesh and Node skin indices should be the same");
+			auto &skin = model.skins()[static_cast<size_t>(model_node.m_skin_index)];
+			skin.bind_joint_offset_buffer(a_encoder, rhi::ShaderStage::vertex);
+			skin.bind_inverse_bind_buffer(a_encoder, rhi::ShaderStage::vertex);
+		}
+
+		if (mesh.has_morphs())
+		{
+			weights_shader_buffer->buffer_bind(a_encoder, rhi::ShaderStage::vertex);
+		}
+
+		a_encoder.front_facing_winding(model_node.m_winding);
+
+		render_mesh_simple(a_device, model, mesh, dd, a_renderer, *this, a_subpass);
+		// hit.m_primitive_id;         //! Primitive id within the mesh
+	}
 }
 
 void Scene::render(const rhi::Device &a_device, rhi::RenderCommandEncoder &a_encoder, rhi::BuffersPack &a_buffers_pack, ror::Renderer &a_renderer, const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, ror::EventSystem &a_event_system)
