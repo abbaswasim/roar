@@ -1444,7 +1444,7 @@ void set_node_selected(ror::Scene &a_scene, ror::Renderer &a_renderer, uint32_t 
 void pull_selected(rhi::Device &a_device, ror::Renderer &a_renderer, ror::Scene &a_scene)
 {
 	auto     pick_image   = a_renderer.get_pass_image(rhi::RenderpassType::pick);
-	auto     buffer       = read_pixels(a_device, *pick_image, 0, 0);        // This is blocking so anything after is blocking
+	auto     buffer       = read_pixels(a_device, *pick_image, 0, 0);        // This is blocking so anything after is blocking  // TODO: Use non-blocking enqueue_read_pixels
 	auto    *data         = reinterpret_cast<uint32_t *>(buffer.map());
 	uint32_t object_index = data[0];
 

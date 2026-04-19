@@ -316,7 +316,7 @@ vec3 skin_normal(vec3 normal, uint index)
 )scomn";
 
 const std::string vs_skin_common_position_str = R"scomp(
-vec3 skin_position(vec3 vertex, uint index)
+vec3 skin_position(vec3 vertex, uint index, in mat4 inverse_transform)
 {
 	// vec4 rotation    = in_joint_redirects.joint_redirect[index].rotation;
 	// vec3 translation = in_joint_redirects.joint_redirect[index].translation;
@@ -328,7 +328,8 @@ vec3 skin_position(vec3 vertex, uint index)
 
     uvec4 node_offset = in_nodes_offsets.node_offset;
 
-	mat4 inverse_transform  = inverse(in_nodes_models.node_model[node_offset.x]);
+    // Inverse is now provided from skin_position overload so we don't have to generate it 4 times
+	// mat4 inverse_transform  = inverse(in_nodes_models.node_model[node_offset.x]);
 	mat4 joint_inverse_bind = in_joint_inverse_bind_matrices.joint_inverse_matrix[index];
 	mat4 joint_transform    = in_nodes_models.node_model[uint(in_joint_redirects.joint_redirect[index]) + node_offset.y];
 
@@ -384,10 +385,12 @@ std::string vs_skin_normal(uint32_t a_joints_weights_count)
 
 const std::string vs_skin_position_header_str{"\nvoid skin_position(inout vec3 position) \n{"};
 const std::string vs_skin_position_str = R"pcom(
-	position = skin_position(position, in_vertex_bone_id_@.x) * in_vertex_weight_@.x +
-			   skin_position(position, in_vertex_bone_id_@.y) * in_vertex_weight_@.y +
-			   skin_position(position, in_vertex_bone_id_@.z) * in_vertex_weight_@.z +
-			   skin_position(position, in_vertex_bone_id_@.w) * in_vertex_weight_@.w;
+	mat4 inverse_transform  = inverse(in_nodes_models.node_model[in_nodes_offsets.node_offset.x]);
+
+	position = skin_position(position, in_vertex_bone_id_@.x, inverse_transform) * in_vertex_weight_@.x +
+			   skin_position(position, in_vertex_bone_id_@.y, inverse_transform) * in_vertex_weight_@.y +
+			   skin_position(position, in_vertex_bone_id_@.z, inverse_transform) * in_vertex_weight_@.z +
+			   skin_position(position, in_vertex_bone_id_@.w, inverse_transform) * in_vertex_weight_@.w;
 )pcom";
 
 std::string vs_skin_position(uint32_t a_joints_weights_count)
