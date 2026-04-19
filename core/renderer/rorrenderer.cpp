@@ -1379,6 +1379,19 @@ void toggle_node_selection(ror::NodeData &a_node, bool a_visible)
 	a_node.update_offsets(offsets);
 }
 
+ror::Matrix4f Renderer::selected_transform()
+{
+	if (this->m_selected_node)
+	{
+		auto nodes_models = this->shader_buffer("nodes_models");
+		auto world        = reinterpret_cast<ror::Matrix4f *>(nodes_models->map())[this->m_selected_node->node_offsets().x];
+		nodes_models->unmap();
+
+		return world;
+	}
+	return {};
+}
+
 void Renderer::toggle_selection(ror::NodeData &a_node)
 {
 	if (this->m_selected_node == &a_node)
@@ -1395,10 +1408,7 @@ void Renderer::toggle_selection(ror::NodeData &a_node)
 	this->m_selected_node = &a_node;
 
 	// Lets also modify the camera center, TODO: Make this a setting
-	auto nodes_models = this->shader_buffer("nodes_models");
-	auto world        = reinterpret_cast<ror::Matrix4f *>(nodes_models->map())[a_node.node_offsets().x];
-	nodes_models->unmap();
-	this->m_scene->current_camera().center(world.origin());
+	this->m_scene->current_camera().center(this->selected_transform().origin());
 }
 
 void set_node_selected(ror::Scene &a_scene, ror::Renderer &a_renderer, uint32_t a_object_index)
@@ -1935,8 +1945,21 @@ void Renderer::install_input_handlers(ror::EventSystem &a_event_system)
 		}
 	};
 
+	auto follow_target = [this](Event) {
+		if (this->m_selected_node)
+		{
+			auto  new_target     = this->selected_transform().origin();
+			auto &camera         = this->m_scene->current_camera();
+			auto  camera_stretch = camera.eye() - camera.target();
+			camera.target(new_target);
+			camera.eye(new_target + camera_stretch);
+		}
+	};
+
 	a_event_system.subscribe(keyboard_e_click, cycle_env);
 	a_event_system.subscribe(mouse_left_mouse_click, this->m_click_callback);
+
+	a_event_system.subscribe(ror::keyboard_t_down, follow_target);
 }
 
 void Renderer::uninstall_input_handlers(ror::EventSystem &a_event_system)

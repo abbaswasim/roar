@@ -174,6 +174,7 @@ class Renderer final : public Configuration<Renderer>
 	rhi::TextureImage *m_radiance_patch_ti{nullptr};
 
 	void                     toggle_selection(ror::NodeData &a_node);
+	ror::Matrix4f            selected_transform();
 	void                     upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system);
 	void                     update_frustums_geometry(const ror::OrbitCamera &a_camera);
 	const rhi::Texture      *get_render_target_texture(const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, uint32_t a_render_target_index) const;
