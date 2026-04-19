@@ -459,11 +459,13 @@ void forward_light_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene
 	auto &setting = ror::settings();
 
 	ror::gui().draw_gui_windows(a_scene.current_camera(), a_event_system);
-
 	ror::gui().end_frame();
 
 	if (setting.m_generate_gui_mesh && setting.m_gui.m_visible)
 		ror::gui().render(a_device, a_renderer, a_command_encoder);
+
+	if (ror::settings().m_draw_pick_tile)
+		render_pick_tile(a_renderer, camera);
 }
 
 void node_transform_pass(rhi::RenderCommandEncoder &a_command_encoder, ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system,

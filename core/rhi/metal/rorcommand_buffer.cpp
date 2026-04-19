@@ -62,6 +62,50 @@ rhi::ComputeCommandEncoder CommandBuffer::compute_encoder_concurrent()
 	return rhi::ComputeCommandEncoder{this->m_buffer->computeCommandEncoder(MTL::DispatchType::DispatchTypeConcurrent)};
 }
 
+rhi::Buffer backing_buffer(rhi::Device &a_device, const rhi::TextureImage &a_texture, uint32_t a_level)
+{
+	const auto mip             = a_texture.mip(a_level);
+	const auto width           = mip.m_width;
+	const auto height          = mip.m_height;
+	const auto bytes_per_pixel = a_texture.bytes_per_pixel();
+	// const auto bytes_per_row   = ror::align(width * bytes_per_pixel, 256);
+	const auto bytes_per_row   = width * bytes_per_pixel;
+	const auto bytes_per_image = height * bytes_per_row;
+
+	rhi::Buffer read_buffer;
+	read_buffer.init(a_device, bytes_per_image);
+
+	return read_buffer;
+}
+
+void enqueue_read_pixels(rhi::CommandBuffer &a_command_buffer, rhi::Buffer &a_read_buffer,
+                         const rhi::TextureImage &a_texture, uint32_t a_face, uint32_t a_level, ror::Vector3ui a_rectangle_origin, ror::Vector3ui a_rectangle_size)
+{
+	MTL::CommandBuffer *cmd_buffer = a_command_buffer.platform_command_buffer();
+
+	const auto mip = a_texture.mip(a_level);
+
+	const auto width  = mip.m_width;
+	const auto height = mip.m_height;
+
+	assert(a_rectangle_origin.x + a_rectangle_size.x <= width && "Read rectangle exceeds texture width");
+	assert(a_rectangle_origin.y + a_rectangle_size.y <= height && "Read rectangle exceeds texture height");
+
+	const auto bytes_per_pixel = a_texture.bytes_per_pixel();
+	// const auto bytes_per_row   = ror::align(a_rectangle_size.x * bytes_per_pixel, 256);
+	const auto bytes_per_row   = width * bytes_per_pixel;
+	const auto bytes_per_image = a_rectangle_size.y * bytes_per_row;
+
+	auto blit_encoder = cmd_buffer->blitCommandEncoder();
+
+	blit_encoder->copyFromTexture(a_texture.platform_handle(), a_face, a_level,
+	                              MTL::Origin(a_rectangle_origin.x, a_rectangle_origin.y, a_rectangle_origin.z),
+	                              MTL::Size(a_rectangle_size.x, a_rectangle_size.y, a_rectangle_size.z),
+	                              a_read_buffer.platform_buffer(), 0, bytes_per_row, bytes_per_image);
+	blit_encoder->endEncoding();
+	// NOTE: Not sure if I need to hold on to this blit_encoder until command buffer is committed or not? find out
+}
+
 // Very heavy waight glReadPixel style read pixels, shouldn't be used at run time
 rhi::Buffer read_pixels(rhi::Device &a_device, const rhi::TextureImage &a_texture, uint32_t a_face, uint32_t a_level)
 {
@@ -162,12 +206,14 @@ void texture_patch_to_mipmapped_cubemap_texture(rhi::Device &a_device, const rhi
 		auto mip_w = std::max(1u, w >> level);
 		auto mip_h = std::max(1u, h >> level);
 
+		// clang-format off
 		rhi::texture_to_mipmapped_texture(blit_encoder, a_source_texture, {mip_w + offset.x, 0         + offset.y}, a_destination_texture, 0, level);
 		rhi::texture_to_mipmapped_texture(blit_encoder, a_source_texture, {0     + offset.x, 0         + offset.y}, a_destination_texture, 1, level);
 		rhi::texture_to_mipmapped_texture(blit_encoder, a_source_texture, {0     + offset.x, mip_h     + offset.y}, a_destination_texture, 2, level);
 		rhi::texture_to_mipmapped_texture(blit_encoder, a_source_texture, {0     + offset.x, 2 * mip_h + offset.y}, a_destination_texture, 3, level);
 		rhi::texture_to_mipmapped_texture(blit_encoder, a_source_texture, {0     + offset.x, 3 * mip_h + offset.y}, a_destination_texture, 4, level);
 		rhi::texture_to_mipmapped_texture(blit_encoder, a_source_texture, {mip_w + offset.x, 3 * mip_h + offset.y}, a_destination_texture, 5, level);
+		// clang-format on
 
 		offset.x += mip_w;
 		offset.y += mip_h;
