@@ -148,6 +148,7 @@ class ROAR_ENGINE_ITEM OrbitCamera final : public Camera
 	FORCE_INLINE constexpr auto& right()                const noexcept { return this->m_right;               }
 	FORCE_INLINE constexpr auto& forward()              const noexcept { return this->m_forward;             }
 	FORCE_INLINE constexpr auto& center()               const noexcept { return this->m_center;              }
+	FORCE_INLINE constexpr auto& target()               const noexcept { return this->m_target;              }
 	FORCE_INLINE constexpr auto& minimum()              const noexcept { return this->m_minimum;             }
 	FORCE_INLINE constexpr auto& maximum()              const noexcept { return this->m_maximum;             }
 	FORCE_INLINE constexpr auto& mode()                 const noexcept { return this->m_mode;                }
