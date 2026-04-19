@@ -33,6 +33,7 @@
 #include "settings/rorsettings.hpp"
 #include <cassert>
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -164,31 +165,76 @@ FORCE_INLINE EventSystem &glfw_event_system(GLFWwindow *a_window)
 	return app->event_system();
 }
 
-template <class _type>
-void glfw_register_drag_event(GLFWwindow *a_window, EventCode a_mouse_button, EventModifier a_modifier)
+struct DragState
 {
-	auto                 &event_system = glfw_event_system<_type>(a_window);
-	std::shared_ptr<bool> draging      = std::make_shared<bool>(false);        //! Using a pointer here because it needs to be captured by reference in the lambdas below
+	bool          m_pressed{false};
+	bool          m_dragging{false};
+	ror::Vector2d m_start_position{};
+};
 
-	auto drag_set = [draging](Event &a_event) {
-		(void) a_event;
-		*draging = true;
+template <class _type>
+void glfw_register_drag_event(GLFWwindow *a_window, EventCode a_mouse_button, EventModifier a_modifier, std::shared_ptr<DragState> a_state)
+{
+	auto &event_system = glfw_event_system<_type>(a_window);
+	auto  state        = std::move(a_state);
+	assert(state && "glfw_register_drag_event state can't be null");
+
+	constexpr double drag_threshold_pixels  = 4.0;
+	constexpr double drag_threshold_squared = drag_threshold_pixels * drag_threshold_pixels;
+
+	auto drag_set = [state](Event &a_event) {
+		state->m_pressed  = true;
+		state->m_dragging = false;
+
+		// a_event.m_live = false;        // NOTE: We can’t “conditionally” swallow the original mouse_*_down only if it later becomes a drag (it has already propagated). To always swallow down too uncomment this
+
+		if (a_event.is_compatible<ror::Vector2f>())
+		{
+			auto vec2               = std::any_cast<ror::Vector2f>(a_event.m_payload);
+			state->m_start_position = {static_cast<double>(vec2.x), static_cast<double>(vec2.y)};
+		}
 	};
 
-	auto drag_reset = [draging](Event &a_event) {
-		(void) a_event;
-		*draging = false;
+	auto drag_reset = [state](Event &a_event) {
+		if (state->m_dragging)
+			a_event.m_live = false;        // Swallow mouse up/click if we were dragging, to avoid click observers firing
+
+		state->m_pressed  = false;
+		state->m_dragging = false;
 	};
 
 	// Since this is using the same coordinates as mouse move, this will only work if inserted before a move
 	// This way drag relies on previous frame move changing mouse position and then using this frame drag to calculate delta
-	auto drag_test = [a_window, draging, &event_system, a_mouse_button](Event &a_event) {
-		if (*draging)
+	auto drag_test = [a_window, state, &event_system, a_mouse_button](Event &a_event) {
+		int32_t button = glfw_event_code_to_button(a_mouse_button);
+
+		if (glfwGetMouseButton(a_window, button) != GLFW_PRESS)
 		{
-			EventModifier em           = glfw_window_modifier_state(a_window);
-			auto          event_handle = create_event_handle(EventType::mouse, a_mouse_button, em, EventState::drag);
-			auto          payload      = a_event.get_payload<ror::Vector2d>();
-			event_system.notify({event_handle, true, payload});
+			state->m_pressed  = false;
+			state->m_dragging = false;
+			return;
+		}
+
+		if (state->m_pressed && a_event.is_compatible<ror::Vector2d>())
+		{
+			auto payload = std::any_cast<ror::Vector2d>(a_event.m_payload);
+
+			if (!state->m_dragging)
+			{
+				const auto delta            = payload - state->m_start_position;
+				const auto distance_squared = delta.length_squared();
+
+				state->m_dragging = distance_squared >= drag_threshold_squared;
+			}
+
+			if (state->m_dragging)
+			{
+				a_event.m_live = false;        // Capture move while dragging so later move observers don't see it
+
+				auto modifier     = event_modifier(a_event.m_handle);
+				auto event_handle = create_event_handle(EventType::mouse, a_mouse_button, modifier, EventState::drag);
+				event_system.notify({event_handle, true, payload});
+			}
 		}
 	};
 
@@ -196,9 +242,15 @@ void glfw_register_drag_event(GLFWwindow *a_window, EventCode a_mouse_button, Ev
 	auto mouse_click_handle = create_event_handle(EventType::mouse, a_mouse_button, a_modifier, EventState::click);
 	auto mouse_move_handle  = create_event_handle(EventType::mouse, EventCode::none, a_modifier, EventState::move);
 
-	event_system.subscribe(mouse_down_handle, drag_set);
-	event_system.subscribe(mouse_click_handle, drag_reset);
+	event_system.subscribe_early(mouse_down_handle, drag_set);
+	event_system.subscribe_early(mouse_click_handle, drag_reset);
 	event_system.subscribe_early(mouse_move_handle, drag_test);        // Needs to be before any other move, read above
+}
+
+template <class _type>
+void glfw_register_drag_event(GLFWwindow *a_window, EventCode a_mouse_button, EventModifier a_modifier)
+{
+	glfw_register_drag_event<_type>(a_window, a_mouse_button, a_modifier, std::make_shared<DragState>());
 }
 
 // Some global glfw events registration
@@ -251,25 +303,37 @@ void glfw_register_for_global_events(GLFWwindow *a_window)
 	event_system.subscribe(mouse_middle_mouse_drag, [](Event &a_event) { (void) a_event; std::cout << "middle draging" << std::endl; });
 	*/
 
-	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::none);
-	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::none);
-	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::none);
+	auto left_drag_state   = std::make_shared<DragState>();
+	auto right_drag_state  = std::make_shared<DragState>();
+	auto middle_drag_state = std::make_shared<DragState>();
 
-	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::command);
-	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::command);
-	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::command);
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::none, left_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::none, right_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::none, middle_drag_state);
 
-	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::control);
-	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::control);
-	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::control);
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::command, left_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::command, right_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::command, middle_drag_state);
 
-	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::option);
-	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::option);
-	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::option);
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::control, left_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::control, right_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::control, middle_drag_state);
 
-	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::shift);
-	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::shift);
-	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::shift);
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::option, left_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::option, right_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::option, middle_drag_state);
+
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::shift, left_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::shift, right_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::shift, middle_drag_state);
+
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::caps_lock, left_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::caps_lock, right_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::caps_lock, middle_drag_state);
+
+	glfw_register_drag_event<_type>(a_window, EventCode::left_mouse, EventModifier::num_lock, left_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::right_mouse, EventModifier::num_lock, right_drag_state);
+	glfw_register_drag_event<_type>(a_window, EventCode::middle_mouse, EventModifier::num_lock, middle_drag_state);
 }
 
 template <class _instance, class _surface>

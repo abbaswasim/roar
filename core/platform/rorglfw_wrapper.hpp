@@ -53,6 +53,7 @@ GLFWwindow *glfw_create_window(std::string a_window_title, int a_width, int a_he
 
 EventCode     glfw_key_to_event_code(int a_key);
 EventCode     glfw_button_to_event_code(int a_button);
+int           glfw_event_code_to_button(EventCode a_code);
 EventModifier glfw_mode_to_event_modifier(int a_mode);
 EventModifier glfw_flag_to_event_modifier(int a_flag);
 EventModifier glfw_window_modifier_state(GLFWwindow *a_window);
@@ -83,7 +84,7 @@ template <class _type>
 void glfw_file_drop_callback(GLFWwindow *a_window, int a_count, const char **a_paths);
 
 template <class _type>
-void glfw_register_drag_event(GLFWwindow *a_window, EventModifier a_mouse_button);
+void glfw_register_drag_event(GLFWwindow *a_window, EventCode a_mouse_button, EventModifier a_modifier);
 template <class _type>
 void glfw_register_for_global_events(GLFWwindow *a_window);
 

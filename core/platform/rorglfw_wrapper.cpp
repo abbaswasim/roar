@@ -223,6 +223,19 @@ EventCode glfw_button_to_event_code(int a_button)
 	return {};
 }
 
+int glfw_event_code_to_button(EventCode a_code)
+{
+	// clang-format off
+	if (a_code == EventCode::left_mouse)
+		return GLFW_MOUSE_BUTTON_LEFT;
+	else if (a_code == EventCode::right_mouse)
+		return GLFW_MOUSE_BUTTON_RIGHT;
+	else if (a_code == EventCode::middle_mouse)
+		return GLFW_MOUSE_BUTTON_MIDDLE;
+	// clang-format on
+	return -1;
+}
+
 EventModifier glfw_window_modifier_state(GLFWwindow *a_window)
 {
 	auto krd = glfwGetKey(a_window, GLFW_KEY_RIGHT_SUPER);
