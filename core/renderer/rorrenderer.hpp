@@ -69,37 +69,35 @@ struct DebugData
 class Renderer final : public Configuration<Renderer>
 {
   public:
-	using FrameGraph = std::unordered_map<std::string, std::vector<rhi::Renderpass>>;
+	using FrameGraph    = std::unordered_map<std::string, std::vector<rhi::Renderpass>>;
+	using RenderpassVec = std::vector<rhi::RenderpassType>;
 
-	// FORCE_INLINE           Renderer()                             = default;        //! Default constructor
 	FORCE_INLINE           Renderer(const Renderer &a_other)      = delete;         //! Copy constructor
 	FORCE_INLINE           Renderer(Renderer &&a_other) noexcept  = delete;         //! Move constructor
 	FORCE_INLINE Renderer &operator=(const Renderer &a_other)     = delete;         //! Copy assignment operator
 	FORCE_INLINE Renderer &operator=(Renderer &&a_other) noexcept = delete;         //! Move assignment operator
 	FORCE_INLINE virtual ~Renderer() noexcept override            = default;        //! Destructor
 
-	FORCE_INLINE                     Renderer();        //! Default constructor
-	void                             render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer);
-	void                             load_specific();
-	void                             upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSystem &a_event_system, const ror::Vector4f &a_dimensions, rhi::BuffersPack &a_buffer_pack);
-	void                             upload_frame_graphs(rhi::Device &a_device);
-	void                             upload_environments(rhi::Device &a_device);
-	void                             cycle_environment();
-	std::vector<rhi::RenderpassType> render_pass_types() const;
-	void                             scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene);
-	void                             dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device);
-	void                             set_modifier_events(ror::EventSystem &a_event_system);
-	void                             reset_sets_bindings();
-	void                             set_render_mode(uint32_t a_render_mode);
-	int32_t                          brdf_integration_lut_index(std::string a_name = "brdf_integration_lut");
-	void                             push_shader_update_candidate(std::string a_shader);
-	void                             push_shader_record(rhi::Shader &a_shader, int32_t a_shader_id);
-	void                             push_dependent_shader_record(rhi::Shader &a_shader, int32_t a_shader_id, std::string a_name);
-	void                             get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const;
-	void                             update_per_view_uniform(const ror::Matrix4f &a_view, const ror::Matrix4f &a_projection, const ror::Vector4ui &a_viewport, const ror::Vector3f &a_eye);
-	void                             update_cascade_per_view_uniform(uint32_t a_cascade_index);
-
-	// void                             add_shader_buffer(std::string a_name, rhi::ShaderInput &&a_shader_buffer);
+	FORCE_INLINE  Renderer();        //! Default constructor
+	void          render(ror::Scene &a_scene, ror::JobSystem &a_job_system, ror::EventSystem &a_event_system, rhi::BuffersPack &a_buffer_pack, rhi::Device &a_device, ror::Timer &a_timer);
+	void          load_specific();
+	void          upload(rhi::Device &a_device, ror::Scene &a_scene, ror::EventSystem &a_event_system, const ror::Vector4f &a_dimensions, rhi::BuffersPack &a_buffer_pack);
+	void          upload_frame_graphs(rhi::Device &a_device);
+	void          upload_environments(rhi::Device &a_device);
+	void          cycle_environment();
+	RenderpassVec render_pass_types() const;
+	void          scene_buffers_upload(rhi::Device &a_device, ror::Scene &a_scene);
+	void          dimensions(const ror::Vector4f &a_dimensions, rhi::Device &a_device);
+	void          set_modifier_events(ror::EventSystem &a_event_system);
+	void          reset_sets_bindings();
+	void          set_render_mode(uint32_t a_render_mode);
+	int32_t       brdf_integration_lut_index(std::string a_name = "brdf_integration_lut");
+	void          push_shader_update_candidate(std::string a_shader);
+	void          push_shader_record(rhi::Shader &a_shader, int32_t a_shader_id);
+	void          push_dependent_shader_record(rhi::Shader &a_shader, int32_t a_shader_id, std::string a_name);
+	void          get_final_pass_subpass(rhi::Renderpass **a_pass, rhi::Rendersubpass **a_subpass) const;
+	void          update_per_view_uniform(const ror::Matrix4f &a_view, const ror::Matrix4f &a_projection, const ror::Vector4ui &a_viewport, const ror::Vector3f &a_eye);
+	void          update_cascade_per_view_uniform(uint32_t a_cascade_index);
 
 	// clang-format off
 	FORCE_INLINE constexpr auto &buffers()                      noexcept { return this->m_buffers;                         }
@@ -145,8 +143,6 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr auto &vertex_descriptors(size_t a_index)                                const noexcept  { return this->m_vertex_descriptors[a_index];                                            }
 	FORCE_INLINE constexpr auto &vertex_descriptors()                                              const noexcept  { return this->m_vertex_descriptors;                                                     }
 	FORCE_INLINE constexpr auto &vertex_descriptors()                                                    noexcept  { return this->m_vertex_descriptors;                                                     }
-	FORCE_INLINE constexpr auto &pick_target()                                                     const noexcept  { return this->m_pickables.target(static_cast<uint32_t>(this->current_frame_index()));   }
-	FORCE_INLINE constexpr auto &pick_target()                                                           noexcept  { return this->m_pickables.target(static_cast<uint32_t>(this->current_frame_index()));   }
 	FORCE_INLINE           auto &current_environment()                                             const noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];  }
 	FORCE_INLINE           auto &current_environment()                                                   noexcept  { return this->m_environments[static_cast_safe<uint32_t>(this->m_current_environment)];  }
 
@@ -158,38 +154,13 @@ class Renderer final : public Configuration<Renderer>
 	FORCE_INLINE constexpr void subpass_index(size_t                               a_pass_index)          noexcept { this->m_subpass_index = a_pass_index;                                                   }
 	FORCE_INLINE constexpr void next_renderpass()                                                         noexcept { this->m_renderpass_index = (this->m_renderpass_index + 1) % this->m_renderpasses_count; }
 	FORCE_INLINE constexpr void next_subpass()                                                            noexcept { this->m_subpass_index = (this->m_subpass_index + 1) % this->m_subpasses_count;          }
-	// FORCE_INLINE constexpr void current_frame_graph(std::vector<rhi::Renderpass>  *a_current_frame_graph) noexcept { this->m_current_frame_graph = a_current_frame_graph; }
+	FORCE_INLINE constexpr void signal_pick()                                                             noexcept { this->m_pick_queue = ror::max_frames_in_flight;                                         }
 	// clang-format on
 
-	FORCE_INLINE auto calculate_shader_buffer_index(rhi::ShaderBufferFrequency a_frequency) const
-	{
-		size_t frequency{0};
-
-		if (a_frequency == rhi::ShaderBufferFrequency::constant)
-			frequency = 0;
-		else if (a_frequency == rhi::ShaderBufferFrequency::per_view)
-			frequency = this->m_renderpass_index + this->m_frames.current_frame_index() * this->m_renderpasses_count;
-		else if (a_frequency == rhi::ShaderBufferFrequency::per_frame)
-			frequency = this->m_frames.current_frame_index();
-
-		return frequency;
-	}
-
-	FORCE_INLINE auto calculate_shader_buffer_index(const rhi::ShaderBuffer &a_shader_buffer) const
-	{
-		auto frequency = a_shader_buffer.frequency();
-
-		return calculate_shader_buffer_index(frequency);
-	}
-
-	FORCE_INLINE auto shader_buffer(const std::string &a_name) const
-	{
-		auto   shader_buffers = this->m_buffers_mapping.at(a_name);
-		auto   shader_buffer  = &(*shader_buffers)[0];                                // Get shader buffer at first index, there must be one there
-		size_t frequency      = calculate_shader_buffer_index(*shader_buffer);        // Now get the real frequency/index depending on which frame and which renderpass
-
-		return &(*shader_buffers)[frequency];
-	}
+	FORCE_INLINE constexpr auto picking_available() noexcept;
+	FORCE_INLINE auto           calculate_shader_buffer_index(rhi::ShaderBufferFrequency a_frequency) const;
+	FORCE_INLINE auto           calculate_shader_buffer_index(const rhi::ShaderBuffer &a_shader_buffer) const;
+	FORCE_INLINE auto           shader_buffer(const std::string &a_name) const;
 
 	using InputRenderTargets = std::vector<rhi::RenderTarget, rhi::BufferAllocator<rhi::RenderTarget>>;
 	using InputBufferTargets = std::vector<rhi::RenderBuffer, rhi::BufferAllocator<rhi::RenderBuffer>>;
@@ -202,6 +173,7 @@ class Renderer final : public Configuration<Renderer>
 	rhi::TextureImage *m_irradiance_patch_ti{nullptr};
 	rhi::TextureImage *m_radiance_patch_ti{nullptr};
 
+	void                     toggle_selection(ror::NodeData *a_node);
 	void                     upload_debug_geometry(const rhi::Device &a_device, ror::EventSystem &a_event_system);
 	void                     update_frustums_geometry(const ror::OrbitCamera &a_camera);
 	const rhi::Texture      *get_render_target_texture(const rhi::Renderpass &a_pass, const rhi::Rendersubpass &a_subpass, uint32_t a_render_target_index) const;
@@ -226,9 +198,8 @@ class Renderer final : public Configuration<Renderer>
 	void                             generate_shader_buffers_mapping();
 	void                             generate_shader_callbacks_mapping();
 
-	void upload_remaining_textures(rhi::Device &a_device);
-	void upload_samplers(rhi::Device &a_device);
-
+	void     upload_remaining_textures(rhi::Device &a_device);
+	void     upload_samplers(rhi::Device &a_device);
 	void     install_input_handlers(ror::EventSystem &a_event_system);
 	void     uninstall_input_handlers(ror::EventSystem &a_event_system);
 	void     update_shader(rhi::Device &a_device, std::string &a_shader);
